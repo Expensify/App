@@ -1,7 +1,5 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,27 +7,23 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
+import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: reimbursementAccountPropTypes,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
     ...subStepPropTypes,
 };
 
 const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
 };
 
 const validate = (values) => {
@@ -43,16 +37,34 @@ const validate = (values) => {
         errors.certifyTrueInformation = 'completeVerificationStep.certifyTrueAndAccurateError';
     }
 
-    if (!ValidationUtils.isRequiredFulfilled(values.isControllingOfficer)) {
-        errors.isControllingOfficer = 'completeVerificationStep.isControllingOfficerError';
+    if (!ValidationUtils.isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
+        errors.isAuthorizedToUseBankAccount = 'completeVerificationStep.isAuthorizedToUseBankAccountError';
     }
 
     return errors;
 };
 
-function ConfirmAgreements() {
+const completeVerificationKeys = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+
+function ConfirmAgreements({onNext, reimbursementAccount}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const defaultValues = useMemo(
+        () => ({
+            [completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: getDefaultValueForReimbursementAccountField(
+                reimbursementAccount,
+                completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
+                false,
+            ),
+            [completeVerificationKeys.CERTIFY_TRUE_INFORMATION]: getDefaultValueForReimbursementAccountField(reimbursementAccount, completeVerificationKeys.CERTIFY_TRUE_INFORMATION, false),
+            [completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS]: getDefaultValueForReimbursementAccountField(
+                reimbursementAccount,
+                completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS,
+                false,
+            ),
+        }),
+        [reimbursementAccount],
+    );
 
     return (
         <ScreenWrapper
@@ -64,32 +76,32 @@ function ConfirmAgreements() {
             <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
-                onSubmit={() => {}}
+                onSubmit={onNext}
                 submitButtonText={translate('common.saveAndContinue')}
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
-                    accessibilityLabel={translate('completeVerificationStep.isControllingOfficer')}
-                    inputID="isControllingOfficer"
+                    accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
+                    inputID={completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
                     style={styles.mt4}
-                    LabelComponent={() => <Text>{translate('completeVerificationStep.isControllingOfficer')}</Text>}
-                    defaultValue={false}
+                    LabelComponent={() => <Text>{translate('completeVerificationStep.isAuthorizedToUseBankAccount')}</Text>}
+                    defaultValue={defaultValues[completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]}
                     shouldSaveDraft
                 />
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
-                    inputID="certifyTrueInformation"
+                    inputID={completeVerificationKeys.CERTIFY_TRUE_INFORMATION}
                     style={styles.mt4}
                     LabelComponent={() => <Text>{translate('completeVerificationStep.certifyTrueAndAccurate')}</Text>}
-                    defaultValue={false}
+                    defaultValue={defaultValues[completeVerificationKeys.CERTIFY_TRUE_INFORMATION]}
                     shouldSaveDraft
                 />
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
-                    inputID="acceptTermsAndConditions"
+                    inputID={completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS}
                     style={styles.mt4}
                     LabelComponent={() => (
                         <Text>
@@ -97,7 +109,7 @@ function ConfirmAgreements() {
                             <TextLink href="https://use.expensify.com/achterms">{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
                         </Text>
                     )}
-                    defaultValue={false}
+                    defaultValue={defaultValues[completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS]}
                     shouldSaveDraft
                 />
             </FormProvider>
@@ -112,8 +124,5 @@ ConfirmAgreements.defaultProps = defaultProps;
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    reimbursementAccountDraft: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(ConfirmAgreements);

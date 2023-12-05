@@ -1535,8 +1535,8 @@ export default {
         confirmAgreements: 'Please confirm the agreements below.',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
         certifyTrueAndAccurateError: 'Must certify information is true and accurate',
-        isControllingOfficer: 'I am authorized to use my company bank account for business spend',
-        isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
+        isAuthorizedToUseBankAccount: 'I am authorized to use my company bank account for business spend',
+        isAuthorizedToUseBankAccountError: 'You must be a controlling officer with authorization to operate the business bank account.',
         termsAndConditions: 'terms and conditions',
     },
     reimbursementAccountLoadingAnimation: {

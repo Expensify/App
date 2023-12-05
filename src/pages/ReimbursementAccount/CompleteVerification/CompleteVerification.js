@@ -50,7 +50,17 @@ const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAcc
             ...values,
         };
 
-        BankAccounts.updatePersonalInformationForBankAccount(payload);
+        // TODO mocked fieldsFrom UBO step should be replaced by real one
+        const tempValues = {
+            ownsMoreThan25Percent: false,
+            hasOtherBeneficialOwners: false,
+            beneficialOwners: '[]',
+        };
+
+        BankAccounts.updateBeneficialOwnersForBankAccount({
+            ...tempValues,
+            ...payload,
+        });
     }, [reimbursementAccount, values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});

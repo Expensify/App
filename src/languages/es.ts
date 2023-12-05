@@ -1554,13 +1554,14 @@ export default {
         },
     },
     completeVerificationStep: {
+        // TODO -bart- check translations
         completeVerification: 'Complete verification',
         confirmAgreements: 'Please confirm the agreements below.',
-        certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
-        certifyTrueAndAccurateError: 'Must certify information is true and accurate',
-        isControllingOfficer: 'I am authorized to use my company bank account for business spend',
-        isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
-        termsAndConditions: 'terms and conditions',
+        certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
+        certifyTrueAndAccurateError: 'Debe certificar que la información es verdadera y precisa',
+        isAuthorizedToUseBankAccount: 'Estoy autorizado a utilizar la cuenta bancaria de mi compañía para gastos de empresa',
+        isAuthorizedToUseBankAccountError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
+        termsAndConditions: 'Términos y condiciones',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
