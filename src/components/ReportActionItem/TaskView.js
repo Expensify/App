@@ -46,8 +46,8 @@ const propTypes = {
 };
 
 function TaskView(props) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     useEffect(() => {
         Task.setTaskReport({...props.report});
     }, [props.report]);
