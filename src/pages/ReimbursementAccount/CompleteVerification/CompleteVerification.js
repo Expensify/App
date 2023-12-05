@@ -37,20 +37,30 @@ const defaultProps = {
 };
 
 const bodyContent = [ConfirmAgreements];
-const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const completeVerificationKeys = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
 
 const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}, ref) => {
     const {translate} = useLocalize();
 
-    const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(completeVerificationKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKeys.BANK_ACCOUNT_ID, 0),
+            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, completeVerificationKeys.BANK_ACCOUNT_ID, 0),
             ...values,
         };
 
-        BankAccounts.updatePersonalInformationForBankAccount(payload);
+        // TODO mocked fieldsFrom UBO step should be replaced by real one
+        const tempValues = {
+            ownsMoreThan25Percent: false,
+            hasOtherBeneficialOwners: false,
+            beneficialOwners: '[]',
+        };
+
+        BankAccounts.updateBeneficialOwnersForBankAccount({
+            ...tempValues,
+            ...payload,
+        });
     }, [reimbursementAccount, values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
