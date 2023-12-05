@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -91,13 +91,23 @@ function PurposeForUsingExpensifyModal() {
             '<br />' +
             'This will send a money request to each of your friends for however much they owe you, and we\'ll take care of getting you paid back. Thanks for asking, and let me know how it goes!',
     }
+
+    const closeModal = useCallback(() => {
+        setIsModalOpen(false);
+    }, []);
+
+    const completeModalAndClose = (message, choice) => {
+        Report.completeEngagementModal(message, choice);
+        closeModal();
+    }
+
     const menuItems = [
         {
             key: 'purposeForExpensify.track',
             title: translate('purposeForExpensify.track'),
             icon: Expensicons.ReceiptSearch,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => Report.completeEngagementModal(messageCopy.track, 'trackNewDot'),
+            onPress: () => completeModalAndClose(messageCopy.track, 'trackNewDot'),
             shouldShowRightIcon: true,
         },
         {
@@ -105,7 +115,7 @@ function PurposeForUsingExpensifyModal() {
             title: translate('purposeForExpensify.submit'),
             icon: Expensicons.Scan,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => Report.completeEngagementModal(messageCopy.submit, 'submitNewDot'),
+            onPress: () => completeModalAndClose(messageCopy.submit, 'submitNewDot'),
             shouldShowRightIcon: true,
         },
         {
@@ -113,7 +123,7 @@ function PurposeForUsingExpensifyModal() {
             title: translate('purposeForExpensify.business'),
             icon: Expensicons.MoneyBag,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => Report.completeEngagementModal(messageCopy.business, 'businessNewDot'),
+            onPress: () => completeModalAndClose(messageCopy.business, 'businessNewDot'),
             shouldShowRightIcon: true,
         },
         {
@@ -121,7 +131,7 @@ function PurposeForUsingExpensifyModal() {
             title: translate('purposeForExpensify.chatSplit'),
             icon: Expensicons.Briefcase,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => Report.completeEngagementModal(messageCopy.chatSplit, 'chatSplitNewDot'),
+            onPress: () => completeModalAndClose(messageCopy.chatSplit, 'chatSplitNewDot'),
             shouldShowRightIcon: true,
         },
     ];
@@ -131,7 +141,7 @@ function PurposeForUsingExpensifyModal() {
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isModalOpen}
             fullscreen
-            onClose={() => setIsModalOpen(false)}
+            onClose={closeModal}
         >
             <View>
                 <HeaderWithBackButton
