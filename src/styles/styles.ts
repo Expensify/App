@@ -1381,6 +1381,7 @@ const styles = (theme: ThemeColors) =>
         breadcrumb: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeh1,
+            lineHeight: variables.lineHeightSizeh1,
             ...headlineFont,
         },
 
@@ -1396,7 +1397,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumbLogo: {
-            paddingTop: 1, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
+            paddingTop: 3, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
         },
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
