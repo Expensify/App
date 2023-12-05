@@ -6,7 +6,7 @@ import styles from '@styles/styles';
  * @param themeStyles - The styles object
  * @returns The screen options object
  */
-const RHPScreenOptions = (themeStyles: typeof styles): StackNavigationOptions => ({
+const ModalNavigatorScreenOptions = (themeStyles: typeof styles): StackNavigationOptions => ({
     headerShown: false,
     animationEnabled: true,
     gestureDirection: 'horizontal',
@@ -14,4 +14,4 @@ const RHPScreenOptions = (themeStyles: typeof styles): StackNavigationOptions =>
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 });
 
-export default RHPScreenOptions;
+export default ModalNavigatorScreenOptions;

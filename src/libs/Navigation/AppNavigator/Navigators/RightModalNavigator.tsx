@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -17,7 +17,7 @@ const Stack = createStackNavigator<RightModalNavigatorParamList>();
 function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => RHPScreenOptions(styles), [styles]);
+    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
 
     return (
         <NoDropZone>
