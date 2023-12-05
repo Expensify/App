@@ -1,7 +1,7 @@
 import {PortalProvider} from '@gorhom/portal';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {LogBox} from 'react-native';
-import PropTypes from 'prop-types';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
@@ -38,7 +38,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    url: null
+    url: null,
 };
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
