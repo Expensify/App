@@ -137,6 +137,7 @@ export default {
     signInLogoHeight: 34,
     signInLogoWidth: 120,
     signInLogoWidthLargeScreen: 144,
+    signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
