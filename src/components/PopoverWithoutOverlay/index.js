@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -114,7 +115,7 @@ function Popover(props) {
                 }}
                 ref={props.forwardedRef}
             >
-                {props.children}
+                <ColorSchemeWrapper>{props.children}</ColorSchemeWrapper>
             </View>
         </View>
     );
