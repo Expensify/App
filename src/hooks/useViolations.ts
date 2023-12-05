@@ -57,10 +57,10 @@ function useViolations(violations: TransactionViolation[]) {
             violationGroups.set(field, [...existingViolations, violation]);
         }
 
-        return violationGroups;
+        return violationGroups ?? new Map();
     }, [violations]);
 
-    const hasViolations = useCallback((field: ViolationField) => Boolean(violationsByField.get(field)?.length > 0), [violationsByField]);
+    const hasViolations = useCallback((field: ViolationField) => Boolean(violationsByField.get(field)?.length), [violationsByField]);
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
@@ -69,4 +69,4 @@ function useViolations(violations: TransactionViolation[]) {
     };
 }
 
-export {useViolations, violationFields};
+export default useViolations;
