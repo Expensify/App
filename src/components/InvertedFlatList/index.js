@@ -16,6 +16,9 @@ const propTypes = {
 
     /** Same as for FlatList */
     onScroll: PropTypes.func,
+
+    /** Handler called when the scroll actions ends */
+    onScrollEnd: PropTypes.func,
 };
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
@@ -62,6 +65,8 @@ function InvertedFlatList(props) {
     const onScrollEnd = () => {
         eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
         updateInProgress.current = false;
+
+        props.onScrollEnd();
     };
 
     /**
@@ -116,6 +121,7 @@ InvertedFlatList.propTypes = propTypes;
 InvertedFlatList.defaultProps = {
     contentContainerStyle: {},
     onScroll: () => {},
+    onScrollEnd: () => {},
 };
 InvertedFlatList.displayName = 'InvertedFlatList';
 

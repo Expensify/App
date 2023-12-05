@@ -309,7 +309,6 @@ function ReportActionsList({
 
     const trackVerticalScrolling = (event) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
-        handleUnreadFloatingButton();
         onScroll(event);
     };
 
@@ -485,6 +484,7 @@ function ReportActionsList({
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
+                    onScrollEnd={handleUnreadFloatingButton}
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
                 />
