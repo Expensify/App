@@ -1679,6 +1679,8 @@ export default {
         markAsIncomplete: 'Mark as incomplete',
         assigneeError: 'There was an error assigning this task, please try another assignee.',
         genericCreateTaskFailureMessage: 'Unexpected error create task, please try again later.',
+        cancelTask: 'Cancel task',
+        cancelConfirmation: 'Are you sure that you want to cancel this task?',
     },
     statementPage: {
         title: (year, monthName) => `${monthName} ${year} statement`,
