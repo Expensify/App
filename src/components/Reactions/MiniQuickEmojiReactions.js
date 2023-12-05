@@ -56,8 +56,8 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function MiniQuickEmojiReactions(props) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const ref = useRef();
 
     const openEmojiPicker = () => {
