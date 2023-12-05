@@ -19,6 +19,7 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getGroupChatName} from '@libs/GroupChatUtils';
@@ -80,6 +81,7 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
+    const [isCancelTaskConfirmModalVisible, setIsCancelTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -128,7 +130,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.cancel'),
-                onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
+                onSelected: () => setIsCancelTaskConfirmModalVisible(true),
             });
         }
     }
@@ -283,6 +285,19 @@ function HeaderView(props) {
                                 )}
                             </View>
                         </View>
+                        <ConfirmModal
+                            isVisible={isCancelTaskConfirmModalVisible}
+                            onConfirm={() => {
+                                setIsCancelTaskConfirmModalVisible(false);
+                                Session.checkIfActionIsAllowed(Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum));
+                            }}
+                            onCancel={() => setIsCancelTaskConfirmModalVisible(false)}
+                            title={translate('task.cancelTask')}
+                            prompt={translate('task.cancelConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
                     </>
                 )}
             </View>
