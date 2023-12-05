@@ -193,7 +193,13 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 />
             ) : (
                 // _.map(workspaces, (item, index) => getMenuItem(item, index))
-                _.map(workspaces, (item) => <WorkspacesListRow title={item.title} />)
+                _.map(workspaces, (item) => (
+                    <WorkspacesListRow
+                        title={item.title}
+                        icon={item.icon}
+                        fallbackIcon={item.fallbackIcon}
+                    />
+                ))
             )}
         </View>
     );
