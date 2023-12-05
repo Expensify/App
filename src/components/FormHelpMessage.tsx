@@ -4,14 +4,13 @@ import {StyleProp, View, ViewStyle} from 'react-native';
 import * as Localize from '@libs/Localize';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-import {ErrorsList} from '@src/libs/ErrorUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type FormHelpMessageProps = {
     /** Error or hint text. Ignored when children is not empty */
-    message?: string | [string, ErrorsList];
+    message?: Localize.MaybePhraseKey;
 
     /** Children to render next to dot indicator */
     children?: React.ReactNode;
