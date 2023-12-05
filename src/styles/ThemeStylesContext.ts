@@ -1,5 +1,5 @@
 import React from 'react';
-import {ThemeStyles} from './styles';
+import defaultStyles, {ThemeStyles} from './styles';
 import {ThemeStyleUtilsType} from './utils/ThemeStyleUtils';
 
 type ThemeStylesContextType = {
@@ -7,7 +7,16 @@ type ThemeStylesContextType = {
     ThemeStyleUtils: ThemeStyleUtilsType;
 };
 
-const ThemeStylesContext = React.createContext<ThemeStylesContextType | undefined>(undefined);
+const defaultThemeStyles = new Proxy(
+    {},
+    {
+        get() {
+            return () => undefined;
+        },
+    },
+);
+
+const ThemeStylesContext = React.createContext<ThemeStylesContextType | undefined>({styles: defaultStyles, ThemeStyleUtils: defaultThemeStyles as ThemeStyleUtilsType});
 
 export default ThemeStylesContext;
 export {type ThemeStylesContextType};
