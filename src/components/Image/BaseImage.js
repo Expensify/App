@@ -24,5 +24,6 @@ function BaseImage({onLoad, ...props}) {
 
 BaseImage.propTypes = imagePropTypes;
 BaseImage.defaultProps = defaultProps;
+BaseImage.displayName = 'BaseImage';
 
 export default BaseImage;
