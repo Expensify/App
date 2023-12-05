@@ -1,5 +1,8 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useContext, useEffect} from 'react';
+import {NativeModules} from 'react-native';
+import Navigation from '@libs/Navigation/Navigation';
+import InitialUrlContext from '@src/InitialUrlContext';
 
 const propTypes = {
     /** If we have an authToken this is true */
@@ -7,6 +10,18 @@ const propTypes = {
 };
 
 function AppNavigator(props) {
+    const initUrl = useContext(InitialUrlContext);
+
+    useEffect(() => {
+        if (!NativeModules.ReactNativeModule) {
+            return;
+        }
+
+        Navigation.isNavigationReady().then(() => {
+            Navigation.navigate(initUrl);
+        });
+    }, [initUrl]);
+
     if (props.authenticated) {
         const AuthScreens = require('./AuthScreens').default;
 

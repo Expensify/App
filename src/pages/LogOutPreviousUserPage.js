@@ -1,12 +1,14 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
-import {Linking} from 'react-native';
+import React, {useContext, useEffect} from 'react';
+import {Linking, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import InitialUrlContext from '@src/InitialUrlContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -33,10 +35,12 @@ const defaultProps = {
 };
 
 function LogOutPreviousUserPage(props) {
+    const initUrl = useContext(InitialUrlContext);
     useEffect(() => {
-        Linking.getInitialURL().then((transitionURL) => {
+        Linking.getInitialURL().then((url) => {
             const sessionEmail = props.session.email;
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
+            const transitionUrl = NativeModules.ReactNativeModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionUrl, sessionEmail);
 
             if (isLoggingInAsNewUser) {
                 Session.signOutAndRedirectToSignIn();
@@ -60,7 +64,7 @@ function LogOutPreviousUserPage(props) {
                 });
             }
         });
-    }, [props]);
+    }, [initUrl, props]);
 
     return <FullScreenLoadingIndicator />;
 }

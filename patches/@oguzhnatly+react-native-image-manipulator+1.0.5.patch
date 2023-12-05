@@ -7,13 +7,13 @@ index 3a1a548..fe030bb 100644
  
  android {
 -    compileSdkVersion 28
-+    compileSdkVersion 30
++    compileSdkVersion 33
      buildToolsVersion "28.0.3"
  
      defaultConfig {
          minSdkVersion 16
 -        targetSdkVersion 28
-+        targetSdkVersion 30
++        targetSdkVersion 33
          versionCode 1
          versionName "1.0"
      }

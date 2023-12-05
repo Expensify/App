@@ -155,7 +155,7 @@
     "react-native-tab-view": "^3.5.2",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-view-shot": "^3.6.0",
-    "react-native-vision-camera": "^2.16.2",
+    "react-native-vision-camera": "2.16.5",
     "react-native-web": "^0.19.9",
     "react-native-web-linear-gradient": "^1.1.2",
     "react-native-webview": "^11.17.2",

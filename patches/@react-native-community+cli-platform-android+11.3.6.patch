@@ -1,0 +1,57 @@
+diff --git a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
+index 8a218d5..8deb9c0 100644
+--- a/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
++++ b/node_modules/@react-native-community/cli-platform-android/native_modules.gradle
+@@ -140,6 +140,7 @@ class ReactNativeModules {
+   private Logger logger
+   private String packageName
+   private File root
++  private File rnRoot
+   private ArrayList<HashMap<String, String>> reactNativeModules
+   private ArrayList<String> unstable_reactLegacyComponentNames
+   private HashMap<String, ArrayList> reactNativeModulesBuildVariants
+@@ -147,8 +148,13 @@ class ReactNativeModules {
+   private static String LOG_PREFIX = ":ReactNative:"
+ 
+   ReactNativeModules(Logger logger, File root) {
++    this(logger, root, root)
++  }
++
++  ReactNativeModules(Logger logger, File root, File rnRoot) {
+     this.logger = logger
+     this.root = root
++    this.rnRoot = rnRoot
+ 
+     def (nativeModules, reactNativeModulesBuildVariants, androidProject) = this.getReactNativeConfig()
+     this.reactNativeModules = nativeModules
+@@ -413,11 +419,12 @@ class ReactNativeModules {
+      * @todo: `fastlane` has been reported to not work too.
+      */
+     def cliResolveScript = "try {console.log(require('@react-native-community/cli').bin);} catch (e) {console.log(require('react-native/cli').bin);}"
++
+     String[] nodeCommand = ["node", "-e", cliResolveScript]
+-    def cliPath = this.getCommandOutput(nodeCommand, this.root)
++    def cliPath = this.getCommandOutput(nodeCommand, this.rnRoot)
+ 
+     String[] reactNativeConfigCommand = ["node", cliPath, "config"]
+-    def reactNativeConfigOutput = this.getCommandOutput(reactNativeConfigCommand, this.root)
++    def reactNativeConfigOutput = this.getCommandOutput(reactNativeConfigCommand, this.rnRoot)
+ 
+     def json
+     try {
+@@ -482,8 +489,14 @@ class ReactNativeModules {
+  * where build files of an active project are located.
+  */
+ def projectRoot = rootProject.projectDir
++def autoModules
++
++if(this.hasProperty('reactNativeProject')){
++  autoModules = new ReactNativeModules(logger, projectRoot, new File(projectRoot, reactNativeProject))
++} else {
++  autoModules = new ReactNativeModules(logger, projectRoot)
++}
+ 
+-def autoModules = new ReactNativeModules(logger, projectRoot)
+ 
+ /** -----------------------
+  *    Exported Extensions
