@@ -1978,6 +1978,23 @@ function editMoneyRequest(transaction, transactionThreadReportID, transactionCha
 }
 
 /**
+ * Updates the created date of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} currency
+ * @param {Number} amount
+ */
+function updateMoneyRequestAmountOrCurrency(transactionID, transactionThreadReportID, currency, amount) {
+    const transactionChanges = {
+        amount,
+        currency,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestAmountOrCurrency', params, onyxData);
+}
+
+/**
  * @param {String} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
