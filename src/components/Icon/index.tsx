@@ -62,14 +62,14 @@ class Icon extends PureComponent<IconProps> {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, this.props.styles.pAbsolute, this.props.additionalStyles];
+        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, this.props.themeStyles.pAbsolute, this.props.additionalStyles];
         const fill = this.props.fill ?? this.props.theme.icon;
 
         if (this.props.inline) {
             return (
                 <View
                     testID={`${this.props.src.name} Icon`}
-                    style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), this.props.styles.bgTransparent, this.props.styles.overflowVisible]}
+                    style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), this.props.themeStyles.bgTransparent, this.props.themeStyles.overflowVisible]}
                 >
                     <View style={iconStyles}>
                         <this.props.src
