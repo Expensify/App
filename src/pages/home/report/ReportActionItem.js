@@ -678,7 +678,7 @@ function ReportActionItem(props) {
         >
             <Hoverable
                 shouldHandleScroll
-                isDisabled={Boolean(props.draftMessage)}
+                disabled={Boolean(props.draftMessage)}
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>

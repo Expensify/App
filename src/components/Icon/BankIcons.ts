@@ -58,6 +58,9 @@ function getIcon(bankNameKey: BankNameKey, isCard: boolean): IconAsset {
         [CONST.BANK_NAMES.HUNTINGTON_BANK]: isCard
             ? (require('@assets/images/cardicons/huntington-bank.svg').default as IconAsset)
             : (require('@assets/images/bankicons/huntington-bank.svg').default as IconAsset),
+        [CONST.BANK_NAMES.HUNTINGTON_NATIONAL]: isCard
+            ? (require('@assets/images/cardicons/huntington-bank.svg').default as IconAsset)
+            : (require('@assets/images/bankicons/huntington-bank.svg').default as IconAsset),
         [CONST.BANK_NAMES.NAVY_FEDERAL_CREDIT_UNION]: isCard
             ? (require('@assets/images/cardicons/navy-federal-credit-union.svg').default as IconAsset)
             : (require('@assets/images/bankicons/navy-federal-credit-union.svg').default as IconAsset),
@@ -81,7 +84,17 @@ function getIcon(bankNameKey: BankNameKey, isCard: boolean): IconAsset {
 }
 
 function getBankNameKey(bankName: string): BankNameKey {
-    const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => value?.toLowerCase() === bankName);
+    const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => {
+        const condensedValue = value.replace(/\s/g, '');
+        return (
+            bankName === value ||
+            bankName.includes(value) ||
+            bankName.startsWith(value) ||
+            bankName === condensedValue ||
+            bankName.includes(condensedValue) ||
+            bankName.startsWith(condensedValue)
+        );
+    });
     return (bank?.[0] as BankNameKey) ?? '';
 }
 

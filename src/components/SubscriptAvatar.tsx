@@ -6,6 +6,7 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
@@ -14,7 +15,7 @@ type SubAvatar = {
     source?: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    type?: AvatarType;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
