@@ -40,7 +40,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 screens: {
                     Search: {
                         screens: {
-                            Search_Root: ROUTES.SEARCH,
+                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
                         },
                     },
                 },
