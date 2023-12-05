@@ -4279,7 +4279,6 @@ export {
     getParentNavigationSubtitle,
     getPolicyName,
     getPolicyType,
-    getPolicyCategories,
     getPolicyTags,
     isArchivedRoom,
     isExpensifyOnlyParticipantInReport,
