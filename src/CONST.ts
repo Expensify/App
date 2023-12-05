@@ -689,6 +689,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
+        RESIZE_DEBOUNCE_TIME: 100,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

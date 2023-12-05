@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, InteractionManager, ScrollView, View} from 'react-native';
+import {ActivityIndicator, Dimensions, InteractionManager, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
@@ -283,8 +283,23 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         if (!shouldListenForResize) {
             return;
         }
-        setMenuPosition();
-    }, [shouldListenForResize, setMenuPosition]);
+        const popoverPositionListener = Dimensions.addEventListener('change', () => {
+            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu) {
+                return;
+            }
+            if (shouldShowAddPaymentMenu) {
+                _.debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+                return;
+            }
+            setMenuPosition();
+        });
+        return () => {
+            if (!popoverPositionListener) {
+                return;
+            }
+            popoverPositionListener.remove();
+        };
+    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, setMenuPosition, shouldListenForResize]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
