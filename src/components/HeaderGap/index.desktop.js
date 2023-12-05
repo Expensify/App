@@ -16,7 +16,7 @@ const defaultProps = {
 };
 
 function HeaderGap(props) {
-    return <View style={[props.styles.headerGap, ...props.styles]} />;
+    return <View style={[props.themeStyles.headerGap, ...props.styles]} />;
 }
 
 HeaderGap.displayName = 'HeaderGap';
