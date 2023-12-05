@@ -30,6 +30,7 @@ function PressableWithSecondaryInteraction(
     if (inline) {
         return (
             <Text
+                // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(rest as TextProps)}
                 suppressHighlighting={suppressHighlighting}
@@ -42,6 +43,7 @@ function PressableWithSecondaryInteraction(
 
     return (
         <PressableWithFeedback
+            // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             ref={ref}

@@ -92,6 +92,7 @@ function PressableWithSecondaryInteraction(
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
+            // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             wrapperStyle={StyleUtils.combineStyles(DeviceCapabilities.canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle)}
