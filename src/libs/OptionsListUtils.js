@@ -413,9 +413,6 @@ function getLastMessageTextForReport(report) {
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
-    } else if (lastChildType === CONST.REPORT.TYPE.TASK) {
-        // This is because for task report action the server sends for e.g '<' while the task title is '<<<test' in the lastMessageText
-        lastMessageTextFromReport = report ? report.lastMessageHtml || '' : '';
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
