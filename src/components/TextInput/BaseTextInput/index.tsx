@@ -110,12 +110,10 @@ function BaseTextInput(
             Animated.parallel([
                 Animated.spring(labelTranslateY, {
                     toValue: translateY,
-                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
                 Animated.spring(labelScale, {
                     toValue: scale,
-                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
             ]).start();
@@ -378,7 +376,10 @@ function BaseTextInput(
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    autoGrowHeight && StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0),
+                                    ...(autoGrowHeight
+                                        ? [StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0), styles.verticalAlignTop]
+                                        : []),
+
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
@@ -411,7 +412,9 @@ function BaseTextInput(
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
-                                    onMouseDown={(e) => e.preventDefault()}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                    }}
                                     accessibilityLabel={inputProps.translate?.('common.visible') ?? ''}
                                 >
                                     <Icon
