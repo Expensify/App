@@ -4,11 +4,11 @@ import React, {useContext, useEffect} from 'react';
 import {Linking, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import InitialUrlContext from '@libs/InitialUrlContext';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import InitialUrlContext from '@libs/InitialUrlContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
