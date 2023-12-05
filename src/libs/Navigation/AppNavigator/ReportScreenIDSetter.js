@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
+import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
@@ -99,6 +100,7 @@ ReportScreenIDSetter.displayName = 'ReportScreenIDSetter';
 export default withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
+        selectors: reportWithoutHasDraftSelector,
         allowStaleData: true,
     },
     policies: {
