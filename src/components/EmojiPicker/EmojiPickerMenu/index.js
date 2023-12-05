@@ -16,7 +16,6 @@ import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -75,11 +74,7 @@ function EmojiPickerMenu(props) {
     function getEmojisAndHeaderRowIndices() {
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojiAssets, (emoji) => emoji.header && emoji.code === 'flags');
-        const filteredEmojis =
-            getOperatingSystem() === CONST.OS.WINDOWS
-                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets.slice(0, flagHeaderIndex))
-                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets);
+        const filteredEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets);
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
@@ -319,7 +314,7 @@ function EmojiPickerMenu(props) {
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (!ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent, searchInputRef)) {
+            if (!ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 setIsUsingKeyboardMovement(true);
                 return;
             }

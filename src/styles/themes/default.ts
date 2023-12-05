@@ -1,4 +1,5 @@
 import colors from '@styles/colors';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import {ThemeColors} from './types';
 
@@ -89,16 +90,47 @@ const darkTheme = {
     // Note that it needs to be a screen name, not a route url.
     // The route urls from ROUTES.ts are only used for deep linking and configuring URLs on web.
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
-    PAGE_BACKGROUND_COLORS: {
-        [SCREENS.HOME]: colors.darkHighlightBackground,
-        [SCREENS.SAVE_THE_WORLD.ROOT]: colors.tangerine800,
-        [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
-        [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
-        [SCREENS.SETTINGS.WALLET]: colors.darkAppBackground,
-        [SCREENS.SETTINGS.SECURITY]: colors.ice500,
-        [SCREENS.SETTINGS.STATUS]: colors.green700,
-        [SCREENS.SETTINGS.ROOT]: colors.darkHighlightBackground,
+    PAGE_THEMES: {
+        [SCREENS.HOME]: {
+            backgroundColor: colors.darkHighlightBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.REPORT]: {
+            backgroundColor: colors.darkAppBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SAVE_THE_WORLD.ROOT]: {
+            backgroundColor: colors.tangerine800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.PREFERENCES]: {
+            backgroundColor: colors.blue500,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.WORKSPACES]: {
+            backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.WALLET]: {
+            backgroundColor: colors.darkAppBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.SECURITY]: {
+            backgroundColor: colors.ice500,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
+        },
+        [SCREENS.SETTINGS.STATUS]: {
+            backgroundColor: colors.green700,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.ROOT]: {
+            backgroundColor: colors.darkHighlightBackground,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
     },
+
+    statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+    colorScheme: CONST.COLOR_SCHEME.DARK,
 } satisfies ThemeColors;
 
 export default darkTheme;
