@@ -1,38 +1,29 @@
-import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as ReportUtils from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+import Navigation, {navigationRef} from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import updateUnread from './updateUnread/index';
 
-let previousUnreadCount = 0;
+let allReports = [];
+
+const triggerUnreadUpdate = () => {
+    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() : '';
+
+    // We want to keep notification count consistent with what can be accessed from the LHN list
+    const unreadReports = _.filter(allReports, (report) => ReportUtils.isUnread(report) && ReportUtils.shouldReportBeInOptionList(report, currentReportID));
+    updateUnread(_.size(unreadReports));
+};
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (reportsFromOnyx) => {
-        if (!reportsFromOnyx) {
-            return;
-        }
-
-        /**
-         * We need to wait until after interactions have finished to update the unread count because otherwise
-         * the unread count will be updated while the interactions/animations are in progress and we don't want
-         * to put more work on the main thread.
-         *
-         * For eg. On web we are manipulating DOM and it makes it a better candidate to wait until after interactions
-         * have finished.
-         *
-         * More info: https://reactnative.dev/docs/interactionmanager
-         */
-        InteractionManager.runAfterInteractions(() => {
-            const unreadReports = _.filter(reportsFromOnyx, (report) => ReportUtils.isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-            const unreadReportsCount = _.size(unreadReports);
-            if (previousUnreadCount !== unreadReportsCount) {
-                previousUnreadCount = unreadReportsCount;
-                updateUnread(unreadReportsCount);
-            }
-        });
+        allReports = reportsFromOnyx;
+        triggerUnreadUpdate();
     },
+});
+
+navigationRef.addListener('state', () => {
+    triggerUnreadUpdate();
 });
