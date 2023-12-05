@@ -1,3 +1,4 @@
+import {OnyxEntry} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OnyxReport from '@src/types/onyx/Report';
@@ -11,7 +12,7 @@ type MenuItem = {
     onSelected: () => void;
 };
 
-function getPinMenuItem(report: OnyxReport): MenuItem {
+function getPinMenuItem(report: OnyxEntry<OnyxReport>): MenuItem {
     const isPinned = report?.isPinned;
     if (!isPinned) {
         return {

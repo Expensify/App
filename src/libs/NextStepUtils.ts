@@ -5,11 +5,12 @@ type Message = {
     type?: string;
 };
 
-function parseMessage(messages: Message[]) {
+function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
 
     messages?.forEach((part) => {
-        const tagType = part.type ?? 'span';
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const tagType = part.type || 'span';
         nextStepHTML += `<${tagType}>${Str.safeEscape(part.text)}</${tagType}>`;
     });
 
