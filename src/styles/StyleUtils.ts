@@ -1377,6 +1377,8 @@ function getDotIndicatorTextStyles(styles: ThemeStyles, isErrorText = true): Tex
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
+export type {AvatarSizeName};
+
 export {
     combineStyles,
     displayIfTrue,
