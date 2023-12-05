@@ -33,7 +33,7 @@ import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
 const propTypes = {
-    /** If we have an authToken this is true */
+    /** Initial url that may be passed as deeplink from Hybrid App */
     url: PropTypes.string,
 };
 
