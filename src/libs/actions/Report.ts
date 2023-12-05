@@ -28,7 +28,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {Route} from '@src/ROUTES';
-import {PersonalDetails, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
+import {PersonalDetails, PersonalDetailsList, ReportActionReactions, ReportUserIsTyping} from '@src/types/onyx';
 import {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Report, {NotificationPreference, WriteCapability} from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -43,7 +43,7 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
-let currentUserAccountID: number;
+let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -56,7 +56,7 @@ Onyx.connect({
     },
 });
 
-let preferredSkinTone: number;
+let preferredSkinTone: number = CONST.EMOJI_DEFAULT_SKIN_TONE;
 Onyx.connect({
     key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     callback: (value) => {
@@ -96,7 +96,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = {};
+let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {

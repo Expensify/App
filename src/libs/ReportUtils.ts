@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
@@ -1404,7 +1404,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
 }
 
 function getDisplayNamesWithTooltips(
-    personalDetailsList: PersonalDetails[] | Record<string, PersonalDetails>,
+    personalDetailsList: PersonalDetails[] | PersonalDetailsList,
     isMultipleParticipantReport: boolean,
     shouldFallbackToHidden = true,
 ): DisplayNameWithTooltips {
@@ -1418,7 +1418,7 @@ function getDisplayNamesWithTooltips(
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user.pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
                 pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
             }
