@@ -1,19 +1,20 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as UserUtils from '@libs/UserUtils';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -57,6 +58,20 @@ const defaultProps = {
 function PrivateNotesListPage({report, personalDetailsList, session}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        const navigateToEditPageTimeout = setTimeout(() => {
+            if (_.some(report.privateNotes, (item) => item.note) || !isFocused) {
+                return;
+            }
+            Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
+        }, CONST.ANIMATED_TRANSITION);
+
+        return () => {
+            clearTimeout(navigateToEditPageTimeout);
+        };
+    }, [report.privateNotes, report.reportID, session.accountID, isFocused]);
 
     /**
      * Gets the menu item for each workspace
@@ -67,7 +82,6 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
      */
     function getMenuItem(item, index) {
         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-
         return (
             <OfflineWithFeedback
                 key={`${keyTitle}_${index}`}
@@ -76,14 +90,16 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
                 onClose={item.dismissError}
                 errors={item.errors}
             >
-                <MenuItem
-                    title={keyTitle}
-                    icon={item.icon}
-                    iconType={CONST.ICON_TYPE_WORKSPACE}
+                <MenuItemWithTopDescription
+                    description={item.title}
+                    title={item.note}
                     onPress={item.action}
-                    shouldShowRightIcon
-                    fallbackIcon={item.fallbackIcon}
+                    shouldShowRightIcon={!item.disabled}
+                    numberOfLinesTitle={0}
+                    shouldRenderAsHTML
                     brickRoadIndicator={item.brickRoadIndicator}
+                    disabled={item.disabled}
+                    shouldGreyOutWhenDisabled={false}
                 />
             </OfflineWithFeedback>
         );
@@ -98,10 +114,10 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
         return _.chain(lodashGet(report, 'privateNotes', {}))
             .map((privateNote, accountID) => ({
                 title: Number(lodashGet(session, 'accountID', null)) === Number(accountID) ? translate('privateNotes.myNote') : lodashGet(personalDetailsList, [accountID, 'login'], ''),
-                icon: UserUtils.getAvatar(lodashGet(personalDetailsList, [accountID, 'avatar'], UserUtils.getDefaultAvatar(accountID)), accountID),
-                iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_VIEW.getRoute(report.reportID, accountID)),
+                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(accountID),
+                note: lodashGet(privateNote, 'note', ''),
+                disabled: Number(session.accountID) !== Number(accountID),
             }))
             .value();
     }, [report, personalDetailsList, session, translate]);
@@ -116,6 +132,7 @@ function PrivateNotesListPage({report, personalDetailsList, session}) {
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
+            <Text style={[styles.mb5, styles.ph5]}>{translate('privateNotes.personalNoteMessage')}</Text>
             <ScrollView contentContainerStyle={styles.flexGrow1}>{_.map(privateNotes, (item, index) => getMenuItem(item, index))}</ScrollView>
         </ScreenWrapper>
     );
@@ -131,6 +148,9 @@ export default compose(
     withOnyx({
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
     withNetwork(),

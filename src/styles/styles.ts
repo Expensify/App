@@ -40,6 +40,9 @@ import wordBreak from './utilities/wordBreak';
 import writingDirection from './utilities/writingDirection';
 import variables from './variables';
 
+type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
+type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
+
 type AnchorPosition = {
     horizontal: number;
     vertical: number;
@@ -1013,7 +1016,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
         },
 
-        textInputDesktop: addOutlineWidth({}, 0),
+        textInputDesktop: addOutlineWidth({}, theme, 0),
 
         textInputIconContainer: {
             paddingHorizontal: 11,
@@ -1130,7 +1133,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.icon,
         },
 
-        noOutline: addOutlineWidth({}, 0),
+        noOutline: addOutlineWidth({}, theme, 0),
 
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -1817,6 +1820,7 @@ const styles = (theme: ThemeColors) =>
                 alignSelf: 'center',
                 verticalAlign: 'middle',
             },
+            theme,
             0,
         ),
 
@@ -1825,6 +1829,11 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             maxHeight: '100%',
             verticalAlign: 'top',
+        },
+
+        textInputCollapseCompose: {
+            maxHeight: '100%',
+            flex: 4,
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
@@ -2638,6 +2647,7 @@ const styles = (theme: ThemeColors) =>
                 padding: 0,
                 lineHeight: undefined,
             },
+            theme,
             0,
         ),
 
@@ -4003,10 +4013,14 @@ const styles = (theme: ThemeColors) =>
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
         },
+
+        colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),
     } satisfies Styles);
+
+type ThemeStyles = ReturnType<typeof styles>;
 
 const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
 export default defaultStyles;
-export {stylesGenerator, type Styles};
+export {stylesGenerator, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
