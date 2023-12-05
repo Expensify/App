@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import FormUtils from '@libs/FormUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -71,6 +71,7 @@ function GetPhysicalCardConfirm({
         params: {domain},
     },
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
@@ -82,7 +83,7 @@ function GetPhysicalCardConfirm({
             submitButtonText={translate('getPhysicalCard.shipCard')}
             title={translate('getPhysicalCard.header')}
         >
-            <Text style={[styles.baseFontStyle, styles.mv5, styles.mh5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
+            <Text style={[styles.baseFontStyle, styles.mb5, styles.mh5]}>{translate('getPhysicalCard.estimatedDeliveryMessage')}</Text>
             <MenuItemWithTopDescription
                 description={translate('getPhysicalCard.legalName')}
                 iconRight={Expensicons.ArrowRight}
