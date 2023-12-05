@@ -201,7 +201,7 @@ describe('test workflow testBuild', () => {
                     web: mocks.TESTBUILD__WEB__STEP_MOCKS,
                     postGithubComment: mocks.TESTBUILD__POSTGITHUBCOMMENT__STEP_MOCKS,
                 };
-                testMockSteps.android[4] = utils.createMockStep('Decrypt keystore', 'Decrypt keystore', 'ANDROID', [], ['LARGE_SECRET_PASSPHRASE'], {}, {}, false);
+                testMockSteps.android[5] = utils.createMockStep('Decrypt keystore', 'Decrypt keystore', 'ANDROID', [], ['LARGE_SECRET_PASSPHRASE'], {}, {}, false);
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'testBuild.yml'),
                     mockSteps: testMockSteps,
@@ -211,7 +211,7 @@ describe('test workflow testBuild', () => {
 
                 assertions.assertValidateActorJobExecuted(result, '1234');
                 assertions.assertGetBranchRefJobExecuted(result);
-                assertions.assertAndroidJobExecuted(result, 'test-ref', true, 4);
+                assertions.assertAndroidJobExecuted(result, 'test-ref', true, 5);
                 assertions.assertIOSJobExecuted(result, 'test-ref');
                 assertions.assertDesktopJobExecuted(result, 'test-ref');
                 assertions.assertWebJobExecuted(result, 'test-ref');
