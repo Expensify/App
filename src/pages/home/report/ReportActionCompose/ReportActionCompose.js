@@ -20,11 +20,11 @@ import compose from '@libs/compose';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import updatePropsPaperWorklet from '@libs/updatePropsPaperWorklet';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -44,9 +44,6 @@ const propTypes = {
 
     /** The ID of the report actions will be created for */
     reportID: PropTypes.string.isRequired,
-
-    /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -105,7 +102,8 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    reportActions,
+    isEmptyChat,
+    lastReportAction,
     listHeight,
     shouldShowComposeInput,
     isReportReadyForDisplay,
@@ -159,7 +157,9 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const isBlockedFromConcierge = useMemo(() => ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge), [report, blockedFromConcierge]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report.participantAccountIDs}), [report.participantAccountIDs]);
+    const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
+    const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
@@ -170,8 +170,8 @@ function ReportActionCompose({
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
-        if (ReportUtils.chatIncludesConcierge(report)) {
-            if (User.isBlockedFromConcierge(blockedFromConcierge)) {
+        if (includesConcierge) {
+            if (userBlockedFromConcierge) {
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
@@ -179,7 +179,7 @@ function ReportActionCompose({
         }
 
         return translate('reportActionCompose.writeSomething');
-    }, [report, blockedFromConcierge, translate, conciergePlaceholderRandomIndex]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, conciergePlaceholderRandomIndex]);
 
     const focus = () => {
         if (composerRef === null || composerRef.current === null) {
@@ -318,6 +318,7 @@ function ReportActionCompose({
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || disabled || hasExceededMaxCommentLength;
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     const handleSendMessage = useCallback(() => {
         'worklet';
@@ -392,7 +393,11 @@ function ReportActionCompose({
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
                                         reportID={reportID}
                                         report={report}
-                                        reportActions={reportActions}
+                                        parentReportID={report.parentReportID}
+                                        includesChronos={ReportUtils.chatIncludesChronos(report)}
+                                        parentReportAction={parentReportAction}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
                                         inputPlaceholder={inputPlaceholder}
                                         isComposerFullSize={isComposerFullSize}

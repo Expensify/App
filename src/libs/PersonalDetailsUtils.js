@@ -197,7 +197,16 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
+/**
+ * Whether personal details is empty
+ * @returns {Boolean} true if personal details is empty
+ */
+function isPersonalDetailsEmpty() {
+    return !personalDetails.length;
+}
+
 export {
+    isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getAccountIDsByLogins,

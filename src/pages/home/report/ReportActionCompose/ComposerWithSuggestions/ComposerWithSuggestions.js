@@ -65,14 +65,15 @@ function ComposerWithSuggestions({
     // Onyx
     modal,
     preferredSkinTone,
-    parentReportActions,
+    parentReportAction,
     numberOfLines,
     // HOCs
     isKeyboardShown,
     // Props: Report
     reportID,
-    report,
-    reportActions,
+    includeChronos,
+    isEmptyChat,
+    lastReportAction,
     // Focus
     onFocus,
     onBlur,
@@ -119,9 +120,7 @@ function ComposerWithSuggestions({
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const parentAction = ReportActionsUtils.getParentReportAction(report);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
+    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -355,21 +354,15 @@ function ComposerWithSuggestions({
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
             const valueLength = valueRef.current.length;
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !ReportUtils.chatIncludesChronos(report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInputRef.current.selectionStart === 0 && valueLength === 0 && !includeChronos) {
                 e.preventDefault();
 
-                const parentReportActionID = lodashGet(report, 'parentReportActionID', '');
-                const parentReportAction = lodashGet(parentReportActions, [parentReportActionID], {});
-                const lastReportAction = _.find(
-                    [...reportActions, parentReportAction],
-                    (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action),
-                );
                 if (lastReportAction) {
                     Report.saveReportActionDraft(reportID, lastReportAction, _.last(lastReportAction.message).html);
                 }
             }
         },
-        [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
+        [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
     const onSelectionChange = useCallback(
@@ -526,6 +519,27 @@ function ComposerWithSuggestions({
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
+    const onLayout = useCallback(
+        (e) => {
+            const composerLayoutHeight = e.nativeEvent.layout.height;
+            if (composerHeight === composerLayoutHeight) {
+                return;
+            }
+            setComposerHeight(composerLayoutHeight);
+        },
+        [composerHeight],
+    );
+
+    const onClear = useCallback(() => {
+        setTextInputShouldClear(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const onChangeText = useCallback((text) => {
+        updateComment(text, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <>
             <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
@@ -536,7 +550,7 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={(commentValue) => updateComment(commentValue, true)}
+                    onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
@@ -546,7 +560,7 @@ function ComposerWithSuggestions({
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={displayFileInModal}
                     shouldClear={textInputShouldClear}
-                    onClear={() => setTextInputShouldClear(false)}
+                    onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
                     isReportActionCompose
                     selection={selection}
@@ -559,13 +573,7 @@ function ComposerWithSuggestions({
                     numberOfLines={numberOfLines}
                     onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
-                    onLayout={(e) => {
-                        const composerLayoutHeight = e.nativeEvent.layout.height;
-                        if (composerHeight === composerLayoutHeight) {
-                            return;
-                        }
-                        setComposerHeight(composerLayoutHeight);
-                    }}
+                    onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                 />
             </View>
@@ -588,7 +596,6 @@ function ComposerWithSuggestions({
 
             <SilentCommentUpdater
                 reportID={reportID}
-                report={report}
                 value={value}
                 updateComment={updateComment}
                 commentRef={commentRef}
@@ -632,11 +639,6 @@ export default compose(
         },
         editFocused: {
             key: ONYXKEYS.INPUT_FOCUSED,
-        },
-        parentReportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            canEvict: false,
-            initWithStoredValues: false,
         },
     }),
 )(ComposerWithSuggestionsWithRef);

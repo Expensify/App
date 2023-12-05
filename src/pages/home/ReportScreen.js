@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -21,9 +21,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -83,9 +83,6 @@ const propTypes = {
     /** The account manager report ID */
     accountManagerReportID: PropTypes.string,
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** Onyx function that marks the component ready for hydration */
     markReadyForHydration: PropTypes.func,
 
@@ -112,7 +109,6 @@ const defaultProps = {
     policies: {},
     accountManagerReportID: null,
     userLeavingStatus: false,
-    personalDetails: {},
     markReadyForHydration: null,
     ...withCurrentReportIDDefaultProps,
 };
@@ -141,7 +137,6 @@ function ReportScreen({
     reportMetadata,
     reportActions,
     accountManagerReportID,
-    personalDetails,
     markReadyForHydration,
     policies,
     isSidebarLoaded,
@@ -168,16 +163,24 @@ function ReportScreen({
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
+    const isEmptyChat = useMemo(() => _.isEmpty(reportActions), [reportActions]);
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = isEmptyChat && reportMetadata.isLoadingReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
 
-    const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
+    const isLoading = !reportID || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const lastReportAction = useMemo(
+        () =>
+            reportActions.length
+                ? _.find([...reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action))
+                : {},
+        [reportActions, parentReportAction],
+    );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
@@ -193,7 +196,6 @@ function ReportScreen({
         <HeaderView
             reportID={reportID}
             onNavigationMenuButtonClicked={goBack}
-            personalDetails={personalDetails}
             report={report}
         />
     );
@@ -203,7 +205,6 @@ function ReportScreen({
             <MoneyRequestHeader
                 report={report}
                 policy={policy}
-                personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
             />
@@ -215,7 +216,6 @@ function ReportScreen({
             <MoneyReportHeader
                 report={report}
                 policy={policy}
-                personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
                 parentReportAction={parentReportAction}
             />
@@ -455,13 +455,12 @@ function ReportScreen({
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportActions={reportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
-                                        policies={policies}
                                         listHeight={listHeight}
-                                        personalDetails={personalDetails}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
                                     />
                                 ) : (
                                     <ReportFooter isReportReadyForDisplay={false} />
@@ -520,9 +519,6 @@ export default compose(
                 key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
                 initialValue: null,
             },
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
             userLeavingStatus: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
                 initialValue: false,
@@ -530,4 +526,23 @@ export default compose(
         },
         true,
     ),
-)(ReportScreen);
+)(
+    memo(
+        ReportScreen,
+        (prevProps, nextProps) =>
+            prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
+            _.isEqual(prevProps.reportActions, nextProps.reportActions) &&
+            _.isEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+            prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+            _.isEqual(prevProps.betas, nextProps.betas) &&
+            _.isEqual(prevProps.policies, nextProps.policies) &&
+            prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
+            prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
+            prevProps.report.reportID === nextProps.report.reportID &&
+            prevProps.report.policyID === nextProps.report.policyID &&
+            prevProps.report.isOptimisticReport === nextProps.report.isOptimisticReport &&
+            prevProps.report.statusNum === nextProps.report.statusNum &&
+            _.isEqual(prevProps.report.pendingFields, nextProps.report.pendingFields) &&
+            prevProps.currentReportID === nextProps.currentReportID,
+    ),
+);

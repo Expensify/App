@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {memo} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {isEqual} from 'underscore';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import OfflineIndicator from '@components/OfflineIndicator';
-import participantPropTypes from '@components/participantPropTypes';
 import SwipeableView from '@components/SwipeableView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useNetwork from '@hooks/useNetwork';
@@ -24,17 +24,15 @@ const propTypes = {
     /** Report object for the current report */
     report: reportPropTypes,
 
-    /** Report actions for the current report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    lastReportAction: PropTypes.shape(reportActionPropTypes),
+
+    isEmptyChat: PropTypes.bool,
 
     /** Callback fired when the comment is submitted */
     onSubmitComment: PropTypes.func,
 
     /** The pending action when we are adding a chat */
     pendingAction: PropTypes.string,
-
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** Whether the composer input should be shown */
     shouldShowComposeInput: PropTypes.bool,
@@ -53,14 +51,14 @@ const propTypes = {
 
 const defaultProps = {
     report: {reportID: '0'},
-    reportActions: [],
     onSubmitComment: () => {},
     pendingAction: null,
-    personalDetails: {},
     shouldShowComposeInput: true,
     shouldDisableCompose: false,
     listHeight: 0,
     isReportReadyForDisplay: true,
+    lastReportAction: null,
+    isEmptyChat: true,
 };
 
 function ReportFooter(props) {
@@ -81,7 +79,6 @@ function ReportFooter(props) {
                         <AnonymousReportFooter
                             report={props.report}
                             isSmallSizeLayout={isSmallSizeLayout}
-                            personalDetails={props.personalDetails}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
@@ -96,8 +93,8 @@ function ReportFooter(props) {
                         <ReportActionCompose
                             onSubmit={props.onSubmitComment}
                             reportID={props.report.reportID.toString()}
-                            reportActions={props.reportActions}
-                            report={props.report}
+                            isEmptyChat={props.isEmptyChat}
+                            lastReportAction={props.lastReportAction}
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
@@ -122,4 +119,19 @@ export default compose(
             initialValue: false,
         },
     }),
-)(ReportFooter);
+)(
+    memo(
+        ReportFooter,
+        (prevProps, nextProps) =>
+            isEqual(prevProps.report, nextProps.report) &&
+            prevProps.pendingAction === nextProps.pendingAction &&
+            prevProps.listHeight === nextProps.listHeight &&
+            prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
+            prevProps.isEmptyChat === nextProps.isEmptyChat &&
+            prevProps.lastReportAction === nextProps.lastReportAction &&
+            prevProps.shouldShowComposeInput === nextProps.shouldShowComposeInput &&
+            prevProps.windowWidth === nextProps.windowWidth &&
+            prevProps.isSmallScreenWidth === nextProps.isSmallScreenWidth &&
+            prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay,
+    ),
+);

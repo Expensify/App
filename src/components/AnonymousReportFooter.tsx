@@ -1,14 +1,15 @@
 import React from 'react';
 import {Text, View} from 'react-native';
-import {OnyxCollection} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
-import {PersonalDetails, Report} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import {Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
+import {usePersonalDetails} from './OnyxProvider';
 
 type AnonymousReportFooterProps = {
     /** The report currently being looked at */
@@ -16,14 +17,12 @@ type AnonymousReportFooterProps = {
 
     /** Whether the small screen size layout should be used */
     isSmallSizeLayout?: boolean;
-
-    /** Personal details of all the users */
-    personalDetails: OnyxCollection<PersonalDetails>;
 };
 
-function AnonymousReportFooter({isSmallSizeLayout = false, personalDetails, report}: AnonymousReportFooterProps) {
+function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     return (
         <View style={styles.anonymousRoomFooter(isSmallSizeLayout)}>

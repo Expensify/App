@@ -211,5 +211,8 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
     }),
 )(MoneyReportHeader);

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import _ from 'underscore';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -22,9 +22,6 @@ const propTypes = {
     /** Whether the option has an outstanding IOU */
     hasOutstandingIOU: PropTypes.bool,
 
-    /** Sorted actions prepared for display */
-    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
-
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
 
@@ -36,6 +33,8 @@ const propTypes = {
 
     /** Linked report action ID */
     linkedReportActionID: PropTypes.string,
+
+    displayAsGroup: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -49,7 +48,7 @@ function ReportActionsListItemRenderer({
     index,
     report,
     hasOutstandingIOU,
-    sortedReportActions,
+    displayAsGroup,
     mostRecentIOUReportActionID,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
@@ -59,6 +58,45 @@ function ReportActionsListItemRenderer({
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
         ReportUtils.isChatThread(report) &&
         !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
+
+    /**
+     * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
+     * passing in only the required props.
+     */
+    const action = useMemo(
+        () => ({
+            reportActionID: reportAction.reportActionID,
+            message: reportAction.message,
+            pendingAction: reportAction.pendingAction,
+            actionName: reportAction.actionName,
+            errors: reportAction.errors,
+            originalMessage: reportAction.originalMessage,
+            childCommenterCount: reportAction.childCommenterCount,
+            linkMetadata: reportAction.linkMetadata,
+            childReportID: reportAction.childReportID,
+            childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
+            whisperedToAccountIDs: reportAction.whisperedToAccountIDs,
+            error: reportAction.error,
+            created: reportAction.created,
+            actorAccountID: reportAction.actorAccountID,
+        }),
+        [
+            reportAction.actionName,
+            reportAction.childCommenterCount,
+            reportAction.childLastVisibleActionCreated,
+            reportAction.childReportID,
+            reportAction.created,
+            reportAction.error,
+            reportAction.errors,
+            reportAction.linkMetadata,
+            reportAction.message,
+            reportAction.originalMessage,
+            reportAction.pendingAction,
+            reportAction.reportActionID,
+            reportAction.whisperedToAccountIDs,
+            reportAction.actorAccountID,
+        ],
+    );
 
     return shouldDisplayParentAction ? (
         <ReportActionItemParentAction
@@ -71,9 +109,9 @@ function ReportActionsListItemRenderer({
         <ReportActionItem
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             report={report}
-            action={reportAction}
+            action={action}
             linkedReportActionID={linkedReportActionID}
-            displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+            displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
