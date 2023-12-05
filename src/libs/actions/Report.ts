@@ -2472,7 +2472,7 @@ function searchForReports(searchInput: string) {
 const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME, {leading: false});
 
 function searchInServer(searchInput: string) {
-    if (isNetworkOffline) {
+    if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }

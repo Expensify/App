@@ -118,7 +118,7 @@ function MoneyRequestConfirmPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType}${reportID}`;
-        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId;
+        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId && !_.isEmpty(reportID);
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
@@ -236,6 +236,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.category,
                     props.iou.tag,
                     reportID,
+                    props.iou.merchant,
                 );
                 return;
             }
@@ -251,6 +252,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.currency,
                     props.iou.category,
                     props.iou.tag,
+                    props.iou.merchant,
                 );
                 return;
             }
@@ -283,6 +285,7 @@ function MoneyRequestConfirmPage(props) {
             receiptFile,
             iouType,
             reportID,
+            props.iou.merchant,
         ],
     );
 
