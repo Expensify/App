@@ -21,6 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
@@ -164,6 +165,7 @@ function ReportScreen({
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
+    const [parentReportAction, setParentReportAction] = useState({});
 
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
@@ -178,9 +180,11 @@ function ReportScreen({
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-
-    const isDeletedParentReportAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isDeletedParentReportAction = useMemo(
+        () => ReportActionsUtils.isDeletedAction(parentReportAction),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [parentReportAction.message],
+    );
 
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
@@ -192,6 +196,23 @@ function ReportScreen({
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
     }, []);
+
+    useEffect(() => {
+        const unsubscribeOnyxReportActions = onyxSubscribe({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            callback: (reportActionArgs) => {
+                if (_.isEmpty(reportActionArgs)) {
+                    return;
+                }
+                setParentReportAction(reportActionArgs[report.parentReportActionID]);
+            },
+        });
+
+        return () => {
+            unsubscribeOnyxReportActions();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [report.parentReportID]);
 
     let headerView = (
         <HeaderView
