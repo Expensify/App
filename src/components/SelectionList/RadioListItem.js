@@ -8,10 +8,20 @@ function RadioListItem({item, isFocused = false}) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
-            <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold]}>{item.text}</Text>
+            <Text
+                style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold, styles.pre]}
+                numberOfLines={1}
+            >
+                {item.text}
+            </Text>
 
             {Boolean(item.alternateText) && (
-                <Text style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>{item.alternateText}</Text>
+                <Text
+                    style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                    numberOfLines={1}
+                >
+                    {item.alternateText}
+                </Text>
             )}
         </View>
     );
