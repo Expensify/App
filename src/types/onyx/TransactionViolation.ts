@@ -1,47 +1,9 @@
-import PropTypes from 'prop-types';
-
+import CONST from '@src/CONST';
 
 /**
- * Names of the Transaction Violations.
- * Defined as an array so it can be used in `PropTypes.oneOf`
+ * Names of Fields where violations can occur. Derived from `CONST.VIOLATIONS` to maintain a single source of truth.
  */
-const violationNames = [
-    'allTagLevelsRequired',
-    'autoReportedRejectedExpense',
-    'billableExpense',
-    'cashExpenseWithNoReceipt',
-    'categoryOutOfPolicy',
-    'conversionSurcharge',
-    'customUnitOutOfPolicy',
-    'duplicatedTransaction',
-    'fieldRequired',
-    'futureDate',
-    'invoiceMarkup',
-    'maxAge',
-    'missingCategory',
-    'missingComment',
-    'missingTag',
-    'modifiedAmount',
-    'modifiedDate',
-    'nonExpensiworksExpense',
-    'overAutoApprovalLimit',
-    'overCategoryLimit',
-    'overLimit',
-    'overLimitAttendee',
-    'perDayLimit',
-    'receiptNotSmartScanned',
-    'receiptRequired',
-    'rter',
-    'smartscanFailed',
-    'someTagLevelsRequired',
-    'tagOutOfPolicy',
-    'taxAmountChanged',
-    'taxOutOfPolicy',
-    'taxRateChanged',
-    'taxRequired',
-] as const;
-
-type ViolationName = (typeof violationNames)[number];
+type ViolationName = (typeof CONST.VIOLATIONS)[keyof typeof CONST.VIOLATIONS];
 
 type TransactionViolation = {
     type: string;
@@ -49,16 +11,5 @@ type TransactionViolation = {
     userMessage: string;
     data?: Record<string, string>;
 };
-
-const transactionViolationPropType = PropTypes.shape({
-    type: PropTypes.string.isRequired,
-    name: PropTypes.oneOf(violationNames).isRequired,
-    userMessage: PropTypes.string.isRequired,
-    data: PropTypes.objectOf(PropTypes.string),
-});
-
-const transactionViolationsPropTypes = PropTypes.arrayOf(transactionViolationPropType);
-
-export {transactionViolationPropType, transactionViolationsPropTypes, violationNames};
 
 export type {TransactionViolation, ViolationName};
