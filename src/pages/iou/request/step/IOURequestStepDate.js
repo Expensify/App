@@ -1,8 +1,8 @@
 import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import React from 'react';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import NewDatePicker from '@components/NewDatePicker';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -67,7 +67,7 @@ function IOURequestStepDate({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <NewDatePicker
+                <DatePicker
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
                     defaultValue={transaction.created}
