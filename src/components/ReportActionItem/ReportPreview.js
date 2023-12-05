@@ -218,7 +218,7 @@ function ReportPreview(props) {
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
                             </View>
-                            {hasErrors && (
+                            {!iouSettled && hasErrors && (
                                 <Icon
                                     src={Expensicons.DotIndicator}
                                     fill={theme.danger}

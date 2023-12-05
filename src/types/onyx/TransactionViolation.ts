@@ -1,7 +1,6 @@
 /**
  * Names of transaction violations
  */
-
 type ViolationName =
     | 'allTagLevelsRequired'
     | 'autoReportedRejectedExpense'

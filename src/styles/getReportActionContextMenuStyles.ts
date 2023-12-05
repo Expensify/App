@@ -1,5 +1,5 @@
 import {ViewStyle} from 'react-native';
-import styles from './styles';
+import {ThemeStyles} from './styles';
 import {ThemeColors} from './themes/types';
 import variables from './variables';
 
@@ -7,7 +7,7 @@ const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
 });
 
-const getMiniWrapperStyle = (theme: ThemeColors): ViewStyle[] => [
+const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle[] => [
     styles.flexRow,
     getDefaultWrapperStyle(theme),
     {
@@ -27,9 +27,9 @@ const getMiniWrapperStyle = (theme: ThemeColors): ViewStyle[] => [
  * @param isSmallScreenWidth
  * @param theme
  */
-function getReportActionContextMenuStyles(isMini: boolean, isSmallScreenWidth: boolean, theme: ThemeColors): ViewStyle[] {
+function getReportActionContextMenuStyles(styles: ThemeStyles, isMini: boolean, isSmallScreenWidth: boolean, theme: ThemeColors): ViewStyle[] {
     if (isMini) {
-        return getMiniWrapperStyle(theme);
+        return getMiniWrapperStyle(theme, styles);
     }
 
     return [

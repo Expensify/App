@@ -21,7 +21,7 @@ import PersonalBankAccount from './PersonalBankAccount';
 import PersonalDetails from './PersonalDetails';
 import PlaidData from './PlaidData';
 import Policy from './Policy';
-import PolicyCategory from './PolicyCategory';
+import PolicyCategory, {PolicyCategories} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
 import PolicyTag, {PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -42,7 +42,7 @@ import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
-import {TransactionViolation, TransactionViolations} from './TransactionViolation';
+import {TransactionViolation, TransactionViolations, ViolationName} from './TransactionViolation';
 import User from './User';
 import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
@@ -81,6 +81,7 @@ export type {
     PlaidData,
     Policy,
     PolicyCategory,
+    PolicyCategories,
     PolicyMember,
     PolicyMembers,
     PolicyTag,
@@ -108,6 +109,7 @@ export type {
     TransactionViolations,
     User,
     UserWallet,
+    ViolationName,
     WalletAdditionalDetails,
     WalletOnfido,
     WalletStatement,
