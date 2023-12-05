@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {PopoverContext} from '@components/PopoverProvider';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
@@ -27,6 +28,7 @@ type DragAndDropOptions = {
 export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}: DragAndDropParams): DragAndDropOptions {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const {close: closePopover} = useContext(PopoverContext);
 
     // This solution is borrowed from this SO: https://stackoverflow.com/questions/7110353/html5-dragleave-fired-when-hovering-a-child-element
     // This is necessary because dragging over children will cause dragleave to execute on the parent.
@@ -43,9 +45,15 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
         setIsDraggingOver(false);
     }, [isFocused, isDisabled]);
 
-    const setDropEffect = useCallback(
+    const handleDragEvent = useCallback(
         (event: DragEvent) => {
-            const effect = shouldAllowDrop && shouldAcceptDrop(event) ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
+            const shouldAcceptThisDrop = shouldAllowDrop && shouldAcceptDrop(event);
+
+            if (shouldAcceptThisDrop && event.type === DRAG_ENTER_EVENT) {
+                closePopover();
+            }
+
+            const effect = shouldAcceptThisDrop ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
 
             if (event.dataTransfer) {
                 // eslint-disable-next-line no-param-reassign
@@ -54,7 +62,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                 event.dataTransfer.effectAllowed = effect;
             }
         },
-        [shouldAllowDrop, shouldAcceptDrop],
+        [shouldAllowDrop, shouldAcceptDrop, closePopover],
     );
 
     /**
@@ -71,11 +79,11 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
 
             switch (event.type) {
                 case DRAG_OVER_EVENT:
-                    setDropEffect(event);
+                    handleDragEvent(event);
                     break;
                 case DRAG_ENTER_EVENT:
                     dragCounter.current++;
-                    setDropEffect(event);
+                    handleDragEvent(event);
                     if (isDraggingOver) {
                         return;
                     }
@@ -98,7 +106,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     break;
             }
         },
-        [isFocused, isDisabled, shouldAcceptDrop, setDropEffect, isDraggingOver, onDrop],
+        [isFocused, isDisabled, shouldAcceptDrop, isDraggingOver, onDrop, handleDragEvent],
     );
 
     useEffect(() => {
