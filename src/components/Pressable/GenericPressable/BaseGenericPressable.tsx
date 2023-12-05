@@ -1,29 +1,14 @@
 import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {GestureResponderEvent, Pressable, View, ViewStyle} from 'react-native';
+import {GestureResponderEvent, Pressable, View} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableProps from './types';
-
-/**
- * Returns the cursor style based on the state of Pressable
- */
-function getCursorStyle(isDisabled: boolean, isText: boolean): Pick<ViewStyle, 'cursor'> {
-    if (isDisabled) {
-        return styles.cursorDisabled;
-    }
-
-    if (isText) {
-        return styles.cursorText;
-    }
-
-    return styles.cursorPointer;
-}
 
 function GenericPressable(
     {
@@ -51,6 +36,7 @@ function GenericPressable(
     }: PressableProps,
     ref: ForwardedRef<View>,
 ) {
+    const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
@@ -70,6 +56,19 @@ function GenericPressable(
     }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
 
     const shouldUseDisabledCursor = useMemo(() => isDisabled && !isExecuting, [isDisabled, isExecuting]);
+
+    /**
+     * Returns the cursor style based on the state of Pressable
+     */
+    const cursorStyle = useMemo(() => {
+        if (shouldUseDisabledCursor) {
+            return styles.cursorDisabled;
+        }
+        if ([rest.accessibilityRole, rest.role].includes('text')) {
+            return styles.cursorText;
+        }
+        return styles.cursorPointer;
+    }, [styles, shouldUseDisabledCursor, rest.accessibilityRole, rest.role]);
 
     const onLongPressHandler = useCallback(
         (event: GestureResponderEvent) => {
@@ -132,7 +131,7 @@ function GenericPressable(
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [
-                getCursorStyle(shouldUseDisabledCursor, [rest.accessibilityRole, rest.role].includes('text')),
+                cursorStyle,
                 StyleUtils.parseStyleFromFunction(style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(focusStyle, state),
