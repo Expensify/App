@@ -19,15 +19,15 @@ const colors: Record<string, Color> = {
     transparent: 'transparent',
 
     // Dark Mode Theme Colors
-    darkAppBackground: '#061B09',
-    darkHighlightBackground: '#07271F',
-    darkBorders: '#1A3D32',
-    darkIcons: '#8B9C8F',
-    darkSupportingText: '#AFBBB0',
-    darkPrimaryText: '#E7ECE9',
-    darkDefaultButton: '#184E3D',
-    darkDefaultButtonHover: '#2C6755',
-    darkDefaultButtonPressed: '#467164',
+    productDark100: '#061B09',
+    productDark200: '#072419',
+    productDark300: '#0A2E25',
+    productDark400: '#1A3D32',
+    productDark500: '#224F41',
+    productDark600: '#2A604F',
+    productDark700: '#8B9C8F',
+    productDark800: '#AFBBB0',
+    productDark900: '#E7ECE9',
 
     // Light Mode Theme Colors
     lightAppBackground: '#FCFBF9',

@@ -49,7 +49,7 @@ const lightTheme = {
     heading: colors.lightPrimaryText,
     textLight: colors.white,
     textDark: colors.lightPrimaryText,
-    textReversed: colors.darkPrimaryText,
+    textReversed: colors.productDark900,
     textBackground: colors.lightHighlightBackground,
     textMutedReversed: colors.lightIcons,
     textError: colors.red,
@@ -76,8 +76,8 @@ const lightTheme = {
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
     ourMentionBG: colors.green100,
-    tooltipSupportingText: colors.darkSupportingText,
-    tooltipPrimaryText: colors.darkPrimaryText,
+    tooltipSupportingText: colors.productDark800,
+    tooltipPrimaryText: colors.productDark900,
     skeletonLHNIn: colors.lightBorders,
     skeletonLHNOut: colors.lightDefaultButtonPressed,
     QRLogo: colors.green400,
@@ -112,7 +112,7 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET]: {
-            backgroundColor: colors.darkAppBackground,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.SECURITY]: {
