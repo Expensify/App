@@ -313,10 +313,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        bordersBG: {
-            backgroundColor: colors.darkBorders,
-        },
-
         h4: {
             fontFamily: fontFamily.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeLabel,
