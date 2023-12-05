@@ -1976,10 +1976,10 @@ export default {
         copyReferralLink: 'Copy referral link',
     },
     purposeForExpensify: {
-        track: 'Keep track of personal receipts and expenses',
-        submit: 'Scan and submit receipts to my manager',
-        VSB: 'Manage my business expenses to file taxes',
-        SMB: 'Explore Expensify for my own company',
+        track: 'Track my business expenses to file taxes',
+        submit: 'Submit expenses to my employer to get paid back',
+        business: 'Manage my team\'s expenses',
+        chatSplit: 'Chat and split expenses with friends',
         welcomeMessage: 'Welcome to Expensify',
         welcomeSubtitle: 'What\'s your main purpose for using Expensify?',
     }

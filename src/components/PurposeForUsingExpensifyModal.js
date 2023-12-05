@@ -11,6 +11,7 @@ import useWindowDimensions from "@hooks/useWindowDimensions";
 import {View, StyleSheet} from "react-native";
 import LottieAnimations from "./LottieAnimations";
 import Text from "./Text";
+import * as Report from '../libs/actions/Report';
 import MenuItemList from "./MenuItemList";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
@@ -44,6 +45,7 @@ function PurposeForUsingExpensifyModal() {
     const [isModalOpen, setIsModalOpen] = useState(true);
     const theme = useTheme();
 
+    // This is not translated because it is a message coming from concierge, which only supports english
     const messageCopy = {
         track: 'Great! To track your expenses, I suggest you create a workspace to keep everything contained:<br />' +
             '<br />' +
@@ -68,7 +70,7 @@ function PurposeForUsingExpensifyModal() {
             '4. Enter the email address or phone number of your boss<br />' +
             '<br />' +
             'And we\'ll take it from there to get you paid back. Please give it a shot and let me know how it goes!',
-        manage: 'Great! To manage your team\'s expenses, create a workspace to keep everything contained:<br />' +
+        business: 'Great! To manage your team\'s expenses, create a workspace to keep everything contained:<br />' +
             '<br />' +
             '1. Press your avatar icon<br />' +
             '2. Choose Workspaces<br />' +
@@ -76,7 +78,7 @@ function PurposeForUsingExpensifyModal() {
             '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")<br />' +
             '<br />' +
             'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!',
-        chat: 'Hi there, to split an expense such as with a friend, please:<br />' +
+        chatSplit: 'Hi there, to split an expense such as with a friend, please:<br />' +
             '<br />' +
             'Press the big green + button<br />' +
             'Choose *Request money*<br />' +
@@ -87,7 +89,7 @@ function PurposeForUsingExpensifyModal() {
             'Press *Add to split* when done adding friends<br />' +
             'Press Split to split the bill<br />' +
             '<br />' +
-            'This will send an a money request to each of your friends for however much they owe you, and we\'ll take care of getting you paid back. Thanks for asking, and let me know how it goes!' +
+            'This will send a money request to each of your friends for however much they owe you, and we\'ll take care of getting you paid back. Thanks for asking, and let me know how it goes!',
     }
     const menuItems = [
         {
@@ -95,7 +97,7 @@ function PurposeForUsingExpensifyModal() {
             title: translate('purposeForExpensify.track'),
             icon: Expensicons.ReceiptSearch,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => {debugger;},
+            onPress: () => Report.completeEngagementModal(messageCopy.track, 'trackNewDot'),
             shouldShowRightIcon: true,
         },
         {
@@ -103,23 +105,23 @@ function PurposeForUsingExpensifyModal() {
             title: translate('purposeForExpensify.submit'),
             icon: Expensicons.Scan,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => {debugger;},
+            onPress: () => Report.completeEngagementModal(messageCopy.submit, 'submitNewDot'),
             shouldShowRightIcon: true,
         },
         {
-            key: 'purposeForExpensify.VSB',
-            title: translate('purposeForExpensify.VSB'),
+            key: 'purposeForExpensify.business',
+            title: translate('purposeForExpensify.business'),
             icon: Expensicons.MoneyBag,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => {debugger;},
+            onPress: () => Report.completeEngagementModal(messageCopy.business, 'businessNewDot'),
             shouldShowRightIcon: true,
         },
         {
-            key: 'purposeForExpensify.SMB',
-            title: translate('purposeForExpensify.SMB'),
+            key: 'purposeForExpensify.chatSplit',
+            title: translate('purposeForExpensify.chatSplit'),
             icon: Expensicons.Briefcase,
             iconRight: Expensicons.ArrowRight,
-            onPress: () => {debugger;},
+            onPress: () => Report.completeEngagementModal(messageCopy.chatSplit, 'chatSplitNewDot'),
             shouldShowRightIcon: true,
         },
     ];

@@ -2683,6 +2683,7 @@ export {
     hasErrorInPrivateNotes,
     getOlderActions,
     getNewerActions,
+    completeEngagementModal,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
