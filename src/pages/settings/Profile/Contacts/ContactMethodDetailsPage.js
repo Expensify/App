@@ -266,6 +266,9 @@ class ContactMethodDetailsPage extends Component {
                         onCancel={() => this.toggleDeleteModal(false)}
                         onModalHide={() => {
                             InteractionManager.runAfterInteractions(() => {
+                                if (!this.validateCodeFormRef.current) {
+                                    return;
+                                }
                                 this.validateCodeFormRef.current.focusLastSelected();
                             });
                         }}
