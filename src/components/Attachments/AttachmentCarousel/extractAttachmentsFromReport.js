@@ -1,5 +1,6 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import _ from 'underscore';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
@@ -21,14 +22,16 @@ function extractAttachmentsFromReport(parentReportAction, reportActions) {
             }
 
             const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+            const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
+            const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 
             // By iterating actions in chronological order and prepending each attachment
             // we ensure correct order of attachments even across actions with multiple attachments.
             attachments.unshift({
+                source,
                 reportActionID: attribs['data-id'],
-                source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
-                file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
+                file: {name: fileName},
                 hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
         },
