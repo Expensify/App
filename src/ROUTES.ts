@@ -353,7 +353,7 @@ const ROUTES = {
     },
     WORKSPACE_SETTINGS_NAME: {
         route: 'workspace/:policyID/settings/name',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings/name`,
+        getRoute: (policyID: string) => `workspace/${policyID}/settings/name` as const,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',
