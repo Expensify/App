@@ -46,7 +46,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 
 const propTypes = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
@@ -128,7 +128,7 @@ function AttachmentModal(props) {
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
-    const isOverlayModalVisible = (isAttachmentReceipt && isDeleteReceiptConfirmModalVisible) || (!isAttachmentReceipt && isAttachmentInvalid);
+    const isOverlayModalVisible = (props.isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!props.isReceiptAttachment && isAttachmentInvalid);
 
     const [file, setFile] = useState(
         props.originalFileName

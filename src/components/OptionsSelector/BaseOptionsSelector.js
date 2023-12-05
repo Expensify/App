@@ -442,13 +442,14 @@ const BaseOptionsSelector = (props) => {
     const shouldShowDefaultConfirmButton = !props.footerContent && defaultConfirmButtonText;
     const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : props.safeAreaPaddingBottomStyle;
     const listContainerStyles = props.listContainerStyles || [themeStyles.flex1];
+    const optionHoveredStyle = props.optionHoveredStyle || themeStyles.hoveredComponentBG;
+
     const textInput = (
         <TextInput
             ref={textInputRef}
             value={props.value}
             label={props.textInputLabel}
             accessibilityLabel={props.textInputLabel}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
             role={CONST.ACCESSIBILITY_ROLE.TEXT}
             onChangeText={updateSearchValue}
             errorText={errorMessage}
@@ -472,7 +473,7 @@ const BaseOptionsSelector = (props) => {
     const optionsList = (
         <OptionsList
             ref={listRef}
-            optionHoveredStyle={props.optionHoveredStyle || themeStyles.hoveredComponentBG}
+            optionHoveredStyle={optionHoveredStyle}
             onSelectRow={props.onSelectRow ? selectRow : undefined}
             sections={props.sections}
             focusedIndex={focusedIndex}
