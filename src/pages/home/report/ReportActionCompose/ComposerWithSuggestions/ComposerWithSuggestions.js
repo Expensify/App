@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, NativeModules, View} from 'react-native';
+import {findNodeHandle, InteractionManager, NativeModules, Platform, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Composer from '@components/Composer';
@@ -44,6 +44,7 @@ const {RNTextInputReset} = NativeModules;
 // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
 // so we need to ensure that it is only updated after focus.
 const isMobileSafari = Browser.isMobileSafari();
+const isIOSNative = Platform.OS === 'ios';
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -141,6 +142,8 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
+
+    const syncSelectionWithOnChangeTextRef = useRef(null);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -241,6 +244,11 @@ function ComposerWithSuggestions({
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
+
+                if (isIOSNative) {
+                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+                }
+
                 setSelection({
                     start: position,
                     end: position,
@@ -543,7 +551,25 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={(commentValue) => updateComment(commentValue, true)}
+                    onChangeText={(commentValue) => {
+                        if (syncSelectionWithOnChangeTextRef.current !== null) {
+                            setSelection({
+                                start: syncSelectionWithOnChangeTextRef.current.position,
+                                end: syncSelectionWithOnChangeTextRef.current.position,
+                            });
+                        }
+
+                        updateComment(commentValue, true);
+
+                        if (syncSelectionWithOnChangeTextRef.current !== null) {
+                            let positionSnaphsot = syncSelectionWithOnChangeTextRef.current.position;
+                            syncSelectionWithOnChangeTextRef.current = null;
+
+                            InteractionManager.runAfterInteractions(() => {
+                                textInputRef.current.setSelection(positionSnaphsot, positionSnaphsot);
+                            });
+                        }
+                    }}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
