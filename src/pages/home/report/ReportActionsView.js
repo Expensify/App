@@ -103,9 +103,10 @@ function ReportActionsView(props) {
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
+        const createChatError = _.get(props.report, ['errorFields', 'createChat']);
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (props.report.isOptimisticReport) {
-            Report.updateLastVisitTime(reportID);
+        if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
+Report.updateLastVisitTime(reportID);
             return;
         }
         Report.openReport(reportID);
