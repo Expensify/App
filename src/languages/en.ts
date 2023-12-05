@@ -26,6 +26,7 @@ import type {
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    ApprovedAmountParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
@@ -576,6 +577,7 @@ export default {
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
