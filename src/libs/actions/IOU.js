@@ -752,6 +752,30 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
         },
     });
 
+    // Update recently used categories if the category is changed
+    if (_.has(transactionChanges, 'category')) {
+        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, transactionChanges.category);
+        if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
+                value: optimisticPolicyRecentlyUsedCategories,
+            });
+        }
+    }
+
+    // Update recently used categories if the tag is changed
+    if (_.has(transactionChanges, 'tag')) {
+        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+        if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
+                value: optimisticPolicyRecentlyUsedTags,
+            });
+        }
+    }
+
     // Clear out the error fields and loading states on success
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1809,8 +1833,6 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         updatedChatReport.lastMessageHtml = messageText;
     }
 
-    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
-
     const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
 
     // STEP 4: Compose the optimistic data
@@ -1870,12 +1892,28 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
             : []),
     ];
 
-    if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
-            value: optimisticPolicyRecentlyUsedTags,
-        });
+    // Update recently used categories if the category is changed
+    if (_.has(transactionChanges, 'category')) {
+        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, transactionChanges.category);
+        if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
+                value: optimisticPolicyRecentlyUsedCategories,
+            });
+        }
+    }
+
+    // Update recently used categories if the tag is changed
+    if (_.has(transactionChanges, 'tag')) {
+        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+        if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
+                value: optimisticPolicyRecentlyUsedTags,
+            });
+        }
     }
 
     const successData = [
