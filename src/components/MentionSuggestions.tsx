@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -57,57 +57,60 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
     /**
      * Render a suggestion menu item component.
      */
-    const renderSuggestionMenuItem = (item: Mention) => {
-        const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
-        const styledDisplayName = getStyledTextArray(item.text, prefix);
-        const styledHandle = item.text === item.alternateText ? undefined : getStyledTextArray(item.alternateText, prefix);
+    const renderSuggestionMenuItem = useCallback(
+        (item: Mention) => {
+            const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
+            const styledDisplayName = getStyledTextArray(item.text, prefix);
+            const styledHandle = item.text === item.alternateText ? undefined : getStyledTextArray(item.alternateText, prefix);
 
-        return (
-            <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                <View style={styles.mentionSuggestionsAvatarContainer}>
-                    <Avatar
-                        source={item.icons[0].source}
-                        size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
-                        name={item.icons[0].name}
-                        type={item.icons[0].type}
-                        fill={theme.success}
-                        fallbackIcon={item.icons[0].fallbackIcon}
-                    />
+            return (
+                <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
+                    <View style={styles.mentionSuggestionsAvatarContainer}>
+                        <Avatar
+                            source={item.icons[0].source}
+                            size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                            name={item.icons[0].name}
+                            type={item.icons[0].type}
+                            fill={theme.success}
+                            fallbackIcon={item.icons[0].fallbackIcon}
+                        />
+                    </View>
+                    <Text
+                        style={[styles.mentionSuggestionsText, styles.flexShrink1]}
+                        numberOfLines={1}
+                    >
+                        {styledDisplayName?.map(({text, isColored}, i) => (
+                            <Text
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${text}${i}`}
+                                style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsDisplayName]}
+                            >
+                                {text}
+                            </Text>
+                        ))}
+                    </Text>
+                    <Text
+                        style={[styles.mentionSuggestionsText, styles.flex1]}
+                        numberOfLines={1}
+                    >
+                        {styledHandle?.map(
+                            ({text, isColored}, i) =>
+                                Boolean(text) && (
+                                    <Text
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${text}${i}`}
+                                        style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsHandle]}
+                                    >
+                                        {text}
+                                    </Text>
+                                ),
+                        )}
+                    </Text>
                 </View>
-                <Text
-                    style={[styles.mentionSuggestionsText, styles.flexShrink1]}
-                    numberOfLines={1}
-                >
-                    {styledDisplayName?.map(({text, isColored}, i) => (
-                        <Text
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${text}${i}`}
-                            style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsDisplayName]}
-                        >
-                            {text}
-                        </Text>
-                    ))}
-                </Text>
-                <Text
-                    style={[styles.mentionSuggestionsText, styles.flex1]}
-                    numberOfLines={1}
-                >
-                    {styledHandle?.map(
-                        ({text, isColored}, i) =>
-                            Boolean(text) && (
-                                <Text
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${text}${i}`}
-                                    style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsHandle]}
-                                >
-                                    {text}
-                                </Text>
-                            ),
-                    )}
-                </Text>
-            </View>
-        );
-    };
+            );
+        },
+        [styles, theme, prefix],
+    );
 
     return (
         <AutoCompleteSuggestions

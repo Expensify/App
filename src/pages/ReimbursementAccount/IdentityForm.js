@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import DatePicker from '@components/DatePicker';
 import InputWrapper from '@components/Form/InputWrapper';
-import NewDatePicker from '@components/NewDatePicker';
 import TextInput from '@components/TextInput';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
@@ -171,7 +171,7 @@ function IdentityForm(props) {
                     />
                 </View>
             </View>
-            <NewDatePicker
+            <DatePicker
                 inputID={props.inputKeys.dob}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
