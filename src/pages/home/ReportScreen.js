@@ -1,4 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -166,17 +165,6 @@ function ReportScreen({
     const [scrollPosition, setScrollPosition] = useState({});
 
     const reportID = getReportID(route);
-
-    const isFocused = useIsFocused();
-
-    // We need to update the lastVisitTime every time the report is focused
-    // because lastReadTime is not updated every time the user visits a report.
-    useEffect(() => {
-        if (!report.reportID || !isFocused) {
-            return;
-        }
-        Report.updateLastVisitTime(report.reportID);
-    }, [report.reportID, isFocused]);
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
