@@ -3438,8 +3438,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
- *
- *  Check if there are any violations belonging to the transaction in the transactionsViolations Onyx object
+ *  Checks if there are any violations belonging to the transaction in the transactionsViolations Onyx object
  *  then checks that the violation is of the proper type
  */
 function transactionHasViolation(transactionID: string): boolean {
@@ -3452,7 +3451,7 @@ function transactionHasViolation(transactionID: string): boolean {
 
 /**
  *  Checks to see if a report's parentAction is a money request that contains a violation
- *  This only pertains to report's that a user submitted and if it is open or processing
+ *  This only applies to report submitter and for reports in the open and processing states
  */
 
 function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean {
