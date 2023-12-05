@@ -101,11 +101,8 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): React.FC<SvgProps
     // There are 24 possible default avatars, so we choose which one this user has based
     // on a simple modulo operation of their login number. Note that Avatar count starts at 1.
 
-    // When we create a chat with a new user, an optimistic ID is used, and the avatar is generated based on it.
-    // When the response is received from the backend, the optimistic ID is replaced with the actual user ID.
-    // However, the avatar link returned by the backend still matches the one generated using the optimistic ID.
-    // Therefore, we cannot directly use the actual user ID to retrieve the SVG image number for the avatar.
-    // Instead, we extract it from the avatar link returned by the backend.
+    // When creating a chat, we generate an avatar using an ID and the backend response will modify the ID to the actual user ID.
+    // But the avatar link still corresponds to the original ID-generated link. So we extract the SVG image number from the backend's link instead of using the user ID directly
     let accountIDHashBucket: AvatarRange;
     if (avatarURL) {
         const match = avatarURL.match(/(?<=default-avatar_)\d+(?=\.)/);
@@ -120,28 +117,18 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): React.FC<SvgProps
 /**
  * Helper method to return default avatar URL associated with login
  */
-function getDefaultAvatarURL(accountID: string | number = '', isNewDot = true): string {
+function getDefaultAvatarURL(accountID: string | number = ''): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
     // To ensure that the avatar remains unchanged and matches the one returned by the backend,
     // utilize an optimistic ID generated from the email instead of directly using the user ID.
-    let email; let originAccountID;
-    if (allPersonalDetails?.[accountID]) {
-        if (allPersonalDetails[accountID].login) {
-            email = allPersonalDetails[accountID].login;
-        } else if (allPersonalDetails[accountID].displayName) {
-            email = allPersonalDetails[accountID].displayName;
-        }
-    }
-    if (email) {
-        originAccountID = generateAccountID(email);
-    } else {
-        originAccountID = accountID;
-    }
+    const email = allPersonalDetails?.[accountID]?.login;
+    const originalOptimisticAccountID = email ? generateAccountID(email) : accountID;
+
     // Note that Avatar count starts at 1 which is why 1 has to be added to the result (or else 0 would result in a broken avatar link)
-    const accountIDHashBucket = (Number(originAccountID) % (isNewDot ? CONST.DEFAULT_AVATAR_COUNT : CONST.OLD_DEFAULT_AVATAR_COUNT)) + 1;
-    const avatarPrefix = isNewDot ? `default-avatar` : `avatar`;
+    const accountIDHashBucket = (Number(originalOptimisticAccountID) % CONST.DEFAULT_AVATAR_COUNT) + 1;
+    const avatarPrefix = `default-avatar`;
 
     return `${CONST.CLOUDFRONT_URL}/images/avatars/${avatarPrefix}_${accountIDHashBucket}.png`;
 }
@@ -189,7 +176,7 @@ function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource
  * @param accountID - the accountID of the user
  */
 function getAvatarUrl(avatarURL: string, accountID: number): string {
-    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(accountID, true) : avatarURL;
+    return isDefaultAvatar(avatarURL) ? getDefaultAvatarURL(accountID) : avatarURL;
 }
 
 /**
