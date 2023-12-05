@@ -67,7 +67,7 @@ function NewDistanceRequestPage({iou, report, route}) {
         <DistanceRequest
             report={report}
             route={route}
-            isEditingNewRequest={isEditing}
+            isEditingNewRequest={isEditingNewRequest}
             transactionID={iou.transactionID}
             onSubmit={onSubmit}
         />
