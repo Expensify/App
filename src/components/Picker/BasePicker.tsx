@@ -34,8 +34,8 @@ function BasePicker<TPickerValue>(
     }: BasePickerProps<TPickerValue>,
     ref: ForwardedRef<BasePickerHandle>,
 ) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     const [isHighlighted, setIsHighlighted] = useState(false);
 
