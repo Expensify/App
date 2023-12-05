@@ -265,7 +265,6 @@ const ONYXKEYS = {
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
-        TRANSACTION_VIOLATIONS: 'transactionViolations_',
 
         // Transaction Violations
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
