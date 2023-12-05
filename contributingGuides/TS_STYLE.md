@@ -2,16 +2,32 @@
 
 ## Table of Contents
 
-- [Expensify TypeScript Style Guide](#expensify-typescript-style-guide)
-  - [Table of Contents](#table-of-contents)
-  - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
-  - [General Rules](#general-rules)
-  - [Guidelines](#guidelines)
-  - [Exception to Rules](#exception-to-rules)
-  - [Communication Items](#communication-items)
-  - [Migration Guidelines](#migration-guidelines)
-  - [Learning Resources](#learning-resources)
-    - [Quickest way to learn TypeScript](#quickest-way-to-learn-typescript)
+- [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
+- [General Rules](#general-rules)
+- [Guidelines](#guidelines)
+  - [1.1 Naming Conventions](#naming-conventions)
+  - [1.2 `d.ts` Extension](#d-ts-extension)
+  - [1.3 Type Alias vs. Interface](#type-alias-vs-interface)
+  - [1.4 Enum vs. Union Type](#enum-vs-union-type)
+  - [1.5 `unknown` vs. `any`](#unknown-vs-any)
+  - [1.6 `T[]` vs. `Array<T>`](#array)
+  - [1.7 @ts-ignore](#ts-ignore)
+  - [1.8 Optional chaining and nullish coalescing](#ts-nullish-coalescing)
+  - [1.9 Type Inference](#type-inference)
+  - [1.10 JSDoc](#jsdoc)
+  - [1.11 `propTypes` and `defaultProps`](#proptypes-and-defaultprops)
+  - [1.12 Utility Types](#utility-types)
+  - [1.13 `object` Type](#object-type)
+  - [1.14 Export Prop Types](#export-prop-types)
+  - [1.15 File Organization](#file-organization)
+  - [1.16 Reusable Types](#reusable-types)
+  - [1.17 `.tsx`](#tsx)
+  - [1.18 No inline prop types](#no-inline-prop-types)
+  - [1.19 Satisfies operator](#satisfies-operator)
+- [Exception to Rules](#exception-to-rules)
+- [Communication Items](#communication-items)
+- [Migration Guidelines](#migration-guidelines)
+- [Learning Resources](#learning-resources)
 
 ## Other Expensify Resources on TypeScript
 
@@ -365,7 +381,7 @@ type Foo = {
 
 <a name="file-organization"></a><a name="1.15"></a>
 
-- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants.
+- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants. 
 
   > Why? To encourage consistent API across platform-specific implementations. If you're migrating module that doesn't have a default implement (i.e. `index.ts`, e.g. `getPlatform`), refer to [Migration Guidelines](#migration-guidelines) for further information.
 
