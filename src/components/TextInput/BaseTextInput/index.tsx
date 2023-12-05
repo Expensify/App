@@ -40,7 +40,6 @@ import BaseTextInputProps from './types';
 function BaseTextInput(
     {
         label = '',
-        // name = '',
         value = undefined,
         defaultValue = undefined,
         placeholder = '',
@@ -57,12 +56,10 @@ function BaseTextInput(
         hideFocusedState = false,
         maxLength = undefined,
         hint = '',
-        // shouldSaveDraft = false,
         onInputChange = () => {},
         shouldDelayFocus = false,
         submitOnEnter = false,
         multiline = false,
-        // shouldUseDefaultValue = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter,
@@ -82,7 +79,7 @@ function BaseTextInput(
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
-    const [width, setWidth] = useState<number>();
+    const [width, setWidth] = useState<number | null>(null);
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
 
@@ -179,7 +176,7 @@ function BaseTextInput(
 
             const layout = event.nativeEvent.layout;
 
-            setWidth((prevWidth: number | undefined) => (autoGrowHeight ? layout.width : prevWidth));
+            setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
             setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
         },
         [autoGrowHeight, multiline],

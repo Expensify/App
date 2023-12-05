@@ -1,4 +1,4 @@
-import React, {ForwardedRef, forwardRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import React, {type ForwardedRef, forwardRef, type MouseEventHandler, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';

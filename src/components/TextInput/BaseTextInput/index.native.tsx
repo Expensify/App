@@ -4,9 +4,9 @@ import {
     ActivityIndicator,
     Animated,
     FlexStyle,
-    GestureResponderEvent,
-    LayoutChangeEvent,
-    NativeSyntheticEvent,
+    type GestureResponderEvent,
+    type LayoutChangeEvent,
+    type NativeSyntheticEvent,
     StyleProp,
     StyleSheet,
     TextInput,
@@ -35,7 +35,7 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import BaseTextInputProps from './types';
+import type BaseTextInputProps from './types';
 
 function BaseTextInput(
     {
@@ -83,7 +83,7 @@ function BaseTextInput(
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
-    const [width, setWidth] = useState<number | undefined>();
+    const [width, setWidth] = useState<number | null>(null);
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
 
@@ -180,7 +180,7 @@ function BaseTextInput(
 
             const layout = event.nativeEvent.layout;
 
-            setWidth((prevWidth: number | undefined) => (autoGrowHeight ? layout.width : prevWidth));
+            setWidth((prevWidth: number | null) => (autoGrowHeight ? layout.width : prevWidth));
             setHeight((prevHeight: number) => (!multiline ? layout.height : prevHeight));
         },
         [autoGrowHeight, multiline],

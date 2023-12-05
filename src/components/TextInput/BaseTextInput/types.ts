@@ -97,9 +97,16 @@ type CustomBaseTextInputProps = {
     /** Indicate whether or not the input should prevent swipe actions in tabs */
     shouldInterceptSwipe?: boolean;
 
+    /** Should there be an error displayed */
     hasError?: boolean;
+
+    /** On Press handler */
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
+
+    /** Should loading state should be displayed */
     isLoading?: boolean;
+
+    /** Type of autocomplete */
     autoCompleteType?: string;
 };
 
