@@ -1,7 +1,7 @@
 import {getYear, setYear} from 'date-fns';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -46,15 +46,6 @@ function YearPicker(props) {
         ),
     );
 
-    useEffect(() => {
-        if (selectedYear) {
-            return;
-        }
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
-        });
-    }, [selectedYear]);
-
     const {sections, headerMessage} = useMemo(() => {
         const yearsList = searchText === '' ? years : _.filter(years, (year) => year.text.includes(searchText));
         return {
@@ -63,7 +54,7 @@ function YearPicker(props) {
         };
     }, [years, searchText, translate]);
 
-    const isLoading = _.isEmpty(years) || !selectedYear;
+    const isLoading = _.isEmpty(years);
 
     return (
         <ScreenWrapper

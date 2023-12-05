@@ -266,7 +266,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_DATE_YEAR: {
         route: ':iouType/new/date/year/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/year/${reportID}`,
+        getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/year/${reportID}` as const,
     },
     MONEY_REQUEST_CURRENCY: {
         route: ':iouType/new/currency/:reportID?',

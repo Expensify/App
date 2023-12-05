@@ -5,13 +5,16 @@ import YearPicker from '@components/YearPicker';
 import ROUTES from '@src/ROUTES';
 
 type MoneyRequestYearPageProps = {
-    route: RouteProp<{params: {value: string}}>;
+    route: RouteProp<{params: {value: string; iouType: string; reportID?: string}}>;
 };
 
 function MoneyRequestYearPage({route}: MoneyRequestYearPageProps) {
+    // const iouType = lodashGet(route, 'params.iouType', '');
+    const iouType = route.params?.iouType;
+    const reportID = route.params?.reportID;
     return (
         <YearPicker
-            backTo={ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH}
+            backTo={ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID)}
             maxYear={getYear(new Date())}
             route={route}
         />
