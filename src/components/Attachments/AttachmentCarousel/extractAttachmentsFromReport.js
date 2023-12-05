@@ -1,11 +1,7 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-<<<<<<< HEAD
-=======
-import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
->>>>>>> 62ef87a (Merge pull request #32516 from Expensify/neil-fix-distance-eReceipt)
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -34,16 +30,10 @@ function extractAttachmentsFromReport(parentReportAction, reportActions, transac
             // we ensure correct order of attachments even across actions with multiple attachments.
             attachments.unshift({
                 reportActionID: attribs['data-id'],
-<<<<<<< HEAD
                 source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-=======
-                source,
-                isAuthTokenRequired: Boolean(expensifySource),
-                file: {name: fileName},
                 isReceipt: false,
->>>>>>> 62ef87a (Merge pull request #32516 from Expensify/neil-fix-distance-eReceipt)
                 hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
         },
