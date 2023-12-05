@@ -342,7 +342,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     });
 
                     if (propsToParse.shouldSaveDraft) {
-                        FormActions.setDraftValues(formID, {[inputKey]: value});
+                        FormActions.setDraftValues(formID, {[inputKey]: _.isFunction(propsToParse.valueParser) ? propsToParse.valueParser(inputValue) : inputValue});
                     }
 
                     if (_.isFunction(propsToParse.onValueChange)) {
