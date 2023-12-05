@@ -19,7 +19,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils from '@libs/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -356,16 +356,12 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    if (!policy.id) {
+    if (!policy || !policy.id) {
         return [optimisticData, successData, failureData];
     }
 
-    // TODO: Remove the following line once everything is tested
-    console.log('POLICY: ', policy);
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTags, policyTags, policy.requiresCategory, policyCategories);
 
-    // TODO: Remove the following line once everything is tested
-    console.log('ONYXDATA', violationsOnyxData);
     if (violationsOnyxData) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
