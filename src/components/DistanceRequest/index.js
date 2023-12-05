@@ -39,7 +39,7 @@ const propTypes = {
     /** Are we editing an existing distance request, or creating a new one? */
     isEditingRequest: PropTypes.bool,
 
-    /** Are we editing a new distance request */
+    /** Are we editing the distance while creating a new distance request */
     isEditingNewRequest: PropTypes.bool,
 
     /** Called on submit of this page */

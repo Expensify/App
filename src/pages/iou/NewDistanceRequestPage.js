@@ -46,7 +46,7 @@ const defaultProps = {
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that DistanceRequest can subscribe to the transaction.
 function NewDistanceRequestPage({iou, report, route}) {
     const iouType = lodashGet(route, 'params.iouType', 'request');
-    const isEditing = Navigation.getActiveRoute().includes('address');
+    const isEditingNewRequest = Navigation.getActiveRoute().includes('address');
 
     useEffect(() => {
         if (iou.transactionID) {
@@ -56,12 +56,12 @@ function NewDistanceRequestPage({iou, report, route}) {
     }, [iou.transactionID]);
 
     const onSubmit = useCallback(() => {
-        if (isEditing) {
+        if (isEditingNewRequest) {
             Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
             return;
         }
         IOU.navigateToNextPage(iou, iouType, report);
-    }, [iou, iouType, isEditing, report]);
+    }, [iou, iouType, isEditingNewRequest, report]);
 
     return (
         <DistanceRequest
