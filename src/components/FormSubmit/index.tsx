@@ -1,23 +1,23 @@
-import lodashGet from 'lodash/get';
-import React, {useEffect} from 'react';
+import React, {KeyboardEvent, useEffect} from 'react';
 import {View} from 'react-native';
 import * as ComponentUtils from '@libs/ComponentUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '@src/CONST';
-import * as formSubmitPropTypes from './formSubmitPropTypes';
+import {FormSubmitProps, FormSubmitRef} from './types';
 
-function FormSubmit({innerRef, children, onSubmit, style}) {
+function FormSubmit({children, onSubmit, style}: FormSubmitProps, ref: FormSubmitRef) {
     /**
      * Calls the submit callback when ENTER is pressed on a form element.
-     * @param {Object} event
      */
-    const submitForm = (event) => {
+    const submitForm = (event: KeyboardEvent) => {
         // ENTER is pressed with modifier key or during text composition, do not submit the form
         if (event.shiftKey || event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || isEnterWhileComposition(event)) {
             return;
         }
 
-        const tagName = lodashGet(event, 'target.tagName', '');
+        const eventTarget = event.target as HTMLElement;
+
+        const tagName = eventTarget?.tagName ?? '';
 
         // ENTER is pressed on INPUT or SELECT element, call the submit callback.
         if (tagName === 'INPUT' || tagName === 'SELECT') {
@@ -26,22 +26,30 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
         }
 
         // Pressing Enter on TEXTAREA element adds a new line. When `dataset.submitOnEnter` prop is passed, call the submit callback.
-        if (tagName === 'TEXTAREA' && lodashGet(event, 'target.dataset.submitOnEnter', 'false') === 'true') {
+        if (tagName === 'TEXTAREA' && (eventTarget?.dataset?.submitOnEnter ?? 'false') === 'true') {
             event.preventDefault();
             onSubmit();
             return;
         }
 
         // ENTER is pressed on checkbox element, call the submit callback.
-        if (lodashGet(event, 'target.role') === 'checkbox') {
+        if (eventTarget?.role === 'checkbox') {
             onSubmit();
         }
     };
 
-    const preventDefaultFormBehavior = (e) => e.preventDefault();
+    const preventDefaultFormBehavior = (e: SubmitEvent) => e.preventDefault();
 
     useEffect(() => {
-        const form = innerRef.current;
+        if (!(ref && 'current' in ref)) {
+            return;
+        }
+
+        const form = ref.current as HTMLFormElement | null;
+
+        if (!form) {
+            return;
+        }
 
         // Prevent the browser from applying its own validation, which affects the email input
         form.setAttribute('novalidate', '');
@@ -55,7 +63,7 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
 
             form.removeEventListener('submit', preventDefaultFormBehavior);
         };
-    }, [innerRef]);
+    }, [ref]);
 
     return (
         // React-native-web prevents event bubbling on TextInput for key presses
@@ -63,7 +71,7 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
         // Thus use capture phase.
         <View
             role={ComponentUtils.ACCESSIBILITY_ROLE_FORM}
-            ref={innerRef}
+            ref={ref}
             onKeyDownCapture={submitForm}
             style={style}
         >
@@ -72,17 +80,6 @@ function FormSubmit({innerRef, children, onSubmit, style}) {
     );
 }
 
-FormSubmit.propTypes = formSubmitPropTypes.propTypes;
-FormSubmit.defaultProps = formSubmitPropTypes.defaultProps;
+FormSubmit.displayName = 'FormSubmitWithRef';
 
-const FormSubmitWithRef = React.forwardRef((props, ref) => (
-    <FormSubmit
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-FormSubmitWithRef.displayName = 'FormSubmitWithRef';
-
-export default FormSubmitWithRef;
+export default React.forwardRef(FormSubmit);
