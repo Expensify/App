@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {NativeModules, useContext, useEffect} from 'react';
-import {Linking} from 'react-native';
+import React, {useContext, useEffect} from 'react';
+import {Linking, NativeModules} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as SessionUtils from '@libs/SessionUtils';
