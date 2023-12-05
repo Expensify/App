@@ -34,7 +34,7 @@ const test = () => {
         console.debug('[E2E] Logged in, getting chat opening metrics and submitting them…');
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
-                console.debug(`[E2E] Sidebar loaded, navigating report…`);
+                console.debug(`[E2E] Sidebar loaded, navigating to report…`);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
