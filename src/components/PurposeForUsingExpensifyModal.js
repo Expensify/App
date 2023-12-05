@@ -144,12 +144,7 @@ function PurposeForUsingExpensifyModal() {
             onClose={closeModal}
         >
             <View>
-                <HeaderWithBackButton
-                    shouldShowCloseButton
-                    shouldShowBackButton={false}
-                    onCloseButtonPress={() => setIsModalOpen(false)}
-                />
-                <View style={StyleSheet.absoluteFillObject}>
+                <View>
                     <Lottie
                         source={LottieAnimations.Hands}
                         style={styles.w100}
@@ -158,7 +153,13 @@ function PurposeForUsingExpensifyModal() {
                         loop
                     />
                 </View>
-                <View style={[styles.w100, styles.ph5, styles.pb5, {marginTop: 350}]}>
+                <HeaderWithBackButton
+                    shouldShowCloseButton
+                    shouldShowBackButton={false}
+                    onCloseButtonPress={() => setIsModalOpen(false)}
+                    shouldOverlay
+                />
+                <View style={[styles.w100, styles.ph5, styles.pb5]}>
                     <Text
                         style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                         numberOfLines={2}

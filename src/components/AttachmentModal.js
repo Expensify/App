@@ -440,7 +440,7 @@ function AttachmentModal(props) {
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    shouldOverlay
+                    shouldOverlayDots
                 />
                 <View style={styles.imageModalImageCenterContainer}>
                     {!_.isEmpty(props.report) ? (
