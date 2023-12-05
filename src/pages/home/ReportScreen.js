@@ -165,7 +165,6 @@ function ReportScreen({
     const [scrollPosition, setScrollPosition] = useState({});
 
     const reportID = getReportID(route);
-
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
