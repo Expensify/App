@@ -4,11 +4,11 @@ import {InteractionManager, TextInput} from 'react-native';
 import CONST from '@src/CONST';
 import * as Expensify from '@src/Expensify';
 
-type UseAutoFocusInputValue = {
+type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
 };
 
-export default function useAutoFocusInput(): UseAutoFocusInputValue {
+export default function useAutoFocusInput(): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
