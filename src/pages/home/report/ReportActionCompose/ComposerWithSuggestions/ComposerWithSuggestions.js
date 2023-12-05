@@ -106,6 +106,7 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
+    const [firstChange, setFirstChange] = useState(true);
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
     const [value, setValue] = useState(() => {
@@ -221,16 +222,42 @@ function ComposerWithSuggestions({
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
-            const newCommentConverted = convertToLTRForComposer(newComment);
+
+            let newCommentConverted = convertToLTRForComposer(newComment);
+
+            const moveCursorToEndOfLine = (commentLength) => {
+                setSelection({
+                    start: commentLength + 1,
+                    end: commentLength + 1,
+                });
+            };
+
+            if (firstChange && commentRef.current === '' && !['@'].includes(newComment)) {
+                if (commentRef.current !== newComment) {
+                    setValue(convertToLTR(newComment));
+                    moveCursorToEndOfLine(newComment.length);
+                }
+                setFirstChange(false);
+            } else if (commentRef.current !== newComment) {
+                newCommentConverted = newComment.length <= 1 ? newCommentConverted.replace(/\u2066/g, '') : newCommentConverted;
+                setValue(newCommentConverted);
+                moveCursorToEndOfLine(newComment.length);
+                setFirstChange(false);
+            }
+
             const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
             const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
 
             /** Only update isCommentEmpty state if it's different from previous one */
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
+                if (isNewCommentEmpty) {
+                    setFirstChange(true);
+                }
             }
+
             emojisPresentBefore.current = emojis;
-            setValue(newCommentConverted);
+
             if (commentValue !== newComment) {
                 const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
                 setSelection({
@@ -269,6 +296,7 @@ function ComposerWithSuggestions({
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
             selection.end,
+            firstChange,
         ],
     );
 
@@ -525,13 +553,6 @@ function ComposerWithSuggestions({
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
-
-    useEffect(() => {
-        if (value !== '') {
-            return;
-        }
-        setValue(convertToLTR(value));
-    }, [value]);
 
     return (
         <>
