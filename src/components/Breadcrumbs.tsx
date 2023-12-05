@@ -48,10 +48,10 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                                 />
                             </View>
                         ) : (
-                            <>
+                            <Text>
                                 {index !== 0 && <Text style={separatorStyle}>/</Text>}
                                 <Text style={style}>{breadcrumb.text}</Text>
-                            </>
+                            </Text>
                         )}
                     </Fragment>
                 );

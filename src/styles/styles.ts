@@ -1393,6 +1393,7 @@ const styles = (theme: ThemeColors) =>
 
         breadcrumbSeparator: {
             marginTop: 0,
+            marginRight: 4,
             color: colors.darkIcons,
             fontSize: variables.fontSizeXLarge,
         },
