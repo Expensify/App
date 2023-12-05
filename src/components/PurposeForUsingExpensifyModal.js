@@ -44,6 +44,51 @@ function PurposeForUsingExpensifyModal() {
     const [isModalOpen, setIsModalOpen] = useState(true);
     const theme = useTheme();
 
+    const messageCopy = {
+        track: 'Great! To track your expenses, I suggest you create a workspace to keep everything contained:<br />' +
+            '<br />' +
+            '1. Press your avatar icon<br />' +
+            '2. Choose Workspaces<br />' +
+            '3. Choose New Workspace<br />' +
+            '4. Name your workspace something meaningful (eg, "My Business Expenses")<br />' +
+            '<br />' +
+            'Once you have your workspace set up, you can add expenses to it as follows:<br />' +
+            '<br />' +
+            '1. Choose My Business Expenses (or whatever you named it) in the list of chat rooms<br />' +
+            '2. Choose the + button in the chat compose window<br />' +
+            '3. Choose Request money<br />' +
+            '4. Choose what kind of expense you\'d like to log, whether a manual expense, scanned receipt, or tracked distance.<br />' +
+            '<br />' +
+            'That\'ll be stored in your My Business Expenses room for your later access. Thanks for asking, and let me know how it goes!',
+        submit: 'Hi there, to submit expenses for reimbursement, please:<br />' +
+            '<br />' +
+            '1. Press the big green + button<br />' +
+            '2. Choose Request money<br />' +
+            '3. Indicate how much to request, either manually, by scanning a receipt, or by tracking distance<br />' +
+            '4. Enter the email address or phone number of your boss<br />' +
+            '<br />' +
+            'And we\'ll take it from there to get you paid back. Please give it a shot and let me know how it goes!',
+        manage: 'Great! To manage your team\'s expenses, create a workspace to keep everything contained:<br />' +
+            '<br />' +
+            '1. Press your avatar icon<br />' +
+            '2. Choose Workspaces<br />' +
+            '3. Choose New Workspace<br />' +
+            '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")<br />' +
+            '<br />' +
+            'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!',
+        chat: 'Hi there, to split an expense such as with a friend, please:<br />' +
+            '<br />' +
+            'Press the big green + button<br />' +
+            'Choose *Request money*<br />' +
+            'Indicate how much was spent, either manually, by scanning a receipt, or by tracking distance<br />' +
+            'Enter the email address or phone number of your friend<br />' +
+            'Press *Split* next to their name<br />' +
+            'Repeat as many times as you like for each of your friends<br />' +
+            'Press *Add to split* when done adding friends<br />' +
+            'Press Split to split the bill<br />' +
+            '<br />' +
+            'This will send an a money request to each of your friends for however much they owe you, and we\'ll take care of getting you paid back. Thanks for asking, and let me know how it goes!' +
+    }
     const menuItems = [
         {
             key: 'purposeForExpensify.track',
