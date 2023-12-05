@@ -288,7 +288,7 @@ function Composer(
         const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
         const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
 
-        if (typeof ref === 'function' && textInput.current) {
+        if (typeof ref === 'function') {
             ref(textInput.current);
         }
 
