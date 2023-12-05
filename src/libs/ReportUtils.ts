@@ -4153,15 +4153,15 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
         return '';
     }
     const originalMessage = reportAction.originalMessage;
+    const {IOUReportID} = originalMessage;
+    const iouReport = getReport(IOUReportID);
     let translationKey: TranslationPaths;
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        const {IOUReportID} = originalMessage;
         // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
         // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
         // property. If it does, it indicates that this is a 'Send money' action.
         const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(amount, currency) ?? '';
-        const iouReport = getReport(IOUReportID);
         const payerName = isExpenseReport(iouReport) ? getPolicyName(iouReport) : getDisplayNameForParticipant(iouReport?.managerID, true);
 
         switch (originalMessage.paymentType) {
@@ -4183,8 +4183,14 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
     const transactionDetails = getTransactionDetails(isNotEmptyObject(transaction) ? transaction : null);
     const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency);
     const isRequestSettled = isSettled(originalMessage.IOUReportID);
+    const isApproved = isReportApproved(iouReport);
     if (isRequestSettled) {
         return Localize.translateLocal('iou.payerSettled', {
+            amount: formattedAmount,
+        });
+    }
+    if (isApproved) {
+        return Localize.translateLocal('iou.approvedAmount', {
             amount: formattedAmount,
         });
     }
