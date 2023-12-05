@@ -39,7 +39,7 @@ function Search({onPress, prompt, tooltip, style}: SearchProps) {
                     <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.ph6, styles.alignItemsCenter, styles.searchContainer, hovered && styles.searchContainerHovered, style]}>
                         <Icon
                             src={Expensicons.MagnifyingGlass}
-                            width={ variables.iconSizeSmall }
+                            width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                         />
                         <Text
