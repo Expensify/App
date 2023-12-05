@@ -8,7 +8,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import InitialUrlContext from '@src/InitialUrlContext';
+import InitialUrlContext from '@libs/InitialUrlContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useContext, useEffect} from 'react';
 import {NativeModules} from 'react-native';
 import Navigation from '@libs/Navigation/Navigation';
-import InitialUrlContext from '@src/InitialUrlContext';
+import InitialUrlContext from '@libs/InitialUrlContext';
 
 const propTypes = {
     /** If we have an authToken this is true */

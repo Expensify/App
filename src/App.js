@@ -23,7 +23,7 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
-import InitialUrlContext from './InitialUrlContext';
+
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
@@ -31,6 +31,7 @@ import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsCo
 import ThemeIllustrationsProvider from './styles/illustrations/ThemeIllustrationsProvider';
 import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
+import InitialUrlContext from './libs/InitialUrlContext';
 
 const propTypes = {
     /** Initial url that may be passed as deeplink from Hybrid App */
