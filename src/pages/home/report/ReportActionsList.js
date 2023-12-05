@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -159,7 +159,8 @@ function ReportActionsList({
     const reportActionSize = useRef(sortedReportActions.length);
     const lastReadTimeRef = useRef(report.lastReadTime);
 
-    const lastActionIndex = lodashGet(sortedReportActions, [0, 'reportActionID']);
+    const sortedVisibleReportActions = _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors);
+    const lastActionIndex = lodashGet(sortedVisibleReportActions, [0, 'reportActionID']);
 
     const previousLastIndex = useRef(lastActionIndex);
 
@@ -178,11 +179,11 @@ function ReportActionsList({
     }, [opacity]);
 
     useEffect(() => {
-        if (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedReportActions.length) {
+        if (previousLastIndex.current !== lastActionIndex && reportActionSize.current > sortedVisibleReportActions.length) {
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
-    }, [lastActionIndex, sortedReportActions.length, reportScrollManager]);
+    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager]);
 
     useEffect(() => {
         // If the reportID changes, we reset the userActiveSince to null, we need to do it because
@@ -270,7 +271,9 @@ function ReportActionsList({
             if (!isFromCurrentUser) {
                 return;
             }
-            reportScrollManager.scrollToBottom();
+            InteractionManager.runAfterInteractions(()=>{
+                reportScrollManager.scrollToBottom();
+            })
         });
 
         const cleanup = () => {
