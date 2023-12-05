@@ -378,9 +378,8 @@ function Composer(
 
                         textInput.current.focus();
                     });
-                    if (props?.onFocus) {
-                        props.onFocus(e);
-                    }
+
+                    props.onFocus?.(e);
                 }}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
