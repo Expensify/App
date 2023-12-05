@@ -437,9 +437,7 @@ function ComposerWithSuggestions({
             }
 
             focus();
-            if (e.key.length === 1) {
-                replaceSelectionWithText(e.key, false);
-            }
+            replaceSelectionWithText(e.key, false);
         },
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
