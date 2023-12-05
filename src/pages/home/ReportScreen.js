@@ -172,11 +172,11 @@ function ReportScreen({
     // We need to update the lastVisitTime every time the report is focused
     // because lastReadTime is not updated every time the user visits a report.
     useEffect(() => {
-        if (!report.reportID || !isFocused) {
+        if (!report.reportID) {
             return;
         }
         Report.updateLastVisitTime(report.reportID);
-    }, [report.reportID, isFocused]);
+    }, [report.reportID]);
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
