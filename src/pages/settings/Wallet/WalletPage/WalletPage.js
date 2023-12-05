@@ -527,10 +527,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                             cancelText={translate('common.cancel')}
                             shouldShowCancelButton
                             danger
-                            onModalHide={() => {
-                                hideDefaultDeleteMenu();
-                                resetSelectedPaymentMethodData();
-                            }}
+                            onModalHide={resetSelectedPaymentMethodData}
                         />
                     </Popover>
                 </ScreenWrapper>
