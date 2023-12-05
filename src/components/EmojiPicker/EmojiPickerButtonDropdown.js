@@ -8,8 +8,9 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
@@ -25,6 +26,8 @@ const defaultProps = {
 };
 
 function EmojiPickerButtonDropdown(props) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -63,7 +66,7 @@ function EmojiPickerButtonDropdown(props) {
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed))}
                             />
                         </View>
                     </View>

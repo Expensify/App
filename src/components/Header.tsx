@@ -1,6 +1,6 @@
 import React, {ReactElement} from 'react';
 import {StyleProp, TextStyle, View} from 'react-native';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 
@@ -19,6 +19,7 @@ type HeaderProps = {
 };
 
 function Header({title = '', subtitle = '', textStyles = [], shouldShowEnvironmentBadge = false}: HeaderProps) {
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.flexRow]}>
             <View style={styles.mw100}>

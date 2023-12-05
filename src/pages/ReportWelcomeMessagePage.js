@@ -5,7 +5,8 @@ import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -13,9 +14,9 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +46,7 @@ const defaultProps = {
 };
 
 function ReportWelcomeMessagePage(props) {
+    const styles = useThemeStyles();
     const parser = new ExpensiMark();
     const [welcomeMessage, setWelcomeMessage] = useState(() => parser.htmlToMarkdown(props.report.welcomeMessage));
     const welcomeMessageInputRef = useRef(null);
@@ -80,12 +82,12 @@ function ReportWelcomeMessagePage(props) {
             includeSafeAreaPaddingBottom={false}
             testID={ReportWelcomeMessagePage.displayName}
         >
-            <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableWelcomeMessage(props.report, props.policy)}>
                 <HeaderWithBackButton
                     title={props.translate('welcomeMessagePage.welcomeMessage')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(props.report.reportID))}
                 />
-                <Form
+                <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
@@ -94,7 +96,8 @@ function ReportWelcomeMessagePage(props) {
                 >
                     <Text style={[styles.mb5]}>{props.translate('welcomeMessagePage.explainerText')}</Text>
                     <View style={[styles.mb6]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
@@ -111,11 +114,10 @@ function ReportWelcomeMessagePage(props) {
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
-                            inputStyle={[styles.verticalAlignTop]}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
-                </Form>
+                </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

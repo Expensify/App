@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -23,12 +23,9 @@ type CurrentUserPersonalDetailsSkeletonViewProps = {
     foregroundColor?: string;
 };
 
-function CurrentUserPersonalDetailsSkeletonView({
-    shouldAnimate = true,
-    avatarSize = CONST.AVATAR_SIZE.LARGE,
-    backgroundColor = themeColors.highlightBG,
-    foregroundColor = themeColors.border,
-}: CurrentUserPersonalDetailsSkeletonViewProps) {
+function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE, backgroundColor, foregroundColor}: CurrentUserPersonalDetailsSkeletonViewProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(avatarSize);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
     const spaceBetweenAvatarAndHeadline = styles.mb3.marginBottom + styles.mt1.marginTop + (variables.lineHeightXXLarge - variables.fontSizeXLarge) / 2;
@@ -39,8 +36,8 @@ function CurrentUserPersonalDetailsSkeletonView({
         <View style={styles.avatarSectionWrapperSkeleton}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
-                backgroundColor={backgroundColor}
-                foregroundColor={foregroundColor}
+                backgroundColor={backgroundColor ?? theme.highlightBG}
+                foregroundColor={foregroundColor ?? theme.border}
                 height={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel + labelSize}
             >
                 <Circle

@@ -19,6 +19,7 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -27,8 +28,7 @@ import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import policyMemberPropType from '@pages/policyMemberPropType';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -65,26 +65,46 @@ const propTypes = {
         }),
     ),
 
-    /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
-
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    /** Form state for NEW_ROOM_FORM */
+    formState: PropTypes.shape({
+        /** Loading state for the form */
+        isLoading: PropTypes.bool,
+
+        /** Field errors in the form */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+
+    /** Session details for the user */
+    session: PropTypes.shape({
+        /** accountID of current user */
+        accountID: PropTypes.number,
+    }),
 };
 const defaultProps = {
     betas: [],
     reports: {},
     policies: {},
-    allPolicyMembers: {},
+    formState: {
+        isLoading: false,
+        errorFields: {},
+    },
+    session: {
+        accountID: 0,
+    },
 };
 
 function WorkspaceNewRoomPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
     const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
@@ -93,14 +113,46 @@ function WorkspaceNewRoomPage(props) {
 
         return ReportUtils.isPolicyAdmin(policyID, props.policies);
     }, [policyID, props.policies]);
+    const [newRoomReportID, setNewRoomReportID] = useState(undefined);
 
     /**
      * @param {Object} values - form input values passed by the Form component
      */
     const submit = (values) => {
-        const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(policyID, values.roomName, visibility, policyMembers, writeCapability, values.welcomeMessage);
+        const participants = [props.session.accountID];
+        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const policyReport = ReportUtils.buildOptimisticChatReport(
+            participants,
+            values.roomName,
+            CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            policyID,
+            CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            '',
+            visibility,
+            writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
+
+            // The room might contain all policy members so notifying always should be opt-in only.
+            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            '',
+            '',
+            parsedWelcomeMessage,
+        );
+        setNewRoomReportID(policyReport.reportID);
+        Report.addPolicyReport(policyReport);
     };
+
+    useEffect(() => {
+        Report.clearNewRoomFormError();
+    }, []);
+
+    useEffect(() => {
+        if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
+            return;
+        }
+        Navigation.dismissModal(newRoomReportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
+    }, [props.formState]);
 
     useEffect(() => {
         if (isPolicyAdmin) {
@@ -208,11 +260,10 @@ function WorkspaceNewRoomPage(props) {
                                         inputID="welcomeMessage"
                                         label={translate('welcomeMessagePage.welcomeMessageOptional')}
                                         accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                                         autoGrowHeight
                                         maxLength={CONST.MAX_COMMENT_LENGTH}
                                         autoCapitalize="none"
-                                        textAlignVertical="top"
                                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                                     />
                                 </View>
@@ -220,7 +271,6 @@ function WorkspaceNewRoomPage(props) {
                                     <ValuePicker
                                         inputID="policyID"
                                         label={translate('workspace.common.workspace')}
-                                        placeholder={translate('newRoomPage.selectAWorkspace')}
                                         items={workspaceOptions}
                                         onValueChange={setPolicyID}
                                     />
@@ -290,8 +340,11 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        formState: {
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(WorkspaceNewRoomPage);

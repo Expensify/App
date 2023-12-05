@@ -3,7 +3,7 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
-import {InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -937,6 +937,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
             ],
         },
     );
+    DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
 /**
@@ -1369,11 +1370,12 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {boolean} navigate
  * @param {String} parentReportID
  * @param {String} parentReportActionID
+ * @param {Object} report
  */
-function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0, report = {}) {
     if (previousValue === newValue) {
-        if (navigate) {
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        if (navigate && report.reportID) {
+            ReportUtils.goBackToDetailsPage(report);
         }
         return;
     }
@@ -1405,7 +1407,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
     }
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
     if (navigate) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        ReportUtils.goBackToDetailsPage(report);
     }
 }
 
@@ -1538,35 +1540,9 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @param {Array<Number>} policyMembersAccountIDs
- * @param {String} writeCapability
- * @param {String} welcomeMessage
+ * @param {Object} policyReport
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
-    // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
-    const participants = _.unique([currentUserAccountID, ...members]);
-    const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
-    const policyReport = ReportUtils.buildOptimisticChatReport(
-        participants,
-        reportName,
-        CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policyID,
-        CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        visibility,
-        writeCapability,
-
-        // The room might contain all policy members so notifying always should be opt-in only.
-        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        '',
-        '',
-        parsedWelcomeMessage,
-    );
+function addPolicyReport(policyReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -1588,6 +1564,11 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {[createdReportAction.reportActionID]: createdReportAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: true},
+        },
     ];
     const successData = [
         {
@@ -1608,6 +1589,11 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
     const failureData = [
         {
@@ -1619,22 +1605,26 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
 
     API.write(
         'AddWorkspaceRoom',
         {
             policyID: policyReport.policyID,
-            reportName,
-            visibility,
+            reportName: policyReport.reportName,
+            visibility: policyReport.visibility,
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
-            writeCapability,
-            welcomeMessage: parsedWelcomeMessage,
+            writeCapability: policyReport.writeCapability,
+            welcomeMessage: policyReport.welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal(policyReport.reportID);
 }
 
 /**
@@ -1984,7 +1974,6 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
  * @param {Boolean} isAuthenticated
  */
 function openReportFromDeepLink(url, isAuthenticated) {
-    const route = ReportUtils.getRouteFromLink(url);
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -2003,17 +1992,18 @@ function openReportFromDeepLink(url, isAuthenticated) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat(true);
-                return;
-            }
-            if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
-                Navigation.isNavigationReady().then(() => {
+            Navigation.waitForProtectedRoutes().then(() => {
+                const route = ReportUtils.getRouteFromLink(url);
+                if (route === ROUTES.CONCIERGE) {
+                    navigateToConciergeChat(true);
+                    return;
+                }
+                if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
                     Session.signOutAndRedirectToSignIn();
-                });
-                return;
-            }
-            Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                    return;
+                }
+                Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            });
         });
     });
 }
@@ -2491,7 +2481,7 @@ const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SE
  * @param {string} searchInput
  */
 function searchInServer(searchInput) {
-    if (isNetworkOffline) {
+    if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
@@ -2501,6 +2491,13 @@ function searchInServer(searchInput) {
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
     debouncedSearchInServer(searchInput);
+}
+
+function clearNewRoomFormError() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+        isLoading: false,
+        errorFields: {},
+    });
 }
 
 export {
@@ -2564,4 +2561,5 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    clearNewRoomFormError,
 };

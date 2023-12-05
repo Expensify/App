@@ -20,9 +20,9 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -70,9 +70,6 @@ const propTypes = {
     /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
     setIsUsingRecoveryCode: PropTypes.func.isRequired,
 
-    /** Function to change `isUsingMagicCode` state when the user goes back to the login page */
-    setIsUsingMagicCode: PropTypes.func.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -85,6 +82,8 @@ const defaultProps = {
 };
 
 function BaseValidateCodeForm(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
@@ -208,8 +207,6 @@ function BaseValidateCodeForm(props) {
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
-        // Reset the user's preference for signing in with SAML versus magic codes
-        props.setIsUsingMagicCode(false);
         clearLocalSignInData();
         Session.clearSignInData();
     };
@@ -338,7 +335,7 @@ function BaseValidateCodeForm(props) {
                     <PressableWithFeedback
                         style={[styles.mt2]}
                         onPress={switchBetween2faAndRecoveryCode}
-                        underlayColor={themeColors.componentBG}
+                        underlayColor={theme.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         disabled={isValidateCodeFormSubmitting}
@@ -374,14 +371,14 @@ function BaseValidateCodeForm(props) {
                             <PressableWithFeedback
                                 style={[styles.mt2]}
                                 onPress={resendValidateCode}
-                                underlayColor={themeColors.componentBG}
+                                underlayColor={theme.componentBG}
                                 disabled={shouldDisableResendValidateCode}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(theme, styles, shouldDisableResendValidateCode)]}>
                                     {hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : props.translate('validateCodeForm.magicCodeNotReceived')}
                                 </Text>
                             </PressableWithFeedback>

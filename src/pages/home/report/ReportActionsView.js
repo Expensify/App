@@ -103,8 +103,9 @@ function ReportActionsView(props) {
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
+        const createChatError = _.get(props.report, ['errorFields', 'createChat']);
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (props.report.isOptimisticReport) {
+        if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
             return;
         }
 
@@ -185,7 +186,7 @@ function ReportActionsView(props) {
         const oldestReportAction = _.last(props.reportActions);
 
         // Don't load more chats if we're already at the beginning of the chat history
-        if (oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
