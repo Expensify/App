@@ -115,6 +115,7 @@ type OptimisticExpenseReport = Pick<
     | 'total'
     | 'notificationPreference'
     | 'parentReportID'
+    | 'lastVisibleActionCreated'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -270,6 +271,7 @@ type OptimisticTaskReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'notificationPreference'
+    | 'lastVisibleActionCreated'
 >;
 
 type TransactionDetails =
@@ -308,6 +310,7 @@ type OptimisticIOUReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'statusNum'
+    | 'lastVisibleActionCreated'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -646,7 +649,7 @@ function isUserCreatedPolicyRoom(report: OnyxEntry<Report>): boolean {
  * Whether the provided report is a Policy Expense chat.
  */
 function isPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT;
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
 }
 
 /** Wether the provided report belongs to a Control policy and is an expense chat
@@ -2580,6 +2583,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         reportName: `${payerEmail} owes ${formattedTotal}`,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -2626,6 +2630,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -3315,6 +3320,7 @@ function buildOptimisticTaskReport(
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
