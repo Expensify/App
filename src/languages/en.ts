@@ -1968,13 +1968,13 @@ export default {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Refer a friend, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Refer a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Send your Expensify referral link to a friend or anyone else you know who spends too much time on expenses. When they start an annual subscription, you'll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Invite a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body1: 'Be the first to invite a friend (or anyone else) to Expensify and get $250 if they become an Expensify customer. Share your invite link by text, email, or post it on social media!',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE} for every referral`,
-            body1: 'If you know anyone who’s spending too much time on expenses (literally anyone – your neighbor, your boss, your friend in accounting), send them your Expensify referral link:',
+            header: `Invite a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body1: 'Be the first to invite a friend (or anyone else) to Expensify and get $250 if they become an Expensify customer. Share your invite link by text, email, or post it on social media!',
         },
         copyReferralLink: 'Copy referral link',
     },
