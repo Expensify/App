@@ -5,6 +5,5 @@ export default function reportWithoutHasDraftSelector(report: OnyxKeyValue<'repo
         return report;
     }
     const {hasDraft, ...reportWithoutHasDraft} = report;
-    const {lastVisitTime, ...reportWithoutHasDraftAndLastVisitTime} = reportWithoutHasDraft;
-    return reportWithoutHasDraftAndLastVisitTime;
+    return reportWithoutHasDraft;
 }
