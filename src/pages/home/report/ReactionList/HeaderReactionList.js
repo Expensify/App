@@ -27,8 +27,8 @@ const defaultProps = {
 };
 
 function HeaderReactionList(props) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
             <View style={styles.flexRow}>

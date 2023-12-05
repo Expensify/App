@@ -39,8 +39,8 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
