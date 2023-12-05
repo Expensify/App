@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -28,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import WorkspacesListRow from './WorkspacesListRow';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -182,20 +184,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
-        <IllustratedHeaderPageLayout
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-            illustration={LottieAnimations.WorkspacePlanet}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            title={translate('common.workspaces')}
-            footer={
-                <Button
-                    accessibilityLabel={translate('workspace.new.newWorkspace')}
-                    success
-                    text={translate('workspace.new.newWorkspace')}
-                    onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                />
-            }
-        >
+        <View style={[styles.dFlex, styles.gap3]}>
             {_.isEmpty(workspaces) ? (
                 <FeatureList
                     menuItems={workspaceFeatures}
@@ -203,9 +192,10 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     description="workspace.emptyWorkspace.subtitle"
                 />
             ) : (
-                _.map(workspaces, (item, index) => getMenuItem(item, index))
+                // _.map(workspaces, (item, index) => getMenuItem(item, index))
+                _.map(workspaces, (item) => <WorkspacesListRow title={item.title} />)
             )}
-        </IllustratedHeaderPageLayout>
+        </View>
     );
 }
 
