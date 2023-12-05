@@ -237,9 +237,6 @@ const ONYXKEYS = {
     // Max width supported for HTML <canvas> element
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
-    // The last time the user visited the report
-    LAST_VISITED_REPORT_TIMESTAMPS: 'lastVisitedReportTimestamps',
-
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',

@@ -2500,7 +2500,7 @@ function updateLastVisitTime(reportID) {
     if (!ReportUtils.isValidReportIDFromPath(reportID)) {
         return;
     }
-    Onyx.merge(ONYXKEYS.LAST_VISITED_REPORT_TIMESTAMPS, {[reportID]: DateUtils.getDBTime()});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
 }
 
 function clearNewRoomFormError() {

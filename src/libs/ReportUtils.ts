@@ -557,12 +557,12 @@ function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
 /**
  * Given a collection of reports returns them sorted by last read
  */
-function sortReportsByLastRead(reports: OnyxCollection<Report>, lastVisitedTimestamps: Record<string, string>): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry<Report>> {
     return Object.values(reports ?? {})
-        .filter((report) => !!report?.reportID && (!!lastVisitedTimestamps[report.reportID] || !!report?.lastReadTime))
+        .filter((report) => !!report?.reportID && (!!report?.lastVisitTime || !!report?.lastReadTime))
         .sort((a, b) => {
-            const aTime = new Date((a && lastVisitedTimestamps[a.reportID]) ?? a?.lastReadTime ?? '');
-            const bTime = new Date((b && lastVisitedTimestamps[b.reportID]) ?? b?.lastReadTime ?? '');
+            const aTime = new Date(a?.lastVisitTime ?? a?.lastReadTime ?? '');
+            const bTime = new Date(b?.lastVisitTime ?? b?.lastReadTime ?? '');
 
             return aTime.valueOf() - bTime.valueOf();
         });
@@ -795,14 +795,13 @@ function findLastAccessedReport(
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: boolean,
     openOnAdminRoom = false,
-    lastVisitedTimestamps: Record<string, string> = {},
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-    let sortedReports = sortReportsByLastRead(reports, lastVisitedTimestamps);
+    let sortedReports = sortReportsByLastRead(reports);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {

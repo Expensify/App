@@ -12,9 +12,6 @@ const propTypes = {
     /** Available reports that would be displayed in this navigator */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** The last visited timestamp for each report */
-    lastVisitedTimestamps: Object,
-
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(
         PropTypes.shape({
@@ -49,7 +46,6 @@ const propTypes = {
 const defaultProps = {
     reports: {},
     policies: {},
-    lastVisitedTimestamps: {},
     isFirstTimeNewExpensifyUser: false,
 };
 
@@ -61,16 +57,15 @@ const defaultProps = {
  * @param {Object} policies
  * @param {Boolean} isFirstTimeNewExpensifyUser
  * @param {Boolean} openOnAdminRoom
- * @param {Object} lastVisitedTimestamps
  * @returns {Number}
  */
-const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom, lastVisitedTimestamps) => {
-    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom, lastVisitedTimestamps);
+const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom) => {
+    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, isFirstTimeNewExpensifyUser, openOnAdminRoom);
     return lodashGet(lastReport, 'reportID');
 };
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
-function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensifyUser, navigation, lastVisitedTimestamps}) {
+function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensifyUser, navigation}) {
     const {canUseDefaultRooms} = usePermissions();
 
     useEffect(() => {
@@ -81,14 +76,7 @@ function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensify
         }
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
-        const reportID = getLastAccessedReportID(
-            reports,
-            !canUseDefaultRooms,
-            policies,
-            isFirstTimeNewExpensifyUser,
-            lodashGet(route, 'params.openOnAdminRoom', false),
-            lastVisitedTimestamps,
-        );
+        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, lodashGet(route, 'params.openOnAdminRoom', false));
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -97,7 +85,7 @@ function ReportScreenIDSetter({route, reports, policies, isFirstTimeNewExpensify
         } else {
             App.confirmReadyToOpenApp();
         }
-    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, lastVisitedTimestamps]);
+    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser]);
 
     // The ReportScreen without the reportID set will display a skeleton
     // until the reportID is loaded and set in the route param
@@ -120,8 +108,5 @@ export default withOnyx({
     isFirstTimeNewExpensifyUser: {
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         initialValue: false,
-    },
-    lastVisitedTimestamps: {
-        key: ONYXKEYS.LAST_VISITED_REPORT_TIMESTAMPS,
     },
 })(ReportScreenIDSetter);
