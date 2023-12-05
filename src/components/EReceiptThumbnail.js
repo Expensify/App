@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

@@ -6,7 +6,7 @@ import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

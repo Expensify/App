@@ -3,9 +3,10 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as UserUtils from '@libs/UserUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';
@@ -24,6 +25,7 @@ const defaultProps = {
 function RoomHeaderAvatars(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     if (!props.icons.length) {
         return null;
     }
@@ -65,7 +67,7 @@ function RoomHeaderAvatars(props) {
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(theme, CONST.AVATAR_SIZE.LARGE_BORDERED),
+        ThemeStyleUtils.getAvatarStyle(theme, CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
         <View style={styles.pointerEventsBoxNone}>

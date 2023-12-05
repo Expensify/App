@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import SignInHeroCopy from './SignInHeroCopy';

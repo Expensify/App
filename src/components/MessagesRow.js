@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import DotIndicatorMessage from './DotIndicatorMessage';

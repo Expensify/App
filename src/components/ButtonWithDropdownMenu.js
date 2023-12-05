@@ -3,7 +3,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';

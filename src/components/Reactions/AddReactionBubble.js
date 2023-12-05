@@ -8,9 +8,9 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
@@ -55,8 +55,8 @@ const defaultProps = {
 };
 
 function AddReactionBubble(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const ref = useRef();
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -92,7 +92,7 @@ function AddReactionBubble(props) {
                 style={({hovered, pressed}) => [
                     styles.emojiReactionBubble,
                     styles.userSelectNone,
-                    StyleUtils.getEmojiReactionBubbleStyle(theme, hovered || pressed, false, props.isContextMenu),
+                    ThemeStyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu),
                 ]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
                 onMouseDown={(e) => {
@@ -121,7 +121,7 @@ function AddReactionBubble(props) {
                                 src={Expensicons.AddReaction}
                                 width={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed))}
+                                fill={ThemeStyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
                     </>

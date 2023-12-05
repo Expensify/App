@@ -2,9 +2,10 @@ import React, {memo, useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -80,6 +81,7 @@ function MultipleAvatars({
 }: MultipleAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
@@ -101,7 +103,7 @@ function MultipleAvatars({
 
     const secondAvatarStyle = secondAvatarStyleProp ?? [StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)];
 
-    let avatarContainerStyles = StyleUtils.getContainerStyles(styles, size, isInReportAction);
+    let avatarContainerStyles = ThemeStyleUtils.getContainerStyles(size, isInReportAction);
     const {singleAvatarStyle, secondAvatarStyles} = useMemo(() => avatarSizeToStylesMap[size as AvatarSizeToStyles] ?? avatarSizeToStylesMap.default, [size, avatarSizeToStylesMap]);
 
     const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => icon.name) : ['']), [shouldShowTooltip, icons]);
@@ -161,7 +163,7 @@ function MultipleAvatars({
         );
     }
 
-    const oneAvatarSize = StyleUtils.getAvatarStyle(theme, size);
+    const oneAvatarSize = ThemeStyleUtils.getAvatarStyle(size);
     const oneAvatarBorderWidth = StyleUtils.getAvatarBorderWidth(size).borderWidth ?? 0;
     const overlapSize = oneAvatarSize.width / 3;
 

@@ -5,8 +5,9 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -33,6 +34,7 @@ const defaultProps = {
 
 function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -257,7 +259,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
             <PressableWithoutFeedback
                 style={{
                     ...StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading),
-                    ...StyleUtils.getZoomCursorStyle(styles, isZoomed, isDragging),
+                    ...ThemeStyleUtils.getZoomCursorStyle(isZoomed, isDragging),
                     ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                     ...styles.flex1,
                 }}

@@ -20,7 +20,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';

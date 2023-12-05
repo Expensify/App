@@ -3,7 +3,7 @@ import React, {useCallback, useState} from 'react';
 import {Dimensions, StyleProp, View, ViewStyle} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 

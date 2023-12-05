@@ -3,7 +3,7 @@ import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValu
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as NumberUtils from '@libs/NumberUtils';
 import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 

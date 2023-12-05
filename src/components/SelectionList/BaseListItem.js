@@ -7,9 +7,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
 import {baseListItemPropTypes} from './selectionListPropTypes';
@@ -27,6 +28,7 @@ function BaseListItem({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
@@ -62,7 +64,7 @@ function BaseListItem({
                         <View style={StyleUtils.getCheckboxPressableStyle()}>
                             <View
                                 style={[
-                                    StyleUtils.getCheckboxContainerStyle(theme, 20),
+                                    ThemeStyleUtils.getCheckboxContainerStyle(20),
                                     styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,

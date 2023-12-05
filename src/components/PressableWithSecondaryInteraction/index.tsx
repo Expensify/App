@@ -3,7 +3,7 @@ import {GestureResponderEvent} from 'react-native';
 import {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import PressableWithSecondaryInteractionProps from './types';
 

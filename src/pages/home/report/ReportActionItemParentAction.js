@@ -9,7 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';

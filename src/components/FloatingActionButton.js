@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {Animated, Easing, View} from 'react-native';
 import compose from '@libs/compose';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';

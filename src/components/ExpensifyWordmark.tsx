@@ -5,7 +5,7 @@ import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
 import ProductionLogo from '@assets/images/expensify-wordmark.svg';
 import useEnvironment from '@hooks/useEnvironment';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';

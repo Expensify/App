@@ -14,7 +14,7 @@ import compose from '@libs/compose';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';

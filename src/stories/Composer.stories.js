@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import styles from '@styles/styles';
 import themeColors from '@styles/themes/default';
-import * as StyleUtils from '@styles/utils/StyleUtils';
+import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 
 const ComposerWithNavigation = withNavigationFallback(Composer);

@@ -31,7 +31,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';

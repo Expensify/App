@@ -6,7 +6,7 @@ import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import getModalStyles from '@styles/getModalStyles';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';

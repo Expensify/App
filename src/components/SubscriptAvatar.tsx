@@ -2,9 +2,10 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 import {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
@@ -50,9 +51,10 @@ type SubscriptAvatarProps = {
 function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
-    const containerStyle = StyleUtils.getContainerStyles(styles, size);
+    const containerStyle = ThemeStyleUtils.getContainerStyles(size);
 
     return (
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>

@@ -3,10 +3,11 @@ import {StyleProp, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
 import {AvatarSource} from '@libs/UserUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import type {AvatarSizeName} from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
+import type {AvatarSizeName} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Icon from './Icon';
@@ -60,6 +61,7 @@ function Avatar({
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -75,8 +77,8 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 
-    const imageStyle = [StyleUtils.getAvatarStyle(theme, size), imageStyles, styles.noBorderRadius];
-    const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(theme, size), styles.bgTransparent, imageStyles] : undefined;
+    const imageStyle = [ThemeStyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
+    const iconStyle = imageStyles ? [ThemeStyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill ?? theme.icon;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;

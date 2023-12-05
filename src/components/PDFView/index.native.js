@@ -10,7 +10,7 @@ import withLocalize from '@components/withLocalize';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';

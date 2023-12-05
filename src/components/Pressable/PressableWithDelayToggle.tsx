@@ -8,9 +8,9 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import PressableProps, {PressableRef} from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
@@ -69,6 +69,7 @@ function PressableWithDelayToggle(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {
@@ -122,7 +123,7 @@ function PressableWithDelayToggle(
                                 {icon && (
                                     <Icon
                                         src={!isActive ? iconChecked : icon}
-                                        fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, !isActive))}
+                                        fill={ThemeStyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}

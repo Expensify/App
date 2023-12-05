@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

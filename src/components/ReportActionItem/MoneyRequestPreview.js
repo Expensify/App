@@ -28,7 +28,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';

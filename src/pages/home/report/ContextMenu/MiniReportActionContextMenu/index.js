@@ -7,8 +7,7 @@ import {
     defaultProps as GenericReportActionContextMenuDefaultProps,
     propTypes as genericReportActionContextMenuPropTypes,
 } from '@pages/home/report/ContextMenu/genericReportActionContextMenuPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -25,11 +24,11 @@ const defaultProps = {
 };
 
 function MiniReportActionContextMenu(props) {
-    const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
 
     return (
         <View
-            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(styles, props.displayAsGroup)}
+            style={ThemeStyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.isVisible}}
         >
             <BaseReportActionContextMenu

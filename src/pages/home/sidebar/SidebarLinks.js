@@ -19,7 +19,7 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';

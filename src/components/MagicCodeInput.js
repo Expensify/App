@@ -6,8 +6,8 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import * as Browser from '@libs/Browser';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
 import networkPropTypes from './networkPropTypes';
@@ -108,6 +108,7 @@ const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const inputRefs = useRef();
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState(0);
@@ -407,7 +408,7 @@ function MagicCodeInput(props) {
                         <View
                             style={[
                                 styles.textInputContainer,
-                                StyleUtils.getHeightOfMagicCodeInput(styles),
+                                ThemeStyleUtils.getHeightOfMagicCodeInput(),
                                 props.hasError || props.errorText ? styles.borderColorDanger : {},
                                 focusedIndex === index ? styles.borderColorFocus : {},
                             ]}

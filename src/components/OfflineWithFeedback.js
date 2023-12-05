@@ -5,7 +5,7 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import MessagesRow from './MessagesRow';

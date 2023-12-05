@@ -13,9 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
@@ -28,8 +27,8 @@ const propTypes = {
 };
 
 function MentionUserRenderer(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const {translate} = useLocalize();
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
     const htmlAttribAccountID = lodashGet(props.tnode.attributes, 'accountid');
@@ -77,7 +76,7 @@ function MentionUserRenderer(props) {
                         }}
                     >
                         <Text
-                            style={[styles.link, _.omit(props.style, 'color'), StyleUtils.getMentionStyle(theme, isOurMention), {color: StyleUtils.getMentionTextColor(theme, isOurMention)}]}
+                            style={[styles.link, _.omit(props.style, 'color'), ThemeStyleUtils.getMentionStyle(isOurMention), {color: ThemeStyleUtils.getMentionTextColor(isOurMention)}]}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             testID="span"
                             href={`/${navigationRoute}`}

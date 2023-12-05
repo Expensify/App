@@ -2,7 +2,7 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import StatusBar from '@libs/StatusBar';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import SafeAreaConsumerProps from './types';
 
 /**

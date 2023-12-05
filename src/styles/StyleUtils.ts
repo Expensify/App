@@ -984,4 +984,4 @@ const StyleUtils = {
 type StyleUtilsType = typeof StyleUtils;
 
 export default StyleUtils;
-export type {StyleUtilsType, AvatarSizeName};
+export type {StyleUtilsType};

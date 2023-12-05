@@ -10,7 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 

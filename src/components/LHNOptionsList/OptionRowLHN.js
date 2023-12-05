@@ -25,7 +25,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as optionRowStyles from '@styles/optionRowStyles';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';

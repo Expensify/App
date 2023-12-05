@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {

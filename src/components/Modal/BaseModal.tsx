@@ -8,7 +8,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
 import getModalStyles from '@styles/getModalStyles';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';

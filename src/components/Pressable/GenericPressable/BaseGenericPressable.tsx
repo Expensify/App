@@ -5,7 +5,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import * as StyleUtils from '@styles/StyleUtils';
+import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableProps, {PressableRef} from './types';

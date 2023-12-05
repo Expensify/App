@@ -16,9 +16,9 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -74,6 +74,7 @@ const defaultProps = {
 function BaseValidateCodeForm(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState('');
     const loginData = props.loginList[props.contactMethod];
@@ -209,7 +210,9 @@ function BaseValidateCodeForm(props) {
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                     >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(theme, styles, shouldDisableResendValidateCode)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        <Text style={[ThemeStyleUtils.getDisabledLinkStyles(theme, styles, shouldDisableResendValidateCode)]}>
+                            {props.translate('validateCodeForm.magicCodeNotReceived')}
+                        </Text>
                     </PressableWithFeedback>
                     {props.hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
