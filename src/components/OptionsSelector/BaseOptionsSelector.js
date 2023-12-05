@@ -271,15 +271,14 @@ class BaseOptionsSelector extends Component {
     handleFocusIn() {
         const activeElement = document.activeElement;
         this.setState({
-            disableEnterShortCut: activeElement && [CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role)
-
-        })
+            disableEnterShortCut: activeElement && [CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role),
+        });
     }
 
     handleFocusOut() {
         this.setState({
-            disableEnterShortCut: false
-        })
+            disableEnterShortCut: false,
+        });
     }
 
     subscribeActiveElement() {
@@ -296,7 +295,7 @@ class BaseOptionsSelector extends Component {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
-            !this.state.disableEnterShortCut ? this.selectFocusedOption: undefined,
+            !this.state.disableEnterShortCut ? this.selectFocusedOption : undefined,
             enterConfig.descriptionKey,
             enterConfig.modifiers,
             true,
