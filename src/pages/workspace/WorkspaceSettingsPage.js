@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
@@ -102,12 +103,14 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <MenuItemWithTopDescription
-                            title={policy.name}
-                            description={translate('workspace.editor.nameInputLabel')}
-                            shouldShowRightIcon
-                            onPress={onPressPolicyName}
-                        />
+                        <View style={[styles.mt4]}>
+                            <MenuItemWithTopDescription
+                                title={policy.name}
+                                description={translate('workspace.editor.nameInputLabel')}
+                                shouldShowRightIcon
+                                onPress={onPressPolicyName}
+                            />
+                        </View>
                         <MenuItemWithTopDescription
                             title={formattedCurrency}
                             description={translate('workspace.editor.currencyInputLabel')}
