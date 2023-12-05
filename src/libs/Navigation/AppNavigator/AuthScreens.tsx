@@ -158,7 +158,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
             if (isLoadingApp) {
                 App.openApp();
             } else {
-                App.reconnectApp(lastUpdateIDAppliedToClient ?? 0);
+                App.reconnectApp(lastUpdateIDAppliedToClient);
             }
         });
         PusherConnectionManager.init();
@@ -178,7 +178,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         if (shouldGetAllData) {
             App.openApp();
         } else {
-            App.reconnectApp(lastUpdateIDAppliedToClient ?? 0);
+            App.reconnectApp(lastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(session);

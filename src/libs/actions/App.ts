@@ -228,7 +228,7 @@ function openApp() {
  * Fetches data when the app reconnects to the network
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
-function reconnectApp(updateIDFrom = 0) {
+function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         type ReconnectParams = {
