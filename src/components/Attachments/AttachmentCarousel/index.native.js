@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -18,7 +17,7 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction, onClose}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
 
@@ -28,21 +27,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
-    const [isReceipt, setIsReceipt] = useState(false);
 
-    const compareImage = useCallback(
-        (attachment) => {
-            if (attachment.isReceipt && isReceipt) {
-                return attachment.transactionID === transaction.transactionID;
-            }
-            return attachment.source === source;
-        },
-        [source, isReceipt, transaction],
-    );
+    const compareImage = useCallback((attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
         const parentReportAction = parentReportActions[report.parentReportActionID];
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions, transaction);
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -77,9 +67,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
-            setIsReceipt(item.isReceipt);
             setActiveSource(item.source);
-
             onNavigate(item);
         },
         [setShouldShowArrows, attachments, onNavigate],
@@ -184,15 +172,6 @@ export default compose(
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
         },
     }),
     withLocalize,
