@@ -9,7 +9,6 @@ import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
-import themeColors from '@styles/themes/default';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
@@ -65,13 +64,13 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     onLongPress?: (event?: GestureResponderEvent) => void;
 
     /** A function that is called when the button is pressed */
-    onPressIn?: () => void;
+    onPressIn?: (event: GestureResponderEvent) => void;
 
     /** A function that is called when the button is released */
-    onPressOut?: () => void;
+    onPressOut?: (event: GestureResponderEvent) => void;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown?: () => void;
+    onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
 
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter?: boolean;
@@ -118,7 +117,7 @@ function Button(
         allowBubble = false,
 
         iconRight = Expensicons.ArrowRight,
-        iconFill = themeColors.textLight,
+        iconFill,
         iconStyles = [],
         iconRightStyles = [],
 
@@ -214,7 +213,7 @@ function Button(
                             <View style={[styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={iconFill || theme.textLight}
+                                    fill={iconFill ?? theme.textLight}
                                     small={small}
                                 />
                             </View>
@@ -225,7 +224,7 @@ function Button(
                         <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
-                                fill={iconFill || theme.textLight}
+                                fill={iconFill ?? theme.textLight}
                                 small={small}
                             />
                         </View>

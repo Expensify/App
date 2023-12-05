@@ -20,6 +20,7 @@ import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
 import * as PersonalDetails from '@userActions/PersonalDetails';
+import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import Timing from '@userActions/Timing';
@@ -144,7 +145,7 @@ const defaultProps = {
 function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -193,6 +194,8 @@ function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, sessio
         } else {
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
+
+        PriorityMode.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
 
