@@ -12,18 +12,16 @@ type MenuItem = {
     onSelected: () => void;
 };
 
-function getPinMenuItem(report: OnyxEntry<OnyxReport>): MenuItem {
-    const isPinned = report?.isPinned;
-    if (!isPinned) {
-        return {
-            icon: Expensicons.Pin,
-            text: Localize.translateLocal('common.pin'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, !!isPinned)),
-        };
+function getPinMenuItem(report: OnyxEntry<OnyxReport>): MenuItem | undefined {
+    if (!report) {
+        return;
     }
+
+    const isPinned = !!report?.isPinned;
+
     return {
         icon: Expensicons.Pin,
-        text: Localize.translateLocal('common.unPin'),
+        text: Localize.translateLocal(isPinned ? 'common.pin' : 'common.unPin'),
         onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, isPinned)),
     };
 }
