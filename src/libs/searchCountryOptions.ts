@@ -1,4 +1,4 @@
-import * as StringUtils from './StringUtils';
+import StringUtils from './StringUtils';
 
 type CountryData = {
     value: string;

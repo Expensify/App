@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import searchCountryOptions from '@libs/searchCountryOptions';
-import * as StringUtils from '@libs/StringUtils';
+import StringUtils from '@libs/StringUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 

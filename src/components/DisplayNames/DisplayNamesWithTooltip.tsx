@@ -1,7 +1,9 @@
 import React, {Fragment, useCallback, useRef} from 'react';
 import {Text as RNText, View} from 'react-native';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import StringUtils from '@libs/StringUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import DisplayNamesProps from './types';
@@ -44,6 +46,8 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     }, []);
 
+    const title = StringUtils.containsHtml(fullTitle) ? <RenderHTML html={fullTitle} /> : fullTitle;
+
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
@@ -52,7 +56,7 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
             ref={containerRef}
         >
             {shouldUseFullTitle
-                ? fullTitle
+                ? title
                 : displayNamesWithTooltips.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>

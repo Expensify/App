@@ -34,6 +34,7 @@ import Permissions from './Permissions';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
+import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
@@ -2195,9 +2196,51 @@ function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | Emp
 }
 
 /**
+ * Get the formatted title in HTML for a thread based on parent message.
+ * Only the first line of the message should display.
+ */
+function getThreadReportNameHtml(parentReportActionMessage: string): string {
+    const blockTags = ['br', 'h1', 'pre', 'div', 'blockquote', 'p', 'li', 'div'];
+    const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
+    const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
+    return parentReportActionMessage.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
+        if (!g1 || g1 === 'h1') {
+            return g2;
+        }
+        if (g1 === 'pre') {
+            return `<code>${g2}</code>`;
+        }
+        const parser = new ExpensiMark();
+        if (parser.containsNonPairTag(g2)) {
+            return `<${g1}>${g2}`;
+        }
+        return `<${g1}>${g2}</${g1}>`;
+    });
+}
+
+/**
+ * Get the title for a thread based on parent message.
+ * If render in html, only the first line of the message should display.
+ */
+function getThreadReportName(parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}, shouldRenderAsHTML: boolean, shouldRenderFirstLineOnly: boolean): string {
+    if (!shouldRenderAsHTML && !shouldRenderFirstLineOnly) {
+        return (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
+    }
+
+    const threadReportNameHtml = getThreadReportNameHtml(parentReportAction?.message?.[0]?.html ?? '');
+
+    if (!shouldRenderAsHTML && shouldRenderFirstLineOnly) {
+        return Str.stripHTML(threadReportNameHtml);
+    }
+
+    // <body></body> is to prevent the redundant body div which causes text overflown
+    return StringUtils.containsHtml(threadReportNameHtml) ? `<body></body><thread-title>${threadReportNameHtml}</thread-title>` : threadReportNameHtml;
+}
+
+/**
  * Get the title for a report.
  */
-function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
+function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null, shouldRenderAsHTML = false, shouldRenderFirstLineOnly = false): string {
     let formattedName: string | undefined;
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
@@ -2206,7 +2249,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(isNotEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = (parentReportAction?.message?.[0]?.text ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = getThreadReportName(parentReportAction, shouldRenderAsHTML, shouldRenderFirstLineOnly);
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }

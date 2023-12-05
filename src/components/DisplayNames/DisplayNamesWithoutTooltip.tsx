@@ -1,6 +1,8 @@
 import React from 'react';
 import {StyleProp, TextStyle} from 'react-native';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+import StringUtils from '@libs/StringUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 
 type DisplayNamesWithoutTooltipProps = {
@@ -16,12 +18,14 @@ type DisplayNamesWithoutTooltipProps = {
 
 function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = ''}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
+    const title = StringUtils.containsHtml(fullTitle) ? <RenderHTML html={fullTitle} /> : fullTitle;
+
     return (
         <Text
             style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={numberOfLines}
         >
-            {fullTitle}
+            {title}
         </Text>
     );
 }

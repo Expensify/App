@@ -186,7 +186,7 @@ function getAvatarSize(size: AvatarSizeName): number {
 /**
  * Return the height of RenderHtml text container with numberOfLines=1
  */
-function getHeightOfRenderHtmlText(numberOfLines: number): ViewStyle | CSSProperties {
+function getHeightOfRenderHtmlText(styles: ThemeStyles, numberOfLines: number): ViewStyle {
     return numberOfLines === 1 ? {height: styles.webViewStyles.baseFontStyle.lineHeight} : {};
 }
 

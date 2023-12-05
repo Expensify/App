@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+import {defaultHTMLElementModels, HTMLContentModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import _ from 'underscore';
 import convertToLTR from '@libs/convertToLTR';
 import singleFontFamily from '@styles/fontFamily/singleFontFamily';
@@ -73,7 +73,7 @@ function BaseHTMLEngineProvider(props) {
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
-    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.dFlex, styles.flexShrink1]};
 
     return (
         <TRenderEngineProvider
