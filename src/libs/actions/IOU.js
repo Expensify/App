@@ -666,8 +666,8 @@ function createDistanceRequest(report, participant, comment, created, transactio
             category,
             tag,
             billable,
-            transactionThreadReportID: Number(transactionThreadReportID),
-            createdReportActionForThread: Number(createdReportActionForThread),
+            transactionThreadReportID,
+            createdReportActionForThread,
         },
         onyxData,
     );
