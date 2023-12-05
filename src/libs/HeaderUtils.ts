@@ -17,7 +17,7 @@ function getPinMenuItem(report: OnyxEntry<OnyxReport>): MenuItem | undefined {
         return;
     }
 
-    const isPinned = !!report?.isPinned;
+    const isPinned = !!report.isPinned;
 
     return {
         icon: Expensicons.Pin,
