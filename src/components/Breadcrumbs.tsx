@@ -35,10 +35,7 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                 return (
                     <Fragment key={key}>
                         {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
-                            <View
-                                key={key}
-                                style={styles.breadcrumbLogo}
-                            >
+                            <View style={styles.breadcrumbLogo}>
                                 <Header
                                     title={
                                         <LogoComponent
@@ -52,20 +49,8 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                             </View>
                         ) : (
                             <>
-                                {index !== 0 && (
-                                    <Text
-                                        key={`${key}-separator`}
-                                        style={separatorStyle}
-                                    >
-                                        /
-                                    </Text>
-                                )}
-                                <Text
-                                    key={key}
-                                    style={style}
-                                >
-                                    {breadcrumb.text}
-                                </Text>
+                                {index !== 0 && <Text style={separatorStyle}>/</Text>}
+                                <Text style={style}>{breadcrumb.text}</Text>
                             </>
                         )}
                     </Fragment>
