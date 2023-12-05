@@ -17,15 +17,15 @@ import DomUtils from '@libs/DomUtils';
  * might not be used within a Material Top Tabs Navigator context. Proper usage should ensure that
  * this hook is only used where appropriate.
  *
- * @param {Object} params - The parameters object.
- * @param {Number} params.tabIndex - The index of the tab for which focus status is being determined.
- * @returns {Boolean} Returns `true` if the tab is both animation-focused and screen-focused, otherwise `false`.
+ * @param params - The parameters object.
+ * @param params.tabIndex - The index of the tab for which focus status is being determined.
+ * @returns Returns `true` if the tab is both animation-focused and screen-focused, otherwise `false`.
  *
  * @example
  * const isTabFocused = useTabNavigatorFocus({ tabIndex: 1 });
  */
-function useTabNavigatorFocus({tabIndex}) {
-    let tabPositionAnimation = null;
+function useTabNavigatorFocus({tabIndex}: {tabIndex: number}): boolean {
+    let tabPositionAnimation: ReturnType<typeof useTabAnimation> = null;
     try {
         // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
         // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
@@ -46,7 +46,7 @@ function useTabNavigatorFocus({tabIndex}) {
         }
         const index = Number(tabIndex);
 
-        const listenerId = tabPositionAnimation.addListener(({value}) => {
+        const listenerId = tabPositionAnimation.addListener(({value}: {value: number}) => {
             // Activate camera as soon the index is animating towards the `tabIndex`
             DomUtils.requestAnimationFrame(() => {
                 setIsTabFocused(value > index - 1 && value < index + 1);
