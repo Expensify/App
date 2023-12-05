@@ -155,8 +155,7 @@ const SettingsModalStackNavigator = createModalStackNavigator({
     [SCREENS.SETTINGS.PREFERENCES]: () => require('../../../pages/settings/Preferences/PreferencesPage').default,
     Settings_Preferences_PriorityMode: () => require('../../../pages/settings/Preferences/PriorityModePage').default,
     Settings_Preferences_Language: () => require('../../../pages/settings/Preferences/LanguagePage').default,
-    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
-    // Settings_Preferences_Theme: () => require('../../../pages/settings/Preferences/ThemePage').default,
+    Settings_Preferences_Theme: () => require('../../../pages/settings/Preferences/ThemePage').default,
     Settings_Close: () => require('../../../pages/settings/Security/CloseAccountPage').default,
     [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default,
     Settings_About: () => require('../../../pages/settings/AboutPage/AboutPage').default,

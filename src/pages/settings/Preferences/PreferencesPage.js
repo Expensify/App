@@ -29,11 +29,15 @@ const propTypes = {
         /** Whether or not the user is subscribed to news updates */
         isSubscribedToNewsletter: PropTypes.bool,
     }),
+
+    /** The app's color theme */
+    preferredTheme: PropTypes.string,
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     user: {},
+    preferredTheme: CONST.DEFAULT_THEME,
 };
 
 function PreferencesPage(props) {
@@ -80,6 +84,12 @@ function PreferencesPage(props) {
                     description={translate('languagePage.language')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                 />
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={translate(`themePage.themes.${props.preferredTheme || CONST.THEME.DEFAULT}.label`)}
+                    description={translate('themePage.theme')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                />
                 {/* Enable additional test features in non-production environments */}
                 {!isProduction && (
                     <View style={[styles.ml5, styles.mr8, styles.mt6]}>
@@ -101,5 +111,8 @@ export default withOnyx({
     },
     user: {
         key: ONYXKEYS.USER,
+    },
+    preferredTheme: {
+        key: ONYXKEYS.PREFERRED_THEME,
     },
 })(PreferencesPage);
