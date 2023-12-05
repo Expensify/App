@@ -1,13 +1,6 @@
 import React from 'react';
-import {ThemeStyles} from './styles';
-import {StyleUtilsWithoutThemeParams} from './StyleUtils';
+import defaultStyles, {ThemeStyles} from './styles';
 
-type ThemeStylesContextType = {
-    styles: ThemeStyles;
-    StyleUtils: StyleUtilsWithoutThemeParams;
-};
-
-const ThemeStylesContext = React.createContext<ThemeStylesContextType | undefined>(undefined);
+const ThemeStylesContext = React.createContext<ThemeStyles>(defaultStyles);
 
 export default ThemeStylesContext;
-export {type ThemeStylesContextType};

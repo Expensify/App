@@ -1,14 +1,14 @@
 import {useContext} from 'react';
-import ThemeStylesContext from './ThemeStylesContext';
+import StyleUtilsContext from './StyleUtilsContext';
 
 function useStyleUtils() {
-    const themeStylesContext = useContext(ThemeStylesContext);
+    const styleUtils = useContext(StyleUtilsContext);
 
-    if (!themeStylesContext) {
+    if (!styleUtils) {
         throw new Error('ThemeStylesContext was null! Are you sure that you wrapped the component under a <ThemeStylesProvider>?');
     }
 
-    return themeStylesContext.StyleUtils;
+    return styleUtils;
 }
 
 export default useStyleUtils;

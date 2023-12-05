@@ -1498,9 +1498,9 @@ type ThemeDependentStyleUtilsFunctions = {
     getContainerStyles: FunctionWithoutFirstParameter<'getContainerStyles'>;
 };
 
-type StyleUtilsWithoutThemeParametersType = StyleUtilsType & ThemeDependentStyleUtilsFunctions;
+type StyleUtilsWithoutThemeParameters = StyleUtilsType & ThemeDependentStyleUtilsFunctions;
 
-const createStyleUtilsWithoutThemeParameters = (theme: ThemeColors, styles: ThemeStyles): StyleUtilsWithoutThemeParametersType => {
+const createStyleUtilsWithoutThemeParameters = (theme: ThemeColors, styles: ThemeStyles): StyleUtilsWithoutThemeParameters => {
     const themeDependentStylUtilsFunctions = {
         getAutoCompleteSuggestionItemStyle: (...restProps) => getAutoCompleteSuggestionItemStyle(theme, ...restProps),
         getAutoGrowHeightInputStyle: (...restProps) => getAutoGrowHeightInputStyle(styles, ...restProps),
@@ -1529,9 +1529,9 @@ const createStyleUtilsWithoutThemeParameters = (theme: ThemeColors, styles: Them
     return {
         ...StyleUtils,
         ...themeDependentStylUtilsFunctions,
-    } as StyleUtilsWithoutThemeParametersType;
+    } as StyleUtilsWithoutThemeParameters;
 };
 
 export default StyleUtils;
 export {createStyleUtilsWithoutThemeParameters};
-export type {StyleUtilsType, ThemeDependentStyleUtilsFunctions, StyleUtilsWithoutThemeParametersType, AvatarSizeName};
+export type {StyleUtilsType, ThemeDependentStyleUtilsFunctions, StyleUtilsWithoutThemeParameters, AvatarSizeName};
