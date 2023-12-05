@@ -1,6 +1,6 @@
 ---
 title: Company-Card-Settings.md
-description: Company card settings 
+description: Once you connect your cards, customize the configuration using company card settings.
 ---
 # Overview
 Once you’ve imported your company cards via commercial card feed, direct bank feed, or CSV import, the next step is to configure the cards’ settings. 
