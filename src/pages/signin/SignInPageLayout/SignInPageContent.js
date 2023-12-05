@@ -10,8 +10,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
-import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 
 const propTypes = {

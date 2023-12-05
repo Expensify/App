@@ -3,8 +3,8 @@ import {GestureResponderEvent} from 'react-native';
 import {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import StyleUtils from '@styles/utils/StyleUtils';
 import PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked. */

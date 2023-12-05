@@ -5,9 +5,9 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import useThemeStyleUtils from '@styles/useThemeStyleUtils';
+import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {

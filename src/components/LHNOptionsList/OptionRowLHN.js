@@ -25,9 +25,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as optionRowStyles from '@styles/optionRowStyles';
-import StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {

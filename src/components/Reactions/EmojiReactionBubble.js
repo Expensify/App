@@ -4,9 +4,9 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import Text from '@components/Text';
 import {withCurrentUserPersonalDetailsDefaultProps} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import useThemeStyleUtils from '@styles/useThemeStyleUtils';
+import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {

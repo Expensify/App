@@ -6,9 +6,9 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import useThemeStyleUtils from '@styles/useThemeStyleUtils';
+import StyleUtils from '@styles/utils/StyleUtils';
 import reactionPropTypes from './reactionPropTypes';
 
 const propTypes = {

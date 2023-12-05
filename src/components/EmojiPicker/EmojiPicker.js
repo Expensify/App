@@ -6,8 +6,8 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
 

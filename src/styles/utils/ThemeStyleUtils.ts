@@ -1,12 +1,12 @@
 import {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {type ThemeStyles} from '@styles/styles';
-import StyleUtils from '@styles/StyleUtils';
 import {type ThemeColors} from '@styles/themes/types';
 import cursor from '@styles/utilities/cursor';
 import positioning from '@styles/utilities/positioning';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {hexadecimalToRGBArray} from './functions';
+import StyleUtils from './StyleUtils';
 import {AvatarSizeName, AvatarStyle, ButtonStateName} from './types';
 
 /**

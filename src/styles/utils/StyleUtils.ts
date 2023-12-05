@@ -4,16 +4,16 @@ import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
+import colors from '@styles/colors';
+import fontFamily from '@styles/fontFamily';
+import {ThemeColors} from '@styles/themes/types';
+import positioning from '@styles/utilities/positioning';
+import spacing from '@styles/utilities/spacing';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
-import colors from './colors';
-import fontFamily from './fontFamily';
-import {ThemeColors} from './themes/types';
-import positioning from './utilities/positioning';
-import spacing from './utilities/spacing';
-import {hexadecimalToRGBArray} from './utils/functions';
-import {AllStyles, AvatarSize, AvatarSizeName, AvatarSizeValue, ButtonSizeValue, EReceiptColorName, EreceiptColorStyle, ParsableStyle, WorkspaceColorStyle} from './utils/types';
-import variables from './variables';
+import {hexadecimalToRGBArray} from './functions';
+import {AllStyles, AvatarSize, AvatarSizeName, AvatarSizeValue, ButtonSizeValue, EReceiptColorName, EreceiptColorStyle, ParsableStyle, WorkspaceColorStyle} from './types';
 
 const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
