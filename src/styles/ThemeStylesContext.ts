@@ -1,22 +1,16 @@
 import React from 'react';
 import defaultStyles, {ThemeStyles} from './styles';
-import {StyleUtilsType} from './StyleUtils';
+import createStyleUtils, {StyleUtilsType} from './StyleUtils';
+import darkTheme from './themes/default';
 
 type ThemeStylesContextType = {
     styles: ThemeStyles;
     StyleUtils: StyleUtilsType;
 };
 
-const defaultThemeStyles = new Proxy(
-    {},
-    {
-        get() {
-            return () => undefined;
-        },
-    },
-);
+const DefaultStyleUtils = createStyleUtils(darkTheme, defaultStyles);
 
-const ThemeStylesContext = React.createContext<ThemeStylesContextType | undefined>({styles: defaultStyles, StyleUtils: defaultThemeStyles as StyleUtilsType});
+const ThemeStylesContext = React.createContext<ThemeStylesContextType>({styles: defaultStyles, StyleUtils: DefaultStyleUtils});
 
 export default ThemeStylesContext;
 export {type ThemeStylesContextType};
