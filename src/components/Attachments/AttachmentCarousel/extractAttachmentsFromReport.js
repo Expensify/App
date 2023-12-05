@@ -1,7 +1,11 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+<<<<<<< HEAD
 import * as ReceiptUtils from '@libs/ReceiptUtils';
+=======
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+>>>>>>> 3915fb2 (Merge pull request #31791 from kidroca/kidroca/fix/regressions-related-to-file-downloads)
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -25,15 +29,21 @@ function extractAttachmentsFromReport(parentReportAction, reportActions, transac
             }
 
             const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+            const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
+            const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 
             // By iterating actions in chronological order and prepending each attachment
             // we ensure correct order of attachments even across actions with multiple attachments.
             attachments.unshift({
+                source,
                 reportActionID: attribs['data-id'],
-                source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
                 isAuthTokenRequired: Boolean(expensifySource),
+<<<<<<< HEAD
                 file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
                 isReceipt: false,
+=======
+                file: {name: fileName},
+>>>>>>> 3915fb2 (Merge pull request #31791 from kidroca/kidroca/fix/regressions-related-to-file-downloads)
                 hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
         },
