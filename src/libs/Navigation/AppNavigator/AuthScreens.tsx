@@ -59,9 +59,9 @@ const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').
 const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
 const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
 
-let timezone: Timezone | null | undefined;
-let currentAccountID: number | undefined;
-let isLoadingApp: boolean | undefined;
+let timezone: Timezone | null;
+let currentAccountID = -1;
+let isLoadingApp = false;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -72,7 +72,10 @@ Onyx.connect({
             return;
         }
 
-        currentAccountID = value.accountID;
+        if (value.accountID) {
+            currentAccountID = value.accountID;
+        }
+
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             // This means sign in in RHP was successful, so we can dismiss the modal and subscribe to user events
             Navigation.dismissModal();
@@ -88,7 +91,7 @@ Onyx.connect({
             return;
         }
 
-        timezone = value?.[currentAccountID ?? -1]?.timezone ?? {};
+        timezone = value?.[currentAccountID]?.timezone ?? {};
         const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -246,13 +249,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
 
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator
-                isSmallScreenWidth={isSmallScreenWidth}
-                // We are disabling the default keyboard handling here since the automatic behavior is to close a
-                // keyboard that's open when swiping to dismiss a modal. In those cases, pressing the back button on
-                // a header will briefly open and close the keyboard and crash Android.
-                screenOptions={{keyboardHandlingEnabled: false, presentation: 'modal'}}
-            >
+            <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={screenOptions.homeScreen}
