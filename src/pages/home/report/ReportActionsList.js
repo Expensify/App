@@ -271,9 +271,9 @@ function ReportActionsList({
             if (!isFromCurrentUser) {
                 return;
             }
-            InteractionManager.runAfterInteractions(()=>{
+            InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
-            })
+            });
         });
 
         const cleanup = () => {
