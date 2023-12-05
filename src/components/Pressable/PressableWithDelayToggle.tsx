@@ -1,7 +1,6 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
-import React, {ForwardedRef, forwardRef} from 'react';
-import {ImageSourcePropType, Text as RNText, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {SvgProps} from 'react-native-svg';
+import React, {forwardRef} from 'react';
+import {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -12,7 +11,8 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
-import PressableProps from './GenericPressable/types';
+import IconAsset from '@src/types/utils/IconAsset';
+import PressableProps, {PressableRef} from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
@@ -38,10 +38,10 @@ type PressableWithDelayToggleProps = PressableProps & {
     iconStyles?: StyleProp<ViewStyle>;
 
     /** The icon to display */
-    icon?: React.FC<SvgProps>;
+    icon?: IconAsset;
 
     /** The icon to display once the pressable is pressed */
-    iconChecked?: React.FC<SvgProps> | ImageSourcePropType;
+    iconChecked?: IconAsset;
 
     /**
      * Should be set to `true` if this component is being rendered inline in
@@ -65,7 +65,7 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
     }: PressableWithDelayToggleProps,
-    ref: ForwardedRef<RNText | View>,
+    ref: PressableRef,
 ) {
     const styles = useThemeStyles();
     const theme = useTheme();
