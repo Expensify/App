@@ -70,9 +70,6 @@ const propTypes = {
     /** Function to change `isUsingRecoveryCode` state when user toggles between 2fa code and recovery code */
     setIsUsingRecoveryCode: PropTypes.func.isRequired,
 
-    /** Function to change `isUsingMagicCode` state when the user goes back to the login page */
-    setIsUsingMagicCode: PropTypes.func.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -210,8 +207,6 @@ function BaseValidateCodeForm(props) {
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
-        // Reset the user's preference for signing in with SAML versus magic codes
-        props.setIsUsingMagicCode(false);
         clearLocalSignInData();
         Session.clearSignInData();
     };
