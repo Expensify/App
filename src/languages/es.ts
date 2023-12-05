@@ -1514,8 +1514,8 @@ export default {
             benefit4: 'Límites personalizables',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
             checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
-            createAWorkspace: 'Crear un espacio de trabajo',
-            createAWorkspaceCopy: 'Administre gastos comerciales, emita tarjetas, envíe facturas y más.',
+            createAWorkspace: 'Crea un espacio de trabajo',
+            createAWorkspaceCopy: 'Administra gastos de empresa, emite tarjetas, envía facturas y mucho más.',
             createAWorkspaceCTA: 'Comenzar',
         },
         reimburse: {
