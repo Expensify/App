@@ -2876,6 +2876,7 @@ const CONST = {
         FIDELITY: 'fidelity',
         GENERIC_BANK: 'generic bank',
         HUNTINGTON_BANK: 'huntington bank',
+        HUNTINGTON_NATIONAL: 'huntington national',
         NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
         PNC: 'pnc',
         REGIONS_BANK: 'regions bank',
