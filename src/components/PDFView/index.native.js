@@ -128,25 +128,25 @@ class PDFView extends Component {
     }
 
     renderPDFView() {
-        const pdfStyles = [this.props.styles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
+        const pdfStyles = [this.props.themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm
         // is positioned nicely. We're specifically hiding it because we still need to render
         // the PDF component so that it can validate the password.
         if (this.state.shouldRequestPassword) {
-            pdfStyles.push(this.props.styles.invisible);
+            pdfStyles.push(this.props.themeStyles.invisible);
         }
 
         const containerStyles =
             this.state.shouldRequestPassword && this.props.isSmallScreenWidth
-                ? [this.props.styles.w100, this.props.styles.flex1]
-                : [this.props.styles.alignItemsCenter, this.props.styles.flex1];
+                ? [this.props.themeStyles.w100, this.props.themeStyles.flex1]
+                : [this.props.themeStyles.alignItemsCenter, this.props.themeStyles.flex1];
 
         return (
             <View style={containerStyles}>
                 {this.state.failedToLoadPDF && (
-                    <View style={[this.props.styles.flex1, this.props.styles.justifyContentCenter]}>
+                    <View style={[this.props.themeStyles.flex1, this.props.themeStyles.justifyContentCenter]}>
                         <Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>
                     </View>
                 )}
@@ -166,7 +166,7 @@ class PDFView extends Component {
                 )}
 
                 {this.state.shouldRequestPassword && (
-                    <KeyboardAvoidingView style={this.props.styles.flex1}>
+                    <KeyboardAvoidingView style={this.props.themeStyles.flex1}>
                         <PDFPasswordForm
                             isFocused={this.props.isFocused}
                             onSubmit={this.attemptPDFLoadWithPassword}
@@ -184,7 +184,7 @@ class PDFView extends Component {
         return this.props.onPress && !this.state.successToLoadPDF ? (
             <PressableWithoutFeedback
                 onPress={this.props.onPress}
-                style={[this.props.styles.flex1, this.props.styles.flexRow, this.props.styles.alignSelfStretch]}
+                style={[this.props.themeStyles.flex1, this.props.themeStyles.flexRow, this.props.themeStyles.alignSelfStretch]}
                 role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
             >

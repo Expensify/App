@@ -65,7 +65,7 @@ class OptionsListSkeletonView extends React.Component {
                     height={CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}
                     backgroundColor={this.props.theme.skeletonLHNIn}
                     foregroundColor={this.props.theme.skeletonLHNOut}
-                    style={this.props.styles.mr5}
+                    style={this.props.themeStyles.mr5}
                 >
                     <Circle
                         cx="40"
@@ -96,7 +96,7 @@ class OptionsListSkeletonView extends React.Component {
     render() {
         return (
             <View
-                style={[this.props.styles.flex1, this.props.styles.overflowHidden]}
+                style={[this.props.themeStyles.flex1, this.props.themeStyles.overflowHidden]}
                 onLayout={(event) => {
                     const numItems = Math.ceil(event.nativeEvent.layout.height / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT);
                     this.generateSkeletonViewItems(numItems);

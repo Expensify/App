@@ -281,17 +281,17 @@ class ContactMethodDetailsPage extends Component {
 
                     {isFailedAddContactMethod && (
                         <DotIndicatorMessage
-                            style={[this.props.styles.mh5, this.props.styles.mv3]}
+                            style={[this.props.themeStyles.mh5, this.props.themeStyles.mv3]}
                             messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
                             type="error"
                         />
                     )}
 
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
-                        <View style={[this.props.styles.ph5, this.props.styles.mt3, this.props.styles.mb7]}>
+                        <View style={[this.props.themeStyles.ph5, this.props.themeStyles.mt3, this.props.themeStyles.mb7]}>
                             <DotIndicatorMessage
                                 type="success"
-                                style={[this.props.styles.mb3]}
+                                style={[this.props.themeStyles.mb3]}
                                 messages={{0: ['contacts.enterMagicCode', {contactMethod: formattedContactMethod}]}}
                             />
 
@@ -306,7 +306,7 @@ class ContactMethodDetailsPage extends Component {
                     {this.canChangeDefaultContactMethod() ? (
                         <OfflineWithFeedback
                             errors={ErrorUtils.getLatestErrorField(loginData, 'defaultLogin')}
-                            errorRowStyles={[this.props.styles.ml8, this.props.styles.mr5]}
+                            errorRowStyles={[this.props.themeStyles.ml8, this.props.themeStyles.mr5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
                         >
                             <MenuItem
@@ -320,16 +320,16 @@ class ContactMethodDetailsPage extends Component {
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.defaultLogin', null)}
                             errors={ErrorUtils.getLatestErrorField(loginData, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
-                            errorRowStyles={[this.props.styles.ml8, this.props.styles.mr5]}
+                            errorRowStyles={[this.props.themeStyles.ml8, this.props.themeStyles.mr5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, isFailedRemovedContactMethod ? 'deletedLogin' : 'defaultLogin')}
                         >
-                            <Text style={[this.props.styles.ph5, this.props.styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
+                            <Text style={[this.props.themeStyles.ph5, this.props.themeStyles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                         </OfflineWithFeedback>
                     ) : (
                         <OfflineWithFeedback
                             pendingAction={lodashGet(loginData, 'pendingFields.deletedLogin', null)}
                             errors={ErrorUtils.getLatestErrorField(loginData, 'deletedLogin')}
-                            errorRowStyles={[this.props.styles.mt6, this.props.styles.ph5]}
+                            errorRowStyles={[this.props.themeStyles.mt6, this.props.themeStyles.ph5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'deletedLogin')}
                         >
                             <MenuItem
