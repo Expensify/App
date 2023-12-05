@@ -23,7 +23,10 @@ const propTypes = {
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
     const report = ReportUtils.getReport(reportID);
-    const source = decodeURI(_.get(props, ['route', 'params', 'source']));
+
+    // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+    const decodedSource = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const source = Number(decodedSource) || decodedSource;
 
     const onCarouselAttachmentChange = useCallback(
         (attachment) => {

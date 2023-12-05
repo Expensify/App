@@ -21,7 +21,7 @@ import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
 import defaultTheme from './themes/default';
-import {ThemeColors} from './themes/types';
+import {type ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
@@ -586,7 +586,7 @@ const styles = (theme: ThemeColors) =>
         buttonDivider: {
             height: variables.dropDownButtonDividerHeight,
             borderWidth: 0.7,
-            borderColor: theme.text,
+            borderColor: theme.textLight,
         },
 
         noBorderRadius: {
@@ -1016,7 +1016,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
         },
 
-        textInputDesktop: addOutlineWidth({}, theme, 0),
+        textInputDesktop: addOutlineWidth(theme, {}, 0),
 
         textInputIconContainer: {
             paddingHorizontal: 11,
@@ -1133,7 +1133,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.icon,
         },
 
-        noOutline: addOutlineWidth({}, theme, 0),
+        noOutline: addOutlineWidth(theme, {}, 0),
 
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -1150,7 +1150,7 @@ const styles = (theme: ThemeColors) =>
         textReceiptUpload: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            color: theme.textLight,
+            color: theme.text,
             textAlign: 'center',
         },
 
@@ -1158,7 +1158,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
-            color: theme.textLight,
+            color: theme.text,
         },
 
         furtherDetailsText: {
@@ -1779,6 +1779,7 @@ const styles = (theme: ThemeColors) =>
         // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
         // Make sure you run the following tests against any changes: #12669
         textInputCompose: addOutlineWidth(
+            theme,
             {
                 backgroundColor: theme.componentBG,
                 borderColor: theme.border,
@@ -1799,7 +1800,6 @@ const styles = (theme: ThemeColors) =>
                 alignSelf: 'center',
                 verticalAlign: 'middle',
             },
-            theme,
             0,
         ),
 
@@ -2619,6 +2619,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         iouAmountTextInput: addOutlineWidth(
+            theme,
             {
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
@@ -2626,7 +2627,6 @@ const styles = (theme: ThemeColors) =>
                 padding: 0,
                 lineHeight: undefined,
             },
-            theme,
             0,
         ),
 
@@ -3353,7 +3353,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-            color: theme.text,
+            color: theme.textColorfulBackground,
         },
 
         eReceiptWaypointTitle: {
@@ -3608,7 +3608,7 @@ const styles = (theme: ThemeColors) =>
                 marginLeft: 8,
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
-                color: isSelected ? theme.textLight : theme.textSupporting,
+                color: isSelected ? theme.text : theme.textSupporting,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({

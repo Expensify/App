@@ -18,6 +18,7 @@ import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
 import * as PersonalDetails from '@userActions/PersonalDetails';
+import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import Timing from '@userActions/Timing';
@@ -178,6 +179,8 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         } else {
             App.reconnectApp(lastUpdateIDAppliedToClient);
         }
+
+        PriorityMode.autoSwitchToFocusMode();
 
         App.setUpPoliciesAndNavigate(session);
 
