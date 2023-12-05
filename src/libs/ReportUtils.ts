@@ -4112,7 +4112,7 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
         return [];
     }
 
-    const participants = report.participantAccountIDs ?? [];
+    const participants = report.participantAccountIDs ? report.participantAccountIDs.filter((accountID) => accountID !== 0) : [];
 
     // Build participants list for IOU/expense reports
     if (isMoneyRequestReport(report)) {
