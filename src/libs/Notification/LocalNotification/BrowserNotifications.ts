@@ -41,7 +41,7 @@ function canUseBrowserNotifications(): Promise<boolean> {
  * @param icon Path to icon
  * @param data extra data to attach to the notification
  */
-function push(title: string, body?: string, icon: string | ImageSourcePropType = '', data = {}, onClick: LocalNotificationClickHandler = () => {}) {
+function push(title: string, body?: string, icon: string | ImageSourcePropType = '', data: LocalNotificationData = {}, onClick: LocalNotificationClickHandler = () => {}) {
     if (!title || !body) {
         throw new Error('BrowserNotification must include title and body parameter.');
     }
@@ -106,7 +106,11 @@ export default {
             body = plainTextMessage;
         }
 
-        push(title, body, icon, onClick);
+        const data = {
+            reportID: report.reportID,
+        };
+
+        push(title, body, icon, data, onClick);
     },
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
@@ -123,7 +127,7 @@ export default {
      * Create a notification to indicate that an update is available.
      */
     pushUpdateAvailableNotification() {
-        push('Update available', 'A new version of this app is available!', {}, () => {
+        push('Update available', 'A new version of this app is available!', '', {}, () => {
             AppUpdate.triggerUpdateAvailable();
         });
     },

@@ -3,7 +3,7 @@ import {Report, ReportAction} from '@src/types/onyx';
 type LocalNotificationClickHandler = () => void;
 
 type LocalNotificationData = {
-    reportID: string;
+    reportID?: string;
 };
 
 type LocalNotificationModule = {
