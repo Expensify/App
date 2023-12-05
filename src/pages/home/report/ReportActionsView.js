@@ -114,9 +114,12 @@ function ReportActionsView(props) {
     };
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         openReportIfNecessary();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isFocused]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
