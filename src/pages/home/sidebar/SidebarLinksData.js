@@ -16,6 +16,9 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
+
 
 const propTypes = {
     ...basePropTypes,
@@ -49,6 +52,8 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    network: networkPropTypes.isRequired,
+
     /** The policies which the user has access to */
     // eslint-disable-next-line react/forbid-prop-types
     policies: PropTypes.object,
@@ -63,7 +68,7 @@ const defaultProps = {
     policies: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode, network}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -71,16 +76,18 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
+
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
 
         // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        if (!isLoading || !reportIDsRef.current) {
+        // However, if the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
+        if (!isLoading || !reportIDsRef.current || network.isOffline) {
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading]);
+    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading, network]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -195,6 +202,7 @@ const policySelector = (policy) =>
 export default compose(
     withCurrentReportID,
     withNavigationFocus,
+    withNetwork(),
     withOnyx({
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
