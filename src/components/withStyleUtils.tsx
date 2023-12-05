@@ -1,24 +1,24 @@
 import PropTypes from 'prop-types';
 import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {type ThemeStyles} from '@styles/styles';
-import useThemeStyles from '@styles/useThemeStyles';
+import {StyleUtilsWithoutThemeParameters} from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useThemeStyleUtils';
 
-const withThemeStylesPropTypes = {
+const withStyleUtilsPropTypes = {
     themeStyles: PropTypes.object.isRequired,
 };
-type WithThemeStylesProps = {themeStyles: ThemeStyles};
+type WithStyleUtilsProps = {StyleUtils: StyleUtilsWithoutThemeParameters};
 
-export default function withThemeStyles<TProps extends WithThemeStylesProps, TRef>(
+export default function withStyleUtils<TProps extends WithStyleUtilsProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof WithThemeStylesProps> & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithThemeStyles(props: Omit<TProps, keyof WithThemeStylesProps>, ref: ForwardedRef<TRef>): ReactElement {
-        const themeStyles = useThemeStyles();
+): (props: Omit<TProps, keyof WithStyleUtilsProps> & React.RefAttributes<TRef>) => ReactElement | null {
+    function WithThemeStyles(props: Omit<TProps, keyof WithStyleUtilsProps>, ref: ForwardedRef<TRef>): ReactElement {
+        const StyleUtils = useStyleUtils();
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
-                themeStyles={themeStyles}
+                StyleUtils={StyleUtils}
                 ref={ref}
             />
         );
@@ -29,5 +29,4 @@ export default function withThemeStyles<TProps extends WithThemeStylesProps, TRe
     return forwardRef(WithThemeStyles);
 }
 
-export {withThemeStylesPropTypes};
-export type {WithThemeStylesProps};
+export {withStyleUtilsPropTypes, type WithStyleUtilsProps};
