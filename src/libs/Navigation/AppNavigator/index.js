@@ -13,7 +13,7 @@ function AppNavigator(props) {
     const initUrl = useContext(InitialUrlContext);
 
     useEffect(() => {
-        if (!NativeModules.ReactNativeModule || initUrl === null) {
+        if (!NativeModules.HybridAppModule || initUrl === undefined) {
             return;
         }
 
