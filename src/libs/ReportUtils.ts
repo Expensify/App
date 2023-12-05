@@ -115,6 +115,7 @@ type OptimisticExpenseReport = Pick<
     | 'total'
     | 'notificationPreference'
     | 'parentReportID'
+    | 'lastVisibleActionCreated'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -270,6 +271,7 @@ type OptimisticTaskReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'notificationPreference'
+    | 'lastVisibleActionCreated'
 >;
 
 type TransactionDetails =
@@ -308,6 +310,7 @@ type OptimisticIOUReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'statusNum'
+    | 'lastVisibleActionCreated'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -2550,6 +2553,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         reportName: `${payerEmail} owes ${formattedTotal}`,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -2596,6 +2600,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -3285,6 +3290,7 @@ function buildOptimisticTaskReport(
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -3424,6 +3430,8 @@ function shouldReportBeInOptionList(
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (report?.participantAccountIDs?.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
