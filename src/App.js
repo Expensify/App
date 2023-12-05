@@ -65,6 +65,9 @@ function App(props) {
                 <ComposeProviders
                     components={[
                         OnyxProvider,
+                        ThemeProvider,
+                        ThemeStylesProvider,
+                        ThemeIllustrationsProvider,
                         SafeAreaProvider,
                         PortalProvider,
                         SafeArea,
@@ -77,9 +80,6 @@ function App(props) {
                         ReportAttachmentsProvider,
                         PickerStateProvider,
                         EnvironmentProvider,
-                        ThemeProvider,
-                        ThemeStylesProvider,
-                        ThemeIllustrationsProvider,
                         CustomStatusBarContextProvider,
                     ]}
                 >
