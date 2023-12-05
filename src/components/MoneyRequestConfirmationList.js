@@ -486,6 +486,7 @@ function MoneyRequestConfirmationList(props) {
             props.isEditingSplitBill,
             props.iouType,
             props.isDistanceRequest,
+            props.iouCategory,
             isDistanceRequestWithoutRoute,
             props.iouCurrencyCode,
             props.iouAmount,
