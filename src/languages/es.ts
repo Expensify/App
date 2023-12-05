@@ -2453,13 +2453,13 @@ export default {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Recomienda a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recomienda a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE} por cada recomendación`,
-            body: 'Si conoces a alguien que dedique demasiado tiempo a los gastos (literalmente cualquiera: tu vecino, tu jefe, tu amigo de contabilidad), envíale tu enlace de invitación de Expensify:',
+            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },

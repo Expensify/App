@@ -1974,7 +1974,7 @@ export default {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Invite a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: 'Be the first to invite a friend (or anyone else) to Expensify and get $250 if they become an Expensify customer. Share your invite link by text, email, or post it on social media!',
+            body: `Be the first to invite a friend (or anyone else) to Expensify and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer. Share your invite link by text, email, or post it on social media!`,
         },
         copyReferralLink: 'Copy referral link',
     },
