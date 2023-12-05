@@ -1390,6 +1390,8 @@ function getComposerMaxHeightStyle(styles: ThemeStyles, maxLines: number, isComp
           };
 }
 
+export type {AvatarSizeName};
+
 export {
     combineStyles,
     displayIfTrue,
