@@ -6,8 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +30,7 @@ const defaultProps = {
 };
 
 function EReceipt({transaction, transactionID}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // Get receipt colorway, or default to Yellow.

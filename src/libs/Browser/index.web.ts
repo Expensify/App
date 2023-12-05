@@ -1,12 +1,13 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileSafari, IsSafari, OpenRouteInDesktopApp} from './types';
 
 /**
  * Fetch browser name from UA string
  *
  */
-function getBrowser(): string {
+const getBrowser: GetBrowser = () => {
     const {userAgent} = window.navigator;
     const match = userAgent.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))/i) ?? [];
     let temp: RegExpMatchArray | null;
@@ -30,43 +31,39 @@ function getBrowser(): string {
 
     browserName = match[1] ?? navigator.appName;
     return browserName ? browserName.toLowerCase() : CONST.BROWSER.OTHER;
-}
+};
 
 /**
  * Whether the platform is a mobile browser.
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
  *
  */
-function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
-}
+const isMobile: IsMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
 
 /**
  * Checks if requesting user agent is Safari browser on a mobile device
  *
  */
-function isMobileSafari() {
+const isMobileSafari: IsMobileSafari = () => {
     const userAgent = navigator.userAgent;
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent) && !/(CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
-}
+};
 
 /**
  * Checks if requesting user agent is Chrome browser on a mobile device
  *
  */
-function isMobileChrome() {
+const isMobileChrome: IsMobileChrome = () => {
     const userAgent = navigator.userAgent;
     return /Android/i.test(userAgent) && /chrome|chromium|crios/i.test(userAgent);
-}
+};
 
-function isSafari() {
-    return getBrowser() === 'safari' || isMobileSafari();
-}
+const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
 /**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  */
-function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
+const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', email = '') => {
     const params = new URLSearchParams();
     // If the user is opening the desktop app through a third party signin flow, we need to manually add the exitTo param
     // so that the desktop app redirects to the correct home route after signin is complete.
@@ -102,6 +99,6 @@ function openRouteInDesktopApp(shortLivedAuthToken = '', email = '') {
     } else {
         window.location.href = expensifyDeeplinkUrl;
     }
-}
+};
 
 export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp};

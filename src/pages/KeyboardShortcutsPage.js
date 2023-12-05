@@ -7,10 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 function KeyboardShortcutsPage() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shortcuts = _.chain(CONST.KEYBOARD_SHORTCUTS)
         .filter((shortcut) => !_.isEmpty(shortcut.descriptionKey))
@@ -35,7 +36,7 @@ function KeyboardShortcutsPage() {
             key={shortcut.displayName}
             title={shortcut.displayName}
             description={translate(`keyboardShortcutsPage.shortcuts.${shortcut.descriptionKey}`)}
-            wrapperStyle={styles.ph0}
+            wrapperStyle={[styles.ph0, styles.cursorAuto]}
             interactive={false}
         />
     );

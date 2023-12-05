@@ -7,7 +7,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 
@@ -35,6 +35,7 @@ const propTypes = {
 };
 
 function ReportActionItemThread(props) {
+    const styles = useThemeStyles();
     const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
@@ -46,7 +47,7 @@ function ReportActionItemThread(props) {
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
                 onSecondaryInteraction={props.onSecondaryInteraction}
             >
@@ -60,16 +61,14 @@ function ReportActionItemThread(props) {
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
                         <Text
-                            selectable={false}
-                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap]}
+                            style={[styles.link, styles.ml2, styles.h4, styles.noWrap, styles.userSelectNone]}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {`${numberOfRepliesText} ${replyText}`}
                         </Text>
                         <Text
-                            selectable={false}
                             numberOfLines={1}
-                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
+                            style={[styles.ml2, styles.textMicroSupporting, styles.flex1, styles.userSelectNone]}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             {timeStamp}

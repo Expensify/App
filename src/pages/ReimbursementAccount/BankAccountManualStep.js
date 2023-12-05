@@ -3,7 +3,8 @@ import React, {useCallback} from 'react';
 import {Image} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -13,7 +14,7 @@ import {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,8 +26,12 @@ const propTypes = {
 };
 
 function BankAccountManualStep(props) {
+    const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {reimbursementAccount, reimbursementAccountDraft} = props;
+
+    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
+
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -40,7 +45,7 @@ function BankAccountManualStep(props) {
             if (
                 values.accountNumber &&
                 !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
-                !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
+                !(shouldDisableInputs && CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
             ) {
                 errors.accountNumber = 'bankAccount.error.accountNumber';
             } else if (values.accountNumber && values.accountNumber === routingNumber) {
@@ -55,7 +60,7 @@ function BankAccountManualStep(props) {
 
             return errors;
         },
-        [translate],
+        [translate, shouldDisableInputs],
     );
 
     const submit = useCallback(
@@ -70,8 +75,6 @@ function BankAccountManualStep(props) {
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -84,12 +87,12 @@ function BankAccountManualStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={props.onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 onSubmit={submit}
                 validate={validate}
                 submitButtonText={translate('common.continue')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
             >
                 <Text style={[styles.mb5]}>{translate('bankAccount.checkHelpLine')}</Text>
                 <Image
@@ -97,33 +100,36 @@ function BankAccountManualStep(props) {
                     style={[styles.exampleCheckImage, styles.mb5]}
                     source={exampleCheckImage(preferredLocale)}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     autoFocus
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
-                    accessibilityLabel={translate('bankAccount.routingNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    aria-label={translate('bankAccount.routingNumber')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
-                    accessibilityLabel={translate('bankAccount.accountNumber')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    aria-label={translate('bankAccount.accountNumber')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
-                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <CheckboxWithLabel
-                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
+                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
                     inputID="acceptTerms"
                     LabelComponent={() => (
@@ -135,7 +141,7 @@ function BankAccountManualStep(props) {
                     defaultValue={props.getDefaultStateForField('acceptTerms', false)}
                     shouldSaveDraft
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
 import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
+import CONST from '../../src/CONST';
 import variables from '../../src/styles/variables';
 
 jest.mock('../../src/components/Icon/Expensicons');
@@ -92,6 +93,8 @@ function SelectionListWrapper(args) {
     );
 }
 
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
 test('should render 1 section and a thousand items', () => {
     measurePerformance(<SelectionListWrapper />);
 });
@@ -101,7 +104,7 @@ test('should press a list item', () => {
         fireEvent.press(screen.getByText('Item 5'));
     };
 
-    measurePerformance(<SelectionListWrapper />, {scenario});
+    measurePerformance(<SelectionListWrapper />, {scenario, runs});
 });
 
 test('should render multiple selection and select 3 items', () => {
@@ -111,7 +114,7 @@ test('should render multiple selection and select 3 items', () => {
         fireEvent.press(screen.getByText('Item 3'));
     };
 
-    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario, runs});
 });
 
 test('should scroll and select a few items', () => {
@@ -140,5 +143,5 @@ test('should scroll and select a few items', () => {
         fireEvent.press(screen.getByText('Item 15'));
     };
 
-    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario, runs});
 });

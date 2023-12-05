@@ -1,16 +1,20 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import getModalStyles from '@styles/getModalStyles';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {onOpen, close} = React.useContext(PopoverContext);
+    const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
         'popover',
         {
@@ -18,21 +22,64 @@ function Popover(props) {
             windowHeight: props.windowHeight,
             isSmallScreenWidth: false,
         },
+        theme,
+        styles,
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,
     );
 
+    const {
+        paddingTop: safeAreaPaddingTop,
+        paddingBottom: safeAreaPaddingBottom,
+        paddingLeft: safeAreaPaddingLeft,
+        paddingRight: safeAreaPaddingRight,
+    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [insets]);
+
+    const modalPaddingStyles = useMemo(
+        () =>
+            StyleUtils.getModalPaddingStyles({
+                safeAreaPaddingTop,
+                safeAreaPaddingBottom,
+                safeAreaPaddingLeft,
+                safeAreaPaddingRight,
+                shouldAddBottomSafeAreaMargin,
+                shouldAddTopSafeAreaMargin,
+                shouldAddBottomSafeAreaPadding,
+                shouldAddTopSafeAreaPadding,
+                modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+                modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+                modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+                modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                insets,
+            }),
+        [
+            insets,
+            modalContainerStyle.marginBottom,
+            modalContainerStyle.marginTop,
+            modalContainerStyle.paddingBottom,
+            modalContainerStyle.paddingTop,
+            safeAreaPaddingBottom,
+            safeAreaPaddingLeft,
+            safeAreaPaddingRight,
+            safeAreaPaddingTop,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
+    );
+
     React.useEffect(() => {
+        let removeOnClose;
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
                 ref: props.withoutOverlayRef,
                 close: props.onClose,
                 anchorRef: props.anchorRef,
-                onCloseCallback: () => Modal.setCloseModal(null),
-                onOpenCallback: () => Modal.setCloseModal(() => props.onClose(props.anchorRef)),
             });
+            removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
         } else {
             props.onModalHide();
             close(props.anchorRef);
@@ -40,6 +87,12 @@ function Popover(props) {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
+        return () => {
+            if (!removeOnClose) {
+                return;
+            }
+            removeOnClose();
+        };
         // We want this effect to run strictly ONLY when isVisible prop changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);
@@ -53,44 +106,16 @@ function Popover(props) {
             style={[modalStyle, {zIndex: 1}]}
             ref={props.withoutOverlayRef}
         >
-            <SafeAreaInsetsContext.Consumer>
-                {(insets) => {
-                    const {
-                        paddingTop: safeAreaPaddingTop,
-                        paddingBottom: safeAreaPaddingBottom,
-                        paddingLeft: safeAreaPaddingLeft,
-                        paddingRight: safeAreaPaddingRight,
-                    } = StyleUtils.getSafeAreaPadding(insets);
-
-                    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
-                        safeAreaPaddingTop,
-                        safeAreaPaddingBottom,
-                        safeAreaPaddingLeft,
-                        safeAreaPaddingRight,
-                        shouldAddBottomSafeAreaMargin,
-                        shouldAddTopSafeAreaMargin,
-                        shouldAddBottomSafeAreaPadding,
-                        shouldAddTopSafeAreaPadding,
-                        modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-                        modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-                        modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-                        modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-                        insets,
-                    });
-                    return (
-                        <View
-                            style={{
-                                ...styles.defaultModalContainer,
-                                ...modalContainerStyle,
-                                ...modalPaddingStyles,
-                            }}
-                            ref={props.forwardedRef}
-                        >
-                            {props.children}
-                        </View>
-                    );
+            <View
+                style={{
+                    ...styles.defaultModalContainer,
+                    ...modalContainerStyle,
+                    ...modalPaddingStyles,
                 }}
-            </SafeAreaInsetsContext.Consumer>
+                ref={props.forwardedRef}
+            >
+                {props.children}
+            </View>
         </View>
     );
 }

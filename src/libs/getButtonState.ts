@@ -1,12 +1,10 @@
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
-type GetButtonState = (isActive: boolean, isPressed: boolean, isComplete: boolean, isDisabled: boolean, isInteractive: boolean) => ValueOf<typeof CONST.BUTTON_STATES>;
-
 /**
  * Get the string representation of a button's state.
  */
-const getButtonState: GetButtonState = (isActive = false, isPressed = false, isComplete = false, isDisabled = false, isInteractive = true) => {
+function getButtonState(isActive = false, isPressed = false, isComplete = false, isDisabled = false, isInteractive = true): ValueOf<typeof CONST.BUTTON_STATES> {
     if (!isInteractive) {
         return CONST.BUTTON_STATES.DEFAULT;
     }
@@ -28,6 +26,6 @@ const getButtonState: GetButtonState = (isActive = false, isPressed = false, isC
     }
 
     return CONST.BUTTON_STATES.DEFAULT;
-};
+}
 
 export default getButtonState;

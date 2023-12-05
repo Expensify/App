@@ -1,23 +1,24 @@
 /* eslint-disable es/no-optional-chaining */
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,9 +27,6 @@ import ROUTES from '@src/ROUTES';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -64,7 +62,6 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
-    personalDetails: {},
     reports: {},
     session: {},
     route: {},
@@ -72,6 +69,7 @@ const defaultProps = {
 };
 
 function TaskAssigneeSelectorModal(props) {
+    const styles = useThemeStyles();
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -79,13 +77,14 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
+    const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
-    const optionRef = useRef();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
             props.reports,
-            props.personalDetails,
+            allPersonalDetails,
             props.betas,
             searchValue.trim(),
             [],
@@ -110,7 +109,7 @@ function TaskAssigneeSelectorModal(props) {
         if (isLoading) {
             setIsLoading(false);
         }
-    }, [props, searchValue, isLoading]);
+    }, [props, searchValue, allPersonalDetails, isLoading]);
 
     useEffect(() => {
         const debouncedSearch = _.debounce(updateOptions, 200);
@@ -194,10 +193,13 @@ function TaskAssigneeSelectorModal(props) {
 
         // Check to see if we're editing a task and if so, update the assignee
         if (report) {
-            const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
+            if (option.accountID !== report.managerID) {
+                const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
-            // Pass through the selected assignee
-            Task.editTaskAssigneeAndNavigate(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+                // Pass through the selected assignee
+                Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+            }
+            return Navigation.dismissModal(report.reportID);
         }
     };
 
@@ -208,7 +210,6 @@ function TaskAssigneeSelectorModal(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => optionRef.current && optionRef.current.textInput.focus()}
             testID={TaskAssigneeSelectorModal.displayName}
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
@@ -229,7 +230,7 @@ function TaskAssigneeSelectorModal(props) {
                             textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus={false}
-                            ref={optionRef}
+                            ref={inputCallbackRef}
                         />
                     </View>
                 </FullPageNotFoundView>
@@ -248,9 +249,6 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

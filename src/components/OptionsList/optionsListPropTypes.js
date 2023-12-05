@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import optionPropTypes from '@components/optionPropTypes';
 import SectionList from '@components/SectionList';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 
 const propTypes = {
     /** option flexStyle for the options list container */
@@ -100,13 +99,16 @@ const propTypes = {
 
     /** Whether the list should have a bounce effect on iOS */
     bounces: PropTypes.bool,
+
+    /** Custom content to display in the floating footer */
+    renderFooterContent: PropTypes.func,
 };
 
 const defaultProps = {
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
     sectionHeaderStyle: undefined,
-    listContainerStyles: [styles.flex1],
+    listContainerStyles: [{flex: 1}],
     sections: [],
     focusedIndex: 0,
     selectedOptions: [],
@@ -130,6 +132,7 @@ const defaultProps = {
     isLoadingNewOptions: false,
     nestedScrollEnabled: true,
     bounces: true,
+    renderFooterContent: undefined,
 };
 
 export {propTypes, defaultProps};

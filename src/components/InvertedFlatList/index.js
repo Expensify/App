@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import {DeviceEventEmitter, FlatList, StyleSheet} from 'react-native';
-import _ from 'underscore';
-import styles from '@styles/styles';
+import {DeviceEventEmitter, FlatList} from 'react-native';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
@@ -24,22 +22,14 @@ const propTypes = {
 // It's a HACK alert since FlatList has inverted scrolling on web
 function InvertedFlatList(props) {
     const {innerRef, contentContainerStyle} = props;
-    const listRef = React.createRef();
 
     const lastScrollEvent = useRef(null);
     const scrollEndTimeout = useRef(null);
     const updateInProgress = useRef(false);
     const eventHandler = useRef(null);
 
-    useEffect(() => {
-        if (!_.isFunction(innerRef)) {
-            // eslint-disable-next-line no-param-reassign
-            innerRef.current = listRef.current;
-        } else {
-            innerRef(listRef);
-        }
-
-        return () => {
+    useEffect(
+        () => () => {
             if (scrollEndTimeout.current) {
                 clearTimeout(scrollEndTimeout.current);
             }
@@ -47,8 +37,9 @@ function InvertedFlatList(props) {
             if (eventHandler.current) {
                 eventHandler.current.remove();
             }
-        };
-    }, [innerRef, listRef]);
+        },
+        [innerRef],
+    );
 
     /**
      * Emits when the scrolling is in progress. Also,
@@ -114,13 +105,9 @@ function InvertedFlatList(props) {
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={listRef}
-            shouldMeasureItems
-            contentContainerStyle={StyleSheet.compose(contentContainerStyle, styles.justifyContentEnd)}
+            ref={innerRef}
+            contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}
-            // We need to keep batch size to one to workaround a bug in react-native-web.
-            // This can be removed once https://github.com/Expensify/App/pull/24482 is merged.
-            maxToRenderPerBatch={1}
         />
     );
 }
@@ -130,6 +117,7 @@ InvertedFlatList.defaultProps = {
     contentContainerStyle: {},
     onScroll: () => {},
 };
+InvertedFlatList.displayName = 'InvertedFlatList';
 
 const InvertedFlatListWithRef = forwardRef((props, ref) => (
     <InvertedFlatList

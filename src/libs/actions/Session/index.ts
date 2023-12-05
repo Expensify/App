@@ -578,7 +578,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 function clearSignInData() {
     Onyx.multiSet({
         [ONYXKEYS.ACCOUNT]: null,
-        [ONYXKEYS.CREDENTIALS]: {},
+        [ONYXKEYS.CREDENTIALS]: null,
     });
 }
 
@@ -871,6 +871,33 @@ function waitForUserSignIn(): Promise<boolean> {
     });
 }
 
+/**
+ * check if the route can be accessed by anonymous user
+ *
+ * @param {string} route
+ */
+
+const canAccessRouteByAnonymousUser = (route: string) => {
+    const reportID = ReportUtils.getReportIDFromLink(route);
+    if (reportID) {
+        return true;
+    }
+    const parsedReportRouteParams = ReportUtils.parseReportRouteParams(route);
+    let routeRemovedReportId = route;
+    if ((parsedReportRouteParams as {reportID: string})?.reportID) {
+        routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');
+    }
+    if (route.startsWith('/')) {
+        routeRemovedReportId = routeRemovedReportId.slice(1);
+    }
+    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+
+    if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
+        return true;
+    }
+    return false;
+};
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -900,4 +927,5 @@ export {
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
     waitForUserSignIn,
+    canAccessRouteByAnonymousUser,
 };
