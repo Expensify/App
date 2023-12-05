@@ -308,6 +308,7 @@ function EmojiPickerMenu(props) {
                 const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 onEmojiSelected(emoji, item);
                 keyBoardEvent.preventDefault();
+                keyBoardEvent.stopPropagation();
                 return;
             }
 
