@@ -33,29 +33,25 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
 
     const textMatrix = getTextMatrix(children);
 
-    return (
-        <>
-            {textMatrix.map((rowText, rowIndex) => (
-                <Fragment
+    return textMatrix.map((rowText, rowIndex) => (
+        <Fragment
+            // eslint-disable-next-line react/no-array-index-key
+            key={`${rowText[0]}-${rowIndex}`}
+        >
+            {rowText.map((colText, colIndex) => (
+                // Outer View is important to vertically center the Text
+                <View
                     // eslint-disable-next-line react/no-array-index-key
-                    key={`${rowText[0]}-${rowIndex}`}
+                    key={`${colText}-${colIndex}`}
+                    style={styles.codeWordWrapper}
                 >
-                    {rowText.map((colText, colIndex) => (
-                        // Outer View is important to vertically center the Text
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${colText}-${colIndex}`}
-                            style={styles.codeWordWrapper}
-                        >
-                            <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
-                                <Text style={textStyles}>{colText}</Text>
-                            </View>
-                        </View>
-                    ))}
-                </Fragment>
+                    <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
+                        <Text style={textStyles}>{colText}</Text>
+                    </View>
+                </View>
             ))}
-        </>
-    );
+        </Fragment>
+    ));
 }
 
 WrappedText.displayName = 'WrappedText';
