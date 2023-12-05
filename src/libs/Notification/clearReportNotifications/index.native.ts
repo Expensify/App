@@ -1,9 +1,29 @@
-import Airship from '@ua/react-native-airship';
+import Airship, {PushPayload} from '@ua/react-native-airship';
+import Log from '@libs/Log';
 import ClearReportNotifications from './types';
 
+function parseNotificationAndReportIDs(pushPayload: PushPayload) {
+    let payload = pushPayload.extras.payload;
+    if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+    }
+    const data = payload as Record<string, unknown>;
+    return {
+        notificationID: pushPayload.notificationId,
+        reportID: String(data.reportID ?? ''),
+    };
+}
+
 const clearReportNotifications: ClearReportNotifications = (reportID: string) => {
-    Airship.push.getActiveNotifications().then((payloads) => {
-        const reportNotificationIDs = payloads.filter((payload) => payload.extras.reportID === reportID).map((payload) => payload.notificationId);
+    Log.info('[PushNotification] clearing report notifications', false, {reportID});
+
+    Airship.push.getActiveNotifications().then((pushPayloads) => {
+        const reportNotificationIDs = pushPayloads
+            .map(parseNotificationAndReportIDs)
+            .filter((notification) => notification.reportID === reportID)
+            .map((notification) => notification.notificationID);
+
+        Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
         reportNotificationIDs.forEach((notificationID) => notificationID && Airship.push.clearNotification(notificationID));
     });
 };
