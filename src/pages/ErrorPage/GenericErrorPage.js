@@ -10,8 +10,8 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -24,13 +24,13 @@ const propTypes = {
 function GenericErrorPage({translate}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const {resetBoundary} = useErrorBoundary();
 
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
-                <View style={[styles.flex1, styles.pt10, styles.ph5, ThemeStyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
+                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <View>
                             <View style={styles.mb5}>

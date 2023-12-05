@@ -1,10 +1,10 @@
 import React from 'react';
 import defaultStyles, {ThemeStyles} from './styles';
-import {ThemeStyleUtilsType} from './utils/ThemeStyleUtils';
+import {StyleUtilsType} from './StyleUtils';
 
 type ThemeStylesContextType = {
     styles: ThemeStyles;
-    ThemeStyleUtils: ThemeStyleUtilsType;
+    StyleUtils: StyleUtilsType;
 };
 
 const defaultThemeStyles = new Proxy(
@@ -16,7 +16,7 @@ const defaultThemeStyles = new Proxy(
     },
 );
 
-const ThemeStylesContext = React.createContext<ThemeStylesContextType | undefined>({styles: defaultStyles, ThemeStyleUtils: defaultThemeStyles as ThemeStyleUtilsType});
+const ThemeStylesContext = React.createContext<ThemeStylesContextType | undefined>({styles: defaultStyles, StyleUtils: defaultThemeStyles as StyleUtilsType});
 
 export default ThemeStylesContext;
 export {type ThemeStylesContextType};

@@ -7,11 +7,11 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import useStyleUtils from '@styles/useStyleUtils';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -55,6 +55,7 @@ function AvatarWithDisplayName({
 }: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils()
     const title = ReportUtils.getReportName(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);

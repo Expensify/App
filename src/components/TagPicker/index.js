@@ -6,14 +6,15 @@ import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './tagPickerPropTypes';
 
 function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption, insets, onSubmit}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 

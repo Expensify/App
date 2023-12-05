@@ -5,8 +5,8 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import PressableProps, {PressableRef} from './types';
 
@@ -37,6 +37,7 @@ function GenericPressable(
     ref: PressableRef,
 ) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();

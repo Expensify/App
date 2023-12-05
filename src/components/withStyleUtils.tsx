@@ -1,19 +1,19 @@
 import PropTypes from 'prop-types';
 import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
-import {ThemeStyleUtilsType} from '@styles/utils/ThemeStyleUtils';
+import {StyleUtilsType} from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 
 const withStyleUtilsPropTypes = {
-    themeStyles: PropTypes.object.isRequired,
+    StyleUtils: PropTypes.object.isRequired,
 };
-type WithStyleUtilsProps = {StyleUtils: ThemeStyleUtilsType};
+type WithStyleUtilsProps = {StyleUtils: StyleUtilsType};
 
-export default function withThemeStyleUtils<TProps extends WithStyleUtilsProps, TRef>(
+export default function withStyleUtils<TProps extends WithStyleUtilsProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
 ): (props: Omit<TProps, keyof WithStyleUtilsProps> & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithThemeStyles(props: Omit<TProps, keyof WithStyleUtilsProps>, ref: ForwardedRef<TRef>): ReactElement {
-        const StyleUtils = useThemeStyleUtils();
+    function WithStyleUtils(props: Omit<TProps, keyof WithStyleUtilsProps>, ref: ForwardedRef<TRef>): ReactElement {
+        const StyleUtils = useStyleUtils();
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -24,9 +24,9 @@ export default function withThemeStyleUtils<TProps extends WithStyleUtilsProps, 
         );
     }
 
-    WithThemeStyles.displayName = `withThemeStyles(${getComponentDisplayName(WrappedComponent)})`;
+    WithStyleUtils.displayName = `withStyleUtils(${getComponentDisplayName(WrappedComponent)})`;
 
-    return forwardRef(WithThemeStyles);
+    return forwardRef(WithStyleUtils);
 }
 
 export {withStyleUtilsPropTypes, type WithStyleUtilsProps};

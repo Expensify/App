@@ -20,8 +20,8 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,6 +116,7 @@ const defaultProps = {
 function AttachmentModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);

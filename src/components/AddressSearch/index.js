@@ -15,8 +15,8 @@ import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
@@ -165,7 +165,7 @@ function AddressSearch({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -510,7 +510,7 @@ function AddressSearch({
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [ThemeStyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.overflowAuto, styles.borderLeft, styles.borderRight, !isFocused && {height: 0}],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
@@ -527,7 +527,7 @@ function AddressSearch({
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
                             predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
-                                <View style={[ThemeStyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
+                                <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={network.isOffline}

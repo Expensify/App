@@ -47,9 +47,8 @@ import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
-import StyleUtils from '@styles/utils/StyleUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as store from '@userActions/ReimbursementAccount/store';
@@ -138,7 +137,7 @@ const defaultProps = {
 function ReportActionItem(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
@@ -695,7 +694,7 @@ function ReportActionItem(props) {
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
-                        <View style={ThemeStyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}

@@ -6,13 +6,13 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MapView from '@components/MapView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import * as distanceMapViewPropTypes from './distanceMapViewPropTypes';
 
 function DistanceMapView(props) {
     const styles = useThemeStyles();
-    const StyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();

@@ -6,8 +6,8 @@ import StagingLogo from '@assets/images/expensify-logo--staging.svg';
 import ProductionLogo from '@assets/images/expensify-wordmark.svg';
 import useEnvironment from '@hooks/useEnvironment';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import withWindowDimensions from './withWindowDimensions';
@@ -28,6 +28,7 @@ const logoComponents = {
 function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[environment];

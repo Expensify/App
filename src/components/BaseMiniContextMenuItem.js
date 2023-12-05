@@ -5,9 +5,8 @@ import _ from 'underscore';
 import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
@@ -52,7 +51,7 @@ const defaultProps = {
  */
 function BaseMiniContextMenuItem(props) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     return (
         <Tooltip text={props.tooltipText}>
             <PressableWithoutFeedback
@@ -75,7 +74,7 @@ function BaseMiniContextMenuItem(props) {
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
                     props.isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >

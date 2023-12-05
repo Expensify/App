@@ -26,8 +26,8 @@ import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuA
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as optionRowStyles from '@styles/optionRowStyles';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -66,6 +66,7 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const popoverAnchor = useRef(null);
     const isFocusedRef = useRef(true);
     const {isSmallScreenWidth} = useWindowDimensions();

@@ -32,8 +32,8 @@ import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateB
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,6 +77,7 @@ const defaultProps = {
 function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();

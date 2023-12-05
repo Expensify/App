@@ -21,8 +21,8 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -207,7 +207,7 @@ function PaymentMethodList({
     style,
 }) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -265,8 +265,8 @@ function PaymentMethodList({
             return {
                 ...paymentMethod,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-                iconFill: isMethodActive ? ThemeStyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-                wrapperStyle: isMethodActive ? [ThemeStyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
+                iconFill: isMethodActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+                wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
         });

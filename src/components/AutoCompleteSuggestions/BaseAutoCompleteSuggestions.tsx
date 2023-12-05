@@ -5,9 +5,8 @@ import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
@@ -40,7 +39,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
@@ -49,7 +48,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     const renderItem = useCallback(
         ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
             <PressableWithFeedback
-                style={({hovered}) => ThemeStyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
+                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
                 hoverDimmingValue={1}
                 onMouseDown={(e) => e.preventDefault()}
                 onPress={() => onSelect(index)}
@@ -59,7 +58,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
         ),
-        [accessibilityLabelExtractor, renderSuggestionMenuItem, ThemeStyleUtils, highlightedSuggestionIndex, onSelect],
+        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, onSelect],
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;

@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
@@ -41,6 +41,7 @@ const defaultProps = {
 
 function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     if (_.isEmpty(messages)) {
         return null;

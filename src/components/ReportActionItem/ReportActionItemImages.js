@@ -6,8 +6,8 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -53,6 +53,7 @@ const defaultProps = {
 function ReportActionItemImages({images, size, total, isHovered}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
     // or the total number of images.
     const numberOfShownImages = Math.min(size || images.length, images.length);

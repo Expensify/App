@@ -16,8 +16,8 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -168,7 +168,7 @@ function Composer({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);

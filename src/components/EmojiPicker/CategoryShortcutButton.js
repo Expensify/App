@@ -6,8 +6,8 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -25,7 +25,7 @@ const propTypes = {
 function CategoryShortcutButton(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -39,11 +39,7 @@ function CategoryShortcutButton(props) {
                 onPress={props.onPress}
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
-                style={({pressed}) => [
-                    ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                    styles.categoryShortcutButton,
-                    isHighlighted && styles.emojiItemHighlighted,
-                ]}
+                style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
                 accessibilityLabel={`emojiPicker.headers.${props.code}`}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >

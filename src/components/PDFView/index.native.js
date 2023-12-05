@@ -7,10 +7,10 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
 import withLocalize from '@components/withLocalize';
+import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
@@ -19,6 +19,7 @@ const propTypes = {
     ...pdfViewPropTypes,
     ...keyboardStatePropTypes,
     ...withThemeStylesPropTypes,
+    ...withStyleUtilsPropTypes,
 };
 
 /**
@@ -199,4 +200,4 @@ class PDFView extends Component {
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles)(PDFView);
+export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles, withStyleUtils)(PDFView);

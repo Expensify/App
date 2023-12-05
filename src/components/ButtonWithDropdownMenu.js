@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import Button from './Button';
 import Icon from './Icon';
@@ -74,6 +74,7 @@ const defaultProps = {
 function ButtonWithDropdownMenu(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);

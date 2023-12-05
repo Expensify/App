@@ -9,8 +9,8 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
 import getModalStyles from '@styles/getModalStyles';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -44,6 +44,7 @@ function BaseModal(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();

@@ -6,8 +6,8 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
@@ -68,6 +68,7 @@ const defaultProps = {
 function LinkPreviewer(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return _.map(
         _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
         (linkData) => {

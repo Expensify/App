@@ -16,8 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import ThemeProvider from '@styles/themes/ThemeProvider';
 import ThemeStylesProvider from '@styles/ThemeStylesProvider';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -134,6 +134,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 
 function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;

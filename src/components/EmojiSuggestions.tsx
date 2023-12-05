@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import type {SimpleEmoji} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getStyledTextArray from '@libs/GetStyledTextArray';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Text from './Text';
 
@@ -43,7 +43,7 @@ const keyExtractor = (item: SimpleEmoji, index: number): string => `${item.name}
 
 function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     /**
      * Render an emoji suggestion menu item component.
      */
@@ -62,7 +62,7 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
                         {styledTextArray.map(({text, isColored}) => (
                             <Text
                                 key={`${text}+${isColored}`}
-                                style={ThemeStyleUtils.getColoredBackgroundStyle(isColored)}
+                                style={StyleUtils.getColoredBackgroundStyle(isColored)}
                             >
                                 {text}
                             </Text>

@@ -14,9 +14,8 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
@@ -57,7 +56,7 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
 }) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -133,7 +132,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Download}
-                                    fill={iconFill || ThemeStyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>

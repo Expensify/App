@@ -29,8 +29,8 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -139,6 +139,7 @@ const defaultProps = {
 function MoneyRequestPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {

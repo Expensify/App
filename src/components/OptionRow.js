@@ -6,8 +6,8 @@ import _ from 'underscore';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import CONST from '@src/CONST';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
@@ -104,6 +104,7 @@ const defaultProps = {
 function OptionRow(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const pressableRef = useRef(null);
     const [isDisabled, setIsDisabled] = useState(props.isDisabled);
 

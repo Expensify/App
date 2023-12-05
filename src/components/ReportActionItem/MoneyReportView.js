@@ -12,8 +12,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 
 const propTypes = {
@@ -29,6 +29,7 @@ const propTypes = {
 function MoneyReportView(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isSettled = ReportUtils.isSettled(props.report.reportID);
 

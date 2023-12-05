@@ -11,8 +11,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -56,7 +56,7 @@ const defaultProps = {
  */
 function MiniQuickEmojiReactions(props) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const ref = useRef();
 
     const openEmojiPicker = () => {
@@ -106,7 +106,7 @@ function MiniQuickEmojiReactions(props) {
                     <Icon
                         small
                         src={Expensicons.AddReaction}
-                        fill={ThemeStyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
+                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />
                 )}
             </BaseMiniContextMenuItem>

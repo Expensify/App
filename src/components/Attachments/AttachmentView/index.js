@@ -16,8 +16,8 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import cursor from '@styles/utilities/cursor';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +80,7 @@ function AttachmentView({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
 

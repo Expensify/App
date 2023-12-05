@@ -24,8 +24,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -46,7 +46,7 @@ const propTypes = {
 
 function TaskView(props) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     useEffect(() => {
         Task.setTaskReport({...props.report});
     }, [props.report]);
@@ -84,7 +84,7 @@ function TaskView(props) {
                             style={({pressed}) => [
                                 styles.ph5,
                                 styles.pv2,
-                                ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                 isDisableInteractive && !disableState && styles.cursorDefault,
                             ]}
                             ref={props.forwardedRef}
@@ -124,7 +124,7 @@ function TaskView(props) {
                                                 <Icon
                                                     additionalStyles={[styles.alignItemsCenter]}
                                                     src={Expensicons.ArrowRight}
-                                                    fill={ThemeStyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
+                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                 />
                                             </View>
                                         )}

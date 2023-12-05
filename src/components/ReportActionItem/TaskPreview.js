@@ -22,8 +22,8 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -76,7 +76,7 @@ const defaultProps = {
 
 function TaskPreview(props) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
@@ -129,7 +129,7 @@ function TaskPreview(props) {
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}
-                    fill={ThemeStyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
                 />
             </PressableWithoutFeedback>
         </View>

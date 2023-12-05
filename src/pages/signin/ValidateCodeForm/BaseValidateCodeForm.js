@@ -21,8 +21,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -84,6 +84,7 @@ const defaultProps = {
 function BaseValidateCodeForm(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');

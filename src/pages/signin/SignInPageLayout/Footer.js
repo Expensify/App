@@ -11,8 +11,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -148,6 +148,7 @@ const columns = ({scrollPageToTop}) => [
 function Footer(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const isVertical = props.shouldShowSmallScreen;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;

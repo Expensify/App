@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import {stylesGenerator} from './styles';
+import createThemeStyleUtils from './StyleUtils';
 import useTheme from './themes/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
-import createThemeStyleUtils from './utils/ThemeStyleUtils';
 
 type ThemeStylesProviderProps = React.PropsWithChildren;
 

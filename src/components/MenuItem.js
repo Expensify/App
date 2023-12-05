@@ -8,9 +8,8 @@ import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -89,7 +88,7 @@ const defaultProps = {
 const MenuItem = React.forwardRef((props, ref) => {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const style = StyleUtils.combineStyles(props.style, styles.popoverMenuItem);
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = React.useState('');
@@ -183,7 +182,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     style={({pressed}) => [
                         style,
                         !props.interactive && styles.cursorDefault,
-                        ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
+                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
                         (isHovered || pressed) && props.hoverAndPressStyle,
                         ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
                         props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
@@ -228,7 +227,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                     height={props.iconHeight}
                                                     fill={
                                                         props.iconFill ||
-                                                        ThemeStyleUtils.getIconFillColor(
+                                                        StyleUtils.getIconFillColor(
                                                             getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
                                                             true,
                                                         )
@@ -263,10 +262,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 height={props.iconHeight}
                                                 fill={
                                                     props.secondaryIconFill ||
-                                                    ThemeStyleUtils.getIconFillColor(
-                                                        getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
-                                                        true,
-                                                    )
+                                                    StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
                                                 }
                                             />
                                         </View>
@@ -382,7 +378,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
                                         <Icon
                                             src={props.iconRight}
-                                            fill={ThemeStyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive))}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive))}
                                         />
                                     </View>
                                 )}

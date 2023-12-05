@@ -6,8 +6,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 
 const propTypes = {
@@ -31,7 +31,7 @@ const defaultProps = {
 
 function EmojiPickerButton(props) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
 
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
@@ -40,7 +40,7 @@ function EmojiPickerButton(props) {
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={({hovered, pressed}) => [styles.chatItemEmojiButton, ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
+                style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
                 onPress={() => {
                     if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
@@ -55,7 +55,7 @@ function EmojiPickerButton(props) {
                 {({hovered, pressed}) => (
                     <Icon
                         src={Expensicons.Emoji}
-                        fill={ThemeStyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                     />
                 )}
             </PressableWithoutFeedback>

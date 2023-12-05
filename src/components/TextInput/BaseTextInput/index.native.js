@@ -17,8 +17,8 @@ import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import StyleUtils from '@styles/utils/StyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
@@ -26,6 +26,7 @@ import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 function BaseTextInput(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const initialValue = props.value || props.defaultValue || '';
     const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
     const isMultiline = props.multiline || props.autoGrowHeight;

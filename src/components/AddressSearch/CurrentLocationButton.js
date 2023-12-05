@@ -7,8 +7,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import colors from '@styles/colors';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 
 const propTypes = {
     /** Callback that runs when location button is clicked */
@@ -25,13 +25,13 @@ const defaultProps = {
 
 function CurrentLocationButton({onPress, isDisabled}) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useThemeStyleUtils();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     return (
         <PressableWithFeedback
             style={[styles.flexRow, styles.pv4, styles.ph3, isDisabled && styles.buttonOpacityDisabled]}
-            hoverStyle={ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(true), true)}
+            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(getButtonState(true), true)}
             onPress={onPress}
             accessibilityLabel={translate('location.useCurrent')}
             disabled={isDisabled}
