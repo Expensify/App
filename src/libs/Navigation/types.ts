@@ -85,6 +85,7 @@ type SettingsNavigatorParamList = {
     Workspace_Initial: undefined;
     Workspace_Settings: undefined;
     Workspace_Settings_Currency: undefined;
+    WORKSPACE_SETTINGS_NAME: undefined;
     Workspace_Card: {
         policyID: string;
     };
