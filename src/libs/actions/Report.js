@@ -2481,7 +2481,7 @@ const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SE
  * @param {string} searchInput
  */
 function searchInServer(searchInput) {
-    if (isNetworkOffline) {
+    if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }

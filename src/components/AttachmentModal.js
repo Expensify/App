@@ -46,7 +46,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 
 const propTypes = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
@@ -90,6 +90,9 @@ const propTypes = {
 
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar: PropTypes.bool,
+
+    /** Whether it is a receipt attachment or not */
+    isReceiptAttachment: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -107,6 +110,7 @@ const defaultProps = {
     onModalHide: () => {},
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
+    isReceiptAttachment: false,
 };
 
 function AttachmentModal(props) {
@@ -118,7 +122,6 @@ function AttachmentModal(props) {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [isAttachmentReceipt, setIsAttachmentReceipt] = useState(null);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
@@ -128,7 +131,7 @@ function AttachmentModal(props) {
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth} = useWindowDimensions();
 
-    const isOverlayModalVisible = (isAttachmentReceipt && isDeleteReceiptConfirmModalVisible) || (!isAttachmentReceipt && isAttachmentInvalid);
+    const isOverlayModalVisible = (props.isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!props.isReceiptAttachment && isAttachmentInvalid);
 
     const [file, setFile] = useState(
         props.originalFileName
@@ -154,7 +157,6 @@ function AttachmentModal(props) {
         (attachment) => {
             setSource(attachment.source);
             setFile(attachment.file);
-            setIsAttachmentReceipt(attachment.isReceipt);
             setIsAuthTokenRequired(attachment.isAuthTokenRequired);
             onCarouselAttachmentChange(attachment);
         },
@@ -357,7 +359,7 @@ function AttachmentModal(props) {
     const sourceForAttachmentView = props.source || source;
 
     const threeDotsMenuItems = useMemo(() => {
-        if (!isAttachmentReceipt || !props.parentReport || !props.parentReportActions) {
+        if (!props.isReceiptAttachment || !props.parentReport || !props.parentReportActions) {
             return [];
         }
         const menuItems = [];
@@ -392,17 +394,17 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAttachmentReceipt, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+    }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
-    // isAttachmentReceipt will be null until its certain what the file is, in which case it will then be true|false.
+    // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
     let headerTitle = props.headerTitle;
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
-    if (!_.isNull(isAttachmentReceipt)) {
-        headerTitle = translate(isAttachmentReceipt ? 'common.receipt' : 'common.attachment');
-        shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !isAttachmentReceipt && !isOffline;
-        shouldShowThreeDotsButton = isAttachmentReceipt && isModalOpen;
+    if (!_.isNull(props.isReceiptAttachment)) {
+        headerTitle = translate(props.isReceiptAttachment ? 'common.receipt' : 'common.attachment');
+        shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !props.isReceiptAttachment && !isOffline;
+        shouldShowThreeDotsButton = props.isReceiptAttachment && isModalOpen;
     }
 
     return (
@@ -443,7 +445,7 @@ function AttachmentModal(props) {
                     shouldOverlay
                 />
                 <View style={styles.imageModalImageCenterContainer}>
-                    {!_.isEmpty(props.report) ? (
+                    {!_.isEmpty(props.report) && !props.isReceiptAttachment ? (
                         <AttachmentCarousel
                             report={props.report}
                             onNavigate={onNavigate}
@@ -486,7 +488,7 @@ function AttachmentModal(props) {
                         )}
                     </SafeAreaConsumer>
                 )}
-                {isAttachmentReceipt && (
+                {props.isReceiptAttachment && (
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
                         isVisible={isDeleteReceiptConfirmModalVisible}
@@ -499,7 +501,7 @@ function AttachmentModal(props) {
                     />
                 )}
             </Modal>
-            {!isAttachmentReceipt && (
+            {!props.isReceiptAttachment && (
                 <ConfirmModal
                     title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                     onConfirm={closeConfirmModal}

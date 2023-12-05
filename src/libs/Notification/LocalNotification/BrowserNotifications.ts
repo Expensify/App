@@ -1,18 +1,16 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
-import _ from 'underscore';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';
+import {PushParams, ReportCommentParams} from './types';
 
 const DEFAULT_DELAY = 4000;
 
 /**
  * Checks if the user has granted permission to show browser notifications
- *
- * @return {Promise}
  */
-function canUseBrowserNotifications() {
+function canUseBrowserNotifications(): Promise<boolean> {
     return new Promise((resolve) => {
         // They have no browser notifications so we can't use this feature
         if (!window.Notification) {
@@ -36,18 +34,9 @@ function canUseBrowserNotifications() {
 /**
  * Light abstraction around browser push notifications.
  * Checks for permission before determining whether to send.
- *
- * @param {Object} params
- * @param {String} params.title
- * @param {String} params.body
- * @param {String} [params.icon] Path to icon
- * @param {Number} [params.delay]
- * @param {Function} [params.onClick]
- * @param {String} [params.tag]
- *
- * @return {Promise} - resolves with Notification object or undefined
+ * @return resolves with Notification object or undefined
  */
-function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '', icon}) {
+function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '', icon}: PushParams): Promise<void | Notification> {
     return new Promise((resolve) => {
         if (!title || !body) {
             throw new Error('BrowserNotification must include title and body parameter.');
@@ -62,7 +51,7 @@ function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '',
             const notification = new Notification(title, {
                 body,
                 tag,
-                icon,
+                icon: String(icon),
             });
 
             // If we pass in a delay param greater than 0 the notification
@@ -91,24 +80,19 @@ function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '',
 export default {
     /**
      * Create a report comment notification
-     *
-     * @param {Object} params
-     * @param {Object} params.report
-     * @param {Object} params.reportAction
-     * @param {Function} params.onClick
-     * @param {Boolean} usesIcon true if notification uses right circular icon
+     * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification({report, reportAction, onClick}, usesIcon = false) {
-        let title;
-        let body;
+    pushReportCommentNotification({report, reportAction, onClick}: ReportCommentParams, usesIcon = false) {
+        let title: string | undefined;
+        let body: string | undefined;
 
         const isChatRoom = ReportUtils.isChatRoom(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = _.map(person, (f) => f.text).join();
+        const plainTextPerson = person?.map((f) => f.text).join();
 
         // Specifically target the comment part of the message
-        const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
+        const plainTextMessage = message?.find((f) => f.type === 'COMMENT')?.text;
 
         if (isChatRoom) {
             const roomName = ReportUtils.getReportName(report);
@@ -120,7 +104,7 @@ export default {
         }
 
         push({
-            title,
+            title: title ?? '',
             body,
             delay: 0,
             onClick,
@@ -128,9 +112,9 @@ export default {
         });
     },
 
-    pushModifiedExpenseNotification({reportAction, onClick}, usesIcon = false) {
+    pushModifiedExpenseNotification({reportAction, onClick}: ReportCommentParams, usesIcon = false) {
         push({
-            title: _.map(reportAction.person, (f) => f.text).join(', '),
+            title: reportAction.person?.map((f) => f.text).join(', ') ?? '',
             body: ReportUtils.getModifiedExpenseMessage(reportAction),
             delay: 0,
             onClick,
