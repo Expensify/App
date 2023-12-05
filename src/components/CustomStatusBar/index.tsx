@@ -5,6 +5,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
 import CustomStatusBarContext from './CustomStatusBarContext';
+import updateStatusBarAppearance from './updateStatusBarAppearance';
 
 type CustomStatusBarProps = {
     isNested: boolean;
@@ -60,8 +61,7 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
             statusBarStyle = screenTheme.statusBarStyle;
         }
 
-        StatusBar.setBackgroundColor(currentScreenBackgroundColor, true);
-        StatusBar.setBarStyle(statusBarStyle, true);
+        updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle});
     }, [isDisabled, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
 
     useEffect(() => {
@@ -75,7 +75,7 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
             return;
         }
 
-        StatusBar.setBarStyle(theme.statusBarStyle, true);
+        updateStatusBarAppearance({statusBarStyle: theme.statusBarStyle});
     }, [isDisabled, theme.statusBarStyle]);
 
     if (isDisabled) {

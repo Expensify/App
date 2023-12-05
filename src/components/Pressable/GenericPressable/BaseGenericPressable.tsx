@@ -8,7 +8,7 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import PressableProps from './types';
+import PressableProps, {PressableRef} from './types';
 
 function GenericPressable(
     {
@@ -34,7 +34,7 @@ function GenericPressable(
         accessible = true,
         ...rest
     }: PressableProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
@@ -124,7 +124,7 @@ function GenericPressable(
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
-            ref={ref}
+            ref={ref as ForwardedRef<View>}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}

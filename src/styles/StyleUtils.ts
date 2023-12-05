@@ -69,11 +69,11 @@ type ModalPaddingStylesParams = {
 };
 
 type AvatarBorderStyleParams = {
+    theme: ThemeColors;
     isHovered: boolean;
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
-    theme: ThemeColors;
 };
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -857,7 +857,7 @@ function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewSty
     };
 }
 
-function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false, theme}: AvatarBorderStyleParams): ViewStyle {
+function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
@@ -1376,6 +1376,8 @@ function getTransparentColor(color: string) {
 function getDotIndicatorTextStyles(styles: ThemeStyles, isErrorText = true): TextStyle {
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
+
+export type {AvatarSizeName};
 
 export {
     combineStyles,

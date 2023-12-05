@@ -193,11 +193,11 @@ function MultipleAvatars({
                                     <Avatar
                                         iconAdditionalStyles={[
                                             StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                                theme,
                                                 isHovered,
                                                 isPressed,
                                                 isInReportAction,
                                                 shouldUseCardBackground,
-                                                theme,
                                             }),
                                             StyleUtils.getAvatarBorderWidth(size),
                                         ]}
@@ -221,11 +221,11 @@ function MultipleAvatars({
                                         styles.alignItemsCenter,
                                         styles.justifyContentCenter,
                                         StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                            theme,
                                             isHovered,
                                             isPressed,
                                             isInReportAction,
                                             shouldUseCardBackground,
-                                            theme,
                                         }),
 
                                         // Set overlay background color with RGBA value so that the text will not inherit opacity

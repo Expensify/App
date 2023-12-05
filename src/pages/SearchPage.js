@@ -84,10 +84,7 @@ class SearchPage extends Component {
     }
 
     onChangeText(searchValue = '') {
-        if (searchValue.length) {
-            Report.searchInServer(searchValue);
-        }
-
+        Report.searchInServer(searchValue);
         this.setState({searchValue}, this.debouncedUpdateOptions);
     }
 
