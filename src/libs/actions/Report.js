@@ -2401,6 +2401,124 @@ function getReportPrivateNote(reportID) {
 }
 
 /**
+ * Add up to two report actions to a report. This method can be called for the following situations:
+ *
+ * - Adding one comment
+ * - Adding one attachment
+ * - Add both a comment and attachment simultaneously
+ *
+ * @param {String} text
+ * @param {String} choice
+ */
+function completeEngagementModal( text , choice) {
+    const commandName = 'completeEngagementModal';
+    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
+    const reportCommentAction = reportComment.reportAction;
+    const reportCommentText = reportComment.commentText;
+    const currentTime = DateUtils.getDBTime();
+    const lastCommentText = ReportUtils.formatReportLastMessageText(reportCommentAction.message[0].text);
+
+    const optimisticReport = {
+        lastVisibleActionCreated: currentTime,
+        lastMessageTranslationKey: lodashGet(reportCommentAction, 'message[0].translationKey', ''),
+        lastMessageText: lastCommentText,
+        lastMessageHtml: lastCommentText,
+        lastActorAccountID: currentUserAccountID,
+        lastReadTime: currentTime,
+    };
+
+    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(conciergeChatReportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+
+    // Optimistically add the new actions to the store before waiting to save them to the server
+    const optimisticReportActions = {};
+    optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
+
+
+    const parameters = {
+        reportID: conciergeChatReportID,
+        reportActionID: reportCommentAction.reportActionID,
+        reportComment: reportCommentText,
+        engagementChoice: choice,
+
+    };
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
+            value: optimisticReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: optimisticReportActions,
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: _.mapObject(optimisticReportActions, () => ({pendingAction: null})),
+        },
+    ];
+
+    let failureReport = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+    };
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(conciergeChatReportID);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(conciergeChatReportID);
+        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
+        failureReport = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
+            value: failureReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: _.mapObject(optimisticReportActions, (action) => ({
+                ...action,
+                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
+            })),
+        },
+    ];
+
+    // Update the timezone if it's been 5 minutes from the last time the user added a comment
+    if (DateUtils.canUpdateTimezone()) {
+        const timezone = DateUtils.getCurrentTimezone();
+        parameters.timezone = JSON.stringify(timezone);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {[currentUserAccountID]: {timezone}},
+        });
+        DateUtils.setTimezoneUpdated();
+    }
+
+    API.write(commandName, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+    notifyNewAction(conciergeChatReportID, reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
+}
+
+/**
  * Loads necessary data for rendering the RoomMembersPage
  *
  * @param {String|Number} reportID
