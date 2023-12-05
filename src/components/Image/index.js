@@ -7,9 +7,7 @@ import BaseImage from './BaseImage';
 import {defaultProps, imagePropTypes} from './imagePropTypes';
 import RESIZE_MODES from './resizeModes';
 
-function Image(props) {
-    const {source: propsSource, isAuthTokenRequired, session, ...forwardedProps} = props;
-
+function Image({source: propsSource, isAuthTokenRequired, session, ...forwardedProps}) {
     // Update the source to include the auth token if required
     const source = useMemo(() => {
         if (typeof lodashGet(propsSource, 'uri') === 'number') {
