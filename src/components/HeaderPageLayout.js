@@ -57,12 +57,12 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
     const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = (backgroundColor || theme.appBG) !== theme.appBG;
+        const isColorfulBackground = (backgroundColor || theme.appBG) !== theme.appBG && (backgroundColor || theme.highlightBG) !== theme.highlightBG;
         return {
             titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
             iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
         };
-    }, [backgroundColor, theme.appBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
+    }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
 
     return (
         <ScreenWrapper

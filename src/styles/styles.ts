@@ -586,7 +586,7 @@ const styles = (theme: ThemeColors) =>
         buttonDivider: {
             height: variables.dropDownButtonDividerHeight,
             borderWidth: 0.7,
-            borderColor: theme.text,
+            borderColor: theme.textLight,
         },
 
         noBorderRadius: {
@@ -1150,7 +1150,7 @@ const styles = (theme: ThemeColors) =>
         textReceiptUpload: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            color: theme.textLight,
+            color: theme.text,
             textAlign: 'center',
         },
 
@@ -1158,7 +1158,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
-            color: theme.textLight,
+            color: theme.text,
         },
 
         furtherDetailsText: {
@@ -3353,7 +3353,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-            color: theme.text,
+            color: theme.textColorfulBackground,
         },
 
         eReceiptWaypointTitle: {
@@ -3608,7 +3608,7 @@ const styles = (theme: ThemeColors) =>
                 marginLeft: 8,
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
-                color: isSelected ? theme.textLight : theme.textSupporting,
+                color: isSelected ? theme.text : theme.textSupporting,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
