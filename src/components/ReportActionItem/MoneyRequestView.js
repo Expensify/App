@@ -43,7 +43,6 @@ import ROUTES from '@src/ROUTES';
 import {transactionViolationsPropTypes} from '@src/types/onyx/TransactionViolation';
 import ReportActionItemImage from './ReportActionItemImage';
 
-
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -134,7 +133,6 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
-
     const hasViolations = useCallback((field) => Boolean(getViolationsForField(field).length > 0), [getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
