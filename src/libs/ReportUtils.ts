@@ -3417,8 +3417,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
- *
- *  Check if there are any violations belonging to the transaction in the transactionsViolations Onyx object
+ *  Checks if there are any violations belonging to the transaction in the transactionsViolations Onyx object
  *  then checks that the violation is of the proper type
  */
 function transactionHasViolation(transactionID: string): boolean {
