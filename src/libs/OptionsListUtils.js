@@ -152,7 +152,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
  * Returns the personal details for an array of accountIDs
  *
  * @param {Array} accountIDs
- * @param {Object} personalDetails
+ * @param {Object | null} personalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
 function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
@@ -1218,7 +1218,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude = [{login: currentUserLogin}];
+    const optionsToExclude = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1238,6 +1238,11 @@ function getOptions(
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
+            }
+
+            // Skip notifications@expensify.com
+            if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
+                continue;
             }
 
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =

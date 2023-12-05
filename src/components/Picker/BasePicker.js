@@ -104,8 +104,8 @@ const defaultProps = {
 };
 
 function BasePicker(props) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     const [isHighlighted, setIsHighlighted] = useState(false);
 
