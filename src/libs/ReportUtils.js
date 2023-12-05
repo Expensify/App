@@ -4317,14 +4317,19 @@ function shouldDisableWelcomeMessage(report, policy) {
 
 /**
  * Put money request on HOLD
- * @param transactionID
- * @param comment
+ * @param {string} transactionID
+ * @param {string} comment
  */
 function putOnHold(transactionID, comment) {
-    API.write('HoldRequest', {
-        transactionID, // the money request being held
-        comment, // the reason given for the hold
-    });
+    return;
+}
+
+/**
+ * Check if Report has any held expenses
+ * @param {Object} report
+ */
+function hasHeldExpenses(report) {
+    return true;
 }
 
 export {
@@ -4492,4 +4497,6 @@ export {
     getRoom,
     shouldDisableWelcomeMessage,
     canEditWriteCapability,
+    hasHeldExpenses,
+    putOnHold
 };

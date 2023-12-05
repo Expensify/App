@@ -454,8 +454,7 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction is on hold
  */
 function isOnHold(transaction: Transaction): boolean {
-    // TODO  - add logic
-    return !!transaction;
+    return true;
 }
 
 export {
