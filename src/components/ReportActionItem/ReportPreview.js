@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -19,6 +19,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -110,10 +111,12 @@ function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [transactions, setTransactions] = useState([]);
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
+    const transactionsWithReceipts = useMemo(() => _.filter(transactions, (transaction) => TransactionUtils.hasReceipt(transaction)), [transactions]);
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -122,15 +125,14 @@ function ReportPreview(props) {
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(props.iouReport);
 
-    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
-    const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID);
-    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
-    const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID);
+    const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID, transactions);
+    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action, transactionsWithReceipts);
+    const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID, transactionsWithReceipts);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
-    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
+    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID, transactions);
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
     if (hasPendingWaypoints) {
@@ -190,6 +192,26 @@ function ReportPreview(props) {
     const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
         ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
         : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isDraftExpenseReport && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
+
+    useEffect(() => {
+        const unsubscribeOnyxTransaction = onyxSubscribe({
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+            waitForCollectionCallback: true,
+            callback: (transactionAgrs) => {
+                if (_.isEmpty(transactionAgrs)) {
+                    return;
+                }
+
+                const allTransaction = _.filter(transactionAgrs, (transaction) => `${transaction.reportID}` === `${props.iouReportID}`);
+                setTransactions(allTransaction);
+            },
+        });
+
+        return () => {
+            unsubscribeOnyxTransaction();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
