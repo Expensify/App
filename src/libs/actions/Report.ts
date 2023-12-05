@@ -18,6 +18,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
+import {ReportCommentParams} from '@libs/Notification/LocalNotification/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -1810,9 +1811,9 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     }
 
     Log.info('[LocalNotification] Creating notification');
-    const report = allReports?.[reportID];
+    const report = allReports?.[reportID] ?? null;
 
-    const notificationParams = {
+    const notificationParams: ReportCommentParams = {
         report,
         reportAction,
         onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
