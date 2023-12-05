@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
@@ -15,13 +16,12 @@ import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from "@styles/useThemeStyles";
-import useTheme from "@styles/themes/useTheme";
-import {useIsFocused} from '@react-navigation/native';
 import getPlatform from '@libs/getPlatform';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
@@ -64,7 +64,6 @@ const BaseOptionsSelector = (props) => {
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
     const theme = useTheme();
-
 
     /**
      * Flattens the sections into a single array of options.
@@ -113,7 +112,7 @@ const BaseOptionsSelector = (props) => {
                 data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * lodashGet(paginationPage, 1)),
             };
         });
-    }
+    };
     /**
      * @param {Array<Object>} allOptions
      * @returns {Number}
@@ -251,8 +250,8 @@ const BaseOptionsSelector = (props) => {
 
     //What is it for? its not being used anywhere?
     const handleReferralModal = () => {
-        setShouldShowReferralModal(prev => !prev)
-    }
+        setShouldShowReferralModal((prev) => !prev);
+    };
 
     /**
      * Calculates all currently visible options based on the sections that are currently being shown
@@ -268,7 +267,7 @@ const BaseOptionsSelector = (props) => {
         });
 
         return count;
-    }
+    };
 
     const subscribeToKeyboardShortcut = () => {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
@@ -434,8 +433,8 @@ const BaseOptionsSelector = (props) => {
      * Increments a pagination page to show more items
      */
     const incrementPage = () => {
-        setPaginationPage(prev => prev + 1)
-    }
+        setPaginationPage((prev) => prev + 1);
+    };
 
     const shouldShowShowMoreButton = allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * paginationPage;
     const shouldShowFooter = !props.isReadOnly && (props.shouldShowConfirmButton || props.footerContent) && !(props.canSelectMultipleOptions && _.isEmpty(props.selectedOptions));
@@ -524,23 +523,8 @@ const BaseOptionsSelector = (props) => {
 
     const optionsAndInputsBelowThem = (
         <>
-            <View
-                style={[
-                    themeStyles.flexGrow0,
-                    themeStyles.flexShrink1,
-                    themeStyles.flexBasisAuto,
-                    themeStyles.w100,
-                    themeStyles.flexRow,
-                ]}
-            >
-                {optionsList}
-            </View>
-            <View
-                style={props.shouldUseStyleForChildren
-                    ? [themeStyles.ph5, themeStyles.pv5, themeStyles.flexGrow1, themeStyles.flexShrink0]
-                    : []
-                }
-            >
+            <View style={[themeStyles.flexGrow0, themeStyles.flexShrink1, themeStyles.flexBasisAuto, themeStyles.w100, themeStyles.flexRow]}>{optionsList}</View>
+            <View style={props.shouldUseStyleForChildren ? [themeStyles.ph5, themeStyles.pv5, themeStyles.flexGrow1, themeStyles.flexShrink0] : []}>
                 {props.children}
                 {props.shouldShowTextInput && textInput}
             </View>
