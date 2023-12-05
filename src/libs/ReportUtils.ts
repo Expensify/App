@@ -906,8 +906,8 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
  *
  */
 function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return allTransactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
 /**
@@ -1586,8 +1586,8 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
  *
  */
 function hasNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return allTransactions.filter((transaction) => transaction.reimbursable === false).length > 0;
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
 function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
@@ -1835,8 +1835,8 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * Gets all transactions on an IOU report with a receipt
  */
 function getTransactionsWithReceipts(iouReportID: string | undefined): Transaction[] {
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return allTransactions.filter((transaction) => TransactionUtils.hasReceipt(transaction));
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.filter((transaction) => TransactionUtils.hasReceipt(transaction));
 }
 
 /**
