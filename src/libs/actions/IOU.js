@@ -766,7 +766,7 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
 
     // Update recently used categories if the tag is changed
     if (_.has(transactionChanges, 'tag')) {
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
         if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1906,7 +1906,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
     // Update recently used categories if the tag is changed
     if (_.has(transactionChanges, 'tag')) {
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
         if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
