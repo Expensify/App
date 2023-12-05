@@ -144,22 +144,20 @@ function PurposeForUsingExpensifyModal() {
             onClose={closeModal}
         >
             <View>
-                <View>
-                    <Lottie
-                        source={LottieAnimations.Hands}
-                        style={styles.w100}
-                        webStyle={styles.w100}
-                        autoPlay
-                        loop
-                    />
-                </View>
+                <Lottie
+                    source={LottieAnimations.Hands}
+                    style={styles.w100}
+                    webStyle={styles.w100}
+                    autoPlay
+                    loop
+                />
                 <HeaderWithBackButton
                     shouldShowCloseButton
                     shouldShowBackButton={false}
                     onCloseButtonPress={() => setIsModalOpen(false)}
                     shouldOverlay
                 />
-                <View style={[styles.w100, styles.ph5, styles.pb5]}>
+                <View style={[styles.w100, styles.ph5, styles.pv5]}>
                     <Text
                         style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                         numberOfLines={2}
