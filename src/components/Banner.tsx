@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
-import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';

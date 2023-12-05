@@ -110,7 +110,19 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                 </View>
             );
         },
-        [styles, theme, prefix],
+        [
+            prefix,
+            styles.autoCompleteSuggestionContainer,
+            styles.ph2,
+            styles.mentionSuggestionsAvatarContainer,
+            styles.mentionSuggestionsText,
+            styles.flexShrink1,
+            styles.flex1,
+            styles.mentionSuggestionsDisplayName,
+            styles.mentionSuggestionsHandle,
+            theme.success,
+            ThemeStyleUtils,
+        ],
     );
 
     return (

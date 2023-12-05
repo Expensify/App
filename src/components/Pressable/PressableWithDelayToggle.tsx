@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
-import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
@@ -67,7 +66,6 @@ function PressableWithDelayToggle(
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const ThemeStyleUtils = useThemeStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
