@@ -30,16 +30,15 @@ const colors: Record<string, Color> = {
     productDark900: '#E7ECE9',
 
     // Light Mode Theme Colors
-    lightAppBackground: '#FCFBF9',
-    lightHighlightBackground: '#F8F4F0',
-    lightBorders: '#EBE6DF',
-    lightBordersLighter: '#2B5548',
-    lightIcons: '#A2A9A3',
-    lightSupportingText: '#76847E',
-    lightPrimaryText: '#002E22',
-    lightDefaultButton: '#EEEBE7',
-    lightDefaultButtonHover: '#E3DFD9',
-    lightDefaultButtonPressed: '#D2CCC3',
+    productLight100: '#FCFBF9',
+    productLight200: '#F8F4F0',
+    productLight300: '#F2EDE7',
+    productLight400: '#E6E1DA',
+    productLight500: '#D8D1C7',
+    productLight600: '#C7BFB3',
+    productLight700: '#A2A9A3',
+    productLight800: '#76847E',
+    productLight900: '#002E22',
 
     // Brand Colors from Figma
     blue100: '#B0D9FF',
