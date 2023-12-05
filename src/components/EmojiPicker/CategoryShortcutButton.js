@@ -5,9 +5,9 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -25,6 +25,7 @@ const propTypes = {
 function CategoryShortcutButton(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
@@ -39,7 +40,7 @@ function CategoryShortcutButton(props) {
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
                 style={({pressed}) => [
-                    StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(false, pressed)),
+                    ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     styles.categoryShortcutButton,
                     isHighlighted && styles.emojiItemHighlighted,
                 ]}

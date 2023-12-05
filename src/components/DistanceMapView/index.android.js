@@ -7,12 +7,12 @@ import MapView from '@components/MapView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@styles/useThemeStyles';
-import useStyleUtils from '@styles/useThemeStyleUtils';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import * as distanceMapViewPropTypes from './distanceMapViewPropTypes';
 
 function DistanceMapView(props) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const StyleUtils = useThemeStyleUtils();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();

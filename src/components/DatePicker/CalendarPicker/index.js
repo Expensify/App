@@ -8,9 +8,8 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withStyleUtils from '@components/withStyleUtils';
-import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import withThemeStyleUtils from '@components/withThemeStyleUtils';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import getButtonState from '@libs/getButtonState';
@@ -34,7 +33,6 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
-    ...withThemePropTypes,
 };
 
 const defaultProps = {
@@ -238,7 +236,7 @@ class CalendarPicker extends React.PureComponent {
                                             style={[
                                                 this.props.themeStyles.calendarDayContainer,
                                                 isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
-                                                !isDisabled ? this.props.StyleUtils.getButtonBackgroundColorStyle(this.props.theme, getButtonState(hovered, pressed)) : {},
+                                                !isDisabled ? this.props.ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >
                                             <Text style={isDisabled ? this.props.themeStyles.buttonOpacityDisabled : this.props.themeStyles.dayText}>{day}</Text>
@@ -264,4 +262,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default compose(withLocalize, withTheme, withThemeStyles, withStyleUtils)(CalendarPicker);
+export default compose(withLocalize, withThemeStyles, withThemeStyleUtils)(CalendarPicker);

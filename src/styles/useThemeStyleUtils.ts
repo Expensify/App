@@ -1,7 +1,7 @@
 import {useContext} from 'react';
 import ThemeStylesContext from './ThemeStylesContext';
 
-function useStyleUtils() {
+function useThemeStyleUtils() {
     const themeStylesContext = useContext(ThemeStylesContext);
 
     if (!themeStylesContext) {
@@ -11,4 +11,4 @@ function useStyleUtils() {
     return themeStylesContext.ThemeStyleUtils;
 }
 
-export default useStyleUtils;
+export default useThemeStyleUtils;

@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import colors from '@styles/colors';
 import useThemeStyles from '@styles/useThemeStyles';
-import useStyleUtils from '@styles/useThemeStyleUtils';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 
 const propTypes = {
     /** Callback that runs when location button is clicked */
@@ -25,7 +25,7 @@ const defaultProps = {
 
 function CurrentLocationButton({onPress, isDisabled}) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useStyleUtils();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const {translate} = useLocalize();
 
     return (

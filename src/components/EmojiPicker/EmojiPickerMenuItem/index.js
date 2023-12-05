@@ -2,11 +2,10 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import withThemeStyleUtils from '@components/withThemeStyleUtils';
 import * as Browser from '@libs/Browser';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -35,7 +34,6 @@ const propTypes = {
     isHighlighted: PropTypes.bool,
 
     ...withThemeStylesPropTypes,
-    ...withThemePropTypes,
 };
 
 class EmojiPickerMenuItem extends PureComponent {
@@ -100,7 +98,7 @@ class EmojiPickerMenuItem extends PureComponent {
                 style={({pressed}) => [
                     this.props.isFocused ? this.props.themeStyles.emojiItemKeyboardHighlighted : {},
                     this.state.isHovered || this.props.isHighlighted ? this.props.themeStyles.emojiItemHighlighted : {},
-                    Browser.isMobile() && StyleUtils.getButtonBackgroundColorStyle(this.props.theme, getButtonState(false, pressed)),
+                    Browser.isMobile() && this.props.ThemeStyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     this.props.themeStyles.emojiItem,
                 ]}
                 accessibilityLabel={this.props.emoji}
@@ -124,8 +122,8 @@ EmojiPickerMenuItem.defaultProps = {
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
-export default withTheme(
-    withThemeStyles(
+export default withThemeStyles(
+    withThemeStyleUtils(
         React.memo(
             EmojiPickerMenuItem,
             (prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused && prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji,

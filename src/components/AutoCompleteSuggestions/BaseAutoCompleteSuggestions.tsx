@@ -7,7 +7,7 @@ import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTim
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import useStyleUtils from '@styles/useThemeStyleUtils';
+import useThemeStyleUtils from '@styles/useThemeStyleUtils';
 import CONST from '@src/CONST';
 import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
@@ -40,7 +40,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
     const styles = useThemeStyles();
-    const ThemeStyleUtils = useStyleUtils();
+    const ThemeStyleUtils = useThemeStyleUtils();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
