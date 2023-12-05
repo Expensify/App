@@ -111,12 +111,10 @@ function BaseTextInput(
             Animated.parallel([
                 Animated.spring(labelTranslateY, {
                     toValue: translateY,
-                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
                 Animated.spring(labelScale, {
                     toValue: scale,
-                    // duration: styleConst.LABEL_ANIMATION_DURATION,
                     useNativeDriver,
                 }),
             ]).start();
