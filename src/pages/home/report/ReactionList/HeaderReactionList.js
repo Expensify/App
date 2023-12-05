@@ -10,8 +10,6 @@ import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import reactionPropTypes from './reactionPropTypes';
 
-('@styles/StyleUtils');
-
 const propTypes = {
     ...reactionPropTypes,
     ...withLocalizePropTypes,

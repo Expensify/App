@@ -129,7 +129,7 @@ class PDFView extends Component {
     }
 
     renderPDFView() {
-        const pdfStyles = [this.props.themeStyles.imageModalPDF, StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
+        const pdfStyles = [this.props.themeStyles.imageModalPDF, this.props.StyleUtils.getWidthAndHeightStyle(this.props.windowWidth, this.props.windowHeight)];
 
         // If we haven't yet successfully validated the password and loaded the PDF,
         // then we need to hide the react-native-pdf/PDF component so that PDFPasswordForm

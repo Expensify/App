@@ -36,7 +36,7 @@ function Popover(props) {
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [insets]);
+    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const modalPaddingStyles = useMemo(
         () =>
