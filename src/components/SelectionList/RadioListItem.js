@@ -1,27 +1,38 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@styles/useThemeStyles';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
-function RadioListItem({item, isFocused = false}) {
+function RadioListItem({item, isFocused = false, showTooltip}) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
-            <Text
-                style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold, styles.pre]}
-                numberOfLines={1}
+            <Tooltip
+                shouldRender={showTooltip}
+                text={item.text}
             >
-                {item.text}
-            </Text>
-
-            {Boolean(item.alternateText) && (
                 <Text
-                    style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                    style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold, styles.pre]}
                     numberOfLines={1}
                 >
-                    {item.alternateText}
+                    {item.text}
                 </Text>
+            </Tooltip>
+
+            {Boolean(item.alternateText) && (
+                <Tooltip
+                    shouldRender={showTooltip}
+                    text={item.alternateText}
+                >
+                    <Text
+                        style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
+                        numberOfLines={1}
+                    >
+                        {item.alternateText}
+                    </Text>
+                </Tooltip>
             )}
         </View>
     );
