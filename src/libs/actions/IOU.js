@@ -2440,9 +2440,10 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
  * @param {Object} iouReport
  * @param {Object} recipient
  * @param {String} paymentMethodType
+ * @param {Boolean} full
  * @returns {Object}
  */
-function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType) {
+function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMethodType, full) {
     const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         -iouReport.total,
@@ -2557,6 +2558,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
+            full
         },
         optimisticData,
         successData,
@@ -2600,7 +2602,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport) {
+function approveMoneyRequest(expenseReport, full) {
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
     const optimisticReportActionsData = {
@@ -2650,7 +2652,7 @@ function approveMoneyRequest(expenseReport) {
         },
     ];
 
-    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
+    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID, full}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -2730,11 +2732,11 @@ function submitReport(expenseReport) {
  * @param {String} paymentType
  * @param {Object} chatReport
  * @param {Object} iouReport
- * @param {String} reimbursementBankAccountState
+ * @param {Boolean} full
  */
-function payMoneyRequest(paymentType, chatReport, iouReport) {
+function payMoneyRequest(paymentType, chatReport, iouReport, full) {
     const recipient = {accountID: iouReport.ownerAccountID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
