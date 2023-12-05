@@ -1377,9 +1377,7 @@ function getDotIndicatorTextStyles(styles: ThemeStyles, isErrorText = true): Tex
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
 
-export type {AvatarSizeName};
-
-export {
+const StyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1463,3 +1461,77 @@ export {
     getEReceiptColorStyles,
     getEReceiptColorCode,
 };
+
+type StyleUtilsType = typeof StyleUtils;
+
+type DropParameters<FunctionName extends keyof StyleUtilsType, OmittedParams extends unknown[]> = Parameters<(typeof StyleUtils)[FunctionName]> extends [...OmittedParams, ...infer U]
+    ? U
+    : never;
+type FunctionWithoutParameters<FunctionName extends keyof StyleUtilsType, OmittedParams extends unknown[]> = (
+    ...restProps: DropParameters<FunctionName, OmittedParams>
+) => ReturnType<StyleUtilsType[FunctionName]>;
+type FunctionWithoutFirstParameter<FunctionName extends keyof StyleUtilsType> = FunctionWithoutParameters<FunctionName, [unknown]>;
+type FunctionWithoutFirstTwoParameter<FunctionName extends keyof StyleUtilsType> = FunctionWithoutParameters<FunctionName, [unknown, unknown]>;
+
+type ThemeDependentStyleUtilsFunctions = {
+    getAutoCompleteSuggestionItemStyle: FunctionWithoutFirstParameter<'getAutoCompleteSuggestionItemStyle'>;
+    getAutoGrowHeightInputStyle: FunctionWithoutFirstParameter<'getAutoGrowHeightInputStyle'>;
+    getAvatarStyle: FunctionWithoutFirstParameter<'getAvatarStyle'>;
+    getBadgeColorStyle: FunctionWithoutFirstParameter<'getBadgeColorStyle'>;
+    getButtonBackgroundColorStyle: FunctionWithoutFirstParameter<'getButtonBackgroundColorStyle'>;
+    getCheckboxContainerStyle: FunctionWithoutFirstParameter<'getCheckboxContainerStyle'>;
+    getColoredBackgroundStyle: FunctionWithoutFirstParameter<'getColoredBackgroundStyle'>;
+    getDisabledLinkStyles: FunctionWithoutFirstTwoParameter<'getDisabledLinkStyles'>;
+    getDotIndicatorTextStyles: FunctionWithoutFirstParameter<'getDotIndicatorTextStyles'>;
+    getEmojiReactionBubbleStyle: FunctionWithoutFirstParameter<'getEmojiReactionBubbleStyle'>;
+    getEmojiReactionCounterTextStyle: FunctionWithoutFirstParameter<'getEmojiReactionCounterTextStyle'>;
+    getErrorPageContainerStyle: FunctionWithoutFirstParameter<'getErrorPageContainerStyle'>;
+    getGoogleListViewStyle: FunctionWithoutFirstParameter<'getGoogleListViewStyle'>;
+    getHeightOfMagicCodeInput: FunctionWithoutFirstParameter<'getHeightOfMagicCodeInput'>;
+    getIconFillColor: FunctionWithoutFirstParameter<'getIconFillColor'>;
+    getMentionStyle: FunctionWithoutFirstParameter<'getMentionStyle'>;
+    getMentionTextColor: FunctionWithoutFirstParameter<'getMentionTextColor'>;
+    getMiniReportActionContextMenuWrapperStyle: FunctionWithoutFirstParameter<'getMiniReportActionContextMenuWrapperStyle'>;
+    getReportActionItemStyle: FunctionWithoutFirstTwoParameter<'getReportActionItemStyle'>;
+    getThemeBackgroundColor: FunctionWithoutFirstParameter<'getThemeBackgroundColor'>;
+    getZoomCursorStyle: FunctionWithoutFirstParameter<'getZoomCursorStyle'>;
+    getContainerStyles: FunctionWithoutFirstParameter<'getContainerStyles'>;
+};
+
+type StyleUtilsWithoutThemeParametersType = StyleUtilsType & ThemeDependentStyleUtilsFunctions;
+
+const createStyleUtilsWithoutThemeParameters = (theme: ThemeColors, styles: ThemeStyles): StyleUtilsWithoutThemeParametersType => {
+    const themeDependentStylUtilsFunctions = {
+        getAutoCompleteSuggestionItemStyle: (...restProps) => getAutoCompleteSuggestionItemStyle(theme, ...restProps),
+        getAutoGrowHeightInputStyle: (...restProps) => getAutoGrowHeightInputStyle(styles, ...restProps),
+        getAvatarStyle: (...restProps) => getAvatarStyle(theme, ...restProps),
+        getBadgeColorStyle: (...restProps) => getBadgeColorStyle(styles, ...restProps),
+        getButtonBackgroundColorStyle: (...restProps) => getButtonBackgroundColorStyle(theme, ...restProps),
+        getCheckboxContainerStyle: (...restProps) => getCheckboxContainerStyle(theme, ...restProps),
+        getColoredBackgroundStyle: (...restProps) => getColoredBackgroundStyle(theme, ...restProps),
+        getDisabledLinkStyles: (...restProps) => getDisabledLinkStyles(theme, styles, ...restProps),
+        getDotIndicatorTextStyles: (...restProps) => getDotIndicatorTextStyles(styles, ...restProps),
+        getEmojiReactionBubbleStyle: (...restProps) => getEmojiReactionBubbleStyle(theme, ...restProps),
+        getEmojiReactionCounterTextStyle: (...restProps) => getEmojiReactionCounterTextStyle(theme, ...restProps),
+        getErrorPageContainerStyle: (...restProps) => getErrorPageContainerStyle(theme, ...restProps),
+        getGoogleListViewStyle: (...restProps) => getGoogleListViewStyle(styles, ...restProps),
+        getHeightOfMagicCodeInput: (...restProps) => getHeightOfMagicCodeInput(styles, ...restProps),
+        getIconFillColor: (...restProps) => getIconFillColor(theme, ...restProps),
+        getMentionStyle: (...restProps) => getMentionStyle(theme, ...restProps),
+        getMentionTextColor: (...restProps) => getMentionTextColor(theme, ...restProps),
+        getMiniReportActionContextMenuWrapperStyle: (...restProps) => getMiniReportActionContextMenuWrapperStyle(styles, ...restProps),
+        getReportActionItemStyle: (...restProps) => getReportActionItemStyle(theme, styles, ...restProps),
+        getThemeBackgroundColor: (...restProps) => getThemeBackgroundColor(theme, ...restProps),
+        getZoomCursorStyle: (...restProps) => getZoomCursorStyle(styles, ...restProps),
+        getContainerStyles: (...restProps) => getContainerStyles(styles, ...restProps),
+    } satisfies ThemeDependentStyleUtilsFunctions;
+
+    return {
+        ...StyleUtils,
+        ...themeDependentStylUtilsFunctions,
+    } as StyleUtilsWithoutThemeParametersType;
+};
+
+export default StyleUtils;
+export {createStyleUtilsWithoutThemeParameters};
+export type {StyleUtilsType, ThemeDependentStyleUtilsFunctions, StyleUtilsWithoutThemeParametersType, AvatarSizeName};
