@@ -16,10 +16,9 @@ import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import styles from '@styles/styles';
 import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +50,8 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
 
+    const styles = useThemeStyles();
+
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
     // Ref for the emoji search input
@@ -72,11 +73,7 @@ function EmojiPickerMenu(props) {
     function getEmojisAndHeaderRowIndices() {
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojiAssets, (emoji) => emoji.header && emoji.code === 'flags');
-        const filteredEmojis =
-            getOperatingSystem() === CONST.OS.WINDOWS
-                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets.slice(0, flagHeaderIndex))
-                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets);
+        const filteredEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets);
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
@@ -462,7 +459,7 @@ function EmojiPickerMenu(props) {
                 />
             );
         },
-        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate, highlightFirstEmoji],
+        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
     );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
