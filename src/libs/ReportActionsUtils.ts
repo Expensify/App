@@ -113,6 +113,10 @@ function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
     );
 }
 
+function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+}
+
 /**
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
@@ -706,6 +710,7 @@ export {
     getFirstVisibleReportActionID,
     shouldExcludeModifiedAction,
     isChannelLogMemberAction,
+    isReimbursementDeQueuedAction,
 };
 
 export type {LastVisibleMessage};
