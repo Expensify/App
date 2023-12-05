@@ -121,7 +121,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             styles.mentionSuggestionsDisplayName,
             styles.mentionSuggestionsHandle,
             theme.success,
-            ThemeStyleUtils,
+            StyleUtils,
         ],
     );
 

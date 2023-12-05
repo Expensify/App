@@ -40,7 +40,7 @@ function Badge({success = false, error = false, pressable = false, text, environ
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
-        [styles.badge, styles.ml2, ThemeStyleUtils, success, error, environment, badgeStyles],
+        [styles.badge, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
     );
 
     return (

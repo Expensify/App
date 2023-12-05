@@ -1094,7 +1094,7 @@ const staticStyleUtils = {
     getEReceiptColorCode,
 };
 
-const createThemeStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
+const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ...staticStyleUtils,
 
     /**
@@ -1432,7 +1432,7 @@ const createThemeStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 });
 
-type StyleUtilsType = ReturnType<typeof createThemeStyleUtils>;
+type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
-export default createThemeStyleUtils;
+export default createStyleUtils;
 export type {StyleUtilsType, AvatarSizeName};
