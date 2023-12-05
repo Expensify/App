@@ -2455,6 +2455,11 @@ function completeEngagementModal( text , choice) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
             value: optimisticReportActions,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice}
+        },
     ];
 
     const successData = [
@@ -2462,7 +2467,7 @@ function completeEngagementModal( text , choice) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
             value: _.mapObject(optimisticReportActions, () => ({pendingAction: null})),
-        },
+        }
     ];
 
     let failureReport = {
