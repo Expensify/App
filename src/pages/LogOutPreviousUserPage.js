@@ -8,7 +8,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import {InitialUrlContext} from '@src/InitialUrlContext';
+import InitialUrlContext from '@src/InitialUrlContext';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -39,7 +39,7 @@ function LogOutPreviousUserPage(props) {
     useEffect(() => {
         Linking.getInitialURL().then((url) => {
             const sessionEmail = props.session.email;
-            const transitionUrl = NativeModules?.ReactNativeModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
+            const transitionUrl = NativeModules.ReactNativeModule ? CONST.DEEPLINK_BASE_URL + initUrl : url;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionUrl, sessionEmail);
 
             if (isLoggingInAsNewUser) {

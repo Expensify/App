@@ -1,3 +1,5 @@
 import {createContext} from 'react';
 
-export const InitialUrlContext = createContext<{initialUrl: string}>({initialUrl: ''});
+const InitialUrlContext = createContext<{initialUrl: string | null}>({initialUrl: null});
+
+export default InitialUrlContext
