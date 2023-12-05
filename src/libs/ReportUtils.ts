@@ -338,6 +338,10 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: ReportAction;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    isDefaultRoom?: boolean;
+    isExpenseReport?: boolean;
+    isOptimisticPersonalDetail?: boolean;
+    selected?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {

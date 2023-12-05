@@ -6,9 +6,12 @@ import lodashSet from 'lodash/set';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Beta, Login, PersonalDetails, Policy, PolicyCategory, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import {Participant} from '@src/types/onyx/IOU';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -82,7 +85,7 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
-        const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
+        const sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
         lastReportActions[reportID] = sortedReportActions[0];
     },
@@ -286,11 +289,11 @@ function getSearchText(report: Report, reportName: string, personalDetailList: A
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, title.split(/[,\s]/));
-            Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
         } else if (isChatRoomOrPolicyExpenseChat) {
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
-            Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/));
+            Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
         } else {
             const participantAccountIDs = report.participantAccountIDs ?? [];
             if (allPersonalDetails) {
@@ -310,24 +313,25 @@ function getSearchText(report: Report, reportName: string, personalDetailList: A
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportAction>) {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    const reportActionErrors = Object.values(reportActions ?? {}).reduce(
-        (prevReportActionErrors: OnyxCommon.Errors, action: ReportAction) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+    const reportActionErrors: OnyxCommon.Errors = Object.values(reportActions ?? {}).reduce(
+        (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
         {},
     );
 
-    const parentReportAction: ReportAction = !report?.parentReportID || !report?.parentReportActionID ? {} : allReportActions[report.parentReportID][report.parentReportActionID] ?? {};
+    const parentReportAction: OnyxEntry<ReportAction> =
+        !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions[report.parentReportID][report.parentReportActionID] ?? null;
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
-        const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
-        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+        const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : undefined;
+        const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction) && !ReportUtils.isSettled(transaction.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
-    } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report.reportID) && !ReportUtils.isSettled(report.reportID)) {
+    } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
+        if (ReportUtils.hasMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
     }
@@ -350,43 +354,42 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report) {
-    const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
+function getLastMessageTextForReport(report: OnyxEntry<Report>) {
+    const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
-    const lastActionName = lodashGet(lastReportAction, 'actionName', '');
+    const lastActionName = lastReportAction?.actionName ?? '';
 
-    if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
+    if (ReportActionUtils.isMoneyRequestAction(lastReportAction ?? null)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
-    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
-            allSortedReportActions[iouReport.reportID],
+    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction ?? null)) {
+        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction ?? null));
+        const lastIOUMoneyReport = allSortedReportActions[iouReport?.reportID ?? '']?.find(
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
-    } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
-    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(isNotEmptyObject(iouReport) ? iouReport : null, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
+    } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction ?? null)) {
+        lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction ?? null, report);
+    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction ?? null)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
-    } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
-        lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
-    } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
-    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
-        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (ReportActionUtils.isDeletedParentAction(lastReportAction ?? null) && ReportUtils.isChatReport(report)) {
+        lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction ?? null);
+    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey ?? 'common.attachment') as TranslationPaths)}]`;
+    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction ?? null)) {
+        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction ?? null);
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage ?? '', true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
     ) {
-        lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
+        lastMessageTextFromReport = lastReportAction?.message?.[0].text ?? '';
     } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+        lastMessageTextFromReport = report ? report.lastMessageText ?? '' : '';
     }
     return lastMessageTextFromReport;
 }
@@ -397,24 +400,24 @@ function getLastMessageTextForReport(report) {
 function createOption(
     accountIDs: number[],
     personalDetails: PersonalDetailsCollection,
-    report: Report,
+    report: OnyxEntry<Report>,
     reportActions: Record<string, ReportAction>,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean},
 ) {
     const result: ReportUtils.OptionData = {
-        text: null,
+        text: undefined,
         alternateText: null,
         pendingAction: null,
         allReportErrors: null,
         brickRoadIndicator: null,
-        icons: null,
+        icons: undefined,
         tooltipText: null,
-        ownerAccountID: null,
+        ownerAccountID: undefined,
         subtitle: null,
-        participantsList: null,
+        participantsList: undefined,
         accountID: 0,
         login: null,
-        reportID: null,
+        reportID: '',
         phoneNumber: null,
         hasDraftComment: false,
         keyForList: null,
@@ -423,7 +426,7 @@ function createOption(
         isPinned: false,
         hasOutstandingIOU: false,
         isWaitingOnBankAccount: false,
-        iouReportID: null,
+        iouReportID: undefined,
         isIOUReportOwner: null,
         iouReportAmount: 0,
         isChatRoom: false,
@@ -432,7 +435,7 @@ function createOption(
         isPolicyExpenseChat: false,
         isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
-        policyID: null,
+        policyID: undefined,
         isOptimisticPersonalDetail: false,
     };
 
@@ -456,9 +459,9 @@ function createOption(
         result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-        result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat || false;
+        result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
-        result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        result.brickRoadIndicator = isNotEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : null;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
@@ -479,27 +482,27 @@ function createOption(
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
         let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
-
-        if (result.isArchivedRoom) {
-            const archiveReason = lastReportActions[report.reportID ?? ''].originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-            lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+        const lastReportAction = lastReportActions[report.reportID ?? ''];
+        if (result.isArchivedRoom && lastReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
+            const archiveReason = lastReportAction.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            lastMessageText = Localize.translate(preferredLocale ?? CONST.LOCALES.DEFAULT, `reportArchiveReasons.${archiveReason}`, {
                 displayName: archiveReason.displayName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
 
         if (result.isThread || result.isMoneyRequestReport) {
-            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale ?? CONST.LOCALES.DEFAULT, 'report.noActivityYet');
         } else if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale ?? CONST.LOCALES.DEFAULT, 'report.noActivityYet');
         } else {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
+            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) ?? LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
         result.keyForList = String(accountIDs[0]);
 
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(personalDetails[accountIDs[0]].login ?? '');
@@ -515,7 +518,8 @@ function createOption(
     }
 
     result.text = reportName;
-    result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom ?? result.isPolicyExpenseChat, result.isThread);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    result.searchText = getSearchText(report, reportName, personalDetailList, !!(result.isChatRoom || result.isPolicyExpenseChat), !!result.isThread);
     result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar ?? '', personalDetail.accountID), personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
 
@@ -531,7 +535,7 @@ function getPolicyExpenseReportOption(report: Report & {selected?: boolean; sear
     const option = createOption(
         expenseReport?.participantAccountIDs ?? [],
         allPersonalDetails ?? [],
-        expenseReport,
+        expenseReport ?? null,
         {},
         {
             showChatPreviewLine: false,
@@ -545,30 +549,6 @@ function getPolicyExpenseReportOption(report: Report & {selected?: boolean; sear
     option.selected = report.selected;
     return option;
 }
-// /**
-//  * Get the option for a policy expense report.
-//  */
-// function getPolicyExpenseReportOption() {
-//     const expenseReport = policyExpenseReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
-//     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
-//     const reportName = ReportUtils.getReportName(expenseReport);
-//     return {
-//         ...expenseReport,
-//         keyForList: expenseReport?.policyID,
-//         text: reportName,
-//         alternateText: Localize.translateLocal('workspace.common.workspace'),
-//         icons: [
-//             {
-//                 source: policyExpenseChatAvatarSource,
-//                 name: reportName,
-//                 type: CONST.ICON_TYPE_WORKSPACE,
-//             },
-//         ],
-//         selected: report.selected,
-//         isPolicyExpenseChat: true,
-//         searchText: report.searchText,
-//     };
-// }
 
 /**
  * Searches for a match when provided with a value
@@ -627,16 +607,10 @@ function hasEnabledOptions(options: Record<string, PolicyCategory>): boolean {
  * Sorts categories using a simple object.
  * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
- *
- * @param {Object<String, {name: String, enabled: Boolean}>} categories
- * @returns {Array<Object>}
  */
-function sortCategories(categories) {
+function sortCategories(categories: Record<string, PolicyCategory>) {
     // Sorts categories alphabetically by name.
-    const sortedCategories = _.chain(categories)
-        .values()
-        .sortBy((category) => category.name)
-        .value();
+    const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
     const hierarchy = {};
@@ -656,16 +630,16 @@ function sortCategories(categories) {
      *   }
      * }
      */
-    _.each(sortedCategories, (category) => {
+    sortedCategories.forEach((category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-        const existedValue = lodashGet(hierarchy, path, {});
+        const existedValue = hierarchy?.path ?? {};
 
         lodashSet(hierarchy, path, {
             ...existedValue,
             name: category.name,
         });
     });
-
+    console.log(sortedCategories, hierarchy);
     /**
      * A recursive function to convert hierarchy into an array of category objects.
      * The category object contains base 2 properties: "name" and "enabled".
@@ -675,30 +649,26 @@ function sortCategories(categories) {
      * @returns {Array<Object>}
      */
     const flatHierarchy = (initialHierarchy) =>
-        _.reduce(
-            initialHierarchy,
-            (acc, category) => {
-                const {name, ...subcategories} = category;
+        initialHierarchy.reduce((acc, category) => {
+            const {name, ...subcategories} = category;
 
-                if (!_.isEmpty(name)) {
-                    const categoryObject = {
-                        name,
-                        enabled: lodashGet(categories, [name, 'enabled'], false),
-                    };
+            if (!_.isEmpty(name)) {
+                const categoryObject = {
+                    name,
+                    enabled: lodashGet(categories, [name, 'enabled'], false),
+                };
 
-                    acc.push(categoryObject);
-                }
+                acc.push(categoryObject);
+            }
 
-                if (!_.isEmpty(subcategories)) {
-                    const nestedCategories = flatHierarchy(subcategories);
+            if (!_.isEmpty(subcategories)) {
+                const nestedCategories = flatHierarchy(subcategories);
 
-                    acc.push(..._.sortBy(nestedCategories, 'name'));
-                }
+                acc.push(..._.sortBy(nestedCategories, 'name'));
+            }
 
-                return acc;
-            },
-            [],
-        );
+            return acc;
+        }, []);
 
     return flatHierarchy(hierarchy);
 }
