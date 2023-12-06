@@ -2466,24 +2466,6 @@ function completeEngagementModal( text , choice) {
         }
     ];
 
-    let failureReport = {
-        lastMessageTranslationKey: '',
-        lastMessageText: '',
-        lastVisibleActionCreated: '',
-    };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(conciergeChatReportID);
-    if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(conciergeChatReportID);
-        const lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
-        const lastActorAccountID = lodashGet(lastVisibleAction, 'actorAccountID');
-        failureReport = {
-            lastMessageTranslationKey,
-            lastMessageText,
-            lastVisibleActionCreated,
-            lastActorAccountID,
-        };
-    }
-
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();

@@ -8,20 +8,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useThemeStyles from "@styles/useThemeStyles";
 import useTheme from '@styles/themes/useTheme';
 import useWindowDimensions from "@hooks/useWindowDimensions";
-import {View, StyleSheet} from "react-native";
+import * as Report from '@userActions/Report';
+import * as StyleUtils from "@styles/StyleUtils";
+import SCREENS from "@src/SCREENS";
+import {View} from "react-native";
 import LottieAnimations from "./LottieAnimations";
 import Text from "./Text";
-import * as Report from '../libs/actions/Report';
+import Lottie from "./Lottie";
+import HeaderWithBackButton from "./HeaderWithBackButton";
+
 import MenuItemList from "./MenuItemList";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
 import * as Expensicons from './Icon/Expensicons';
-import Lottie from "@components/Lottie";
-import * as Illustrations from '@components/Icon/Illustrations';
-import HeaderWithBackButton from "@components/HeaderWithBackButton";
-import Image from "@components/Image";
-import * as StyleUtils from "@styles/StyleUtils";
-import SCREENS from "@src/SCREENS";
 
 const propTypes = {
 
