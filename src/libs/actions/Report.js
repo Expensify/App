@@ -2427,6 +2427,11 @@ function completeEngagementModal( text , choice) {
         lastReadTime: currentTime,
     };
 
+    const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
+    const conciergeChatReport = ReportUtils.getChatByParticipants(conciergeAccountID);
+    conciergeChatReportID = conciergeChatReport.reportID;
+    debugger;
+
     if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(conciergeChatReportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }

@@ -97,6 +97,7 @@ function PurposeForUsingExpensifyModal() {
     }, []);
 
     const completeModalAndClose = (message, choice) => {
+        debugger;
         Report.completeEngagementModal(message, choice);
         closeModal();
     }
