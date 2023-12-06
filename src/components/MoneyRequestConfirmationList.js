@@ -545,12 +545,11 @@ function MoneyRequestConfirmationList(props) {
     }, [
         props.isReadOnly,
         props.iouType,
-        props.isPolicyExpenseChat,
-        props.iouMerchant,
         props.bankAccountRoute,
         props.iouCurrencyCode,
         props.policyID,
         selectedParticipants.length,
+        isIOUMerchantPresent,
         confirm,
         splitOrRequestOptions,
         formError,
