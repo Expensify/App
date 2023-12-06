@@ -12,13 +12,13 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import reportPropTypes from './reportPropTypes';
 import EditRequestAmountPage from './EditRequestAmountPage';
+import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
-import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestTagPage from './EditRequestTagPage';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -176,7 +176,7 @@ export default compose(
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        }
+        },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
