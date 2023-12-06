@@ -106,7 +106,6 @@ function ReportActionsView(props) {
         const createChatError = _.get(props.report, ['errorFields', 'createChat']);
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
         if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
-            Report.updateLastVisitTime(reportID);
             return;
         }
 
@@ -114,12 +113,9 @@ function ReportActionsView(props) {
     };
 
     useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
         openReportIfNecessary();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused]);
+    }, []);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
