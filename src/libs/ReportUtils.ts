@@ -1541,11 +1541,6 @@ function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
     return Boolean('isUnreadWithMention' in report && report.isUnreadWithMention) || lastReadTime < lastMentionedTime;
 }
 
-// Type guard to check the type of an object and it's an option
-function isOption(option: OnyxEntry<Report> | OptionData): option is OptionData {
-    return (option as OptionData).isUnreadWithMention !== undefined;
-}
-
 /**
  * Determines if the option requires action from the current user. This can happen when it:
     - is unread and the user was mentioned in one of the unread comments
@@ -1568,10 +1563,8 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
         return true;
     }
 
-    if (isOption(option)) {
-        if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
-            return true;
-        }
+    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
+        return true;
     }
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
