@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import CompleteVerification from '@pages/ReimbursementAccount/CompleteVerification/CompleteVerification';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
@@ -34,6 +35,7 @@ const propTypes = {
 
 function ACHContractStep(props) {
     const styles = useThemeStyles();
+    const [isBeneficialOwnerInfoSet, setIsBeneficialOwnerInfoSet] = useState(false);
     const [beneficialOwners, setBeneficialOwners] = useState(() =>
         lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
     );
@@ -293,10 +295,15 @@ function ACHContractStep(props) {
         </ScreenWrapper>
     );
 
+    if (isBeneficialOwnerInfoSet) {
+        return <CompleteVerification setIsBeneficialOwnerInfoSet={setIsBeneficialOwnerInfoSet} />;
+    }
+
     return (
         <BeneficialOwnerInfo
             onBackButtonPress={props.onBackButtonPress}
             onCloseButtonPress={props.onCloseButtonPress}
+            setIsBeneficialOwnerInfoSet={setIsBeneficialOwnerInfoSet}
         />
     );
 }

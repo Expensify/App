@@ -12,6 +12,7 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OnfidoInitialize from './substeps/OnfidoInitialize';
 
@@ -29,10 +30,6 @@ const propTypes = {
 const defaultProps = {
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
-
-// TODO Will most likely come from different place
-const STEPS_HEADER_HEIGHT = 40;
-const STEP_NAMES = ['1', '2', '3', '4', '5'];
 
 const bodyContent = [OnfidoInitialize];
 
@@ -58,11 +55,11 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onCloseButtonP
                 onCloseButtonPress={onCloseButtonPress}
                 shouldShowCloseButton
             />
-            <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     onStepSelected={() => {}}
                     startStep={3}
-                    stepNames={STEP_NAMES}
+                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
             <SubStep

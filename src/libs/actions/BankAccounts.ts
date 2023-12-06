@@ -8,7 +8,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, BankAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {ACHContractStepProps, BankAccountStepProps, CompanyStepProps, OnfidoData, ReimbursementAccountProps, RequestorStepProps} from '@src/types/onyx/ReimbursementAccountDraft';
+import type {
+    ACHContractStepProps,
+    BankAccountStepProps,
+    BeneficialOwnersStepDraftProps,
+    CompanyStepProps,
+    OnfidoData,
+    ReimbursementAccountProps,
+    RequestorStepProps,
+} from '@src/types/onyx/ReimbursementAccountDraft';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as ReimbursementAccount from './ReimbursementAccount';
 
@@ -370,6 +378,15 @@ function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyI
 }
 
 /**
+ * Add beneficial owners for the bank account to the draft
+ */
+function updateBeneficialOwnersForBankAccountDraft(params: BeneficialOwnersStepDraftProps) {
+    console.log(params, ' called with');
+
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, params);
+}
+
+/**
  * Add beneficial owners for the bank account, accept the ACH terms and conditions and verify the accuracy of the information provided
  */
 function updateBeneficialOwnersForBankAccount(params: ACHContractStepProps) {
@@ -463,6 +480,7 @@ export {
     clearReimbursementAccount,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
+    updateBeneficialOwnersForBankAccountDraft,
     updateCompanyInformationForBankAccount,
     updatePersonalInformationForBankAccount,
     openWorkspaceView,

@@ -1,3 +1,5 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
@@ -5,6 +7,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
@@ -16,6 +19,15 @@ const propTypes = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: reimbursementAccountPropTypes,
 
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    /** Array of beneficial owners */
+    beneficialOwners: PropTypes.any,
+
+    /** ID of the beneficial owner that is being modified */
+    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
+
     ...subStepPropTypes,
 };
 
@@ -23,19 +35,19 @@ const defaultProps = {
     reimbursementAccount: reimbursementAccountDefaultProps,
 };
 
-const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
+const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [FIRST_NAME, LAST_NAME]);
-
-function LegalNameUBO({reimbursementAccount, onNext, isEditing}) {
+function LegalNameUBO({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID, beneficialOwners}) {
     const {translate} = useLocalize();
 
-    const defaultFirstName = getDefaultValueForReimbursementAccountField(reimbursementAccount, FIRST_NAME, '');
-    const defaultLastName = getDefaultValueForReimbursementAccountField(reimbursementAccount, LAST_NAME, '');
+    const FIRST_NAME_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}`;
+    const LAST_NAME_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}`;
 
-    // const bankAccountID = getDefaultStateForField({reimbursementAccount, fieldName: 'bankAccountID', defaultValue: 0});
+    const defaultFirstName = lodashGet(reimbursementAccountDraft, FIRST_NAME_INPUT_ID, '');
+    const defaultLastName = lodashGet(reimbursementAccountDraft, LAST_NAME_INPUT_ID, '');
 
-    // const shouldDisableCompanyName = Boolean(bankAccountID && defaultCompanyName);
+    const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [FIRST_NAME_INPUT_ID, LAST_NAME_INPUT_ID]);
 
     return (
         <Form
@@ -51,23 +63,19 @@ function LegalNameUBO({reimbursementAccount, onNext, isEditing}) {
                 label={translate('beneficialOwnerInfoStep.legalFirstName')}
                 aria-label={translate('beneficialOwnerInfoStep.legalFirstName')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                inputID={FIRST_NAME}
+                inputID={FIRST_NAME_INPUT_ID}
                 containerStyles={[styles.mt4]}
-                // disabled={shouldDisableCompanyName}
                 defaultValue={defaultFirstName}
                 shouldSaveDraft
-                // shouldUseDefaultValue={shouldDisableCompanyName}
             />
             <TextInput
                 label={translate('beneficialOwnerInfoStep.legalLastName')}
                 aria-label={translate('beneficialOwnerInfoStep.legalLastName')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                inputID={LAST_NAME}
+                inputID={LAST_NAME_INPUT_ID}
                 containerStyles={[styles.mt4]}
-                // disabled={shouldDisableCompanyName}
                 defaultValue={defaultLastName}
                 shouldSaveDraft
-                // shouldUseDefaultValue={shouldDisableCompanyName}
             />
         </Form>
     );
@@ -80,5 +88,8 @@ LegalNameUBO.displayName = 'LegalNameUBO';
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(LegalNameUBO);

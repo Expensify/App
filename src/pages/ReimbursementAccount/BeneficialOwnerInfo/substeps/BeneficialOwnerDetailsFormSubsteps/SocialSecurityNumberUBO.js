@@ -1,3 +1,5 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -5,7 +7,8 @@ import Form from '@components/Form';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-// import * as ValidationUtils from '@libs/ValidationUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
@@ -18,35 +21,42 @@ const propTypes = {
     /** Reimbursement account from ONYX */
     reimbursementAccount: reimbursementAccountPropTypes,
 
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+
+    /** ID of the beneficial owner that is being modified */
+    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
+
     ...subStepPropTypes,
 };
 
-const beneficialOwnerInfoStepKey = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
+const SSN_LAST_4 = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4;
+const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
+
 const defaultProps = {
+    reimbursementAccountDraft: {},
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
 };
 
-// const validate = () => {};
-// const validate = (values) => {
-//     const errors = ValidationUtils.getFieldRequiredErrors(values, [personalInfoStepKey.SSN_LAST_4]);
-
-//     if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-//         errors.ssnLast4 = 'bankAccount.error.ssnLast4';
-//     }
-
-//     return errors;
-// };
-
-function SocialSecurityNumberUBO({reimbursementAccount, onNext, isEditing}) {
+function SocialSecurityNumberUBO({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
 
-    const defaultSsnLast4 = getDefaultValueForReimbursementAccountField(reimbursementAccount, beneficialOwnerInfoStepKey.SSN_LAST_4, '');
+    const SSN_LAST_4_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}`;
+    const defaultSsnLast4 = lodashGet(reimbursementAccountDraft, SSN_LAST_4_INPUT_ID, '');
+
+    const validate = (values) => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [SSN_LAST_4_INPUT_ID]);
+        if (values[SSN_LAST_4_INPUT_ID] && !ValidationUtils.isValidSSNLastFour(values[SSN_LAST_4_INPUT_ID])) {
+            errors[SSN_LAST_4_INPUT_ID] = 'bankAccount.error.ssnLast4';
+        }
+        return errors;
+    };
 
     return (
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
-            // validate={validate}
+            validate={validate}
             onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
@@ -56,7 +66,7 @@ function SocialSecurityNumberUBO({reimbursementAccount, onNext, isEditing}) {
                 <Text style={[styles.mb3]}>{translate('beneficialOwnerInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
                     <TextInput
-                        inputID={beneficialOwnerInfoStepKey.SSN_LAST_4}
+                        inputID={SSN_LAST_4_INPUT_ID}
                         label={translate('beneficialOwnerInfoStep.last4SSN')}
                         aria-label={translate('beneficialOwnerInfoStep.last4SSN')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -79,5 +89,8 @@ SocialSecurityNumberUBO.displayName = 'SocialSecurityNumberUBO';
 export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reimbursementAccountDraft: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
 })(SocialSecurityNumberUBO);

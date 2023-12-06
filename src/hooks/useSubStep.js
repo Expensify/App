@@ -22,6 +22,7 @@ const propTypes = {
  * @property {Function} nextScreen a function to be called in order to navigate to the next substep screen
  * @property {Function} prevScreen a function to be called in order to navigate to the previous substep screen if possible
  * @property {Function} moveTo a function to be called in order to navigate to a particular substep screen
+ * @property {Function} resetScreenIndex a function to be called in order to reset the screen index to 0
  */
 
 /**
@@ -70,7 +71,11 @@ export default function useSubStep({bodyContent, onFinished, startFrom = 0}) {
         setScreenIndex(step);
     }, []);
 
-    return {componentToRender: bodyContent[screenIndex], isEditing: isEditing.current, screenIndex, prevScreen, nextScreen, moveTo};
+    const resetScreenIndex = useCallback(() => {
+        setScreenIndex(0);
+    }, []);
+
+    return {componentToRender: bodyContent[screenIndex], isEditing: isEditing.current, screenIndex, prevScreen, nextScreen, moveTo, resetScreenIndex};
 }
 
 useSubStep.propTypes = propTypes;

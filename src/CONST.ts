@@ -210,12 +210,20 @@ const CONST = {
             },
         },
         BENEFICIAL_OWNER_INFO_STEP: {
+            SUBSTEP: {
+                IS_USER_UBO: 1,
+                IS_ANYONE_ELSE_UBO: 2,
+                UBO_DETAILS_FORM: 3,
+                ARE_THERE_MORE_UBOS: 4,
+                UBOS_LIST: 5,
+            },
             INPUT_KEY: {
                 OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
                 HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
                 BENEFICIAL_OWNERS: 'beneficialOwners',
             },
             BENEFICIAL_OWNER_DATA: {
+                PREFIX: 'beneficialOwner',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
@@ -251,6 +259,8 @@ const CONST = {
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
         },
+        STEP_NAMES: ['1', '2', '3', '4', '5'],
+        STEPS_HEADER_HEIGHT: 40,
         SUBSTEP: {
             MANUAL: 'manual',
             PLAID: 'plaid',

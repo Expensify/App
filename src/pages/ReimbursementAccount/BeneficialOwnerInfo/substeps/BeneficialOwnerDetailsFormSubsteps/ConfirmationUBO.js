@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -14,6 +15,7 @@ import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbur
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,6 +27,9 @@ const propTypes = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
+    /** ID of the beneficial owner that is being modified */
+    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
+
     ...subStepPropTypes,
 };
 
@@ -35,11 +40,10 @@ const defaultProps = {
 
 const beneficialOwnerInfoStepKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
 
-function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
+function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
 
-    const values = useMemo(() => getSubstepValues(beneficialOwnerInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-
+    const values = getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     console.log('😡', {reimbursementAccount, reimbursementAccountDraft});
@@ -54,7 +58,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('beneficialOwnerInfoStep.legalName')}
-                    title={`${values[beneficialOwnerInfoStepKeys.FIRST_NAME]} ${values[beneficialOwnerInfoStepKeys.LAST_NAME]}`}
+                    title={`${values.firstName} ${values.lastName}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(0);
@@ -62,7 +66,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                 />
                 <MenuItemWithTopDescription
                     description={translate('common.dob')}
-                    title={values[beneficialOwnerInfoStepKeys.DOB]}
+                    title={values.dob}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(1);
@@ -70,7 +74,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                 />
                 <MenuItemWithTopDescription
                     description={translate('beneficialOwnerInfoStep.last4SSN')}
-                    title={values[beneficialOwnerInfoStepKeys.SSN_LAST_4]}
+                    title={values.ssnLast4}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(2);
@@ -78,9 +82,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                 />
                 <MenuItemWithTopDescription
                     description={translate('beneficialOwnerInfoStep.address')}
-                    title={`${values[beneficialOwnerInfoStepKeys.STREET]}, ${values[beneficialOwnerInfoStepKeys.CITY]}, ${values[beneficialOwnerInfoStepKeys.STATE]} ${
-                        values[beneficialOwnerInfoStepKeys.ZIP_CODE]
-                    }`}
+                    title={`${values.street}, ${values.city}, ${values.state} ${values.zipCode}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(3);

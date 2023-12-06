@@ -1490,6 +1490,15 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
+    completeVerificationStep: {
+        completeVerification: 'Complete verification',
+        confirmAgreements: 'Please confirm the agreements below.',
+        certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        certifyTrueAndAccurateError: 'Must certify information is true and accurate',
+        isControllingOfficer: 'I am authorized to use my company bank account for business spend',
+        isControllingOfficerError: 'You must be a controlling officer with authorization to operate the business bank account.',
+        termsAndConditions: 'terms and conditions',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'One moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',

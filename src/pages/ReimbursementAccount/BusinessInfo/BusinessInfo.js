@@ -53,10 +53,6 @@ const defaultProps = {
     policyID: '',
 };
 
-const STEPS_HEADER_HEIGHT = 40;
-// TODO Will most likely come from different place
-const STEP_NAMES = ['1', '2', '3', '4', '5'];
-
 const bodyContent = [
     NameBusiness,
     TaxIdBusiness,
@@ -127,12 +123,10 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
                 onCloseButtonPress={onCloseButtonPress}
                 shouldShowCloseButton
             />
-            <View style={[styles.ph5, styles.mv3, {height: STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    onStepSelected={() => {}}
-                    // TODO Will be replaced with proper values
                     startStep={1}
-                    stepNames={STEP_NAMES}
+                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
             <SubStep

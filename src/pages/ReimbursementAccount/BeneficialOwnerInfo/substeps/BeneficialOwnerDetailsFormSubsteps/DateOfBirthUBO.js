@@ -1,12 +1,13 @@
 import {subYears} from 'date-fns';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import NewDatePicker from '@components/NewDatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-// import * as ValidationUtils from '@libs/ValidationUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
@@ -23,6 +24,9 @@ const propTypes = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
+    /** ID of the beneficial owner that is being modified */
+    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
+
     ...subStepPropTypes,
 };
 
@@ -31,32 +35,32 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const beneficialOwnerInfoDobKey = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY.DOB;
+const DOB = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.DOB;
+const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-const validate = () => {};
-// const validate = (values) => {
-//     const errors = ValidationUtils.getFieldRequiredErrors(values, [beneficialOwnerInfoDobKey]);
-
-//     if (values.dob) {
-//         if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
-//             errors.dob = 'bankAccount.error.dob';
-//         } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-//             errors.dob = 'bankAccount.error.age';
-//         }
-//     }
-
-//     return errors;
-// };
-
-function DateOfBirthUBO({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
+function DateOfBirthUBO({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
 
-    const dobDefaultValue =
-        getDefaultValueForReimbursementAccountField(reimbursementAccount, beneficialOwnerInfoDobKey, '') || lodashGet(reimbursementAccountDraft, beneficialOwnerInfoDobKey, '');
+    const DOB_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}`;
+
+    const dobDefaultValue = lodashGet(reimbursementAccountDraft, DOB_INPUT_ID, '');
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
+    const validate = (values) => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [DOB_INPUT_ID]);
+
+        if (values[DOB_INPUT_ID]) {
+            if (!ValidationUtils.isValidPastDate(values[DOB_INPUT_ID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[DOB_INPUT_ID])) {
+                errors[DOB_INPUT_ID] = 'bankAccount.error.dob';
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[DOB_INPUT_ID])) {
+                errors[DOB_INPUT_ID] = 'bankAccount.error.age';
+            }
+        }
+
+        return errors;
+    };
     return (
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
@@ -69,7 +73,7 @@ function DateOfBirthUBO({reimbursementAccount, reimbursementAccountDraft, onNext
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}</Text>
             <NewDatePicker
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                inputID={beneficialOwnerInfoDobKey}
+                inputID={DOB_INPUT_ID}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
                 placeholder={translate('common.dateFormat')}

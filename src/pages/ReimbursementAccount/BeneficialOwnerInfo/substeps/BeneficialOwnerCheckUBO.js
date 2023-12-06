@@ -1,28 +1,25 @@
 import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
-import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import Form from '@components/Form';
 import FormProvider from '@components/Form/FormProvider';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import styles from '@styles/styles';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     title: PropTypes.string.isRequired,
 
+    defaultValue: PropTypes.bool.isRequired,
+
     onSelectedValue: PropTypes.func.isRequired,
 };
 
-function BeneficialOwnerCheckUBO({title, onSelectedValue}) {
+function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}) {
     const {translate} = useLocalize();
-    const defaultCheckedValue = false;
-    const [value, setValue] = useState(defaultCheckedValue);
+    const [value, setValue] = useState(defaultValue);
 
     const handleSelectUBOValue = () => {
         onSelectedValue(value);
@@ -60,7 +57,7 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue}) {
                 <RadioButtons
                     items={options}
                     onPress={setValue}
-                    defaultCheckedValue={defaultCheckedValue}
+                    defaultCheckedValue={defaultValue}
                 />
             </FormProvider>
         </ScreenWrapper>

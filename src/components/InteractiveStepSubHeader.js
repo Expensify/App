@@ -16,7 +16,7 @@ const propTypes = {
     stepNames: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** Function to call when a step is selected */
-    onStepSelected: PropTypes.func.isRequired,
+    onStepSelected: PropTypes.func,
 
     /** The index of the step to start with */
     startStep: PropTypes.number,
@@ -24,6 +24,7 @@ const propTypes = {
 
 const defaultProps = {
     startStep: 0,
+    onStepSelected: null,
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
@@ -56,7 +57,7 @@ const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelect
                 const hasUnion = index < amountOfUnions;
 
                 const moveToStep = () => {
-                    if (isLockedStep) {
+                    if (isLockedStep || !onStepSelected) {
                         return;
                     }
                     setCurrentStep(index);
