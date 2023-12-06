@@ -12,10 +12,13 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import reportPropTypes from '@pages/reportPropTypes';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
+import EditRequestCategoryPage from './EditRequestCategoryPage';
+import EditRequestTagPage from './EditRequestTagPage';
 
 const propTypes = {
     /** Route from navigation */
@@ -38,13 +41,16 @@ const propTypes = {
 
     /** The draft transaction that holds data to be persisted on the current transaction */
     draftTransaction: transactionPropTypes,
+
+    /** The report currently being used */
+    report: reportPropTypes.isRequired,
 };
 
 const defaultProps = {
     draftTransaction: undefined,
 };
 
-function EditSplitBillPage({route, transaction, draftTransaction}) {
+function EditSplitBillPage({route, transaction, draftTransaction, report}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportID = lodashGet(route, ['params', 'reportID'], '');
     const reportActionID = lodashGet(route, ['params', 'reportActionID'], '');
@@ -55,6 +61,8 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
         comment: transactionDescription,
         merchant: transactionMerchant,
         created: transactionCreated,
+        category: transactionCategory,
+        tag: transactionTag,
     } = draftTransaction ? ReportUtils.getTransactionDetails(draftTransaction) : ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
@@ -130,6 +138,30 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
         );
     }
 
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
+        return (
+            <EditRequestCategoryPage
+                defaultCategory={transactionCategory}
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={(transactionChanges) => {
+                    setDraftSplitTransaction({category: transactionChanges.category.trim()});
+                }}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG) {
+        return (
+            <EditRequestTagPage
+                defaultTag={transactionTag}
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={(transactionChanges) => {
+                    setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
+                }}
+            />
+        );
+    }
+
     return <FullPageNotFoundView shouldShow />;
 }
 
@@ -142,6 +174,9 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
             canEvict: false,
         },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        }
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
