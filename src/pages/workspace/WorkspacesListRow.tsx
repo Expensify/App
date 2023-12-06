@@ -5,6 +5,7 @@ import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
@@ -60,8 +61,8 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
     return (
-        <View style={[styles.dFlex, styles.gap3, styles.highlightBG, styles.p5, styles.br3]}>
-            <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.dFlex, styles.gap3, styles.highlightBG, styles.w100, styles.p5, styles.br3]}>
+            <View style={[styles.flexRow, styles.flexGrow1, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -71,6 +72,11 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     type={CONST.ICON_TYPE_WORKSPACE}
                 />
                 <Text style={styles.textStrong}>{title}</Text>
+                <ThreeDotsMenu
+                    menuItems={[]}
+                    anchorPosition={{top: 0, right: 0}}
+                    iconStyles={[styles.flexGrow1]}
+                />
             </View>
             <View>
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
