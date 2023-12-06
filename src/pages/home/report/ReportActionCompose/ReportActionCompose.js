@@ -344,6 +344,8 @@ function ReportActionCompose({
         [hasExceededMaxCommentLength],
     );
 
+    const handleValueChangeDebounce = useMemo(() => _.debounce(handleValueChange, 1500), [handleValueChange]);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -421,7 +423,7 @@ function ReportActionCompose({
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
-                                        onValueChange={handleValueChange}
+                                        onValueChange={handleValueChangeDebounce}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {

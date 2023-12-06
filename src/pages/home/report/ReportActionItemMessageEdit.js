@@ -368,15 +368,24 @@ function ReportActionItemMessageEdit(props) {
      */
     const focus = focusComposerWithDelay(textInputRef.current);
 
-    useEffect(() => {
-        if (ReportUtils.getCommentLength(draft) <= CONST.MAX_COMMENT_LENGTH) {
-            if (hasExceededMaxCommentLength) {
-                setHasExceededMaxCommentLength(false);
+    const handleValueChange = useCallback(
+        (value) => {
+            if (ReportUtils.getCommentLength(value) <= CONST.MAX_COMMENT_LENGTH) {
+                if (hasExceededMaxCommentLength) {
+                    setHasExceededMaxCommentLength(false);
+                }
+                return;
             }
-            return;
-        }
-        setHasExceededMaxCommentLength(true);
-    }, [draft, hasExceededMaxCommentLength]);
+            setHasExceededMaxCommentLength(true);
+        },
+        [hasExceededMaxCommentLength],
+    );
+
+    const handleValueChangeDebounce = useMemo(() => _.debounce(handleValueChange, 1500), [handleValueChange]);
+
+    useEffect(() => {
+        handleValueChangeDebounce(draft);
+    }, [draft, handleValueChangeDebounce]);
 
     return (
         <>
