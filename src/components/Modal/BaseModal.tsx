@@ -1,6 +1,7 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -133,14 +134,14 @@ function BaseModal(
     } = useMemo(
         () =>
             getModalStyles(
+                theme,
+                styles,
                 type,
                 {
                     windowWidth,
                     windowHeight,
                     isSmallScreenWidth,
                 },
-                theme,
-                styles,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
@@ -207,7 +208,7 @@ function BaseModal(
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                 ref={ref}
             >
-                {children}
+                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
         </ReactNativeModal>
     );

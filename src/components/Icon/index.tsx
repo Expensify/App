@@ -2,7 +2,7 @@ import React, {PureComponent} from 'react';
 import {ImageSourcePropType, StyleProp, View, ViewStyle} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import withTheme, {ThemeProps} from '@components/withTheme';
-import withThemeStyles, {ThemeStylesProps} from '@components/withThemeStyles';
+import withThemeStyles, {type ThemeStylesProps} from '@components/withThemeStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
