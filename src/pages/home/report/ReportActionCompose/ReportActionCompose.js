@@ -178,8 +178,9 @@ function ReportActionCompose({
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
+    const isNextModalWillOpenRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current) {
+        if (!isKeyboardVisibleWhenShowingModalRef.current || isNextModalWillOpenRef.current) {
             return;
         }
         focus();
@@ -254,13 +255,7 @@ function ReportActionCompose({
         [onSubmit],
     );
 
-    const isNextModalWillOpenRef = useRef(false);
     const onTriggerAttachmentPicker = useCallback(() => {
-        // Set a flag to block suggestion calculation until we're finished using the file picker,
-        // which will stop any flickering as the file picker opens on non-native devices.
-        if (willBlurTextInputOnTapOutside) {
-            suggestionsRef.current.setShouldBlockSuggestionCalc(true);
-        }
         isNextModalWillOpenRef.current = true;
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
@@ -366,7 +361,10 @@ function ReportActionCompose({
                                         setMenuVisibility={setMenuVisibility}
                                         isMenuVisible={isMenuVisible}
                                         onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                                        onCanceledAttachmentPicker={restoreKeyboardState}
+                                        onCanceledAttachmentPicker={() => {
+                                            isNextModalWillOpenRef.current = false;
+                                            restoreKeyboardState();
+                                        }}
                                         onMenuClosed={restoreKeyboardState}
                                         onAddActionPressed={onAddActionPressed}
                                         onItemSelected={onItemSelected}
