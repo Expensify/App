@@ -10,7 +10,7 @@ type FixedFooterProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function FixedFooter({style = [], children}: FixedFooterProps) {
+function FixedFooter({style, children}: FixedFooterProps) {
     const styles = useThemeStyles();
     return <View style={[styles.ph5, styles.pb5, styles.flexShrink0, style]}>{children}</View>;
 }
