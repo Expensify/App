@@ -8,7 +8,6 @@ import Composer from '@components/Composer';
 import withKeyboardState from '@components/withKeyboardState';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -102,8 +101,7 @@ function ComposerWithSuggestions({
     suggestionsRef,
     animatedRef,
     forwardedRef,
-    isNextModalWillOpenRef,
-    editFocused,
+    textInputRef,
     // For testing
     children,
 }) {
@@ -139,7 +137,6 @@ function ComposerWithSuggestions({
 
     const [composerHeight, setComposerHeight] = useState(0);
 
-    const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
@@ -185,6 +182,7 @@ function ComposerWithSuggestions({
     const setTextInputRef = useCallback(
         (el) => {
             ReportActionComposeFocusManager.composerRef.current = el;
+            // eslint-disable-next-line no-param-reassign
             textInputRef.current = el;
             if (_.isFunction(animatedRef)) {
                 animatedRef(el);
@@ -481,26 +479,6 @@ function ComposerWithSuggestions({
         };
     }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
 
-    const prevIsModalVisible = usePrevious(modal.isVisible);
-    const prevIsFocused = usePrevious(isFocused);
-    useEffect(() => {
-        if (modal.isVisible && !prevIsModalVisible) {
-            // eslint-disable-next-line no-param-reassign
-            isNextModalWillOpenRef.current = false;
-        }
-        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
-        // We avoid doing this on native platforms since the software keyboard popping
-        // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
-            return;
-        }
-
-        if (editFocused) {
-            InputFocus.inputFocusChange(false);
-            return;
-        }
-        focus();
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
@@ -523,7 +501,7 @@ function ComposerWithSuggestions({
             prepareCommentAndResetComposer,
             isFocused: () => textInputRef.current.isFocused(),
         }),
-        [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
+        [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText, textInputRef],
     );
 
     return (
@@ -604,16 +582,6 @@ ComposerWithSuggestions.propTypes = propTypes;
 ComposerWithSuggestions.defaultProps = defaultProps;
 ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 
-const ComposerWithSuggestionsWithRef = React.forwardRef((props, ref) => (
-    <ComposerWithSuggestions
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-ComposerWithSuggestionsWithRef.displayName = 'ComposerWithSuggestionsWithRef';
-
 export default compose(
     withKeyboardState,
     withOnyx({
@@ -630,13 +598,10 @@ export default compose(
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
             selector: EmojiUtils.getPreferredSkinToneIndex,
         },
-        editFocused: {
-            key: ONYXKEYS.INPUT_FOCUSED,
-        },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             canEvict: false,
             initWithStoredValues: false,
         },
     }),
-)(ComposerWithSuggestionsWithRef);
+)(ComposerWithSuggestions);
