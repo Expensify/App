@@ -142,7 +142,7 @@ function PurposeForUsingExpensifyModal() {
             isVisible={isModalOpen}
             onClose={closeModal}
         >
-            <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES])}>
+            <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
                 <Lottie
                     source={LottieAnimations.Hands}
                     style={styles.w100}
