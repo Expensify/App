@@ -21,18 +21,10 @@ const propTypes = {
 
     /* Callback fired when tab is pressed */
     onTabPress: PropTypes.func,
-
-    /* AnimatedValue for the position of the screen while swiping */
-    position: PropTypes.shape({
-        interpolate: PropTypes.func.isRequired,
-    }),
 };
 
 const defaultProps = {
     onTabPress: () => {},
-    position: {
-        interpolate: () => {},
-    },
 };
 
 const getIconAndTitle = (route, translate) => {
