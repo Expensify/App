@@ -1,6 +1,6 @@
 # Overview
 
-The navigation in the App consists of a top-level Stack Navigator (called `RootStack`) with each of its `Screen` components handling different high-level flow. All those flows can be seen in `AuthScreens.js` file.
+The navigation in the App consists of a top-level Stack Navigator (called `RootStack`) with each of its `Screen` components handling different high-level flow. All those flows can be seen in `AuthScreens.tsx` file.
 
 ## Terminology
 
@@ -20,11 +20,11 @@ Navigation Actions - User actions correspond to resulting navigation actions tha
 
 ## Adding RHP flows
 
-Most of the time, if you want to add some of the flows concerning one of your reports, e.g. `Money Request` from a user, you will most probably use `RightModalNavigator.js` and `ModalStackNavigators.js` file:
+Most of the time, if you want to add some of the flows concerning one of your reports, e.g. `Money Request` from a user, you will most probably use `RightModalNavigator.tsx` and `ModalStackNavigators.tsx` file:
 
-- Since each of those flows is kind of a modal stack, if you want to add a page to the existing flow, you should just add a page to the correct stack in `ModalStackNavigators.js`.
+- Since each of those flows is kind of a modal stack, if you want to add a page to the existing flow, you should just add a page to the correct stack in `ModalStackNavigators.tsx`.
 
-- If you want to create new flow, add a `Screen` in `RightModalNavigator.js` and make new modal in `ModalStackNavigators.js` with chosen pages.
+- If you want to create new flow, add a `Screen` in `RightModalNavigator.tsx` and make new modal in `ModalStackNavigators.tsx` with chosen pages.
 
 When creating RHP flows, you have to remember a couple things:
 
