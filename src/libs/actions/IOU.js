@@ -1985,13 +1985,13 @@ function editMoneyRequest(transaction, transactionThreadReportID, transactionCha
  * @param {String} currency
  * @param {Number} amount
  */
-function updateMoneyRequestAmountOrCurrency(transactionID, transactionThreadReportID, currency, amount) {
+function updateMoneyRequestAmountAndCurrency(transactionID, transactionThreadReportID, currency, amount) {
     const transactionChanges = {
         amount,
         currency,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
-    API.write('UpdateMoneyRequestAmountOrCurrency', params, onyxData);
+    API.write('UpdateMoneyRequestAmountAndCurrency', params, onyxData);
 }
 
 /**
@@ -3033,4 +3033,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    updateMoneyRequestAmountAndCurrency,
 };
