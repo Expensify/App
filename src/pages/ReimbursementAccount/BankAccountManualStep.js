@@ -17,8 +17,8 @@ import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import StepPropTypes from './StepPropTypes';
 import ExampleCheck from './ExampleCheck';
+import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
     ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
