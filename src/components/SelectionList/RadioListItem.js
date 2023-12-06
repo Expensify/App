@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
@@ -15,7 +14,7 @@ function RadioListItem({item, showTooltip, textStyle, alternateTextStyle}) {
                 text={item.text}
             >
                 <Text
-                    style={StyleUtils.combineStyles(textStyle, item.isSelected && styles.sidebarLinkTextBold)}
+                    style={textStyle}
                     numberOfLines={1}
                 >
                     {item.text}

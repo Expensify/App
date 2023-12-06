@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
@@ -25,7 +24,7 @@ function UserListItem({item, textStyle, alternateTextStyle, showTooltip}) {
                     text={item.text}
                 >
                     <Text
-                        style={StyleUtils.combineStyles(textStyle, styles.sidebarLinkTextBold)}
+                        style={textStyle}
                         numberOfLines={1}
                     >
                         {item.text}
