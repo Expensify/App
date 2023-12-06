@@ -1,10 +1,9 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import TabSelectorItem from './TabSelectorItem';
@@ -53,56 +52,13 @@ const getIconAndTitle = (route, translate) => {
     }
 };
 
-const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
-    const activeValue = active ? 1 : 0;
-    const inactiveValue = active ? 0 : 1;
-
-    if (routesLength > 1) {
-        const inputRange = Array.from({length: routesLength}, (v, i) => i);
-
-        return position.interpolate({
-            inputRange,
-            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
-        });
-    }
-    return activeValue;
-};
-
-function TabSelector({state, navigation, onTabPress, position}) {
+function TabSelector({state, navigation, onTabPress}) {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
-    const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
-    const getBackgroundColor = useCallback(
-        (routesLength, tabIndex, affectedTabs) => {
-            if (routesLength > 1) {
-                const inputRange = Array.from({length: routesLength}, (v, i) => i);
-
-                return position.interpolate({
-                    inputRange,
-                    outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
-                });
-            }
-            return theme.border;
-        },
-        [theme, position],
-    );
-
-    React.useEffect(() => {
-        // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
-        setTimeout(() => {
-            setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
-        }, CONST.ANIMATED_TRANSITION);
-    }, [defaultAffectedAnimatedTabs, state.index]);
-
-    return (
-        <View style={styles.tabSelector}>
-            {_.map(state.routes, (route, index) => {
-                const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
-                const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);
-                const backgroundColor = getBackgroundColor(state.routes.length, index, affectedAnimatedTabs);
+    const tabs = useMemo(
+        () =>
+            _.map(state.routes, (route, index) => {
                 const isFocused = index === state.index;
                 const {icon, title} = getIconAndTitle(route.name, translate);
 
@@ -110,8 +66,6 @@ function TabSelector({state, navigation, onTabPress, position}) {
                     if (isFocused) {
                         return;
                     }
-
-                    setAffectedAnimatedTabs([state.index, index]);
 
                     const event = navigation.emit({
                         type: 'tabPress',
@@ -133,15 +87,14 @@ function TabSelector({state, navigation, onTabPress, position}) {
                         icon={icon}
                         title={title}
                         onPress={onPress}
-                        activeOpacity={activeOpacity}
-                        inactiveOpacity={inactiveOpacity}
-                        backgroundColor={backgroundColor}
                         isFocused={isFocused}
                     />
                 );
-            })}
-        </View>
+            }),
+        [navigation, onTabPress, state.index, state.routes, translate],
     );
+
+    return <View style={styles.tabSelector}>{tabs}</View>;
 }
 
 TabSelector.propTypes = propTypes;

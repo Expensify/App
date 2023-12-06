@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {Animated, StyleSheet} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
@@ -16,18 +18,6 @@ const propTypes = {
     /** Title of the tab */
     title: PropTypes.string,
 
-    /** Animated background color value for the tab button */
-    // eslint-disable-next-line
-    backgroundColor: PropTypes.any,
-
-    /** Animated opacity value while the label is inactive state */
-    // eslint-disable-next-line
-    inactiveOpacity: PropTypes.any,
-
-    /** Animated opacity value while the label is in active state */
-    // eslint-disable-next-line
-    activeOpacity: PropTypes.any,
-
     /** Whether this tab is active */
     isFocused: PropTypes.bool,
 };
@@ -36,14 +26,35 @@ const defaultProps = {
     onPress: () => {},
     icon: () => {},
     title: '',
-    backgroundColor: '',
-    inactiveOpacity: 1,
-    activeOpacity: 0,
     isFocused: false,
 };
 
-function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
+function TabSelectorItem({icon, title, onPress, isFocused}) {
+    const focusValueRef = useRef(new Animated.Value(isFocused ? 1 : 0));
     const styles = useThemeStyles();
+    const theme = useTheme();
+
+    useEffect(() => {
+        Animated.timing(focusValueRef.current, {
+            toValue: isFocused ? 1 : 0,
+            duration: CONST.ANIMATED_TRANSITION,
+            useNativeDriver: true,
+        }).start();
+    }, [isFocused]);
+
+    const getBackgroundColorStyle = useCallback(
+        (hovered) => {
+            if (hovered && !isFocused) {
+                return {backgroundColor: theme.highlightBG};
+            }
+            return {backgroundColor: focusValueRef.current.interpolate({inputRange: [0, 1], outputRange: [theme.appBG, theme.border]})};
+        },
+        [theme, isFocused],
+    );
+
+    const activeOpacityValue = focusValueRef.current;
+    const inactiveOpacityValue = focusValueRef.current.interpolate({inputRange: [0, 1], outputRange: [1, 0]});
+
     return (
         <PressableWithFeedback
             accessibilityLabel={title}
@@ -52,16 +63,16 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, 
             onPress={onPress}
         >
             {({hovered}) => (
-                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isFocused, backgroundColor)]}>
+                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, getBackgroundColorStyle(hovered)]}>
                     <TabIcon
                         icon={icon}
-                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity).opacity}
+                        activeOpacity={activeOpacityValue}
+                        inactiveOpacity={inactiveOpacityValue}
                     />
                     <TabLabel
                         title={title}
-                        activeOpacity={styles.tabOpacity(hovered, isFocused, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(hovered, isFocused, inactiveOpacity, activeOpacity).opacity}
+                        activeOpacity={activeOpacityValue}
+                        inactiveOpacity={inactiveOpacityValue}
                     />
                 </Animated.View>
             )}

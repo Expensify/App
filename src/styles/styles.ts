@@ -3612,15 +3612,6 @@ const styles = (theme: ThemeColors) =>
                 fontWeight: isSelected ? fontWeightBold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
             } satisfies TextStyle),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabOpacity: (hovered: boolean, isFocused: boolean, activeOpacityValue: number, inactiveOpacityValue: number) => ({
-            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
-        }),
-
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
                 backgroundColor,
