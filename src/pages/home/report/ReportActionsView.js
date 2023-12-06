@@ -114,6 +114,11 @@ function ReportActionsView(props) {
     };
 
     useEffect(() => {
+        openReportIfNecessary();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
         // When returning from offline to online state we want to trigger a request to OpenReport which
         // will fetch the reportActions data and mark the report as read. If the report is not fully visible
