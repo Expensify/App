@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -18,7 +18,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
@@ -123,6 +122,17 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.dismissModal(report.reportID);
     }
 
+    const saveAmountAndCurrency = useCallback((transactionChanges) => {
+        const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
+        // In case the amount hasn't been changed, do not make the API request.
+        if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
+            Navigation.dismissModal();
+            return;
+        }
+        // Temporarily disabling currency editing and it will be enabled as a quick follow up
+        IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, defaultCurrency, transactionChanges.amount);
+    }, [transaction.transactionID, report.reportID, transactionAmount, transactionCurrency, defaultCurrency])
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
@@ -161,23 +171,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 defaultAmount={transactionAmount}
                 defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
-                onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-                    // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    // Temporarily disabling currency editing and it will be enabled as a quick follow up
-                    editMoneyRequest({
-                        amount,
-                        currency: defaultCurrency,
-                    });
-                }}
-                onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-                    Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
-                }}
+                onSubmit={saveAmountAndCurrency}
             />
         );
     }
