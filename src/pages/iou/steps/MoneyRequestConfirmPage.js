@@ -450,16 +450,10 @@ export default compose(
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
         policyCategories: {
-            key: ONYXKEYS.POLICY_CATEGORIES,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy ? policy.id : '0'}`,
         },
         policyTags: {
-            key: ONYXKEYS.POLICY_TAGS,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy ? policy.id : '0'}`,
         },
     }),
 )(MoneyRequestConfirmPage);
