@@ -45,7 +45,7 @@ const lightTheme = {
     activeComponentBG: colors.productLight400,
     signInSidebar: colors.green800,
     sidebar: colors.productLight200,
-    sidebarHover: colors.productLight400,
+    sidebarHover: colors.productLight300,
     heading: colors.productLight900,
     textLight: colors.white,
     textDark: colors.productLight900,

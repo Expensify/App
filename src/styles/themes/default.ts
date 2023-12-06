@@ -45,7 +45,7 @@ const darkTheme = {
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
     sidebar: colors.productDark200,
-    sidebarHover: colors.productDark100,
+    sidebarHover: colors.productDark300,
     heading: colors.productDark900,
     textLight: colors.productDark900,
     textDark: colors.productDark100,
