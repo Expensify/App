@@ -1,7 +1,7 @@
 import colors from '@styles/colors';
+import {type ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import {type ThemeColors} from '../types';
 
 const lightTheme = {
     // Figma keys
