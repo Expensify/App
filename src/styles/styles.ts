@@ -2432,6 +2432,12 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 20,
         },
 
+        avatarSectionWrapperSettings: {
+            width: '100%',
+            alignItems: 'center',
+            paddingTop: 20,
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
