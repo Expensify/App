@@ -6,6 +6,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import React from 'react';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
@@ -4251,6 +4252,23 @@ function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntr
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
+function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
+    if (event.key.length > 1) {
+        return false;
+    }
+
+    // If a key is pressed in combination with Meta, Control or Alt do not focus
+    if (event.ctrlKey || event.metaKey) {
+        return false;
+    }
+
+    if (event.code === 'Space') {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
@@ -4433,6 +4451,7 @@ export {
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
+    shouldAutoFocusOnKeyPress,
 };
 
 export type {OptionData};
