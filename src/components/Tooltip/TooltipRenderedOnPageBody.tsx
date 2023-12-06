@@ -60,9 +60,9 @@ function TooltipRenderedOnPageBody({
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
-    const [contentMeasuredWidth, setContentMeasuredWidth] = useState<number | undefined>(undefined);
+    const [contentMeasuredWidth, setContentMeasuredWidth] = useState<number>();
     // The height of tooltip's wrapper.
-    const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number | undefined>(undefined);
+    const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
     const contentRef = useRef<HTMLDivElement>(null);
     const rootWrapper = useRef<HTMLDivElement>(null);
 
