@@ -12,8 +12,10 @@ type TextProps = RNTextProps & {
 
     /** The size of the text */
     fontSize?: number;
+
     /** The alignment of the text */
     textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
+
     /** Any children to display */
     children: React.ReactNode;
 
