@@ -89,7 +89,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
-        } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rootState.routes.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rootState?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
         }
     }
