@@ -15,9 +15,6 @@ const commonListItemPropTypes = {
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple: PropTypes.bool,
 
-    /** Callback to fire when the item is pressed */
-    onRowPress: PropTypes.func,
-
     /** Callback to fire when the item is selected */
     onSelectRow: PropTypes.func.isRequired,
 
@@ -188,6 +185,9 @@ const propTypes = {
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
+
+    /** Right hand side component to display in the list item. Function has list item passed as the param */
+    rightHandSideComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 };
 
 export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};

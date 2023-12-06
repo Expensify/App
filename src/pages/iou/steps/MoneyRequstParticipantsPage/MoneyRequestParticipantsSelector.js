@@ -8,8 +8,8 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import {Info} from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import refPropTypes from '@components/refPropTypes';
+import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
+import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -36,9 +36,6 @@ const propTypes = {
 
     /** Callback to request parent modal to go to next step, which should be split */
     navigateToSplit: PropTypes.func.isRequired,
-
-    /** A ref to forward to options selector's text input */
-    forwardedRef: refPropTypes,
 
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
@@ -77,7 +74,6 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
-    forwardedRef: undefined,
     safeAreaPaddingBottomStyle: {},
     personalDetails: {},
     reports: {},
@@ -86,21 +82,23 @@ const defaultProps = {
     isSearchingForReports: false,
 };
 
-function MoneyRequestParticipantsSelector({
-    forwardedRef,
-    betas,
-    participants,
-    personalDetails,
-    reports,
-    translate,
-    navigateToRequest,
-    navigateToSplit,
-    onAddParticipants,
-    safeAreaPaddingBottomStyle,
-    iouType,
-    isDistanceRequest,
-    isSearchingForReports,
-}) {
+function MoneyRequestParticipantsSelector(
+    {
+        betas,
+        participants,
+        personalDetails,
+        reports,
+        translate,
+        navigateToRequest,
+        navigateToSplit,
+        onAddParticipants,
+        safeAreaPaddingBottomStyle,
+        iouType,
+        isDistanceRequest,
+        isSearchingForReports,
+    },
+    ref,
+) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [searchTerm, setSearchTerm] = useState('');
@@ -330,10 +328,37 @@ function MoneyRequestParticipantsSelector({
         </View>
     );
 
+    const itemRightSideComponent = useCallback(
+        (item) => {
+            if (!isAllowedToSplit) {
+                return null;
+            }
+            return item.isSelected ? (
+                <PressableWithFeedback
+                    onPress={() => addParticipantToSelection(item)}
+                    disabled={item.isDisabled}
+                    role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                    accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                >
+                    <SelectCircle isChecked={item.isSelected} />
+                </PressableWithFeedback>
+            ) : (
+                <Button
+                    onPress={() => addParticipantToSelection(item)}
+                    style={[styles.pl2]}
+                    text={translate('iou.split')}
+                    small
+                />
+            );
+        },
+        [addParticipantToSelection, isAllowedToSplit, styles, translate],
+    );
+
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
-                canSelectMultiple={isAllowedToSplit}
+                // canSelectMultiple={isAllowedToSplit}
                 onConfirm={handleConfirmSelection}
                 sections={sections}
                 textInputValue={searchTerm}
@@ -341,12 +366,12 @@ function MoneyRequestParticipantsSelector({
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                onSelectRow={addParticipantToSelection}
-                onRowPress={!participants.length && addSingleParticipant}
+                onSelectRow={!participants.length && addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
                 showLoadingPlaceholder={isSearchingForReports}
-                ref={forwardedRef}
+                ref={ref}
+                rightHandSideComponent={itemRightSideComponent}
             />
         </View>
     );
@@ -356,13 +381,7 @@ MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
-const MoneyRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
-    <MoneyRequestParticipantsSelector
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+const MoneyRequestParticipantsSelectorWithRef = React.forwardRef(MoneyRequestParticipantsSelector);
 
 MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
 

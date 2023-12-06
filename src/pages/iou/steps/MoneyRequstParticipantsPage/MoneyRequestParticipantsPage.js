@@ -138,7 +138,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestParticipantsSelector
-                        ref={(el) => (optionsSelectorRef.current = el)}
+                        ref={optionsSelectorRef}
                         participants={iou.isSplitRequest ? iou.participants : []}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType)}

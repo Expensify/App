@@ -23,8 +23,8 @@ function BaseListItem({
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
-    onRowPress,
     onDismissError = () => {},
+    rightHandSideComponent,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -40,7 +40,7 @@ function BaseListItem({
             errorRowStyles={styles.ph5}
         >
             <PressableWithFeedback
-                onPress={() => onRowPress(item)}
+                onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
@@ -60,15 +60,9 @@ function BaseListItem({
                     ]}
                 >
                     {canSelectMultiple && (
-                        <PressableWithFeedback
+                        <View
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             style={StyleUtils.getCheckboxPressableStyle()}
-                            onPress={() => onSelectRow(item)}
-                            disabled={isDisabled}
-                            hoverDimmingValue={1}
-                            hoverStyle={styles.hoveredComponentBG}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                         >
                             <View
                                 style={[
@@ -89,7 +83,7 @@ function BaseListItem({
                                     />
                                 )}
                             </View>
-                        </PressableWithFeedback>
+                        </View>
                     )}
                     <ListItem
                         item={item}
@@ -98,7 +92,7 @@ function BaseListItem({
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
                     />
-                    {!canSelectMultiple && item.isSelected && (
+                    {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -111,6 +105,7 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
+                    {!canSelectMultiple && !!rightHandSideComponent && typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item) : rightHandSideComponent}
                 </View>
                 {Boolean(item.invitedSecondaryLogin) && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
