@@ -9,14 +9,14 @@ import Text from '@components/Text';
 import {AvatarSource} from '@libs/UserUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {Policy} from '@src/types/onyx';
 
 type WorkspacesListRowProps = {
-    title: string;
+    title: Policy['name'];
+    ownerAccountID: Policy['ownerAccountID'];
+    workspaceType: Policy['type'];
     workspaceIcon?: AvatarSource | undefined;
     fallbackWorkspaceIcon?: AvatarSource | undefined;
-    // owner
-    workspaceType: ValueOf<typeof CONST.POLICY.TYPE>;
-    item: any; // TBD
 };
 
 const workspaceTypeIcon = (workspaceType: ValueOf<typeof CONST.POLICY.TYPE>): React.FC<SvgProps> => {
@@ -50,7 +50,7 @@ const userFriendlyWorkspaceType = (workspaceType: ValueOf<typeof CONST.POLICY.TY
     }
 };
 
-function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, owner, workspaceType, item}: WorkspacesListRowProps) {
+function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, item}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
 
     return (
@@ -65,6 +65,18 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, owner, 
                     type={CONST.ICON_TYPE_WORKSPACE}
                 />
                 <Text style={styles.textStrong}>{title}</Text>
+            </View>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                <Icon
+                    src={workspaceTypeIcon(workspaceType)}
+                    width={34}
+                    height={34}
+                    additionalStyles={styles.workspaceTypeIcon}
+                />
+                <View style={styles.dFlex}>
+                    <Text style={styles.labelStrong}>{ownerAccountID}</Text>
+                    <Text style={[styles.textMicroBold, styles.textSupporting]}>email</Text>
+                </View>
             </View>
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                 <Icon
