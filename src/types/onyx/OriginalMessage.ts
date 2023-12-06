@@ -140,6 +140,7 @@ type ChronosOOOTimestamp = {
 type ChangeLog = {
     targetAccountIDs?: number[];
     roomName?: string;
+    reportID?: number;
 };
 
 type ChronosOOOEvent = {
@@ -197,6 +198,11 @@ type OriginalMessageReimbursementQueued = {
     originalMessage: unknown;
 };
 
+type OriginalMessageReimbursementDequeued = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+    originalMessage: unknown;
+};
+
 type OriginalMessageMoved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MOVED;
     originalMessage: {
@@ -222,6 +228,7 @@ type OriginalMessage =
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
+    | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved;
 
 export default OriginalMessage;
