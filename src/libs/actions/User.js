@@ -583,8 +583,10 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis) {
 /**
  * Sync user chat priority mode with Onyx and Server
  * @param {String} mode
+ * @param {boolean} [automatic] if we changed the mode automatically
  */
-function updateChatPriorityMode(mode) {
+function updateChatPriorityMode(mode, automatic = false) {
+    const autoSwitchedToFocusMode = mode === CONST.PRIORITY_MODE.GSD && automatic;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -592,14 +594,31 @@ function updateChatPriorityMode(mode) {
             value: mode,
         },
     ];
+
+    if (autoSwitchedToFocusMode) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
+            value: true,
+        });
+    }
+
     API.write(
         'UpdateChatPriorityMode',
         {
             value: mode,
+            automatic,
         },
         {optimisticData},
     );
-    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+
+    if (!autoSwitchedToFocusMode) {
+        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+    }
+}
+
+function clearFocusModeNotification() {
+    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
 }
 
 /**
@@ -843,6 +862,7 @@ function clearDraftCustomStatus() {
 }
 
 export {
+    clearFocusModeNotification,
     closeAccount,
     resendValidateCode,
     requestContactMethodValidateCode,

@@ -51,8 +51,8 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function BaseMiniContextMenuItem(props) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <Tooltip text={props.tooltipText}>
             <PressableWithoutFeedback
