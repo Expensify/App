@@ -96,7 +96,7 @@ function ReportActionsView(props) {
 
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
-    const isNewestReportAction = lodashGet(props.reportActions[0], 'isNewestReportAction');
+    const hasNewestReportAction = lodashGet(props.reportActions[0], 'isNewestReportAction');
 
     /**
      * @returns {Boolean}
@@ -104,8 +104,9 @@ function ReportActionsView(props) {
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
+        const createChatError = _.get(props.report, ['errorFields', 'createChat']);
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (props.report.isOptimisticReport) {
+        if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
             return;
         }
 
@@ -200,7 +201,7 @@ function ReportActionsView(props) {
     const loadNewerChats = useMemo(
         () =>
             _.throttle(({distanceFromStart}) => {
-                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions || isNewestReportAction) {
+                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions || hasNewestReportAction) {
                     return;
                 }
 
@@ -222,7 +223,7 @@ function ReportActionsView(props) {
                 const newestReportAction = _.first(props.reportActions);
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, isNewestReportAction],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, hasNewestReportAction],
     );
 
     /**
