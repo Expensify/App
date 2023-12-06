@@ -108,7 +108,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, personalDetails}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -164,27 +164,27 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
      */
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+
         return _.chain(policies)
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
             .map((policy) => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                iconFill: theme.textLight,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
-                pendingAction: policy.pendingAction,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                type: policy.type,
+                ownerAccountID: policy.ownerAccountID,
+                // iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                // action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                // iconFill: theme.textLight,
+                // fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                // brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                // pendingAction: policy.pendingAction,
+                // errors: policy.errors,
+                // dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                // disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
     }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
-
-    console.log({policies});
-    console.log({workspaces});
 
     return (
         <View style={[styles.dFlex, styles.gap3, styles.m5]}>
@@ -201,9 +201,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                         title={item.title}
                         workspaceIcon={item.icon}
                         fallbackWorkspaceIcon={item.fallbackIcon}
-                        owner={item.owner}
-                        workspaceType={item.type}
-                        item={item}
+                        // Real data
+                        // ownerAccountID={item.ownerAccountID}
+                        // workspaceType={item.type}
+                        // Randomized data for testing
+                        ownerAccountID={personalDetails ? Object.keys(personalDetails)[Math.floor(Math.random() * Object.keys(personalDetails).length)] : 1}
+                        workspaceType={[CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.FREE][Math.floor(Math.random() * 3)]}
                     />
                 ))
             )}
@@ -229,6 +232,9 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(WorkspacesListPage);
