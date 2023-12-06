@@ -14,7 +14,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
-import {moveCursorToEndOfLine, removeUnicodeLTRWhenEmpty} from '@libs/convertToLTR';
+import {moveCursorToEndOfLine} from '@libs/convertToLTR';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
@@ -106,7 +106,7 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
-    const [composerIsEmpty, setComposerIsEmpty] = useState(true);
+    const composerIsEmpty = useRef(true);
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
     const [value, setValue] = useState(() => {
@@ -228,14 +228,10 @@ function ComposerWithSuggestions({
 
             // This prevent the double execution of setting input value that could affect the place holder and could send an empty message or draft messages in android
             if (prevComment !== newComment) {
-                newCommentConverted = removeUnicodeLTRWhenEmpty(newComment, newCommentConverted);
-                newCommentConverted = convertToLTRForComposer(newCommentConverted, composerIsEmpty);
-                if (['@'].includes(newComment)) {
-                    newCommentConverted = removeUnicodeLTRWhenEmpty(newComment, newCommentConverted, true);
-                }
+                newCommentConverted = convertToLTRForComposer(newCommentConverted, composerIsEmpty.current);
                 setValue(newCommentConverted);
                 moveCursorToEndOfLine(newComment.length, setSelection);
-                setComposerIsEmpty(false);
+                composerIsEmpty.current = false;
             }
 
             const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
@@ -245,7 +241,7 @@ function ComposerWithSuggestions({
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
                 if (isNewCommentEmpty) {
-                    setComposerIsEmpty(true);
+                    composerIsEmpty.current = true;
                 }
             }
 
