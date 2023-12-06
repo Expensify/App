@@ -23,10 +23,8 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
 import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import * as TransactionUtils from "@libs/TransactionUtils";
-import * as Expensicons from "@components/Icon/Expensicons";
-import * as HeaderUtils from "@libs/HeaderUtils";
-import useWindowDimensions from "@hooks/useWindowDimensions";
+import * as Expensicons from '@components/Icon/Expensicons';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
