@@ -207,8 +207,8 @@ function PaymentMethodList({
     shouldEnableScroll,
     style,
 }) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
