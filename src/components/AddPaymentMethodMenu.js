@@ -75,7 +75,7 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
         ReportUtils.isExpenseReport(iouReport) ||
         (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
 
-    const canUsePersonalBankAccount = iou.id === CONST.IOU.TYPE.SEND;
+    const canUsePersonalBankAccount = iou.id === CONST.IOU.TYPE.SEND || ReportUtils.isIOUReport(iouReport);
 
     return (
         <PopoverMenu
