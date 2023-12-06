@@ -2044,6 +2044,11 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
                   value: {
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS.CLOSED,
+                      chatType: report.chatType,
+                      parentReportID: report.parentReportID,
+                      parentReportActionID: report.parentReportActionID,
+                      policyID: report.policyID,
+                      type: report.type,
                   },
               },
     ];
