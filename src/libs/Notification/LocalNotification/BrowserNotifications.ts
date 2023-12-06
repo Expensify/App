@@ -79,9 +79,6 @@ export default {
     /**
      * Create a report comment notification
      *
-     * @param report
-     * @param reportAction
-     * @param onClick
      * @param usesIcon true if notification uses right circular icon
      */
     pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
