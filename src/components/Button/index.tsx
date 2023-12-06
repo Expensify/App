@@ -160,8 +160,8 @@ function Button(
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const activeElement = useActiveElement();
-    const roles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
-    const shouldDisableEnterShortcut = roles.includes(activeElement?.role ?? '') && activeElement?.role !== CONST.ACCESSIBILITY_ROLE.TEXT;
+    const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
+    const shouldDisableEnterShortcut = accessibilityRoles.includes(activeElement?.role ?? '') && activeElement?.role !== CONST.ACCESSIBILITY_ROLE.TEXT;
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
