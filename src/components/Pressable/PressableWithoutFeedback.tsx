@@ -1,11 +1,10 @@
-import React, {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import GenericPressable from './GenericPressable';
-import PressableProps from './GenericPressable/types';
+import PressableProps, {PressableRef} from './GenericPressable/types';
 
 function PressableWithoutFeedback(
     {pressStyle, hoverStyle, focusStyle, disabledStyle, screenReaderActiveStyle, shouldUseHapticsOnPress, shouldUseHapticsOnLongPress, ...rest}: PressableProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     return (
         <GenericPressable
