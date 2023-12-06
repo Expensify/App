@@ -745,9 +745,9 @@ export default {
             phrase4: 'Privacidad',
         },
         help: 'Ayuda',
-        accountSettings: 'TODO: Translation',
-        account: 'TODO: Translation',
-        general: 'TODO: Translation',
+        accountSettings: 'Configuración de cuenta',
+        account: 'Cuenta',
+        general: 'General',
     },
     closeAccountPage: {
         closeAccount: 'Cerrar cuenta',
