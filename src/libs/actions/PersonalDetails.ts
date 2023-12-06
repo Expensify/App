@@ -5,6 +5,7 @@ import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,20 +41,19 @@ Onyx.connect({
 });
 
 /**
- * Returns the displayName for a user
+ * Creates a new displayName for a user based on passed personal details or login.
  */
-function getDisplayName(login: string, personalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'> | null): string {
+function createDisplayName(login: string, personalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-    const userDetails = personalDetail ?? allPersonalDetails?.[login];
 
-    if (!userDetails) {
+    if (!personalDetails) {
         return userLogin;
     }
 
-    const firstName = userDetails.firstName ?? '';
-    const lastName = userDetails.lastName ?? '';
+    const firstName = personalDetails.firstName ?? '';
+    const lastName = personalDetails.lastName ?? '';
     const fullName = `${firstName} ${lastName}`.trim();
 
     // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
@@ -163,6 +163,13 @@ function updateDisplayName(firstName: string, lastName: string) {
 
         const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
+        console.log(createDisplayName(currentUserEmail ?? '', {
+            firstName,
+            lastName,
+        }));
+        console.log({currentUserEmail});
+        console.log(ReportUtils.getDisplayNameForParticipant(currentUserAccountID))
+
         API.write('UpdateDisplayName', parameters, {
             optimisticData: [
                 {
@@ -172,7 +179,7 @@ function updateDisplayName(firstName: string, lastName: string) {
                         [currentUserAccountID]: {
                             firstName,
                             lastName,
-                            displayName: getDisplayName(currentUserEmail ?? '', {
+                            displayName: createDisplayName(currentUserEmail ?? '', {
                                 firstName,
                                 lastName,
                             }),
@@ -584,7 +591,7 @@ export {
     deleteAvatar,
     extractFirstAndLastNameFromAvailableDetails,
     getCountryISO,
-    getDisplayName,
+    createDisplayName,
     getDisplayNameForTypingIndicator,
     getPrivatePersonalDetails,
     openPersonalDetailsPage,
