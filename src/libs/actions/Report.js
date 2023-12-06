@@ -489,13 +489,6 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 isLoadingNewerReportActions: false,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                lastVisitTime: DateUtils.getDBTime(),
-            },
-        },
     ];
 
     const reportSuccessData = [

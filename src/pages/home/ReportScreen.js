@@ -1,3 +1,4 @@
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -184,6 +185,14 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+
+    const isFocused = useIsFocused();
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        Report.updateLastVisitTime(reportID);
+    }, [isFocused]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
