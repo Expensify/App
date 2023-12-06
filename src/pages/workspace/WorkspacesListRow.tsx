@@ -14,18 +14,15 @@ import {Policy} from '@src/types/onyx';
 type WorkspacesListRowProps = {
     title: Policy['name'];
     ownerAccountID: Policy['ownerAccountID'];
-    workspaceType: Policy['type'];
+    workspaceType: typeof CONST.POLICY.TYPE.FREE | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.TEAM;
     workspaceIcon?: AvatarSource | undefined;
     fallbackWorkspaceIcon?: AvatarSource | undefined;
 };
 
-const workspaceTypeIcon = (workspaceType: ValueOf<typeof CONST.POLICY.TYPE>): React.FC<SvgProps> => {
+const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.FREE:
             return Illustrations.BigRocket;
-        case CONST.POLICY.TYPE.PERSONAL:
-            // TODO: Ask design team to provide icon
-            throw new Error("Don't know which icon to server for free workspace type");
         case CONST.POLICY.TYPE.CORPORATE:
             return Illustrations.HotDogStand;
         case CONST.POLICY.TYPE.TEAM:
@@ -35,12 +32,10 @@ const workspaceTypeIcon = (workspaceType: ValueOf<typeof CONST.POLICY.TYPE>): Re
     }
 };
 
-const userFriendlyWorkspaceType = (workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) => {
+const userFriendlyWorkspaceType = (workspaceType: WorkspacesListRowProps['workspaceType']) => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.FREE:
             return 'Free';
-        case CONST.POLICY.TYPE.PERSONAL:
-            return 'Personal';
         case CONST.POLICY.TYPE.CORPORATE:
             return 'Control';
         case CONST.POLICY.TYPE.TEAM:
