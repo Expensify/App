@@ -31,6 +31,20 @@ function BaseListItem({
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
+    const textStyle = StyleUtils.combineStyles(
+        styles.optionDisplayName,
+        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+        item.isSelected && styles.sidebarLinkTextBold,
+        styles.pre,
+    );
+
+    const alternateTextStyle = StyleUtils.combineStyles(
+        styles.optionAlternateText,
+        styles.textLabelSupporting,
+        isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+        styles.pre,
+    );
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -83,6 +97,8 @@ function BaseListItem({
                     )}
                     <ListItem
                         item={item}
+                        textStyle={textStyle}
+                        alternateTextStyle={alternateTextStyle}
                         isFocused={isFocused}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
