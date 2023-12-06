@@ -2199,11 +2199,11 @@ function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | Emp
  * Get the formatted title in HTML for a thread based on parent message.
  * Only the first line of the message should display.
  */
-function getThreadReportNameHtml(parentReportActionMessage: string): string {
+function getThreadReportNameHtml(reportActionMessageHtml: string): string {
     const blockTags = ['br', 'h1', 'pre', 'div', 'blockquote', 'p', 'li', 'div'];
     const blockTagRegExp = `(?:<\\/?(?:${blockTags.join('|')})(?:[^>]*)>|\\r\\n|\\n|\\r)`;
     const threadHeaderHtmlRegExp = new RegExp(`^(?:<([^>]+)>)?((?:(?!${blockTagRegExp}).)*)(${blockTagRegExp}.*)`, 'gmi');
-    return parentReportActionMessage.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
+    return reportActionMessageHtml.replace(threadHeaderHtmlRegExp, (match, g1, g2) => {
         if (!g1 || g1 === 'h1') {
             return g2;
         }
