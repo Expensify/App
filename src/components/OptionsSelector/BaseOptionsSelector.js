@@ -59,64 +59,12 @@ const defaultProps = {
     ...optionsSelectorDefaultProps,
 };
 
-const BaseOptionsSelector = (props) => {
+function BaseOptionsSelector(props) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
     const theme = useTheme();
 
-    /**
-     * Flattens the sections into a single array of options.
-     * Each object in this array is enhanced to have:
-     *
-     *   1. A `sectionIndex`, which represents the index of the section it came from
-     *   2. An `index`, which represents the index of the option within the section it came from.
-     *
-     * @returns {Array<Object>}
-     */
-    const flattenSections = () => {
-        const allOptions = [];
-        const calcDisabledOptionsIndexes = [];
-        let index = 0;
-        _.each(props.sections, (section, sectionIndex) => {
-            _.each(section.data, (option, optionIndex) => {
-                allOptions.push({
-                    ...option,
-                    sectionIndex,
-                    index: optionIndex,
-                });
-                if (section.isDisabled || option.isDisabled) {
-                    calcDisabledOptionsIndexes.push(index);
-                }
-                index += 1;
-            });
-        });
-
-        setDisabledOptionsIndexes(calcDisabledOptionsIndexes);
-        return allOptions;
-    };
-
-    /**
-     * Maps sections to render only allowed count of them per section.
-     *
-     * @returns {Objects[]}
-     */
-    const sliceSections = () => {
-        return _.map(props.sections, (section) => {
-            if (_.isEmpty(section.data)) {
-                return section;
-            }
-
-            return {
-                ...section,
-                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * lodashGet(paginationPage, 1)),
-            };
-        });
-    };
-    /**
-     * @param {Array<Object>} allOptions
-     * @returns {Number}
-     */
     const getInitiallyFocusedIndex = (allOptions) => {
         if (_.isNumber(props.initialFocusedIndex)) {
             return props.initialFocusedIndex;
@@ -130,7 +78,7 @@ const BaseOptionsSelector = (props) => {
             return defaultIndex;
         }
 
-        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
+        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
 
         if (indexOfInitiallyFocusedOption >= 0) {
             return indexOfInitiallyFocusedOption;
@@ -141,16 +89,8 @@ const BaseOptionsSelector = (props) => {
 
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
 
-    const initialAllOptions = useMemo(() => {
-        return flattenSections();
-    }, []);
-
     const [sections, setSections] = useState();
-    const [allOptions, setAllOptions] = useState(initialAllOptions);
-    const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
     const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
-    //Not used?
-    const [shouldShowReferralModal, setShouldShowReferralModal] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
 
@@ -163,6 +103,191 @@ const BaseOptionsSelector = (props) => {
     const prevLocale = useRef(props.preferredLocale);
     const prevPaginationPage = useRef(paginationPage);
     const prevSelectedOptions = useRef(props.selectedOptions);
+
+    /**
+     * Flattens the sections into a single array of options.
+     * Each object in this array is enhanced to have:
+     *
+     *   1. A `sectionIndex`, which represents the index of the section it came from
+     *   2. An `index`, which represents the index of the option within the section it came from.
+     *
+     * @returns {Array<Object>}
+     */
+    const flattenSections = () => {
+        const calcAllOptions = [];
+        const calcDisabledOptionsIndexes = [];
+        let index = 0;
+        _.each(props.sections, (section, sectionIndex) => {
+            _.each(section.data, (option, optionIndex) => {
+                calcAllOptions.push({
+                    ...option,
+                    sectionIndex,
+                    index: optionIndex,
+                });
+                if (section.isDisabled || option.isDisabled) {
+                    calcDisabledOptionsIndexes.push(index);
+                }
+                index += 1;
+            });
+        });
+
+        setDisabledOptionsIndexes(calcDisabledOptionsIndexes);
+        return calcAllOptions;
+    };
+
+    const initialAllOptions = useMemo(() => flattenSections(), []);
+    const [allOptions, setAllOptions] = useState(initialAllOptions);
+    const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
+
+    /**
+     * Maps sections to render only allowed count of them per section.
+     *
+     * @returns {Objects[]}
+     */
+    const sliceSections = () =>
+        _.map(props.sections, (section) => {
+            if (_.isEmpty(section.data)) {
+                return section;
+            }
+
+            return {
+                ...section,
+                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * lodashGet(paginationPage, 1)),
+            };
+        });
+    /**
+     * @param {Array<Object>} allOptions
+     * @returns {Number}
+     */
+
+    /**
+     * Completes the follow-up actions after a row is selected
+     *
+     * @param {Object} option
+     * @param {Object} ref
+     * @returns {Promise}
+     */
+    const selectRow = (option, ref) =>
+        new Promise((resolve) => {
+            if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
+                if (relatedTarget.current && ref === relatedTarget.current) {
+                    textInputRef.current.focus();
+                    relatedTarget.current = null;
+                }
+                if (textInputRef.current.isFocused()) {
+                    setSelection(textInputRef.current, 0, props.value.length);
+                }
+            }
+            const selectedOption = props.onSelectRow(option);
+            resolve(selectedOption);
+
+            if (!props.canSelectMultipleOptions) {
+                return;
+            }
+
+            // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+            setFocusedIndex(props.selectedOptions.length);
+        });
+
+    const unSubscribeFromKeyboardShortcut = () => {
+        if (enterSubscription.current) {
+            enterSubscription.current();
+        }
+
+        if (CTRLEnterSubscription.current) {
+            CTRLEnterSubscription.current();
+        }
+    };
+
+    const selectFocusedOption = () => {
+        const focusedOption = allOptions[focusedIndex];
+
+        if (!focusedOption || !isFocused) {
+            return;
+        }
+
+        if (props.canSelectMultipleOptions) {
+            selectRow(focusedOption);
+        } else if (!shouldDisableRowSelection) {
+            setShouldDisableRowSelection(true);
+
+            let result = selectRow(focusedOption);
+            if (!(result instanceof Promise)) {
+                result = Promise.resolve();
+            }
+
+            setTimeout(() => {
+                result.finally(() => {
+                    setShouldDisableRowSelection(false);
+                });
+            }, 500);
+        }
+    };
+
+    const subscribeToKeyboardShortcut = () => {
+        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+        enterSubscription.current = KeyboardShortcut.subscribe(
+            enterConfig.shortcutKey,
+            selectFocusedOption,
+            enterConfig.descriptionKey,
+            enterConfig.modifiers,
+            true,
+            () => !allOptions[focusedIndex],
+        );
+
+        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
+        CTRLEnterSubscription.current = KeyboardShortcut.subscribe(
+            CTRLEnterConfig.shortcutKey,
+            () => {
+                if (props.canSelectMultipleOptions) {
+                    props.onConfirmSelection();
+                    return;
+                }
+
+                const focusedOption = allOptions[focusedIndex];
+                if (!focusedOption) {
+                    return;
+                }
+
+                selectRow(focusedOption);
+            },
+            CTRLEnterConfig.descriptionKey,
+            CTRLEnterConfig.modifiers,
+            true,
+        );
+    };
+
+    /**
+     * Scrolls to the focused index within the SectionList
+     *
+     * @param {Number} index
+     * @param {Boolean} animated
+     */
+    const scrollToIndex = (index, animated = true) => {
+        const option = allOptions[index];
+        if (!listRef.current || !option) {
+            return;
+        }
+
+        const itemIndex = option.index;
+        const sectionIndex = option.sectionIndex;
+
+        if (!lodashGet(sections, `[${sectionIndex}].data[${itemIndex}]`, null)) {
+            return;
+        }
+
+        // Note: react-native's SectionList automatically strips out any empty sections.
+        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+        let adjustedSectionIndex = sectionIndex;
+        for (let i = 0; i < sectionIndex; i++) {
+            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
+                adjustedSectionIndex--;
+            }
+        }
+
+        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+    };
 
     useEffect(() => {
         subscribeToKeyboardShortcut();
@@ -201,7 +326,7 @@ const BaseOptionsSelector = (props) => {
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
         // Only applies to platforms that support keyboard shortcuts
-        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && isFocused && autoFocus && textInputRef.current) {
+        if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform()) && isFocused && props.autoFocus && textInputRef.current) {
             setTimeout(() => {
                 textInputRef.current.focus();
             }, CONST.ANIMATED_TRANSITION);
@@ -248,11 +373,6 @@ const BaseOptionsSelector = (props) => {
         props.onChangeText(value);
     };
 
-    //What is it for? its not being used anywhere?
-    const handleReferralModal = () => {
-        setShouldShowReferralModal((prev) => !prev);
-    };
-
     /**
      * Calculates all currently visible options based on the sections that are currently being shown
      * and the number of items of those sections.
@@ -269,150 +389,11 @@ const BaseOptionsSelector = (props) => {
         return count;
     };
 
-    const subscribeToKeyboardShortcut = () => {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        enterSubscription.current = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            selectFocusedOption,
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !allOptions[focusedIndex],
-        );
-
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        CTRLEnterSubscription.current = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (canSelectMultipleOptions) {
-                    onConfirmSelection();
-                    return;
-                }
-
-                const focusedOption = allOptions[focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
-
-                selectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
-    };
-
-    const unSubscribeFromKeyboardShortcut = () => {
-        if (enterSubscription.current) {
-            enterSubscription.current();
-        }
-
-        if (CTRLEnterSubscription.current) {
-            CTRLEnterSubscription.current();
-        }
-    };
-
-    const selectFocusedOption = () => {
-        const focusedOption = allOptions[focusedIndex];
-
-        if (!focusedOption || !isFocused) {
-            return;
-        }
-
-        if (props.canSelectMultipleOptions) {
-            selectRow(focusedOption);
-        } else if (!shouldDisableRowSelection) {
-            setShouldDisableRowSelection(true);
-
-            let result = selectRow(focusedOption);
-            if (!(result instanceof Promise)) {
-                result = Promise.resolve();
-            }
-
-            setTimeout(() => {
-                result.finally(() => {
-                    setShouldDisableRowSelection(false);
-                });
-            }, 500);
-        }
-    };
-
-    //Not used?
-    const focus = () => {
-        if (!textInputRef.current) {
-            return;
-        }
-
-        textInputRef.current.focus();
-    };
-
     /**
      * @param {Number} index
      */
     const updateFocusedIndex = (index) => {
         setFocusedIndex(index);
-    };
-
-    /**
-     * Scrolls to the focused index within the SectionList
-     *
-     * @param {Number} index
-     * @param {Boolean} animated
-     */
-    const scrollToIndex = (index, animated = true) => {
-        const option = allOptions[index];
-        if (!listRef.current || !option) {
-            return;
-        }
-
-        const itemIndex = option.index;
-        const sectionIndex = option.sectionIndex;
-
-        if (!lodashGet(sections, `[${sectionIndex}].data[${itemIndex}]`, null)) {
-            return;
-        }
-
-        // Note: react-native's SectionList automatically strips out any empty sections.
-        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-        let adjustedSectionIndex = sectionIndex;
-        for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
-                adjustedSectionIndex--;
-            }
-        }
-
-        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
-    };
-
-    /**
-     * Completes the follow-up actions after a row is selected
-     *
-     * @param {Object} option
-     * @param {Object} ref
-     * @returns {Promise}
-     */
-    const selectRow = (option, ref) => {
-        return new Promise((resolve) => {
-            if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
-                if (relatedTarget.current && ref === relatedTarget.current) {
-                    textInputRef.current.focus();
-                    relatedTarget.current = null;
-                }
-                if (textInputRef.current.isFocused()) {
-                    setSelection(textInputRef.current, 0, value.length);
-                }
-            }
-            const selectedOption = props.onSelectRow(option);
-            resolve(selectedOption);
-
-            if (!props.canSelectMultipleOptions) {
-                return;
-            }
-
-            // Focus the first unselected item from the list (i.e: the best result according to the current search term)
-            setFocusedIndex(props.selectedOptions.length);
-        });
     };
 
     /**
@@ -423,7 +404,7 @@ const BaseOptionsSelector = (props) => {
         if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
             textInputRef.current.focus();
             if (textInputRef.current.isFocused()) {
-                setSelection(textInputRef.current, 0, value.length);
+                setSelection(textInputRef.current, 0, props.value.length);
             }
         }
         props.onAddToSelection(option);
@@ -631,7 +612,7 @@ const BaseOptionsSelector = (props) => {
             )}
         </ArrowKeyFocusManager>
     );
-};
+}
 
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
