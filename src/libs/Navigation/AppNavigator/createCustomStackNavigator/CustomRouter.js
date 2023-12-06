@@ -1,6 +1,7 @@
 import {StackRouter} from '@react-navigation/native';
 import lodashFindLast from 'lodash/findLast';
 import _ from 'underscore';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -68,8 +69,9 @@ function CustomRouter(options) {
     return {
         ...stackRouter,
         getRehydratedState(partialState, {routeNames, routeParamList}) {
+            const isSmallScreenWidth = getIsSmallScreenWidth();
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
-            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !options.getIsSmallScreenWidth()) {
+            if (!isAtLeastOneCentralPaneNavigatorInState(partialState) && !isSmallScreenWidth) {
                 // If we added a route we need to make sure that the state.stale is true to generate new key for this route
                 // eslint-disable-next-line no-param-reassign
                 partialState.stale = true;
