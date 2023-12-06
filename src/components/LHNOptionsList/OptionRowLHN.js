@@ -158,7 +158,7 @@ function OptionRowLHN(props) {
         optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
     const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem.reportID)) : optionItem.text;
 
-    let subscriptAvatarBorderColor = props.isFocused ? focusedBackgroundColor : theme.sidebar;
+    const subscriptAvatarBorderColor = props.isFocused ? focusedBackgroundColor : theme.sidebar;
 
     return (
         <OfflineWithFeedback
