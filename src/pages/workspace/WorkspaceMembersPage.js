@@ -93,9 +93,7 @@ function WorkspaceMembersPage(props) {
         if (!SearchInputManager.searchInput) {
             return;
         }
-        if (SearchInputManager.searchInput) {
-            setSearchValue(SearchInputManager.searchInput);
-        }
+        setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
 
     useEffect(() => () => (SearchInputManager.searchInput = ''), []);

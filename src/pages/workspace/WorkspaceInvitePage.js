@@ -80,9 +80,7 @@ function WorkspaceInvitePage(props) {
         if (!SearchInputManager.searchInput) {
             return;
         }
-        if (SearchInputManager.searchInput) {
-            setSearchTerm(SearchInputManager.searchInput);
-        }
+        setSearchTerm(SearchInputManager.searchInput);
     }, []);
 
     useEffect(() => {
