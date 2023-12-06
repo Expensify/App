@@ -17,18 +17,6 @@ Onyx.connect({
 });
 
 /**
- * @param {Object | Null} passedPersonalDetails
- * @param {Array | String} pathToDisplayName
- * @param {String} [defaultValue] optional default display name value
- * @returns {String}
- */
-function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue = '') {
-    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
-
-    return displayName || defaultValue || Localize.translateLocal('common.hidden');
-}
-
-/**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
  * @param {Array<number>} accountIDs  - Array of accountIDs
  * @param {Number} currentUserAccountID
@@ -198,7 +186,6 @@ function getFormattedAddress(privatePersonalDetails) {
 }
 
 export {
-    getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
