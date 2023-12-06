@@ -25,6 +25,7 @@ import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {useCallback, useState} from "@types/react";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -81,6 +82,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+
+    const cancelPayment = useCallback(() => {
+        // IOU.CancelPayment
+        setIsConfirmModalVisible(false);
+    }, [setIsConfirmModalVisible]);
 
     const threeDotsMenuItems = [];
     if (isPayer && isSettled) {
