@@ -36,6 +36,8 @@ const defaultProps = {
     ...optionsListDefaultProps,
 };
 
+const viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
+
 const BaseOptionsList = forwardRef(
     (
         {
@@ -53,10 +55,10 @@ const BaseOptionsList = forwardRef(
             shouldHaveOptionSeparator,
             showTitleTooltip,
             optionHoveredStyle,
-            contentContainerStyles,
             sectionHeaderStyle,
             showScrollIndicator,
-            listContainerStyles,
+            contentContainerStyles: contentContainerStylesProp,
+            listContainerStyles: listContainerStylesProp,
             shouldDisableRowInnerPadding,
             shouldPreventDefaultFocusOnSelectRow,
             disableFocusOptions,
@@ -72,8 +74,8 @@ const BaseOptionsList = forwardRef(
             isLoadingNewOptions,
             nestedScrollEnabled,
             bounces,
-            safeAreaPaddingBottomStyle,
             renderFooterContent,
+            safeAreaPaddingBottomStyle,
         },
         innerRef,
     ) => {
@@ -82,7 +84,8 @@ const BaseOptionsList = forwardRef(
         const previousSections = usePrevious(sections);
         const didLayout = useRef(false);
 
-        const listContentContainerStyle = useMemo(() => [contentContainerStyles, safeAreaPaddingBottomStyle], [contentContainerStyles, safeAreaPaddingBottomStyle]);
+        const listContainerStyles = useMemo(() => listContainerStylesProp || [styles.flex1], [listContainerStylesProp, styles.flex1]);
+        const contentContainerStyles = useMemo(() => [contentContainerStylesProp, safeAreaPaddingBottomStyle], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
 
         /**
          * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -279,7 +282,7 @@ const BaseOptionsList = forwardRef(
                             scrollEnabled={nestedScrollEnabled}
                             onScrollBeginDrag={onScrollBeginDrag}
                             onScroll={onScroll}
-                            contentContainerStyle={listContentContainerStyle}
+                            contentContainerStyle={contentContainerStyles}
                             showsVerticalScrollIndicator={showScrollIndicator}
                             sections={sections}
                             keyExtractor={extractKey}
@@ -291,7 +294,7 @@ const BaseOptionsList = forwardRef(
                             initialNumToRender={12}
                             maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT}
                             windowSize={5}
-                            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                            viewabilityConfig={viewabilityConfig}
                             onViewableItemsChanged={onViewableItemsChanged}
                             bounces={bounces}
                             ListFooterComponent={renderFooterContent}
