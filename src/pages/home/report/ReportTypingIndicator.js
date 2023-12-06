@@ -27,7 +27,7 @@ function ReportTypingIndicator({userTypingStatuses}) {
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => _.filter(_.keys(userTypingStatuses), (loginOrAccountID) => userTypingStatuses[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
-    const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping))
+    const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
 
     const firstUserTypingID = useMemo(
         () => (firstUserTyping && isUserTypingADisplayName ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping),
