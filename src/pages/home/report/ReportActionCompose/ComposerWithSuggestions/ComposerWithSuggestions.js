@@ -555,13 +555,13 @@ function ComposerWithSuggestions({
                         updateComment(commentValue, true);
 
                         if (isIOSNative && syncSelectionWithOnChangeTextRef.current !== null) {
-                            const positionSnaphsot = syncSelectionWithOnChangeTextRef.current.position;
+                            const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
                             syncSelectionWithOnChangeTextRef.current = null;
 
                             InteractionManager.runAfterInteractions(() => {
                                 // note: this implementation is only available on non-web RN, thus the wrapping
                                 // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                                textInputRef.current.setSelection(positionSnaphsot, positionSnaphsot);
+                                textInputRef.current.setSelection(positionSnapshot, positionSnapshot);
                             });
                         }
                     }}
