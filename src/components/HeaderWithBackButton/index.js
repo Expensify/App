@@ -56,8 +56,8 @@ function HeaderWithBackButton({
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
 }) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();

@@ -152,6 +152,12 @@ const ONYXKEYS = {
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
 
+    /** Whether the user has tried focus mode yet */
+    NVP_TRY_FOCUS_MODE: 'tryFocusMode',
+
+    /** Boolean flag used to display the focus mode notification */
+    FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
+
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
@@ -383,6 +389,8 @@ type OnyxValues = {
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
+    [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
+    [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
@@ -390,7 +398,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
-    [ONYXKEYS.NVP_PREFERRED_LOCALE]: ValueOf<typeof CONST.LOCALES>;
+    [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;

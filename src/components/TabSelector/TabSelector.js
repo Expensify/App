@@ -70,8 +70,8 @@ const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
 
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 

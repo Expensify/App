@@ -41,8 +41,8 @@ type BannerProps = {
 };
 
 function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (

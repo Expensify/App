@@ -1,7 +1,8 @@
 import NotificationType from './NotificationType';
+import PushNotificationType from './types';
 
 // Push notifications are only supported on mobile, so we'll just noop here
-export default {
+const PushNotification: PushNotificationType = {
     init: () => {},
     register: () => {},
     deregister: () => {},
@@ -10,3 +11,5 @@ export default {
     TYPE: NotificationType,
     clearNotifications: () => {},
 };
+
+export default PushNotification;
