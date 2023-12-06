@@ -141,10 +141,9 @@ function PurposeForUsingExpensifyModal() {
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isModalOpen}
-            fullscreen
             onClose={closeModal}
         >
-            <View>
+            <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES])}>
                 <Lottie
                     source={LottieAnimations.Hands}
                     style={styles.w100}
@@ -158,6 +157,7 @@ function PurposeForUsingExpensifyModal() {
                     onCloseButtonPress={() => setIsModalOpen(false)}
                     shouldOverlay
                 />
+            </View>
                 <View style={[styles.w100, styles.ph5, styles.pv5]}>
                     <Text
                         style={[styles.textHeadline, styles.preWrap, styles.mb2]}
@@ -171,7 +171,6 @@ function PurposeForUsingExpensifyModal() {
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-            </View>
         </Modal>
     );
 }
