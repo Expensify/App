@@ -26,6 +26,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import * as TransactionUtils from "@libs/TransactionUtils";
 import * as Expensicons from "@components/Icon/Expensicons";
 import * as HeaderUtils from "@libs/HeaderUtils";
+import useWindowDimensions from "@hooks/useWindowDimensions";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -71,6 +72,7 @@ const defaultProps = {
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
@@ -115,6 +117,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 shouldEnableDetailPageNavigation
                 shouldShowThreeDotsButton = {shouldShowThreeDotsButton}
                 threeDotsMenuItems = {threeDotsMenuItems}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
