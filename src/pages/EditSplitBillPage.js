@@ -12,7 +12,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import reportPropTypes from '@pages/reportPropTypes';
+import reportPropTypes from './reportPropTypes';
 import EditRequestAmountPage from './EditRequestAmountPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
