@@ -1,21 +1,31 @@
 import React from 'react';
 import {View} from 'react-native';
 import {SvgProps} from 'react-native-svg';
-import {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {Policy} from '@src/types/onyx';
 
-type WorkspacesListRowProps = {
+type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
+    /** Name of the workspace */
     title: Policy['name'];
+
+    /** Account ID of the workspace's owner */
     ownerAccountID: Policy['ownerAccountID'];
+
+    /** Type of workspace. Type personal is not valid in this context so it's omitted */
     workspaceType: typeof CONST.POLICY.TYPE.FREE | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.TEAM;
+
+    /** Icon to show next to the workspace name */
     workspaceIcon?: AvatarSource | undefined;
+
+    /** Icon to be used when workspaceIcon is not present */
     fallbackWorkspaceIcon?: AvatarSource | undefined;
 };
 
@@ -45,11 +55,12 @@ const userFriendlyWorkspaceType = (workspaceType: WorkspacesListRowProps['worksp
     }
 };
 
-function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, item}: WorkspacesListRowProps) {
+function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
+    const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
     return (
-        <View style={[styles.highlightBG, styles.p5, styles.br3]}>
+        <View style={[styles.dFlex, styles.gap3, styles.highlightBG, styles.p5, styles.br3]}>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
@@ -61,32 +72,33 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                 />
                 <Text style={styles.textStrong}>{title}</Text>
             </View>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                <Icon
-                    src={workspaceTypeIcon(workspaceType)}
-                    width={34}
-                    height={34}
-                    additionalStyles={styles.workspaceTypeIcon}
-                />
-                <View style={styles.dFlex}>
-                    <Text style={styles.labelStrong}>{ownerAccountID}</Text>
-                    <Text style={[styles.textMicroBold, styles.textSupporting]}>email</Text>
+            <View>
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                    <Avatar
+                        source={ownerDetails.avatar}
+                        size={CONST.AVATAR_SIZE.SMALL}
+                        containerStyles={styles.workspaceOwnerAvatarWrapper}
+                    />
+                    <View style={styles.dFlex}>
+                        <Text style={styles.labelStrong}>{PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}</Text>
+                        <Text style={[styles.textMicroBold, styles.textSupporting]}>{ownerDetails.login}</Text>
+                    </View>
                 </View>
-            </View>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                <Icon
-                    src={workspaceTypeIcon(workspaceType)}
-                    width={34}
-                    height={34}
-                    additionalStyles={styles.workspaceTypeIcon}
-                />
-                <View style={styles.dFlex}>
-                    <Text style={styles.labelStrong}>{userFriendlyWorkspaceType(workspaceType)}</Text>
-                    <Text style={[styles.textMicroBold, styles.textSupporting]}>Plan</Text>
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                    <Icon
+                        src={workspaceTypeIcon(workspaceType)}
+                        width={34}
+                        height={34}
+                        additionalStyles={styles.workspaceTypeWrapper}
+                    />
+                    <View style={styles.dFlex}>
+                        <Text style={styles.labelStrong}>{userFriendlyWorkspaceType(workspaceType)}</Text>
+                        <Text style={[styles.textMicroBold, styles.textSupporting]}>Plan</Text>
+                    </View>
                 </View>
             </View>
         </View>
     );
 }
 
-export default WorkspacesListRow;
+export default withCurrentUserPersonalDetails(WorkspacesListRow);

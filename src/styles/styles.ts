@@ -2839,7 +2839,11 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
         },
 
-        workspaceTypeIcon: {
+        workspaceOwnerAvatarWrapper: {
+            margin: 6,
+        },
+
+        workspaceTypeWrapper: {
             margin: 3,
         },
 
