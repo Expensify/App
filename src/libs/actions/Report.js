@@ -475,9 +475,10 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: reportActionsExist(reportID)
-                ? {}
+                ? {lastVisitTime: DateUtils.getDBTime()}
                 : {
                       reportName: lodashGet(allReports, [reportID, 'reportName'], CONST.REPORT.DEFAULT_REPORT_NAME),
+                      lastVisitTime: DateUtils.getDBTime(),
                   },
         },
         {
