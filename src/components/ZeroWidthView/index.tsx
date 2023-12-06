@@ -1,23 +1,17 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import Text from '@components/Text';
 import * as Browser from '@libs/Browser';
 import * as EmojiUtils from '@libs/EmojiUtils';
 
-const propTypes = {
+type ZeroWidthViewProps = {
     /** If this is the Concierge chat, we'll open the modal for requesting a setup call instead of showing popover menu */
-    text: PropTypes.string,
+    text?: string;
 
     /** URL to the assigned guide's appointment booking calendar */
-    displayAsGroup: PropTypes.bool,
+    displayAsGroup?: boolean;
 };
 
-const defaultProps = {
-    text: '',
-    displayAsGroup: false,
-};
-
-function ZeroWidthView({text, displayAsGroup}) {
+function ZeroWidthView({text = '', displayAsGroup = false}: ZeroWidthViewProps) {
     const firstLetterIsEmoji = EmojiUtils.isFirstLetterEmoji(text);
     if (firstLetterIsEmoji && !displayAsGroup && !Browser.isMobile()) {
         return <Text>&#x200b;</Text>;
@@ -25,8 +19,6 @@ function ZeroWidthView({text, displayAsGroup}) {
     return null;
 }
 
-ZeroWidthView.propTypes = propTypes;
-ZeroWidthView.defaultProps = defaultProps;
 ZeroWidthView.displayName = 'ZeroWidthView';
 
 export default ZeroWidthView;
