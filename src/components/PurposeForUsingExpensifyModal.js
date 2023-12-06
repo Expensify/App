@@ -156,6 +156,7 @@ function PurposeForUsingExpensifyModal() {
                     shouldShowBackButton={false}
                     onCloseButtonPress={() => setIsModalOpen(false)}
                     shouldOverlay
+                    iconFill={theme.iconColorfulBackground}
                 />
             </View>
                 <View style={[styles.w100, styles.ph5, styles.pv5]}>
