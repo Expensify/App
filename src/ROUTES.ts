@@ -2,13 +2,20 @@ import {IsEqual, ValueOf} from 'type-fest';
 import CONST from './CONST';
 
 // This is a file containing constants for all the routes we want to be able to go to
+type StringLiteral<TString extends string> = string extends TString ? never : string;
+type QueryParams = Record<string, string | number | boolean | undefined>;
 
-/**
- * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
- */
-function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string): `${TUrl}` | `${TUrl}?backTo=${string}` | `${TUrl}&backTo=${string}` {
-    const backToParam = backTo ? (`${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` as const) : '';
-    return `${url}${backToParam}` as const;
+function getUrlWithQueryParams<TUrl extends StringLiteral<TUrl>, TQuery extends QueryParams>(url: TUrl, query: TQuery): `${TUrl}?${string}` {
+    if (url.includes('?')) {
+        throw new Error('getUrlWithQueryParams should only be used for urls without query params');
+    }
+
+    const parsedQuery = Object.entries(query)
+        .filter((param): param is [string, string | number | boolean] => param !== undefined)
+        .map(([param, value]) => `${param}=${encodeURIComponent(value)}`)
+        .join('&');
+
+    return `${url}?${parsedQuery}` as const;
 }
 
 const ROUTES = {
@@ -22,11 +29,11 @@ const ROUTES = {
     SEARCH: 'search',
     DETAILS: {
         route: 'details',
-        getRoute: (login: string) => `details?login=${encodeURIComponent(login)}` as const,
+        getRoute: (login: string) => getUrlWithQueryParams('details', {login}),
     },
     PROFILE: {
         route: 'a/:accountID',
-        getRoute: (accountID: string | number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}`, backTo),
+        getRoute: (accountID: string | number, backTo?: string) => getUrlWithQueryParams(`a/${accountID}`, {backTo}),
     },
 
     TRANSITION_BETWEEN_APPS: 'transition',
@@ -52,7 +59,7 @@ const ROUTES = {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
         route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo?: string) => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
+        getRoute: (stepToOpen = '', policyID = '', backTo?: string) => getUrlWithQueryParams(`bank-account/${stepToOpen}`, {backTo, policyID}),
     },
 
     SETTINGS: 'settings',
@@ -120,11 +127,11 @@ const ROUTES = {
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
-        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/personal-details/address/country?country=${country}`, backTo),
+        getRoute: (country: string, backTo?: string) => getUrlWithQueryParams(`settings/profile/personal-details/address/country`, {backTo, country}),
     },
     SETTINGS_CONTACT_METHODS: {
         route: 'settings/profile/contact-methods',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
+        getRoute: (backTo?: string) => getUrlWithQueryParams('settings/profile/contact-methods', {backTo}),
     },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         route: 'settings/profile/contact-methods/:contactMethod/details',
@@ -132,11 +139,11 @@ const ROUTES = {
     },
     SETTINGS_NEW_CONTACT_METHOD: {
         route: 'settings/profile/contact-methods/new',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
+        getRoute: (backTo?: string) => getUrlWithQueryParams('settings/profile/contact-methods/new', {backTo}),
     },
     SETTINGS_2FA: {
         route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
+        getRoute: (backTo?: string) => getUrlWithQueryParams('settings/security/two-factor-auth', {backTo}),
     },
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_SET: 'settings/profile/status/set',
@@ -158,7 +165,7 @@ const ROUTES = {
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
-        getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+        getRoute: (threadReportID: string, currency: string, backTo: string) => getUrlWithQueryParams(`r/${threadReportID}/edit/currency`, {currency, backTo}),
     },
     REPORT_WITH_ID_DETAILS_SHARE_CODE: {
         route: 'r/:reportID/details/shareCode',
@@ -166,7 +173,7 @@ const ROUTES = {
     },
     REPORT_ATTACHMENTS: {
         route: 'r/:reportID/attachment',
-        getRoute: (reportID: string, source: string) => `r/${reportID}/attachment?source=${encodeURI(source)}` as const,
+        getRoute: (reportID: string, source: string) => getUrlWithQueryParams(`r/${reportID}/attachment`, {source}),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -207,7 +214,7 @@ const ROUTES = {
     EDIT_SPLIT_BILL_CURRENCY: {
         route: 'r/:reportID/split/:reportActionID/edit/currency',
         getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) =>
-            `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+            getUrlWithQueryParams(`r/${reportID}/split/${reportActionID}/edit/currency`, {currency, backTo}),
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -265,7 +272,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_CURRENCY: {
         route: ':iouType/new/currency/:reportID?',
-        getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
+        getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => getUrlWithQueryParams(`${iouType}/new/currency/${reportID}`, {currency, backTo}),
     },
     MONEY_REQUEST_DESCRIPTION: {
         route: ':iouType/new/description/:reportID?',
