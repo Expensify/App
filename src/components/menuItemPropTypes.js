@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../CONST';
-import stylePropTypes from '../styles/stylePropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -24,6 +25,9 @@ const propTypes = {
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
 
+    /** Secondary icon to display on the left side of component, right of the icon */
+    secondaryIcon: PropTypes.elementType,
+
     /** Icon Width */
     iconWidth: PropTypes.number,
 
@@ -31,7 +35,7 @@ const propTypes = {
     iconHeight: PropTypes.number,
 
     /** Text to display for the item */
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
 
     /** Text that appears above the title */
     label: PropTypes.string,
@@ -72,6 +76,9 @@ const propTypes = {
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 
+    /** The fill color to pass into the secondary icon. */
+    secondaryIconFill: PropTypes.string,
+
     /** Whether item is focused or active */
     focused: PropTypes.bool,
 
@@ -88,7 +95,7 @@ const propTypes = {
     interactive: PropTypes.bool,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.func,
+    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),
@@ -98,6 +105,9 @@ const propTypes = {
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
+
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
@@ -109,7 +119,7 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    forwardedRef: refPropTypes,
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),
@@ -119,6 +129,39 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /** The action accept for anonymous user or not */
+    isAnonymousAction: PropTypes.bool,
+
+    /**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu: PropTypes.bool,
+
+    /** The max number of lines the title text should occupy before ellipses are added */
+    numberOfLines: PropTypes.number,
+
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled: PropTypes.bool,
+
+    /** Error to display below the title */
+    error: PropTypes.string,
+
+    /** Should render the content in HTML format */
+    shouldRenderAsHTML: PropTypes.bool,
+
+    /** Label to be displayed on the right */
+    rightLabel: PropTypes.string,
+
+    /** Component to be displayed on the right */
+    rightComponent: PropTypes.node,
+
+    /** Should render component on the right */
+    shouldShowRightComponent: PropTypes.bool,
+
+    /** Array of objects that map display names to their corresponding tooltip */
+    titleWithTooltips: PropTypes.arrayOf(PropTypes.object),
+
+    /** Should check anonymous user in onPress function */
+    shouldCheckActionAllowedOnPress: PropTypes.bool,
 };
 
 export default propTypes;

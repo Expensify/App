@@ -1,10 +1,11 @@
-import React from 'react';
-import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {StyleSheet} from 'react-native';
 import _ from 'underscore';
-import RNTextInput from '../RNTextInput';
-import themeColors from '../../styles/themes/default';
-import * as ComposerUtils from '../../libs/ComposerUtils';
+import RNTextInput from '@components/RNTextInput';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -63,66 +64,84 @@ const defaultProps = {
     style: null,
 };
 
-class Composer extends React.Component {
-    constructor(props) {
-        super(props);
+function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
+    const textInput = useRef(null);
+    const theme = useTheme();
+    const styles = useThemeStyles();
 
-        this.state = {
-            propStyles: StyleSheet.flatten(this.props.style),
-        };
-    }
+    /**
+     * Set the TextInput Ref
+     * @param {Element} el
+     */
+    const setTextInputRef = useCallback((el) => {
+        textInput.current = el;
+        if (!_.isFunction(forwardedRef) || textInput.current === null) {
+            return;
+        }
 
-    componentDidMount() {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (!this.props.forwardedRef || !_.isFunction(this.props.forwardedRef)) {
+        forwardedRef(textInput.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (!shouldClear) {
             return;
         }
+        textInput.current.clear();
+        onClear();
+    }, [shouldClear, onClear]);
 
-        this.props.forwardedRef(this.textInput);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.shouldClear || !this.props.shouldClear) {
-            return;
+    /**
+     * Set maximum number of lines
+     * @return {Number}
+     */
+    const maxNumberOfLines = useMemo(() => {
+        if (isComposerFullSize) {
+            return 1000000;
         }
+        return maxLines;
+    }, [isComposerFullSize, maxLines]);
 
-        this.textInput.clear();
-        this.props.onClear();
-    }
+    const composerStyles = useMemo(() => {
+        StyleSheet.flatten(props.style);
+    }, [props.style]);
 
-    render() {
-        return (
-            <RNTextInput
-                autoComplete="off"
-                placeholderTextColor={themeColors.placeholderText}
-                ref={(el) => (this.textInput = el)}
-                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
-                rejectResponderTermination={false}
-                textAlignVertical="center"
-                // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
-                // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
-                // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
-                // TODO: remove this commend once upstream PR is merged
-                maximumNumberOfLines={this.props.isComposerFullSize ? 1000000 : this.props.maxLines}
-                style={this.state.propStyles}
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...this.props}
-                editable={!this.props.isDisabled}
-            />
-        );
-    }
+    return (
+        <RNTextInput
+            autoComplete="off"
+            placeholderTextColor={theme.placeholderText}
+            ref={setTextInputRef}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
+            rejectResponderTermination={false}
+            // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
+            // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
+            // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
+            // TODO: remove this comment once upstream PR is merged and available in a future release
+            maxNumberOfLines={maxNumberOfLines}
+            textAlignVertical="center"
+            style={[composerStyles]}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...props}
+            readOnly={isDisabled}
+        />
+    );
 }
 
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
-export default React.forwardRef((props, ref) => (
+const ComposerWithRef = React.forwardRef((props, ref) => (
     <Composer
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default ComposerWithRef;

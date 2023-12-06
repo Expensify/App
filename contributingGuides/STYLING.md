@@ -2,7 +2,11 @@
 
 ## Where to Define Styles
 
-All styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. Unlike some React Native applications we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are also many helper styles available for direct use in components.
+Styles can either be theme-related or not. "Theme-related" means that a style contains some sort of color attributes (backgroundColor, color, borderColor). "Non-theme-related" styles may not contain no color attributes.
+
+All non-theme-related styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. Unlike some React Native applications we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are also many helper styles available for direct use in components.
+
+All styles that contain theme colors have to be defined in the `ThemeStylesProvider` component, as those need to be dynamically created and animated.
 
 These helper styles are loosely based on the [Bootstrap system of CSS utility helper classes](https://getbootstrap.com/docs/5.0/utilities/spacing/) and are typically incremented by units of `4`.
 

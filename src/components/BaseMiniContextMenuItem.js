@@ -1,13 +1,16 @@
-import {View} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import variables from '../styles/variables';
-import Tooltip from './Tooltip';
+import DomUtils from '@libs/DomUtils';
+import getButtonState from '@libs/getButtonState';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
 const propTypes = {
     /**
@@ -48,15 +51,32 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function BaseMiniContextMenuItem(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <Tooltip text={props.tooltipText}>
             <PressableWithoutFeedback
                 ref={props.innerRef}
                 onPress={props.onPress}
+                onMouseDown={(e) => {
+                    if (!ReportActionComposeFocusManager.isFocused() && !ReportActionComposeFocusManager.isEditFocused()) {
+                        DomUtils.getActiveElement().blur();
+                        return;
+                    }
+
+                    // Allow text input blur on right click
+                    if (!e || e.button === 2) {
+                        return;
+                    }
+
+                    // Prevent text input blur on left click
+                    e.preventDefault();
+                }}
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    props.isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >
                 {(pressableState) => (
@@ -73,10 +93,14 @@ BaseMiniContextMenuItem.propTypes = propTypes;
 BaseMiniContextMenuItem.defaultProps = defaultProps;
 BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
-export default React.forwardRef((props, ref) => (
+const BaseMiniContextMenuItemWithRef = React.forwardRef((props, ref) => (
     <BaseMiniContextMenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+BaseMiniContextMenuItemWithRef.displayName = 'BaseMiniContextMenuItemWithRef';
+
+export default BaseMiniContextMenuItemWithRef;

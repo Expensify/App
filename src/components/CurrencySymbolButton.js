@@ -1,11 +1,11 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Text from './Text';
-import styles from '../styles/styles';
-import Tooltip from './Tooltip';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import React from 'react';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import CONST from '../CONST';
+import Text from './Text';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     /** Currency symbol of selected currency */
@@ -13,19 +13,19 @@ const propTypes = {
 
     /** Function to call when currency button is pressed */
     onCurrencyButtonPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
-function CurrencySymbolButton(props) {
+function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
     return (
-        <Tooltip text={props.translate('iOUCurrencySelection.selectCurrency')}>
+        <Tooltip text={translate('common.selectCurrency')}>
             <PressableWithoutFeedback
-                onPress={props.onCurrencyButtonPress}
-                accessibilityLabel={props.translate('iOUCurrencySelection.selectCurrency')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                onPress={onCurrencyButtonPress}
+                accessibilityLabel={translate('common.selectCurrency')}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
-                <Text style={styles.iouAmountText}>{props.currencySymbol}</Text>
+                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
             </PressableWithoutFeedback>
         </Tooltip>
     );
@@ -34,4 +34,4 @@ function CurrencySymbolButton(props) {
 CurrencySymbolButton.propTypes = propTypes;
 CurrencySymbolButton.displayName = 'CurrencySymbolButton';
 
-export default withLocalize(CurrencySymbolButton);
+export default CurrencySymbolButton;

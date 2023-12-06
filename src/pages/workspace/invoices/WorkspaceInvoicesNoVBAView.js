@@ -1,15 +1,13 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
-import styles from '../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import Section from '../../../components/Section';
+import ConnectBankAccountButton from '@components/ConnectBankAccountButton';
+import * as Illustrations from '@components/Icon/Illustrations';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
-import Button from '../../../components/Button';
-import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -19,6 +17,7 @@ const propTypes = {
 };
 
 function WorkspaceInvoicesNoVBAView(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <WorkspaceInvoicesFirstSection policyID={props.policyID} />
@@ -31,15 +30,9 @@ function WorkspaceInvoicesNoVBAView(props) {
                 <View style={[styles.mv3]}>
                     <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
                 </View>
-                <Button
-                    text={props.translate('workspace.common.connectBankAccount')}
-                    onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
-                    icon={Expensicons.Bank}
+                <ConnectBankAccountButton
+                    policyID={props.policyID}
                     style={[styles.mt4]}
-                    iconStyles={[styles.buttonCTAIcon]}
-                    shouldShowRightIcon
-                    large
-                    success
                 />
             </Section>
         </>

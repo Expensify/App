@@ -1,15 +1,15 @@
-import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import Tooltip from '../Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
-import themeColors from '../../styles/themes/default';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import React, {useState} from 'react';
+import Icon from '@components/Icon';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import getButtonState from '@libs/getButtonState';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** The emoji code of the category header */
@@ -20,47 +20,42 @@ const propTypes = {
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
-class CategoryShortcutButton extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isHighlighted: false,
-        };
-    }
+function CategoryShortcutButton(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [isHighlighted, setIsHighlighted] = useState(false);
 
-    render() {
-        return (
-            <Tooltip
-                text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}
-                shiftVertical={-4}
+    return (
+        <Tooltip
+            text={translate(`emojiPicker.headers.${props.code}`)}
+            shiftVertical={-4}
+        >
+            <PressableWithoutFeedback
+                shouldUseAutoHitSlop={false}
+                onPress={props.onPress}
+                onHoverIn={() => setIsHighlighted(true)}
+                onHoverOut={() => setIsHighlighted(false)}
+                style={({pressed}) => [
+                    StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(false, pressed)),
+                    styles.categoryShortcutButton,
+                    isHighlighted && styles.emojiItemHighlighted,
+                ]}
+                accessibilityLabel={`emojiPicker.headers.${props.code}`}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
-                <PressableWithoutFeedback
-                    onPress={this.props.onPress}
-                    onHoverIn={() => this.setState({isHighlighted: true})}
-                    onHoverOut={() => this.setState({isHighlighted: false})}
-                    style={({pressed}) => [
-                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                        styles.categoryShortcutButton,
-                        this.state.isHighlighted && styles.emojiItemHighlighted,
-                    ]}
-                    accessibilityLabel={`emojiPicker.headers.${this.props.code}`}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                >
-                    <Icon
-                        fill={themeColors.icon}
-                        src={this.props.icon}
-                        height={variables.iconSizeNormal}
-                        width={variables.iconSizeNormal}
-                    />
-                </PressableWithoutFeedback>
-            </Tooltip>
-        );
-    }
+                <Icon
+                    fill={theme.icon}
+                    src={props.icon}
+                    height={variables.iconSizeNormal}
+                    width={variables.iconSizeNormal}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
+    );
 }
 CategoryShortcutButton.propTypes = propTypes;
-
-export default withLocalize(CategoryShortcutButton);
+CategoryShortcutButton.displayName = 'CategoryShortcutButton';
+export default React.memo(CategoryShortcutButton);

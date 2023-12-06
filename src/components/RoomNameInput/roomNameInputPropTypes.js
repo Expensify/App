@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -13,8 +12,6 @@ const propTypes = {
 
     /** Error text to show */
     errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
-
-    ...withLocalizePropTypes,
 
     /** A ref forwarded to the TextInput */
     forwardedRef: PropTypes.func,
@@ -30,6 +27,9 @@ const propTypes = {
 
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
     shouldDelayFocus: PropTypes.bool,
+
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {

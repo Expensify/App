@@ -1,7 +1,7 @@
-import * as Pusher from '../../src/libs/Pusher/pusher';
-import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
+import * as Pusher from '../../src/libs/Pusher/pusher';
+import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 
 const CHANNEL_NAME = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`;
 
@@ -27,7 +27,12 @@ function setup() {
  */
 function emitOnyxUpdate(args) {
     const channel = Pusher.getChannel(CHANNEL_NAME);
-    channel.emit(Pusher.TYPE.ONYX_API_UPDATE, args);
+    channel.emit(Pusher.TYPE.MULTIPLE_EVENTS, [
+        {
+            eventType: Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE,
+            data: args,
+        },
+    ]);
 }
 
 function teardown() {

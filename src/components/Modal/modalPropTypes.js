@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import CONST from '../../CONST';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import stylePropTypes from '../../styles/stylePropTypes';
+import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import stylePropTypes from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
@@ -58,6 +58,14 @@ const propTypes = {
     /** Whether the modal should avoid the keyboard */
     avoidKeyboard: PropTypes.bool,
 
+    /**
+     * Whether the modal should hide its content while animating. On iOS, set to true
+     * if `useNativeDriver` is also true, to avoid flashes in the UI.
+     *
+     * See: https://github.com/react-native-modal/react-native-modal/pull/116
+     * */
+    hideModalContentWhileAnimating: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -75,6 +83,7 @@ const defaultProps = {
     innerContainerStyle: {},
     statusBarTranslucent: true,
     avoidKeyboard: false,
+    hideModalContentWhileAnimating: false,
 };
 
 export {propTypes, defaultProps};

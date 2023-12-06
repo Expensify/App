@@ -25,7 +25,7 @@ const data = [
             {commit: '12', subject: 'Return to old hash-based deploy instrcutions', author: 'test@gmail.com'},
             {commit: '12', subject: 'Remove DEFAULT_START_DATE & DEFAULT_END_DATE altogether', author: 'test@gmail.com'},
         ],
-        expectedOutput: ['337', '336', '331', '330', '333', '332'],
+        expectedOutput: [337, 336, 331, 330, 333, 332],
     },
     {
         input: [
@@ -34,7 +34,7 @@ const data = [
             {commit: '4', subject: '[IS-1500] Updated textalignInput utility', author: 'test@gmail.com'},
             {commit: '5', subject: 'fix: set pdf width on large screens', author: 'test@gmail.com'},
         ],
-        expectedOutput: ['1521'],
+        expectedOutput: [1521],
     },
 ];
 

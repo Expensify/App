@@ -1,5 +1,5 @@
 import React from 'react';
-import InlineSystemMessage from '../components/InlineSystemMessage';
+import InlineSystemMessage from '@components/InlineSystemMessage';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

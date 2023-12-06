@@ -1,94 +1,52 @@
-import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import MenuItem from '../../../components/MenuItem';
-import compose from '../../../libs/compose';
-import * as Illustrations from '../../../components/Icon/Illustrations';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import userPropTypes from '../userPropTypes';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import Text from '@components/Text';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import userPropTypes from '@pages/settings/userPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-
     /** Current user details, which will hold whether or not they have Lounge Access */
     user: userPropTypes,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     user: {},
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const menuItems = [
-    {
-        translationKey: 'loungeAccessPage.coffeePromo',
-        icon: Illustrations.CoffeeMug,
-    },
-    {
-        translationKey: 'loungeAccessPage.networkingPromo',
-        icon: Illustrations.ChatBubbles,
-    },
-    {
-        translationKey: 'loungeAccessPage.viewsPromo',
-        icon: Illustrations.SanFrancisco,
-    },
-];
-
 function LoungeAccessPage(props) {
-    const illustrationStyle = props.isSmallScreenWidth
-        ? {
-              width: props.windowWidth,
-              height: CONST.SETTINGS_LOUNGE_ACCESS.HEADER_IMAGE_ASPECT_RATIO * props.windowWidth,
-          }
-        : {};
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    if (!props.user.hasLoungeAccess) {
+        return <NotFoundPage />;
+    }
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!props.user.hasLoungeAccess}>
-                    <HeaderWithBackButton
-                        title={props.translate('loungeAccessPage.loungeAccess')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                    />
-                    <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                        <View style={illustrationStyle}>
-                            <Illustrations.Lounge />
-                        </View>
-                        <View style={styles.pageWrapperNotCentered}>
-                            <Text
-                                style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                                numberOfLines={2}
-                            >
-                                {props.translate('loungeAccessPage.headline')}
-                            </Text>
-                            <Text style={styles.baseFontStyle}>{props.translate('loungeAccessPage.description')}</Text>
-                        </View>
-                        {_.map(menuItems, (item) => (
-                            <MenuItem
-                                key={item.translationKey}
-                                title={props.translate(item.translationKey)}
-                                icon={item.icon}
-                                iconWidth={60}
-                                iconHeight={60}
-                                iconStyles={[styles.mr3, styles.ml3]}
-                                interactive={false}
-                            />
-                        ))}
-                    </ScrollView>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+        <IllustratedHeaderPageLayout
+            title={translate('loungeAccessPage.loungeAccess')}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            illustration={LottieAnimations.ExpensifyLounge}
+        >
+            <Text
+                style={[styles.flex1, styles.ph5, styles.textHeadline, styles.preWrap, styles.mb2]}
+                numberOfLines={1}
+            >
+                {translate('loungeAccessPage.headline')}
+            </Text>
+            <Text style={[styles.flex1, styles.ph5, styles.baseFontStyle]}>{translate('loungeAccessPage.description')}</Text>
+        </IllustratedHeaderPageLayout>
     );
 }
 
@@ -97,8 +55,7 @@ LoungeAccessPage.defaultProps = defaultProps;
 LoungeAccessPage.displayName = 'LoungeAccessPage';
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
+    withCurrentUserPersonalDetails,
     withOnyx({
         user: {
             key: ONYXKEYS.USER,

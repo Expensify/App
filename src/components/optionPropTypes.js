@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import participantPropTypes from './participantPropTypes';
+import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
+import participantPropTypes from './participantPropTypes';
 
 export default PropTypes.shape({
     // Text to display
@@ -68,6 +68,4 @@ export default PropTypes.shape({
     brickRoadIndicator: PropTypes.oneOf([CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR, '']),
 
     phoneNumber: PropTypes.string,
-
-    payPalMeAddress: PropTypes.string,
 });

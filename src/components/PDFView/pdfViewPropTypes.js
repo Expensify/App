@@ -1,10 +1,14 @@
 import PropTypes from 'prop-types';
-import stylePropTypes from '../../styles/stylePropTypes';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** URL to full-sized image */
     sourceURL: PropTypes.string,
+
+    /** PDF file name */
+    fileName: PropTypes.string,
 
     /** Additional style props */
     style: stylePropTypes,
@@ -24,17 +28,24 @@ const propTypes = {
     /** Should focus to the password input  */
     isFocused: PropTypes.bool,
 
+    /** Styles for the error label */
+    errorLabelStyles: stylePropTypes,
+
     ...windowDimensionsPropTypes,
+
+    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
     sourceURL: '',
+    fileName: '',
     style: {},
-    onPress: () => {},
+    onPress: undefined,
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
     onLoadComplete: () => {},
     isFocused: false,
+    errorLabelStyles: [],
 };
 
 export {propTypes, defaultProps};

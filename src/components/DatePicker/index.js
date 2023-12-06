@@ -1,99 +1,106 @@
-import React from 'react';
-import moment from 'moment';
-import _ from 'underscore';
-import TextInput from '../TextInput';
-import CONST from '../../CONST';
-import {propTypes, defaultProps} from './datepickerPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import './styles.css';
+import {setYear} from 'date-fns';
+import _ from 'lodash';
+import PropTypes from 'prop-types';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import InputWrapper from '@components/Form/InputWrapper';
+import * as Expensicons from '@components/Icon/Expensicons';
+import TextInput from '@components/TextInput';
+import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import CalendarPicker from './CalendarPicker';
 
-const datePickerPropTypes = {
-    ...propTypes,
-    ...windowDimensionsPropTypes,
+const propTypes = {
+    /**
+     * The datepicker supports any value that `new Date()` can parse.
+     * `onInputChange` would always be called with a Date (or null)
+     */
+    value: PropTypes.string,
+
+    /**
+     * The datepicker supports any defaultValue that `new Date()` can parse.
+     * `onInputChange` would always be called with a Date (or null)
+     */
+    defaultValue: PropTypes.string,
+
+    inputID: PropTypes.string.isRequired,
+
+    /** A minimum date of calendar to select */
+    minDate: PropTypes.objectOf(Date),
+
+    /** A maximum date of calendar to select */
+    maxDate: PropTypes.objectOf(Date),
+
+    ...withLocalizePropTypes,
+    ...baseTextInputPropTypes,
 };
 
-class DatePicker extends React.Component {
-    constructor(props) {
-        super(props);
+const datePickerDefaultProps = {
+    ...defaultBaseTextInputPropTypes,
+    minDate: setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
+    maxDate: setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    value: undefined,
+};
 
-        this.setDate = this.setDate.bind(this);
-        this.showDatepicker = this.showDatepicker.bind(this);
+function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+    const styles = useThemeStyles();
+    const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
-        this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
-    }
-
-    componentDidMount() {
-        // Adds nice native datepicker on web/desktop. Not possible to set this through props
-        this.inputRef.setAttribute('type', 'date');
-        this.inputRef.setAttribute('max', moment(this.props.maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        this.inputRef.setAttribute('min', moment(this.props.minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        this.inputRef.classList.add('expensify-datepicker');
-    }
-
-    /**
-     * Trigger the `onChange` handler when the user input has a complete date or is cleared
-     * @param {String} text
-     */
-    setDate(text) {
-        if (!text) {
-            this.props.onInputChange('');
+    useEffect(() => {
+        if (selectedDate === value || _.isUndefined(value)) {
             return;
         }
+        setSelectedDate(value);
+    }, [selectedDate, value]);
 
-        const asMoment = moment(text, true);
-        if (asMoment.isValid()) {
-            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+    useEffect(() => {
+        if (_.isFunction(onTouched)) {
+            onTouched();
         }
-    }
-
-    /**
-     * Pops the datepicker up when we focus this field. This only works on mWeb
-     * On mWeb the user needs to tap on the field again in order to bring the datepicker. But our current styles
-     * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
-     */
-    showDatepicker() {
-        if (!this.inputRef) {
-            return;
+        if (_.isFunction(onInputChange)) {
+            onInputChange(selectedDate);
         }
+        // To keep behavior from class component state update callback, we want to run effect only when the selected date is changed.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedDate]);
 
-        this.inputRef.click();
-    }
-
-    render() {
-        return (
-            <TextInput
-                forceActiveLabel
-                ref={(el) => {
-                    this.inputRef = el;
-
-                    if (_.isFunction(this.props.innerRef)) {
-                        this.props.innerRef(el);
-                    }
-                }}
-                onFocus={this.showDatepicker}
-                label={this.props.label}
-                onInputChange={this.setDate}
-                value={this.props.value}
-                defaultValue={this.defaultValue}
-                placeholder={this.props.placeholder}
-                errorText={this.props.errorText}
-                containerStyles={this.props.containerStyles}
-                disabled={this.props.disabled}
-                onBlur={this.props.onBlur}
-            />
-        );
-    }
+    return (
+        <View style={styles.datePickerRoot}>
+            <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={inputID}
+                    forceActiveLabel
+                    icon={Expensicons.Calendar}
+                    label={label}
+                    accessibilityLabel={label}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    value={value || selectedDate || ''}
+                    placeholder={placeholder || translate('common.dateFormat')}
+                    errorText={errorText}
+                    containerStyles={containerStyles}
+                    textInputContainerStyles={[styles.borderColorFocus]}
+                    inputStyle={[styles.pointerEventsNone]}
+                    disabled={disabled}
+                    readOnly
+                />
+            </View>
+            <View style={[styles.datePickerPopover, styles.border]}>
+                <CalendarPicker
+                    minDate={minDate}
+                    maxDate={maxDate}
+                    value={selectedDate}
+                    onSelected={setSelectedDate}
+                />
+            </View>
+        </View>
+    );
 }
 
-DatePicker.propTypes = datePickerPropTypes;
-DatePicker.defaultProps = defaultProps;
+DatePicker.propTypes = propTypes;
+DatePicker.defaultProps = datePickerDefaultProps;
+DatePicker.displayName = 'DatePicker';
 
-export default withWindowDimensions(
-    React.forwardRef((props, ref) => (
-        <DatePicker
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+export default withLocalize(DatePicker);

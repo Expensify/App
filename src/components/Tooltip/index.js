@@ -1,176 +1,37 @@
-import _ from 'underscore';
-import React, {PureComponent} from 'react';
-import {Animated} from 'react-native';
-import {BoundsObserver} from '@react-ng/bounds-observer';
-import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
-import Hoverable from '../Hoverable';
-import withWindowDimensions from '../withWindowDimensions';
-import * as tooltipPropTypes from './tooltipPropTypes';
-import TooltipSense from './TooltipSense';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import compose from '../../libs/compose';
-import withLocalize from '../withLocalize';
+import PropTypes from 'prop-types';
+import React from 'react';
+import BaseTooltip from './BaseTooltip';
+import {defaultProps as tooltipDefaultProps, propTypes as tooltipPropTypes} from './tooltipPropTypes';
 
-/**
- * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
- * wrapped element, which, upon hover, triggers the tooltip to be shown.
- */
-class Tooltip extends PureComponent {
-    constructor(props) {
-        super(props);
+const propTypes = {
+    ...tooltipPropTypes,
 
-        this.state = {
-            // Is tooltip already rendered on the page's body? This happens once.
-            isRendered: false,
+    /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+    shouldRender: PropTypes.bool,
+};
 
-            // Is the tooltip currently visible?
-            isVisible: false,
+const defaultProps = {
+    ...tooltipDefaultProps,
+    shouldRender: true,
+};
 
-            // The distance between the left side of the wrapper view and the left side of the window
-            xOffset: 0,
-
-            // The distance between the top of the wrapper view and the top of the window
-            yOffset: 0,
-
-            // The width and height of the wrapper view
-            wrapperWidth: 0,
-            wrapperHeight: 0,
-        };
-
-        // Whether the tooltip is first tooltip to activate the TooltipSense
-        this.isTooltipSenseInitiator = false;
-        this.animation = new Animated.Value(0);
-        this.hasHoverSupport = DeviceCapabilities.hasHoverSupport();
-
-        this.showTooltip = this.showTooltip.bind(this);
-        this.hideTooltip = this.hideTooltip.bind(this);
-        this.updateBounds = this.updateBounds.bind(this);
-        this.isAnimationCanceled = React.createRef(false);
+function Tooltip({shouldRender = true, children, ...props}) {
+    if (!shouldRender) {
+        return children;
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    componentDidUpdate(prevProps) {
-        // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
-        // we need to show the tooltip again
-        if (this.state.isVisible && this.isAnimationCanceled.current && this.props.text && prevProps.text !== this.props.text) {
-            this.isAnimationCanceled.current = false;
-            this.showTooltip();
-        }
-    }
-
-    /**
-     * Update the tooltip bounding rectangle
-     *
-     * @param {Object} bounds - updated bounds
-     */
-    updateBounds(bounds) {
-        if (bounds.width === 0) {
-            this.setState({isRendered: false});
-        }
-        this.setState({
-            wrapperWidth: bounds.width,
-            wrapperHeight: bounds.height,
-            xOffset: bounds.x,
-            yOffset: bounds.y,
-        });
-    }
-
-    /**
-     * Display the tooltip in an animation.
-     */
-    showTooltip() {
-        if (!this.state.isRendered) {
-            this.setState({isRendered: true});
-        }
-
-        this.setState({isVisible: true});
-
-        this.animation.stopAnimation();
-
-        // When TooltipSense is active, immediately show the tooltip
-        if (TooltipSense.isActive()) {
-            this.animation.setValue(1);
-        } else {
-            this.isTooltipSenseInitiator = true;
-            Animated.timing(this.animation, {
-                toValue: 1,
-                duration: 140,
-                delay: 500,
-                useNativeDriver: false,
-            }).start(({finished}) => {
-                this.isAnimationCanceled.current = !finished;
-            });
-        }
-        TooltipSense.activate();
-    }
-
-    /**
-     * Hide the tooltip in an animation.
-     */
-    hideTooltip() {
-        this.animation.stopAnimation();
-
-        if (TooltipSense.isActive() && !this.isTooltipSenseInitiator) {
-            this.animation.setValue(0);
-        } else {
-            // Hide the first tooltip which initiated the TooltipSense with animation
-            this.isTooltipSenseInitiator = false;
-            Animated.timing(this.animation, {
-                toValue: 0,
-                duration: 140,
-                useNativeDriver: false,
-            }).start();
-        }
-
-        TooltipSense.deactivate();
-
-        this.setState({isVisible: false});
-    }
-
-    render() {
-        // Skip the tooltip and return the children if the text is empty,
-        // we don't have a render function or the device does not support hovering
-        if ((_.isEmpty(this.props.text) && this.props.renderTooltipContent == null) || !this.hasHoverSupport) {
-            return this.props.children;
-        }
-
-        return (
-            <>
-                {this.state.isRendered && (
-                    <TooltipRenderedOnPageBody
-                        animation={this.animation}
-                        windowWidth={this.props.windowWidth}
-                        xOffset={this.state.xOffset}
-                        yOffset={this.state.yOffset}
-                        targetWidth={this.state.wrapperWidth}
-                        targetHeight={this.state.wrapperHeight}
-                        shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
-                        shiftVertical={_.result(this.props, 'shiftVertical')}
-                        text={this.props.text}
-                        maxWidth={this.props.maxWidth}
-                        numberOfLines={this.props.numberOfLines}
-                        renderTooltipContent={this.props.renderTooltipContent}
-                        // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
-                        // This prevents flickering/moving while remaining performant.
-                        key={[this.props.text, ...this.props.renderTooltipContentKey, this.props.preferredLocale]}
-                    />
-                )}
-                <BoundsObserver
-                    enabled={this.state.isVisible}
-                    onBoundsChange={this.updateBounds}
-                >
-                    <Hoverable
-                        onHoverIn={this.showTooltip}
-                        onHoverOut={this.hideTooltip}
-                    >
-                        {this.props.children}
-                    </Hoverable>
-                </BoundsObserver>
-            </>
-        );
-    }
+    return (
+        <BaseTooltip
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
+            {children}
+        </BaseTooltip>
+    );
 }
 
-Tooltip.propTypes = tooltipPropTypes.propTypes;
-Tooltip.defaultProps = tooltipPropTypes.defaultProps;
-export default compose(withWindowDimensions, withLocalize)(Tooltip);
+Tooltip.displayName = 'Tooltip';
+Tooltip.propTypes = propTypes;
+Tooltip.defaultProps = defaultProps;
+
+export default Tooltip;

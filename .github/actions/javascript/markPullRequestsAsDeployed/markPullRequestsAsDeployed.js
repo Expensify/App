@@ -1,14 +1,9 @@
 const _ = require('underscore');
-const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
 const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
-
-const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
-const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
-const version = core.getInput('DEPLOY_VERSION', {required: true});
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
@@ -30,34 +25,6 @@ function getDeployTableMessage(platformResult) {
     }
 }
 
-const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
-const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
-const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
-const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
-
-const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
-
-/**
- * @param {String} deployer
- * @param {String} deployVerb
- * @param {String} prTitle
- * @returns {String}
- */
-function getDeployMessage(deployer, deployVerb, prTitle) {
-    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-    message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
-    message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-    message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
-
-    if (deployVerb === 'Cherry-picked' && !/no qa/gi.test(prTitle)) {
-        // eslint-disable-next-line max-len
-        message +=
-            '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
-    }
-
-    return message;
-}
-
 /**
  * Comment Single PR
  *
@@ -65,87 +32,108 @@ function getDeployMessage(deployer, deployVerb, prTitle) {
  * @param {String} message
  * @returns {Promise<void>}
  */
-function commentPR(PR, message) {
-    return GithubUtils.createComment(context.repo.repo, PR, message)
-        .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
-        .catch((err) => {
-            console.log(`Unable to write comment on #${PR} 😞`);
-            core.setFailed(err.message);
-        });
+async function commentPR(PR, message) {
+    try {
+        await GithubUtils.createComment(context.repo.repo, PR, message);
+        console.log(`Comment created on #${PR} successfully 🎉`);
+    } catch (err) {
+        console.log(`Unable to write comment on #${PR} 😞`);
+        core.setFailed(err.message);
+    }
 }
 
-const run = function () {
+const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+
+async function run() {
+    const prList = _.map(ActionUtils.getJSONInput('PR_LIST', {required: true}), (num) => Number.parseInt(num, 10));
+    const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
+    const version = core.getInput('DEPLOY_VERSION', {required: true});
+
+    const androidResult = getDeployTableMessage(core.getInput('ANDROID', {required: true}));
+    const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', {required: true}));
+    const iOSResult = getDeployTableMessage(core.getInput('IOS', {required: true}));
+    const webResult = getDeployTableMessage(core.getInput('WEB', {required: true}));
+
+    /**
+     * @param {String} deployer
+     * @param {String} deployVerb
+     * @param {String} prTitle
+     * @returns {String}
+     */
+    function getDeployMessage(deployer, deployVerb, prTitle) {
+        let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
+        message += ` by https://github.com/${deployer} in version: ${version} 🚀`;
+        message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
+        message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
+
+        if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle)) {
+            // eslint-disable-next-line max-len
+            message +=
+                '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
+        }
+
+        return message;
+    }
+
     if (isProd) {
-        // First find the deployer (who closed the last deploy checklist)?
-        return GithubUtils.octokit.issues
-            .listForRepo({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                labels: CONST.LABELS.STAGING_DEPLOY,
-                state: 'closed',
-            })
-            .then(({data}) => _.first(data).number)
-            .then((lastDeployChecklistNumber) => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
-            .then((actor) => {
-                // Create comment on each pull request (one after another to avoid throttling issues)
-                const deployMessage = getDeployMessage(actor, 'Deployed');
-                _.reduce(prList, (promise, pr) => promise.then(() => commentPR(pr, deployMessage)), Promise.resolve());
-            });
+        // Find the previous deploy checklist
+        const {data: deployChecklists} = await GithubUtils.octokit.issues.listForRepo({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            labels: CONST.LABELS.STAGING_DEPLOY,
+            state: 'closed',
+        });
+        const previousChecklistID = _.first(deployChecklists).number;
+
+        // who closed the last deploy checklist?
+        const deployer = await GithubUtils.getActorWhoClosedIssue(previousChecklistID);
+
+        // Create comment on each pull request (one at a time to avoid throttling issues)
+        const deployMessage = getDeployMessage(deployer, 'Deployed');
+        for (const pr of prList) {
+            await commentPR(pr, deployMessage);
+        }
+        return;
     }
 
     // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokit.repos
-        .listTags({
+    const {data: recentTags} = await GithubUtils.octokit.repos.listTags({
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        per_page: 100,
+    });
+    const currentTag = _.find(recentTags, (tag) => tag.name === version);
+    if (!currentTag) {
+        const err = `Could not find tag matching ${version}`;
+        console.error(err);
+        core.setFailed(err);
+        return;
+    }
+    const {data: commit} = await GithubUtils.octokit.git.getCommit({
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        commit_sha: currentTag.commit.sha,
+    });
+    const isCP = /[\S\s]*\(cherry picked from commit .*\)/.test(commit.message);
+
+    for (const prNumber of prList) {
+        /*
+         * Determine who the deployer for the PR is. The "deployer" for staging deploys is:
+         *   1. For regular staging deploys, the person who merged the PR.
+         *   2. For CPs, the person who committed the cherry-picked commit (not necessarily the author of the commit).
+         */
+        const {data: pr} = await GithubUtils.octokit.pulls.get({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            per_page: 100,
-        })
-        .then(({data}) => {
-            const tagSHA = _.find(data, (tag) => tag.name === version).commit.sha;
-            return GithubUtils.octokit.git.getCommit({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                commit_sha: tagSHA,
-            });
-        })
-        .then(({data}) => {
-            const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
-            _.reduce(
-                prList,
-                (promise, PR) =>
-                    promise
-
-                        // Then, for each PR, find out who merged it and determine the deployer
-                        .then(() =>
-                            GithubUtils.octokit.pulls.get({
-                                owner: CONST.GITHUB_OWNER,
-                                repo: CONST.APP_REPO,
-                                pull_number: PR,
-                            }),
-                        )
-                        .then((response) => {
-                            /*
-                             * The deployer for staging deploys is:
-                             *   1. For regular staging deploys, the person who merged the PR.
-                             *   2. For automatic CPs (using the label), the person who merged the PR.
-                             *   3. For manual CPs (using the GH UI), the person who triggered the workflow
-                             *      (reflected in the branch name).
-                             */
-                            let deployer = lodashGet(response, 'data.merged_by.login', '');
-                            const issueTitle = lodashGet(response, 'data.title', '');
-                            const CPActorMatches = data.message.match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== CONST.OS_BOTIFY) {
-                                deployer = CPActorMatches[1];
-                            }
-
-                            // Finally, comment on the PR
-                            const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
-                            return commentPR(PR, deployMessage);
-                        }),
-                Promise.resolve(),
-            );
+            pull_number: prNumber,
         });
-};
+        const deployer = isCP ? commit.committer.name : pr.merged_by.login;
+
+        const title = pr.title;
+        const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title);
+        await commentPR(prNumber, deployMessage);
+    }
+}
 
 if (require.main === module) {
     run();

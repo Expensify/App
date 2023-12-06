@@ -1,39 +1,48 @@
-import {render, fireEvent, within} from '@testing-library/react-native';
-import moment from 'moment';
-import CalendarPicker from '../../src/components/CalendarPicker';
+import {fireEvent, render, within} from '@testing-library/react-native';
+import {addMonths, addYears, subYears} from 'date-fns';
+import CalendarPicker from '../../src/components/DatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
+import DateUtils from '../../src/libs/DateUtils';
 
-moment.locale(CONST.LOCALES.EN);
-const monthNames = moment.localeData().months();
+const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
 
 jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({navigate: jest.fn()}),
     createNavigationContainerRef: jest.fn(),
 }));
 
-// eslint-disable-next-line arrow-body-style
-function MockedCalendarPicker(props) {
-    return (
-        <CalendarPicker
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            translate={() => ''}
-            preferredLocale={CONST.LOCALES.EN}
-        />
-    );
-}
+jest.mock('../../src/components/withLocalize', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                translate={() => ''}
+                preferredLocale="en"
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
+
+jest.mock('../../src/hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: jest.fn(),
+    })),
+);
 
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
-        render(<MockedCalendarPicker />);
+        render(<CalendarPicker />);
     });
 
     test('displays the current month and year', () => {
         const currentDate = new Date();
-        const maxDate = moment(currentDate).add(1, 'Y').toDate();
-        const minDate = moment(currentDate).subtract(1, 'Y').toDate();
+        const maxDate = addYears(new Date(currentDate), 1);
+        const minDate = subYears(new Date(currentDate), 1);
         const {getByText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 maxDate={maxDate}
                 minDate={minDate}
             />,
@@ -47,7 +56,7 @@ describe('CalendarPicker', () => {
         const minDate = new Date('2022-01-01');
         const maxDate = new Date('2030-01-01');
         const {getByTestId, getByText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 minDate={minDate}
                 maxDate={maxDate}
             />,
@@ -55,12 +64,12 @@ describe('CalendarPicker', () => {
 
         fireEvent.press(getByTestId('next-month-arrow'));
 
-        const nextMonth = new Date().getMonth() + 1;
+        const nextMonth = addMonths(new Date(), 1).getMonth();
         expect(getByText(monthNames[nextMonth])).toBeTruthy();
     });
 
     test('clicking previous month arrow updates the displayed month', () => {
-        const {getByTestId, getByText} = render(<MockedCalendarPicker />);
+        const {getByTestId, getByText} = render(<CalendarPicker />);
 
         fireEvent.press(getByTestId('prev-month-arrow'));
 
@@ -74,7 +83,7 @@ describe('CalendarPicker', () => {
         const maxDate = new Date('2030-01-01');
         const value = '2023-01-01';
         const {getByText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 value={value}
                 minDate={minDate}
                 maxDate={maxDate}
@@ -94,7 +103,7 @@ describe('CalendarPicker', () => {
         const minDate = new Date('2022-01-01');
         const maxDate = new Date('2030-01-01');
         const {getByText, getByTestId} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 value={value}
                 minDate={minDate}
                 maxDate={maxDate}
@@ -112,7 +121,7 @@ describe('CalendarPicker', () => {
         const minDate = new Date('2003-02-01');
         const value = new Date('2003-02-17');
         const {getByTestId} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 minDate={minDate}
                 value={value}
             />,
@@ -125,7 +134,7 @@ describe('CalendarPicker', () => {
         const maxDate = new Date('2003-02-24');
         const value = '2003-02-17';
         const {getByTestId} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 maxDate={maxDate}
                 value={value}
             />,
@@ -134,11 +143,24 @@ describe('CalendarPicker', () => {
         expect(getByTestId('next-month-arrow')).toBeDisabled();
     });
 
+    test('should allow navigating to the month of the max date when it has less days than the selected date', () => {
+        const maxDate = new Date('2003-11-27'); // This month has 30 days
+        const value = '2003-10-31';
+        const {getByTestId} = render(
+            <CalendarPicker
+                maxDate={maxDate}
+                value={value}
+            />,
+        );
+
+        expect(getByTestId('next-month-arrow')).not.toBeDisabled();
+    });
+
     test('should open the calendar on a month from max date if it is earlier than current month', () => {
         const onSelectedMock = jest.fn();
         const maxDate = new Date('2011-03-01');
         const {getByText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 onSelected={onSelectedMock}
                 maxDate={maxDate}
             />,
@@ -151,7 +173,7 @@ describe('CalendarPicker', () => {
 
     test('should open the calendar on a year from max date if it is earlier than current year', () => {
         const maxDate = new Date('2011-03-01');
-        const {getByTestId} = render(<MockedCalendarPicker maxDate={maxDate} />);
+        const {getByTestId} = render(<CalendarPicker maxDate={maxDate} />);
 
         expect(within(getByTestId('currentYearText')).getByText('2011')).toBeTruthy();
     });
@@ -160,7 +182,7 @@ describe('CalendarPicker', () => {
         const minDate = new Date('2035-02-16');
         const maxDate = new Date('2040-02-16');
         const {getByTestId} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 minDate={minDate}
                 maxDate={maxDate}
             />,
@@ -173,7 +195,7 @@ describe('CalendarPicker', () => {
         const value = '2003-02-17';
         const minDate = new Date('2003-02-16');
         const {getByLabelText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 minDate={minDate}
                 value={value}
             />,
@@ -186,7 +208,7 @@ describe('CalendarPicker', () => {
         const value = '2003-02-17';
         const maxDate = new Date('2003-02-24');
         const {getByLabelText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 maxDate={maxDate}
                 value={value}
             />,
@@ -199,7 +221,7 @@ describe('CalendarPicker', () => {
         const value = '2003-02-17';
         const minDate = new Date('2003-02-16');
         const {getByLabelText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 minDate={minDate}
                 value={value}
             />,
@@ -208,11 +230,11 @@ describe('CalendarPicker', () => {
         expect(getByLabelText('16')).not.toBeDisabled();
     });
 
-    test('should not allow to press max date', () => {
+    test('should allow to press max date', () => {
         const value = '2003-02-17';
         const maxDate = new Date('2003-02-24');
         const {getByLabelText} = render(
-            <MockedCalendarPicker
+            <CalendarPicker
                 maxDate={maxDate}
                 value={value}
             />,

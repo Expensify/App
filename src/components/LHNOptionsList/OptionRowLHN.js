@@ -1,41 +1,39 @@
-import _ from 'underscore';
-import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
-import {View, StyleSheet} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import * as optionRowStyles from '../../styles/optionRowStyles';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import MultipleAvatars from '../MultipleAvatars';
-import Hoverable from '../Hoverable';
-import DisplayNames from '../DisplayNames';
-import colors from '../../styles/colors';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import {withReportCommentDrafts} from '../OnyxProvider';
-import Text from '../Text';
-import SubscriptAvatar from '../SubscriptAvatar';
-import CONST from '../../CONST';
-import themeColors from '../../styles/themes/default';
-import SidebarUtils from '../../libs/SidebarUtils';
-import TextPill from '../TextPill';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
-import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Report from '../../libs/actions/Report';
+import PropTypes from 'prop-types';
+import React, {useCallback, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import DisplayNames from '@components/DisplayNames';
+import Hoverable from '@components/Hoverable';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import DateUtils from '@libs/DateUtils';
+import DomUtils from '@libs/DomUtils';
+import {getGroupChatName} from '@libs/GroupChatUtils';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as optionRowStyles from '@styles/optionRowStyles';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
-
-    /** The comment left by the user */
-    comment: PropTypes.string,
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -51,39 +49,53 @@ const propTypes = {
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    ...withLocalizePropTypes,
+    /** The item that should be rendered */
+    // eslint-disable-next-line react/forbid-prop-types
+    optionItem: PropTypes.object,
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: undefined,
     viewMode: 'default',
     onSelectRow: () => {},
-    isFocused: false,
     style: null,
-    comment: '',
+    optionItem: null,
+    isFocused: false,
 };
 
 function OptionRowLHN(props) {
-    const optionItem = SidebarUtils.getOptionData(props.reportID);
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const popoverAnchor = useRef(null);
+    const isFocusedRef = useRef(true);
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    const {translate} = useLocalize();
+
+    const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
-    useEffect(() => {
-        if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
-            return;
-        }
-        Report.setReportWithDraft(props.reportID, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            isFocusedRef.current = true;
+            return () => {
+                isFocusedRef.current = false;
+            };
+        }, []),
+    );
 
     if (!optionItem) {
         return null;
     }
 
-    let popoverAnchor = null;
+    const isHidden = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    if (isHidden && !props.isFocused && !optionItem.isPinned) {
+        return null;
+    }
+
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
-    const textPillStyle = props.isFocused ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)] : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
             ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
@@ -91,21 +103,21 @@ function OptionRowLHN(props) {
         props.style,
     );
     const contentContainerStyles =
-        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
+        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles(styles)] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(
         props.viewMode === CONST.OPTION_MODE.COMPACT
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : themeColors.sidebar;
+    const hoveredBackgroundColor =
+        (props.hoverStyle || styles.sidebarLinkHover) && (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            ? (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator =
-        !hasBrickError &&
-        (optionItem.isUnreadWithMention ||
-            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted));
+    const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -113,6 +125,9 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        if (!isFocusedRef.current && isSmallScreenWidth) {
+            return;
+        }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
@@ -120,7 +135,8 @@ function OptionRowLHN(props) {
             '',
             popoverAnchor,
             props.reportID,
-            {},
+            '0',
+            props.reportID,
             '',
             () => {},
             () => setIsContextMenuActive(false),
@@ -131,24 +147,53 @@ function OptionRowLHN(props) {
         );
     };
 
+    const emojiCode = lodashGet(optionItem, 'status.emojiCode', '');
+    const statusText = lodashGet(optionItem, 'status.text', '');
+    const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
+    const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
+
+    const isGroupChat =
+        optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
+    const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem.reportID)) : optionItem.text;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
         >
             <Hoverable>
                 {(hovered) => (
                     <PressableWithSecondaryInteraction
-                        ref={(el) => (popoverAnchor = el)}
+                        ref={popoverAnchor}
                         onPress={(e) => {
                             if (e) {
                                 e.preventDefault();
                             }
-
+                            // Enable Composer to focus on clicking the same chat after opening the context menu.
+                            ReportActionComposeFocusManager.focus();
                             props.onSelectRow(optionItem, popoverAnchor);
                         }}
-                        onSecondaryInteraction={(e) => showPopover(e)}
+                        onMouseDown={(e) => {
+                            // Allow composer blur on right click
+                            if (!e) {
+                                return;
+                            }
+
+                            // Prevent composer blur on left click
+                            e.preventDefault();
+                        }}
+                        testID={optionItem.reportID}
+                        onSecondaryInteraction={(e) => {
+                            showPopover(e);
+                            // Ensure that we blur the composer when opening context menu, so that only one component is focused at a time
+                            if (DomUtils.getActiveElement()) {
+                                DomUtils.getActiveElement().blur();
+                            }
+                        }}
                         withoutFocusOnSecondaryInteraction
                         activeOpacity={0.8}
                         style={[
@@ -157,24 +202,23 @@ function OptionRowLHN(props) {
                             styles.justifyContentBetween,
                             styles.sidebarLink,
                             styles.sidebarLinkInner,
-                            StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
+                            StyleUtils.getBackgroundColorStyle(theme.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
+                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle || styles.sidebarLinkHover : null,
                         ]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
+                        needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
+                                            backgroundColor={props.isFocused ? theme.activeComponentBG : theme.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            mainTooltip={optionItem.ownerEmail}
-                                            secondaryTooltip={optionItem.subtitle}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -182,7 +226,7 @@ function OptionRowLHN(props) {
                                             isFocusMode={props.viewMode === CONST.OPTION_MODE.COMPACT}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
-                                                StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
+                                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
@@ -192,8 +236,8 @@ function OptionRowLHN(props) {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text}
+                                            accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
+                                            fullTitle={fullTitle}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}
@@ -202,19 +246,20 @@ function OptionRowLHN(props) {
                                                 optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
                                             }
                                         />
-                                        {optionItem.isChatRoom && !optionItem.isThread && (
-                                            <TextPill
-                                                style={textPillStyle}
-                                                accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
-                                                text={optionItem.subtitle}
-                                            />
+                                        {isStatusVisible && (
+                                            <Tooltip
+                                                text={statusContent}
+                                                shiftVertical={-4}
+                                            >
+                                                <Text style={styles.ml1}>{emojiCode}</Text>
+                                            </Tooltip>
                                         )}
                                     </View>
                                     {optionItem.alternateText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
+                                            accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
                                             {optionItem.alternateText}
                                         </Text>
@@ -229,7 +274,7 @@ function OptionRowLHN(props) {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={colors.red}
+                                            fill={theme.danger}
                                         />
                                     </View>
                                 )}
@@ -240,15 +285,17 @@ function OptionRowLHN(props) {
                             accessible={false}
                         >
                             {shouldShowGreenDotIndicator && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={themeColors.success}
-                                />
+                                <View style={styles.ml2}>
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={theme.success}
+                                    />
+                                </View>
                             )}
-                            {optionItem.hasDraftComment && (
+                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                    accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
@@ -256,7 +303,7 @@ function OptionRowLHN(props) {
                             {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon src={Expensicons.Pin} />
                                 </View>
@@ -273,13 +320,6 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default compose(
-    withLocalize,
-    withReportCommentDrafts({
-        propName: 'comment',
-        transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-            return lodashGet(drafts, draftKey, '');
-        },
-    }),
-)(OptionRowLHN);
+export default React.memo(OptionRowLHN);
+
+export {propTypes, defaultProps};

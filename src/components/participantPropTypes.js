@@ -15,4 +15,13 @@ export default PropTypes.shape({
 
     /** First Name of the participant */
     firstName: PropTypes.string,
+
+    /** True if the report is a Policy Expense chat */
+    isPolicyExpenseChat: PropTypes.bool,
+
+    /** True if the policy expense chat is owned by this user */
+    isOwnPolicyExpenseChat: PropTypes.bool,
+
+    /** Whether the participant is selected */
+    selected: PropTypes.bool,
 });

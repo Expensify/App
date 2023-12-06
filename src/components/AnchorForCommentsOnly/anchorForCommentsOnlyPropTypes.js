@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import stylePropTypes from '../../styles/stylePropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** The URL to open */
@@ -16,9 +16,6 @@ const propTypes = {
     /** Any children to display */
     children: PropTypes.node,
 
-    /** Anchor text of URLs or emails. */
-    displayName: PropTypes.string,
-
     /** Any additional styles to apply */
     style: stylePropTypes,
 
@@ -32,7 +29,6 @@ const defaultProps = {
     target: '',
     children: null,
     style: {},
-    displayName: '',
     onPress: undefined,
 };
 

@@ -13,10 +13,10 @@ declare EXIT_CODE=0
 # Check Provisioning Style. If automatic signing is enabled, iOS builds will fail, so ensure we always have the proper profile specified
 info "Verifying that automatic signing is not enabled"
 if grep -q 'PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore' ios/NewExpensify.xcodeproj/project.pbxproj; then
-    success "Automatic signing not enabled"
+  success "Automatic signing not enabled"
 else
-    error "Error: Automatic provisioning style is not allowed!"
-    EXIT_CODE=1
+  error "Error: Automatic provisioning style is not allowed!"
+  EXIT_CODE=1
 fi
 
 PODFILE_SHA=$(openssl sha1 ios/Podfile | awk '{print $2}')
@@ -26,10 +26,26 @@ echo "Podfile: $PODFILE_SHA"
 echo "Podfile.lock: $PODFILE_LOCK_SHA"
 
 if [[ "$PODFILE_SHA" == "$PODFILE_LOCK_SHA" ]]; then
-    success "Podfile checksum verified!"
+  success "Podfile checksum verified!"
 else
-    error "Podfile.lock checksum mismatch. Did you forget to run \`npx pod-install\`?"
-    EXIT_CODE=1
+  error "Podfile.lock checksum mismatch. Did you forget to run \`npx pod-install\`?"
+  EXIT_CODE=1
+fi
+
+info "Ensuring correct version of cocoapods is used..."
+
+POD_VERSION_REGEX='([[:digit:]]+\.[[:digit:]]+)(\.[[:digit:]]+)?';
+POD_VERSION_FROM_GEMFILE="$(sed -nr "s/gem \"cocoapods\", \"~> $POD_VERSION_REGEX\"/\1/p" Gemfile)"
+info "Pod version from Gemfile: $POD_VERSION_FROM_GEMFILE"
+
+POD_VERSION_FROM_PODFILE_LOCK="$(sed -nr "s/COCOAPODS: $POD_VERSION_REGEX/\1/p" ios/Podfile.lock)"
+info "Pod version from Podfile.lock: $POD_VERSION_FROM_PODFILE_LOCK"
+
+if [[ "$POD_VERSION_FROM_GEMFILE" == "$POD_VERSION_FROM_PODFILE_LOCK" ]]; then
+  success "Cocoapods version from Podfile.lock matches cocoapods version from Gemfile"
+else
+  error "Cocoapods version from Podfile.lock does not match cocoapods version from Gemfile. Please use \`npm run pod-install\` or \`bundle exec pod install\` instead of \`pod install\` to install pods."
+  EXIT_CODE=1
 fi
 
 info "Comparing Podfile.lock with node packages..."
