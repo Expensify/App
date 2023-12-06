@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useMemo, useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -25,7 +25,7 @@ import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {useCallback, useState} from "@types/react";
+import ConfirmModal from "@components/ConfirmModal";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -94,6 +94,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: 'Cancel payment',
+            onSelected: () => setIsConfirmModalVisible(true),
         });
     }
     const shouldShowThreeDotsButton = !!threeDotsMenuItems.length;
@@ -213,6 +214,16 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
             </View>
+            <ConfirmModal
+                title={translate('iou.deleteRequest')}
+                isVisible={isConfirmModalVisible}
+                onConfirm={cancelPayment}
+                onCancel={() => setIsConfirmModalVisible(false)}
+                prompt={translate('iou.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
         </View>
     );
 }
