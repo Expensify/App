@@ -2402,8 +2402,9 @@ function getReportPrivateNote(reportID) {
  * @param {String} choice
  */
 function completeEngagementModal( text , choice) {
-    const commandName = 'completeEngagementModal';
-    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
+    const commandName = 'CompleteEngagementModal';
+    const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
+    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, null, conciergeAccountID);
     const reportCommentAction = reportComment.reportAction;
     const reportCommentText = reportComment.commentText;
     const currentTime = DateUtils.getDBTime();
@@ -2418,8 +2419,7 @@ function completeEngagementModal( text , choice) {
         lastReadTime: currentTime,
     };
 
-    const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
-    const conciergeChatReport = ReportUtils.getChatByParticipants(conciergeAccountID);
+    const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID]);
     conciergeChatReportID = conciergeChatReport.reportID;
     debugger;
 
