@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,12 +60,6 @@ Onyx.connect({
 
         currentUserAccountID = session.accountID;
     },
-});
-
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (allPersonalDetails = val),
 });
 
 let resolveSidebarIsReadyPromise: (args?: unknown[]) => void;
@@ -239,6 +233,7 @@ type ActorDetails = {
 function getOptionData(
     report: Report,
     reportActions: Record<string, ReportAction>,
+    personalDetails: Record<number, PersonalDetails>,
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
@@ -246,7 +241,6 @@ function getOptionData(
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
-    const personalDetails = allPersonalDetails;
     if (!report || !personalDetails) {
         return;
     }
