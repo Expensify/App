@@ -1,5 +1,6 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import type {PublicScreensParamList} from '@navigation/types';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -10,7 +11,7 @@ import ValidateLoginPage from '@pages/ValidateLoginPage';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 
-const RootStack = createStackNavigator();
+const RootStack = createStackNavigator<PublicScreensParamList>();
 
 function PublicScreens() {
     return (
@@ -55,4 +56,5 @@ function PublicScreens() {
 }
 
 PublicScreens.displayName = 'PublicScreens';
+
 export default PublicScreens;
