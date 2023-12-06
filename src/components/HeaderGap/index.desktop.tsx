@@ -1,15 +1,13 @@
 import React, {memo} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
+import HeaderGapProps from './types';
 
-type HeaderGapProps = {
-    style: StyleProp<ViewStyle>;
-};
-
-function HeaderGap({style}: HeaderGapProps) {
+function HeaderGap({styles}: HeaderGapProps) {
     const themeStyles = useThemeStyles();
-    return <View style={[themeStyles.headerGap, style]} />;
+    return <View style={[themeStyles.headerGap, styles]} />;
 }
 
 HeaderGap.displayName = 'HeaderGap';
+
 export default memo(HeaderGap);
