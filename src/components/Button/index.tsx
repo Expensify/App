@@ -13,6 +13,7 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
+import useActiveElement from '@hooks/useActiveElement';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
@@ -158,6 +159,9 @@ function Button(
     const theme = useTheme();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const activeElement = useActiveElement();
+    const roles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
+    const shouldDisableEnterShortcut = roles.includes(activeElement?.role ?? '') && activeElement?.role !== CONST.ACCESSIBILITY_ROLE.TEXT;
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -170,7 +174,7 @@ function Button(
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, {
-        isActive: pressOnEnter,
+        isActive: pressOnEnter && !shouldDisableEnterShortcut,
         shouldBubble: allowBubble,
         priority: enterKeyEventListenerPriority,
         shouldPreventDefault: false,
