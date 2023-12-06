@@ -1,6 +1,6 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
-import React, {ForwardedRef, forwardRef} from 'react';
-import {Text as RNText, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import React, {forwardRef} from 'react';
+import {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -12,7 +12,7 @@ import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
-import PressableProps from './GenericPressable/types';
+import PressableProps, {PressableRef} from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
@@ -65,10 +65,10 @@ function PressableWithDelayToggle(
         iconStyles,
         icon,
     }: PressableWithDelayToggleProps,
-    ref: ForwardedRef<RNText | View>,
+    ref: PressableRef,
 ) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {
