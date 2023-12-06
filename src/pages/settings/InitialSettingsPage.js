@@ -133,7 +133,7 @@ function InitialSettingsPage(props) {
     const accountMenuItemsData = useMemo(() => {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
         const paymentCardList = props.fundList || {};
-        
+
         return {
             sectionStyle: {
                 borderBottomWidth: 1,
@@ -190,101 +190,114 @@ function InitialSettingsPage(props) {
                         signOut(false);
                     },
                 },
-            ]};
+            ],
+        };
     }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, theme.border, waitForNavigate]);
 
     /**
      * Retuns a list of menu items data for general section
      * @returns {Array} the account menu items data
      */
-    const generaltMenuItemsData = useMemo(() => (
-        {
+    const generaltMenuItemsData = useMemo(
+        () => ({
             sectionStyle: {},
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
-            {
-                translationKey: 'initialSettingsPage.help',
-                icon: Expensicons.QuestionMark,
-                action: () => {
-                    Link.openExternalLink(CONST.NEWHELP_URL);
+                {
+                    translationKey: 'initialSettingsPage.help',
+                    icon: Expensicons.QuestionMark,
+                    action: () => {
+                        Link.openExternalLink(CONST.NEWHELP_URL);
+                    },
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    link: CONST.NEWHELP_URL,
                 },
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                link: CONST.NEWHELP_URL,
-            },
-            {
-                translationKey: 'initialSettingsPage.about',
-                icon: Expensicons.Info,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_ABOUT);
-                }),
-            },
-        ]}), [waitForNavigate]);
+                {
+                    translationKey: 'initialSettingsPage.about',
+                    icon: Expensicons.Info,
+                    action: waitForNavigate(() => {
+                        Navigation.navigate(ROUTES.SETTINGS_ABOUT);
+                    }),
+                },
+            ],
+        }),
+        [waitForNavigate],
+    );
 
     /**
      * Retuns JSX.Element with menu items
      * @param {Object} menuItemsData list with menu items data
      * @returns {JSX.Element} the menu items for passed data
      */
-    const getMenuItemsSection = useCallback((menuItemsData) => {
-        /**
-         * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-         * @returns {String|undefined} the user's wallet balance
-         */
-        const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
+    const getMenuItemsSection = useCallback(
+        (menuItemsData) => {
+            /**
+             * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
+             * @returns {String|undefined} the user's wallet balance
+             */
+            const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
 
-        return (
-            <View style={{
-                marginHorizontal: 12,
-                paddingTop: 16,
-                paddingBottom: 16,
-                ...menuItemsData.sectionStyle,
-            }}>
-            <Text style={{
-                paddingTop: 8,
-                paddingRight: 12,
-                paddingBottom: 16,
-                paddingLeft: 12,
-                fontSize: 13,
-                fontFamily:"ExpensifyNeue-Regular",
-                lineHeight: 16,
-                fontWeight: 400,
-                color: "#AFBBB0",
-            }}>{translate(menuItemsData.sectionTranslationKey)}</Text>
-                {_.map(menuItemsData.items, (item, index) => {
-                    const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                    const isPaymentItem = item.translationKey === 'common.wallet';
+            return (
+                <View
+                    style={{
+                        marginHorizontal: 12,
+                        paddingTop: 16,
+                        paddingBottom: 16,
+                        ...menuItemsData.sectionStyle,
+                    }}
+                >
+                    <Text
+                        style={{
+                            paddingTop: 8,
+                            paddingRight: 12,
+                            paddingBottom: 16,
+                            paddingLeft: 12,
+                            fontSize: 13,
+                            fontFamily: 'ExpensifyNeue-Regular',
+                            lineHeight: 16,
+                            fontWeight: 400,
+                            color: '#AFBBB0',
+                        }}
+                    >
+                        {translate(menuItemsData.sectionTranslationKey)}
+                    </Text>
+                    {_.map(menuItemsData.items, (item, index) => {
+                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        const isPaymentItem = item.translationKey === 'common.wallet';
 
-                    return (
-                        <MenuItem
-                            key={`${keyTitle}_${index}`}
-                            wrapperStyle={{
-                                borderRadius: 8,
-                                paddingHorizontal: 8,
-                            }}
-                            title={keyTitle}
-                            icon={item.icon}
-                            iconType={item.iconType}
-                            disabled={isExecuting}
-                            onPress={singleExecution(item.action)}
-                            iconStyles={item.iconStyles}
-                            badgeText={getWalletBalance(isPaymentItem)}
-                            fallbackIcon={item.fallbackIcon}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            floatRightAvatars={item.floatRightAvatars}
-                            shouldStackHorizontally={item.shouldStackHorizontally}
-                            floatRightAvatarSize={item.avatarSize}
-                            ref={popoverAnchor}
-                            shouldBlockSelection={Boolean(item.link)}
-                            onSecondaryInteraction={
-                                !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
-                            }
-                        />
-                    );
-                })}
-            </View>
-        );
-    }, [translate, props.userWallet.currentBalance, isExecuting, singleExecution]);
+                        return (
+                            <MenuItem
+                                key={`${keyTitle}_${index}`}
+                                wrapperStyle={{
+                                    borderRadius: 8,
+                                    paddingHorizontal: 8,
+                                }}
+                                title={keyTitle}
+                                icon={item.icon}
+                                iconType={item.iconType}
+                                disabled={isExecuting}
+                                onPress={singleExecution(item.action)}
+                                iconStyles={item.iconStyles}
+                                badgeText={getWalletBalance(isPaymentItem)}
+                                fallbackIcon={item.fallbackIcon}
+                                brickRoadIndicator={item.brickRoadIndicator}
+                                floatRightAvatars={item.floatRightAvatars}
+                                shouldStackHorizontally={item.shouldStackHorizontally}
+                                floatRightAvatarSize={item.avatarSize}
+                                ref={popoverAnchor}
+                                shouldBlockSelection={Boolean(item.link)}
+                                onSecondaryInteraction={
+                                    !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
+                                }
+                            />
+                        );
+                    })}
+                </View>
+            );
+        },
+        [translate, props.userWallet.currentBalance, isExecuting, singleExecution],
+    );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
     const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
@@ -292,9 +305,7 @@ function InitialSettingsPage(props) {
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
-                <CurrentUserPersonalDetailsSkeletonView
-                    avatarSize={CONST.AVATAR_SIZE.XLARGE}
-                />
+                <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <>
                     <Tooltip text={translate('common.profile')}>
