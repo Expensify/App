@@ -2832,6 +2832,10 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
         },
 
+        workspaceTypeIcon: {
+            margin: 3,
+        },
+
         autoGrowHeightMultilineInput: {
             maxHeight: 115,
         },

@@ -1,11 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
+import {SvgProps} from 'react-native-svg';
+import {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
+import Icon from '@components/Icon';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import {AvatarSource} from '@libs/UserUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import { ValueOf } from 'type-fest';
 
 type WorkspacesListRowProps = {
     title: string;
@@ -14,6 +17,22 @@ type WorkspacesListRowProps = {
     // owner
     workspaceType: ValueOf<typeof CONST.POLICY.TYPE>;
     item: any; // TBD
+};
+
+const workspaceTypeIcon = (workspaceType: ValueOf<typeof CONST.POLICY.TYPE>): React.FC<SvgProps> => {
+    switch (workspaceType) {
+        case CONST.POLICY.TYPE.FREE:
+            // TODO: Ask design team to provide icon
+            throw new Error("Don't know which icon to server for free workspace type");
+        case CONST.POLICY.TYPE.PERSONAL:
+            return Illustrations.BigRocket;
+        case CONST.POLICY.TYPE.CORPORATE:
+            return Illustrations.HotDogStand;
+        case CONST.POLICY.TYPE.TEAM:
+            return Illustrations.SmallRocket;
+        default:
+            throw new Error(`Don't know which icon to serve for workspace type`);
+    }
 };
 
 function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, owner, workspaceType, item}: WorkspacesListRowProps) {
@@ -31,6 +50,14 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, owner, 
                     type={CONST.ICON_TYPE_WORKSPACE}
                 />
                 <Text style={styles.textStrong}>{title}</Text>
+            </View>
+            <View style={[styles.flexRow]}>
+                <Icon
+                    src={workspaceTypeIcon(workspaceType)}
+                    width={34}
+                    height={34}
+                    additionalStyles={styles.workspaceTypeIcon}
+                />
             </View>
         </View>
     );
