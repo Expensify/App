@@ -26,7 +26,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     workspaceIcon?: AvatarSource | undefined;
 
     /** Icon to be used when workspaceIcon is not present */
-    fallbackWorkspaceIcon?: AvatarSource | undefined;
+    fallbackWorkspaceIcon: AvatarSource | undefined;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
@@ -81,7 +81,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     />
                     <View style={styles.dFlex}>
                         <Text style={styles.labelStrong}>{PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}</Text>
-                        <Text style={[styles.textMicroBold, styles.textSupporting]}>{ownerDetails.login}</Text>
+                        <Text style={[styles.textMicro, styles.textSupporting]}>{ownerDetails.login}</Text>
                     </View>
                 </View>
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
@@ -93,7 +93,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     />
                     <View style={styles.dFlex}>
                         <Text style={styles.labelStrong}>{userFriendlyWorkspaceType(workspaceType)}</Text>
-                        <Text style={[styles.textMicroBold, styles.textSupporting]}>Plan</Text>
+                        <Text style={[styles.textMicro, styles.textSupporting]}>Plan</Text>
                     </View>
                 </View>
             </View>
