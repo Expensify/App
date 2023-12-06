@@ -133,7 +133,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
-    const hasViolations = useCallback((field) => canUseViolations && Boolean(getViolationsForField(field).length > 0), [getViolationsForField]);
+    const hasViolations = useCallback((field) => canUseViolations && Boolean(getViolationsForField(field).length > 0), [canUseViolations, getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
