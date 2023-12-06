@@ -751,6 +751,9 @@ export default {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        accountSettings: 'Account settings',
+        account: 'Account',
+        general: 'General',
     },
     closeAccountPage: {
         closeAccount: 'Close account',
