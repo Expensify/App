@@ -1,17 +1,17 @@
 ---
-title: Creating Per Diem Expenses
+title: Per-Diem-Expenses
 description: How to create Per Diem expenses on mobile and web.
 ---
 # Overview
 
 What are Per Diems? Per diems, short for "per diem allowance" or "daily allowance," are fixed daily payments provided by your employer to cover expenses incurred during business or work-related travel. These allowances simplify expense tracking and reimbursement for meals, lodging, and incidental expenses during a trip. Per Diems can be masterfully tracked in Expensify! 
 
-## How To create per diem expenses 
+## How to create per diem expenses 
 
 To add per diem expenses, you need three pieces of information:
 1. Where did you go? - Specify your travel destination.
 2. How long were you away? - Define the period you're claiming for.
-3. Which rate did you use? - Select the appropriate per diem rate.
+3. Which rate did you use? - Select the appropriate per diem rate (this is set by your employer).
 
 ### Step 1: On either the web or mobile app, click New Expense and choose Per Diem
 
@@ -31,15 +31,15 @@ Finally, submit your Per Diem expense for approval, and you'll be on your way to
  
 # FAQ 
 
-## Can I Edit My Per Diems?
+## Can I edit my per diem expenses?
 Per Diems cannot be amended. To make changes, delete the expense and recreate it as needed.
 
-## What If My Admin Requires Daily Per Diems?
+## What if my admin requires daily per diems? 
 No problem! Create a separate Per Diem expense for each day of your trip.
 
-## I Have Questions About the Amount I'm Due
+## I have questions about the amount I'm due 
 Reach out to your internal Admin team, as they've configured the rates in your policy to meet specific requirements. 
 
-## Can I Add Start and End Times to a Per Diem?
+## Can I add start and end times to per diems? 
 Unfortunately, you cannot add start and end times to Per Diems in Expensify.
 By following these steps, you can efficiently create and manage your Per Diem expenses in Expensify, making the process of tracking and getting reimbursed hassle-free. 
