@@ -163,13 +163,6 @@ function updateDisplayName(firstName: string, lastName: string) {
 
         const parameters: UpdateDisplayNameParams = {firstName, lastName};
 
-        console.log(createDisplayName(currentUserEmail ?? '', {
-            firstName,
-            lastName,
-        }));
-        console.log({currentUserEmail});
-        console.log(ReportUtils.getDisplayNameForParticipant(currentUserAccountID))
-
         API.write('UpdateDisplayName', parameters, {
             optimisticData: [
                 {
