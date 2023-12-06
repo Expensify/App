@@ -4,13 +4,13 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import AnimatedSplashScreen from './components/AnimatedSplashScreen';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
-import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as DemoActions from './libs/actions/DemoActions';
@@ -28,11 +28,9 @@ import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 // eslint-disable-next-line no-unused-vars
-import subscribePushNotification from './libs/Notification/PushNotification/subscribePushNotification';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
-import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
@@ -141,7 +139,9 @@ function Expensify(props) {
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
     }, []);
-
+    useEffect(() => {
+        BootSplash.hide();
+    }, []);
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
@@ -239,8 +239,12 @@ function Expensify(props) {
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
-
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {!isSplashHidden && (
+                <AnimatedSplashScreen
+                    onHide={onSplashHide}
+                    shouldHideSplashScreen={shouldHideSplash}
+                />
+            )}
         </DeeplinkWrapper>
     );
 }

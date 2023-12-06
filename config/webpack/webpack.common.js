@@ -88,6 +88,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 {from: 'web/manifest.json'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
+                {from: 'assets/videos/web', to: 'videos'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
                 {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
                 {from: 'assets/images/shadow.png', to: 'images/shadow.png'},
@@ -181,6 +182,11 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 resourceQuery: /raw/,
                 type: 'asset/source',
             },
+            // Load mp4 videos
+            {
+                test: /\.mp4$/,
+                use: 'file-loader?name=videos/[name].[ext]',
+            },
             {
                 test: /\.lottie$/,
                 type: 'asset/resource',
@@ -191,7 +197,6 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         alias: {
             'react-native-config': 'react-web-config',
             'react-native$': 'react-native-web',
-
             // Module alias for web & desktop
             // https://webpack.js.org/configuration/resolve/#resolvealias
             '@assets': path.resolve(__dirname, '../../assets'),
@@ -216,6 +221,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             'process/browser': require.resolve('process/browser'),
         },
     },
+
     optimization: {
         runtimeChunk: 'single',
         splitChunks: {

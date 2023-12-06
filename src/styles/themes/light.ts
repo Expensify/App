@@ -6,7 +6,7 @@ import {type ThemeColors} from './types';
 const lightTheme = {
     // Figma keys
     appBG: colors.lightAppBackground,
-    splashBG: colors.green400,
+    splashBG: colors.green800,
     highlightBG: colors.lightHighlightBackground,
     border: colors.lightBorders,
     borderLighter: colors.lightDefaultButtonPressed,

@@ -31,7 +31,7 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
 
         hideHasBeenCalled.current = true;
 
-        BootSplash.hide().then(() => {
+        //BootSplash.hide().then(() => {
             scale.value = withTiming(0, {
                 duration: 200,
                 easing: Easing.back(2),

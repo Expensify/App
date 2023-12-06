@@ -6,7 +6,7 @@ import {type ThemeColors} from './types';
 const darkTheme = {
     // Figma keys
     appBG: colors.darkAppBackground,
-    splashBG: colors.green400,
+    splashBG: colors.green800,
     highlightBG: colors.darkHighlightBackground,
     border: colors.darkBorders,
     borderLighter: colors.darkDefaultButton,

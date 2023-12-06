@@ -102,39 +102,65 @@
             transition: transform var(--label-transition-duration);
         }
 
-        @media screen and (min-width: 480px) {
-            .splash-logo > svg {
-                width: 104px;
-                height: 104px;
+        /* Chrome-only styles */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+                .splash-video {
+                    filter: brightness(0.9);
+                }
             }
-        }
-
-        @media screen and (max-width: 479px) {
-            .splash-logo > svg {
-                width: 52px;
-                height: 52px;
+            /* Firefox-only styles */
+            @-moz-document url-prefix() {
+                .splash-video {
+                    filter: brightness(0.99);
+                }
             }
-        }
+            /* Safari-only styles */
+            @media not all and (min-resolution: 0.001dpcm) {
+                @media and {
+                    .splash-video {
+                        filter: brightness(0.89) contrast(1.01);
+                    }
+                }
+            }
+            _::-webkit-full-page-media,
+            _:future,
+            :root .splash-video {
+                filter: brightness(0.89) contrast(1.01);
+            }
+            /* end Safari-only styles */
 
-        #splash {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            top: 0;
-            background-color: #061B09;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition-duration: 250ms;
-            transition-property: opacity;
-        }
+            @media screen and (min-width: 480px) {
+                .splash-video {
+                    width: 380px;
+                    height: 380px;
+                }
+            }
 
-        .animation {
-            display: flex;
-        }
+            @media screen and (max-width: 479px) {
+                .splash-video {
+                    width: 300px;
+                    height: 300px;
+                }
+            }
+
+            #splash {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: 0;
+                background-color: #002e22;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition-duration: 250ms;
+                transition-property: opacity;
+            }
+            .animation {
+                display: flex;
+            }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -159,9 +185,19 @@
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
     <div id="root"></div>
     <div id="splash">
-        <div class="splash-logo">
-            <%= htmlWebpackPlugin.options.splashLogo %>
-        </div>
+        <video
+            class="splash-video"
+            muted
+            autoplay
+            playsinline
+            disablepictureinpicture
+            disableremoteplayback
+        >
+            <source
+                src="/videos/Expensify_Sonic_Minimal_Vocal.webm"
+                type="video/webm"
+            />
+        </video>
     </div>
 </body>
 </html>
