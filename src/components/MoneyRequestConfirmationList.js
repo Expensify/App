@@ -267,6 +267,8 @@ function MoneyRequestConfirmationList(props) {
         return (props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
     }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
 
+    const isIOUMerchantPresent = props.isPolicyExpenseChat && !props.iouMerchant;
+
     useEffect(() => {
         if (shouldDisplayFieldError && props.hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
@@ -496,7 +498,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || (props.isPolicyExpenseChat && !props.iouMerchant);
+        const shouldDisableButton = selectedParticipants.length === 0 || isIOUMerchantPresent;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -692,11 +694,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                             brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={
-                                (props.isPolicyExpenseChat && !props.iouMerchant) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))
-                                    ? translate('common.error.enterMerchant')
-                                    : ''
-                            }
+                            error={isIOUMerchantPresent || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
