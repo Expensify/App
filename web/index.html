@@ -104,63 +104,63 @@
 
         /* Chrome-only styles */
         @media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: 0.001dpcm) {
+            .splash-video {
+                filter: brightness(0.9);
+            }
+        }
+        /* Firefox-only styles */
+        @-moz-document url-prefix() {
+            .splash-video {
+                filter: brightness(0.99);
+            }
+        }
+        /* Safari-only styles */
+        @media not all and (min-resolution: 0.001dpcm) {
+            @media and {
                 .splash-video {
-                    filter: brightness(0.9);
+                    filter: brightness(0.89) contrast(1.01);
                 }
             }
-            /* Firefox-only styles */
-            @-moz-document url-prefix() {
-                .splash-video {
-                    filter: brightness(0.99);
-                }
-            }
-            /* Safari-only styles */
-            @media not all and (min-resolution: 0.001dpcm) {
-                @media and {
-                    .splash-video {
-                        filter: brightness(0.89) contrast(1.01);
-                    }
-                }
-            }
-            _::-webkit-full-page-media,
-            _:future,
-            :root .splash-video {
-                filter: brightness(0.89) contrast(1.01);
-            }
-            /* end Safari-only styles */
+        }
+        _::-webkit-full-page-media,
+        _:future,
+        :root .splash-video {
+            filter: brightness(0.89) contrast(1.01);
+        }
+        /* end Safari-only styles */
 
-            @media screen and (min-width: 480px) {
-                .splash-video {
-                    width: 380px;
-                    height: 380px;
-                }
+        @media screen and (min-width: 480px) {
+            .splash-video {
+                width: 380px;
+                height: 380px;
             }
+        }
 
-            @media screen and (max-width: 479px) {
-                .splash-video {
-                    width: 300px;
-                    height: 300px;
-                }
+        @media screen and (max-width: 479px) {
+            .splash-video {
+                width: 300px;
+                height: 300px;
             }
+        }
 
-            #splash {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                top: 0;
-                background-color: #002e22;
-                width: 100%;
-                height: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                transition-duration: 250ms;
-                transition-property: opacity;
-            }
-            .animation {
-                display: flex;
-            }
+        #splash {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            background-color: #002e22;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition-duration: 250ms;
+            transition-property: opacity;
+        }
+        .animation {
+            display: flex;
+        }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
