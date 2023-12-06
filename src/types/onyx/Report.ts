@@ -108,9 +108,9 @@ type Report = {
     lastMessageHtml?: string;
     welcomeMessage?: string;
     lastActorAccountID?: number;
-    ownerAccountID?: string;
+    ownerAccountID?: number;
     ownerEmail?: string;
-    participantAccountIDs?: string[];
+    participantAccountIDs?: number[];
     total?: number;
     currency?: string;
     parentReportActionIDs?: number[];

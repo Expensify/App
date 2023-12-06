@@ -61,10 +61,7 @@ let allPolicyMembers: OnyxCollection<PolicyMember>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
     waitForCollectionCallback: true,
-    // callback: (val) => (allPolicyMembers = val),
     callback: (val) => {
-        // console.log('POLICYMEMBERS', val);
-        // console.log('TYPEPOLICYMEMBERS', typeof Object.keys(val)[0]);
         allPolicyMembers = val;
     },
 });
@@ -119,7 +116,6 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 
 /**
  * Check if the user has any active free policies (aka workspaces)
-
  */
 function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | Record<string, OnyxEntry<Policy>>): boolean {
     const adminFreePolicies = Object.values(policies).filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
@@ -292,7 +288,7 @@ type OptimisticAnnounceRoomMembers = {
 /**
  * Build optimistic data for removing users from the announcement room
  */
-function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: string[]) {
+function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]) {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const announceRoomMembers: OptimisticAnnounceRoomMembers = {
         onyxOptimisticData: [],
@@ -324,7 +320,7 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: strin
 /**
  * Remove the passed members from the policy employeeList
  */
-function removeMembers(accountIDs: string[], policyID: string) {
+function removeMembers(accountIDs: number[], policyID: string) {
     // In case user selects only themselves (admin), their email will be filtered out and the members
     // array passed will be empty, prevent the function from proceeding in that case as there is no one to remove
     if (accountIDs.length === 0) {
@@ -377,7 +373,7 @@ function removeMembers(accountIDs: string[], policyID: string) {
         // Take the current policy members and remove them optimistically
         // console.log('POLICYMEMBERS', allPolicyMembers);
         const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {});
-        const remainingMemberAccountIDs = policyMemberAccountIDs.filter((e) => !accountIDs.includes(e));
+        const remainingMemberAccountIDs = policyMemberAccountIDs.filter((e) => !accountIDs.includes(Number(e)));
         const remainingLogins: string[] = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
 
@@ -1804,7 +1800,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID ?? '', policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
