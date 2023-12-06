@@ -23,6 +23,9 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
 import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import * as TransactionUtils from "@libs/TransactionUtils";
+import * as Expensicons from "@components/Icon/Expensicons";
+import * as HeaderUtils from "@libs/HeaderUtils";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -78,6 +81,15 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+
+    const threeDotsMenuItems = [];
+    if (isPayer && isSettled) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: 'Cancel payment',
+        });
+    }
+    const shouldShowThreeDotsButton = !!threeDotsMenuItems.length;
     const shouldShowSettlementButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
@@ -101,6 +113,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldEnableDetailPageNavigation
+                shouldShowThreeDotsButton = {shouldShowThreeDotsButton}
+                threeDotsMenuItems = {threeDotsMenuItems}
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
