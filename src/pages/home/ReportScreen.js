@@ -186,10 +186,12 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+
     useEffect(() => {
-        if (report && report.reportID && !shouldHideReport) {
-            wasReportAccessibleRef.current = true;
+        if (!report || !report.reportID || shouldHideReport) {
+            return;
         }
+        wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
     const goBack = useCallback(() => {
@@ -311,7 +313,6 @@ function ReportScreen({
         const onyxReportID = report.reportID;
         const prevOnyxReportID = prevReport.reportID;
         const routeReportID = getReportID(route);
-
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
@@ -321,7 +322,8 @@ function ReportScreen({
                 prevOnyxReportID === routeReportID &&
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM)))
+                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
+            (ReportUtils.isMoneyRequest(prevReport) && _.isEqual(report, defaultProps.report))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
