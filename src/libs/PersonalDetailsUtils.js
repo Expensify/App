@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -185,12 +184,4 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
-export {
-    getPersonalDetailsByIDs,
-    getAccountIDsByLogins,
-    getLoginsByAccountIDs,
-    getNewPersonalDetailsOnyxData,
-    getFormattedAddress,
-    getFormattedStreet,
-    getStreetLines,
-};
+export {getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress, getFormattedStreet, getStreetLines};

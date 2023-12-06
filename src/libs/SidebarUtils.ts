@@ -15,7 +15,6 @@ import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as UserUtils from './UserUtils';
@@ -347,7 +346,7 @@ function getOptionData(
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                     policyName: ReportUtils.getPolicyName(report, false, policy),
-                    displayName: ReportUtils.getDisplayNameForParticipant(lastActorDetails?.accountID) ?? Localize.translateLocal('common.hidden')
+                    displayName: ReportUtils.getDisplayNameForParticipant(lastActorDetails?.accountID) ?? Localize.translateLocal('common.hidden'),
                 });
                 break;
             }

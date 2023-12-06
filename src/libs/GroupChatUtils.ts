@@ -8,8 +8,10 @@ function getGroupChatName(report: Report): string | undefined {
     const participants = report.participantAccountIDs ?? [];
     const isMultipleParticipantReport = participants.length > 1;
 
-    return participants.map(participant => ReportUtils.getDisplayNameForParticipant(participant, isMultipleParticipantReport))
-        .sort((first, second) => first?.localeCompare(second ?? '') ?? 0).filter(Boolean)
+    return participants
+        .map((participant) => ReportUtils.getDisplayNameForParticipant(participant, isMultipleParticipantReport))
+        .sort((first, second) => first?.localeCompare(second ?? '') ?? 0)
+        .filter(Boolean)
         .join(', ');
 }
 

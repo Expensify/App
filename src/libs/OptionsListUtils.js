@@ -15,7 +15,6 @@ import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
