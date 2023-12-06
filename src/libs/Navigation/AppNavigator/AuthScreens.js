@@ -46,6 +46,7 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default;
 let timezone;
 let currentAccountID;
 let isLoadingApp;
+let lastUpdateIDAppliedToClient = null;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -94,6 +95,15 @@ Onyx.connect({
     },
 });
 
+// We need to keep lastUpdateIDAppliedToClient in sync using Onyx.connect because the callback
+// passed to NetworkConnection.onReconnect needs to see its latest value
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (val) => {
+        lastUpdateIDAppliedToClient = val;
+    },
+});
+
 const RootStack = createCustomStackNavigator();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
@@ -121,9 +131,6 @@ const propTypes = {
     /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
     isUsingMemoryOnlyKeys: PropTypes.bool,
 
-    /** The last Onyx update ID was applied to the client */
-    lastUpdateIDAppliedToClient: PropTypes.number,
-
     /** Information about any currently running demos */
     demoInfo: PropTypes.shape({
         money2020: PropTypes.shape({
@@ -138,11 +145,10 @@ const defaultProps = {
         email: null,
     },
     lastOpenedPublicRoomID: null,
-    lastUpdateIDAppliedToClient: null,
     demoInfo: {},
 };
 
-function AuthScreens({isUsingMemoryOnlyKeys, lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo}) {
+function AuthScreens({isUsingMemoryOnlyKeys, session, lastOpenedPublicRoomID, demoInfo}) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
@@ -363,9 +369,6 @@ export default withOnyx({
     },
     isUsingMemoryOnlyKeys: {
         key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
-    },
-    lastUpdateIDAppliedToClient: {
-        key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     },
     demoInfo: {
         key: ONYXKEYS.DEMO_INFO,
