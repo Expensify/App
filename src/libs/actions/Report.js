@@ -2485,6 +2485,26 @@ function completeEngagementModal( text , choice) {
     notifyNewAction(conciergeChatReportID, reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
 }
 
+function dismissEngagementModal() {
+    const commandName = 'SetNameValuePair';
+    const parameters = {
+        name: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
+        value: true,
+    };
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: 'ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL',
+            value: true,
+        },
+    ];
+
+    API.write(commandName, parameters, {
+        optimisticData,
+    });
+}
+
 /**
  * Loads necessary data for rendering the RoomMembersPage
  *
@@ -2653,6 +2673,7 @@ export {
     getOlderActions,
     getNewerActions,
     completeEngagementModal,
+    dismissEngagementModal,
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,

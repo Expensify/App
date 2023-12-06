@@ -92,13 +92,13 @@ function PurposeForUsingExpensifyModal() {
     }
 
     const closeModal = useCallback(() => {
+        Report.dismissEngagementModal();
         setIsModalOpen(false);
     }, []);
 
     const completeModalAndClose = (message, choice) => {
-        debugger;
         Report.completeEngagementModal(message, choice);
-        closeModal();
+        setIsModalOpen(false)
     }
 
     const menuItems = [
@@ -153,7 +153,7 @@ function PurposeForUsingExpensifyModal() {
                 <HeaderWithBackButton
                     shouldShowCloseButton
                     shouldShowBackButton={false}
-                    onCloseButtonPress={() => setIsModalOpen(false)}
+                    onCloseButtonPress={closeModal}
                     shouldOverlay
                     iconFill={theme.iconColorfulBackground}
                 />
