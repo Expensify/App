@@ -19,12 +19,24 @@ const restrictedImportPaths = [
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
     },
+    {
+        name: '@styles/styles',
+        message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.`',
+    },
+    {
+        name: '@styles/StyleUtils',
+        message: 'Do not import style utils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.`',
+    },
 ];
 
 const restrictedImportPatterns = [
     {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the 'src/components/LottieAnimations' import instead.",
+    },
+    {
+        group: ['@styles/theme/themes/**/*'],
+        message: 'Do not import theme colors directly. Please use the `useTheme` hook or `withTheme` HOC instead.`',
     },
 ];
 
