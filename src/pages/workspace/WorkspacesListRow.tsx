@@ -22,16 +22,31 @@ type WorkspacesListRowProps = {
 const workspaceTypeIcon = (workspaceType: ValueOf<typeof CONST.POLICY.TYPE>): React.FC<SvgProps> => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.FREE:
+            return Illustrations.BigRocket;
+        case CONST.POLICY.TYPE.PERSONAL:
             // TODO: Ask design team to provide icon
             throw new Error("Don't know which icon to server for free workspace type");
-        case CONST.POLICY.TYPE.PERSONAL:
-            return Illustrations.BigRocket;
         case CONST.POLICY.TYPE.CORPORATE:
             return Illustrations.HotDogStand;
         case CONST.POLICY.TYPE.TEAM:
             return Illustrations.SmallRocket;
         default:
             throw new Error(`Don't know which icon to serve for workspace type`);
+    }
+};
+
+const userFriendlyWorkspaceType = (workspaceType: ValueOf<typeof CONST.POLICY.TYPE>) => {
+    switch (workspaceType) {
+        case CONST.POLICY.TYPE.FREE:
+            return 'Free';
+        case CONST.POLICY.TYPE.PERSONAL:
+            return 'Personal';
+        case CONST.POLICY.TYPE.CORPORATE:
+            return 'Control';
+        case CONST.POLICY.TYPE.TEAM:
+            return 'Collect';
+        default:
+            throw new Error(`Don't know a friendly workspace name for this workspace type`);
     }
 };
 
@@ -51,13 +66,17 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, owner, 
                 />
                 <Text style={styles.textStrong}>{title}</Text>
             </View>
-            <View style={[styles.flexRow]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                 <Icon
                     src={workspaceTypeIcon(workspaceType)}
                     width={34}
                     height={34}
                     additionalStyles={styles.workspaceTypeIcon}
                 />
+                <View style={styles.dFlex}>
+                    <Text style={styles.buttonMediumText}>{userFriendlyWorkspaceType(workspaceType)}</Text>
+                    <Text style={[styles.textMicroBold, styles.textSupporting]}>Plan</Text>
+                </View>
             </View>
         </View>
     );
