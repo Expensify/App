@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -6,61 +5,52 @@ import Button from './Button';
 import FixedFooter from './FixedFooter';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
+import DotLottieAnimation from './LottieAnimations/types';
 import Text from './Text';
 
-const propTypes = {
+type ConfirmationPageProps = {
     /** The asset to render */
-    // eslint-disable-next-line react/forbid-prop-types
-    animation: PropTypes.object,
+    animation?: DotLottieAnimation;
 
     /** Heading of the confirmation page */
-    heading: PropTypes.string,
+    heading: string;
 
     /** Description of the confirmation page */
-    description: PropTypes.string,
+    description: string;
 
     /** The text for the button label */
-    buttonText: PropTypes.string,
+    buttonText?: string;
 
     /** A function that is called when the button is clicked on */
-    onButtonPress: PropTypes.func,
+    onButtonPress?: () => void;
 
     /** Whether we should show a confirmation button */
-    shouldShowButton: PropTypes.bool,
+    shouldShowButton?: boolean;
 };
 
-const defaultProps = {
-    animation: LottieAnimations.Fireworks,
-    heading: '',
-    description: '',
-    buttonText: '',
-    onButtonPress: () => {},
-    shouldShowButton: false,
-};
-
-function ConfirmationPage(props) {
+function ConfirmationPage({animation = LottieAnimations.Fireworks, heading, description, buttonText = '', onButtonPress = () => {}, shouldShowButton = false}: ConfirmationPageProps) {
     const styles = useThemeStyles();
+
     return (
         <>
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
                 <Lottie
-                    source={props.animation}
+                    source={animation}
                     autoPlay
                     loop
                     style={styles.confirmationAnimation}
-                    webStyle={styles.confirmationAnimationWeb}
                 />
-                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{props.heading}</Text>
-                <Text style={styles.textAlignCenter}>{props.description}</Text>
+                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2]}>{heading}</Text>
+                <Text style={styles.textAlignCenter}>{description}</Text>
             </View>
-            {props.shouldShowButton && (
+            {shouldShowButton && (
                 <FixedFooter>
                     <Button
                         success
-                        text={props.buttonText}
+                        text={buttonText}
                         style={styles.mt6}
                         pressOnEnter
-                        onPress={props.onButtonPress}
+                        onPress={onButtonPress}
                     />
                 </FixedFooter>
             )}
@@ -68,8 +58,6 @@ function ConfirmationPage(props) {
     );
 }
 
-ConfirmationPage.propTypes = propTypes;
-ConfirmationPage.defaultProps = defaultProps;
 ConfirmationPage.displayName = 'ConfirmationPage';
 
 export default ConfirmationPage;
