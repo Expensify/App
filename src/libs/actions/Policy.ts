@@ -18,7 +18,18 @@ import {OptimisticClosedReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Network, PersonalDetails, Policy, PolicyMember, RecentlyUsedCategories, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {
+    Network,
+    PersonalDetails,
+    Policy,
+    PolicyMember, PolicyTags,
+    RecentlyUsedCategories,
+    RecentlyUsedTags,
+    ReimbursementAccount,
+    Report,
+    ReportAction,
+    Transaction
+} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -99,6 +110,27 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedCategories = val),
+});
+
+let allPolicyTags: OnyxCollection<PolicyTags> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTags = {};
+            return;
+        }
+
+        allPolicyTags = value;
+    },
+});
+
+let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedTags = val),
 });
 
 let networkStatus: OnyxEntry<Network> = {};
@@ -1056,8 +1088,10 @@ function generateCustomUnitID(): string {
 }
 
 function buildOptimisticCustomUnits() {
+    const currency = allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
+
     const customUnits: Record<string, CustomUnit> = {
         [customUnitID]: {
             customUnitID,
@@ -1070,6 +1104,7 @@ function buildOptimisticCustomUnits() {
                     customUnitRateID,
                     name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
                     rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                    currency,
                 },
             },
         },
@@ -1079,6 +1114,7 @@ function buildOptimisticCustomUnits() {
         customUnits,
         customUnitID,
         customUnitRateID,
+        outputCurrency: currency,
     };
 }
 
@@ -1092,7 +1128,7 @@ function buildOptimisticCustomUnits() {
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const {customUnits} = buildOptimisticCustomUnits();
+    const {customUnits, outputCurrency} = buildOptimisticCustomUnits();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1105,7 +1141,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
                 isPolicyExpenseChatEnabled: true,
-                outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
@@ -1137,7 +1173,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): string {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -1183,7 +1219,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
                         isPolicyExpenseChatEnabled: true,
-                        outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
+                        outputCurrency,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
                     },
@@ -1446,6 +1482,22 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category:
     const policyRecentlyUsedCategories = allRecentlyUsedCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`] ?? [];
 
     return lodashUnion([category], policyRecentlyUsedCategories);
+}
+
+function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string) {
+    if (!policyID || !tag) {
+        return {};
+    }
+
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    // For now it only uses the first tag of the policy, since multi-tags are not yet supported
+    const tagListKey = Object.keys(policyTags)[0];
+    const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
+
+    return {
+        ...policyRecentlyUsedTags,
+        [tagListKey]: lodashUnion([tag], policyRecentlyUsedTags?.[tagListKey] ?? []),
+    };
 }
 
 /**
@@ -1880,6 +1932,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     buildOptimisticPolicyRecentlyUsedCategories,
+    buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
 };

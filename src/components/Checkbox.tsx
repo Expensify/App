@@ -98,7 +98,7 @@ function Checkbox(
             {children ?? (
                 <View
                     style={[
-                        StyleUtils.getCheckboxContainerStyle(containerSize, containerBorderRadius),
+                        StyleUtils.getCheckboxContainerStyle(theme, containerSize, containerBorderRadius),
                         containerStyle,
                         isChecked && styles.checkedContainer,
                         hasError && styles.borderColorDanger,
