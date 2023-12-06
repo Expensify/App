@@ -74,7 +74,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, owner, 
                     additionalStyles={styles.workspaceTypeIcon}
                 />
                 <View style={styles.dFlex}>
-                    <Text style={styles.buttonMediumText}>{userFriendlyWorkspaceType(workspaceType)}</Text>
+                    <Text style={styles.labelStrong}>{userFriendlyWorkspaceType(workspaceType)}</Text>
                     <Text style={[styles.textMicroBold, styles.textSupporting]}>Plan</Text>
                 </View>
             </View>

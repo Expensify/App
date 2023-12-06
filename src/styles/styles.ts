@@ -1135,6 +1135,13 @@ const styles = (theme: ThemeColors) =>
 
         noOutline: addOutlineWidth(theme, {}, 0),
 
+        labelStrong: {
+            fontFamily: fontFamily.EXP_NEUE,
+            fontWeight: 'bold',
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
