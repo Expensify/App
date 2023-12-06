@@ -1,5 +1,5 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import React, {ForwardedRef, forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
@@ -55,20 +55,18 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip(
-    {
-        children,
-        numberOfLines = CONST.TOOLTIP_MAX_LINES,
-        maxWidth = variables.sideBarWidth,
-        text = '',
-        renderTooltipContent,
-        renderTooltipContentKey = [],
-        shouldHandleScroll = false,
-        shiftHorizontal = 0,
-        shiftVertical = 0,
-    }: TooltipProps,
-    ref: ForwardedRef<BoundsObserver>,
-) {
+function Tooltip({
+    children,
+    numberOfLines = CONST.TOOLTIP_MAX_LINES,
+    maxWidth = variables.sideBarWidth,
+    text = '',
+    renderTooltipContent,
+    renderTooltipContentKey = [],
+    shouldHandleScroll = false,
+    shiftHorizontal = 0,
+    shiftVertical = 0,
+    tooltipRef,
+}: TooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -214,7 +212,7 @@ function Tooltip(
             <BoundsObserver
                 enabled={isVisible}
                 onBoundsChange={updateBounds}
-                ref={ref}
+                ref={tooltipRef}
             >
                 <Hoverable
                     onMouseEnter={updateTargetAndMousePosition}
@@ -231,4 +229,4 @@ function Tooltip(
 
 Tooltip.displayName = 'Tooltip';
 
-export default memo(forwardRef(Tooltip));
+export default memo(Tooltip);
