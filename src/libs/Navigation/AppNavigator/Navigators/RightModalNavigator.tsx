@@ -1,31 +1,27 @@
-import {createStackNavigator} from '@react-navigation/stack';
-import PropTypes from 'prop-types';
+import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
+import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
+import NAVIGATORS from '@src/NAVIGATORS';
 import Overlay from './Overlay';
 
-const Stack = createStackNavigator();
+type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const propTypes = {
-    /* Navigation functions provided by React Navigation */
-    navigation: PropTypes.shape({
-        goBack: PropTypes.func.isRequired,
-    }).isRequired,
-};
+const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
-function RightModalNavigator(props) {
+function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = useMemo(() => RHPScreenOptions(styles), [styles]);
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
+            {!isSmallScreenWidth && <Overlay onPress={navigation.goBack} />}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
@@ -130,7 +126,6 @@ function RightModalNavigator(props) {
     );
 }
 
-RightModalNavigator.propTypes = propTypes;
 RightModalNavigator.displayName = 'RightModalNavigator';
 
 export default RightModalNavigator;
