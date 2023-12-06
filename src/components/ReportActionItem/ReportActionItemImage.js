@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import AttachmentModal from '@components/AttachmentModal';
 import EReceiptThumbnail from '@components/EReceiptThumbnail';
 import Image from '@components/Image';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -10,10 +9,12 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** thumbnail URI for the image */
@@ -46,11 +47,11 @@ const defaultProps = {
  */
 
 function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
-    const styles = useThemeStyles();
 
     let receiptImageComponent;
 
@@ -82,25 +83,17 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    <AttachmentModal
-                        headerTitle="Receipt"
-                        source={imageSource}
-                        isAuthTokenRequired={!isLocalFile}
-                        report={report}
-                        isReceiptAttachment
-                        allowToDownload
+                    <PressableWithoutFocus
+                        style={[styles.noOutline, styles.w100, styles.h100]}
+                        onPress={() => {
+                            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, imageSource);
+                            Navigation.navigate(route);
+                        }}
+                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     >
-                        {({show}) => (
-                            <PressableWithoutFocus
-                                style={[styles.noOutline, styles.w100, styles.h100]}
-                                onPress={show}
-                                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                            >
-                                {receiptImageComponent}
-                            </PressableWithoutFocus>
-                        )}
-                    </AttachmentModal>
+                        {receiptImageComponent}
+                    </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
         );

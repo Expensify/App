@@ -1,5 +1,5 @@
 import getBankIcon from '@components/Icon/BankIcons';
-import {ThemeStyles} from '@styles/styles';
+import {type ThemeStyles} from '@styles/styles';
 import CONST from '@src/CONST';
 import BankAccount from '@src/types/onyx/BankAccount';
 import Fund from '@src/types/onyx/Fund';

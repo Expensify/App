@@ -79,8 +79,8 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);

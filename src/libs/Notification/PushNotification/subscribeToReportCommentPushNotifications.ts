@@ -12,7 +12,7 @@ import PushNotification from './index';
 export default function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData}) => {
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
-        Onyx.update(onyxData);
+        Onyx.update(onyxData ?? []);
         backgroundRefresh();
     });
 
@@ -33,9 +33,14 @@ export default function subscribeToReportCommentPushNotifications() {
                     }
 
                     Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                 } catch (error) {
-                    Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: error.message});
+                    let errorMessage = String(error);
+                    if (error instanceof Error) {
+                        errorMessage = error.message;
+                    }
+
+                    Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
                 }
             });
     });
