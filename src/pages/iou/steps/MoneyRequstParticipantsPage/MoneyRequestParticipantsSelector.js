@@ -66,7 +66,7 @@ const propTypes = {
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
 
-    /** */
+    /** Whether the screen transition has ended */
     didScreenTransitionEnd: PropTypes.bool,
 
     ...withLocalizePropTypes,
