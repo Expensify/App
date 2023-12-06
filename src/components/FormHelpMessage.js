@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import * as Localize from '@libs/Localize';
 import stylePropTypes from '@styles/stylePropTypes';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';

@@ -3,7 +3,7 @@ import React, {ForwardedRef} from 'react';
 import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
 import fontFamily from '@styles/fontFamily';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import variables from '@styles/variables';
 
 type TextProps = RNTextProps & {

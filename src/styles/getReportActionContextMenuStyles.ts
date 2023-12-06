@@ -1,6 +1,6 @@
 import {ViewStyle} from 'react-native';
 import {type ThemeStyles} from './styles';
-import {type ThemeColors} from './themes/types';
+import {type ThemeColors} from './theme/types';
 import variables from './variables';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({

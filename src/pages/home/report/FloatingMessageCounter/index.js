@@ -7,7 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNativeDriver from '@libs/useNativeDriver';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';

@@ -3,7 +3,7 @@ import {StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
 import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

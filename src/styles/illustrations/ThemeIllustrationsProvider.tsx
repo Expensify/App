@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import useThemePreference from '@styles/themes/useThemePreference';
+import useThemePreference from '@styles/theme/useThemePreference';
 import DarkIllustrations from './dark';
 import LightIllustrations from './light';
 import ThemeIllustrationsContext from './ThemeIllustrationsContext';

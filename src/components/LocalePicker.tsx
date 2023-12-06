@@ -1,7 +1,7 @@
 import React from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';

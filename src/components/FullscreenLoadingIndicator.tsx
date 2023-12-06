@@ -1,6 +1,6 @@
 import React from 'react';
 import {ActivityIndicator, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 
 type FullScreenLoadingIndicatorProps = {

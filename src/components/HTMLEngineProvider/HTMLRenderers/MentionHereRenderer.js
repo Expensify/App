@@ -3,7 +3,7 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 import _ from 'underscore';
 import Text from '@components/Text';
 import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function MentionHereRenderer(props) {

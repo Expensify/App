@@ -9,7 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {plaidDataPropTypes} from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as BankAccounts from '@userActions/BankAccounts';

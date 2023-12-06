@@ -7,7 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {

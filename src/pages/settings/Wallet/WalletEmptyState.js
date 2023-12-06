@@ -7,7 +7,7 @@ import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 

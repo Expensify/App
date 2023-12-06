@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {stylesGenerator} from './styles';
-import useTheme from './themes/useTheme';
+import useTheme from './theme/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
 
 type ThemeStylesProviderProps = React.PropsWithChildren;

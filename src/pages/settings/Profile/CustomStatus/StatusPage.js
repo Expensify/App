@@ -13,7 +13,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes}
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';

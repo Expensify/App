@@ -4,7 +4,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';

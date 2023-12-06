@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import HeaderPageLayout from './HeaderPageLayout';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';

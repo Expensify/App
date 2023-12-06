@@ -17,7 +17,7 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';

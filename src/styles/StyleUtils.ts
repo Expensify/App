@@ -9,7 +9,7 @@ import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
 import {type ThemeStyles} from './styles';
-import {type ThemeColors} from './themes/types';
+import {type ThemeColors} from './theme/types';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';

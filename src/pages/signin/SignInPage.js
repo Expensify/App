@@ -15,7 +15,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import * as StyleUtils from '@styles/StyleUtils';
-import ThemeProvider from '@styles/themes/ThemeProvider';
+import ThemeProvider from '@styles/theme/ThemeProvider';
 import ThemeStylesProvider from '@styles/ThemeStylesProvider';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';

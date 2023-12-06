@@ -10,7 +10,7 @@ import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';

@@ -1,5 +1,5 @@
 import React from 'react';
-import darkTheme from './default';
+import darkTheme from './themes/dark';
 import {type ThemeColors} from './types';
 
 const ThemeContext = React.createContext<ThemeColors>(darkTheme);

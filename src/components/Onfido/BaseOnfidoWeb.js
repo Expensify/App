@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import fontFamily from '@styles/fontFamily';
 import fontWeightBold from '@styles/fontWeight/bold';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import './index.css';

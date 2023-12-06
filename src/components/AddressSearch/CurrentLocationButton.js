@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import colors from '@styles/colors';
 import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {

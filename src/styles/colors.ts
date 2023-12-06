@@ -1,4 +1,4 @@
-import {Color} from './themes/types';
+import {Color} from './theme/types';
 
 /**
  * DO NOT import colors.js into files. Use the theme switching hooks and HOCs instead.

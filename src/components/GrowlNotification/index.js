@@ -7,7 +7,7 @@ import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 import * as Growl from '@libs/Growl';
 import useNativeDriver from '@libs/useNativeDriver';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';

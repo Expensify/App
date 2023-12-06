@@ -12,7 +12,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import reportActionFragmentPropTypes from '@pages/home/report/reportActionFragmentPropTypes';
 import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
 import editedLabelStyles from '@styles/editedLabelStyles';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

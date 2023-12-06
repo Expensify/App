@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect} from 'react';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import CustomStatusBarContext from './CustomStatusBarContext';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 

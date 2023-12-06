@@ -4,7 +4,7 @@ import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
 import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';

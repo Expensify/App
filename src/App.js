@@ -27,7 +27,7 @@ import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import ThemeIllustrationsProvider from './styles/illustrations/ThemeIllustrationsProvider';
-import ThemeProvider from './styles/themes/ThemeProvider';
+import ThemeProvider from './styles/theme/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx

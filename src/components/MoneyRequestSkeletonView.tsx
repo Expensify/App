@@ -1,6 +1,6 @@
 import React from 'react';
 import {Rect} from 'react-native-svg';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
