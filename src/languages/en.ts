@@ -94,6 +94,7 @@ type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 export default {
     common: {
         cancel: 'Cancel',
+        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -541,6 +542,8 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
+        cancelPayment: 'Cancel payment',
+        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',

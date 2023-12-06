@@ -215,13 +215,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 )}
             </View>
             <ConfirmModal
-                title={translate('iou.deleteRequest')}
+                title={translate('iou.cancelPayment')}
                 isVisible={isConfirmModalVisible}
                 onConfirm={cancelPayment}
                 onCancel={() => setIsConfirmModalVisible(false)}
-                prompt={translate('iou.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
+                prompt={translate('iou.cancelPaymentConfirmation')}
+                confirmText={translate('iou.cancelPayment')}
+                cancelText={translate('common.dismiss')}
                 danger
             />
         </View>
