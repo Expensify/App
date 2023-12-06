@@ -197,17 +197,7 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
-/**
- * get personal details
- *
- * @returns {Object}
- */
-function getPersonalDetails() {
-    return allPersonalDetails || {};
-}
-
 export {
-    getPersonalDetails,
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getAccountIDsByLogins,

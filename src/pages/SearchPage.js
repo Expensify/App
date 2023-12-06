@@ -15,12 +15,12 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
@@ -28,6 +28,9 @@ const propTypes = {
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -47,6 +50,7 @@ const propTypes = {
 
 const defaultProps = {
     betas: [],
+    personalDetails: {},
     reports: {},
     network: {},
     isSearchingForReports: false,
@@ -85,7 +89,7 @@ class SearchPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (_.isEqual(prevProps.reports, this.props.reports)) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
             return;
         }
         this.updateOptions();
@@ -155,7 +159,7 @@ class SearchPage extends Component {
         this.interactionTask = InteractionManager.runAfterInteractions(() => {
             const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(
                 this.props.reports,
-                PersonalDetailsUtils.getPersonalDetails(),
+                this.props.personalDetails,
                 this.state.searchValue.trim(),
                 this.props.betas,
             );
@@ -193,7 +197,7 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
-        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(PersonalDetailsUtils.getPersonalDetails());
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
         const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.recentReports.length + this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
@@ -256,6 +260,9 @@ export default compose(
         isSearchingForReports: {
             key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
             initWithStoredValues: false,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
     withThemeStyles,
