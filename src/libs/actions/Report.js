@@ -2487,21 +2487,6 @@ function completeEngagementModal( text , choice) {
             lastActorAccountID,
         };
     }
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
-            value: failureReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
-            value: _.mapObject(optimisticReportActions, (action) => ({
-                ...action,
-                errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
-            })),
-        },
-    ];
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone()) {
@@ -2518,7 +2503,6 @@ function completeEngagementModal( text , choice) {
     API.write(commandName, parameters, {
         optimisticData,
         successData,
-        failureData,
     });
     notifyNewAction(conciergeChatReportID, reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
 }
