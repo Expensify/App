@@ -14,7 +14,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
-import convertToLTR from '@libs/convertToLTR';
+import {moveCursorToEndOfLine, removeUnicodeLTRWhenEmpty} from '@libs/convertToLTR';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
@@ -106,7 +106,7 @@ function ComposerWithSuggestions({
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
-    const [firstChange, setFirstChange] = useState(true);
+    const [composerIsEmpty, setComposerIsEmpty] = useState(true);
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
     const [value, setValue] = useState(() => {
@@ -223,43 +223,36 @@ function ComposerWithSuggestions({
                 }
             }
 
-            let newCommentConverted = convertToLTRForComposer(newComment);
+            let newCommentConverted = newComment;
+            const prevComment = commentRef.current;
 
-            const moveCursorToEndOfLine = (commentLength) => {
-                setSelection({
-                    start: commentLength + 1,
-                    end: commentLength + 1,
-                });
-            };
-
-            if (firstChange && commentRef.current === '' && !['@'].includes(newComment)) {
-                if (commentRef.current !== newComment) {
-                    setValue(convertToLTR(newComment));
-                    moveCursorToEndOfLine(newComment.length);
+            // This prevent the double execution of setting input value that could affect the place holder and could send an empty message or draft messages in android
+            if (prevComment !== newComment) {
+                newCommentConverted = removeUnicodeLTRWhenEmpty(newComment, newCommentConverted);
+                newCommentConverted = convertToLTRForComposer(newCommentConverted, composerIsEmpty);
+                if (['@'].includes(newComment)) {
+                    newCommentConverted = removeUnicodeLTRWhenEmpty(newComment, newCommentConverted, true);
                 }
-                setFirstChange(false);
-            } else if (commentRef.current !== newComment) {
-                newCommentConverted = newComment.length <= 1 ? newCommentConverted.replace(/\u2066/g, '') : newCommentConverted;
                 setValue(newCommentConverted);
-                moveCursorToEndOfLine(newComment.length);
-                setFirstChange(false);
+                moveCursorToEndOfLine(newComment.length, setSelection);
+                setComposerIsEmpty(false);
             }
 
             const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!prevComment.match(/^(\s)*$/);
 
             /** Only update isCommentEmpty state if it's different from previous one */
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
                 if (isNewCommentEmpty) {
-                    setFirstChange(true);
+                    setComposerIsEmpty(true);
                 }
             }
 
             emojisPresentBefore.current = emojis;
 
             if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
+                const position = Math.max(selection.end + (newComment.length - prevComment.length), cursorPosition || 0);
                 setSelection({
                     start: position,
                     end: position,
@@ -267,7 +260,7 @@ function ComposerWithSuggestions({
             }
 
             // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
+            if (prevComment.length === 0 && newCommentConverted.length !== 0) {
                 Report.setReportWithDraft(reportID, true);
             }
 
@@ -296,7 +289,7 @@ function ComposerWithSuggestions({
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
             selection.end,
-            firstChange,
+            composerIsEmpty,
         ],
     );
 
