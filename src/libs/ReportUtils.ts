@@ -6,6 +6,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import React from 'react';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
@@ -17,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
+import {IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -4174,44 +4175,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
 }
 
 /**
- * Return room channel log display message
- */
-function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): string {
-    const verb =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-            ? 'invited'
-            : 'removed';
-
-    const mentions = (reportAction?.originalMessage as ChangeLog)?.targetAccountIDs?.map(() => {
-        const personalDetail = allPersonalDetails?.accountID;
-        const displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || (personalDetail?.displayName ?? '') || Localize.translateLocal('common.hidden');
-        return `@${displayNameOrLogin}`;
-    });
-
-    const lastMention = mentions?.pop();
-    let message = '';
-
-    if (mentions?.length === 0) {
-        message = `${verb} ${lastMention}`;
-    } else if (mentions?.length === 1) {
-        message = `${verb} ${mentions?.[0]} and ${lastMention}`;
-    } else {
-        message = `${verb} ${mentions?.join(', ')}, and ${lastMention}`;
-    }
-
-    const roomName = (reportAction?.originalMessage as ChangeLog)?.roomName ?? '';
-    if (roomName) {
-        const preposition =
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                ? ' to'
-                : ' from';
-        message += `${preposition} ${roomName}`;
-    }
-
-    return message;
-}
-
-/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4249,6 +4212,23 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
  */
 function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
+}
+
+function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
+    if (event.key.length > 1) {
+        return false;
+    }
+
+    // If a key is pressed in combination with Meta, Control or Alt do not focus
+    if (event.ctrlKey || event.metaKey) {
+        return false;
+    }
+
+    if (event.code === 'Space') {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -4428,11 +4408,11 @@ export {
     getReimbursementQueuedActionMessage,
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
-    getChannelLogMemberMessage,
     getRoom,
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
+    shouldAutoFocusOnKeyPress,
 };
 
 export type {OptionData};

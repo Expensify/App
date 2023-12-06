@@ -1134,6 +1134,10 @@ export default {
         year: 'Año',
         selectYear: 'Por favor, selecciona un año',
     },
+    focusModeUpdateModal: {
+        title: '¡Bienvenido al modo #concentración!',
+        prompt: 'Los mensajes leídos se ocultarán, a menos que tengan un punto verde, lo que significa que tienes que tomar una acción en ellos. Puedes cambiar esto en la configuración de tu cuenta ',
+    },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
@@ -1566,6 +1570,12 @@ export default {
             invitePeople: 'Invitar nuevos miembros',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            user: 'usuario',
+            users: 'usuarios',
+            invited: 'invitó',
+            removed: 'eliminó',
+            to: 'a',
+            from: 'de',
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
