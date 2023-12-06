@@ -54,7 +54,6 @@ jest.mock('../../src/hooks/useEnvironment', () =>
 );
 
 jest.mock('../../src/libs/Permissions', () => ({
-    canUseTasks: jest.fn(() => true),
     canUseLinkPreviews: jest.fn(() => true),
 }));
 
@@ -125,7 +124,7 @@ function ReportScreenWrapper(args) {
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-test.skip('should render ReportScreen with composer interactions', () => {
+test('should render ReportScreen with composer interactions', () => {
     const scenario = async () => {
         // Query for the report list
         await screen.findByTestId('report-actions-list');
@@ -156,7 +155,7 @@ test.skip('should render ReportScreen with composer interactions', () => {
     };
 
     const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '1'}};
 
     return waitForBatchedUpdates()
@@ -176,7 +175,7 @@ test.skip('should render ReportScreen with composer interactions', () => {
         .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario, runs}));
 });
 
-test.skip('should press of the report item', () => {
+test('should press of the report item', () => {
     const scenario = async () => {
         // Query for the report list
         await screen.findByTestId('report-actions-list');
@@ -199,7 +198,7 @@ test.skip('should press of the report item', () => {
     };
 
     const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '2'}};
 
     return waitForBatchedUpdates()

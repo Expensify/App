@@ -281,16 +281,16 @@ export default [
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
-                    const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
+                } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
+                    const logMessage = ReportActionsUtils.getMemberChangeMessagePlainText(reportAction);
                     Clipboard.setString(logMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
-                    const markdown = parser.htmlToMarkdown(content);
                     if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(markdown);
+                        Clipboard.setString(parser.htmlToMarkdown(content));
                     } else {
-                        Clipboard.setHtml(content, markdown);
+                        const plainText = parser.htmlToText(content);
+                        Clipboard.setHtml(content, plainText);
                     }
                 }
             }
