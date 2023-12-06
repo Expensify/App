@@ -287,7 +287,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        mentionSuggestionsHandle: {
+        textSupporting: {
             color: theme.textSupporting,
         },
 
