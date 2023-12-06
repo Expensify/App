@@ -1,6 +1,10 @@
 import {useCallback, useMemo} from 'react';
-import ViolationField from '@libs/Violations/ViolationField';
 import {TransactionViolation, ViolationName} from '@src/types/onyx';
+
+/**
+ * Names of Fields where violations can occur
+ */
+type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 
 /**
  * Map from Violation Names to the field where that violation can occur.
@@ -67,7 +71,7 @@ function useViolations(violations: TransactionViolation[]) {
      * and returns only those that apply to the given {@link ViolationField}.
      * (return value memoized to prevent re-renders)
      * @example const violations = getViolationsForField('amount');
-     * @param {ViolationField} field - ViolationField to get violations for (e.g. 'amount', 'billable', 'category',
+     * @param field - ViolationField to get violations for (e.g. 'amount', 'billable', 'category',
      *     etc.)
      */
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
@@ -78,3 +82,4 @@ function useViolations(violations: TransactionViolation[]) {
 }
 
 export default useViolations;
+export type {ViolationField};

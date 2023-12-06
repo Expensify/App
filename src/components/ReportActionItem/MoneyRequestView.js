@@ -133,7 +133,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     const {getViolationsForField} = useViolations(transactionViolations);
-    const hasViolations = useCallback((field) => Boolean(getViolationsForField(field).length > 0), [getViolationsForField]);
+    const hasViolations = useCallback((field) => canUseViolations && Boolean(getViolationsForField(field).length > 0), [getViolationsForField]);
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -192,15 +192,15 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                                 enablePreviewModal
                             />
                         </View>
-                        <FieldViolationMessages violations={getViolationsForField('receipt')} />
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
+                {!hasReceipt && canEdit && !isSettled && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
                     />
                 )}
+                {canUseViolations && <FieldViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
@@ -211,10 +211,10 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                        brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                        brickRoadIndicator={hasViolations('amount') || (hasErrors && transactionAmount === 0) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     />
-                    <FieldViolationMessages violations={getViolationsForField('amount')} />
+                    {canUseViolations && <FieldViolationMessages violations={getViolationsForField('amount')} />}
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
                     <MenuItemWithTopDescription
@@ -229,7 +229,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         numberOfLinesTitle={0}
                     />
-                    <FieldViolationMessages violations={getViolationsForField('comment')} />
+                    {canUseViolations && <FieldViolationMessages violations={getViolationsForField('comment')} />}
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
@@ -254,7 +254,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
-                        <FieldViolationMessages violations={getViolationsForField('merchant')} />
+                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
@@ -268,7 +268,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     />
-                    <FieldViolationMessages violations={getViolationsForField('date')} />
+                    {canUseViolations && <FieldViolationMessages violations={getViolationsForField('date')} />}
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
@@ -281,7 +281,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
                             brickRoadIndicator={hasViolations('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         />
-                        <FieldViolationMessages violations={getViolationsForField('category')} />
+                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('category')} />}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && (
@@ -295,7 +295,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                             brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         />
-                        <FieldViolationMessages violations={getViolationsForField('tag')} />
+                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('tag')} />}
                     </OfflineWithFeedback>
                 )}
                 {isCardTransaction && (
@@ -317,7 +317,7 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                                 onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
                             />
                         </View>
-                        <FieldViolationMessages violations={getViolationsForField('billable')} />
+                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('billable')} />}
                     </>
                 )}
             </View>
