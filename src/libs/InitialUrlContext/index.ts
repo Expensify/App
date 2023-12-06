@@ -1,6 +1,7 @@
 import {createContext} from 'react';
+import {Route} from '@src/ROUTES';
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
-const InitialUrlContext = createContext<string | undefined>(undefined);
+const InitialUrlContext = createContext<Route | undefined>(undefined);
 
 export default InitialUrlContext;
