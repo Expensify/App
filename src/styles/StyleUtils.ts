@@ -1036,7 +1036,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
  * Select the correct color for text.
  */
 function getColoredBackgroundStyle(theme: ThemeColors, isColored: boolean): StyleProp<TextStyle> {
-    return {backgroundColor: isColored ? theme.link : undefined};
+    return {backgroundColor: isColored ? theme.mentionBG : undefined};
 }
 
 function getEmojiReactionBubbleStyle(theme: ThemeColors, isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle {
