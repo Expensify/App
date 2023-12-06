@@ -33,7 +33,6 @@ function RoomHeaderAvatars(props) {
             <AttachmentModal
                 headerTitle={props.icons[0].name}
                 source={UserUtils.getFullSizeAvatar(props.icons[0].source, props.icons[0].id)}
-                isAuthTokenRequired
                 isWorkspaceAvatar={props.icons[0].type === CONST.ICON_TYPE_WORKSPACE}
                 originalFileName={props.icons[0].name}
             >
@@ -78,7 +77,6 @@ function RoomHeaderAvatars(props) {
                         <AttachmentModal
                             headerTitle={icon.name}
                             source={UserUtils.getFullSizeAvatar(icon.source, icon.id)}
-                            isAuthTokenRequired
                             originalFileName={icon.name}
                             isWorkspaceAvatar={icon.type === CONST.ICON_TYPE_WORKSPACE}
                         >
