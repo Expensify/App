@@ -183,8 +183,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             .value();
     }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
+    console.log({policies});
+    console.log({workspaces});
+
     return (
-        <View style={[styles.dFlex, styles.gap3]}>
+        <View style={[styles.dFlex, styles.gap3, styles.m5]}>
             {_.isEmpty(workspaces) ? (
                 <FeatureList
                     menuItems={workspaceFeatures}
@@ -192,12 +195,15 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     description="workspace.emptyWorkspace.subtitle"
                 />
             ) : (
-                // _.map(workspaces, (item, index) => getMenuItem(item, index))
-                _.map(workspaces, (item) => (
+                _.map(workspaces, (item, index) => (
                     <WorkspacesListRow
+                        key={`${item.title}${index}`}
                         title={item.title}
-                        icon={item.icon}
-                        fallbackIcon={item.fallbackIcon}
+                        workspaceIcon={item.icon}
+                        fallbackWorkspaceIcon={item.fallbackIcon}
+                        owner={item.owner}
+                        workspaceType={item.type}
+                        item={item}
                     />
                 ))
             )}

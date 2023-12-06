@@ -5,14 +5,18 @@ import Text from '@components/Text';
 import {AvatarSource} from '@libs/UserUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import { ValueOf } from 'type-fest';
 
 type WorkspacesListRowProps = {
     title: string;
-    icon?: AvatarSource | undefined;
-    fallbackIcon?: AvatarSource | undefined;
+    workspaceIcon?: AvatarSource | undefined;
+    fallbackWorkspaceIcon?: AvatarSource | undefined;
+    // owner
+    workspaceType: ValueOf<typeof CONST.POLICY.TYPE>;
+    item: any; // TBD
 };
 
-function WorkspacesListRow({title, icon, fallbackIcon}: WorkspacesListRowProps) {
+function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, owner, workspaceType, item}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
 
     return (
@@ -21,8 +25,8 @@ function WorkspacesListRow({title, icon, fallbackIcon}: WorkspacesListRowProps) 
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
-                    source={icon}
-                    fallbackIcon={fallbackIcon}
+                    source={workspaceIcon}
+                    fallbackIcon={fallbackWorkspaceIcon}
                     name={title}
                     type={CONST.ICON_TYPE_WORKSPACE}
                 />
