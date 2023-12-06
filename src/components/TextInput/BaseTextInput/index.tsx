@@ -40,8 +40,8 @@ import BaseTextInputProps from './types';
 function BaseTextInput(
     {
         label = '',
-        value = undefined,
-        defaultValue = undefined,
+        value,
+        defaultValue,
         placeholder = '',
         errorText = '',
         icon = null,
@@ -54,7 +54,7 @@ function BaseTextInput(
         autoGrow = false,
         autoGrowHeight = false,
         hideFocusedState = false,
-        maxLength = undefined,
+        maxLength,
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
@@ -66,13 +66,13 @@ function BaseTextInput(
         inputID,
         ...inputProps
     }: BaseTextInputProps,
-    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
+    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>>>,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {hasError = false} = inputProps;
     const initialValue = value ?? defaultValue ?? '';
-    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
+    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
 
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(inputProps.secureTextEntry);
@@ -243,7 +243,7 @@ function BaseTextInput(
     // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
     // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
     // this method will produce reliable results.
-    const getCharacterPadding = (prefix: string) => {
+    const getCharacterPadding = (prefix: string): number => {
         switch (prefix) {
             case CONST.POLICY.ROOM_PREFIX:
                 return 10;
@@ -276,7 +276,7 @@ function BaseTextInput(
 
     const lineHeight = useMemo(() => {
         if ((Browser.isSafari() || Browser.isMobileChrome()) && Array.isArray(inputStyle)) {
-            const lineHeightValue = inputStyle?.find((f) => f && 'lineHeight' in f && f.lineHeight !== undefined);
+            const lineHeightValue = inputStyle?.find((style) => style && 'lineHeight' in style && style.lineHeight !== undefined);
             if (lineHeightValue && 'lineHeight' in lineHeightValue) {
                 return lineHeightValue.lineHeight;
             }
@@ -340,15 +340,15 @@ function BaseTextInput(
                                 </View>
                             )}
                             <RNTextInput
-                                ref={(el) => {
+                                ref={(element) => {
                                     if (typeof ref === 'function') {
-                                        ref(el);
+                                        ref(element);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = el;
+                                        ref.current = element;
                                     }
                                     // @ts-expect-error We need to reassign this ref to the input ref
-                                    input.current = el;
+                                    input.current = element;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}

@@ -57,20 +57,21 @@ function TextInput(
         <BaseTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={(el) => {
-                // @ts-expect-error We need to reassign this ref to the input ref
-                textInputRef.current = el;
+            ref={(element) => {
+                if (element) {
+                    (textInputRef.current as HTMLElement | Component<AnimatedProps<TextInputProps>>) = element;
+                }
                 if (!ref) {
                     return;
                 }
 
                 if (typeof ref === 'function') {
-                    ref(el);
+                    ref(element);
                     return;
                 }
 
                 // eslint-disable-next-line no-param-reassign
-                ref.current = el;
+                ref.current = element;
             }}
             inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, inputStyle]}
             textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, textInputContainerStyles]}

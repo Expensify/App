@@ -6,13 +6,13 @@ import TextInputLabelProps from './types';
 
 function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}: TextInputLabelProps) {
     const styles = useThemeStyles();
-    const labelRef = useRef<Text>(null);
+    const labelRef = useRef<Text & HTMLFormElement>(null);
 
     useEffect(() => {
         if (!inputId || !labelRef.current) {
             return;
         }
-        (labelRef.current as unknown as HTMLFormElement).setAttribute('for', inputId);
+        labelRef.current.setAttribute('for', inputId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

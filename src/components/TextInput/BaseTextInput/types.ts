@@ -111,5 +111,6 @@ type CustomBaseTextInputProps = {
 };
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps & LocaleContextProps;
+
 export default BaseTextInputProps;
 export type {CustomBaseTextInputProps};

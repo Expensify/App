@@ -40,29 +40,26 @@ import type BaseTextInputProps from './types';
 function BaseTextInput(
     {
         label = '',
-        // name = '',
-        value = undefined,
-        defaultValue = undefined,
+        value,
+        defaultValue,
         placeholder = '',
         errorText = '',
         icon = null,
-        textInputContainerStyles = [],
-        containerStyles = [],
-        inputStyle = [],
+        textInputContainerStyles,
+        containerStyles,
+        inputStyle,
         forceActiveLabel = false,
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
         autoGrowHeight = false,
         hideFocusedState = false,
-        maxLength = undefined,
+        maxLength,
         hint = '',
-        // shouldSaveDraft = false,
         onInputChange = () => {},
         shouldDelayFocus = false,
         submitOnEnter = false,
         multiline = false,
-        // shouldUseDefaultValue = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter,
@@ -75,7 +72,7 @@ function BaseTextInput(
     const styles = useThemeStyles();
     const {hasError = false} = inputProps;
     const initialValue = value ?? defaultValue ?? '';
-    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || Boolean(prefixCharacter);
+    const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
     const isMultiline = multiline || autoGrowHeight;
 
     const [isFocused, setIsFocused] = useState(false);
@@ -251,7 +248,7 @@ function BaseTextInput(
     // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
     // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
     // this method will produce reliable results.
-    const getCharacterPadding = (prefix: string) => {
+    const getCharacterPadding = (prefix: string): number => {
         switch (prefix) {
             case CONST.POLICY.ROOM_PREFIX:
                 return 10;
@@ -260,8 +257,6 @@ function BaseTextInput(
         }
     };
 
-    // eslint-disable-next-line react/forbid-foreign-prop-types
-    // const inputProps = _.omit(props, _.keys(baseTextInputPropTypes.propTypes));
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     const inputHelpText = errorText || hint;
@@ -332,15 +327,15 @@ function BaseTextInput(
                                 </View>
                             )}
                             <RNTextInput
-                                ref={(el) => {
+                                ref={(element) => {
                                     if (typeof ref === 'function') {
-                                        ref(el);
+                                        ref(element);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = el;
+                                        ref.current = element;
                                     }
                                     // @ts-expect-error We need to reassign this ref to the input ref
-                                    input.current = el;
+                                    input.current = element;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
