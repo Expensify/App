@@ -107,6 +107,7 @@ function MoneyRequestParticipantsSelector({
         personalDetails: [],
         userToInvite: null,
     });
+    const [isOptionsDataReady, setIsOptionsDataReady] = useState(false);
     const {isOffline} = useNetwork();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -227,7 +228,6 @@ function MoneyRequestParticipantsSelector({
         maxParticipantsReached,
         _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
         if (didScreenTransitionEnd) {
@@ -261,8 +261,9 @@ function MoneyRequestParticipantsSelector({
                 personalDetails: chatOptions.personalDetails,
                 userToInvite: chatOptions.userToInvite,
             });
+            setIsOptionsDataReady(ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails))
         }
-    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest, didScreenTransitionEnd]);
+    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest, didScreenTransitionEnd, setIsOptionsDataReady]);
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
