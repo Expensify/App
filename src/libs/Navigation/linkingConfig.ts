@@ -379,6 +379,8 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 },
                             },
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT.route,
+                            Money_Request_Tax_Rate: ROUTES.MONEY_REQUEST_TAX_RATE.route,
+                            Money_Request_Tax_Amount: ROUTES.MONEY_REQUEST_TAX_AMOUNT.route,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                             Money_Request_Date: ROUTES.MONEY_REQUEST_DATE.route,

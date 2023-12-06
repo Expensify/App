@@ -241,6 +241,12 @@ function MoneyRequestConfirmationList(props) {
     // A flag for showing the tags field
     const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
+    // A flag for showing tax rate
+    const shouldShowTaxRate = true;
+
+    // A flag for showing tax rate
+    const shouldShowTaxAmount = true;
+
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
 
@@ -718,6 +724,36 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                             rightLabel={canUseViolations && Boolean(props.policy.requiresTag) ? translate('common.required') : ''}
+                        />
+                    )}
+
+                    {shouldShowTaxRate && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title='UK_ZERO RATED (0%) * Default'
+                            description='Tax rate'
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_RATE.getRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
+                            brickRoadIndicator=''
+                            error=''
+                        />
+                    )}
+
+                    {shouldShowTaxAmount && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!props.isReadOnly}
+                            title='€ 0.00'
+                            description='Tax amount'
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_AMOUNT.getRoute(props.iouType, props.reportID))}
+                            disabled={didConfirm}
+                            interactive={!props.isReadOnly}
+                            brickRoadIndicator=''
+                            error=''
                         />
                     )}
 

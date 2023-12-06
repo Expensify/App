@@ -2875,6 +2875,14 @@ function resetMoneyRequestTag() {
     Onyx.merge(ONYXKEYS.IOU, {tag: ''});
 }
 
+function setMoneyRequestTaxRate(transactionID, taxRate) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
+}
+
+function setMoneyRequestTaxAmount(transactionID, taxAmount) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
+}
+
 /**
  * @param {Boolean} billable
  */
@@ -2996,6 +3004,8 @@ export {
     resetMoneyRequestCategory,
     setMoneyRequestTag,
     resetMoneyRequestTag,
+    setMoneyRequestTaxRate,
+    setMoneyRequestTaxAmount,
     setMoneyRequestBillable,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,

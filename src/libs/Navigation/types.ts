@@ -211,6 +211,14 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
+    Money_Request_Tax_Rate: {
+        iouType: string;
+        reportID: string;
+    };
+    Money_Request_Tax_Amount: {
+        iouType: string;
+        reportID: string;
+    };
     Money_Request_Merchant: {
         iouType: string;
         reportID: string;
