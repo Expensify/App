@@ -30,8 +30,9 @@ import type {
 } from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
+import type {Screen} from '@src/SCREENS';
 
-type Screens = Record<string, () => React.ComponentType>;
+type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
 /**
  * Create a modal stack navigator with an array of sub-screens.
@@ -55,11 +56,11 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
 
         return (
             <ModalStackNavigator.Navigator screenOptions={defaultSubRouteOptions}>
-                {Object.keys(screens).map((name) => (
+                {Object.keys(screens as Required<Screens>).map((name) => (
                     <ModalStackNavigator.Screen
                         key={name}
                         name={name}
-                        getComponent={screens[name]}
+                        getComponent={(screens as Required<Screens>)[name as Screen]}
                     />
                 ))}
             </ModalStackNavigator.Navigator>
@@ -184,7 +185,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES_PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES_LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
     // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
-    // Settings_Preferences_Theme: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
+    // [SCREENS.SETTINGS.PREFERENCES_THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
