@@ -125,5 +125,4 @@ LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
-    session: {key: ONYXKEYS.SESSION},
 })(LogInWithShortLivedAuthTokenPage);
