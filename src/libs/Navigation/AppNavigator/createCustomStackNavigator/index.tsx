@@ -1,33 +1,14 @@
-import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
-import {StackView} from '@react-navigation/stack';
-import PropTypes from 'prop-types';
+import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
+import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import NAVIGATORS from '@src/NAVIGATORS';
 import CustomRouter from './CustomRouter';
+import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
-const propTypes = {
-    /* Determines if the navigator should render the StackView (narrow) or ThreePaneView (wide) */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
-
-    /* Children for the useNavigationBuilder hook */
-    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
-
-    /* initialRouteName for this navigator */
-    initialRouteName: PropTypes.oneOf([PropTypes.string, PropTypes.undefined]),
-
-    /* Screen options defined for this navigator */
-    // eslint-disable-next-line react/forbid-prop-types
-    screenOptions: PropTypes.object,
-};
-
-const defaultProps = {
-    initialRouteName: undefined,
-    screenOptions: undefined,
-};
-
-function reduceReportRoutes(routes) {
-    const result = [];
+type Routes = StackNavigationState<ParamListBase>['routes'];
+function reduceReportRoutes(routes: Routes): Routes {
+    const result: Routes = [];
     let count = 0;
     const reverseRoutes = [...routes].reverse();
 
@@ -46,19 +27,23 @@ function reduceReportRoutes(routes) {
     return result.reverse();
 }
 
-function ResponsiveStackNavigator(props) {
+function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
-    const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
+    const isSmallScreenWidthRef = useRef<boolean>(isSmallScreenWidth);
 
     isSmallScreenWidthRef.current = isSmallScreenWidth;
 
-    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(CustomRouter, {
+    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+        StackNavigationState<ParamListBase>,
+        ResponsiveStackNavigatorRouterOptions,
+        StackActionHelpers<ParamListBase>,
+        StackNavigationOptions,
+        StackNavigationEventMap
+    >(CustomRouter, {
         children: props.children,
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,
-        // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
-        getIsSmallScreenWidth: () => isSmallScreenWidthRef.current,
     });
 
     const stateToRender = useMemo(() => {
@@ -84,8 +69,6 @@ function ResponsiveStackNavigator(props) {
     );
 }
 
-ResponsiveStackNavigator.defaultProps = defaultProps;
-ResponsiveStackNavigator.propTypes = propTypes;
 ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
-export default createNavigatorFactory(ResponsiveStackNavigator);
+export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof ResponsiveStackNavigator>(ResponsiveStackNavigator);
