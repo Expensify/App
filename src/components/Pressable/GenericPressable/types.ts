@@ -1,5 +1,5 @@
-import {ElementRef, RefObject} from 'react';
-import {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, StyleProp, ViewStyle} from 'react-native';
+import {ElementRef, ForwardedRef, RefObject} from 'react';
+import {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {Shortcut} from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
@@ -138,4 +138,7 @@ type PressableProps = RNPressableProps &
         noDragArea?: boolean;
     };
 
+type PressableRef = ForwardedRef<HTMLDivElement | View>;
+
 export default PressableProps;
+export type {PressableRef};

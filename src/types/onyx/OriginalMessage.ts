@@ -140,6 +140,7 @@ type ChronosOOOTimestamp = {
 type ChangeLog = {
     targetAccountIDs?: number[];
     roomName?: string;
+    reportID?: number;
 };
 
 type ChronosOOOEvent = {

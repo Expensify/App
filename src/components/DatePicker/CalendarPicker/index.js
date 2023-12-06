@@ -1,4 +1,3 @@
-import {withTheme} from '@storybook/theming';
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
@@ -9,7 +8,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import {withThemePropTypes} from '@components/withTheme';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
@@ -265,4 +264,4 @@ class CalendarPicker extends React.PureComponent {
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
-export default compose(withLocalize, withThemeStyles, withTheme)(CalendarPicker);
+export default compose(withLocalize, withTheme, withThemeStyles)(CalendarPicker);

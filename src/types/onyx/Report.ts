@@ -94,6 +94,9 @@ type Report = {
     /** The report type */
     type?: string;
 
+    /** If the admin room should be opened */
+    openOnAdminRoom?: boolean;
+
     /** The report visibility */
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
 

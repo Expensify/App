@@ -6,18 +6,19 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
+import React from 'react';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -115,6 +116,7 @@ type OptimisticExpenseReport = Pick<
     | 'total'
     | 'notificationPreference'
     | 'parentReportID'
+    | 'lastVisibleActionCreated'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -271,6 +273,7 @@ type OptimisticTaskReport = Pick<
     | 'stateNum'
     | 'statusNum'
     | 'notificationPreference'
+    | 'lastVisibleActionCreated'
 >;
 
 type TransactionDetails =
@@ -309,6 +312,7 @@ type OptimisticIOUReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'statusNum'
+    | 'lastVisibleActionCreated'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
@@ -2307,7 +2311,7 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
 /**
  * Gets the parent navigation subtitle for the report
  */
-function getParentNavigationSubtitle(report: OnyxEntry<Report>): ReportAndWorkspaceName | EmptyObject {
+function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigationSummaryParams {
     if (isThread(report)) {
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
         const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
@@ -2550,6 +2554,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         reportName: `${payerEmail} owes ${formattedTotal}`,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -2596,6 +2601,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         total: storedTotal,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -3285,6 +3291,7 @@ function buildOptimisticTaskReport(
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS.OPEN,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
 
@@ -3424,6 +3431,8 @@ function shouldReportBeInOptionList(
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (report?.participantAccountIDs?.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
@@ -4166,44 +4175,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
 }
 
 /**
- * Return room channel log display message
- */
-function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): string {
-    const verb =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-            ? 'invited'
-            : 'removed';
-
-    const mentions = (reportAction?.originalMessage as ChangeLog)?.targetAccountIDs?.map(() => {
-        const personalDetail = allPersonalDetails?.accountID;
-        const displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || (personalDetail?.displayName ?? '') || Localize.translateLocal('common.hidden');
-        return `@${displayNameOrLogin}`;
-    });
-
-    const lastMention = mentions?.pop();
-    let message = '';
-
-    if (mentions?.length === 0) {
-        message = `${verb} ${lastMention}`;
-    } else if (mentions?.length === 1) {
-        message = `${verb} ${mentions?.[0]} and ${lastMention}`;
-    } else {
-        message = `${verb} ${mentions?.join(', ')}, and ${lastMention}`;
-    }
-
-    const roomName = (reportAction?.originalMessage as ChangeLog)?.roomName ?? '';
-    if (roomName) {
-        const preposition =
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                ? ' to'
-                : ' from';
-        message += `${preposition} ${roomName}`;
-    }
-
-    return message;
-}
-
-/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4241,6 +4212,23 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
  */
 function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
+}
+
+function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
+    if (event.key.length > 1) {
+        return false;
+    }
+
+    // If a key is pressed in combination with Meta, Control or Alt do not focus
+    if (event.ctrlKey || event.metaKey) {
+        return false;
+    }
+
+    if (event.code === 'Space') {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -4420,11 +4408,11 @@ export {
     getReimbursementQueuedActionMessage,
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
-    getChannelLogMemberMessage,
     getRoom,
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
+    shouldAutoFocusOnKeyPress,
 };
 
 export type {OptionData, OptimisticCreatedReportAction};
