@@ -322,6 +322,7 @@ function PopoverReportActionContextMenu(_props, ref) {
                 onConfirm={confirmDeleteAndHideModal}
                 onCancel={hideDeleteModal}
                 onModalHide={() => {
+                    clearActiveReportAction();
                     callbackWhenDeleteModalHide.current();
                 }}
                 prompt={translate('reportActionContextMenu.deleteConfirmation', {action: reportAction})}
