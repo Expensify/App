@@ -1,11 +1,8 @@
 import {Parser as HtmlParser} from 'htmlparser2';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-<<<<<<< HEAD
-import * as ReceiptUtils from '@libs/ReceiptUtils';
-=======
 import * as FileUtils from '@libs/fileDownload/FileUtils';
->>>>>>> 3915fb2 (Merge pull request #31791 from kidroca/kidroca/fix/regressions-related-to-file-downloads)
+import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -38,12 +35,8 @@ function extractAttachmentsFromReport(parentReportAction, reportActions, transac
                 source,
                 reportActionID: attribs['data-id'],
                 isAuthTokenRequired: Boolean(expensifySource),
-<<<<<<< HEAD
-                file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-                isReceipt: false,
-=======
                 file: {name: fileName},
->>>>>>> 3915fb2 (Merge pull request #31791 from kidroca/kidroca/fix/regressions-related-to-file-downloads)
+                isReceipt: false,
                 hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
         },
