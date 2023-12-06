@@ -141,6 +141,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     };
 
     const onChangeText = (value = '') => {
+        Report.searchInServer(searchValue);
         setSearchValue(value);
     };
 

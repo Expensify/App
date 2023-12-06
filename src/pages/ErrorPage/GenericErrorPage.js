@@ -29,7 +29,7 @@ function GenericErrorPage({translate}) {
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
-                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(paddingBottom)]}>
+                <View style={[styles.flex1, styles.pt10, styles.ph5, StyleUtils.getErrorPageContainerStyle(theme, paddingBottom)]}>
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <View>
                             <View style={styles.mb5}>

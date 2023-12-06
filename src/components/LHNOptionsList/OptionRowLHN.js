@@ -103,7 +103,7 @@ function OptionRowLHN(props) {
         props.style,
     );
     const contentContainerStyles =
-        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
+        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles(styles)] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(
         props.viewMode === CONST.OPTION_MODE.COMPACT
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
@@ -201,7 +201,7 @@ function OptionRowLHN(props) {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(theme.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle || styles.sidebarLinkHover : null,
