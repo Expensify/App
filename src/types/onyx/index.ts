@@ -12,6 +12,7 @@ import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import Fund from './Fund';
 import IOU from './IOU';
+import Locale from './Locale';
 import Login from './Login';
 import MapboxAccessToken from './MapboxAccessToken';
 import Modal from './Modal';
@@ -21,7 +22,7 @@ import PersonalBankAccount from './PersonalBankAccount';
 import PersonalDetails from './PersonalDetails';
 import PlaidData from './PlaidData';
 import Policy from './Policy';
-import PolicyCategory from './PolicyCategory';
+import PolicyCategory, {PolicyCategories} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
 import PolicyTag, {PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
@@ -42,7 +43,9 @@ import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
+import {TransactionViolation, ViolationName} from './TransactionViolation';
 import User from './User';
+import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletOnfido from './WalletOnfido';
@@ -52,6 +55,7 @@ import WalletTransfer from './WalletTransfer';
 
 export type {
     Account,
+    UserLocation,
     AccountData,
     AddDebitCardForm,
     BankAccount,
@@ -67,6 +71,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     IOU,
+    Locale,
     Login,
     MapboxAccessToken,
     Modal,
@@ -78,6 +83,7 @@ export type {
     PlaidData,
     Policy,
     PolicyCategory,
+    PolicyCategories,
     PolicyMember,
     PolicyMembers,
     PolicyTag,
@@ -101,8 +107,10 @@ export type {
     Session,
     Task,
     Transaction,
+    TransactionViolation,
     User,
     UserWallet,
+    ViolationName,
     WalletAdditionalDetails,
     WalletOnfido,
     WalletStatement,

@@ -17,6 +17,9 @@ type TextProps = RNTextProps &
         /** The alignment of the text */
         textAlign?: TextStyle['textAlign'];
 
+        /** Any children to display */
+        children: React.ReactNode;
+
         /** The family of the font to use */
         family?: keyof typeof fontFamily;
     };

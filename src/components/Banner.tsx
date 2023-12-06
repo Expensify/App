@@ -3,6 +3,7 @@ import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Hoverable from './Hoverable';
@@ -40,6 +41,7 @@ type BannerProps = {
 };
 
 function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -65,7 +67,7 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                                 <View style={[styles.mr3]}>
                                     <Icon
                                         src={Expensicons.Exclamation}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
+                                        fill={StyleUtils.getIconFillColor(theme, getButtonState(shouldHighlight))}
                                     />
                                 </View>
                             )}
