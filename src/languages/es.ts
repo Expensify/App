@@ -84,6 +84,7 @@ import type {
 export default {
     common: {
         cancel: 'Cancelar',
+        dismiss: 'Descartar',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -533,6 +534,8 @@ export default {
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
+        cancelPayment: 'Cancelar el pago',
+        cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
         viewDetails: 'Ver detalles',
         pending: 'Pendiente',
         canceled: 'Canceló',
