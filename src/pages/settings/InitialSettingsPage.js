@@ -266,17 +266,19 @@ function InitialSettingsPage(props) {
         ];
 
         if (NativeModules.HybridAppModule) {
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
-            const hybridAppMenuItems = [
-                {
-                    translationKey: 'initialSettingsPage.returnToClassic',
-                    icon: Expensicons.RotateLeft,
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
-                },
-                ...defaultMenuItems,
-            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut');
+            const hybridAppMenuItems = _.filter(
+                [
+                    {
+                        translationKey: 'initialSettingsPage.returnToClassic',
+                        icon: Expensicons.RotateLeft,
+                        shouldShowRightIcon: true,
+                        iconRight: Expensicons.NewWindow,
+                        action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
+                    },
+                    ...defaultMenuItems,
+                ],
+                (item) => item.translationKey !== 'initialSettingsPage.signOut',
+            );
 
             return hybridAppMenuItems;
         }
