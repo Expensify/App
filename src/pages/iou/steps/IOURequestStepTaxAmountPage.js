@@ -104,7 +104,7 @@ function IOURequestStepTaxAmountPage({route, iou}) {
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
-                            title='Tax Amount'
+                            title="Tax Amount"
                             onBackButtonPress={navigateBack}
                         />
                         {content}

@@ -730,30 +730,30 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTaxRate && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title='UK_ZERO RATED (0%) * Default'
-                            description='Tax rate'
+                            title="UK_ZERO RATED (0%) * Default"
+                            description="Tax rate"
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_RATE.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator=''
-                            error=''
+                            brickRoadIndicator=""
+                            error=""
                         />
                     )}
 
                     {shouldShowTaxAmount && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title='€ 0.00'
-                            description='Tax amount'
+                            title="€ 0.00"
+                            description="Tax amount"
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_AMOUNT.getRoute(props.iouType, props.reportID))}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator=''
-                            error=''
+                            brickRoadIndicator=""
+                            error=""
                         />
                     )}
 

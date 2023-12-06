@@ -44,7 +44,7 @@ function IOURequestStepTaxRatePage({route}) {
         >
             <>
                 <HeaderWithBackButton
-                    title='Tax Rate'
+                    title="Tax Rate"
                     onBackButtonPress={() => navigateBack()}
                 />
             </>
