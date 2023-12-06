@@ -401,15 +401,19 @@ export default [
             !isArchivedRoom &&
             !isChronosReport &&
             !ReportActionsUtils.isMessageDeleted(reportAction),
-        onPress: (closePopover, {reportID, reportAction}) => {
+        onPress: (closePopover, {reportID, reportAction, close, openContextMenu}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction));
+                hideContextMenu(false, () => {
+                    openContextMenu();
+                    showDeleteModal(reportID, reportAction, true, close, close);
+                });
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction);
+            openContextMenu();
+            showDeleteModal(reportID, reportAction, true, close, close);
         },
         getDescription: () => {},
     },

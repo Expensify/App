@@ -49,6 +49,8 @@ function PopoverReportActionContextMenu(_props, ref) {
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
+    const onSecondaryModalShow = useRef(() => {});
+    const onSecondaryModalHide = useRef(() => {});
     const onCancelDeleteModal = useRef(() => {});
     const onComfirmDeleteModal = useRef(() => {});
 
@@ -158,7 +160,9 @@ function PopoverReportActionContextMenu(_props, ref) {
         setInstanceID(Math.random().toString(36).substr(2, 5));
 
         onPopoverShow.current = onShow;
+        onSecondaryModalShow.current = onShow;
         onPopoverHide.current = onHide;
+        onSecondaryModalHide.current = onHide;
 
         getContextMenuMeasuredLocation().then(({x, y}) => {
             popoverAnchorPosition.current = {
@@ -313,6 +317,8 @@ function PopoverReportActionContextMenu(_props, ref) {
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}
                     originalReportID={originalReportIDRef.current}
+                    onSecondaryModalShow={onSecondaryModalShow.current}
+                    onSecondaryModalHide={onSecondaryModalHide.current}
                 />
             </PopoverWithMeasuredContent>
             <ConfirmModal

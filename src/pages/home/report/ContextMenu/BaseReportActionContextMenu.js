@@ -143,8 +143,18 @@ function BaseReportActionContextMenu(props) {
                         reportID: props.reportID,
                         draftMessage: props.draftMessage,
                         selection: props.selection,
-                        close: () => setShouldKeepOpen(false),
-                        openContextMenu: () => setShouldKeepOpen(true),
+                        close: () => {
+                            if (props.onSecondaryModalHide) {
+                                props.onSecondaryModalHide();
+                            }
+                            setShouldKeepOpen(false);
+                        },
+                        openContextMenu: () => {
+                            if (props.onSecondaryModalShow) {
+                                props.onSecondaryModalShow();
+                            }
+                            setShouldKeepOpen(true);
+                        },
                         interceptAnonymousUser,
                     };
 

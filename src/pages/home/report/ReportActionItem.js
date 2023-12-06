@@ -686,6 +686,8 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
+                            onSecondaryModalShow={() => setIsContextMenuActive(true)}
+                            onSecondaryModalHide={() => setIsContextMenuActive(false)}
                         />
                         <View style={StyleUtils.getReportActionItemStyle(theme, styles, hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
                             <OfflineWithFeedback
