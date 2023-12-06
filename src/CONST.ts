@@ -483,6 +483,7 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -497,6 +498,7 @@ const CONST = {
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
                 SUBMITTED: 'SUBMITTED',
@@ -556,6 +558,7 @@ const CONST = {
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
@@ -599,6 +602,7 @@ const CONST = {
             ADMINS: '#admins',
         },
         STATE: {
+            OPEN: 'OPEN',
             SUBMITTED: 'SUBMITTED',
             PROCESSING: 'PROCESSING',
         },
@@ -696,6 +700,14 @@ const CONST = {
         LIGHT: 'light',
         DARK: 'dark',
         SYSTEM: 'system',
+    },
+    COLOR_SCHEME: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
+    STATUS_BAR_STYLE: {
+        LIGHT_CONTENT: 'light-content',
+        DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
@@ -952,6 +964,7 @@ const CONST = {
         GUIDES_DOMAIN: 'team.expensify.com',
         HELP: 'help@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        NOTIFICATIONS: 'notifications@expensify.com',
         PAYROLL: 'payroll@expensify.com',
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
@@ -971,6 +984,7 @@ const CONST = {
         FIRST_RESPONDER: Number(Config?.EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER ?? 9375152),
         HELP: Number(Config?.EXPENSIFY_ACCOUNT_ID_HELP ?? -1),
         INTEGRATION_TESTING_CREDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS ?? -1),
+        NOTIFICATIONS: Number(Config?.EXPENSIFY_ACCOUNT_ID_NOTIFICATIONS ?? 11665625),
         PAYROLL: Number(Config?.EXPENSIFY_ACCOUNT_ID_PAYROLL ?? 9679724),
         QA: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA ?? 3126513),
         QA_TRAVIS: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_TRAVIS ?? 8595733),
@@ -1155,6 +1169,9 @@ const CONST = {
             SVG: 'svg',
         },
         RECEIPT_ERROR: 'receiptError',
+        CANCEL_REASON: {
+            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
+        },
     },
 
     GROWL: {
@@ -1358,7 +1375,6 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
@@ -1395,6 +1411,7 @@ const CONST = {
             this.EMAIL.FIRST_RESPONDER,
             this.EMAIL.HELP,
             this.EMAIL.INTEGRATION_TESTING_CREDS,
+            this.EMAIL.NOTIFICATIONS,
             this.EMAIL.PAYROLL,
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
@@ -2813,6 +2830,7 @@ const CONST = {
             START_CHAT: 'startChat',
             SEND_MONEY: 'sendMoney',
             REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
@@ -2830,10 +2848,51 @@ const CONST = {
     BACK_BUTTON_NATIVE_ID: 'backButton',
 
     /**
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
+     */
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+
+    /**
      * Performance test setup - run the same test multiple times to get a more accurate result
      */
     PERFORMANCE_TESTS: {
         RUNS: 20,
+    },
+
+    /**
+     * Bank account names
+     */
+    BANK_NAMES: {
+        EXPENSIFY: 'expensify',
+        AMERICAN_EXPRESS: 'americanexpress',
+        BANK_OF_AMERICA: 'bank of america',
+        BB_T: 'bbt',
+        CAPITAL_ONE: 'capital one',
+        CHASE: 'chase',
+        CHARLES_SCHWAB: 'charles schwab',
+        CITIBANK: 'citibank',
+        CITIZENS_BANK: 'citizens bank',
+        DISCOVER: 'discover',
+        FIDELITY: 'fidelity',
+        GENERIC_BANK: 'generic bank',
+        HUNTINGTON_BANK: 'huntington bank',
+        HUNTINGTON_NATIONAL: 'huntington national',
+        NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+        PNC: 'pnc',
+        REGIONS_BANK: 'regions bank',
+        SUNTRUST: 'suntrust',
+        TD_BANK: 'td bank',
+        US_BANK: 'us bank',
+        USAA: 'usaa',
+    },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
     },
 } as const;
 
