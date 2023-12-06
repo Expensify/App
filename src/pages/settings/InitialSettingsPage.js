@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
@@ -187,7 +187,7 @@ function InitialSettingsPage(props) {
 
         const paymentCardList = props.fundList || {};
 
-        return [
+        const defaultMenuItems = [
             {
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
@@ -264,6 +264,24 @@ function InitialSettingsPage(props) {
                 },
             },
         ];
+
+        if (NativeModules.HybridAppModule) {
+            // eslint-disable-next-line rulesdir/prefer-underscore-method
+            const hybridAppMenuItems = [
+                {
+                    translationKey: 'initialSettingsPage.returnToClassic',
+                    icon: Expensicons.RotateLeft,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    action: () => NativeModules.HybridAppModule.closeReactNativeApp(),
+                },
+                ...defaultMenuItems,
+            ].filter((item) => item.translationKey !== 'initialSettingsPage.signOut');
+
+            return hybridAppMenuItems;
+        }
+
+        return defaultMenuItems;
     }, [
         props.allPolicyMembers,
         props.bankAccountList,
