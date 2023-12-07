@@ -1,10 +1,10 @@
 import React from 'react';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {type WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 type RenameActionProps = WithCurrentUserPersonalDetailsProps & {
     /** All the data of the action */
