@@ -1,4 +1,4 @@
-import positioning from '@styles/utilities/positioning';
+import positioning from '@styles/utils/positioning';
 import GetCardStyles from './types';
 
 /**

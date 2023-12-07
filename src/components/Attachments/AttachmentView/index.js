@@ -18,7 +18,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import useTheme from '@styles/theme/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import cursor from '@styles/utilities/cursor';
+import cursor from '@styles/utils/cursor';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
