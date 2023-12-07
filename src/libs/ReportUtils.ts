@@ -4246,6 +4246,35 @@ function navigateToPrivateNotes(report: Report, session: Session) {
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
 }
 
+function isSettledAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return false;
+    }
+    if (reportAction && reportAction.originalMessage) {
+        const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID ?? '');
+        if (transaction) {
+            const settled = isSettled(transaction.reportID);
+            return settled
+        }
+    }
+    return false;
+}
+
+function excludeLastUnsettledIOUAction(reportActions: ReportAction[], lastIOUActionId: string): ReportAction[] {
+    if (lastIOUActionId) {
+        const lastIOUAction = reportActions.find((action) => action.reportActionID === lastIOUActionId)
+        if (lastIOUAction && isSettledAction(lastIOUAction)) {
+            const sortedActionWithOutLastIOUAction = reportActions.filter((action) => action.reportActionID !== lastIOUActionId)
+            const secondLastIOUActionId = ReportActionsUtils.getMostRecentIOURequestActionID(sortedActionWithOutLastIOUAction);
+            const secondLastIOUAction = sortedActionWithOutLastIOUAction.find((action) => action.reportActionID === secondLastIOUActionId)
+            if (!secondLastIOUAction || (secondLastIOUAction && isSettledAction(secondLastIOUAction))) {
+                return sortedActionWithOutLastIOUAction;
+            }
+        }
+    }
+    return reportActions;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4413,6 +4442,8 @@ export {
     navigateToPrivateNotes,
     canEditWriteCapability,
     shouldAutoFocusOnKeyPress,
+    isSettledAction,
+    excludeLastUnsettledIOUAction
 };
 
 export type {OptionData};

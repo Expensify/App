@@ -161,6 +161,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
+                [iouAction.reportActionID]: iouAction,
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
             },
         },

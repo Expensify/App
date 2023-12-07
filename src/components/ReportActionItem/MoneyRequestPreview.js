@@ -1,8 +1,8 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import { View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,10 +11,10 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithoutFeedback';
 import refPropTypes from '@components/refPropTypes';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import { showContextMenuForReport } from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '@components/withLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
@@ -123,7 +123,7 @@ const defaultProps = {
     onPreviewPressed: null,
     action: undefined,
     contextMenuAnchor: undefined,
-    checkIfContextMenuActive: () => {},
+    checkIfContextMenuActive: () => { },
     containerStyles: [],
     walletTerms: {},
     isHovered: false,
@@ -139,7 +139,7 @@ const defaultProps = {
 function MoneyRequestPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const { isSmallScreenWidth, windowWidth } = useWindowDimensions();
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
@@ -159,7 +159,7 @@ function MoneyRequestPreview(props) {
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
 
-    const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant} = ReportUtils.getTransactionDetails(props.transaction);
+    const { amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant: requestMerchant } = ReportUtils.getTransactionDetails(props.transaction);
     const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
@@ -238,7 +238,7 @@ function MoneyRequestPreview(props) {
     };
 
     const getDisplayDeleteAmountText = () => {
-        const {amount, currency} = ReportUtils.getTransactionDetails(props.action.originalMessage);
+        const { amount, currency } = ReportUtils.getTransactionDetails(props.action.originalMessage);
 
         if (isDistanceRequest) {
             return CurrencyUtils.convertToDisplayString(TransactionUtils.getAmount(props.action.originalMessage), currency);
@@ -274,8 +274,8 @@ function MoneyRequestPreview(props) {
                         />
                     )}
                     {_.isEmpty(props.transaction) &&
-                    !ReportActionsUtils.isMessageDeleted(props.action) &&
-                    lodashGet(props.action, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
+                        !ReportActionsUtils.isMessageDeleted(props.action) &&
+                        lodashGet(props.action, 'pendingAction') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? (
                         <MoneyRequestSkeletonView />
                     ) : (
                         <View style={styles.moneyRequestPreviewBoxText}>
@@ -361,6 +361,32 @@ function MoneyRequestPreview(props) {
         return childContainer;
     }
 
+    const getIOUMessage = () => {
+        if (isScanning) {
+            return props.translate('iou.receiptScanning');
+        }
+        if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
+            return props.translate('iou.managerApproved', { manager: ReportUtils.getDisplayNameForParticipant(managerID, true) });
+        }
+        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(isSettled ? managerID : sessionAccountID, true, false);
+        if (isDeleted) {
+            return `${managerName} ${props.translate('iou.canceled')} ${displayAmount}`
+        }
+        if (!isSettled) {
+            return `${managerName} ${props.translate('iou.requestedAmount', { formattedAmount: displayAmount })}`
+        }
+
+        let paymentVerb = 'iou.payerPaidAmount'
+        if (lodashGet(props.action, 'originalMessage.paymentType', '') !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY || !isExpensifyCardTransaction) {
+            paymentVerb = 'iou.paidElsewhereWithAmount';
+        }
+        return `${props.translate(paymentVerb, { payer: managerName, amount: displayAmount })}`;
+    }
+
+    if (props.chatReport.type === CONST.REPORT.TYPE.CHAT) {
+        return (<Text style={[styles.colorMuted]}> {getIOUMessage()}</Text>)
+    }
+
     const shouldDisableOnPress = props.isBillSplit && _.isEmpty(props.transaction);
 
     return (
@@ -389,16 +415,16 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         chatReport: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+            key: ({ chatReportID }) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
         },
         iouReport: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+            key: ({ iouReportID }) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
         },
         transaction: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
+            key: ({ action }) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

@@ -1,13 +1,13 @@
-import {useIsFocused} from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import { withNetwork } from '@components/OnyxProvider';
+import withLocalize, { withLocalizePropTypes } from '@components/withLocalize';
+import withWindowDimensions, { windowDimensionsPropTypes } from '@components/withWindowDimensions';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
@@ -15,9 +15,9 @@ import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
-import {didUserLogInDuringSession} from '@libs/SessionUtils';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import { isUserCreatedPolicyRoom } from '@libs/ReportUtils';
+import { didUserLogInDuringSession } from '@libs/SessionUtils';
+import { ReactionListContext } from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
@@ -102,6 +102,8 @@ function ReportActionsView(props) {
      * @returns {Boolean}
      */
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
+
+    const reportActionsWithoutUnsettledIOUAction = useMemo(() => ReportActionsUtils.excludeLastUnsettledIOUAction(props.reportActions, mostRecentIOUReportActionID), [mostRecentIOUReportActionID, props.reportActions])
 
     const openReportIfNecessary = () => {
         const createChatError = _.get(props.report, ['errorFields', 'createChat']);
@@ -200,7 +202,7 @@ function ReportActionsView(props) {
      */
     const loadNewerChats = useMemo(
         () =>
-            _.throttle(({distanceFromStart}) => {
+            _.throttle(({ distanceFromStart }) => {
                 if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions || hasNewestReportAction) {
                     return;
                 }
@@ -256,7 +258,7 @@ function ReportActionsView(props) {
             <ReportActionsList
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={props.reportActions}
+                sortedReportActions={reportActionsWithoutUnsettledIOUAction}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
@@ -369,7 +371,7 @@ function arePropsEqual(oldProps, newProps) {
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
 export default compose(
-    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
+    Performance.withRenderTrace({ id: '<ReportActionsView> rendering' }),
     withWindowDimensions,
     withLocalize,
     withNetwork(),
