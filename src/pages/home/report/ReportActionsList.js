@@ -158,6 +158,7 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
+    const hasFocusedOnUnreadMessage = useRef(false);
 
     const sortedVisibleReportActions = _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors);
     const lastActionIndex = lodashGet(sortedVisibleReportActions, [0, 'reportActionID']);
@@ -290,15 +291,26 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    const showFloatingMessageCounter = () => {
+        const hasCurrentUnreadAndFloatingMessageIsHidden = !isFloatingMessageCounterVisible && !!currentUnreadMarker;
+        const isFocusOutsideUnreadMessage = isFloatingMessageCounterVisible && !hasFocusedOnUnreadMessage.current;
+
+        return hasCurrentUnreadAndFloatingMessageIsHidden || isFocusOutsideUnreadMessage;
+    };
+
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!currentUnreadMarker) {
-            setIsFloatingMessageCounterVisible(true);
+        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD) {
+            setIsFloatingMessageCounterVisible(showFloatingMessageCounter());
+
+            if (isFloatingMessageCounterVisible && hasFocusedOnUnreadMessage.current) {
+                hasFocusedOnUnreadMessage.current = false;
+            }
         }
 
-        if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
+        if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible && !hasFocusedOnUnreadMessage.current) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
                 Report.readNewestAction(report.reportID);
@@ -312,8 +324,19 @@ function ReportActionsList({
         onScroll(event);
     };
 
-    const scrollToBottomAndMarkReportAsRead = () => {
-        reportScrollManager.scrollToBottom();
+    const getScrollIndex = () => {
+        const bottomIndex = 0;
+        const firstUnreadMessageIndex = _.findIndex(sortedReportActions, (reportAction) => reportAction.reportActionID === currentUnreadMarker);
+
+        return firstUnreadMessageIndex > -1 ? firstUnreadMessageIndex : bottomIndex;
+    };
+
+    const scrollToUnreadMessageAndMarkReportAsRead = () => {
+        const scrollIndex = getScrollIndex();
+
+        hasFocusedOnUnreadMessage.current = true;
+
+        reportScrollManager.scrollToIndex(scrollIndex, false);
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
     };
@@ -462,7 +485,7 @@ function ReportActionsList({
         <>
             <FloatingMessageCounter
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
-                onClick={scrollToBottomAndMarkReportAsRead}
+                onClick={scrollToUnreadMessageAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
