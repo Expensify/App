@@ -173,15 +173,15 @@ function MoneyRequestPreview(props) {
     const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
     const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
-    const merchantOrDescription = useMemo(() => {
-        if (!shouldShowMerchant) {
-            return description || '';
-        }
-        if (hasPendingWaypoints) {
-            return requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
-        }
-        return requestMerchant;
-    });
+
+    let merchantOrDescription = '';
+    if (!shouldShowMerchant) {
+        merchantOrDescription = description || '';
+    } else if (hasPendingWaypoints) {
+        merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
+    } else {
+        merchantOrDescription = requestMerchant;
+    }
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
 
