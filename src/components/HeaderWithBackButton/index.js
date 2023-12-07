@@ -16,6 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -57,6 +58,7 @@ function HeaderWithBackButton({
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
 }) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -134,7 +136,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Download}
-                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                    fill={iconFill || StyleUtils.getIconFillColor(theme, getButtonState(false, false, !isDownloadButtonActive))}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>

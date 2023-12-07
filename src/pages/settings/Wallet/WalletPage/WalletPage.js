@@ -223,7 +223,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList || {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, paymentCardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, paymentCardList, styles);
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === paymentMethod.methodID);
@@ -239,6 +239,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         paymentMethod.selectedPaymentMethodType,
         bankAccountList,
         fundList,
+        styles,
     ]);
 
     const deletePaymentMethod = useCallback(() => {
