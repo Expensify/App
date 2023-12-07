@@ -16,7 +16,6 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '@pages/settings/userPropTypes';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -24,6 +23,7 @@ import * as Link from '@userActions/Link';
 import * as BankAccounts from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Bank account currently in setup */
