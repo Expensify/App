@@ -404,6 +404,12 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
     return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
+function areAllDistanceRequestTransactions(reportID?: string): boolean  {
+    const reportTransactions: Transaction[] = getAllReportTransactions(reportID);
+    const areAllDistanceRequestTransactions = reportTransactions.every((transaction) => isDistanceRequest(transaction));
+    return reportTransactions.length > 0 && areAllDistanceRequestTransactions;
+}
+
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
@@ -480,6 +486,7 @@ export {
     getTag,
     getLinkedTransaction,
     getAllReportTransactions,
+    areAllDistanceRequestTransactions,
     hasReceipt,
     hasEReceipt,
     hasRoute,
