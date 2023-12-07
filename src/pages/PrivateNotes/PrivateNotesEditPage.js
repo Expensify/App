@@ -15,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize from '@components/withLocalize';
+import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,7 +54,6 @@ const defaultProps = {
 function PrivateNotesEditPage({route, personalDetailsList, report}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
@@ -76,6 +76,8 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
     // To focus on the input field when the page loads
     const privateNotesInput = useRef(null);
     const focusTimeoutRef = useRef(null);
+
+    useHtmlPaste(privateNotesInput);
 
     useFocusEffect(
         useCallback(() => {
