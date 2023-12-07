@@ -2,11 +2,11 @@ import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import styles from './styles';
-import themeColors from './themes/default';
+import {type ThemeStyles} from './styles';
+import {type ThemeColors} from './themes/types';
 import variables from './variables';
 
-function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
+function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
     const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
 
     return {
@@ -37,6 +37,8 @@ type GetModalStyles = {
 };
 
 export default function getModalStyles(
+    theme: ThemeColors,
+    styles: ThemeStyles,
     type: ModalType | undefined,
     windowDimensions: WindowDimensions,
     popoverAnchorPosition: ViewStyle = {},
@@ -101,7 +103,7 @@ export default function getModalStyles(
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
                 overflow: 'hidden',
-                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth),
+                ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
             };
 
             // Allow this modal to be dismissed with a swipe down or swipe right
@@ -128,7 +130,7 @@ export default function getModalStyles(
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
                 overflow: 'hidden',
-                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth, true),
+                ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth, true),
             };
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
@@ -196,7 +198,7 @@ export default function getModalStyles(
             modalContainerStyle = {
                 borderRadius: 12,
                 borderWidth: 1,
-                borderColor: themeColors.border,
+                borderColor: theme.border,
                 justifyContent: 'center',
                 overflow: 'hidden',
                 boxShadow: variables.popoverMenuShadow,

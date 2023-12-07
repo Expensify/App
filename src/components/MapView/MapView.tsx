@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import setUserLocation from '@libs/actions/UserLocation';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -23,6 +23,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
+        const styles = useThemeStyles();
 
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
