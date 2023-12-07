@@ -157,7 +157,7 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-    const reportActionSize = useRef(sortedReportActions.length);
+    const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
@@ -199,15 +199,15 @@ function ReportActionsList({
             }
         }
 
-        if (currentUnreadMarker || reportActionSize.current === sortedReportActions.length) {
+        if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
             return;
         }
 
         cacheUnreadMarkers.delete(report.reportID);
-        reportActionSize.current = sortedReportActions.length;
+        lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID]);
+    }, [report.lastVisibleActionCreated, report.reportID]);
 
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
@@ -340,7 +340,10 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-                    shouldDisplay = reportAction.actorAccountID !== Report.getCurrentUserAccountID() && isWithinVisibleThreshold;
+                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    shouldDisplay =
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
+                        isWithinVisibleThreshold;
                 }
                 if (shouldDisplay) {
                     cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
