@@ -52,10 +52,6 @@ function PlaidLink({token, onSuccess = () => {}, onError = () => {}, onExit = ()
         open();
     }, [ready, error, isPlaidLoaded, open, onError]);
 
-    if (isPlaidLoaded) {
-        return null;
-    }
-
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
             <ActivityIndicator
