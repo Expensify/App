@@ -14,7 +14,6 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import styles from '@styles/styles';
 import CONST from '@src/CONST';
@@ -38,15 +37,11 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const beneficialOwnerInfoStepKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
-
 function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
 
     const values = getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
-
-    console.log('😡', {reimbursementAccount, reimbursementAccountDraft});
 
     return (
         <ScreenWrapper

@@ -14,7 +14,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import styles from '@styles/styles';
@@ -28,8 +27,8 @@ const propTypes = {
     /** Method called when user presses on one of UBOs to edit its data */
     handleUBOEdit: PropTypes.func.isRequired,
 
-    /** List of UBOs IDs */
-    beneficialOwners: PropTypes.arrayOf(PropTypes.string).isRequired,
+    /** List of UBO keys */
+    beneficialOwnerKeys: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** Info is user UBO */
     isUserUBO: PropTypes.bool.isRequired,
@@ -52,19 +51,19 @@ const defaultProps = {
 const beneficialOwnerDataKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const requestorPersonalInfoKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwners, handleUBOEdit}) {
+function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwnerKeys, handleUBOEdit}) {
     const {translate} = useLocalize();
 
     const requestorData = getSubstepValues(requestorPersonalInfoKeys, {}, reimbursementAccount);
-
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     const renderExtraBeneficialOwners = () =>
-        _.map(beneficialOwners, (beneficialOwnerID) => {
-            const beneficialOwnerData = getValuesForBeneficialOwner(beneficialOwnerID, reimbursementAccountDraft);
+        _.map(beneficialOwnerKeys, (ownerKey) => {
+            const beneficialOwnerData = getValuesForBeneficialOwner(ownerKey, reimbursementAccountDraft);
 
             return (
                 <MenuItem
+                    key={ownerKey}
                     title={`${beneficialOwnerData[beneficialOwnerDataKeys.FIRST_NAME]} ${beneficialOwnerData[beneficialOwnerDataKeys.LAST_NAME]}`}
                     description={`${beneficialOwnerData[beneficialOwnerDataKeys.STREET]}, ${beneficialOwnerData[beneficialOwnerDataKeys.CITY]}, ${
                         beneficialOwnerData[beneficialOwnerDataKeys.STATE]
@@ -72,7 +71,7 @@ function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, 
                     wrapperStyle={[styles.ph0]}
                     icon={Expensicons.FallbackAvatar}
                     onPress={() => {
-                        handleUBOEdit(beneficialOwnerID);
+                        handleUBOEdit(ownerKey);
                     }}
                     iconWidth={40}
                     iconHeight={40}

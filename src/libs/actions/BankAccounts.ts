@@ -381,8 +381,6 @@ function updateCompanyInformationForBankAccount(bankAccount: BankAccountCompanyI
  * Add beneficial owners for the bank account to the draft
  */
 function updateBeneficialOwnersForBankAccountDraft(params: BeneficialOwnersStepDraftProps) {
-    console.log(params, ' called with');
-
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, params);
 }
 

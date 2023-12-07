@@ -37,6 +37,7 @@ const defaultProps = {
 const bodyContent = [ConfirmAgreements];
 const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
+// This is a mocked step to showcase full transition between steps - will be removed with next PR
 const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, setIsBeneficialOwnerInfoSet}, ref) => {
     const {translate} = useLocalize();
 
