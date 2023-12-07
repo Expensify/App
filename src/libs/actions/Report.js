@@ -2002,6 +2002,11 @@ function openReportFromDeepLink(url, isAuthenticated) {
                     Session.signOutAndRedirectToSignIn();
                     return;
                 }
+
+                if (!reportID) {
+                    return;
+                }
+
                 Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
