@@ -97,7 +97,7 @@ function TooltipRenderedOnPageBody({
                 tooltipContentWidth: contentMeasuredWidth,
                 tooltipWrapperHeight: wrapperMeasuredHeight,
                 theme,
-                themeStyles: styles,
+                styles,
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
             }),
