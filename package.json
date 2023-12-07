@@ -88,7 +88,7 @@
     "@rnmapbox/maps": "^10.0.11",
     "@shopify/flash-list": "^1.6.1",
     "@types/node": "^18.14.0",
-    "@ua/react-native-airship": "git+https://github.com/urbanairship/react-native-airship#27799123a69252f190aa7b05fd2478f8915f84c1",
+    "@ua/react-native-airship": "^15.3.1",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
