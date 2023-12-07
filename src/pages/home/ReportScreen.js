@@ -171,7 +171,7 @@ function ReportScreen({
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- need to re-filter the report actions when network status changes
-    const filteredReportActions = useMemo(() => _.filter(reportActions, (action) => ReportActionsUtils.shouldReportActionBeVisible(action)), [isOffline, reportActions]);
+    const filteredReportActions = useMemo(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true), [isOffline, reportActions]);
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(filteredReportActions) && reportMetadata.isLoadingInitialReportActions;
@@ -482,7 +482,6 @@ export default compose(
             reportActions: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                 canEvict: false,
-                selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
             },
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
