@@ -4,7 +4,7 @@ import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
+import {PersonalDetails, TransactionViolations} from '@src/types/onyx';
 import Beta from '@src/types/onyx/Beta';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
@@ -118,6 +118,7 @@ function getOrderedReportIDs(
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
     allReportActions: OnyxCollection<ReportActions>,
+    transactionViolations: TransactionViolations,
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
@@ -150,7 +151,7 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = allReportsDictValues.filter((report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true),
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true, transactionViolations),
     );
 
     if (reportsToDisplay.length === 0) {
@@ -237,7 +238,8 @@ function getOptionData(
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
-    betas: Beta[],
+    transactionViolations: TransactionViolations,
+    canUseViolations: boolean,
 ): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -291,7 +293,9 @@ function getOptionData(
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
     result.brickRoadIndicator =
-        Object.keys(result.allReportErrors ?? {}).length !== 0 || ReportUtils.transactionThreadHasViolations(report, betas) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        Object.keys(result.allReportErrors ?? {}).length !== 0 || ReportUtils.transactionThreadHasViolations(report, canUseViolations, transactionViolations, reportActions)
+            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+            : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;

@@ -1127,7 +1127,9 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies));
+    const filteredReports = _.filter(reports, (report) =>
+        ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, betas, policies, reportActions, false, transactionViolations),
+    );
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)

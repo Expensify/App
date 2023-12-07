@@ -91,6 +91,22 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
+    /** All of the transaction violations */
+    transactionViolations: PropTypes.shape({
+        violations: PropTypes.arrayOf(
+            PropTypes.shape({
+                /** The transaction ID */
+                transactionID: PropTypes.number,
+
+                /** The transaction violation type */
+                type: PropTypes.string,
+
+                /** The transaction violation message */
+                message: PropTypes.string,
+            }),
+        ),
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -104,6 +120,9 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
+    transactionViolations: {
+        violations: [],
+    },
 };
 
 function ReportPreview(props) {
@@ -127,7 +146,7 @@ function ReportPreview(props) {
     const hasReceipts = transactionsWithReceipts.length > 0;
     const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID);
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
-    const hasErrors = (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || ReportUtils.reportHasViolations(props.iouReportID);
+    const hasErrors = (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || ReportUtils.reportHasViolations(props.iouReportID, props.transactionViolations);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);
@@ -299,6 +318,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
     }),
 )(ReportPreview);

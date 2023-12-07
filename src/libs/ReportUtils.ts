@@ -22,7 +22,7 @@ import {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
-import * as CollectionUtils from './CollectionUtils';
+// import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -406,31 +406,31 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-const transactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (violations, key) => {
-        if (!key || !violations) {
-            return;
-        }
+// const transactionViolations: OnyxCollection<TransactionViolations> = {};
+// Onyx.connect({
+//     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+//     callback: (violations, key) => {
+//         if (!key || !violations) {
+//             return;
+//         }
 
-        const transactionID = CollectionUtils.extractCollectionItemID(key);
-        transactionViolations[transactionID] = violations;
-    },
-});
+//         const transactionID = CollectionUtils.extractCollectionItemID(key);
+//         transactionViolations[transactionID] = violations;
+//     },
+// });
 
-const reportActions: OnyxCollection<ReportActions> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
+// const reportActions: OnyxCollection<ReportActions> = {};
+// Onyx.connect({
+//     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+//     callback: (actions, key) => {
+//         if (!key || !actions) {
+//             return;
+//         }
 
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActions[reportID] = actions;
-    },
-});
+//         const reportID = CollectionUtils.extractCollectionItemID(key);
+//         reportActions[reportID] = actions;
+//     },
+// });
 
 let allPolicyTags: Record<string, PolicyTags | null> = {};
 
@@ -3435,8 +3435,8 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
  *  Checks if there are any violations belonging to the transaction in the transactionsViolations Onyx object
  *  then checks that the violation is of the proper type
  */
-function transactionHasViolation(transactionID: string): boolean {
-    const violations = transactionViolations ? transactionViolations[transactionID]?.value : [];
+function transactionHasViolation(transactionID: string, transactionViolations?: TransactionViolations): boolean {
+    const violations = transactionViolations ? transactionViolations[transactionID] : [];
     if (!violations) {
         return false;
     }
@@ -3448,14 +3448,14 @@ function transactionHasViolation(transactionID: string): boolean {
  *  This only applies to report submitter and for reports in the open and processing states
  */
 
-function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean {
-    if (!Permissions.canUseViolations(betas) || !reportActions) {
+function transactionThreadHasViolations(report: Report, canUseViolations: boolean, transactionViolations?: TransactionViolations, reportActions?: ReportActions | null): boolean {
+    if (!canUseViolations || !reportActions) {
         return false;
     }
     if (!report.parentReportActionID) {
         return false;
     }
-    const parentReportAction = reportActions[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
+    const parentReportAction = reportActions[`${report.parentReportActionID}`];
     if (!parentReportAction) {
         return false;
     }
@@ -3472,15 +3472,15 @@ function transactionThreadHasViolations(report: Report, betas: Beta[]): boolean 
     if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
         return false;
     }
-    return transactionHasViolation(IOUTransactionID);
+    return transactionHasViolation(IOUTransactionID, transactionViolations);
 }
 
 /**
  *  Checks to see if a report contains a violation
  */
-function reportHasViolations(reportID: string): boolean {
+function reportHasViolations(reportID: string, transactionViolations: TransactionViolations): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
-    return transactions.some((transaction) => transactionHasViolation(transaction.transactionID));
+    return transactions.some((transaction) => transactionHasViolation(transaction.transactionID, transactionViolations));
 }
 
 /**
@@ -3498,6 +3498,7 @@ function shouldReportBeInOptionList(
     policies: OnyxCollection<Policy>,
     allReportActions?: OnyxCollection<ReportActions>,
     excludeEmptyChats = false,
+    transactionViolations?: TransactionViolations,
 ) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -3558,7 +3559,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && transactionThreadHasViolations(report, betas)) {
+    if (isExpenseRequest(report) && transactionThreadHasViolations(report, betas.includes(CONST.BETAS.VIOLATIONS), transactionViolations, allReportActions?.[report.reportID])) {
         return true;
     }
 

@@ -8,6 +8,7 @@ import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
+import usePermissions from '@hooks/usePermissions';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -66,8 +67,21 @@ const propTypes = {
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
 
-    /** The list of betas the user has access to */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    /** The list of transaction violations */
+    transactionViolations: PropTypes.shape({
+        violations: PropTypes.arrayOf(
+            PropTypes.shape({
+                /** The transaction ID */
+                transactionID: PropTypes.number,
+
+                /** The transaction violation type */
+                type: PropTypes.string,
+
+                /** The transaction violation message */
+                message: PropTypes.string,
+            }),
+        ),
+    }),
     ...withCurrentReportIDPropTypes,
 };
 
@@ -81,7 +95,7 @@ const defaultProps = {
     personalDetails: {},
     transactions: {},
     draftComments: {},
-    betas: [],
+    transactionViolations: {},
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -102,9 +116,10 @@ function LHNOptionsList({
     transactions,
     draftComments,
     currentReportID,
-    betas,
+    transactionViolations,
 }) {
     const styles = useThemeStyles();
+    const {canUseViolations} = usePermissions();
     /**
      * Function which renders a row in the list
      *
@@ -142,11 +157,26 @@ function LHNOptionsList({
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     comment={itemComment}
-                    betas={betas}
+                    transactionViolations={transactionViolations}
+                    canUseViolations={canUseViolations}
                 />
             );
         },
-        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions, betas],
+        [
+            currentReportID,
+            draftComments,
+            onSelectRow,
+            optionMode,
+            personalDetails,
+            policy,
+            preferredLocale,
+            reportActions,
+            reports,
+            shouldDisableFocusOptions,
+            transactions,
+            transactionViolations,
+            canUseViolations,
+        ],
     );
 
     return (
@@ -195,9 +225,8 @@ export default compose(
         draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
-        betas: {
-            key: ONYXKEYS.BETAS,
-            initialValue: [],
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATION,
         },
     }),
 )(LHNOptionsList);
