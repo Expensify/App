@@ -21,7 +21,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RNTextInput from '@components/RNTextInput';
+import RNTextInput, {AnimatedTextInputRef} from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
@@ -36,6 +36,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type BaseTextInputProps from './types';
+import {BaseTextInputRef} from './types';
 
 function BaseTextInput(
     {
@@ -66,7 +67,7 @@ function BaseTextInput(
         inputID,
         ...inputProps
     }: BaseTextInputProps,
-    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
+    ref: BaseTextInputRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -334,8 +335,8 @@ function BaseTextInput(
                                         // eslint-disable-next-line no-param-reassign
                                         ref.current = element;
                                     }
-                                    // @ts-expect-error We need to reassign this ref to the input ref
-                                    input.current = element;
+
+                                    (input.current as AnimatedTextInputRef | null) = element;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}

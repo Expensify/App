@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React, {Component, ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
     ActivityIndicator,
     Animated,
@@ -11,17 +11,15 @@ import {
     StyleSheet,
     TextInput,
     TextInputFocusEventData,
-    TextInputProps,
     View,
     ViewStyle,
 } from 'react-native';
-import {AnimatedProps} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RNTextInput from '@components/RNTextInput';
+import RNTextInput, {AnimatedTextInputRef} from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
@@ -35,7 +33,8 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import BaseTextInputProps from './types';
+import type BaseTextInputProps from './types';
+import type {BaseTextInputRef} from './types';
 
 function BaseTextInput(
     {
@@ -45,9 +44,9 @@ function BaseTextInput(
         placeholder = '',
         errorText = '',
         icon = null,
-        textInputContainerStyles = [],
-        containerStyles = [],
-        inputStyle = [],
+        textInputContainerStyles,
+        containerStyles,
+        inputStyle,
         forceActiveLabel = false,
         autoFocus = false,
         disableKeyboard = false,
@@ -66,7 +65,7 @@ function BaseTextInput(
         inputID,
         ...inputProps
     }: BaseTextInputProps,
-    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>>>,
+    ref: BaseTextInputRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -347,8 +346,8 @@ function BaseTextInput(
                                         // eslint-disable-next-line no-param-reassign
                                         ref.current = element;
                                     }
-                                    // @ts-expect-error We need to reassign this ref to the input ref
-                                    input.current = element;
+
+                                    (input.current as AnimatedTextInputRef | null) = element;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}

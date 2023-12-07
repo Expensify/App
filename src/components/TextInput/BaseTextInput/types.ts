@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {Component, ForwardedRef} from 'react';
 import {FlexStyle, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import {AnimatedProps} from 'react-native-reanimated';
 import {SrcProps} from '@components/Icon';
 import {LocaleContextProps} from '@components/LocaleContextProvider';
 
@@ -110,7 +111,9 @@ type CustomBaseTextInputProps = {
     autoCompleteType?: string;
 };
 
+type BaseTextInputRef = ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>>>;
+
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps & LocaleContextProps;
 
 export default BaseTextInputProps;
-export type {CustomBaseTextInputProps};
+export type {CustomBaseTextInputProps, BaseTextInputRef};

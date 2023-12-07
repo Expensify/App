@@ -1,15 +1,11 @@
-import React, {Component, ForwardedRef, forwardRef, useEffect} from 'react';
-import {AppState, Keyboard, TextInputProps} from 'react-native';
-import {AnimatedProps} from 'react-native-reanimated';
+import React, {forwardRef, useEffect} from 'react';
+import {AppState, Keyboard} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import BaseTextInputProps from './BaseTextInput/types';
+import BaseTextInputProps, {BaseTextInputRef} from './BaseTextInput/types';
 
 // eslint-disable-next-line react/function-component-definition
-const TextInput = (
-    {inputStyle, disableKeyboard = false, prefixCharacter, inputID, ...props}: BaseTextInputProps,
-    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
-) => {
+const TextInput = ({inputStyle, disableKeyboard = false, prefixCharacter, inputID, ...props}: BaseTextInputProps, ref: BaseTextInputRef) => {
     const styles = useThemeStyles();
 
     useEffect(() => {

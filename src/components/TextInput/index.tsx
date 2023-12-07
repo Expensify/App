@@ -1,4 +1,4 @@
-import React, {Component, ForwardedRef, useEffect, useRef} from 'react';
+import React, {Component, useEffect, useRef} from 'react';
 import {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {AnimatedProps} from 'react-native-reanimated';
 import * as Browser from '@libs/Browser';
@@ -6,18 +6,22 @@ import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import BaseTextInputProps from './BaseTextInput/types';
+import type BaseTextInputProps from './BaseTextInput/types';
+import type {BaseTextInputRef} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
+
+type RemoveVisibilityListener = () => void;
 
 function TextInput(
     {label = '', name = '', textInputContainerStyles, inputStyle, disableKeyboard = false, multiline = false, prefixCharacter, inputID, ...props}: BaseTextInputProps,
-    ref: ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>, unknown, unknown>>,
+    ref: BaseTextInputRef,
 ) {
     const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement>(null);
-    const removeVisibilityListenerRef = useRef<() => void>(null);
+    const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
 
     useEffect(() => {
+        let removeVisibilityListener = removeVisibilityListenerRef.current;
         if (disableKeyboard) {
             textInputRef.current?.setAttribute('inputmode', 'none');
         }
@@ -25,8 +29,8 @@ function TextInput(
         if (name) {
             textInputRef.current?.setAttribute('name', name);
         }
-        // @ts-expect-error We need to reassign this ref to the input ref
-        removeVisibilityListenerRef.current = Visibility.onVisibilityChange(() => {
+
+        removeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
@@ -35,10 +39,10 @@ function TextInput(
         });
 
         return () => {
-            if (!removeVisibilityListenerRef.current) {
+            if (!removeVisibilityListener) {
                 return;
             }
-            removeVisibilityListenerRef.current();
+            removeVisibilityListener();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
