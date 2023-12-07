@@ -5,7 +5,7 @@ import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@styles/useThemeStyles';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
-function RadioListItem({item, showTooltip, textStyle, alternateTextStyle}) {
+function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
@@ -14,7 +14,7 @@ function RadioListItem({item, showTooltip, textStyle, alternateTextStyle}) {
                 text={item.text}
             >
                 <Text
-                    style={textStyle}
+                    style={textStyles}
                     numberOfLines={1}
                 >
                     {item.text}
@@ -27,7 +27,7 @@ function RadioListItem({item, showTooltip, textStyle, alternateTextStyle}) {
                     text={item.alternateText}
                 >
                     <Text
-                        style={alternateTextStyle}
+                        style={alternateTextStyles}
                         numberOfLines={1}
                     >
                         {item.alternateText}

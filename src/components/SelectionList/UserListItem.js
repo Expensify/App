@@ -7,7 +7,7 @@ import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@styles/useThemeStyles';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
-function UserListItem({item, textStyle, alternateTextStyle, showTooltip}) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip}) {
     const styles = useThemeStyles();
     return (
         <>
@@ -24,7 +24,7 @@ function UserListItem({item, textStyle, alternateTextStyle, showTooltip}) {
                     text={item.text}
                 >
                     <Text
-                        style={textStyle}
+                        style={textStyles}
                         numberOfLines={1}
                     >
                         {item.text}
@@ -36,7 +36,7 @@ function UserListItem({item, textStyle, alternateTextStyle, showTooltip}) {
                         text={item.alternateText}
                     >
                         <Text
-                            style={alternateTextStyle}
+                            style={alternateTextStyles}
                             numberOfLines={1}
                         >
                             {item.alternateText}
