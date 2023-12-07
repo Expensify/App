@@ -135,12 +135,7 @@ function InitialSettingsPage(props) {
         const paymentCardList = props.fundList || {};
 
         return {
-            sectionStyle: {
-                borderBottomWidth: 1,
-                borderBottomColor: theme.border,
-                marginVertical: 0,
-                paddingVertical: 0,
-            },
+            sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
             items: [
                 {
@@ -192,7 +187,7 @@ function InitialSettingsPage(props) {
                 },
             ],
         };
-    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, theme.border, waitForNavigate]);
+    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer, waitForNavigate]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -200,7 +195,9 @@ function InitialSettingsPage(props) {
      */
     const generaltMenuItemsData = useMemo(
         () => ({
-            sectionStyle: {},
+            sectionStyle: {
+                ...styles.pt4,
+            },
             sectionTranslationKey: 'initialSettingsPage.general',
             items: [
                 {
@@ -222,7 +219,7 @@ function InitialSettingsPage(props) {
                 },
             ],
         }),
-        [waitForNavigate],
+        [styles.pt4, waitForNavigate],
     );
 
     /**
@@ -239,29 +236,8 @@ function InitialSettingsPage(props) {
             const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
 
             return (
-                <View
-                    style={{
-                        marginHorizontal: 12,
-                        paddingTop: 16,
-                        paddingBottom: 16,
-                        ...menuItemsData.sectionStyle,
-                    }}
-                >
-                    <Text
-                        style={{
-                            paddingTop: 8,
-                            paddingRight: 12,
-                            paddingBottom: 16,
-                            paddingLeft: 12,
-                            fontSize: 13,
-                            fontFamily: 'ExpensifyNeue-Regular',
-                            lineHeight: 16,
-                            fontWeight: 400,
-                            color: '#AFBBB0',
-                        }}
-                    >
-                        {translate(menuItemsData.sectionTranslationKey)}
-                    </Text>
+                <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
+                    <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
                     {_.map(menuItemsData.items, (item, index) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                         const isPaymentItem = item.translationKey === 'common.wallet';
@@ -296,7 +272,7 @@ function InitialSettingsPage(props) {
                 </View>
             );
         },
-        [translate, props.userWallet.currentBalance, isExecuting, singleExecution],
+        [styles.pb4, styles.mh3, styles.sectionTitle, translate, props.userWallet.currentBalance, isExecuting, singleExecution],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -361,7 +337,7 @@ function InitialSettingsPage(props) {
             headerContent={headerContent}
             headerContainerStyles={[styles.justifyContentCenter]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
-            childrenContainerStyles={{paddingTop: 0, marginTop: 0}}
+            childrenContainerStyles={[styles.m0, styles.p0]}
         >
             <View style={styles.w100}>
                 {accountMenuItems}
