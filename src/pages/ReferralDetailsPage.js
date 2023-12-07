@@ -87,6 +87,7 @@ function ReferralDetailsPage({route, account}) {
             )}
 
             <MenuItem
+                wrapperStyle={styles.mb4}
                 ref={popoverAnchor}
                 title={translate('requestorStep.learnMore')}
                 icon={Expensicons.QuestionMark}
