@@ -96,6 +96,7 @@ function CountrySelectionPage({route, navigation}) {
                 onSelectRow={selectCountry}
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
+                shouldUseDynamicMaxToRenderPerBatch
             />
         </ScreenWrapper>
     );
