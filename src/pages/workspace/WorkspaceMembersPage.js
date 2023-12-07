@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -32,6 +33,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -84,6 +86,17 @@ function WorkspaceMembersPage(props) {
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
+
+    const isFocusedScreen = useIsFocused();
+
+    useEffect(() => {
+        if (!SearchInputManager.searchInput) {
+            return;
+        }
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocusedScreen]);
+
+    useEffect(() => () => (SearchInputManager.searchInput = ''), []);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -466,7 +479,10 @@ function WorkspaceMembersPage(props) {
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
                             textInputValue={searchValue}
-                            onChangeText={setSearchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
                             headerMessage={getHeaderMessage()}
                             headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}
