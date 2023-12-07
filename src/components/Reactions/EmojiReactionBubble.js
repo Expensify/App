@@ -55,8 +55,8 @@ const defaultProps = {
 };
 
 function EmojiReactionBubble(props) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <PressableWithSecondaryInteraction
             style={({hovered, pressed}) => [
