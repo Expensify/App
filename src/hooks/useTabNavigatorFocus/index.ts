@@ -8,7 +8,7 @@ type UseTabNavigatorFocusParams = {
     tabIndex: number;
 };
 
-type PositionAnimationListenerParams = {
+type PositionAnimationListenerCallback = {
     value: number;
 };
 
@@ -56,7 +56,7 @@ function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
         }
         const index = Number(tabIndex);
 
-        const listenerId = tabPositionAnimation.addListener(({value}: PositionAnimationListenerParams) => {
+        const listenerId = tabPositionAnimation.addListener(({value}: PositionAnimationListenerCallback) => {
             // Activate camera as soon the index is animating towards the `tabIndex`
             DomUtils.requestAnimationFrame(() => {
                 setIsTabFocused(value > index - 1 && value < index + 1);
