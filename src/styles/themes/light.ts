@@ -119,7 +119,7 @@ const lightTheme = {
             backgroundColor: colors.ice500,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.SETTINGS.STATUS]: {
+        [SCREENS.SETTINGS.PROFILE.STATUS]: {
             backgroundColor: colors.green700,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

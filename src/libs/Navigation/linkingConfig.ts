@@ -132,23 +132,23 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE]: {
+                            [SCREENS.SETTINGS.PROFILE.ROOT]: {
                                 path: ROUTES.SETTINGS_PROFILE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PRONOUNS]: {
+                            [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                                 path: ROUTES.SETTINGS_PRONOUNS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.DISPLAY_NAME]: {
+                            [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: {
                                 path: ROUTES.SETTINGS_DISPLAY_NAME,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.TIMEZONE]: {
+                            [SCREENS.SETTINGS.PROFILE.TIMEZONE]: {
                                 path: ROUTES.SETTINGS_TIMEZONE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.TIMEZONE_SELECT]: {
+                            [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: {
                                 path: ROUTES.SETTINGS_TIMEZONE_SELECT,
                                 exact: true,
                             },
@@ -160,37 +160,37 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.CONTACT_METHODS]: {
+                            [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
                                 path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.CONTACT_METHOD_DETAILS]: {
+                            [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
                                 path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
                             },
                             [SCREENS.SETTINGS.LOUNGE_ACCESS]: {
                                 path: ROUTES.SETTINGS_LOUNGE_ACCESS,
                             },
-                            [SCREENS.SETTINGS.NEW_CONTACT_METHOD]: {
+                            [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                                 path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PERSONAL_DETAILS_INITIAL]: {
+                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PERSONAL_DETAILS_LEGAL_NAME]: {
+                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PERSONAL_DETAILS_DATE_OF_BIRTH]: {
+                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS]: {
+                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS_COUNTRY]: {
+                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
                                 exact: true,
                             },
@@ -202,11 +202,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.STATUS]: {
+                            [SCREENS.SETTINGS.PROFILE.STATUS]: {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.STATUS_SET]: {
+                            [SCREENS.SETTINGS.PROFILE.STATUS_SET]: {
                                 path: ROUTES.SETTINGS_STATUS_SET,
                                 exact: true,
                             },
