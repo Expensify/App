@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
+import useEnvironment from '@hooks/useEnvironment';
 import stylePropTypes from '@styles/stylePropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
@@ -37,6 +38,7 @@ const defaultProps = {
 };
 
 function TextLink(props) {
+    const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
     const rest = _.omit(props, _.keys(propTypes));
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
@@ -51,7 +53,7 @@ function TextLink(props) {
             return;
         }
 
-        Link.openExternalLink(props.href);
+        Link.openLink(props.href, environmentURL);
     };
 
     /**

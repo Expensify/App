@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import {BankName} from './Bank';
 import * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
@@ -21,7 +22,7 @@ type AccountData = {
     created?: string;
     currency?: string;
     fundID?: number;
-    bank?: string;
+    bank?: BankName;
 };
 
 type Fund = {

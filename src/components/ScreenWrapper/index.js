@@ -51,7 +51,7 @@ const ScreenWrapper = React.forwardRef(
         const navigation = useNavigation();
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-        const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
+        const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
         const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
         const isKeyboardShownRef = useRef();
