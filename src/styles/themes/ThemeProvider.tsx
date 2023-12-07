@@ -2,7 +2,7 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import ThemeContext from './ThemeContext';
-import Themes from './Themes';
+import Themes from './themes';
 import {ThemePreferenceWithoutSystem} from './types';
 import useThemePreferenceWithStaticOverride from './useThemePreferenceWithStaticOverride';
 

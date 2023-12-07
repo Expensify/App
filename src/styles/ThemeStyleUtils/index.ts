@@ -7,7 +7,7 @@ import * as UserUtils from '@libs/UserUtils';
 import colors from '@styles/colors';
 import fontFamily from '@styles/fontFamily';
 import {defaultStyles, type ThemeStyles} from '@styles/styles';
-import {defaultTheme} from '@styles/themes/Themes';
+import {defaultTheme} from '@styles/themes/themes';
 import {ThemeColors} from '@styles/themes/types';
 import cursor from '@styles/utilities/cursor';
 import positioning from '@styles/utilities/positioning';
