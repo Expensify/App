@@ -1,4 +1,4 @@
-type UseWindowFocusEventCallback = (event: FocusEvent) => void;
+type UseWindowFocusEventCallback = () => void;
 
 type UseWindowFocusEvent = (callback: UseWindowFocusEventCallback) => void;
 
