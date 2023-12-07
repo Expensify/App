@@ -4,6 +4,14 @@ import {useEffect, useState} from 'react';
 import {Animated} from 'react-native';
 import DomUtils from '@libs/DomUtils';
 
+type UseTabNavigatorFocusParams = {
+    tabIndex: number;
+};
+
+type PositionAnimationListenerParams = {
+    value: number;
+};
+
 /**
  * Custom React hook to determine the focus status of a tab in a Material Top Tab Navigator.
  * It evaluates whether the current tab is focused based on the tab's animation position and
@@ -25,7 +33,7 @@ import DomUtils from '@libs/DomUtils';
  * @example
  * const isTabFocused = useTabNavigatorFocus({ tabIndex: 1 });
  */
-function useTabNavigatorFocus({tabIndex}: {tabIndex: number}): boolean {
+function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
     let tabPositionAnimation: Animated.AnimatedInterpolation<number> | null = null;
 
     try {
@@ -48,7 +56,7 @@ function useTabNavigatorFocus({tabIndex}: {tabIndex: number}): boolean {
         }
         const index = Number(tabIndex);
 
-        const listenerId = tabPositionAnimation.addListener(({value}: {value: number}) => {
+        const listenerId = tabPositionAnimation.addListener(({value}: PositionAnimationListenerParams) => {
             // Activate camera as soon the index is animating towards the `tabIndex`
             DomUtils.requestAnimationFrame(() => {
                 setIsTabFocused(value > index - 1 && value < index + 1);

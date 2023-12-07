@@ -7,6 +7,11 @@ type InitialWindowDimensions = {
     initialHeight: number;
 };
 
+type NewDimensions = {
+    window: ScaledSize;
+    screen: ScaledSize;
+};
+
 /**
  * A convenience hook that provides initial size (width and height).
  * An initial height allows to know the real height of window,
@@ -27,7 +32,7 @@ export default function (): InitialWindowDimensions {
     });
 
     useEffect(() => {
-        const onDimensionChange = (newDimensions: {window: ScaledSize; screen: ScaledSize}) => {
+        const onDimensionChange = (newDimensions: NewDimensions) => {
             const {window, screen} = newDimensions;
 
             setDimensions((oldState) => {
