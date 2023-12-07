@@ -6,10 +6,13 @@ import {DeviceEventEmitter} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -64,6 +67,7 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -72,6 +76,7 @@ const defaultProps = {
     isLoadingInitialReportActions: false,
     isLoadingOlderReportActions: false,
     isLoadingNewerReportActions: false,
+    ...withCurrentUserPersonalDetailsDefaultProps,
     policy: {},
 };
 
@@ -125,12 +130,14 @@ function ReportActionsList({
     onScroll,
     mostRecentIOUReportActionID,
     isSmallScreenWidth,
+    currentUserPersonalDetails,
     hasOutstandingIOU,
     loadNewerChats,
     loadOlderChats,
     onLayout,
     isComposerFullSize,
 }) {
+    const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
@@ -388,7 +395,7 @@ function ReportActionsList({
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)];
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(report) && !isComposerFullSize;
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     const contentContainerStyle = useMemo(
         () => [styles.chatContentScrollView, isLoadingNewerReportActions ? styles.chatContentScrollViewWithHeaderLoader : {}],
@@ -475,4 +482,4 @@ ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default withWindowDimensions(ReportActionsList);
+export default compose(withWindowDimensions, withCurrentUserPersonalDetails)(ReportActionsList);

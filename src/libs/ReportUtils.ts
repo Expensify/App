@@ -1130,10 +1130,10 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
 /**
  * Whether the time row should be shown for a report.
  */
-function canShowReportRecipientLocalTime(report: OnyxEntry<Report>, accountID: number): boolean {
+function canShowReportRecipientLocalTime(personalDetails: OnyxCollection<PersonalDetails>, report: OnyxEntry<Report>, accountID: number): boolean {
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, accountID);
     const hasMultipleParticipants = reportRecipientAccountIDs.length > 1;
-    const reportRecipient = allPersonalDetails?.[reportRecipientAccountIDs[0]];
+    const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const reportRecipientTimezone = reportRecipient?.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const isReportParticipantValidated = reportRecipient?.validated ?? false;
     return Boolean(!hasMultipleParticipants && !isChatRoom(report) && !isPolicyExpenseChat(report) && reportRecipient && reportRecipientTimezone?.selected && isReportParticipantValidated);
@@ -1178,10 +1178,9 @@ function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
-function getIconsForParticipants(participants: number[], passedPersonalDetails: OnyxCollection<PersonalDetails>): Icon[] {
+function getIconsForParticipants(participants: number[], personalDetails: OnyxCollection<PersonalDetails>): Icon[] {
     const participantDetails: ParticipantDetails[] = [];
     const participantsList = participants || [];
-    const personalDetails = passedPersonalDetails ?? allPersonalDetails;
 
     for (const accountID of participantsList) {
         const avatarSource = UserUtils.getAvatar(personalDetails?.[accountID]?.avatar ?? '', accountID);
@@ -1243,11 +1242,11 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
  */
 function getIcons(
     report: OnyxEntry<Report>,
+    personalDetails: OnyxCollection<PersonalDetails> = allPersonalDetails,
     defaultIcon: UserUtils.AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
     policy: OnyxEntry<Policy> = null,
-    passedPersonalDetails: OnyxCollection<PersonalDetails> = allPersonalDetails,
 ): Icon[] {
     if (isEmptyObject(report)) {
         const fallbackIcon: Icon = {
@@ -1258,7 +1257,6 @@ function getIcons(
         };
         return [fallbackIcon];
     }
-    const personalDetails = passedPersonalDetails;
     if (isExpenseRequest(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const workspaceIcon = getWorkspaceIcon(report, policy);

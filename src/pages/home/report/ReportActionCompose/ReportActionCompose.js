@@ -10,14 +10,13 @@ import AttachmentModal from '@components/AttachmentModal';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
+import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import getModalState from '@libs/getModalState';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -108,6 +107,7 @@ function ReportActionCompose({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const actionButtonRef = useRef(null);
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     /**
      * Updates the Highlight state of the composer
@@ -144,7 +144,10 @@ function ReportActionCompose({
         [currentUserPersonalDetails.accountID, report],
     );
 
-    const shouldShowReportRecipientLocalTime = useMemo(() => ReportUtils.canShowReportRecipientLocalTime(report) && !isComposerFullSize, [report, isComposerFullSize]);
+    const shouldShowReportRecipientLocalTime = useMemo(
+        () => ReportUtils.canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
+        [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
+    );
 
     const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report.participantAccountIDs}), [report.participantAccountIDs]);
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
@@ -296,7 +299,7 @@ function ReportActionCompose({
     );
 
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = PersonalDetailsUtils.getPersonalDetailsByAccountID(reportRecipientAcountIDs[0]);
+    const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
 
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);

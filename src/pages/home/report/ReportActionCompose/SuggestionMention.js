@@ -3,10 +3,10 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MentionSuggestions from '@components/MentionSuggestions';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -50,12 +50,7 @@ function SuggestionMention({
     measureParentContainer,
     isComposerFocused,
 }) {
-    /**
-     * We only need the personalDetails once because as long as the
-     * user is in the ReportScreen, these details won't be changing,
-     * hence we don't have to use it with `withOnyx`.
-     */
-    const personalDetails = PersonalDetailsUtils.getPersonalDetails();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
     const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);

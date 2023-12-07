@@ -12,7 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '@components/OnyxProvider';
+import {usePersonalDetails, withBlockedFromConcierge, withNetwork, withReportActionsDrafts} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -137,6 +137,7 @@ const defaultProps = {
 function ReportActionItem(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
@@ -369,7 +370,7 @@ function ReportActionItem(props) {
                 </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault([props.report.ownerAccountID, 'displayName']);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
             const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
 
             const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
@@ -417,7 +418,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(PersonalDetailsUtils.getPersonalDetails(), [props.report.ownerAccountID, 'displayName']);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
             const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
@@ -524,7 +525,7 @@ function ReportActionItem(props) {
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
-                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs)}
+                            icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
                             onSecondaryInteraction={showPopover}
                         />
                     </View>
@@ -663,7 +664,7 @@ function ReportActionItem(props) {
     const isWhisper = whisperedToAccountIDs.length > 0;
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
-    const whisperedToPersonalDetails = isWhisper ? PersonalDetailsUtils.getWhisperedToPersonalDetails(whisperedToAccountIDs) : [];
+    const whisperedToPersonalDetails = isWhisper ? _.filter(personalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction

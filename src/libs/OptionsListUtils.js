@@ -152,12 +152,11 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
  * Returns the personal details for an array of accountIDs
  *
  * @param {Array} accountIDs
- * @param {Object | null} passedPersonalDetails
+ * @param {Object | null} personalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs, passedPersonalDetails = null) {
+function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
     const personalDetailsForAccountIDs = {};
-    const personalDetails = passedPersonalDetails || allPersonalDetails;
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
     }
@@ -516,7 +515,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault('displayName', '', lastActorDetails),
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -548,14 +547,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(
-        report,
-        UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
-        personalDetail.login,
-        personalDetail.accountID,
-        undefined,
-        personalDetails,
-    );
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
 
     return result;

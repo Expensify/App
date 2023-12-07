@@ -11,7 +11,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Policy, Report, ReportActions} from '@src/types/onyx';
+import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -22,6 +22,9 @@ import Text from './Text';
 type AvatarWithDisplayNamePropsWithOnyx = {
     /** All of the actions of the report */
     parentReportActions: OnyxEntry<ReportActions>;
+
+    /** Personal details of all users */
+    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
 };
 
 type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
@@ -48,6 +51,7 @@ function AvatarWithDisplayName({
     isAnonymous = false,
     size = CONST.AVATAR_SIZE.DEFAULT,
     shouldEnableDetailPageNavigation = false,
+    personalDetails = CONST.EMPTY_OBJECT,
 }: AvatarWithDisplayNameProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -55,8 +59,8 @@ function AvatarWithDisplayName({
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report);
-    const icons = ReportUtils.getIcons(report, null, '', -1, policy);
-    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : []);
+    const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
+    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
@@ -174,5 +178,8 @@ export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWi
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
 })(AvatarWithDisplayName);

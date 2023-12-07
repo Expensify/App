@@ -17,12 +17,12 @@ Onyx.connect({
 });
 
 /**
+ * @param {Object | Null} passedPersonalDetails
  * @param {Array | String} pathToDisplayName
  * @param {String} [defaultValue] optional default display name value
- * @param {Object | Null} passedPersonalDetails optional default personal details object
  * @returns {String}
  */
-function getDisplayNameOrDefault(pathToDisplayName, defaultValue = '', passedPersonalDetails = allPersonalDetails) {
+function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue = '') {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
     return displayName || defaultValue || Localize.translateLocal('common.hidden');
@@ -198,37 +198,11 @@ function getFormattedAddress(privatePersonalDetails) {
 }
 
 /**
- * Get personal detail for an accountID
- * @param {Number} accountID
- * @returns {PersonalDetail} personal detail object
- */
-function getPersonalDetailsByAccountID(accountID) {
-    return allPersonalDetails ? allPersonalDetails[accountID] : {};
-}
-
-/**
- * Get whispered personal details for array of accountIDs
- * @param {Array<String>} whisperedToAccountIDs
- * @returns {PersonalDetails} personal details
- */
-function getWhisperedToPersonalDetails(whisperedToAccountIDs) {
-    return _.filter(allPersonalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID));
-}
-
-/**
  * Whether personal details is empty
  * @returns {Boolean} true if personal details is empty
  */
 function isPersonalDetailsEmpty() {
     return !personalDetails.length;
-}
-
-/**
- * Get personal details object
- * @returns {PersonalDetail} personal detail object
- */
-function getPersonalDetails() {
-    return allPersonalDetails || {};
 }
 
 export {
@@ -238,10 +212,7 @@ export {
     getLoginsByAccountIDs,
     getNewPersonalDetailsOnyxData,
     getFormattedAddress,
-    getPersonalDetailsByAccountID,
-    getWhisperedToPersonalDetails,
     isPersonalDetailsEmpty,
-    getPersonalDetails,
     getFormattedStreet,
     getStreetLines,
 };
