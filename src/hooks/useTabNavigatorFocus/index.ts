@@ -1,4 +1,4 @@
-import {useTabAnimation} from '@react-navigation/material-top-tabs/src';
+import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
 import DomUtils from '@libs/DomUtils';
