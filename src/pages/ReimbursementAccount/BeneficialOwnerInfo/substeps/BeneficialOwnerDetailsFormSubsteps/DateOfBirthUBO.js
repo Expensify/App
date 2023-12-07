@@ -3,8 +3,8 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import NewDatePicker from '@components/NewDatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -64,7 +64,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}</Text>
-            <NewDatePicker
+            <DatePicker
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={DOB_INPUT_ID}
                 label={translate('common.dob')}

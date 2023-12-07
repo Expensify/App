@@ -2,8 +2,8 @@ import {subYears} from 'date-fns';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import NewDatePicker from '@components/NewDatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -66,7 +66,7 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
-            <NewDatePicker
+            <DatePicker
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={personalInfoDobKey}
                 label={translate('common.dob')}

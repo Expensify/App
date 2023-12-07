@@ -349,7 +349,8 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
     const goBackToWorkspace = () => {
         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-    }
+    };
+
     const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
@@ -490,11 +491,8 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
         return (
             <CompanyStep
-                reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
                 onCloseButtonPress={goBackToWorkspace}
-                getDefaultStateForField={getDefaultStateForField}
                 policyID={policyID}
             />
         );
@@ -505,11 +503,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         return (
             <RequestorStep
                 ref={requestorStepRef}
-                reimbursementAccount={reimbursementAccount}
                 shouldShowOnfido={Boolean(shouldShowOnfido)}
-                    onBackButtonPress={goBack}
+                onBackButtonPress={goBack}
                 onCloseButtonPress={goBackToWorkspace}
-                getDefaultStateForField={getDefaultStateForField}
             />
         );
     }
@@ -517,12 +513,8 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
         return (
             <ACHContractStep
-                reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
                 onCloseButtonPress={goBackToWorkspace}
-                companyName={achData.companyName}
-                getDefaultStateForField={getDefaultStateForField}
             />
         );
     }

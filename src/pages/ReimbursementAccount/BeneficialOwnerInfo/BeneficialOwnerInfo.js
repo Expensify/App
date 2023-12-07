@@ -95,7 +95,6 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         });
         setIsBeneficialOwnerInfoSet(true);
     };
-    console.log(beneficialOwnerKeys, ' beneficialOwnerKeys');
 
     const addBeneficialOwner = (beneficialOwnerID) => {
         // Each beneficial owner is assigned a unique key that will connect it to values in saved ONYX.
