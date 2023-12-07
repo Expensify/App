@@ -201,10 +201,6 @@ function Expensify(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    useEffect(() => {
-        Onyx.set('preferredTheme', 'light');
-    }, []);
-
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
