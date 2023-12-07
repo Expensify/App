@@ -14,7 +14,7 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import ThemeProvider from '@styles/themes/ThemeProvider';
+import ThemeProvider from '@s@styles/utils/StyleUtilsProvider';
 import ThemeStylesProvider from '@styles/ThemeStylesProvider';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';

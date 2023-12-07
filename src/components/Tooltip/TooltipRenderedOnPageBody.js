@@ -4,8 +4,8 @@ import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
-import getTooltipStyles from '@styles/getTooltipStyles';
 import useTheme from '@styles/themes/useTheme';
+import getTooltipStyles from '@styles/ThemeStyleUtils/TooltipStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {StyleUtilsType} from '@styles/StyleUtils';
+import {StyleUtilsType} from '@styles/ThemeStyleUtils';
 import useStyleUtils from '@styles/useStyleUtils';
 
 const withStyleUtilsPropTypes = {
