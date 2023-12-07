@@ -2736,9 +2736,10 @@ function submitReport(expenseReport) {
 
 /**
  * @param {Object} expenseReport
+ * @param {Object} chatReport
  */
 function cancelPayment(expenseReport, chatReport) {
-    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction());
+    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction();
     const policy = ReportUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.isFree();
     const optimisticData = [
@@ -2779,6 +2780,19 @@ function cancelPayment(expenseReport, chatReport) {
             ]
             : []),
     ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+    
 }
 
 /**
