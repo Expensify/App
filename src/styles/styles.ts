@@ -1492,8 +1492,6 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             paddingLeft: 8,
             paddingRight: 8,
-            marginHorizontal: 12,
-            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         sidebarLinkText: {

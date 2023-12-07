@@ -13,7 +13,7 @@ let hasPendingNetworkCheck = false;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 let callbackID = 0;
-const reconnectionCallbacks: Record<string, () => void> = {};
+const reconnectionCallbacks: Record<string, () => Promise<void>> = {};
 
 /**
  * Loop over all reconnection callbacks and fire each one
@@ -122,7 +122,7 @@ function listenForReconnect() {
  * Register callback to fire when we reconnect
  * @returns unsubscribe method
  */
-function onReconnect(callback: () => void): () => void {
+function onReconnect(callback: () => Promise<void>): () => void {
     const currentID = callbackID;
     callbackID++;
     reconnectionCallbacks[currentID] = callback;

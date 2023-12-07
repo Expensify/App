@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import {BankIcon, BankName, BankNameKey} from '@src/types/onyx/Bank';
 
 type BankIconParams = {
-    styles: ThemeStyles;
+    themeStyles: ThemeStyles;
     bankName?: BankName;
     isCard?: boolean;
 };
@@ -115,8 +115,7 @@ function getBankNameKey(bankName: string): BankNameKey {
 /**
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
-
-export default function getBankIcon({styles, bankName, isCard = false}: BankIconParams): BankIcon {
+export default function getBankIcon({themeStyles, bankName, isCard = false}: BankIconParams): BankIcon {
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
@@ -131,11 +130,11 @@ export default function getBankIcon({styles, bankName, isCard = false}: BankIcon
     // For default Credit Card icon the icon size should not be set.
     if (!isCard) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
-        bankIcon.iconStyles = [styles.bankIconContainer];
+        bankIcon.iconStyles = [themeStyles.bankIconContainer];
     } else {
         bankIcon.iconHeight = variables.bankCardHeight;
         bankIcon.iconWidth = variables.bankCardWidth;
-        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
+        bankIcon.iconStyles = [themeStyles.assignedCardsIconContainer];
     }
 
     return bankIcon;

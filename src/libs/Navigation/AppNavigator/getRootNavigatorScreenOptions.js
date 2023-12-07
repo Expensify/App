@@ -1,13 +1,9 @@
-import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
 import getNavigationModalCardStyle from '@styles/getNavigationModalCardStyles';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 
-type ScreenOptions = Record<string, StackNavigationOptions>;
-
-const commonScreenOptions: StackNavigationOptions = {
+const commonScreenOptions = {
     headerShown: false,
     gestureDirection: 'horizontal',
     animationEnabled: true,
@@ -15,10 +11,10 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): ScreenOptions => ({
+export default (isSmallScreenWidth, styles) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
-        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
         presentation: 'transparentModal',
 
         // We want pop in RHP since there are some flows that would work weird otherwise
@@ -36,7 +32,7 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): Screen
     homeScreen: {
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
-        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
+        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
 
         cardStyle: {
             ...getNavigationModalCardStyle(),
@@ -44,13 +40,13 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): Screen
 
             // We need to translate the sidebar to not be covered by the StackNavigator so it can be clickable.
             transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
-            ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
+            ...(isSmallScreenWidth ? {} : styles.borderRight),
         },
     },
-
+    // eslint-disable-next-line rulesdir/no-negated-variables
     fullScreen: {
         ...commonScreenOptions,
-        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
+        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
         cardStyle: {
             ...getNavigationModalCardStyle(),
 
@@ -63,7 +59,7 @@ export default (isSmallScreenWidth: boolean, themeStyles: typeof styles): Screen
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
         animationEnabled: isSmallScreenWidth,
-        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
+        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
 
         cardStyle: {
             ...getNavigationModalCardStyle(),

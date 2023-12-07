@@ -13,12 +13,12 @@ const defaultProps = {
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function NotFoundPage(props) {
+function NotFoundPage({onBackButtonPress}) {
     return (
         <ScreenWrapper testID={NotFoundPage.displayName}>
             <FullPageNotFoundView
                 shouldShow
-                onBackButtonPress={props.onBackButtonPress}
+                onBackButtonPress={onBackButtonPress}
             />
         </ScreenWrapper>
     );

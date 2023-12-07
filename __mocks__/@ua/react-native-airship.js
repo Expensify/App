@@ -31,7 +31,7 @@ const Airship = {
     },
     contact: {
         identify: jest.fn(),
-        getNamedUserId: () => Promise.resolve(undefined),
+        getNamedUserId: jest.fn(),
         reset: jest.fn(),
     },
 };

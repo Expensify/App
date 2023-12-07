@@ -1,11 +1,7 @@
-import ForegroundNotificationsModule from './types';
-
 /**
  * Configures notification handling while in the foreground on iOS and Android. This is a no-op on other platforms.
  */
-const ForegroundNotifications: ForegroundNotificationsModule = {
+export default {
     configureForegroundNotifications: () => {},
     disableForegroundNotifications: () => {},
 };
-
-export default ForegroundNotifications;

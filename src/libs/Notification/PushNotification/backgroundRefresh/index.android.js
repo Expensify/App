@@ -4,9 +4,8 @@ import Visibility from '@libs/Visibility';
 import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BackgroundRefresh from './types';
 
-function getLastOnyxUpdateID(): Promise<number | null> {
+function getLastOnyxUpdateID() {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -24,7 +23,7 @@ function getLastOnyxUpdateID(): Promise<number | null> {
  * We use this to refresh the app in the background after receiving a push notification (native only). Since the full app
  * wakes on iOS and by extension runs reconnectApp already, this is a no-op on everything but Android.
  */
-const backgroundRefresh: BackgroundRefresh = () => {
+export default function backgroundRefresh() {
     if (Visibility.isVisible()) {
         return;
     }
@@ -39,11 +38,9 @@ const backgroundRefresh: BackgroundRefresh = () => {
              * See more here: https://reactnative.dev/docs/headless-js-android
              */
             App.confirmReadyToOpenApp();
-            App.reconnectApp(lastUpdateIDAppliedToClient ?? undefined);
+            App.reconnectApp(lastUpdateIDAppliedToClient);
         })
         .catch((error) => {
             Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] backgroundRefresh failed. This should never happen.`, {error});
         });
-};
-
-export default backgroundRefresh;
+}

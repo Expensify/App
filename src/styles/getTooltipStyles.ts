@@ -113,7 +113,7 @@ type TooltipParams = {
     tooltipContentWidth: number;
     tooltipWrapperHeight: number;
     theme: ThemeColors;
-    styles: ThemeStyles;
+    themeStyles: ThemeStyles;
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
 };
@@ -151,7 +151,7 @@ export default function getTooltipStyles({
     tooltipContentWidth,
     tooltipWrapperHeight,
     theme,
-    styles,
+    themeStyles,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
 }: TooltipParams): TooltipStyles {
@@ -245,7 +245,7 @@ export default function getTooltipStyles({
         //      at the center of the hovered component.
         pointerWrapperLeft = horizontalShiftPointer + (tooltipWidth / 2 - POINTER_WIDTH / 2);
 
-        pointerAdditionalStyle = shouldShowBelow ? styles.flipUpsideDown : {};
+        pointerAdditionalStyle = shouldShowBelow ? themeStyles.flipUpsideDown : {};
     }
 
     return {
@@ -268,8 +268,8 @@ export default function getTooltipStyles({
             left: rootWrapperLeft,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
-            ...styles.userSelectNone,
-            ...styles.pointerEventsNone,
+            ...themeStyles.userSelectNone,
+            ...themeStyles.pointerEventsNone,
         },
         textStyle: {
             color: theme.textReversed,
