@@ -308,6 +308,10 @@ function EmojiPickerMenu(props) {
                 }
                 const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 onEmojiSelected(emoji, item);
+                // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
+                keyBoardEvent.preventDefault();
+                // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
+                keyBoardEvent.stopPropagation();
                 return;
             }
 

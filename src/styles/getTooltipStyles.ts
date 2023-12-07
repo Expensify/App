@@ -1,8 +1,8 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from './fontFamily';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
-import {ThemeStyles} from './styles';
-import {ThemeColors} from './themes/types';
+import {type ThemeStyles} from './styles';
+import {type ThemeColors} from './themes/types';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
 import variables from './variables';
@@ -113,7 +113,7 @@ type TooltipParams = {
     tooltipContentWidth: number;
     tooltipWrapperHeight: number;
     theme: ThemeColors;
-    themeStyles: ThemeStyles;
+    styles: ThemeStyles;
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
 };
@@ -151,7 +151,7 @@ export default function getTooltipStyles({
     tooltipContentWidth,
     tooltipWrapperHeight,
     theme,
-    themeStyles,
+    styles,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
 }: TooltipParams): TooltipStyles {
@@ -245,7 +245,7 @@ export default function getTooltipStyles({
         //      at the center of the hovered component.
         pointerWrapperLeft = horizontalShiftPointer + (tooltipWidth / 2 - POINTER_WIDTH / 2);
 
-        pointerAdditionalStyle = shouldShowBelow ? themeStyles.flipUpsideDown : {};
+        pointerAdditionalStyle = shouldShowBelow ? styles.flipUpsideDown : {};
     }
 
     return {
@@ -268,8 +268,8 @@ export default function getTooltipStyles({
             left: rootWrapperLeft,
 
             // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
-            ...themeStyles.userSelectNone,
-            ...themeStyles.pointerEventsNone,
+            ...styles.userSelectNone,
+            ...styles.pointerEventsNone,
         },
         textStyle: {
             color: theme.textReversed,
