@@ -118,7 +118,7 @@ class PDFView extends Component {
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
      */
-    finishPDFLoad(_, path) {
+    finishPDFLoad() {
         this.setState({
             shouldRequestPassword: false,
             shouldShowLoadingIndicator: false,
