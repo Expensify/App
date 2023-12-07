@@ -4,7 +4,7 @@ import {Image, View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import Text from '@components/Text';
-import {defaultStyles} from '@styles/styles';
+import {defaultStyles} from '@styles/index';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

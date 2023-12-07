@@ -1,7 +1,7 @@
 import React from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import Text from '@components/Text';
-import {defaultStyles} from '@styles/styles';
+import {defaultStyles} from '@styles/index';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

@@ -1,6 +1,6 @@
 import React from 'react';
-import {defaultStyles} from '@styles/styles';
-import type {ThemeStyles} from '@styles/styles';
+import {defaultStyles} from '@styles/index';
+import type {ThemeStyles} from '@styles/index';
 import {DefaultStyleUtils} from '@styles/utils';
 import type {StyleUtilsType} from '@styles/utils';
 

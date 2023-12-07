@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
+import PropTypes from 'prop-types';
 import {LineLayer} from 'react-map-gl';
 import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {CustomAnimation} from 'react-native-animatable';
@@ -39,6 +40,8 @@ import whiteSpace from './utils/whiteSpace';
 import wordBreak from './utils/wordBreak';
 import writingDirection from './utils/writingDirection';
 import variables from './variables';
+
+const propTypes = PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object), PropTypes.func]);
 
 type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
 type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
@@ -4000,4 +4003,5 @@ type ThemeStyles = ReturnType<typeof styles>;
 const defaultStyles = styles(defaultTheme);
 
 export default styles;
-export {defaultStyles, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
+export {defaultStyles, propTypes};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme};

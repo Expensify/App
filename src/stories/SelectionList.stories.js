@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
-import {defaultStyles} from '@styles/styles';
+import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
 
 /**

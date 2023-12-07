@@ -4,7 +4,7 @@ import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
-import {defaultStyles, type ThemeStyles} from '@styles/styles';
+import {defaultStyles, type ThemeStyles} from '@styles/index';
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
 import {ThemeColors} from '@styles/theme/types';

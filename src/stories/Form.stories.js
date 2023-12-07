@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import {defaultStyles} from '@styles/styles';
+import {defaultStyles} from '@styles/index';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 

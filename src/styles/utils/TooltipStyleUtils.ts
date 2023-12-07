@@ -1,5 +1,5 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
-import {type ThemeStyles} from '@styles/styles';
+import {type ThemeStyles} from '@styles/index';
 import {type ThemeColors} from '@styles/theme/types';
 import fontFamily from '@styles/utils/fontFamily';
 import positioning from '@styles/utils/positioning';

@@ -1,5 +1,5 @@
 import {ViewStyle} from 'react-native';
-import {type ThemeStyles} from '@styles/styles';
+import {type ThemeStyles} from '@styles/index';
 import {type ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 
