@@ -8,7 +8,8 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
-import {type ThemeStyles} from './styles';
+import {defaultStyles, type ThemeStyles} from './styles';
+import {defaultTheme} from './themes/Themes';
 import {ThemeColors} from './themes/types';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
@@ -1434,5 +1435,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 
+const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
+
 export default createStyleUtils;
+export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};
