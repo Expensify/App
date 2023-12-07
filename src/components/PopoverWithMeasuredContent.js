@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import PopoverWithMeasuredContentStyleUtils from '@styles/PopoverWithMeasuredContentStyleUtils';
+import PopoverWithMeasuredContentStyleUtils from '@styles/utils/PopoverWithMeasuredContentStyleUtils';
 import CONST from '@src/CONST';
 import Popover from './Popover';
 import {defaultProps as defaultPopoverProps, propTypes as popoverPropTypes} from './Popover/popoverPropTypes';
