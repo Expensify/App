@@ -13,6 +13,7 @@ import type {AuthScreensParamList} from '@navigation/types';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+import SearchInputManager from '@pages/workspace/SearchInputManager';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -123,6 +124,8 @@ const modalScreenListeners = {
         Modal.setModalVisibility(true);
     },
     beforeRemove: () => {
+        // Clear search input (WorkspaceInvitePage) when modal is closed
+        SearchInputManager.searchInput = '';
         Modal.setModalVisibility(false);
     },
 };

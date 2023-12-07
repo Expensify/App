@@ -1,55 +1,45 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import * as Localize from '@libs/Localize';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
-const propTypes = {
+type MessagesRowProps = {
     /** The messages to display */
-    messages: PropTypes.objectOf(
-        PropTypes.oneOfType([PropTypes.oneOfType([PropTypes.string, PropTypes.object]), PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
-    ),
+    messages: Record<string, Localize.MaybePhraseKey>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
-    type: PropTypes.oneOf(['error', 'success']).isRequired,
+    type: 'error' | 'success';
 
     /** A function to run when the X button next to the message is clicked */
-    onClose: PropTypes.func,
+    onClose?: () => void;
 
     /** Additional style object for the container */
-    containerStyles: stylePropTypes,
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** Whether we can dismiss the messages */
-    canDismiss: PropTypes.bool,
+    canDismiss?: boolean;
 };
 
-const defaultProps = {
-    messages: {},
-    onClose: () => {},
-    containerStyles: [],
-    canDismiss: true,
-};
-
-function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
+function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true}: MessagesRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    if (_.isEmpty(messages)) {
+
+    if (isEmptyObject(messages)) {
         return null;
     }
 
     return (
-        <View style={StyleUtils.combineStyles(styles.flexRow, styles.alignItemsCenter, containerStyles)}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
-                style={[styles.flex1]}
+                style={styles.flex1}
                 messages={messages}
                 type={type}
             />
@@ -69,8 +59,6 @@ function MessagesRow({messages, type, onClose, containerStyles, canDismiss}) {
     );
 }
 
-MessagesRow.propTypes = propTypes;
-MessagesRow.defaultProps = defaultProps;
 MessagesRow.displayName = 'MessagesRow';
 
 export default MessagesRow;
