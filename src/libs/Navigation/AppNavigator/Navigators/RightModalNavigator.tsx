@@ -7,8 +7,8 @@ import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackN
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
-import SCREENS from '@src/SCREENS';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
 type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
