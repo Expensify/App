@@ -14,10 +14,10 @@ type ConfirmContentProps = {
     title: string;
 
     /** A callback to call when the form has been submitted */
-    onConfirm: (...args: unknown[]) => unknown;
+    onConfirm: (...args: unknown[]) => void;
 
     /** A callback to call when the form has been closed */
-    onCancel: (...args: unknown[]) => unknown;
+    onCancel: (...args: unknown[]) => void;
 
     /** Confirm button text */
     confirmText: string;
@@ -97,7 +97,7 @@ function ConfirmContent({
                                 src={iconSource}
                                 width={variables.appModalAppIconSize}
                                 height={variables.appModalAppIconSize}
-                                additionalStyles={[...iconAdditionalStyles]}
+                                additionalStyles={iconAdditionalStyles}
                             />
                         </View>
                     ))}
@@ -105,7 +105,7 @@ function ConfirmContent({
                 <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
                     <Header
                         title={title}
-                        textStyles={[...titleStyles]}
+                        textStyles={titleStyles}
                     />
                 </View>
                 {typeof prompt === 'string' ? <Text style={[...promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
