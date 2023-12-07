@@ -745,7 +745,7 @@ export default {
             phrase4: 'Privacidad',
         },
         help: 'Ayuda',
-        accountSettings: 'Configuración de Cuenta',
+        accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
         general: 'General',
     },
