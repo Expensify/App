@@ -1568,6 +1568,7 @@ export default {
         finishButtonText: 'Finish setup',
         validateYourBankAccount: 'Validate your bank account',
         validateButtonText: 'Validate',
+        validationInputLabel: 'Transaction',
         maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria debido a demasiados intentos incorrectos.',
         description:
             'Uno o dos días después de añadir tu cuenta a Expensify, te enviaremos tres (3) transacciones a tu cuenta. Tienen un nombre de comerciante similar a "Expensify, Inc. Validation".',
