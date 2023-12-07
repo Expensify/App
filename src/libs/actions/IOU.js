@@ -650,9 +650,9 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {Object} transactionChanges
  * @param {String} [transactionChanges.created] // Present when updated the date field
  * @param {Boolean} onlyIncludeChangedFields
- *                      // When 'true', then the returned params will only include the transaction details for the fields that were changed.
- *                      // When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
- *                      // This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
+ *                      When 'true', then the returned params will only include the transaction details for the fields that were changed.
+ *                      When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
+ *                      This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
  * @returns {object}
  */
 function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, onlyIncludeChangedFields) {
