@@ -11,125 +11,143 @@ import Text from './Text';
 
 type ConfirmContentProps = {
     /** Title of the modal */
-    title: string,
+    title: string;
 
     /** A callback to call when the form has been submitted */
-    onConfirm: (...args: unknown[]) => unknown,
+    onConfirm: (...args: unknown[]) => unknown;
 
     /** A callback to call when the form has been closed */
-    onCancel: (...args: unknown[]) => unknown,
+    onCancel: (...args: unknown[]) => unknown;
 
     /** Confirm button text */
-    confirmText: string,
+    confirmText: string;
 
     /** Cancel button text */
-    cancelText: string,
+    cancelText: string;
 
     /** Modal content text/element */
-    prompt: string | Element,
+    prompt: string | ReactNode;
 
     /** Whether we should use the success button color */
-    success: boolean,
+    success: boolean;
 
     /** Whether we should use the danger button color. Use if the action is destructive */
-    danger: boolean,
+    danger: boolean;
 
     /** Whether we should disable the confirm button when offline */
-    shouldDisableConfirmButtonWhenOffline: boolean,
+    shouldDisableConfirmButtonWhenOffline: boolean;
 
     /** Whether we should show the cancel button */
-    shouldShowCancelButton: boolean,
+    shouldShowCancelButton: boolean;
 
     /** Icon to display above the title */
-    iconSource: string | ((props: unknown) => ReactNode),
+    iconSource: null | string | ((props: unknown) => ReactNode);
 
     /** Whether to center the icon / text content */
-    shouldCenterContent: boolean,
+    shouldCenterContent: boolean;
 
     /** Whether to stack the buttons */
-    shouldStackButtons: boolean,
+    shouldStackButtons: boolean;
 
     /** Styles for title */
-    titleStyles: Array<StyleProp<TextStyle>>,
+    titleStyles: Array<StyleProp<TextStyle>>;
 
     /** Styles for prompt */
-    promptStyles: Array<StyleProp<ViewStyle>>,
+    promptStyles: Array<StyleProp<TextStyle>>;
 
     /** Styles for view */
-    contentStyles: Array<StyleProp<ViewStyle>>,
+    contentStyles: Array<StyleProp<ViewStyle>>;
 
     /** Styles for icon */
-    iconAdditionalStyles: Array<StyleProp<ViewStyle>>,
+    iconAdditionalStyles: Array<StyleProp<ViewStyle>>;
 };
 
-function ConfirmContent(props: ConfirmContentProps) {
+function ConfirmContent({
+    title,
+    onConfirm,
+    onCancel = () => {},
+    confirmText = '',
+    cancelText = '',
+    prompt = '',
+    success = true,
+    danger = false,
+    shouldDisableConfirmButtonWhenOffline = false,
+    shouldShowCancelButton = false,
+    iconSource = null,
+    shouldCenterContent = false,
+    shouldStackButtons = true,
+    titleStyles = [],
+    promptStyles = [],
+    contentStyles = [],
+    iconAdditionalStyles = [],
+}: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const isCentered = props.shouldCenterContent;
+    const isCentered = shouldCenterContent;
 
     return (
-        <View style={[styles.m5, ...props.contentStyles]}>
+        <View style={[styles.m5, ...contentStyles]}>
             <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                {(Object.keys(props.iconSource).length !== 0) ||
-                    (typeof props.iconSource === "function") && (
+                {(iconSource !== null && Object.keys(iconSource).length !== 0) ||
+                    (typeof iconSource === 'function' && (
                         <View style={[styles.flexRow, styles.mb3]}>
                             <Icon
-                                src={props.iconSource}
+                                src={iconSource}
                                 width={variables.appModalAppIconSize}
                                 height={variables.appModalAppIconSize}
-                                additionalStyles={[...props.iconAdditionalStyles]}
+                                additionalStyles={[...iconAdditionalStyles]}
                             />
                         </View>
-                    )}
+                    ))}
 
                 <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
                     <Header
-                        title={props.title}
-                        textStyles={[...props.titleStyles]}
+                        title={title}
+                        textStyles={[...titleStyles]}
                     />
                 </View>
-                {typeof props.prompt === "string" ? <Text style={[...props.promptStyles, isCentered ? styles.textAlignCenter : {}]}>{props.prompt}</Text> : props.prompt}
+                {typeof prompt === 'string' ? <Text style={[...promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
             </View>
 
-            {props.shouldStackButtons ? (
+            {shouldStackButtons ? (
                 <>
                     <Button
-                        success={props.success}
-                        danger={props.danger}
+                        success={success}
+                        danger={danger}
                         style={[styles.mt4]}
-                        onPress={props.onConfirm}
+                        onPress={onConfirm}
                         pressOnEnter
-                        text={props.confirmText || translate('common.yes')}
-                        isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
+                        text={confirmText || translate('common.yes')}
+                        isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                     />
-                    {props.shouldShowCancelButton && (
+                    {shouldShowCancelButton && (
                         <Button
                             style={[styles.mt3, styles.noSelect]}
-                            onPress={props.onCancel}
-                            text={props.cancelText || translate('common.no')}
+                            onPress={onCancel}
+                            text={cancelText || translate('common.no')}
                         />
                     )}
                 </>
             ) : (
                 <View style={[styles.flexRow, styles.gap4]}>
-                    {props.shouldShowCancelButton && (
+                    {shouldShowCancelButton && (
                         <Button
                             style={[styles.noSelect, styles.flex1]}
-                            onPress={props.onCancel}
-                            text={props.cancelText || translate('common.no')}
+                            onPress={onCancel}
+                            text={cancelText || translate('common.no')}
                             medium
                         />
                     )}
                     <Button
-                        success={props.success}
-                        danger={props.danger}
+                        success={success}
+                        danger={danger}
                         style={[styles.flex1]}
-                        onPress={props.onConfirm}
+                        onPress={onConfirm}
                         pressOnEnter
-                        text={props.confirmText || translate('common.yes')}
-                        isDisabled={isOffline && props.shouldDisableConfirmButtonWhenOffline}
+                        text={confirmText || translate('common.yes')}
+                        isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                         medium
                     />
                 </View>
@@ -139,4 +157,5 @@ function ConfirmContent(props: ConfirmContentProps) {
 }
 
 ConfirmContent.displayName = 'ConfirmContent';
+
 export default ConfirmContent;
