@@ -2792,7 +2792,38 @@ function cancelPayment(expenseReport, chatReport) {
             },
         },
     ];
-    
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [expenseReport.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                statusNum: CONST.REPORT.STATUS.REIMBURSED,
+            },
+        },
+        ...(chatReport.reportID
+            ? [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                    value: {
+                        hasOutstandingIOU: false,
+                        hasOutstandingChildRequest: false,
+                        iouReportID: 0,
+                    },
+                },
+            ]
+            : []),
+    ];
 }
 
 /**
