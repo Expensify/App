@@ -191,4 +191,5 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
+    holdMenuIconSize: 64,
 } as const;

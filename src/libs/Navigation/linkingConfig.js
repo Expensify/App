@@ -443,6 +443,11 @@ export default {
                             Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
                         },
                     },
+                    ProcessMoneyRequestHold: {
+                        screens: {
+                            ProcessMoneyRequestHold_Root: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
+                        },
+                    },
                 },
             },
         },

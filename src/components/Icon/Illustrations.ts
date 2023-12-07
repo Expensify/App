@@ -30,11 +30,13 @@ import BankArrow from '@assets/images/simple-illustrations/simple-illustration__
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
+import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
+import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
@@ -47,6 +49,7 @@ import SanFrancisco from '@assets/images/simple-illustrations/simple-illustratio
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
+import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 
 export {
@@ -100,4 +103,7 @@ export {
     Hands,
     HandEarth,
     SmartScan,
+    Hourglass,
+    CommentBubbles,
+    TrashCan,
 };

@@ -230,6 +230,10 @@ const ReferralModalStackNavigator = createModalStackNavigator({
     Referral_Details: () => require('../../../pages/ReferralDetailsPage').default,
 });
 
+const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
+    ProcessMoneyRequestHold_Root: () => require('../../../pages/ProcessMoneyRequestHoldPage').default,
+});
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -256,4 +260,5 @@ export {
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
     ReferralModalStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
 };

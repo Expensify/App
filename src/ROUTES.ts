@@ -379,6 +379,7 @@ export default {
         route: 'referral/:contentType',
         getRoute: (contentType: string) => `referral/${contentType}`,
     },
+    PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
 
     // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
