@@ -17,6 +17,7 @@ import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/ty
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Participant} from '@src/types/onyx/IOU';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
 import {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -59,20 +60,6 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
-};
-
-type Participant = {
-    accountID: number;
-    alternateText: string;
-    firstName: string;
-    icons: Icon[];
-    keyForList: string;
-    lastName: string;
-    login: string;
-    phoneNumber: string;
-    searchText: string;
-    selected: boolean;
-    text: string;
 };
 
 type SpendBreakdown = {
@@ -347,6 +334,7 @@ type OptionData = {
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
     isOptimisticAccount?: boolean;
+    isDisabled?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -4459,4 +4447,4 @@ export {
     shouldAutoFocusOnKeyPress,
 };
 
-export type {OptionData, Participant};
+export type {OptionData};
