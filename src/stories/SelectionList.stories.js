@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
-// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/styles';
 import CONST from '@src/CONST';
 

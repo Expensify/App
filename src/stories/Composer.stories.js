@@ -5,9 +5,7 @@ import Composer from '@components/Composer';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
-// eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/styles';
-// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme/themes';
 import useStyleUtils from '@styles/useStyleUtils';
 import CONST from '@src/CONST';
