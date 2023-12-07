@@ -2029,7 +2029,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport = {...iouReport};
-    let updatedReportPreviewAction = {...reportPreviewAction};
+    const updatedReportPreviewAction = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         if (ReportUtils.isExpenseReport(iouReport)) {
             updatedIOUReport = {...iouReport};

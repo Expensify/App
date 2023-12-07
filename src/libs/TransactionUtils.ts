@@ -406,8 +406,8 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
 
 function areAllDistanceRequestTransactions(reportID?: string): boolean  {
     const reportTransactions: Transaction[] = getAllReportTransactions(reportID);
-    const areAllDistanceRequestTransactions = reportTransactions.every((transaction) => isDistanceRequest(transaction));
-    return reportTransactions.length > 0 && areAllDistanceRequestTransactions;
+    const areAllDistanceRequests = reportTransactions.every((transaction) => isDistanceRequest(transaction));
+    return reportTransactions.length > 0 && areAllDistanceRequests;
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
