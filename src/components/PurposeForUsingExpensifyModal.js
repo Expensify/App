@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -16,11 +16,14 @@ import LottieAnimations from "./LottieAnimations";
 import Text from "./Text";
 import Lottie from "./Lottie";
 import HeaderWithBackButton from "./HeaderWithBackButton";
-
 import MenuItemList from "./MenuItemList";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
 import * as Expensicons from './Icon/Expensicons';
+import lodashGet from "lodash/get";
+import NAVIGATORS from "@src/NAVIGATORS";
+import * as Welcome from "@userActions/Welcome";
+import withNavigation from "@components/withNavigation";
 
 const propTypes = {
 
@@ -37,12 +40,26 @@ const defaultProps = {
     session: {},
 };
 
-function PurposeForUsingExpensifyModal() {
+function PurposeForUsingExpensifyModal(props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isModalOpen, setIsModalOpen] = useState(true);
     const theme = useTheme();
+
+    useEffect(() => {
+        const navigationState = props.navigation.getState();
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+            return;
+        }
+        if (lodashGet(props.demoInfo, 'money2020.isBeginningDemo', false)) {
+            return;
+        }
+        Welcome.show({routes, showEngagementModal: () => setIsModalOpen(true)});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isLoading]);
 
     // This is not translated because it is a message coming from concierge, which only supports english
     const messageCopy = {
@@ -181,6 +198,7 @@ PurposeForUsingExpensifyModal.displayName = 'AddPaymentMethodMenu';
 
 export default compose(
     withWindowDimensions,
+    withNavigation,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,

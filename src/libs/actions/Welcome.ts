@@ -25,7 +25,7 @@ type Route = {
 
 type ShowParams = {
     routes: Route[];
-    showCreateMenu?: () => void;
+    showEngagementModal?: () => void;
     showPopoverMenu?: () => boolean;
 };
 
@@ -46,6 +46,32 @@ function checkOnReady() {
 
 Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+    initWithStoredValues: false,
+    callback: (value) => {
+        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
+        // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
+
+        isFirstTimeNewExpensifyUser = value ?? undefined;
+
+        checkOnReady();
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    initWithStoredValues: false,
+    callback: (value) => {
+        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
+        // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
+
+        isFirstTimeNewExpensifyUser = value ?? undefined;
+
+        checkOnReady();
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
     initWithStoredValues: false,
     callback: (value) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
@@ -110,7 +136,7 @@ Onyx.connect({
 /**
  * Shows a welcome action on first login
  */
-function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}: ShowParams) {
+function show({routes, showEngagementModal = () => {}, showPopoverMenu = () => false}: ShowParams) {
     isReadyPromise.then(() => {
         if (!isFirstTimeNewExpensifyUser) {
             return;
@@ -158,7 +184,7 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => false}
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the create menu.
         if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isDisplayingWorkspaceRoute) {
-            showCreateMenu();
+            showEngagementModal();
         }
 
         // Update isFirstTimeNewExpensifyUser so the Welcome logic doesn't run again
