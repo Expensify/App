@@ -34,6 +34,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -232,6 +233,10 @@ function MoneyRequestPreview(props) {
 
         if (isScanning) {
             return props.translate('iou.receiptScanning');
+        }
+
+        if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
+            return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
