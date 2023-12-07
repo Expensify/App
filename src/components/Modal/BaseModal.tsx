@@ -1,8 +1,9 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
@@ -133,6 +134,8 @@ function BaseModal(
     } = useMemo(
         () =>
             getModalStyles(
+                theme,
+                styles,
                 type,
                 {
                     windowWidth,
@@ -143,7 +146,7 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
+        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth, styles],
     );
 
     const {
@@ -205,7 +208,7 @@ function BaseModal(
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                 ref={ref}
             >
-                {children}
+                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
         </ReactNativeModal>
     );

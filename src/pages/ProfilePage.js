@@ -159,7 +159,6 @@ function ProfilePage(props) {
                             <AttachmentModal
                                 headerTitle={displayName}
                                 source={UserUtils.getFullSizeAvatar(avatar, accountID)}
-                                isAuthTokenRequired
                                 originalFileName={originalFileName}
                                 fallbackSource={fallbackIcon}
                             >
@@ -254,7 +253,7 @@ function ProfilePage(props) {
                                 title={`${props.translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
                                 icon={Expensicons.Pencil}
-                                onPress={() => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID))}
+                                onPress={() => ReportUtils.navigateToPrivateNotes(props.report, props.session)}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                                 brickRoadIndicator={Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}

@@ -38,7 +38,7 @@ function handleDownload(url: string, fileName: string): Promise<void> {
 
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
-        const attachmentName = FileUtils.appendTimeToFileName(fileName) || FileUtils.getAttachmentName(url);
+        const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(url));
 
         const isLocalFile = url.startsWith('file://');
 
