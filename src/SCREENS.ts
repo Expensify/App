@@ -198,14 +198,6 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
-    REFERRAL_DETAILS: 'Referral_Details',
-
-    SPLIT_DETAILS: {
-        ROOT: 'SplitDetails_Root',
-        EDIT_REQUEST: 'SplitDetails_Edit_Request',
-        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
-    },
-
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
@@ -215,9 +207,16 @@ const SCREENS = {
     SEARCH_ROOT: 'Search_Root',
     NEW_CHAT: {ROOT: 'NewChat_Root', NEW_CHAT: 'chat', NEW_ROOM: 'room'},
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
+
+    SPLIT_DETAILS: {
+        ROOT: 'SplitDetails_Root',
+        EDIT_REQUEST: 'SplitDetails_Edit_Request',
+        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
-
+    REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
 } as const;
 
