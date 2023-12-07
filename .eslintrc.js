@@ -38,7 +38,7 @@ const restrictedImportPaths = [
     },
     {
         name: ['@styles/illustrations/Illustrations'],
-        message: 'Do not import illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
     },
 ];
 
@@ -53,7 +53,7 @@ const restrictedImportPatterns = [
     },
     {
         group: ['@styles/illustrations/themes/*'],
-        message: 'Do not import illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
     },
 ];
 
