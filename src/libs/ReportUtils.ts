@@ -4263,7 +4263,7 @@ function isSettledAction(reportAction: OnyxEntry<ReportAction>): boolean {
 function excludeLastUnsettledIOUAction(reportActions: ReportAction[], lastIOUActionId: string): ReportAction[] {
     if (lastIOUActionId) {
         const lastIOUAction = reportActions.find((action) => action.reportActionID === lastIOUActionId)
-        if (lastIOUAction && isSettledAction(lastIOUAction)) {
+        if (lastIOUAction && !isSettledAction(lastIOUAction)) {
             const sortedActionWithOutLastIOUAction = reportActions.filter((action) => action.reportActionID !== lastIOUActionId)
             const secondLastIOUActionId = ReportActionsUtils.getMostRecentIOURequestActionID(sortedActionWithOutLastIOUAction);
             const secondLastIOUAction = sortedActionWithOutLastIOUAction.find((action) => action.reportActionID === secondLastIOUActionId)
