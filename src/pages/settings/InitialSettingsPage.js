@@ -128,7 +128,7 @@ function InitialSettingsPage(props) {
 
     /**
      * Retuns a list of menu items data for account section
-     * @returns {Object} object with name of the section and items for the given section
+     * @returns {Object} object with translationKey, style and items for the account section
      */
     const accountMenuItemsData = useMemo(() => {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
@@ -191,7 +191,7 @@ function InitialSettingsPage(props) {
 
     /**
      * Retuns a list of menu items data for general section
-     * @returns {Array} the account menu items data
+     * @returns {Object} object with translationKey, style and items for the general section
      */
     const generaltMenuItemsData = useMemo(
         () => ({
