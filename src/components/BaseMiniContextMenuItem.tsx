@@ -3,8 +3,7 @@ import {PressableStateCallbackType, View} from 'react-native';
 import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -37,8 +36,8 @@ type BaseMiniContextMenuItemProps = {
  * pressable. Also renders a tooltip when hovering the item.
  */
 function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true}: BaseMiniContextMenuItemProps, ref: ForwardedRef<View>) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return (
         <Tooltip
             text={tooltipText}
@@ -67,7 +66,7 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
                 accessibilityLabel={tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(hovered, pressed, isDelayButtonStateComplete)),
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete)),
                     isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >
