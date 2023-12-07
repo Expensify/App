@@ -1,4 +1,4 @@
-import roundToNearestMultipleOfFour from './ThemeStyleUtils/roundToNearestMultipleOfFour';
+import roundToNearestMultipleOfFour from './utils/roundToNearestMultipleOfFour';
 import variables from './variables';
 
 /**
