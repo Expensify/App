@@ -1,5 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import React, {Component, ForwardedRef, forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import {
     ActivityIndicator,
     Animated,
@@ -11,11 +11,9 @@ import {
     StyleSheet,
     TextInput,
     TextInputFocusEventData,
-    TextInputProps,
     View,
     ViewStyle,
 } from 'react-native';
-import {AnimatedProps} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
