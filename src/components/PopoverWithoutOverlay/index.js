@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -16,14 +17,14 @@ function Popover(props) {
     const {onOpen, close} = React.useContext(PopoverContext);
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
+        theme,
+        styles,
         'popover',
         {
             windowWidth: props.windowWidth,
             windowHeight: props.windowHeight,
             isSmallScreenWidth: false,
         },
-        theme,
-        styles,
         props.anchorPosition,
         props.innerContainerStyle,
         props.outerStyle,
@@ -114,7 +115,7 @@ function Popover(props) {
                 }}
                 ref={props.forwardedRef}
             >
-                {props.children}
+                <ColorSchemeWrapper>{props.children}</ColorSchemeWrapper>
             </View>
         </View>
     );
