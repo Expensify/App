@@ -44,7 +44,6 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
     // Make a copy so we don't mutate the original object
     const iouReportUpdate: Report = {...iouReport};
 
-    if (iouReportUpdate.total) {
         if (actorAccountID === iouReport.ownerAccountID) {
             iouReportUpdate.total += isDeleting ? -amount : amount;
         } else {
@@ -59,7 +58,6 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
         }
 
         iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
-    }
 
     return iouReportUpdate;
 }
