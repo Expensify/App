@@ -8,7 +8,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import reportActionPropTypes from './reportActionPropTypes';
 
@@ -41,20 +40,6 @@ function ReportActionItemMessage(props) {
     const styles = useThemeStyles();
     const fragments = _.compact(props.action.previousMessage || props.action.message);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(props.action);
-    if (ReportActionsUtils.isMemberChangeAction(props.action)) {
-        const fragment = ReportActionsUtils.getMemberChangeMessageFragment(props.action);
-
-        return (
-            <TextCommentFragment
-                fragment={fragment}
-                displayAsGroup={props.displayAsGroup}
-                style={props.style}
-                source=""
-                styleAsDeleted={false}
-            />
-        );
-    }
-
     let iouMessage;
     if (isIOUReport) {
         const iouReportID = lodashGet(props.action, 'originalMessage.IOUReportID');
