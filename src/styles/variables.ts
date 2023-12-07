@@ -12,6 +12,7 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 }
 
 export default {
+    // do we need to change it?
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,

@@ -43,14 +43,15 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     <Lottie
                         source={illustration}
                         style={styles.w100}
-                        webStyle={styles.w100}
+                        webStyle={styles.h100}
                         autoPlay
                         loop
                     />
                     {overlayContent && overlayContent()}
                 </>
             }
-            headerContainerStyles={[styles.justifyContentCenter, styles.w100]}
+            // TODO: move to variables
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100, {height: 200}]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToPassToHeader}

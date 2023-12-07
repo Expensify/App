@@ -3978,7 +3978,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,
