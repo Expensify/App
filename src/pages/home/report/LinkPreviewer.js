@@ -5,8 +5,16 @@ import {Image, View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
@@ -68,6 +76,7 @@ const defaultProps = {
 function LinkPreviewer(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return _.map(
         _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
         (linkData) => {

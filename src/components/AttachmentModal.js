@@ -19,8 +19,16 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -112,6 +120,7 @@ const defaultProps = {
 function AttachmentModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);

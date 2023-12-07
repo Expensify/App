@@ -31,10 +31,20 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
+<<<<<<< HEAD
 import reportPropTypes from '@pages/reportPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import reportPropTypes from '@pages/reportPropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
+import reportPropTypes from '@styles/utils/StyleUtilsypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,6 +92,7 @@ const defaultProps = {
 function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();

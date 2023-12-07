@@ -3,8 +3,16 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -74,6 +82,7 @@ const defaultProps = {
 function ButtonWithDropdownMenu(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);

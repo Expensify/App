@@ -4,8 +4,15 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
@@ -54,8 +61,8 @@ const defaultProps = {
 };
 
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -87,7 +94,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
                 <Icon
                     small
                     src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, !isThrottledButtonActive))}
+                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
             )}
         </BaseMiniContextMenuItem>

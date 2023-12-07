@@ -3,8 +3,15 @@ import {View} from 'react-native';
 import type {SimpleEmoji} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getStyledTextArray from '@libs/GetStyledTextArray';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Text from './Text';
@@ -43,8 +50,8 @@ type EmojiSuggestionsProps = {
 const keyExtractor = (item: SimpleEmoji, index: number): string => `${item.name}+${index}}`;
 
 function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     /**
      * Render an emoji suggestion menu item component.
      */
@@ -63,7 +70,7 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
                         {styledTextArray.map(({text, isColored}) => (
                             <Text
                                 key={`${text}+${isColored}`}
-                                style={StyleUtils.getColoredBackgroundStyle(theme, isColored)}
+                                style={StyleUtils.getColoredBackgroundStyle(isColored)}
                             >
                                 {text}
                             </Text>
@@ -73,7 +80,7 @@ function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferr
                 </View>
             );
         },
-        [styles, theme, prefix, preferredSkinToneIndex],
+        [prefix, styles.autoCompleteSuggestionContainer, styles.emojiSuggestionsEmoji, styles.emojiSuggestionsText, preferredSkinToneIndex, StyleUtils],
     );
 
     return (

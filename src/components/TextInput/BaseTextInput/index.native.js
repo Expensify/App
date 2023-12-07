@@ -16,8 +16,16 @@ import withLocalize from '@components/withLocalize';
 import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -26,6 +34,7 @@ import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 function BaseTextInput(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const initialValue = props.value || props.defaultValue || '';
     const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
     const isMultiline = props.multiline || props.autoGrowHeight;

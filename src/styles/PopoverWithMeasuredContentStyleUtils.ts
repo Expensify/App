@@ -1,5 +1,5 @@
-import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
-import variables from './variables';
+import variables from '@styles/variables';
+import roundToNearestMultipleOfFour from './ThemeStyleUtils/roundToNearestMultipleOfFour';
 
 /**
  * Compute the amount that the Context menu's Anchor needs to be horizontally shifted
@@ -50,4 +50,6 @@ function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowH
     return 0;
 }
 
-export {computeHorizontalShift, computeVerticalShift};
+const PopoverWithMeasuredContentStyleUtils = {computeHorizontalShift, computeVerticalShift};
+
+export default PopoverWithMeasuredContentStyleUtils;

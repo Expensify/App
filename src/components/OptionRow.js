@@ -5,8 +5,16 @@ import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -104,6 +112,7 @@ const defaultProps = {
 function OptionRow(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const pressableRef = useRef(null);
     const [isDisabled, setIsDisabled] = useState(props.isDisabled);
 

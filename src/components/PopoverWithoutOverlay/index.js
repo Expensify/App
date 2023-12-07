@@ -5,37 +5,44 @@ import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+<<<<<<< HEAD
 import getModalStyles from '@styles/getModalStyles';
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import getModalStyles from '@styles/getModalStyles';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {onOpen, close} = React.useContext(PopoverContext);
     const insets = useSafeAreaInsets();
-    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
-        theme,
-        styles,
-        'popover',
-        {
-            windowWidth: props.windowWidth,
-            windowHeight: props.windowHeight,
-            isSmallScreenWidth: false,
-        },
-        props.anchorPosition,
-        props.innerContainerStyle,
-        props.outerStyle,
-    );
+    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
+        StyleUtils.getModalStyles(
+            'popover',
+            {
+                windowWidth: props.windowWidth,
+                windowHeight: props.windowHeight,
+                isSmallScreenWidth: false,
+            },
+            props.anchorPosition,
+            props.innerContainerStyle,
+            props.outerStyle,
+        );
 
     const {
         paddingTop: safeAreaPaddingTop,
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [insets]);
+    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const modalPaddingStyles = useMemo(
         () =>
@@ -55,6 +62,7 @@ function Popover(props) {
                 insets,
             }),
         [
+            StyleUtils,
             insets,
             modalContainerStyle.marginBottom,
             modalContainerStyle.marginTop,

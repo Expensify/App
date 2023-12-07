@@ -2,8 +2,16 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -50,9 +58,10 @@ type SubscriptAvatarProps = {
 function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const isSmall = size === CONST.AVATAR_SIZE.SMALL;
     const subscriptStyle = size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.secondAvatarSubscriptSmallNormal : styles.secondAvatarSubscript;
-    const containerStyle = StyleUtils.getContainerStyles(styles, size);
+    const containerStyle = StyleUtils.getContainerStyles(size);
 
     return (
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>

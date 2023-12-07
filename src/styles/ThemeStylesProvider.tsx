@@ -1,16 +1,19 @@
 import React, {useMemo} from 'react';
-import styles from './styles';
+import stylesGenerator from './styles';
 import useTheme from './theme/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
+import createStyleUtils from './ThemeStyleUtils';
 
 type ThemeStylesProviderProps = React.PropsWithChildren;
 
 function ThemeStylesProvider({children}: ThemeStylesProviderProps) {
     const theme = useTheme();
 
-    const themeStyles = useMemo(() => styles(theme), [theme]);
+    const styles = useMemo(() => stylesGenerator(theme), [theme]);
+    const StyleUtils = useMemo(() => createStyleUtils(theme, styles), [theme, styles]);
+    const contextValue = useMemo(() => ({styles, StyleUtils}), [styles, StyleUtils]);
 
-    return <ThemeStylesContext.Provider value={themeStyles}>{children}</ThemeStylesContext.Provider>;
+    return <ThemeStylesContext.Provider value={contextValue}>{children}</ThemeStylesContext.Provider>;
 }
 
 ThemeStylesProvider.displayName = 'ThemeStylesProvider';

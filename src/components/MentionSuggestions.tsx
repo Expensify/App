@@ -1,8 +1,16 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import getStyledTextArray from '@libs/GetStyledTextArray';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {Icon} from '@src/types/onyx/OnyxCommon';
@@ -54,6 +62,7 @@ const keyExtractor = (item: Mention) => item.alternateText;
 function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     /**
      * Render a suggestion menu item component.
      */
@@ -83,7 +92,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                             <Text
                                 // eslint-disable-next-line react/no-array-index-key
                                 key={`${text}${i}`}
-                                style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsDisplayName]}
+                                style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
                             >
                                 {text}
                             </Text>
@@ -99,7 +108,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
-                                        style={[StyleUtils.getColoredBackgroundStyle(theme, isColored), styles.mentionSuggestionsHandle]}
+                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
                                     >
                                         {text}
                                     </Text>
@@ -109,7 +118,19 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                 </View>
             );
         },
-        [styles, theme, prefix],
+        [
+            prefix,
+            styles.autoCompleteSuggestionContainer,
+            styles.ph2,
+            styles.mentionSuggestionsAvatarContainer,
+            styles.mentionSuggestionsText,
+            styles.flexShrink1,
+            styles.flex1,
+            styles.mentionSuggestionsDisplayName,
+            styles.mentionSuggestionsHandle,
+            theme.success,
+            StyleUtils,
+        ],
     );
 
     return (

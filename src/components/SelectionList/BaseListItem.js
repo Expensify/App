@@ -7,8 +7,16 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+<<<<<<< HEAD
 import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/theme/useTheme';
+||||||| b0268fab88
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/theme/useTheme';
+=======
+import useTheme from '@styles/theme/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
@@ -28,6 +36,7 @@ function BaseListItem({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
@@ -64,7 +73,7 @@ function BaseListItem({
                         <View style={StyleUtils.getCheckboxPressableStyle()}>
                             <View
                                 style={[
-                                    StyleUtils.getCheckboxContainerStyle(theme, 20),
+                                    StyleUtils.getCheckboxContainerStyle(20),
                                     styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,

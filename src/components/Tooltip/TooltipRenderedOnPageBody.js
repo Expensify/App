@@ -4,9 +4,17 @@ import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
+<<<<<<< HEAD
 import getTooltipStyles from '@styles/getTooltipStyles';
 import useTheme from '@styles/theme/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+||||||| b0268fab88
+import getTooltipStyles from '@styles/getTooltipStyles';
+import useTheme from '@styles/theme/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+=======
+import useStyleUtils from '@styles/useStyleUtils';
+>>>>>>> @chrispader/use-style-utils-hook
 
 const propTypes = {
     /** Window width */
@@ -84,8 +92,7 @@ function TooltipRenderedOnPageBody({
     const contentRef = useRef();
     const rootWrapper = useRef();
 
-    const theme = useTheme();
-    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     useEffect(() => {
         if (!renderTooltipContent || !text) {
@@ -103,7 +110,7 @@ function TooltipRenderedOnPageBody({
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
-            getTooltipStyles({
+            StyleUtils.getTooltipStyles({
                 tooltip: rootWrapper.current,
                 currentSize: animation,
                 windowWidth,
@@ -114,12 +121,10 @@ function TooltipRenderedOnPageBody({
                 maxWidth,
                 tooltipContentWidth: contentMeasuredWidth,
                 tooltipWrapperHeight: wrapperMeasuredHeight,
-                theme,
-                styles,
                 shiftHorizontal,
                 shiftVertical,
             }),
-        [animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical, theme, styles],
+        [StyleUtils, animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical],
     );
 
     let content;
