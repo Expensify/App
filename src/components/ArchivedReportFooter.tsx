@@ -24,7 +24,7 @@ type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {
     report: Report;
 };
 
-function ArchivedReportFooter({report, reportClosedAction, personalDetails = CONST.EMPTY_OBJECT}: ArchivedReportFooterProps) {
+function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

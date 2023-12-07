@@ -138,7 +138,6 @@ function ReportActionItem(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState(CONST.MODERATION.MODERATOR_DECISION_APPROVED);

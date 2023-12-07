@@ -82,7 +82,6 @@ function ReportActionItemSingle(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
@@ -122,7 +121,7 @@ function ReportActionItemSingle(props) {
         };
     } else if (!isWorkspaceActor) {
         const avatarIconIndex = props.report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(props.report) ? 0 : 1;
-        const reportIcons = ReportUtils.getIcons(props.report);
+        const reportIcons = ReportUtils.getIcons(props.report, {});
 
         secondaryAvatar = reportIcons[avatarIconIndex];
     }
