@@ -1,7 +1,10 @@
+import React from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 
 type HeaderGapProps = {
     styles?: StyleProp<ViewStyle>;
 };
 
-export default HeaderGapProps;
+type HeaderGapComponent = React.FunctionComponent<HeaderGapProps>;
+
+export default HeaderGapComponent;
