@@ -530,7 +530,6 @@ describe('Unread Indicators', () => {
                         lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
-
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

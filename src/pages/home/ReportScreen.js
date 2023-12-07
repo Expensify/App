@@ -506,7 +506,6 @@ export default compose(
             _.isEqual(prevProps.betas, nextProps.betas) &&
             _.isEqual(prevProps.policies, nextProps.policies) &&
             prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
-            _.isEqual(prevProps.personalDetails, nextProps.personalDetails) &&
             prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
             prevProps.report.reportID === nextProps.report.reportID &&
             prevProps.report.policyID === nextProps.report.policyID &&
