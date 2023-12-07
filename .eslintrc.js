@@ -34,7 +34,7 @@ const restrictedImportPaths = [
         name: '@styles/StyleUtils',
         importNames: ['default', 'DefaultStyleUtils'],
 
-        message: 'Do not import style utils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.`',
+        message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.`',
     },
 ];
 
