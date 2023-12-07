@@ -182,7 +182,7 @@ function AddPlaidBankAccount({
         value: account.plaidAccountID,
         label: account.addressName,
     }));
-    const {icon, iconSize, iconStyles} = getBankIcon();
+    const {icon, iconSize, iconStyles} = getBankIcon({styles});
     const plaidErrors = lodashGet(plaidData, 'errors');
     const plaidDataErrorMessage = !_.isEmpty(plaidErrors) ? _.chain(plaidErrors).values().first().value() : '';
     const bankName = lodashGet(plaidData, 'bankName');
@@ -234,7 +234,7 @@ function AddPlaidBankAccount({
                             // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                             if (event === 'ERROR') {
                                 Log.hmmm('[PlaidLink] Error: ', metadata);
-                                if (bankAccountID && metadata.error_code) {
+                                if (bankAccountID && metadata && metadata.error_code) {
                                     BankAccounts.handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
                                 }
                             }

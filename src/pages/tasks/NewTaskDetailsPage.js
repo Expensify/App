@@ -100,6 +100,7 @@ function NewTaskDetailsPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
+                        autoCorrect={false}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -112,9 +113,7 @@ function NewTaskDetailsPage(props) {
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
                         defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
-                        inputStyle={[styles.verticalAlignTop]}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />

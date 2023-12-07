@@ -30,7 +30,7 @@ function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) 
     const styles = useThemeStyles();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
-    const LogoComponent = environment ? logoComponents[environment] : AdHocLogo;
+    const LogoComponent = logoComponents[environment];
 
     return (
         <>
