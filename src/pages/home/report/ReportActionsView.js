@@ -15,7 +15,7 @@ import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import { isUserCreatedPolicyRoom } from '@libs/ReportUtils';
+import { isUserCreatedPolicyRoom, excludeLastUnsettledIOUAction } from '@libs/ReportUtils';
 import { didUserLogInDuringSession } from '@libs/SessionUtils';
 import { ReactionListContext } from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -103,7 +103,7 @@ function ReportActionsView(props) {
      */
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
-    const reportActionsWithoutUnsettledIOUAction = useMemo(() => ReportActionsUtils.excludeLastUnsettledIOUAction(props.reportActions, mostRecentIOUReportActionID), [mostRecentIOUReportActionID, props.reportActions])
+    const reportActionsWithoutUnsettledIOUAction = useMemo(() => excludeLastUnsettledIOUAction(props.reportActions, mostRecentIOUReportActionID), [mostRecentIOUReportActionID, props.reportActions])
 
     const openReportIfNecessary = () => {
         const createChatError = _.get(props.report, ['errorFields', 'createChat']);
