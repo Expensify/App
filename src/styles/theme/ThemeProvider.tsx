@@ -2,9 +2,9 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import ThemeContext from '@styles/context/ThemeContext';
+import useThemePreferenceWithStaticOverride from '../../hooks/useThemePreferenceWithStaticOverride';
 import themes from './themes';
 import {ThemePreferenceWithoutSystem} from './types';
-import useThemePreferenceWithStaticOverride from './useThemePreferenceWithStaticOverride';
 
 const propTypes = {
     /** Rendered child component */
