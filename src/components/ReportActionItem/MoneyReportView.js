@@ -11,16 +11,8 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportPropTypes from '@pages/reportPropTypes';
-<<<<<<< HEAD
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-||||||| b0268fab88
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-=======
 import useTheme from '@styles/theme/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 

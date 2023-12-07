@@ -46,16 +46,8 @@ import SelectionScraper from '@libs/SelectionScraper';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
-<<<<<<< HEAD
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-||||||| b0268fab88
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-=======
 import useTheme from '@styles/theme/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';

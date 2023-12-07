@@ -13,15 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-<<<<<<< HEAD
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-||||||| b0268fab88
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-=======
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

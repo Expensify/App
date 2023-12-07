@@ -9,16 +9,8 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState
 import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-<<<<<<< HEAD
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-||||||| b0268fab88
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-=======
 import useTheme from '@styles/theme/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';

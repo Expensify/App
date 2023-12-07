@@ -5,16 +5,8 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-<<<<<<< HEAD
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-||||||| b0268fab88
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-=======
 import useTheme from '@styles/theme/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 import useThemeStyles from '@styles/useThemeStyles';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';

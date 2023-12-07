@@ -1,16 +1,8 @@
 import React, {useState} from 'react';
 import withWindowDimensions from '@components/withWindowDimensions';
 import StatusBar from '@libs/StatusBar';
-<<<<<<< HEAD
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-||||||| b0268fab88
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/theme/useTheme';
-=======
 import useTheme from '@styles/theme/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import BaseModalProps from './types';

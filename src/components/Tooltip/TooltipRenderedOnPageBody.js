@@ -4,17 +4,7 @@ import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
-<<<<<<< HEAD
-import getTooltipStyles from '@styles/getTooltipStyles';
-import useTheme from '@styles/theme/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
-||||||| b0268fab88
-import getTooltipStyles from '@styles/getTooltipStyles';
-import useTheme from '@styles/theme/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
-=======
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 
 const propTypes = {
     /** Window width */

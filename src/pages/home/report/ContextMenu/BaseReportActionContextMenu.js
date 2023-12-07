@@ -12,17 +12,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
-<<<<<<< HEAD
-import getReportActionContextMenuStyles from '@styles/getReportActionContextMenuStyles';
-import useTheme from '@styles/theme/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
-||||||| b0268fab88
-import getReportActionContextMenuStyles from '@styles/getReportActionContextMenuStyles';
-import useTheme from '@styles/theme/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
-=======
 import useStyleUtils from '@styles/useStyleUtils';
->>>>>>> @chrispader/use-style-utils-hook
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
