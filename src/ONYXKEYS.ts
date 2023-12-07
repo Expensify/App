@@ -8,6 +8,8 @@ import DeepValueOf from './types/utils/DeepValueOf';
  * This is a file containing constants for all the top level keys in our store
  */
 const ONYXKEYS = {
+    /** Holds the action.reportActionID of the last IOU action */
+    LAST_IOU_ACTION_ID: 'lastIOUActionId',
     /** Holds information about the users account that is logging in */
     ACCOUNT: 'account',
 

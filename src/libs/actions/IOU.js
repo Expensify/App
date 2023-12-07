@@ -175,8 +175,8 @@ function buildOnyxDataForMoneyRequest(
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `last_IOU_Action_Id`,
-            value: iouAction.reportActionID
+            key: ONYXKEYS.LAST_IOU_ACTION_ID,
+            value: iouAction.reportActionID,
         },
     ];
 

@@ -4,7 +4,6 @@ import Str from 'expensify-common/lib/str';
 import { isEmpty } from 'lodash';
 import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
-import lodashFind from 'lodash/find'
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
 import React from 'react';
@@ -4293,7 +4292,7 @@ function isSettledAction(reportAction: OnyxEntry<ReportAction>): boolean {
         const transaction = TransactionUtils.getTransaction(reportAction.originalMessage.IOUTransactionID ?? '');
         if (transaction) {
             const settled = isSettled(transaction.reportID);
-            return settled
+            return settled;
         }
     }
     return false;
@@ -4301,12 +4300,12 @@ function isSettledAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
 function excludeLastUnsettledIOUAction(reportActions: ReportAction[], lastIOUActionId: string): boolean {
     if (lastIOUActionId && reportActions.length > 0) {
-        const lastIOUAction = lodashFind(reportActions, (action) => action.reportActionID === lastIOUActionId)
+        const lastIOUAction = reportActions.find((action: ReportAction) => action.reportActionID === lastIOUActionId);
         if (lastIOUAction && !isSettledAction(lastIOUAction)) {
-            const sortedActionsWithOutLastIOUAction = reportActions.filter((action) => action.reportActionID !== lastIOUActionId)
+            const sortedActionsWithOutLastIOUAction = reportActions.filter((action) => action.reportActionID !== lastIOUActionId);
             const secondLastIOUActionId = ReportActionsUtils.getMostRecentIOURequestActionID(sortedActionsWithOutLastIOUAction);
-            const secondLastIOUAction = lodashFind(sortedActionsWithOutLastIOUAction, (action) => action.reportActionID === secondLastIOUActionId)
-            return !secondLastIOUAction || (secondLastIOUAction && isSettledAction(secondLastIOUAction))
+            const secondLastIOUAction = sortedActionsWithOutLastIOUAction.find((action: ReportAction) => action.reportActionID === secondLastIOUActionId);
+            return !secondLastIOUAction || (secondLastIOUAction && isSettledAction(secondLastIOUAction));
         }
     }
     return false;
@@ -4481,7 +4480,7 @@ export {
     canEditWriteCapability,
     shouldAutoFocusOnKeyPress,
     isSettledAction,
-    excludeLastUnsettledIOUAction
+    excludeLastUnsettledIOUAction,
 };
 
 export type { OptionData };

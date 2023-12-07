@@ -368,31 +368,35 @@ function MoneyRequestPreview(props) {
         if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
             return props.translate('iou.managerApproved', { manager: ReportUtils.getDisplayNameForParticipant(managerID, true) });
         }
-        const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(isSettled ? managerID : sessionAccountID, true, false);
+        const managerName = isPolicyExpenseChat
+            ? ReportUtils.getPolicyName(props.chatReport)
+            : ReportUtils.getDisplayNameForParticipant(isSettled ? managerID : sessionAccountID, true, false);
         if (isDeleted) {
-            return `${managerName} ${props.translate('iou.canceled')} ${displayAmount}`
+            return `${managerName} ${props.translate('iou.canceled')} ${displayAmount}`;
         }
         if (!isSettled) {
-            return `${managerName} ${props.translate('iou.requestedAmount', { formattedAmount: displayAmount })}`
+            return `${managerName} ${props.translate('iou.requestedAmount', { formattedAmount: displayAmount })}`;
         }
 
-        let paymentVerb = 'iou.payerPaidAmount'
+        let paymentVerb = 'iou.payerPaidAmount';
         if (lodashGet(props.action, 'originalMessage.paymentType', '') !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY || !isExpensifyCardTransaction) {
             paymentVerb = 'iou.paidElsewhereWithAmount';
         }
         return `${props.translate(paymentVerb, { payer: managerName, amount: displayAmount })}`;
-    }
+    };
 
     if (props.chatReport.type === CONST.REPORT.TYPE.CHAT) {
-        if (props.action.reportActionID === props.lastIOUActionId && !_.isEmpty(props.iouReport)
-        ) {
-            const iouActions = {...ReportActionsUtils.getAllReportActions(props.reportID)}
-            const iouActionsArray = Object.entries(iouActions ?? {})
-                .filter(([key, reportAction]) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, key))
-                .map((entry) => entry[1])
-            if (ReportUtils.excludeLastUnsettledIOUAction(ReportActionsUtils.getSortedReportActions(iouActionsArray), props.lastIOUActionId)) return null;
+        /** if the last IOU action is only only unsettled one, it doesn't show */
+        if (props.action.reportActionID === props.lastIOUActionId) {
+            const reportActions = { ...ReportActionsUtils.getAllReportActions(props.chatReportID) };
+            if (reportActions) {
+                const reportActionsArray = _.map(_.filter(Object.entries(reportActions), ([key, reportAction]) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, key)), (entry) => entry[1])
+                if (ReportUtils.excludeLastUnsettledIOUAction(ReportActionsUtils.getSortedReportActions(reportActionsArray), props.lastIOUActionId)) {
+                    return null;
+                }
+            }
         }
-        return (<Text style={[styles.colorMuted]}> {getIOUMessage()}</Text>)
+        return <Text style={[styles.colorMuted]}> {getIOUMessage()}</Text>;
     }
 
     const shouldDisableOnPress = props.isBillSplit && _.isEmpty(props.transaction);
@@ -438,7 +442,7 @@ export default compose(
             key: ONYXKEYS.WALLET_TERMS,
         },
         lastIOUActionId: {
-            key: 'last_IOU_Action_Id'
-        }
+            key: ONYXKEYS.LAST_IOU_ACTION_ID,
+        },
     }),
 )(MoneyRequestPreview);
