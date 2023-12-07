@@ -11,7 +11,6 @@ import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Beta, Login, PersonalDetails, Policy, PolicyCategory, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import {Participant} from '@src/types/onyx/IOU';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -634,18 +633,14 @@ type Category = {
     enabled: boolean;
 };
 
-type DynamicKey<Key extends string> = {
-    [K in Key]?: Hierarchy | undefined;
-};
-
-type Hierarchy = Record<string, Category & DynamicKey<string>>;
+type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
 /**
  * Sorts categories using a simple object.
  * It builds an hierarchy (based on an object), where each category has a name and other keys as subcategories.
  * Via the hierarchy we avoid duplicating and sort categories one by one. Subcategories are being sorted alphabetically.
  */
-function sortCategories(categories: Record<string, PolicyCategory>): Category[] {
+function sortCategories(categories: Record<string, Category>): Category[] {
     // Sorts categories alphabetically by name.
     const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -688,7 +683,7 @@ function sortCategories(categories: Record<string, PolicyCategory>): Category[] 
             if (name) {
                 const categoryObject = {
                     name,
-                    enabled: categories.name.enabled ?? false,
+                    enabled: categories[name].enabled ?? false,
                 };
 
                 acc.push(categoryObject);
