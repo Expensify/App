@@ -16,6 +16,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -43,6 +44,9 @@ const propTypes = {
     checkIfContextMenuActive: PropTypes.func,
 
     /* Onyx Props */
+    /** chatReport associated with iouReport */
+    chatReport: reportPropTypes,
+
     /** IOU report data object */
     iouReport: iouReportPropTypes,
 
@@ -65,6 +69,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
+    chatReport: {},
     iouReport: {},
     reportActions: {},
     isHovered: false,
@@ -79,6 +84,7 @@ function MoneyRequestAction({
     isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive,
+    chatReport,
     iouReport,
     reportActions,
     isHovered,
@@ -113,7 +119,14 @@ function MoneyRequestAction({
     let shouldShowPendingConversionMessage = false;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
-    if (!_.isEmpty(iouReport) && !_.isEmpty(reportActions) && isMostRecentIOUReportAction && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && network.isOffline) {
+    if (
+        !_.isEmpty(iouReport) &&
+        !_.isEmpty(reportActions) &&
+        chatReport.iouReportID &&
+        isMostRecentIOUReportAction &&
+        action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        network.isOffline
+    ) {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
     }
 
@@ -142,6 +155,9 @@ MoneyRequestAction.displayName = 'MoneyRequestAction';
 
 export default compose(
     withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
         iouReport: {
             key: ({requestReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`,
         },
