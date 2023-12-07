@@ -83,6 +83,7 @@ class BaseOptionsSelector extends Component {
         this.handleFocusIn = this.handleFocusIn.bind(this);
         this.handleFocusOut = this.handleFocusOut.bind(this);
         this.relatedTarget = null;
+        this.accessibilityRoles = _.values(CONST.ACCESSIBILITY_ROLE);
 
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
@@ -125,8 +126,11 @@ class BaseOptionsSelector extends Component {
         }
 
         if (prevState.disableEnterShortCut !== this.state.disableEnterShortCut) {
-            this.unSubscribeFromKeyboardShortcut();
-            this.subscribeToKeyboardShortcut();
+            if (this.state.disableEnterShortCut) {
+                this.unSubscribeFromKeyboardShortcut();
+            } else {
+                this.subscribeToKeyboardShortcut();
+            }
         }
 
         // Screen coming back into focus, for example
@@ -271,7 +275,7 @@ class BaseOptionsSelector extends Component {
     handleFocusIn() {
         const activeElement = document.activeElement;
         this.setState({
-            disableEnterShortCut: activeElement && [CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role),
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ACCESSIBILITY_ROLE.TEXT,
         });
     }
 
@@ -282,11 +286,17 @@ class BaseOptionsSelector extends Component {
     }
 
     subscribeActiveElement() {
+        if (![CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
+            return;
+        }
         document.addEventListener('focusin', this.handleFocusIn);
         document.addEventListener('focusout', this.handleFocusOut);
     }
 
     unSubscribeActiveElement() {
+        if (![CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
+            return;
+        }
         document.removeEventListener('focusin', this.handleFocusIn);
         document.removeEventListener('focusout', this.handleFocusOut);
     }
@@ -295,7 +305,7 @@ class BaseOptionsSelector extends Component {
         const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
         this.unsubscribeEnter = KeyboardShortcut.subscribe(
             enterConfig.shortcutKey,
-            !this.state.disableEnterShortCut ? this.selectFocusedOption : undefined,
+            this.selectFocusedOption,
             enterConfig.descriptionKey,
             enterConfig.modifiers,
             true,
