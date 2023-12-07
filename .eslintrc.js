@@ -19,12 +19,44 @@ const restrictedImportPaths = [
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
     },
+    {
+        name: '@styles/theme/Themes',
+        importNames: ['default', 'defaultTheme'],
+
+        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+    },
+    {
+        name: '@styles/styles',
+        importNames: ['default', 'defaultStyles'],
+        message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.',
+    },
+    {
+        name: '@styles/utils',
+        importNames: ['default', 'DefaultStyleUtils'],
+        message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
+    },
+    {
+        name: '@styles/illustrations/Illustrations',
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
+    },
 ];
 
 const restrictedImportPatterns = [
     {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the 'src/components/LottieAnimations' import instead.",
+    },
+    {
+        group: ['@styles/theme/themes/**/*'],
+        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+    },
+    {
+        group: ['@styles/utils/**/*'],
+        message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
+    },
+    {
+        group: ['@styles/illustrations/themes/**/*'],
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
 ];
 
