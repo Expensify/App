@@ -406,6 +406,7 @@ type AuthScreensParamList = {
     };
     [SCREENS.REPORT_AVATAR]: {
         reportID: string;
+    };
     [CONST.DEMO_PAGES.SAASTR]: {
         name: string;
     };
