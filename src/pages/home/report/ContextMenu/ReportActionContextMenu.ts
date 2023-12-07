@@ -2,8 +2,9 @@ import React from 'react';
 import {GestureResponderEvent, Text as RNText} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import type {ReportAction} from '@src/types/onyx';
+// eslint-disable-next-line import/no-cycle
+import {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 
 type OnHideCallback = () => void;
 
