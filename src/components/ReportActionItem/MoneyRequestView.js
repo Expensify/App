@@ -29,6 +29,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -51,6 +52,9 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
+    /** The actions from the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
@@ -65,6 +69,7 @@ const propTypes = {
 
 const defaultProps = {
     parentReport: {},
+    parentReportActions: {},
     policyCategories: {},
     transaction: {
         amount: 0,
@@ -74,13 +79,13 @@ const defaultProps = {
     policyTags: {},
 };
 
-function MoneyRequestView({report, parentReport, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const parentReportAction = parentReportActions[report.parentReportActionID] || {};
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
@@ -104,12 +109,14 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
         formattedTransactionAmount = translate('common.tbd');
     }
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
-    const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(transaction);
-    const cardProgramName = isExpensifyCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
+    const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
+    const cardProgramName = isCardTransaction ? CardUtils.getCardDescription(transactionCardID) : '';
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction) && !isExpensifyCardTransaction;
+    const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
+    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEditAmount = canEdit && !isSettled && !isCardTransaction;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -125,18 +132,23 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    if (isExpensifyCardTransaction) {
+    if (isCardTransaction) {
         if (formattedOriginalAmount) {
             amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
         if (TransactionUtils.isPending(transaction)) {
             amountDescription += ` • ${translate('iou.pending')}`;
         }
+        if (isCancelled) {
+            amountDescription += ` • ${translate('iou.canceled')}`;
+        }
     } else {
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (isSettled) {
+        if (isCancelled) {
+            amountDescription += ` • ${translate('iou.canceled')}`;
+        } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;
         } else if (report.isWaitingOnBankAccount) {
             amountDescription += ` • ${translate('iou.pending')}`;
@@ -190,8 +202,8 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.newKansasLarge}
-                        interactive={canEdit && !isSettled}
-                        shouldShowRightIcon={canEdit && !isSettled}
+                        interactive={canEditAmount}
+                        shouldShowRightIcon={canEditAmount}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
@@ -271,13 +283,12 @@ function MoneyRequestView({report, parentReport, policyCategories, shouldShowHor
                         />
                     </OfflineWithFeedback>
                 )}
-                {isExpensifyCardTransaction && (
+                {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.cardID')}>
                         <MenuItemWithTopDescription
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
-                            interactive={canEdit}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -307,8 +318,8 @@ MoneyRequestView.displayName = 'MoneyRequestView';
 export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        session: {
+            key: ONYXKEYS.SESSION,
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
@@ -316,18 +327,24 @@ export default compose(
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report.policyID}`,
         },
-        session: {
-            key: ONYXKEYS.SESSION,
+        policyTags: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
         },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    withOnyx({
         transaction: {
-            key: ({report}) => {
-                const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+            key: ({report, parentReportActions}) => {
+                const parentReportAction = parentReportActions[report.parentReportActionID];
                 const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], 0);
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
-        },
-        policyTags: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
         },
     }),
 )(MoneyRequestView);

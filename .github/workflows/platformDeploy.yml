@@ -56,6 +56,12 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+      
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
         with:
@@ -341,6 +347,9 @@ jobs:
     if: ${{ failure() }}
     needs: [android, desktop, iOS, web]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
