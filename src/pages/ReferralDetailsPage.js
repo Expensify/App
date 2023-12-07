@@ -69,7 +69,7 @@ function ReferralDetailsPage({route, account}) {
                     height={232}
                 />
             }
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
+            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
         >
             <Text style={[styles.textHeadline, styles.mb3, styles.mt8, styles.ph4]}>{contentHeader}</Text>
