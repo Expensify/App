@@ -56,7 +56,7 @@ function LogOutPreviousUserPage(props) {
 
             const exitTo = lodashGet(props, 'route.params.exitTo', '');
             // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-            // because we already handle creating the optimistic policy and navigating to it in setUpPoliciesAndNavigate.
+            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate.
             if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     Navigation.navigate(exitTo);
