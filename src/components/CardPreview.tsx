@@ -22,7 +22,7 @@ function CardPreview({privatePersonalDetails, session}: CardPreviewProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
     const {legalFirstName, legalLastName} = privatePersonalDetails ?? {};
-    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : session?.email;
+    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : session?.email ?? '';
 
     return (
         <View style={styles.walletCard}>
