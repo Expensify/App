@@ -21,7 +21,7 @@ function getPinMenuItem(report: OnyxEntry<OnyxReport>): MenuItem | undefined {
 
     return {
         icon: Expensicons.Pin,
-        text: Localize.translateLocal(isPinned ? 'common.pin' : 'common.unPin'),
+        text: Localize.translateLocal(isPinned ? 'common.unPin' : 'common.pin'),
         onSelected: Session.checkIfActionIsAllowed(() => Report.togglePinnedState(report.reportID, isPinned)),
     };
 }
