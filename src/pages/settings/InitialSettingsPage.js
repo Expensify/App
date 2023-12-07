@@ -21,6 +21,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
@@ -34,7 +35,6 @@ import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActi
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useTheme from '@styles/theme/useTheme';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';

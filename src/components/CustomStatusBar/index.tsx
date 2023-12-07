@@ -1,9 +1,9 @@
 import {EventListenerCallback, NavigationContainerEventMap} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect} from 'react';
+import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
-import useTheme from '@styles/theme/useTheme';
 import CustomStatusBarContext from './CustomStatusBarContext';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 

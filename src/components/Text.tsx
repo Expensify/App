@@ -2,7 +2,7 @@ import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
-import useTheme from '@styles/theme/useTheme';
+import useTheme from '@hooks/useTheme';
 import fontFamily from '@styles/utils/fontFamily';
 import variables from '@styles/variables';
 

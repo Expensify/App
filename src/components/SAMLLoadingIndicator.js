@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTheme from '@styles/theme/useTheme';
+import useTheme from '@hooks/useTheme';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';

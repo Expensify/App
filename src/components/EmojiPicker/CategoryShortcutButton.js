@@ -5,9 +5,9 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import useTheme from '@styles/theme/useTheme';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 

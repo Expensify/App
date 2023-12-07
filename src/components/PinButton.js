@@ -1,7 +1,7 @@
 import React from 'react';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/theme/useTheme';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';

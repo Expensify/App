@@ -1,8 +1,8 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTheme from '@styles/theme/useTheme';
 import CONST from '@src/CONST';
 
 type SkeletonViewLinesProps = {

@@ -12,9 +12,9 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import useTheme from '@styles/theme/useTheme';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';

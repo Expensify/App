@@ -3,8 +3,8 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTheme from '@styles/theme/useTheme';
 import CONST from '@src/CONST';
 
 const propTypes = {

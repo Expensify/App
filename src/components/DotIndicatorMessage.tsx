@@ -2,10 +2,10 @@
 import React from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
-import useTheme from '@styles/theme/useTheme';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';

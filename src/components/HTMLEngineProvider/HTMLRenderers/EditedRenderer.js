@@ -3,7 +3,7 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTheme from '@styles/theme/useTheme';
+import useTheme from '@hooks/useTheme';
 import editedLabelStyles from '@styles/utils/editedLabelStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

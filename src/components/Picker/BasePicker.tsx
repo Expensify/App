@@ -7,8 +7,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useScrollContext from '@hooks/useScrollContext';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTheme from '@styles/theme/useTheme';
 import type {BasePickerHandle, BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;

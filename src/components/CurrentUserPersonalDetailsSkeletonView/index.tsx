@@ -4,8 +4,8 @@ import {Circle, Rect} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTheme from '@styles/theme/useTheme';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 

@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useTheme from '@styles/theme/useTheme';
 import CONST from '@src/CONST';
 import TabSelectorItem from './TabSelectorItem';
 
