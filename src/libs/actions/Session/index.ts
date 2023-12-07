@@ -15,6 +15,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Device from '@userActions/Device';
+import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
@@ -589,6 +590,7 @@ function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
+    PriorityMode.resetHasReadRequiredDataFromStorage();
 }
 
 function clearAccountMessages() {
