@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, InteractionManager, NativeModules, Platform, View} from 'react-native';
+import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Composer from '@components/Composer';
@@ -17,6 +17,7 @@ import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -39,7 +40,7 @@ import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 const {RNTextInputReset} = NativeModules;
 
-const isIOSNative = Platform.OS === 'ios';
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -373,6 +374,31 @@ function ComposerWithSuggestions({
         [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
+    const onChangeText = useCallback(
+        (commentValue) => {
+            if (syncSelectionWithOnChangeTextRef.current) {
+                setSelection({
+                    start: syncSelectionWithOnChangeTextRef.current.position,
+                    end: syncSelectionWithOnChangeTextRef.current.position,
+                });
+            }
+
+            updateComment(commentValue, true);
+
+            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
+                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+                syncSelectionWithOnChangeTextRef.current = null;
+
+                InteractionManager.runAfterInteractions(() => {
+                    // note: this implementation is only available on non-web RN, thus the wrapping
+                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                    textInputRef.current.setSelection(positionSnapshot, positionSnapshot);
+                });
+            }
+        },
+        [updateComment],
+    );
+
     const onSelectionChange = useCallback(
         (e) => {
             if (textInputRef.current && textInputRef.current.isFocused() && suggestionsRef.current.onSelectionChange(e)) {
@@ -533,27 +559,7 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={(commentValue) => {
-                        if (syncSelectionWithOnChangeTextRef.current !== null) {
-                            setSelection({
-                                start: syncSelectionWithOnChangeTextRef.current.position,
-                                end: syncSelectionWithOnChangeTextRef.current.position,
-                            });
-                        }
-
-                        updateComment(commentValue, true);
-
-                        if (isIOSNative && syncSelectionWithOnChangeTextRef.current !== null) {
-                            const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
-                            syncSelectionWithOnChangeTextRef.current = null;
-
-                            InteractionManager.runAfterInteractions(() => {
-                                // note: this implementation is only available on non-web RN, thus the wrapping
-                                // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                                textInputRef.current.setSelection(positionSnapshot, positionSnapshot);
-                            });
-                        }
-                    }}
+                    onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
