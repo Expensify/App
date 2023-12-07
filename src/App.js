@@ -16,6 +16,7 @@ import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
+import ThemeStylesProvider from './components/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
@@ -26,9 +27,8 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
-import ThemeIllustrationsProvider from './styles/illustrations/ThemeIllustrationsProvider';
+import ThemeIllustrationsPr./components/ThemeProviderrations/ThemeIllustrationsProvider';
 import ThemeProvider from './styles/theme/ThemeProvider';
-import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {

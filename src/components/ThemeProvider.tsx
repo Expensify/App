@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
+import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
 import ThemeContext from '@styles/context/ThemeContext';
-import useThemePreferenceWithStaticOverride from '../../hooks/useThemePreferenceWithStaticOverride';
-import themes from './themes';
-import {ThemePreferenceWithoutSystem} from './types';
+import themes from '@styles/theme';
+import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 
 const propTypes = {
     /** Rendered child component */

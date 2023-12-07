@@ -6,7 +6,7 @@ import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
 import colors from '@styles/colors';
 import {defaultStyles, type ThemeStyles} from '@styles/styles';
-import {defaultTheme} from '@styles/theme/themes';
+import {defaultTheme} from '@styles/theme';
 import {ThemeColors} from '@styles/theme/types';
 import cursor from '@styles/utils/cursor';
 import getContextMenuItemStyles from '@styles/utils/getContextMenuItemStyles';
