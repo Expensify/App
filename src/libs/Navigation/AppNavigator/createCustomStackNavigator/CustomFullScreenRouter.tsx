@@ -1,8 +1,7 @@
 import {NavigationState, ParamListBase, PartialState, RouterConfigOptions, StackNavigationState, StackRouter} from '@react-navigation/native';
-import SCREENS from '@src/SCREENS';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
-import { ResponsiveStackNavigatorRouterOptions } from './types';
-
+import SCREENS from '@src/SCREENS';
+import {ResponsiveStackNavigatorRouterOptions} from './types';
 
 // TODO: export states to separate file
 type State = NavigationState | PartialState<NavigationState>;

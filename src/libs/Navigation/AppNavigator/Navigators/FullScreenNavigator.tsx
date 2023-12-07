@@ -8,9 +8,7 @@ import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackN
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 
-const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default;
-
-const propTypes = {};
+const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;
 
 const RootStack = createCustomStackNavigator(CustomFullScreenRouter);
 
@@ -21,10 +19,7 @@ function FullScreenNavigator() {
 
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator
-                isSmallScreenWidth={isSmallScreenWidth}
-                mode="modal"
-            >
+            <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
                 <RootStack.Screen
                     name={SCREENS.SETTINGS_HOME}
                     options={screenOptions.homeScreen}
@@ -40,7 +35,6 @@ function FullScreenNavigator() {
     );
 }
 
-FullScreenNavigator.propTypes = propTypes;
 FullScreenNavigator.displayName = 'FullScreenNavigator';
 
 export default FullScreenNavigator;

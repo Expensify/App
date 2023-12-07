@@ -9,7 +9,6 @@ import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
-import type {AuthScreensParamList} from '@navigation/types';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
@@ -115,7 +114,7 @@ Onyx.connect({
     },
 });
 
-//<AuthScreensParamList>
+// <AuthScreensParamList>
 const RootStack = createCustomStackNavigator(CustomRouter);
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
