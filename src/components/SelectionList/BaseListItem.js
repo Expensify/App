@@ -90,7 +90,6 @@ function BaseListItem({
                             styles.pre,
                         ]}
                         alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
-                        isFocused={isFocused}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
