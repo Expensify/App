@@ -17,7 +17,7 @@ const RootStack = createCustomStackNavigator(CustomFullScreenRouter);
 function FullScreenNavigator() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth);
+    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
 
     return (
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
