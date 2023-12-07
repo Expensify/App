@@ -4,6 +4,7 @@ import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import sidebarPropTypes from './sidebarPropTypes';
+import PurposeForUsingExpensifyModal from "@components/PurposeForUsingExpensifyModal";
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);
@@ -44,6 +45,7 @@ function SidebarScreen(props) {
                     onShowCreateMenu={createDragoverListener}
                     onHideCreateMenu={removeDragoverListener}
                 />
+                <PurposeForUsingExpensifyModal />
             </BaseSidebarScreen>
         </FreezeWrapper>
     );

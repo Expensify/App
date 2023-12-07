@@ -456,11 +456,6 @@ function ReportScreen({
                                 )}
                             </View>
                         </DragAndDropProvider>
-                        <PurposeForUsingExpensifyModal
-                            isVisible
-                            onClose={() => {}}
-                            onItemSelected={() => {}}
-                        />
                     </FullPageNotFoundView>
                 </ScreenWrapper>
             </ReactionListContext.Provider>
