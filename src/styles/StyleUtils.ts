@@ -8,8 +8,8 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import colors from './colors';
 import fontFamily from './fontFamily';
-import {ThemeStyles} from './styles';
-import {ThemeColors} from './themes/types';
+import {type ThemeStyles} from './styles';
+import {type ThemeColors} from './themes/types';
 import cursor from './utilities/cursor';
 import positioning from './utilities/positioning';
 import spacing from './utilities/spacing';
@@ -69,11 +69,11 @@ type ModalPaddingStylesParams = {
 };
 
 type AvatarBorderStyleParams = {
+    theme: ThemeColors;
     isHovered: boolean;
     isPressed: boolean;
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
-    theme: ThemeColors;
 };
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -857,7 +857,7 @@ function fade(fadeAnimation: Animated.Value): Animated.WithAnimatedValue<ViewSty
     };
 }
 
-function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false, theme}: AvatarBorderStyleParams): ViewStyle {
+function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
@@ -1036,7 +1036,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
  * Select the correct color for text.
  */
 function getColoredBackgroundStyle(theme: ThemeColors, isColored: boolean): StyleProp<TextStyle> {
-    return {backgroundColor: isColored ? theme.link : undefined};
+    return {backgroundColor: isColored ? theme.mentionBG : undefined};
 }
 
 function getEmojiReactionBubbleStyle(theme: ThemeColors, isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle {
@@ -1376,6 +1376,8 @@ function getTransparentColor(color: string) {
 function getDotIndicatorTextStyles(styles: ThemeStyles, isErrorText = true): TextStyle {
     return isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text};
 }
+
+export type {AvatarSizeName};
 
 export {
     combineStyles,

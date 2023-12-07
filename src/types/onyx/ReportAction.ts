@@ -115,12 +115,13 @@ type ReportActionBase = {
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
     childLastReceiptTransactionIDs?: string;
     childLastMoneyRequestComment?: string;
+    childLastActorAccountID?: number;
     timestamp?: number;
     reportActionTimestamp?: number;
     childMoneyRequestCount?: number;
     isFirstItem?: boolean;
 
-    /** Informations about attachments of report action */
+    /** Information about attachments of report action */
     attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
 
     /** Receipt tied to report action */
@@ -138,6 +139,9 @@ type ReportActionBase = {
     isAttachment?: boolean;
     childRecentReceiptTransactionIDs?: Record<string, string>;
     reportID?: string;
+
+    /** We manually add this field while sorting to detect the end of the list */
+    isNewestReportAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
