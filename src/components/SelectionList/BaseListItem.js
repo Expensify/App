@@ -25,6 +25,7 @@ function BaseListItem({
     onSelectRow,
     onDismissError = () => {},
     rightHandSideComponent,
+    keyForList,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -48,6 +49,7 @@ function BaseListItem({
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                testID={keyForList}
             >
                 <View
                     style={[

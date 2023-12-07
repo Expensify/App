@@ -263,9 +263,7 @@ function MoneyRequestParticipantsSelector({
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
-        }
+        Report.searchInServer(text);
         setSearchTerm(text);
     }, []);
 
