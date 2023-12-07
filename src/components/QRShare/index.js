@@ -36,7 +36,8 @@ class QRShare extends Component {
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
 
         this.setState({
-            qrCodeSize: Math.max(1, containerWidth),
+            // TODO: Check on mobile devices
+            qrCodeSize: Math.max(1, Math.min(containerWidth, 200)),
         });
     }
 
@@ -47,7 +48,7 @@ class QRShare extends Component {
     render() {
         return (
             <View
-                style={this.props.themeStyles.shareCodeContainer}
+                style={[this.props.themeStyles.shareCodeContainer]}
                 onLayout={this.onLayout}
             >
                 <View style={this.props.themeStyles.expensifyQrLogo}>

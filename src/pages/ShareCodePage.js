@@ -86,7 +86,7 @@ class ShareCodePage extends React.Component {
                 />
 
                 <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>
-                    <View style={this.props.themeStyles.shareCodePage}>
+                    <View style={[this.props.themeStyles.shareCodePage, {}]}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}
@@ -95,6 +95,7 @@ class ShareCodePage extends React.Component {
                             logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                             logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                             logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                            shareCodeContainer={[{height: 100}]}
                         />
                     </View>
 
