@@ -20,7 +20,7 @@ import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
-import {defaultTheme} from './theme/Themes';
+import {defaultTheme} from './theme/themes';
 import {type ThemeColors} from './theme/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';

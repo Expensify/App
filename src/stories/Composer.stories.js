@@ -8,7 +8,7 @@ import withNavigationFallback from '@components/withNavigationFallback';
 // eslint-disable-next-line no-restricted-imports
 import {defaultStyles} from '@styles/styles';
 // eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme/Themes';
+import {defaultTheme} from '@styles/theme/themes';
 import useStyleUtils from '@styles/useStyleUtils';
 import CONST from '@src/CONST';
 

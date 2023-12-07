@@ -10,7 +10,7 @@ import fontFamily from '@styles/fontFamily';
 import {defaultStyles} from '@styles/styles';
 import type {ThemeStyles} from '@styles/styles';
 // eslint-disable-next-line no-restricted-imports
-import {defaultTheme} from '@styles/theme/Themes';
+import {defaultTheme} from '@styles/theme/themes';
 import {ThemeColors} from '@styles/theme/types';
 import cursor from '@styles/utilities/cursor';
 import positioning from '@styles/utilities/positioning';
