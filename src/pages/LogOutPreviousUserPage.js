@@ -54,7 +54,7 @@ function LogOutPreviousUserPage(props) {
             }
 
             const exitTo = lodashGet(props, 'route.params.exitTo', '');
-            if (exitTo && !props.account.isLoading && !isLoggingInAsNewUser) {
+            if (exitTo && !props.account.isLoading && !isLoggingInAsNewUser && exitTo !== ROUTES.WORKSPACE_NEW) {
                 Navigation.isNavigationReady().then(() => {
                     Navigation.navigate(exitTo);
                 });
