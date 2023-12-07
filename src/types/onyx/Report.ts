@@ -19,6 +19,9 @@ type Report = {
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
 
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
+
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
 
@@ -91,6 +94,9 @@ type Report = {
     /** The report type */
     type?: string;
 
+    /** If the admin room should be opened */
+    openOnAdminRoom?: boolean;
+
     /** The report visibility */
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
 
@@ -117,6 +123,9 @@ type Report = {
 
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
+
+    /** Whether the report is cancelled */
+    isCancelledIOU?: boolean;
 
     /** Whether the last message was deleted */
     isLastMessageDeletedParentAction?: boolean;

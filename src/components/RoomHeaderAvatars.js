@@ -33,7 +33,6 @@ function RoomHeaderAvatars(props) {
             <AttachmentModal
                 headerTitle={props.icons[0].name}
                 source={UserUtils.getFullSizeAvatar(props.icons[0].source, props.icons[0].id)}
-                isAuthTokenRequired
                 isWorkspaceAvatar={props.icons[0].type === CONST.ICON_TYPE_WORKSPACE}
                 originalFileName={props.icons[0].name}
             >
@@ -65,7 +64,7 @@ function RoomHeaderAvatars(props) {
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
+        StyleUtils.getAvatarStyle(theme, CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
         <View style={styles.pointerEventsBoxNone}>
@@ -78,7 +77,6 @@ function RoomHeaderAvatars(props) {
                         <AttachmentModal
                             headerTitle={icon.name}
                             source={UserUtils.getFullSizeAvatar(icon.source, icon.id)}
-                            isAuthTokenRequired
                             originalFileName={icon.name}
                             isWorkspaceAvatar={icon.type === CONST.ICON_TYPE_WORKSPACE}
                         >
