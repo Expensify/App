@@ -27,12 +27,12 @@ const restrictedImportPaths = [
     },
     {
         name: '@styles/styles',
-        importNames: ['default'],
+        importNames: ['default', 'defaultStyles'],
         message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.`',
     },
     {
         name: '@styles/StyleUtils',
-        importNames: ['default'],
+        importNames: ['default', 'DefaultStyleUtils'],
 
         message: 'Do not import style utils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.`',
     },

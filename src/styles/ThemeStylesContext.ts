@@ -1,8 +1,5 @@
 import React from 'react';
-import styles from './styles';
-import {defaultTheme} from './theme/Themes';
-
-const defaultStyles = styles(defaultTheme);
+import {defaultStyles} from './styles';
 
 const ThemeStylesContext = React.createContext(defaultStyles);
 
