@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -24,6 +25,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import getTopmostCentralPaneName from '@libs/Navigation/getTopmostCentralPanePath';
 import Navigation from '@libs/Navigation/Navigation';
 import * as UserUtils from '@libs/UserUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
@@ -98,6 +100,7 @@ function InitialSettingsPage(props) {
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
+    const activeRoute = useNavigationState(getTopmostCentralPaneName);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -141,17 +144,13 @@ function InitialSettingsPage(props) {
                 {
                     translationKey: 'common.profile',
                     icon: Expensicons.Profile,
-                    action: waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-                    }),
+                    routeName: ROUTES.SETTINGS_PROFILE,
                     brickRoadIndicator: profileBrickRoadIndicator,
                 },
                 {
                     translationKey: 'common.wallet',
                     icon: Expensicons.Wallet,
-                    action: waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET);
-                    }),
+                    routeName: ROUTES.SETTINGS_WALLET,
                     brickRoadIndicator:
                         PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
                             ? 'error'
@@ -160,23 +159,17 @@ function InitialSettingsPage(props) {
                 {
                     translationKey: 'common.shareCode',
                     icon: Expensicons.QrCode,
-                    action: waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE);
-                    }),
+                    routeName: ROUTES.SETTINGS_SHARE_CODE,
                 },
                 {
                     translationKey: 'common.preferences',
                     icon: Expensicons.Gear,
-                    action: waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-                    }),
+                    routeName: ROUTES.SETTINGS_PREFERENCES,
                 },
                 {
                     translationKey: 'initialSettingsPage.security',
                     icon: Expensicons.Lock,
-                    action: waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                    }),
+                    routeName: ROUTES.SETTINGS_SECURITY,
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',
@@ -187,7 +180,7 @@ function InitialSettingsPage(props) {
                 },
             ],
         };
-    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer, waitForNavigate]);
+    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -213,13 +206,11 @@ function InitialSettingsPage(props) {
                 {
                     translationKey: 'initialSettingsPage.about',
                     icon: Expensicons.Info,
-                    action: waitForNavigate(() => {
-                        Navigation.navigate(ROUTES.SETTINGS_ABOUT);
-                    }),
+                    routeName: ROUTES.SETTINGS_ABOUT,
                 },
             ],
         }),
-        [styles.pt4, waitForNavigate],
+        [styles.pt4],
     );
 
     /**
@@ -234,7 +225,6 @@ function InitialSettingsPage(props) {
              * @returns {String|undefined} the user's wallet balance
              */
             const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
-
             return (
                 <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
                     <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
@@ -253,7 +243,15 @@ function InitialSettingsPage(props) {
                                 icon={item.icon}
                                 iconType={item.iconType}
                                 disabled={isExecuting}
-                                onPress={singleExecution(item.action)}
+                                onPress={singleExecution(() => {
+                                    if (item.action) {
+                                        item.action();
+                                    } else {
+                                        waitForNavigate(() => {
+                                            Navigation.navigate(item.routeName);
+                                        })();
+                                    }
+                                })}
                                 iconStyles={item.iconStyles}
                                 badgeText={getWalletBalance(isPaymentItem)}
                                 fallbackIcon={item.fallbackIcon}
@@ -266,13 +264,14 @@ function InitialSettingsPage(props) {
                                 onSecondaryInteraction={
                                     !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
                                 }
+                                focused={activeRoute && activeRoute.startsWith(item.routeName, 1)}
                             />
                         );
                     })}
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, translate, props.userWallet.currentBalance, isExecuting, singleExecution],
+        [styles.pb4, styles.mh3, styles.sectionTitle, translate, props.userWallet.currentBalance, isExecuting, singleExecution, activeRoute, waitForNavigate],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
