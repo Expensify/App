@@ -189,10 +189,21 @@ const SCREENS = {
         CURRENCY: 'EditRequest_Currency',
     },
 
+    NEW_CHAT: {
+        ROOT: 'NewChat_Root',
+        NEW_CHAT: 'chat',
+        NEW_ROOM: 'room',
+    },
+
+    SPLIT_DETAILS: {
+        ROOT: 'SplitDetails_Root',
+        EDIT_REQUEST: 'SplitDetails_Edit_Request',
+        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
     INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
     I_AM_A_TEACHER: 'I_Am_A_Teacher',
-
     ENABLE_PAYMENTS_ROOT: 'EnablePayments_Root',
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
@@ -205,15 +216,7 @@ const SCREENS = {
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
     SEARCH_ROOT: 'Search_Root',
-    NEW_CHAT: {ROOT: 'NewChat_Root', NEW_CHAT: 'chat', NEW_ROOM: 'room'},
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
-
-    SPLIT_DETAILS: {
-        ROOT: 'SplitDetails_Root',
-        EDIT_REQUEST: 'SplitDetails_Edit_Request',
-        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
-    },
-
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
