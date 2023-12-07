@@ -364,7 +364,6 @@ function MoneyRequestParticipantsSelector({
     return (
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <SelectionList
-                // canSelectMultiple={isAllowedToSplit}
                 onConfirm={handleConfirmSelection}
                 sections={sections}
                 textInputValue={searchTerm}
