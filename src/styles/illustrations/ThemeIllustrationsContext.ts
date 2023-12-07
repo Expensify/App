@@ -1,5 +1,5 @@
 import React from 'react';
-import {DefaultIllustrations} from './Illustrations';
+import {DefaultIllustrations} from './illustrationss';
 import {IllustrationsType} from './types';
 
 const ThemeIllustrationsContext = React.createContext<IllustrationsType>(DefaultIllustrations);
