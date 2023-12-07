@@ -8,7 +8,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
 import useTheme from '@styles/themes/useTheme';
-import getModalStyles from '@styles/ThemeStyleUtils/ModalStyleUtils';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -134,9 +133,7 @@ function BaseModal(
         hideBackdrop,
     } = useMemo(
         () =>
-            getModalStyles(
-                theme,
-                styles,
+            StyleUtils.getModalStyles(
                 type,
                 {
                     windowWidth,
@@ -147,7 +144,7 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, theme, type, windowHeight, windowWidth, styles],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
