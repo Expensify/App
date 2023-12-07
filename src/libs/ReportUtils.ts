@@ -3851,7 +3851,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
  * Show subscript on workspace chats / threads and expense requests
  */
 function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
-    if (isArchivedRoom(report)) {
+    if (isArchivedRoom(report) && !isWorkspaceThread(report)) {
         return false;
     }
 
