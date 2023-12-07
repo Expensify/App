@@ -1,7 +1,7 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from '@styles/fontFamily';
-import roundToNearestMultipleOfFour from '@styles/roundToNearestMultipleOfFour';
 import {type ThemeStyles} from '@styles/styles';
+import roundToNearestMultipleOfFour from '@styles/StyleUtils/roundToNearestMultipleOfFour';
 import {type ThemeColors} from '@styles/themes/types';
 import positioning from '@styles/utilities/positioning';
 import spacing from '@styles/utilities/spacing';

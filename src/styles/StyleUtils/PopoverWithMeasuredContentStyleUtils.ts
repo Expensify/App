@@ -1,5 +1,5 @@
-import roundToNearestMultipleOfFour from '@styles/roundToNearestMultipleOfFour';
 import variables from '@styles/variables';
+import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 
 /**
  * Compute the amount that the Context menu's Anchor needs to be horizontally shifted
