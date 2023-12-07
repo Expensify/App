@@ -1,9 +1,9 @@
+import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
-import stylePropTypes from '@styles/stylePropTypes';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';

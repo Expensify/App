@@ -1,3 +1,4 @@
+import {stylePropTypes} from '@styles';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
@@ -22,7 +23,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';

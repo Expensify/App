@@ -1,3 +1,4 @@
+import {stylePropTypes} from '@styles';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {createRef, useCallback, useMemo, useRef, useState} from 'react';
@@ -8,7 +9,6 @@ import {withNetwork} from '@components/OnyxProvider';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
-import stylePropTypes from '@styles/stylePropTypes';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import FormContext from './FormContext';

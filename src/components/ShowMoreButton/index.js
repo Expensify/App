@@ -1,3 +1,4 @@
+import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Text, View} from 'react-native';
@@ -8,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
-import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** Additional styles for container */

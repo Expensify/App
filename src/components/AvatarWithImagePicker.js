@@ -1,3 +1,4 @@
+import {stylePropTypes} from '@styles';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
@@ -9,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
-import stylePropTypes from '@styles/stylePropTypes';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';

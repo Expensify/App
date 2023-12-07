@@ -1,7 +1,7 @@
+import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 
 const propTypes = {

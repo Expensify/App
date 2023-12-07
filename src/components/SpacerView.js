@@ -1,9 +1,9 @@
+import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 
 const propTypes = {

@@ -1,3 +1,4 @@
+import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
@@ -5,7 +6,6 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';

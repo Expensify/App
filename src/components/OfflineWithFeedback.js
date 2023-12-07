@@ -1,3 +1,4 @@
+import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -6,7 +7,6 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import MessagesRow from './MessagesRow';
 

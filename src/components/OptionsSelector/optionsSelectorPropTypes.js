@@ -1,6 +1,6 @@
+import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import optionPropTypes from '@components/optionPropTypes';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 
 const propTypes = {
