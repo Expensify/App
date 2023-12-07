@@ -7,11 +7,13 @@ import Card from './Card';
 import Credentials from './Credentials';
 import Currency from './Currency';
 import CustomStatusDraft from './CustomStatusDraft';
+import DemoInfo from './DemoInfo';
 import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import Fund from './Fund';
 import IOU from './IOU';
+import Locale from './Locale';
 import Login from './Login';
 import MapboxAccessToken from './MapboxAccessToken';
 import Modal from './Modal';
@@ -66,11 +68,13 @@ export type {
     Currency,
     CustomStatusDraft,
     DateOfBirthForm,
+    DemoInfo,
     Download,
     Form,
     FrequentlyUsedEmoji,
     Fund,
     IOU,
+    Locale,
     Login,
     MapboxAccessToken,
     Modal,

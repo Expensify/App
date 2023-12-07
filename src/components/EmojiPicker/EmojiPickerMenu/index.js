@@ -17,6 +17,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
@@ -307,13 +308,17 @@ function EmojiPickerMenu(props) {
                 }
                 const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 onEmojiSelected(emoji, item);
+                // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
+                keyBoardEvent.preventDefault();
+                // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
+                keyBoardEvent.stopPropagation();
                 return;
             }
 
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !searchInputRef.current.isFocused())) {
+            if (!ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 setIsUsingKeyboardMovement(true);
                 return;
             }
