@@ -3,7 +3,6 @@ import React, {forwardRef, useImperativeHandle} from 'react';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
@@ -99,7 +98,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakAll}
-            style={getContextMenuItemStyles(styles, windowWidth)}
+            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}

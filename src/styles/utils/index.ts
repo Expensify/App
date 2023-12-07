@@ -5,11 +5,11 @@ import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
 import colors from '@styles/colors';
+import containerComposeStyles from '@styles/containerComposeStyles';
 import fontFamily from '@styles/fontFamily';
-// eslint-disable-next-line no-restricted-imports
-import {defaultStyles} from '@styles/styles';
-import type {ThemeStyles} from '@styles/styles';
-// eslint-disable-next-line no-restricted-imports
+import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
+import {compactContentContainerStyles} from '@styles/optionRowStyles';
+import {defaultStyles, type ThemeStyles} from '@styles/styles';
 import {defaultTheme} from '@styles/theme/themes';
 import {ThemeColors} from '@styles/theme/types';
 import cursor from '@styles/utilities/cursor';
@@ -1440,6 +1440,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         return containerStyles;
     },
+
+    getCompactContentContainerStyles: () => compactContentContainerStyles(styles),
+
+    getContextMenuItemStyles: (windowWidth?: number) => getContextMenuItemStyles(styles, windowWidth),
+
+    getContainerComposeStyles: () => containerComposeStyles(styles),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
