@@ -1,4 +1,4 @@
-import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
+import {CommonNavigationAction, createNavigatorFactory, ParamListBase, RouterFactory, StackActionHelpers, StackActionType, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -27,9 +27,9 @@ function reduceReportRoutes(routes: Routes): Routes {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CustomRouterFactory = any;
+type CustomRouterFactory<ParamList extends ParamListBase> = RouterFactory<StackNavigationState<ParamList>, CommonNavigationAction | StackActionType, ResponsiveStackNavigatorRouterOptions>;
 
-function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(customRouter: CustomRouterFactory) {
+function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(customRouter: CustomRouterFactory<ParamList>) {
     function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -77,7 +77,7 @@ function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(custom
     return ResponsiveStackNavigator;
 }
 
-function createCustomStackNavigator<ParamList extends ParamListBase>(customRouter: CustomRouterFactory) {
+function createCustomStackNavigator<ParamList extends ParamListBase>(customRouter: CustomRouterFactory<ParamList>) {
 
     const responsiveStackNavigator = ResponsiveStackNavigatorFactory<ParamList>(customRouter);
 
