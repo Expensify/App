@@ -37,8 +37,8 @@ type BaseMiniContextMenuItemProps = {
  * pressable. Also renders a tooltip when hovering the item.
  */
 function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true}: BaseMiniContextMenuItemProps, ref: ForwardedRef<View>) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <Tooltip
             text={tooltipText}
