@@ -1,17 +1,17 @@
-import React, {memo} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import Text from './Text';
-import CONST from '../CONST';
+import * as UserUtils from '@libs/UserUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
+import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
 import avatarPropTypes from './avatarPropTypes';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
-import * as UserUtils from '../libs/UserUtils';
-import AttachmentModal from './AttachmentModal';
+import Text from './Text';
 
 const propTypes = {
     icons: PropTypes.arrayOf(avatarPropTypes),
@@ -22,6 +22,8 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     if (!props.icons.length) {
         return null;
     }
@@ -31,7 +33,6 @@ function RoomHeaderAvatars(props) {
             <AttachmentModal
                 headerTitle={props.icons[0].name}
                 source={UserUtils.getFullSizeAvatar(props.icons[0].source, props.icons[0].id)}
-                isAuthTokenRequired
                 isWorkspaceAvatar={props.icons[0].type === CONST.ICON_TYPE_WORKSPACE}
                 originalFileName={props.icons[0].name}
             >
@@ -39,13 +40,13 @@ function RoomHeaderAvatars(props) {
                     <PressableWithoutFocus
                         style={[styles.noOutline]}
                         onPress={show}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={props.icons[0].name}
                     >
                         <Avatar
                             source={props.icons[0].source}
                             imageStyles={[styles.avatarLarge]}
-                            fill={themeColors.iconSuccessFill}
+                            fill={theme.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
                             name={props.icons[0].name}
                             type={props.icons[0].type}
@@ -63,10 +64,10 @@ function RoomHeaderAvatars(props) {
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
+        StyleUtils.getAvatarStyle(theme, CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
-        <View pointerEvents="box-none">
+        <View style={styles.pointerEventsBoxNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
                     <View
@@ -76,7 +77,6 @@ function RoomHeaderAvatars(props) {
                         <AttachmentModal
                             headerTitle={icon.name}
                             source={UserUtils.getFullSizeAvatar(icon.source, icon.id)}
-                            isAuthTokenRequired
                             originalFileName={icon.name}
                             isWorkspaceAvatar={icon.type === CONST.ICON_TYPE_WORKSPACE}
                         >
@@ -84,12 +84,12 @@ function RoomHeaderAvatars(props) {
                                 <PressableWithoutFocus
                                     style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                     onPress={show}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     accessibilityLabel={icon.name}
                                 >
                                     <Avatar
                                         source={icon.source}
-                                        fill={themeColors.iconSuccessFill}
+                                        fill={theme.iconSuccessFill}
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                         name={icon.name}

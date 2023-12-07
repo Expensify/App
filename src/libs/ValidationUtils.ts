@@ -1,14 +1,15 @@
-import {subYears, addYears, startOfDay, endOfMonth, parse, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
-import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, startOfDay, subYears} from 'date-fns';
+import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
+import {Report} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
-import {Report} from '../types/onyx';
-import * as OnyxCommon from '../types/onyx/OnyxCommon';
+import StringUtils from './StringUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -27,17 +28,6 @@ function validateCardNumber(value: string): boolean {
         sum += intVal;
     }
     return sum % 10 === 0;
-}
-
-/**
- * Validating that this is a valid address (PO boxes are not allowed)
- */
-function isValidAddress(value: string): boolean {
-    if (!CONST.REGEX.ANY_VALUE.test(value)) {
-        return false;
-    }
-
-    return !CONST.REGEX.PO_BOX.test(value);
 }
 
 /**
@@ -73,7 +63,7 @@ function isValidPastDate(date: string | Date): boolean {
  */
 function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
-        return value.trim().length > 0;
+        return !StringUtils.isEmptyString(value);
     }
 
     if (isDate(value)) {
@@ -199,41 +189,8 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
-}
-
-function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors: Record<string, boolean> = {};
-
-    // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
-        if (isRequiredFulfilled(identity[fieldName])) {
-            return;
-        }
-        errors[fieldName] = true;
-    });
-
-    if (!isValidAddress(identity.street)) {
-        errors.street = true;
-    }
-
-    if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = true;
-    }
-
-    // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
-        errors.dob = true;
-    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
-        errors.dobAge = true;
-    }
-
-    if (!isValidSSNLastFour(identity.ssnLast4)) {
-        errors.ssnLast4 = true;
-    }
-
-    return errors;
+    const isLowerCase = url === url.toLowerCase();
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
@@ -296,6 +253,58 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain special characters or numbers
+ */
+function isValidPersonName(value: string) {
+    return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
+}
+
+/**
+ * Validating that this is a valid address (PO boxes are not allowed)
+ */
+function isValidAddress(value: string): boolean {
+    if (!isValidLegalName(value)) {
+        return false;
+    }
+
+    return !CONST.REGEX.PO_BOX.test(value);
+}
+
+function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
+    const errors: Record<string, boolean> = {};
+
+    // Check that all required fields are filled
+    requiredFields.forEach((fieldName) => {
+        if (isRequiredFulfilled(identity[fieldName])) {
+            return;
+        }
+        errors[fieldName] = true;
+    });
+
+    if (!isValidAddress(identity.street)) {
+        errors.street = true;
+    }
+
+    if (!isValidZipCode(identity.zipCode)) {
+        errors.zipCode = true;
+    }
+
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
+    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
+        errors.dob = true;
+    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
+        errors.dobAge = true;
+    }
+
+    if (!isValidSSNLastFour(identity.ssnLast4)) {
+        errors.ssnLast4 = true;
+    }
+
+    return errors;
+}
+
+/**
  * Checks if the provided string includes any of the provided reserved words
  */
 function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
@@ -352,11 +361,29 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+type ValuesType = Record<string, unknown>;
+
+/**
+ * This function is used to remove invisible characters from strings before validation and submission.
+ */
+function prepareValues(values: ValuesType): ValuesType {
+    const trimmedStringValues: ValuesType = {};
+
+    for (const [inputID, inputValue] of Object.entries(values)) {
+        if (typeof inputValue === 'string') {
+            trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
+        } else {
+            trimmedStringValues[inputID] = inputValue;
+        }
+    }
+
+    return trimmedStringValues;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
-    isValidAddress,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
@@ -368,7 +395,6 @@ export {
     getFieldRequiredErrors,
     isValidUSPhone,
     isValidWebsite,
-    validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidRoutingNumber,
@@ -381,8 +407,12 @@ export {
     isValidValidateCode,
     isValidDisplayName,
     isValidLegalName,
+    isValidAddress,
+    validateIdentity,
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
     isValidRecoveryCode,
+    prepareValues,
+    isValidPersonName,
 };

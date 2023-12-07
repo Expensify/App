@@ -1,12 +1,13 @@
-import _ from 'underscore';
-import React from 'react';
 import PropTypes from 'prop-types';
-import Text from './Text';
-import styles from '../styles/styles';
-import stylePropTypes from '../styles/stylePropTypes';
-import CONST from '../CONST';
-import * as Link from '../libs/actions/Link';
+import React from 'react';
+import _ from 'underscore';
+import useEnvironment from '@hooks/useEnvironment';
+import stylePropTypes from '@styles/stylePropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
+import Text from './Text';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -37,6 +38,8 @@ const defaultProps = {
 };
 
 function TextLink(props) {
+    const {environmentURL} = useEnvironment();
+    const styles = useThemeStyles();
     const rest = _.omit(props, _.keys(propTypes));
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
@@ -50,7 +53,7 @@ function TextLink(props) {
             return;
         }
 
-        Link.openExternalLink(props.href);
+        Link.openLink(props.href, environmentURL);
     };
 
     /**
@@ -66,7 +69,7 @@ function TextLink(props) {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ACCESSIBILITY_ROLE.LINK}
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}

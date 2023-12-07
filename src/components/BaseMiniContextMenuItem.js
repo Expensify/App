@@ -1,15 +1,16 @@
-import {View} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import variables from '../styles/variables';
-import Tooltip from './Tooltip/PopoverAnchorTooltip';
+import DomUtils from '@libs/DomUtils';
+import getButtonState from '@libs/getButtonState';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
-import DomUtils from '../libs/DomUtils';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
 const propTypes = {
     /**
@@ -50,6 +51,8 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function BaseMiniContextMenuItem(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     return (
         <Tooltip text={props.tooltipText}>
             <PressableWithoutFeedback
@@ -72,7 +75,7 @@ function BaseMiniContextMenuItem(props) {
                 accessibilityLabel={props.tooltipText}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
+                    StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(hovered, pressed, props.isDelayButtonStateComplete)),
                     props.isDelayButtonStateComplete && styles.cursorDefault,
                 ]}
             >

@@ -1,14 +1,15 @@
 import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import * as styleConst from './styleConst';
+import * as Browser from '@libs/Browser';
+import DomUtils from '@libs/DomUtils';
+import Visibility from '@libs/Visibility';
+import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import * as baseTextInputPropTypes from './baseTextInputPropTypes';
-import DomUtils from '../../libs/DomUtils';
-import Visibility from '../../libs/Visibility';
-import * as Browser from '../../libs/Browser';
+import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
+import * as styleConst from './styleConst';
 
 function TextInput(props) {
+    const styles = useThemeStyles();
     const textInputRef = useRef(null);
     const removeVisibilityListenerRef = useRef(null);
 

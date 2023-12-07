@@ -1,14 +1,14 @@
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
+import OnyxRequest from '@src/types/onyx/Request';
+import Response from '@src/types/onyx/Response';
+import pkg from '../../package.json';
 import Log from './Log';
-import * as Request from './Request';
 import * as Middleware from './Middleware';
 import * as SequentialQueue from './Network/SequentialQueue';
-import pkg from '../../package.json';
-import CONST from '../CONST';
 import * as Pusher from './Pusher/pusher';
-import OnyxRequest from '../types/onyx/Request';
-import Response from '../types/onyx/Response';
+import * as Request from './Request';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.

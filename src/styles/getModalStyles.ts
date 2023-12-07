@@ -1,12 +1,12 @@
 import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import styles from './styles';
-import themeColors from './themes/default';
+import CONST from '@src/CONST';
+import {type ThemeStyles} from './styles';
+import {type ThemeColors} from './themes/types';
 import variables from './variables';
 
-function getCenteredModalStyles(windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
+function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
     const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
 
     return {
@@ -21,8 +21,6 @@ type WindowDimensions = {
     windowWidth: number;
     windowHeight: number;
     isSmallScreenWidth: boolean;
-    isMediumScreenWidth: boolean;
-    isLargeScreenWidth: boolean;
 };
 
 type GetModalStyles = {
@@ -39,7 +37,9 @@ type GetModalStyles = {
 };
 
 export default function getModalStyles(
-    type: ModalType,
+    theme: ThemeColors,
+    styles: ThemeStyles,
+    type: ModalType | undefined,
     windowDimensions: WindowDimensions,
     popoverAnchorPosition: ViewStyle = {},
     innerContainerStyle: ViewStyle = {},
@@ -73,15 +73,7 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 borderRadius: 12,
                 overflow: 'hidden',
                 width: variables.sideBarWidth,
@@ -105,21 +97,13 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 flex: 1,
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
                 overflow: 'hidden',
-                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth),
+                ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
             };
 
             // Allow this modal to be dismissed with a swipe down or swipe right
@@ -140,21 +124,13 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 flex: 1,
                 marginTop: isSmallScreenWidth ? 0 : 20,
                 marginBottom: isSmallScreenWidth ? 0 : 20,
                 borderRadius: isSmallScreenWidth ? 0 : 12,
                 overflow: 'hidden',
-                ...getCenteredModalStyles(windowWidth, isSmallScreenWidth, true),
+                ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth, true),
             };
             swipeDirection = undefined;
             animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
@@ -173,15 +149,7 @@ export default function getModalStyles(
                 },
             };
             modalContainerStyle = {
-                // Shadow Styles
-                shadowColor: themeColors.shadow,
-                shadowOffset: {
-                    width: 0,
-                    height: 0,
-                },
-                shadowOpacity: 0.1,
-                shadowRadius: 5,
-
+                boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
                 borderRadius: 12,
                 borderWidth: 0,
             };
@@ -230,7 +198,7 @@ export default function getModalStyles(
             modalContainerStyle = {
                 borderRadius: 12,
                 borderWidth: 1,
-                borderColor: themeColors.border,
+                borderColor: theme.border,
                 justifyContent: 'center',
                 overflow: 'hidden',
                 boxShadow: variables.popoverMenuShadow,

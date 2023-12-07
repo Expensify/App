@@ -1,9 +1,9 @@
+import PropTypes from 'prop-types';
 import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import usePrevious from '../../../../hooks/usePrevious';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import useLocalize from '../../../../hooks/useLocalize';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The comment of the report */

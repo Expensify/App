@@ -2,9 +2,9 @@ import React, {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
-import fontFamily from '../styles/fontFamily';
-import themeColors from '../styles/themes/default';
-import variables from '../styles/variables';
+import fontFamily from '@styles/fontFamily';
+import useTheme from '@styles/themes/useTheme';
+import variables from '@styles/variables';
 
 type TextProps = RNTextProps & {
     /** The color of the text */
@@ -12,8 +12,10 @@ type TextProps = RNTextProps & {
 
     /** The size of the text */
     fontSize?: number;
+
     /** The alignment of the text */
     textAlign?: 'left' | 'right' | 'auto' | 'center' | 'justify';
+
     /** Any children to display */
     children: React.ReactNode;
 
@@ -21,12 +23,10 @@ type TextProps = RNTextProps & {
     family?: keyof typeof fontFamily;
 };
 
-function Text(
-    {color = themeColors.text, fontSize = variables.fontSizeNormal, textAlign = 'left', children = null, family = 'EXP_NEUE', style = {}, ...props}: TextProps,
-    ref: ForwardedRef<RNText>,
-) {
+function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children = null, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
+    const theme = useTheme();
     const componentStyle: TextStyle = {
-        color,
+        color: color ?? theme.text,
         fontSize,
         textAlign,
         fontFamily: fontFamily[family],

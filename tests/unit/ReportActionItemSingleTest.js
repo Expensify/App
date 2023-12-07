@@ -1,5 +1,5 @@
-import Onyx from 'react-native-onyx';
 import {cleanup, screen} from '@testing-library/react-native';
+import Onyx from 'react-native-onyx';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';

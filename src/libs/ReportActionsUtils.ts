@@ -1,16 +1,18 @@
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import ReportAction, {ReportActions} from '../types/onyx/ReportAction';
-import Report from '../types/onyx/Report';
-import {ActionName} from '../types/onyx/OriginalMessage';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {ActionName} from '@src/types/onyx/OriginalMessage';
+import Report from '@src/types/onyx/Report';
+import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
-import Log from './Log';
-import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Environment from './Environment/Environment';
+import isReportMessageAttachment from './isReportMessageAttachment';
+import Log from './Log';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -68,10 +70,13 @@ function isDeletedParentAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
-    return (reportAction?.message?.[0].isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
+function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+    if (isEmptyObject(reportAction)) {
+        return false;
+    }
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -93,6 +98,19 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+}
+
+function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+    );
+}
+
+function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
 }
 
 /**
@@ -141,14 +159,14 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  */
-function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
+function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
-    return reportActions?.filter(Boolean).sort((first, second) => {
+    const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
         // First sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -168,6 +186,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         // will be consistent across all users and devices
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
+
+    // If shouldMarkTheFirstItemAsNewest is true, label the first reportAction as isNewestReportAction
+    if (shouldMarkTheFirstItemAsNewest && sortedActions?.length > 0) {
+        sortedActions[0] = {
+            ...sortedActions[0],
+            isNewestReportAction: true,
+        };
+    }
+
+    return sortedActions;
 }
 
 /**
@@ -258,6 +286,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
 
     // Do not group if the delegate account ID is different
     if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
+        return false;
+    }
+
+    // Do not group if one of previous / current action is report preview and another one is not report preview
+    if ((isReportPreviewAction(previousAction) && !isReportPreviewAction(currentAction)) || (isReportPreviewAction(currentAction) && !isReportPreviewAction(previousAction))) {
         return false;
     }
 
@@ -366,20 +399,14 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
-    updatedReportAction.message[0].html = reportAction.message[0].html.replace('%baseURL', environmentURL);
+    updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
     return updatedReportAction;
 }
 
 /**
  */
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
-    let reportActions: ReportActions;
-    if (actionsToMerge && Object.keys(actionsToMerge).length !== 0) {
-        reportActions = {...allReportActions?.[reportID]};
-        Object.keys(actionsToMerge).forEach((actionToMergeID) => (reportActions[actionToMergeID] = {...allReportActions?.[reportID]?.[actionToMergeID], ...actionsToMerge[actionToMergeID]}));
-    } else {
-        reportActions = allReportActions?.[reportID] ?? {};
-    }
+    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -406,9 +433,12 @@ function getLastVisibleMessage(reportID: string, actionsToMerge: ReportActions =
         };
     }
 
-    const messageText = message?.text ?? '';
+    let messageText = message?.text ?? '';
+    if (messageText) {
+        messageText = String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    }
     return {
-        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+        lastMessageText: messageText,
     };
 }
 
@@ -427,12 +457,12 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true);
+    return getSortedReportActions(baseURLAdjustedReportActions, true, shouldMarkTheFirstItemAsNewest);
 }
 
 /**
@@ -460,7 +490,10 @@ function getLastClosedReportAction(reportActions: ReportActions | null): OnyxEnt
  * 4. We will get the second last action from filtered actions because the last
  *    action is always the created action
  */
-function getFirstVisibleReportActionID(sortedReportActions: ReportAction[], isOffline: boolean): string {
+function getFirstVisibleReportActionID(sortedReportActions: ReportAction[] = [], isOffline = false): string {
+    if (!Array.isArray(sortedReportActions)) {
+        return '';
+    }
     const sortedFilterReportActions = sortedReportActions.filter((action) => !isDeletedAction(action) || (action?.childVisibleActionCount ?? 0) > 0 || isOffline);
     return sortedFilterReportActions.length > 1 ? sortedFilterReportActions[sortedFilterReportActions.length - 2].reportActionID : '';
 }
@@ -616,6 +649,26 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
+/**
+ * Helper method to determine if the provided accountID has made a request on the specified report.
+ *
+ * @param reportID
+ * @param currentAccountID
+ * @returns
+ */
+function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number): boolean {
+    if (!reportID) {
+        return false;
+    }
+
+    const reportActions = Object.values(getAllReportActions(reportID));
+    if (reportActions.length === 0) {
+        return false;
+    }
+
+    return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -656,5 +709,10 @@ export {
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
+    hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
+    isChannelLogMemberAction,
+    isReimbursementDeQueuedAction,
 };
+
+export type {LastVisibleMessage};

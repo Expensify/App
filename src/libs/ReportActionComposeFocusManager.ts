@@ -1,6 +1,6 @@
 import React from 'react';
 import {TextInput} from 'react-native';
-import ROUTES from '../ROUTES';
+import ROUTES from '@src/ROUTES';
 import Navigation from './Navigation/Navigation';
 
 type FocusCallback = () => void;

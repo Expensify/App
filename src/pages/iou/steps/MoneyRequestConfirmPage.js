@@ -1,33 +1,33 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
-import CONST from '../../../CONST';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import styles from '../../../styles/styles';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import * as IOU from '../../../libs/actions/IOU';
-import compose from '../../../libs/compose';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import * as OptionsListUtils from '../../../libs/OptionsListUtils';
-import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
-import withLocalize from '../../../components/withLocalize';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import reportPropTypes from '../../reportPropTypes';
-import personalDetailsPropType from '../../personalDetailsPropType';
-import * as FileUtils from '../../../libs/fileDownload/FileUtils';
-import * as Policy from '../../../libs/actions/Policy';
-import useNetwork from '../../../hooks/useNetwork';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import {iouPropTypes, iouDefaultProps} from '../propTypes';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import useInitialValue from '../../../hooks/useInitialValue';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize from '@components/withLocalize';
+import useInitialValue from '@hooks/useInitialValue';
+import useNetwork from '@hooks/useNetwork';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as IOU from '@userActions/IOU';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** React Navigation route */
@@ -47,20 +47,17 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
-    /** Personal details of all users */
-    personalDetails: personalDetailsPropType,
-
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     report: {},
-    personalDetails: {},
     iou: iouDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function MoneyRequestConfirmPage(props) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const prevMoneyRequestId = useRef(props.iou.id);
@@ -69,46 +66,44 @@ function MoneyRequestConfirmPage(props) {
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, props.selectedTab);
     const isScanRequest = MoneyRequestUtils.isScanRequest(props.selectedTab);
     const [receiptFile, setReceiptFile] = useState();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
     const participants = useMemo(
         () =>
             _.map(props.iou.participants, (participant) => {
                 const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, props.personalDetails);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
             }),
-        [props.iou.participants, props.personalDetails],
+        [props.iou.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
     const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
-
-    useEffect(() => {
-        IOU.resetMoneyRequestCategory();
-        IOU.resetMoneyRequestTag();
-    }, []);
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat) {
             Policy.openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
-        // Verification to reset billable with a default value, when value in IOU was changed
-        if (typeof props.iou.billable !== 'boolean') {
-            IOU.setMoneyRequestBillable(lodashGet(props.policy, 'defaultBillable', false));
-        }
     }, [isOffline, participants, props.iou.billable, props.policy]);
+
+    const defaultBillable = lodashGet(props.policy, 'defaultBillable', false);
+    useEffect(() => {
+        IOU.setMoneyRequestBillable(defaultBillable);
+    }, [defaultBillable, isOffline]);
 
     useEffect(() => {
         if (!props.iou.receiptPath || !props.iou.receiptFilename) {
             return;
         }
-        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((file) => {
-            if (!file) {
-                Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
-            } else {
-                const receipt = file;
-                receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
-                setReceiptFile(receipt);
-            }
-        });
+        const onSuccess = (file) => {
+            const receipt = file;
+            receipt.state = file && isManualRequestDM ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            setReceiptFile(receipt);
+        };
+        const onFailure = () => {
+            Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
+        };
+        FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess, onFailure);
     }, [props.iou.receiptPath, props.iou.receiptFilename, isManualRequestDM, iouType, reportID]);
 
     useEffect(() => {
@@ -123,7 +118,7 @@ function MoneyRequestConfirmPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType}${reportID}`;
-        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId;
+        const shouldReset = !isDistanceRequest && props.iou.id !== moneyRequestId && !_.isEmpty(reportID);
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
@@ -214,7 +209,7 @@ function MoneyRequestConfirmPage(props) {
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && props.iou.receiptPath) {
                 const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
-                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename).then((receipt) => {
+                const onSuccess = (receipt) => {
                     IOU.startSplitBill(
                         selectedParticipants,
                         props.currentUserPersonalDetails.login,
@@ -223,7 +218,8 @@ function MoneyRequestConfirmPage(props) {
                         receipt,
                         existingSplitChatReportID,
                     );
-                });
+                };
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptFilename, onSuccess);
                 return;
             }
 
@@ -238,7 +234,9 @@ function MoneyRequestConfirmPage(props) {
                     trimmedComment,
                     props.iou.currency,
                     props.iou.category,
+                    props.iou.tag,
                     reportID,
+                    props.iou.merchant,
                 );
                 return;
             }
@@ -253,6 +251,8 @@ function MoneyRequestConfirmPage(props) {
                     trimmedComment,
                     props.iou.currency,
                     props.iou.category,
+                    props.iou.tag,
+                    props.iou.merchant,
                 );
                 return;
             }
@@ -276,6 +276,7 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
             props.iou.category,
+            props.iou.tag,
             props.iou.receiptPath,
             props.iou.receiptFilename,
             isDistanceRequest,
@@ -284,6 +285,7 @@ function MoneyRequestConfirmPage(props) {
             receiptFile,
             iouType,
             reportID,
+            props.iou.merchant,
         ],
     );
 
@@ -417,9 +419,6 @@ export default compose(
 
                 return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
             },
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,

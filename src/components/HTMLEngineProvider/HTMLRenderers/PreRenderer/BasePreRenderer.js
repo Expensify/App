@@ -1,14 +1,14 @@
-import React, {forwardRef} from 'react';
-import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {forwardRef} from 'react';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import htmlRendererPropTypes from '../htmlRendererPropTypes';
-import withLocalize from '../../../withLocalize';
-import {ShowContextMenuContext, showContextMenuForReport} from '../../../ShowContextMenuContext';
-import styles from '../../../../styles/styles';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
-import CONST from '../../../../CONST';
+import htmlRendererPropTypes from '@components/HTMLEngineProvider/HTMLRenderers/htmlRendererPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import withLocalize from '@components/withLocalize';
+import * as ReportUtils from '@libs/ReportUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Press in handler for the code block */
@@ -32,6 +32,7 @@ const defaultProps = {
 };
 
 const BasePreRenderer = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
     const TDefaultRenderer = props.TDefaultRenderer;
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'onPressIn', 'onPressOut', 'onLongPress']);
     const isLast = props.renderIndex === props.renderLength - 1;
@@ -50,7 +51,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
                         onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         accessibilityLabel={props.translate('accessibilityHints.prestyledText')}
                     >
                         <View>

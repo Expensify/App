@@ -1,13 +1,13 @@
 import Onyx, {OnyxCollection} from 'react-native-onyx';
-import Navigation from '../Navigation/Navigation';
-import * as ReportUtils from '../ReportUtils';
-import ROUTES from '../../ROUTES';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import OnyxPolicy from '@src/types/onyx/Policy';
+import Report from '@src/types/onyx/Report';
 import * as Policy from './Policy';
-import ONYXKEYS from '../../ONYXKEYS';
-import SCREENS from '../../SCREENS';
-import CONST from '../../CONST';
-import Report from '../../types/onyx/Report';
-import OnyxPolicy from '../../types/onyx/Policy';
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isReadyPromise = new Promise<void>((resolve) => {

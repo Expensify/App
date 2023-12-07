@@ -1,33 +1,33 @@
-import {InteractionManager} from 'react-native';
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import lodashDebounce from 'lodash/debounce';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Onyx from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Pusher from '../Pusher/pusher';
-import LocalNotification from '../Notification/LocalNotification';
-import Navigation from '../Navigation/Navigation';
-import * as ActiveClientManager from '../ActiveClientManager';
-import Visibility from '../Visibility';
-import ROUTES from '../../ROUTES';
-import * as API from '../API';
-import CONFIG from '../../CONFIG';
-import CONST from '../../CONST';
-import Log from '../Log';
-import * as ReportUtils from '../ReportUtils';
-import DateUtils from '../DateUtils';
-import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as CollectionUtils from '../CollectionUtils';
-import * as EmojiUtils from '../EmojiUtils';
-import * as ErrorUtils from '../ErrorUtils';
-import * as UserUtils from '../UserUtils';
-import * as Welcome from './Welcome';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
-import * as Environment from '../Environment/Environment';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
+import lodashDebounce from 'lodash/debounce';
+import lodashGet from 'lodash/get';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
+import * as API from '@libs/API';
+import * as CollectionUtils from '@libs/CollectionUtils';
+import DateUtils from '@libs/DateUtils';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as Environment from '@libs/Environment/Environment';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import LocalNotification from '@libs/Notification/LocalNotification';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as Pusher from '@libs/Pusher/pusher';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import Visibility from '@libs/Visibility';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import * as Session from './Session';
+import * as Welcome from './Welcome';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -328,6 +328,10 @@ function addActions(reportID, text = '', file) {
         lastReadTime: currentTime,
     };
 
+    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(reportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    }
+
     // Optimistically add the new actions to the store before waiting to save them to the server
     const optimisticReportActions = {};
     if (text) {
@@ -463,6 +467,9 @@ function reportActionsExist(reportID) {
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
 function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+    if (!reportID) {
+        return;
+    }
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -555,11 +562,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             isOptimisticReport: true,
         };
 
-        let reportOwnerEmail = CONST.REPORT.OWNER_EMAIL_FAKE;
+        let emailCreatingAction = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+            emailCreatingAction = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
         }
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(emailCreatingAction);
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -930,6 +937,7 @@ function markCommentAsUnread(reportID, reportActionCreated) {
             ],
         },
     );
+    DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
 /**
@@ -1362,11 +1370,12 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  * @param {boolean} navigate
  * @param {String} parentReportID
  * @param {String} parentReportActionID
+ * @param {Object} report
  */
-function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0) {
+function updateNotificationPreference(reportID, previousValue, newValue, navigate, parentReportID = 0, parentReportActionID = 0, report = {}) {
     if (previousValue === newValue) {
-        if (navigate) {
-            Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        if (navigate && report.reportID) {
+            ReportUtils.goBackToDetailsPage(report);
         }
         return;
     }
@@ -1398,7 +1407,7 @@ function updateNotificationPreference(reportID, previousValue, newValue, navigat
     }
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
     if (navigate) {
-        Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
+        ReportUtils.goBackToDetailsPage(report);
     }
 }
 
@@ -1531,34 +1540,9 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @param {Array<Number>} policyMembersAccountIDs
- * @param {String} writeCapability
- * @param {String} welcomeMessage
+ * @param {Object} policyReport
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
-    // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
-    const participants = _.unique([currentUserAccountID, ...members]);
-    const policyReport = ReportUtils.buildOptimisticChatReport(
-        participants,
-        reportName,
-        CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policyID,
-        CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        visibility,
-        writeCapability,
-
-        // The room might contain all policy members so notifying always should be opt-in only.
-        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        '',
-        '',
-        welcomeMessage,
-    );
+function addPolicyReport(policyReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -1580,6 +1564,11 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {[createdReportAction.reportActionID]: createdReportAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: true},
+        },
     ];
     const successData = [
         {
@@ -1600,6 +1589,11 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
     const failureData = [
         {
@@ -1611,22 +1605,26 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
 
     API.write(
         'AddWorkspaceRoom',
         {
             policyID: policyReport.policyID,
-            reportName,
-            visibility,
+            reportName: policyReport.reportName,
+            visibility: policyReport.visibility,
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
-            writeCapability,
-            welcomeMessage,
+            writeCapability: policyReport.writeCapability,
+            welcomeMessage: policyReport.welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal(policyReport.reportID);
 }
 
 /**
@@ -1745,7 +1743,7 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
- * @param {Object} action the associated report action (optional)
+ * @param {Object|null} action the associated report action (optional)
  * @param {Boolean} isRemote whether or not this notification is a remote push notification
  * @returns {Boolean}
  */
@@ -1976,7 +1974,6 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
  * @param {Boolean} isAuthenticated
  */
 function openReportFromDeepLink(url, isAuthenticated) {
-    const route = ReportUtils.getRouteFromLink(url);
     const reportID = ReportUtils.getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -1995,11 +1992,18 @@ function openReportFromDeepLink(url, isAuthenticated) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            if (route === ROUTES.CONCIERGE) {
-                navigateToConciergeChat(true);
-                return;
-            }
-            Navigation.navigate(route, CONST.NAVIGATION.TYPE.PUSH);
+            Navigation.waitForProtectedRoutes().then(() => {
+                const route = ReportUtils.getRouteFromLink(url);
+                if (route === ROUTES.CONCIERGE) {
+                    navigateToConciergeChat(true);
+                    return;
+                }
+                if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
+                    Session.signOutAndRedirectToSignIn();
+                    return;
+                }
+                Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            });
         });
     });
 }
@@ -2040,6 +2044,11 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
                   value: {
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS.CLOSED,
+                      chatType: report.chatType,
+                      parentReportID: report.parentReportID,
+                      parentReportActionID: report.parentReportActionID,
+                      policyID: report.policyID,
+                      type: report.type,
                   },
               },
     ];
@@ -2420,7 +2429,7 @@ function clearPrivateNotesError(reportID, accountID) {
 }
 
 function getDraftPrivateNote(reportID) {
-    return draftNoteMap[reportID];
+    return draftNoteMap[reportID] || '';
 }
 
 /**
@@ -2477,7 +2486,7 @@ const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SE
  * @param {string} searchInput
  */
 function searchInServer(searchInput) {
-    if (isNetworkOffline) {
+    if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
@@ -2487,6 +2496,13 @@ function searchInServer(searchInput) {
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
     debouncedSearchInServer(searchInput);
+}
+
+function clearNewRoomFormError() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+        isLoading: false,
+        errorFields: {},
+    });
 }
 
 export {
@@ -2550,4 +2566,5 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    clearNewRoomFormError,
 };

@@ -1,4 +1,4 @@
-import getKeyEventModifiers from '../getKeyEventModifiers';
+import getKeyEventModifiers from '@libs/KeyboardShortcut/getKeyEventModifiers';
 import BindHandlerToKeydownEvent from './types';
 
 /**
@@ -7,6 +7,11 @@ import BindHandlerToKeydownEvent from './types';
 const bindHandlerToKeydownEvent: BindHandlerToKeydownEvent = (getDisplayName, eventHandlers, keyCommandEvent, event) => {
     const eventModifiers = getKeyEventModifiers(keyCommandEvent);
     const displayName = getDisplayName(keyCommandEvent.input, eventModifiers);
+
+    // If we didn't register any event handlers for a key we ignore it
+    if (!eventHandlers[displayName]) {
+        return;
+    }
 
     // Loop over all the callbacks
     Object.values(eventHandlers[displayName]).every((callback) => {

@@ -1,14 +1,14 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import stylePropTypes from '../styles/stylePropTypes';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import shouldRenderOffscreen from '../libs/shouldRenderOffscreen';
+import _ from 'underscore';
+import useNetwork from '@hooks/useNetwork';
+import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import stylePropTypes from '@styles/stylePropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import MessagesRow from './MessagesRow';
-import useNetwork from '../hooks/useNetwork';
 
 /**
  * This component should be used when we are using the offline pattern B (offline with feedback).
@@ -76,22 +76,24 @@ const defaultProps = {
 /**
  * This method applies the strikethrough to all the children passed recursively
  * @param {Array} children
+ * @param {Object} styles
  * @return {Array}
  */
-function applyStrikeThrough(children) {
+function applyStrikeThrough(children, styles) {
     return React.Children.map(children, (child) => {
         if (!React.isValidElement(child)) {
             return child;
         }
         const props = {style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone)};
         if (child.props.children) {
-            props.children = applyStrikeThrough(child.props.children);
+            props.children = applyStrikeThrough(child.props.children, styles);
         }
         return React.cloneElement(child, props);
     });
 }
 
 function OfflineWithFeedback(props) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const hasErrors = !_.isEmpty(props.errors);
@@ -109,7 +111,7 @@ function OfflineWithFeedback(props) {
 
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
-        children = applyStrikeThrough(children);
+        children = applyStrikeThrough(children, styles);
     }
     return (
         <View style={props.style}>

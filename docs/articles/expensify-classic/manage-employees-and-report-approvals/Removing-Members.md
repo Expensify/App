@@ -11,6 +11,8 @@ Removing a member from a workspace disables their ability to use the workspace. 
 3. Select the member you'd like to remove and click the **Remove** button at the top of the Members table.
 4. If this member was an approver, make sure that reports are not routing to them in the workflow.
 
+![image of members table in a workspace]({{site.url}}/assets/images/ExpensifyHelp_RemovingMembers.png){:width="100%"}
+
 # FAQ
 
 ## Will reports from this member on this workspace still be available?

@@ -1,7 +1,9 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import CONST from '../../CONST';
+import * as API from '@libs/API';
+import * as Localize from '@libs/Localize';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /**
  * @param {Number} cardID
  */
@@ -91,13 +93,13 @@ function requestReplacementExpensifyCard(cardId, reason) {
 /**
  * Activates the physical Expensify card based on the last four digits of the card number
  *
- * @param {Number} lastFourDigits
+ * @param {String} cardLastFourDigits
  * @param {Number} cardID
  */
-function activatePhysicalExpensifyCard(lastFourDigits, cardID) {
+function activatePhysicalExpensifyCard(cardLastFourDigits, cardID) {
     API.write(
         'ActivatePhysicalExpensifyCard',
-        {lastFourDigits, cardID},
+        {cardLastFourDigits, cardID},
         {
             optimisticData: [
                 {
@@ -159,15 +161,15 @@ function clearCardListErrors(cardID) {
 function revealVirtualCardDetails(cardID) {
     return new Promise((resolve, reject) => {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('RevealVirtualCardDetails', {cardID})
+        API.makeRequestWithSideEffects('RevealExpensifyCardDetails', {cardID})
             .then((response) => {
                 if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    reject();
+                    reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure'));
                     return;
                 }
                 resolve(response);
             })
-            .catch(reject);
+            .catch(() => reject(Localize.translateLocal('cardPage.cardDetailsLoadingFailure')));
     });
 }
 

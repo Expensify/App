@@ -1,19 +1,19 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import themeColors from '../../styles/themes/default';
-import {baseListItemPropTypes} from './selectionListPropTypes';
-import * as StyleUtils from '../../styles/StyleUtils';
-import UserListItem from './UserListItem';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
-import OfflineWithFeedback from '../OfflineWithFeedback';
-import CONST from '../../CONST';
-import useLocalize from '../../hooks/useLocalize';
-import Text from '../Text';
+import {baseListItemPropTypes} from './selectionListPropTypes';
+import UserListItem from './UserListItem';
 
 function BaseListItem({
     item,
@@ -24,7 +24,10 @@ function BaseListItem({
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
+    keyForList,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
@@ -40,11 +43,12 @@ function BaseListItem({
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                testID={keyForList}
             >
                 <View
                     style={[
@@ -60,7 +64,7 @@ function BaseListItem({
                         <View style={StyleUtils.getCheckboxPressableStyle()}>
                             <View
                                 style={[
-                                    StyleUtils.getCheckboxContainerStyle(20),
+                                    StyleUtils.getCheckboxContainerStyle(theme, 20),
                                     styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,
@@ -71,7 +75,7 @@ function BaseListItem({
                                 {item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
-                                        fill={themeColors.textLight}
+                                        fill={theme.textLight}
                                         height={14}
                                         width={14}
                                     />
@@ -94,7 +98,7 @@ function BaseListItem({
                             <View>
                                 <Icon
                                     src={Expensicons.Checkmark}
-                                    fill={themeColors.success}
+                                    fill={theme.success}
                                 />
                             </View>
                         </View>

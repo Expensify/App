@@ -1,6 +1,6 @@
 import React from 'react';
-import * as App from '../../libs/actions/App';
-import DeeplinkRedirectLoadingIndicator from '../../components/DeeplinkWrapper/DeeplinkRedirectLoadingIndicator';
+import DeeplinkRedirectLoadingIndicator from '@components/DeeplinkWrapper/DeeplinkRedirectLoadingIndicator';
+import * as App from '@userActions/App';
 
 /**
  * Landing page for when a user enters third party login flow on desktop.
