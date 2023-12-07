@@ -4269,11 +4269,9 @@ function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntr
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 /**
- *
- * @param reportActions
- * @returns
+ * Checks if report action has error when smart scanning
  */
-function hasRequestError(reportActions: ReportAction[]) {
+function hasSmartscanError(reportActions: ReportAction[]) {
     return reportActions.some((action) => {
         if (!ReportActionsUtils.isSplitBillAction(action) && !ReportActionsUtils.isReportPreviewAction(action)) {
             return false;
@@ -4486,7 +4484,7 @@ export {
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
-    hasRequestError,
+    hasSmartscanError,
     shouldAutoFocusOnKeyPress,
 };
 

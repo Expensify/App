@@ -357,7 +357,7 @@ function getAllReportErrors(report, reportActions) {
         if (ReportUtils.hasMissingSmartscanFields(report.reportID) && !ReportUtils.isSettled(report.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
-    } else if (ReportUtils.hasRequestError(_.values(reportActions))) {
+    } else if (ReportUtils.hasSmartscanError(_.values(reportActions))) {
         _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
     }
 
