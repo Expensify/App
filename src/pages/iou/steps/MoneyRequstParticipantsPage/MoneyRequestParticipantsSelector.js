@@ -12,11 +12,10 @@ import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Press
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -68,8 +67,6 @@ const propTypes = {
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -82,23 +79,20 @@ const defaultProps = {
     isSearchingForReports: false,
 };
 
-function MoneyRequestParticipantsSelector(
-    {
-        betas,
-        participants,
-        personalDetails,
-        reports,
-        translate,
-        navigateToRequest,
-        navigateToSplit,
-        onAddParticipants,
-        safeAreaPaddingBottomStyle,
-        iouType,
-        isDistanceRequest,
-        isSearchingForReports,
-    },
-    ref,
-) {
+function MoneyRequestParticipantsSelector({
+    betas,
+    participants,
+    personalDetails,
+    reports,
+    navigateToRequest,
+    navigateToSplit,
+    onAddParticipants,
+    safeAreaPaddingBottomStyle,
+    iouType,
+    isDistanceRequest,
+    isSearchingForReports,
+}) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const [searchTerm, setSearchTerm] = useState('');
@@ -200,8 +194,20 @@ function MoneyRequestParticipantsSelector(
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
+        if (participants.length) {
+            return;
+        }
         onAddParticipants(
-            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
+            [
+                {
+                    accountID: option.accountID,
+                    login: option.login,
+                    isPolicyExpenseChat: option.isPolicyExpenseChat,
+                    reportID: option.reportID,
+                    selected: true,
+                    searchText: option.searchText,
+                },
+            ],
             false,
         );
         navigateToRequest();
@@ -366,11 +372,10 @@ function MoneyRequestParticipantsSelector(
                 textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                onSelectRow={!participants.length && addSingleParticipant}
+                onSelectRow={addSingleParticipant}
                 footerContent={footerContent}
                 headerMessage={headerMessage}
                 showLoadingPlaceholder={isSearchingForReports}
-                ref={ref}
                 rightHandSideComponent={itemRightSideComponent}
             />
         </View>
@@ -378,28 +383,21 @@ function MoneyRequestParticipantsSelector(
 }
 
 MoneyRequestParticipantsSelector.propTypes = propTypes;
-MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
+MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
-const MoneyRequestParticipantsSelectorWithRef = React.forwardRef(MoneyRequestParticipantsSelector);
-
-MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
-
-export default compose(
-    withLocalize,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isSearchingForReports: {
-            key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-            initWithStoredValues: false,
-        },
-    }),
-)(MoneyRequestParticipantsSelectorWithRef);
+export default withOnyx({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(MoneyRequestParticipantsSelector);

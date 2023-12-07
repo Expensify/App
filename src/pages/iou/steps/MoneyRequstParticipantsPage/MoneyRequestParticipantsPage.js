@@ -55,7 +55,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const prevMoneyRequestId = useRef(iou.id);
-    const optionsSelectorRef = useRef();
     const iouType = useInitialValue(() => lodashGet(route, 'params.iouType', ''));
     const reportID = useInitialValue(() => lodashGet(route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, selectedTab);
@@ -128,7 +127,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
-            onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={MoneyRequestParticipantsPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
@@ -138,7 +136,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestParticipantsSelector
-                        ref={optionsSelectorRef}
                         participants={iou.isSplitRequest ? iou.participants : []}
                         onAddParticipants={IOU.setMoneyRequestParticipants}
                         navigateToRequest={() => navigateToConfirmationStep(iouType)}
