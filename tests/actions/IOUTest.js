@@ -1115,9 +1115,7 @@ describe('actions/IOU', () => {
                                     expect(carlosTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(julesTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(vitTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(groupTransaction.merchant).toBe(
-                                        `Split bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`,
-                                    );
+                                    expect(groupTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
 
                                     expect(carlosTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
                                     expect(julesTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);

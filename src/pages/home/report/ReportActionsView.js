@@ -182,6 +182,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
 
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
+    const hasNewestReportAction = lodashGet(reportActions[0], 'isNewestReportAction');
 
     /**
      * @returns {Boolean}
@@ -189,8 +190,9 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
+        const createChatError = _.get(props.report, ['errorFields', 'createChat']);
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (props.report.isOptimisticReport) {
+        if (props.report.isOptimisticReport || !_.isEmpty(createChatError)) {
             return;
         }
         Report.openReport({reportID, reportActionID});
@@ -292,7 +294,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const loadNewerChats = useMemo(
         () =>
             _.throttle(({distanceFromStart}) => {
-                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
+                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions || hasNewestReportAction) {
                     return;
                 }
 
@@ -314,7 +316,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
                 const newestReportAction = reportActions[0];
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, isLinkingToExtendedMessage, reportID, reportActions],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, isLinkingToExtendedMessage, reportID, reportActions, hasNewestReportAction],
     );
 
     /**

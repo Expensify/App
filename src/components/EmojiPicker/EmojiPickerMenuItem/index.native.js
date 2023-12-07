@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import * as StyleUtils from '@styles/StyleUtils';
@@ -34,7 +35,9 @@ const propTypes = {
 
     /** Whether the emoji is highlighted by the keyboard/mouse */
     isUsingKeyboardMovement: PropTypes.bool,
+
     ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 class EmojiPickerMenuItem extends PureComponent {
@@ -72,7 +75,7 @@ class EmojiPickerMenuItem extends PureComponent {
                 onBlur={this.props.onBlur}
                 ref={(ref) => (this.ref = ref)}
                 style={({pressed}) => [
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                    StyleUtils.getButtonBackgroundColorStyle(this.props.theme, getButtonState(false, pressed)),
                     this.props.isHighlighted && this.props.isUsingKeyboardMovement ? this.props.themeStyles.emojiItemKeyboardHighlighted : {},
                     this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? this.props.themeStyles.emojiItemHighlighted : {},
                     this.props.themeStyles.emojiItem,
@@ -99,10 +102,12 @@ EmojiPickerMenuItem.defaultProps = {
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
-export default withThemeStyles(
-    React.memo(
-        EmojiPickerMenuItem,
-        (prevProps, nextProps) =>
-            prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
+export default withTheme(
+    withThemeStyles(
+        React.memo(
+            EmojiPickerMenuItem,
+            (prevProps, nextProps) =>
+                prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
+        ),
     ),
 );

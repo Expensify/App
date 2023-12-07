@@ -86,6 +86,8 @@ type Closed = {
     policyName: string;
     reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON>;
     lastModified?: string;
+    newAccountID?: number;
+    oldAccountID?: number;
 };
 
 type OriginalMessageAddComment = {
@@ -138,6 +140,7 @@ type ChronosOOOTimestamp = {
 type ChangeLog = {
     targetAccountIDs?: number[];
     roomName?: string;
+    reportID?: number;
 };
 
 type ChronosOOOEvent = {
@@ -195,6 +198,11 @@ type OriginalMessageReimbursementQueued = {
     originalMessage: unknown;
 };
 
+type OriginalMessageReimbursementDequeued = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+    originalMessage: unknown;
+};
+
 type OriginalMessageMoved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MOVED;
     originalMessage: {
@@ -220,6 +228,7 @@ type OriginalMessage =
     | OriginalMessagePolicyTask
     | OriginalMessageModifiedExpense
     | OriginalMessageReimbursementQueued
+    | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved;
 
 export default OriginalMessage;
