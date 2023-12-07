@@ -150,6 +150,7 @@ type OptimisticReportPreview = Pick<
     | 'childLastMoneyRequestComment'
     | 'childRecentReceiptTransactionIDs'
     | 'whisperedToAccountIDs'
+    | 'childReportID'
 > & {reportID?: string; accountID?: number};
 
 type UpdateReportPreview = Pick<
@@ -2919,6 +2920,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
         accountID: iouReport?.managerID ?? 0,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
         actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? 0,
+        childReportID: iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && isNotEmptyObject(transaction) ? {[transaction?.transactionID ?? '']: created} : undefined,
