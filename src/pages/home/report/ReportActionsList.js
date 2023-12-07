@@ -15,6 +15,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
+import getPlatform from '@libs/getPlatform';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -119,6 +120,9 @@ function isMessageUnread(message, lastReadTime) {
 
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
+
+const platform = getPlatform();
+const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
 function ReportActionsList({
     report,
@@ -322,6 +326,10 @@ function ReportActionsList({
     const trackVerticalScrolling = (event) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         onScroll(event);
+
+        if (isNative) {
+            handleUnreadFloatingButton();
+        }
     };
 
     const getScrollIndex = () => {
