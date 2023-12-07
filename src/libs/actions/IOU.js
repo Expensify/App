@@ -15,7 +15,7 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as Permissions from '@libs/Permissions';
+import Permissions from '@libs/Permissions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
