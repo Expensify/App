@@ -2,7 +2,7 @@ import {deepEqual} from 'fast-equals';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
 import _ from 'underscore';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -15,6 +15,9 @@ import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTyp
 const propTypes = {
     /** Whether row should be focused */
     isFocused: PropTypes.bool,
+
+    /** List of users' personal details */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The preferred language for the app */
     preferredLocale: PropTypes.string,
@@ -44,6 +47,7 @@ const propTypes = {
 
 const defaultProps = {
     isFocused: false,
+    personalDetails: {},
     fullReport: {},
     policy: {},
     parentReportAction: {},
@@ -58,8 +62,19 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({isFocused, fullReport, reportActions, preferredLocale, comment, policy, receiptTransactions, parentReportAction, transaction, ...propsToForward}) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+function OptionRowLHNData({
+    isFocused,
+    fullReport,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    comment,
+    policy,
+    receiptTransactions,
+    parentReportAction,
+    transaction,
+    ...propsToForward
+}) {
     const reportID = propsToForward.reportID;
 
     const optionItemRef = useRef();

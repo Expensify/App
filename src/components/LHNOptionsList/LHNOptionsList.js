@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import compose from '@libs/compose';
@@ -57,6 +58,9 @@ const propTypes = {
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
+    /** List of users' personal details */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     /** The transaction from the parent report action */
     transactions: PropTypes.objectOf(transactionPropTypes),
     /** List of draft comments */
@@ -71,6 +75,7 @@ const defaultProps = {
     reports: {},
     policy: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
+    personalDetails: {},
     transactions: {},
     draftComments: {},
     ...withCurrentReportIDDefaultProps,
@@ -89,6 +94,7 @@ function LHNOptionsList({
     reportActions,
     policy,
     preferredLocale,
+    personalDetails,
     transactions,
     draftComments,
     currentReportID,
@@ -114,7 +120,7 @@ function LHNOptionsList({
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport.ownerAccountID];
 
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants);
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
 
             return (
                 <OptionRowLHNData
@@ -134,7 +140,7 @@ function LHNOptionsList({
                 />
             );
         },
-        [currentReportID, draftComments, onSelectRow, optionMode, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (
@@ -173,6 +179,9 @@ export default compose(
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         transactions: {
             key: ONYXKEYS.COLLECTION.TRANSACTION,
