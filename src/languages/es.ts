@@ -1563,6 +1563,25 @@ export default {
         isAuthorizedToUseBankAccountError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
         termsAndConditions: 'Términos y condiciones',
     },
+    connectBankAccountStep: {
+        connectBankAccount: 'Connect bank account',
+        finishButtonText: 'Finish setup',
+        validateYourBankAccount: 'Validate your bank account',
+        validateButtonText: 'Validate',
+        maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria debido a demasiados intentos incorrectos.',
+        description:
+            'Uno o dos días después de añadir tu cuenta a Expensify, te enviaremos tres (3) transacciones a tu cuenta. Tienen un nombre de comerciante similar a "Expensify, Inc. Validation".',
+        descriptionCTA: 'Introduce el importe de cada transacción en los campos siguientes. Ejemplo: 1.51.',
+        reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulta el chat con Concierge ',
+        forNextSteps: ' para conocer los próximos pasos para terminar de configurar tu cuenta bancaria.',
+        letsChatCTA: 'Sí, vamos a chatear',
+        letsChatText: 'Gracias. Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
+        letsChatTitle: '¡Vamos a chatear!',
+        enable2FATitle: 'Evita fraudes, activa la autenticación de dos factores!',
+        enable2FAText:
+            'Tu seguridad es importante para nosotros. Por favor, configura ahora la autenticación de dos factores. Eso nos permitirá disputar las transacciones de la Tarjeta Expensify y reducirá tu riesgo de fraude.',
+        secureYourAccount: 'Asegura tu cuenta',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
