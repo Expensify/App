@@ -2434,6 +2434,32 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 20,
         },
 
+        avatarSectionWrapperSettings: {
+            width: '100%',
+            alignItems: 'center',
+            paddingTop: 20,
+        },
+
+        accountSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.mt0,
+            ...spacing.mb0,
+            ...spacing.pt0,
+        },
+
+        sectionTitle: {
+            ...spacing.pt2,
+            ...spacing.pr3,
+            ...spacing.pb4,
+            paddingLeft: 13,
+            fontSize: 13,
+            fontFamily: fontFamily.EXP_NEUE,
+            fontWeight: 400,
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
