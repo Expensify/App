@@ -7,6 +7,7 @@ import _ from 'underscore';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
+import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -76,6 +77,9 @@ const propTypes = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: PropTypes.bool,
 
+    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
+    focusModeNotification: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -88,6 +92,7 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
+    focusModeNotification: false,
 };
 
 const SplashScreenHiddenContext = React.createContext({});
@@ -221,6 +226,7 @@ function Expensify(props) {
                             isVisible
                         />
                     ) : null}
+                    {props.focusModeNotification ? <FocusModeNotification /> : null}
                 </>
             )}
 
@@ -260,6 +266,10 @@ export default compose(
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
+        },
+        focusModeNotification: {
+            key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
+            initWithStoredValues: false,
         },
     }),
 )(Expensify);
