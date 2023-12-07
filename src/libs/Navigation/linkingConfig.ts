@@ -48,19 +48,19 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES]: {
+                            [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES_PRIORITY_MODE]: {
+                            [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
                                 path: ROUTES.SETTINGS_PRIORITY_MODE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES_LANGUAGE]: {
+                            [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: {
                                 path: ROUTES.SETTINGS_LANGUAGE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES_THEME]: {
+                            [SCREENS.SETTINGS.PREFERENCES.THEME]: {
                                 path: ROUTES.SETTINGS_THEME,
                                 exact: true,
                             },

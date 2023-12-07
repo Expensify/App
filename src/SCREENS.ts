@@ -19,10 +19,17 @@ const SCREENS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS: {
         ROOT: 'Settings_Root',
-
         SHARE_CODE: 'Settings_Share_Code',
-
         WORKSPACES: 'Settings_Workspaces',
+        SECURITY: 'Settings_Security',
+        ABOUT: 'Settings_About',
+        APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
+        LOUNGE_ACCESS: 'Settings_Lounge_Access',
+        ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
+        ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        CLOSE: 'Settings_Close',
+        TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
+        REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -45,12 +52,12 @@ const SCREENS = {
             },
         },
 
-        PREFERENCES: 'Settings_Preferences',
-        PREFERENCES_PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
-        PREFERENCES_LANGUAGE: 'Settings_Preferences_Language',
-        PREFERENCES_THEME: 'Settings_Preferences_Theme',
-
-        SECURITY: 'Settings_Security',
+        PREFERENCES: {
+            ROOT: 'Settings_Preferences',
+            PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
+            LANGUAGE: 'Settings_Preferences_Language',
+            THEME: 'Settings_Preferences_Theme',
+        },
 
         WALLET: {
             ROOT: 'Settings_Wallet',
@@ -68,16 +75,6 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
         },
-
-        ABOUT: 'Settings_About',
-
-        APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
-        LOUNGE_ACCESS: 'Settings_Lounge_Access',
-        ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
-        ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
-        CLOSE: 'Settings_Close',
-        TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
-        REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',

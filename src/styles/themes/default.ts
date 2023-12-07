@@ -103,7 +103,7 @@ const darkTheme = {
             backgroundColor: colors.tangerine800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.PREFERENCES]: {
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
             backgroundColor: colors.blue500,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
