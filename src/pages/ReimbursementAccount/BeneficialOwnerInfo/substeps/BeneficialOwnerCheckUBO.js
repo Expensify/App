@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -67,8 +66,4 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}) {
 BeneficialOwnerCheckUBO.propTypes = propTypes;
 BeneficialOwnerCheckUBO.displayName = 'BeneficialOwnerCheckUBO';
 
-export default withOnyx({
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-})(BeneficialOwnerCheckUBO);
+export default BeneficialOwnerCheckUBO;

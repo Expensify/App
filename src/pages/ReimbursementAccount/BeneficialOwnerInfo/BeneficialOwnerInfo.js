@@ -52,6 +52,7 @@ const defaultProps = {
 
 const bodyContent = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
 const beneficialOwnerInfoStepKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
+const beneficialOwnerKeysKey = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.BENEFICIAL_OWNER_KEYS;
 const substep = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 
@@ -59,10 +60,12 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     const {translate} = useLocalize();
     const companyName = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'companyName', '');
     const values = useMemo(() => getSubstepValues(beneficialOwnerInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const defaultBeneficialOwners = _.map(lodashGet(reimbursementAccountDraft, beneficialOwnerInfoStepKeys.BENEFICIAL_OWNERS, []), (owner) => owner.beneficialOwnerID);
+    const defaultBeneficialOwnerKeys = lodashGet(reimbursementAccountDraft, beneficialOwnerKeysKey, []);
 
-    // TODO we're only reading beneficialOwnerKeys from draft values, update to read from saved values as well once saving to BE is done
-    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState(defaultBeneficialOwners);
+    // TODO we're only reading beneficialOwnerKeys from draft values because there is not option to remove UBO
+    // if we were to set them based on values saved in BE then there would be no option to enter different UBOs
+    // user would always see the same UBOs that was saved in BE when returning to this step and trying to change something
+    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState(defaultBeneficialOwnerKeys);
     const [beneficialOwnerBeingModifiedID, setBeneficialOwnerBeingModifiedID] = useState('');
     const [isEditingCreatedBeneficialOwner, setIsEditingCreatedBeneficialOwner] = useState(false);
     const [isUserUBO, setIsUserUBO] = useState(values[beneficialOwnerInfoStepKeys.OWNS_MORE_THAN_25_PERCENT]);
@@ -73,11 +76,10 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     const submit = () => {
         const bankAccountID = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0);
 
-        const updatedBeneficialOwners =
+        const beneficialOwners =
             beneficialOwnerKeys.length === 0
                 ? []
                 : _.map(beneficialOwnerKeys, (ownerKey) => ({
-                      beneficialOwnerID: ownerKey,
                       firstName: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_firstName`),
                       lastName: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_lastName`),
                       dob: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_dob`),
@@ -90,7 +92,8 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
 
         BankAccounts.updateBeneficialOwnersForBankAccountDraft({
             ownsMoreThan25Percent: isUserUBO,
-            beneficialOwners: updatedBeneficialOwners,
+            beneficialOwners: JSON.stringify(beneficialOwners),
+            beneficialOwnerKeys,
             bankAccountID,
         });
         setIsBeneficialOwnerInfoSet(true);
@@ -101,7 +104,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
         setBeneficialOwnerKeys((previousBeneficialOwners) => {
             const newBeneficialOwners = [...previousBeneficialOwners, beneficialOwnerID];
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: newBeneficialOwners});
+            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
             return newBeneficialOwners;
         });
     };
@@ -111,7 +114,10 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         if (_.find(beneficialOwnerKeys, (beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) === undefined && canAddMoreUBOS) {
             addBeneficialOwner(beneficialOwnerBeingModifiedID);
         }
-        setCurrentUBOSubstep(isEditingCreatedBeneficialOwner || !canAddMoreUBOS ? substep.UBOS_LIST : substep.ARE_THERE_MORE_UBOS);
+
+        // Because beneficialOwnerKeys array is not yet updated at this point we need to check against lower MAX_NUMBER_OF_UBOS (account for the one that is being added)
+        const isLastUBOThatCanBeAdded = beneficialOwnerKeys.length === (isUserUBO ? MAX_NUMBER_OF_UBOS - 2 : MAX_NUMBER_OF_UBOS - 1);
+        setCurrentUBOSubstep(isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? substep.UBOS_LIST : substep.ARE_THERE_MORE_UBOS);
         setIsEditingCreatedBeneficialOwner(false);
     };
 

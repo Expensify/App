@@ -40,7 +40,8 @@ type RequestorStepProps = {
 type BeneficialOwnersStepDraftProps = {
     ownsMoreThan25Percent?: boolean;
     hasOtherBeneficialOwners?: boolean;
-    beneficialOwners?: string[];
+    beneficialOwners?: string;
+    beneficialOwnerKeys?: string[];
 };
 
 type ACHContractStepProps = {
@@ -48,7 +49,8 @@ type ACHContractStepProps = {
     hasOtherBeneficialOwners?: boolean;
     acceptTermsAndConditions?: boolean;
     certifyTrueInformation?: boolean;
-    beneficialOwners?: string[];
+    beneficialOwners?: string;
+    beneficialOwnerKeys?: string[];
 };
 
 type ReimbursementAccountProps = {

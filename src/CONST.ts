@@ -223,6 +223,7 @@ const CONST = {
                 BENEFICIAL_OWNERS: 'beneficialOwners',
             },
             BENEFICIAL_OWNER_DATA: {
+                BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
                 PREFIX: 'beneficialOwner',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
