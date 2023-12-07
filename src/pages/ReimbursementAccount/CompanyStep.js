@@ -7,10 +7,10 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
 import Picker from '@components/Picker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import StatePicker from '@components/StatePicker';
@@ -159,7 +159,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                 onSubmit={submit}
                 scrollContextEnabled
                 submitButtonText={translate('common.saveAndContinue')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
             >
                 <Text>{translate('companyStep.subtitle')}</Text>
                 <InputWrapper
@@ -241,7 +241,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     />
                 </View>
                 <View style={styles.mt4}>
-                    <NewDatePicker
+                    <DatePicker
                         inputID="incorporationDate"
                         label={translate('companyStep.incorporationDate')}
                         placeholder={translate('companyStep.incorporationDatePlaceholder')}
