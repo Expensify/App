@@ -15,6 +15,7 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as Permissions from '@libs/Permissions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -22,7 +23,6 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as Permissions from '@libs/Permissions';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -2092,13 +2092,15 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
         },
-        ...(Permissions.canUseViolations(betas) ? [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: null,
-            },
-        ] : []),
+        ...(Permissions.canUseViolations(betas)
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                      value: null,
+                  },
+              ]
+            : []),
         ...(shouldDeleteTransactionThread
             ? [
                   {
@@ -2163,13 +2165,15 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: transaction,
         },
-        ...(Permissions.canUseViolations(betas) ? [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: transactionViolations,
-            },
-        ] : []),
+        ...(Permissions.canUseViolations(betas)
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                      value: transactionViolations,
+                  },
+              ]
+            : []),
         ...(shouldDeleteTransactionThread
             ? [
                   {
