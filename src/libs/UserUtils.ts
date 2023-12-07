@@ -1,13 +1,13 @@
 import Str from 'expensify-common/lib/str';
+import _ from 'lodash';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
-import Onyx, { OnyxEntry } from 'react-native-onyx';
-import _ from 'lodash';
-import ONYXKEYS from '@src/ONYXKEYS';
-import { PersonalDetails } from '@src/types/onyx';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {PersonalDetails} from '@src/types/onyx';
 import Login from '@src/types/onyx/Login';
 import hashCode from './hashCode';
 
