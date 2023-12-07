@@ -2824,6 +2824,16 @@ function cancelPayment(expenseReport, chatReport) {
             ]
             : []),
     ];
+
+    API.write(
+        'CancelPayment',
+        {
+            reportID: expenseReport.reportID,
+            managerAccountID: expenseReport.managerID,
+            reportActionID: optimisticReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**
