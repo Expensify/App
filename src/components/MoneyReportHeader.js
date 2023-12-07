@@ -85,7 +85,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const cancelPayment = useCallback(() => {
-        IOU.CancelPayment(moneyRequestReport, chatReport);
+        IOU.cancelPayment(moneyRequestReport, chatReport);
         setIsConfirmModalVisible(false);
     }, [setIsConfirmModalVisible]);
 

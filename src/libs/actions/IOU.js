@@ -2741,7 +2741,7 @@ function submitReport(expenseReport) {
 function cancelPayment(expenseReport, chatReport) {
     const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction();
     const policy = ReportUtils.getPolicy(chatReport.policyID);
-    const isFree = policy && policy.isFree();
+    const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3118,4 +3118,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    cancelPayment,
 };
