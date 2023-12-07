@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useMemo, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -16,6 +17,9 @@ import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTyp
 const propTypes = {
     /** Whether row should be focused */
     isFocused: PropTypes.bool,
+
+    /** List of users' personal details */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The preferred language for the app */
     preferredLocale: PropTypes.string,
@@ -45,6 +49,7 @@ const propTypes = {
 
 const defaultProps = {
     isFocused: false,
+    personalDetails: {},
     fullReport: {},
     policy: {},
     parentReportAction: {},
@@ -59,7 +64,7 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({isFocused, fullReport, reportActions, preferredLocale, comment, policy, parentReportAction, transaction, ...propsToForward}) {
+function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails, preferredLocale, comment, policy, parentReportAction, transaction, ...propsToForward}) {
     const reportID = propsToForward.reportID;
     const {currentReportID} = useCurrentReportID();
     const isReportFocused = isFocused && currentReportID === reportID;
@@ -74,7 +79,7 @@ function OptionRowLHNData({isFocused, fullReport, reportActions, preferredLocale
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, preferredLocale, policy, parentReportAction);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }

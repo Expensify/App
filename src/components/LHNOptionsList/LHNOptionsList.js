@@ -5,6 +5,7 @@ import React, {memo, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import participantPropTypes from '@components/participantPropTypes';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import {getReportActionsByReportID} from '@libs/ReportActionsUtils';
 import {getReportByID} from '@libs/ReportUtils';
@@ -47,6 +48,9 @@ const propTypes = {
 
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
+
+    /** List of users' personal details */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 };
 
 const defaultProps = {
@@ -54,11 +58,12 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
     policy: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
+    personalDetails: {},
 };
 
 const keyExtractor = (item) => `report_${item}`;
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions, preferredLocale}) {
+function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions, preferredLocale, personalDetails}) {
     const styles = useThemeStyles();
     /**
      * Function which renders a row in the list
@@ -77,7 +82,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
             const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport.ownerAccountID];
 
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants);
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
 
             return (
                 <OptionRowLHNData
@@ -94,7 +99,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 />
             );
         },
-        [onSelectRow, optionMode, preferredLocale, shouldDisableFocusOptions],
+        [onSelectRow, optionMode, personalDetails, preferredLocale, shouldDisableFocusOptions],
     );
 
     return (
@@ -121,5 +126,8 @@ LHNOptionsList.displayName = 'LHNOptionsList';
 export default withOnyx({
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
 })(memo(LHNOptionsList));

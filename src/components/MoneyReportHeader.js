@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import participantPropTypes from './participantPropTypes';
+import {usePersonalDetails} from './OnyxProvider';
 import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
@@ -46,9 +46,6 @@ const propTypes = {
     /** The next step for the report */
     nextStep: nextStepPropTypes,
 
-    /** Personal details so we can get the ones for the report participants */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -67,7 +64,8 @@ const defaultProps = {
     policy: {},
 };
 
-function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
@@ -210,9 +208,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(MoneyReportHeader);
