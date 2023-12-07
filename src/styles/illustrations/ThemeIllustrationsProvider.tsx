@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import useThemePreference from '@styles/theme/useThemePreference';
-import DarkIllustrations from './dark';
-import LightIllustrations from './light';
+import Illustrations from './Illustrations';
 import ThemeIllustrationsContext from './ThemeIllustrationsContext';
 
 type ThemeIllustrationsProviderProps = {
@@ -11,7 +10,7 @@ type ThemeIllustrationsProviderProps = {
 function ThemeIllustrationsProvider({children}: ThemeIllustrationsProviderProps) {
     const themePreference = useThemePreference();
 
-    const illustrations = useMemo(() => (themePreference === 'dark' ? DarkIllustrations : LightIllustrations), [themePreference]);
+    const illustrations = useMemo(() => Illustrations[themePreference], [themePreference]);
 
     return <ThemeIllustrationsContext.Provider value={illustrations}>{children}</ThemeIllustrationsContext.Provider>;
 }

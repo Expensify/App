@@ -1,8 +1,8 @@
 import EmptyStateBackgroundImage from '@assets/images/empty-state_background-fade-dark.png';
-import {Illustrations} from './types';
+import {IllustrationsType} from '@styles/illustrations/types';
 
 const illustrations = {
     EmptyStateBackgroundImage,
-} satisfies Illustrations;
+} satisfies IllustrationsType;
 
 export default illustrations;
