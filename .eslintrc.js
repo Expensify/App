@@ -31,7 +31,7 @@ const restrictedImportPaths = [
         message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.',
     },
     {
-        name: '@styles/StyleUtils',
+        name: '@styles/utils',
         importNames: ['default', 'DefaultStyleUtils'],
         message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
     },
@@ -49,6 +49,10 @@ const restrictedImportPatterns = [
     {
         group: ['@styles/theme/themes/**/*'],
         message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+    },
+    {
+        group: '@styles/utils/**/*',
+        message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
     },
     {
         group: ['@styles/illustrations/themes/**/*'],
