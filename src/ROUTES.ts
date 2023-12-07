@@ -2,10 +2,9 @@ import {IsEqual, ValueOf} from 'type-fest';
 import CONST from './CONST';
 
 // This is a file containing constants for all the routes we want to be able to go to
-type StringLiteral<TString extends string> = string extends TString ? never : string;
 type QueryParams = Record<string, string | number | boolean | undefined>;
 
-function getUrlWithQueryParams<TUrl extends StringLiteral<TUrl>, TQuery extends QueryParams>(url: TUrl, query: TQuery): `${TUrl}?${string}` {
+function getUrlWithQueryParams<TUrl extends string, TQuery extends QueryParams>(url: TUrl, query: TQuery): TUrl | `${TUrl}?${string}` {
     if (url.includes('?')) {
         throw new Error('getUrlWithQueryParams should only be used for urls without query params');
     }
@@ -15,7 +14,7 @@ function getUrlWithQueryParams<TUrl extends StringLiteral<TUrl>, TQuery extends 
         .map(([param, value]) => `${param}=${encodeURIComponent(value)}`)
         .join('&');
 
-    return `${url}?${parsedQuery}` as const;
+    return parsedQuery ? (`${url}?${parsedQuery}` as const) : url;
 }
 
 const ROUTES = {
