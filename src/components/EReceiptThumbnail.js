@@ -3,6 +3,7 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -38,7 +39,7 @@ const backgroundImages = {
 
 function EReceiptThumbnail({transaction}) {
     const styles = useThemeStyles();
-    const StyleUtils = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
 
