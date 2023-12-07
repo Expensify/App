@@ -2,14 +2,10 @@ import React from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import BlockingView from './BlockingView';
 
-type FullPageOfflineBlockingViewProps = {
-    /** Child elements */
-    children: React.ReactNode;
-};
-
-function FullPageOfflineBlockingView({children}: FullPageOfflineBlockingViewProps) {
+function FullPageOfflineBlockingView({children}: ChildrenProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 

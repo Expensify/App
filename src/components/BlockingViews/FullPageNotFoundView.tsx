@@ -53,6 +53,7 @@ function FullPageNotFoundView({
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     if (shouldShow) {
         return (
             <>
