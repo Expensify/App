@@ -19,11 +19,37 @@ const SCREENS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS: {
         ROOT: 'Settings_Root',
-        PREFERENCES: 'Settings_Preferences',
+
+        SHARE_CODE: 'Settings_Share_Code',
+
         WORKSPACES: 'Settings_Workspaces',
-        SECURITY: 'Settings_Security',
-        STATUS: 'Settings_Status',
+
         PROFILE: 'Settings_Profile',
+
+        PREFERENCES: 'Settings_Preferences',
+
+        SECURITY: 'Settings_Security',
+
+        WALLET: {
+            ROOT: 'Settings_Wallet',
+            DOMAIN_CARD: 'Settings_Wallet_DomainCard',
+            CARD_GET_PHYSICAL: {
+                NAME: 'Settings_Card_Get_Physical_Name',
+                PHONE: 'Settings_Card_Get_Physical_Phone',
+                ADDRESS: 'Settings_Card_Get_Physical_Address',
+                CONFIRM: 'Settings_Card_Get_Physical_Confirm',
+            },
+            TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
+            CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
+            ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
+            CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
+            REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
+            CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+        },
+
+        ABOUT: 'Settings_About',
+
+        STATUS: 'Settings_Status',
         PRONOUNS: 'Settings_Pronouns',
         DISPLAY_NAME: 'Settings_Display_Name',
         TIMEZONE: 'Settings_Timezone',
@@ -36,24 +62,8 @@ const SCREENS = {
         CONTACT_METHODS: 'Settings_ContactMethods',
         CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
         NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
-        SHARE_CODE: 'Settings_Share_Code',
-        ABOUT: 'Settings_About',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         LOUNGE_ACCESS: 'Settings_Lounge_Access',
-        WALLET: 'Settings_Wallet',
-        WALLET_DOMAIN_CARD: 'Settings_Wallet_DomainCard',
-        WALLET_CARD_GET_PHYSICAL: {
-            NAME: 'Settings_Card_Get_Physical_Name',
-            PHONE: 'Settings_Card_Get_Physical_Phone',
-            ADDRESS: 'Settings_Card_Get_Physical_Address',
-            CONFIRM: 'Settings_Card_Get_Physical_Confirm',
-        },
-        WALLET_TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
-        WALLET_CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
-        WALLET_ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
-        WALLET_CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
-        WALLET_REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
-        WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         PREFERENCES_PRIORITY_MODE: 'Settings_Preferences_PriorityMode',

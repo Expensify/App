@@ -72,43 +72,43 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET]: {
+                            [SCREENS.SETTINGS.WALLET.ROOT]: {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_DOMAIN_CARD]: {
+                            [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                                 path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_REPORT_VIRTUAL_CARD_FRAUD]: {
+                            [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
                                 path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: {
+                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: {
+                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: {
+                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: {
+                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_ENABLE_PAYMENTS]: {
+                            [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_TRANSFER_BALANCE]: {
+                            [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                                 path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CHOOSE_TRANSFER_ACCOUNT]: {
+                            [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
@@ -116,11 +116,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARD_ACTIVATE]: {
+                            [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: {
+                            [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                                 exact: true,
                             },
