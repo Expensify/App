@@ -134,7 +134,6 @@ function DetailsPage(props) {
                                 <AttachmentModal
                                     headerTitle={details.displayName}
                                     source={UserUtils.getFullSizeAvatar(details.avatar, details.accountID)}
-                                    isAuthTokenRequired
                                     originalFileName={details.originalFileName}
                                 >
                                     {({show}) => (

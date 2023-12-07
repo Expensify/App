@@ -7,11 +7,11 @@ import AddOutlineWidth from './types';
 /**
  * Adds the addOutlineWidth property to an object to be used when styling
  */
-const addOutlineWidth: AddOutlineWidth = (obj, theme, val, hasError = false) => ({
+const addOutlineWidth: AddOutlineWidth = (theme, obj, val, hasError = false) => ({
     ...obj,
     outlineWidth: val,
     outlineStyle: val ? 'auto' : 'none',
-    boxShadow: val !== 0 ? `0px 0px 0px ${val}px ${hasError ? theme?.danger : theme?.borderFocus}` : 'none',
+    boxShadow: val !== 0 ? `0px 0px 0px ${val}px ${hasError ? theme.danger : theme.borderFocus}` : 'none',
 });
 
 export default addOutlineWidth;

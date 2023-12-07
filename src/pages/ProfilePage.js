@@ -159,7 +159,6 @@ function ProfilePage(props) {
                             <AttachmentModal
                                 headerTitle={displayName}
                                 source={UserUtils.getFullSizeAvatar(avatar, accountID)}
-                                isAuthTokenRequired
                                 originalFileName={originalFileName}
                                 fallbackSource={fallbackIcon}
                             >
