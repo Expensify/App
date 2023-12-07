@@ -2003,7 +2003,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
                     return;
                 }
 
-                if (!reportID) {
+                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
                     return;
                 }
 
