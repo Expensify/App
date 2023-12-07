@@ -1,9 +1,5 @@
 import Str from 'expensify-common/lib/str';
-
-type Message = {
-    text: string;
-    type?: string;
-};
+import type {Message} from '@src/types/onyx/ReportNextStep';
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
