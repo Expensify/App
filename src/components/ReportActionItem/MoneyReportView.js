@@ -8,12 +8,12 @@ import Text from '@components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/theme/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
 const propTypes = {

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useTheme from '@styles/theme/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';

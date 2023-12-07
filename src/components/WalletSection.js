@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Section from './Section';
 
 const propTypes = {

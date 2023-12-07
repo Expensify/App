@@ -3,7 +3,7 @@ import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 /**

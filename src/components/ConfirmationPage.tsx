@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
 import Lottie from './Lottie';

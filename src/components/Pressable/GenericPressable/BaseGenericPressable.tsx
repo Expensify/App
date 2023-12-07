@@ -3,10 +3,10 @@ import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo} from '
 import {GestureResponderEvent, Pressable, View} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableProps, {PressableRef} from './types';
 

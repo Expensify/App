@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
     title: PropTypes.string.isRequired,

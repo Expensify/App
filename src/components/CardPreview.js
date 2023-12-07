@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Text from './Text';

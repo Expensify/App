@@ -18,6 +18,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes}
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
@@ -25,7 +26,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';

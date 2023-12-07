@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';

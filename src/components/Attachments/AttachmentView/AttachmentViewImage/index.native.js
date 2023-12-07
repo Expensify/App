@@ -3,8 +3,8 @@ import AttachmentCarouselPage from '@components/Attachments/AttachmentCarousel/P
 import ImageView from '@components/ImageView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {attachmentViewImageDefaultProps, attachmentViewImagePropTypes} from './propTypes';
 

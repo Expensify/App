@@ -6,8 +6,8 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useTheme from '@styles/theme/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];

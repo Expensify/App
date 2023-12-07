@@ -1,5 +1,5 @@
 import React from 'react';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 import WrappedText from './WrappedText';
 

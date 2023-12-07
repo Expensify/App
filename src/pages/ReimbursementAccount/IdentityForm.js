@@ -6,7 +6,7 @@ import _ from 'underscore';
 import DatePicker from '@components/DatePicker';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
 
