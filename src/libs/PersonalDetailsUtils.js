@@ -184,12 +184,4 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
-export {
-    getPersonalDetailsByIDs,
-    getAccountIDsByLogins,
-    getLoginsByAccountIDs,
-    getNewPersonalDetailsOnyxData,
-    getFormattedAddress,
-    getFormattedStreet,
-    getStreetLines,
-};
+export {getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress, getFormattedStreet, getStreetLines};
