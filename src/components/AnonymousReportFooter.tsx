@@ -24,7 +24,7 @@ type AnonymousReportFooterProps = AnonymousReportFooterPropsWithOnyx & {
     isSmallSizeLayout?: boolean;
 };
 
-function AnonymousReportFooter({isSmallSizeLayout = false, report, policy = {}}: AnonymousReportFooterProps) {
+function AnonymousReportFooter({isSmallSizeLayout = false, report, policy}: AnonymousReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
