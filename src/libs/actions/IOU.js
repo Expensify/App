@@ -882,10 +882,11 @@ function requestMoney(
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param {String} merchant
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '') {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '', merchant) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -895,11 +896,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat;
 
-    // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
-    const formattedParticipants = isOwnPolicyExpenseChat
-        ? [currentUserLogin, ReportUtils.getReportName(splitChatReport)]
-        : Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login || '')]);
-
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
         currency,
@@ -908,7 +904,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         '',
         '',
         '',
-        `${Localize.translateLocal('iou.splitBill')} ${Localize.translateLocal('common.with')} ${formattedParticipants} [${DateUtils.getDBTime().slice(0, 10)}]`,
+        merchant,
         undefined,
         undefined,
         undefined,
@@ -1099,7 +1095,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             '',
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
-            undefined,
+            merchant,
             undefined,
             undefined,
             undefined,
@@ -1221,9 +1217,21 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param {String} merchant
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '') {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID);
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '', merchant) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+        participants,
+        currentUserLogin,
+        currentUserAccountID,
+        amount,
+        comment,
+        currency,
+        category,
+        tag,
+        existingSplitChatReportID,
+        merchant,
+    );
     API.write(
         'SplitBill',
         {
@@ -1233,6 +1241,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
             currency,
             comment,
             category,
+            merchant,
             tag,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
@@ -1256,9 +1265,10 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} currency
  * @param {String} category
  * @param {String} tag
+ * @param {String} merchant
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, merchant) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, '', merchant);
     API.write(
         'SplitBillAndOpenReport',
         {
@@ -1268,6 +1278,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             currency,
             comment,
             category,
+            merchant,
             tag,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
@@ -2918,7 +2929,7 @@ function setUpDistanceTransaction() {
  */
 function navigateToNextPage(iou, iouType, report, path = '') {
     const moneyRequestID = `${iouType}${report.reportID || ''}`;
-    const shouldReset = iou.id !== moneyRequestID;
+    const shouldReset = iou.id !== moneyRequestID && !_.isEmpty(report.reportID);
 
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.

@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
+import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import HapticFeedback from '@libs/HapticFeedback';
 import useTheme from '@styles/themes/useTheme';
@@ -64,13 +65,13 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     onLongPress?: (event?: GestureResponderEvent) => void;
 
     /** A function that is called when the button is pressed */
-    onPressIn?: () => void;
+    onPressIn?: (event: GestureResponderEvent) => void;
 
     /** A function that is called when the button is released */
-    onPressOut?: () => void;
+    onPressOut?: (event: GestureResponderEvent) => void;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown?: () => void;
+    onMouseDown?: (e: React.MouseEvent<Element, MouseEvent>) => void;
 
     /** Call the onPress function when Enter key is pressed */
     pressOnEnter?: boolean;
@@ -158,6 +159,9 @@ function Button(
     const theme = useTheme();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const activeElement = useActiveElement();
+    const accessibilityRoles: string[] = Object.values(CONST.ACCESSIBILITY_ROLE);
+    const shouldDisableEnterShortcut = accessibilityRoles.includes(activeElement?.role ?? '') && activeElement?.role !== CONST.ACCESSIBILITY_ROLE.TEXT;
 
     const keyboardShortcutCallback = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -170,7 +174,7 @@ function Button(
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, keyboardShortcutCallback, {
-        isActive: pressOnEnter,
+        isActive: pressOnEnter && !shouldDisableEnterShortcut,
         shouldBubble: allowBubble,
         priority: enterKeyEventListenerPriority,
         shouldPreventDefault: false,

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {ThemeColors} from '@styles/themes/types';
+import {type ThemeColors} from '@styles/themes/types';
 import useTheme from '@styles/themes/useTheme';
 
 const withThemePropTypes = {
