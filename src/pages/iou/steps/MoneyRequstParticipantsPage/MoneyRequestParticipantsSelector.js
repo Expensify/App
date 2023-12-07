@@ -66,6 +66,9 @@ const propTypes = {
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
 
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -78,6 +81,7 @@ const defaultProps = {
     betas: [],
     isDistanceRequest: false,
     isSearchingForReports: false,
+    didScreenTransitionEnd: false,
 };
 
 function MoneyRequestParticipantsSelector({
@@ -94,6 +98,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     isDistanceRequest,
     isSearchingForReports,
+    didScreenTransitionEnd,
 }) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
