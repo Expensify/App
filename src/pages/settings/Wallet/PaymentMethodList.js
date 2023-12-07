@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
 import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -206,6 +207,7 @@ function PaymentMethodList({
     shouldEnableScroll,
     style,
 }) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -222,7 +224,7 @@ function PaymentMethodList({
 
             return _.map(assignedCards, (card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
-                const icon = getBankIcon({bankName: card.bank, isCard: true, themeStyles: styles});
+                const icon = getBankIcon({bankName: card.bank, isCard: true, styles});
 
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
@@ -264,14 +266,14 @@ function PaymentMethodList({
             return {
                 ...paymentMethod,
                 onPress: (e) => onPress(e, paymentMethod.accountType, paymentMethod.accountData, paymentMethod.isDefault, paymentMethod.methodID),
-                iconFill: isMethodActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-                wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : null,
+                iconFill: isMethodActive ? StyleUtils.getIconFillColor(theme, CONST.BUTTON_STATES.PRESSED) : null,
+                wrapperStyle: isMethodActive ? [StyleUtils.getButtonBackgroundColorStyle(theme, CONST.BUTTON_STATES.PRESSED)] : null,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
         });
 
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress, styles]);
+    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress, styles, theme]);
 
     /**
      * Render placeholder when there are no payments methods
