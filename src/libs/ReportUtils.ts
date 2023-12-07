@@ -2876,10 +2876,10 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
 }
 
 /**
- * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
+ * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticCancelPaymentReportAction(expenseReportID: string): OptimisticCancelPaymentReportAction {
+function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentReportAction {
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
