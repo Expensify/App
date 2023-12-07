@@ -4,17 +4,20 @@ import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
+import colors from '@styles/colors';
+import fontFamily from '@styles/fontFamily';
+import {defaultStyles, type ThemeStyles} from '@styles/styles';
+import {defaultTheme} from '@styles/themes/Themes';
+import {ThemeColors} from '@styles/themes/types';
+import cursor from '@styles/utilities/cursor';
+import positioning from '@styles/utilities/positioning';
+import spacing from '@styles/utilities/spacing';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
-import colors from './colors';
-import fontFamily from './fontFamily';
-import {defaultStyles, type ThemeStyles} from './styles';
-import {defaultTheme} from './themes/Themes';
-import {ThemeColors} from './themes/types';
-import cursor from './utilities/cursor';
-import positioning from './utilities/positioning';
-import spacing from './utilities/spacing';
-import variables from './variables';
+import createModalStyleUtils from './ModalStyleUtils';
+import createReportActionContextMenuStyleUtils from './ReportActionContextMenuStyleUtils';
+import createTooltipStyleUtils from './TooltipStyleUtils';
 
 type AllStyles = ViewStyle | TextStyle | ImageStyle;
 type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -1097,6 +1100,9 @@ const staticStyleUtils = {
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ...staticStyleUtils,
+    ...createModalStyleUtils(theme, styles),
+    ...createTooltipStyleUtils(theme, styles),
+    ...createReportActionContextMenuStyleUtils(theme, styles),
 
     /**
      * Gets styles for AutoCompleteSuggestion row
