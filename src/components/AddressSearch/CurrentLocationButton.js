@@ -25,8 +25,8 @@ const defaultProps = {
 };
 
 function CurrentLocationButton({onPress, isDisabled}) {
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (

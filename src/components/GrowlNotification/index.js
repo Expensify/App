@@ -21,8 +21,8 @@ function GrowlNotification(_, ref) {
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
     const [duration, setDuration] = useState();
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     const types = {
         [CONST.GROWL.SUCCESS]: {
