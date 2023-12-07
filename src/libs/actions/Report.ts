@@ -2034,8 +2034,43 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
 
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
+    const optimisticData: OnyxUpdate[] = [
+        isWorkspaceMemberLeavingWorkspaceRoom
+            ? {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                  value: {
+                      reportID,
+                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                      statusNum: CONST.REPORT.STATUS.CLOSED,
+                      chatType: report.chatType,
+                      parentReportID: report.parentReportID,
+                      parentReportActionID: report.parentReportActionID,
+                      policyID: report.policyID,
+                      type: report.type,
+                  },
+              },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: isWorkspaceMemberLeavingWorkspaceRoom
+                ? {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}
+                : Object.keys(report).reduce<Record<string, null>>((acc, key) => {
+                      acc[key] = null;
+                      return acc;
+                  }, {}),
+        },
+    ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2043,45 +2078,6 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
             value: report,
         },
     ];
-
-    if (isWorkspaceMemberLeavingWorkspaceRoom) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-            },
-        });
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
-        });
-    } else {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                reportID,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-                chatType: report.chatType,
-                parentReportID: report.parentReportID,
-                parentReportActionID: report.parentReportActionID,
-                policyID: report.policyID,
-                type: report.type,
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: Object.keys(report).reduce<Record<string, null>>((acc, key) => {
-                acc[key] = null;
-                return acc;
-            }, {}),
-        });
-    }
 
     type LeaveRoomParameters = {
         reportID: string;
