@@ -197,18 +197,6 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
-/**
- * @param {Object} personalDetail - details object
- * @returns {String | undefined} - The effective display name
- */
-function getEffectiveDisplayName(personalDetail) {
-    if (personalDetail) {
-        return LocalePhoneNumber.formatPhoneNumber(personalDetail.login) || personalDetail.displayName;
-    }
-
-    return undefined;
-}
-
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -218,5 +206,4 @@ export {
     getFormattedAddress,
     getFormattedStreet,
     getStreetLines,
-    getEffectiveDisplayName,
 };
