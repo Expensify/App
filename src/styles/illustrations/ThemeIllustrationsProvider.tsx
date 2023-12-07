@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
+import useThemePreference from '@hooks/useThemePreference';
 import ThemeIllustrationsContext from '@styles/context/ThemeIllustrationsContext';
-import useThemePreference from '@styles/theme/useThemePreference';
 import Illustrations from './illustrations';
 
 type ThemeIllustrationsProviderProps = {

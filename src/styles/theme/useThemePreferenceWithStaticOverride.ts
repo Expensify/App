@@ -1,5 +1,5 @@
+import useThemePreference from '../../hooks/useThemePreference';
 import {ThemePreferenceWithoutSystem} from './types';
-import useThemePreference from './useThemePreference';
 
 const useThemePreferenceWithStaticOverride = (staticThemePreference: ThemePreferenceWithoutSystem | undefined) => {
     const dynamicThemePreference = useThemePreference();
