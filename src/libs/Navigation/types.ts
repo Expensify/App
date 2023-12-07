@@ -37,6 +37,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
         reportID: string;
+        openOnAdminRoom?: boolean;
     };
 };
 
@@ -282,6 +283,13 @@ type AddPersonalBankAccountNavigatorParamList = {
     [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: undefined;
 };
 
+type ReimbursementAccountNavigatorParamList = {
+    [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: {
+        stepToOpen: string;
+        policyID: string;
+    };
+};
+
 type WalletStatementNavigatorParamList = {
     [SCREENS.WALLET_STATEMENT_ROOT]: undefined;
 };
@@ -415,4 +423,29 @@ export type {
     AuthScreensParamList,
     RightModalNavigatorParamList,
     PublicScreensParamList,
+    MoneyRequestNavigatorParamList,
+    SplitDetailsNavigatorParamList,
+    DetailsNavigatorParamList,
+    ProfileNavigatorParamList,
+    ReportDetailsNavigatorParamList,
+    ReportSettingsNavigatorParamList,
+    TaskDetailsNavigatorParamList,
+    ReportWelcomeMessageNavigatorParamList,
+    ParticipantsNavigatorParamList,
+    RoomMembersNavigatorParamList,
+    RoomInviteNavigatorParamList,
+    SearchNavigatorParamList,
+    NewChatNavigatorParamList,
+    NewTaskNavigatorParamList,
+    TeachersUniteNavigatorParamList,
+    SettingsNavigatorParamList,
+    EnablePaymentsNavigatorParamList,
+    AddPersonalBankAccountNavigatorParamList,
+    WalletStatementNavigatorParamList,
+    FlagCommentNavigatorParamList,
+    EditRequestNavigatorParamList,
+    PrivateNotesNavigatorParamList,
+    SignInNavigatorParamList,
+    ReferralDetailsNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
 };
