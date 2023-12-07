@@ -86,7 +86,7 @@ function BaseListItem({
                         textStyles={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            (isUserItem || item.isSelected) && styles.sidebarLinkTextBold,
+                            isUserItem || item.isSelected ? styles.sidebarLinkTextBold : null,
                             styles.pre,
                         ]}
                         alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
