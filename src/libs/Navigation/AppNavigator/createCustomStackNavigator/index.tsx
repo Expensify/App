@@ -27,10 +27,10 @@ function reduceReportRoutes(routes: Routes): Routes {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CustomRouterFactory<ParamList extends ParamListBase> = RouterFactory<StackNavigationState<ParamList>, any, ResponsiveStackNavigatorRouterOptions>;
+type CustomRouterFactory = any;
 
-function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(customRouter: CustomRouterFactory<ParamList>) {
-    function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
+function ResponsiveStackNavigatorFactory(customRouter: CustomRouterFactory) {
+    function ResponsiveStackNavigator<ParamList extends ParamListBase>(props: ResponsiveStackNavigatorProps) {
         const {isSmallScreenWidth} = useWindowDimensions();
 
         const isSmallScreenWidthRef = useRef<boolean>(isSmallScreenWidth);
@@ -38,9 +38,9 @@ function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(custom
         isSmallScreenWidthRef.current = isSmallScreenWidth;
 
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-            StackNavigationState<ParamListBase>,
+            StackNavigationState<ParamList>,
             ResponsiveStackNavigatorRouterOptions,
-            StackActionHelpers<ParamListBase>,
+            StackActionHelpers<ParamList>,
             StackNavigationOptions,
             StackNavigationEventMap
         >(customRouter, {
@@ -77,7 +77,6 @@ function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(custom
     return ResponsiveStackNavigator;
 }
 
-export default <ParamList extends ParamListBase>(customRouter: CustomRouterFactory<ParamList>) =>
-    createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, (props: ResponsiveStackNavigatorProps) => React.JSX.Element>(
-        ResponsiveStackNavigatorFactory(customRouter),
-    )();
+export default <ParamList extends ParamListBase>(customRouter: CustomRouterFactory) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, any>(ResponsiveStackNavigatorFactory(customRouter))<ParamList>();
