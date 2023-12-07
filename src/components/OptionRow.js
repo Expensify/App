@@ -186,11 +186,11 @@ function OptionRow(props) {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
+                            !props.isDisabled && styles.cursorPointer,
                             props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             props.shouldHaveOptionSeparator && styles.borderTop,
                             !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
-                            props.isSelected && props.highlightSelected && styles.optionRowSelected,
                         ]}
                         accessibilityLabel={props.option.text}
                         role={CONST.ACCESSIBILITY_ROLE.BUTTON}
