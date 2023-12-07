@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
+import ThemeIllustrationsContext from '@styles/context/ThemeIllustrationsContext';
 import useThemePreference from '@styles/theme/useThemePreference';
 import Illustrations from './illustrations';
-import ThemeIllustrationsContext from './ThemeIllustrationsContext';
 
 type ThemeIllustrationsProviderProps = {
     children: React.ReactNode;

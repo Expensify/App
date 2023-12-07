@@ -1,6 +1,6 @@
 import React from 'react';
-import {DefaultIllustrations} from './illustrations';
-import {IllustrationsType} from './types';
+import {DefaultIllustrations} from '@styles/illustrations/illustrations';
+import {IllustrationsType} from '@styles/illustrations/types';
 
 const ThemeIllustrationsContext = React.createContext<IllustrationsType>(DefaultIllustrations);
 

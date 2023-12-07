@@ -1,8 +1,8 @@
 import React from 'react';
-import {defaultStyles} from './styles';
-import type {ThemeStyles} from './styles';
-import {DefaultStyleUtils} from './utils';
-import type {StyleUtilsType} from './utils';
+import {defaultStyles} from '@styles/styles';
+import type {ThemeStyles} from '@styles/styles';
+import {DefaultStyleUtils} from '@styles/utils';
+import type {StyleUtilsType} from '@styles/utils';
 
 type ThemeStylesContextType = {
     styles: ThemeStyles;

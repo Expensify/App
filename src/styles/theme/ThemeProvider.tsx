@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import ThemeContext from './ThemeContext';
+import ThemeContext from '@styles/context/ThemeContext';
 import themes from './themes';
 import {ThemePreferenceWithoutSystem} from './types';
 import useThemePreferenceWithStaticOverride from './useThemePreferenceWithStaticOverride';
