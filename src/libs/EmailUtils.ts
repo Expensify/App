@@ -3,7 +3,7 @@
  * @param mailLink - The `mailto:` link to be trimmed
  * @returns The email address
  */
-export function trimMailTo(mailLink: string) {
+function trimMailTo(mailLink: string) {
     return mailLink.replace('mailto:', '');
 }
 
@@ -19,10 +19,12 @@ export function trimMailTo(mailLink: string) {
  * @param email - The email address to be sanitized
  * @returns The email with inserted line break opportunities
  */
-export function prefixMailSeparatorsWithBreakOpportunities(email: string) {
+function prefixMailSeparatorsWithBreakOpportunities(email: string) {
     return email.replace(
         /([.@])/g,
         // below: zero-width space (U+200B) character
         '​$1',
     );
 }
+
+export default {trimMailTo, prefixMailSeparatorsWithBreakOpportunities};
