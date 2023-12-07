@@ -21,6 +21,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -74,6 +75,13 @@ function WorkspaceInvitePage(props) {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     };
+
+    useEffect(() => {
+        if (!SearchInputManager.searchInput) {
+            return;
+        }
+        setSearchTerm(SearchInputManager.searchInput);
+    }, []);
 
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
@@ -255,7 +263,10 @@ function WorkspaceInvitePage(props) {
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchTerm(value);
+                            }}
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
                             onConfirm={inviteUser}
