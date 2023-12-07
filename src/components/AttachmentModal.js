@@ -116,7 +116,6 @@ const defaultProps = {
 function AttachmentModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const onModalHideCallbackRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -373,7 +372,7 @@ function AttachmentModal(props) {
                 icon: Expensicons.Camera,
                 text: props.translate('common.replace'),
                 onSelected: () => {
-                    onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
+                    Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
                     closeModal();
                 },
             });
@@ -421,10 +420,6 @@ function AttachmentModal(props) {
                 }}
                 onModalHide={(e) => {
                     props.onModalHide(e);
-                    if (onModalHideCallbackRef.current) {
-                        onModalHideCallbackRef.current();
-                    }
-
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
