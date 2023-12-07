@@ -138,6 +138,9 @@ type ReportActionBase = {
     isAttachment?: boolean;
     childRecentReceiptTransactionIDs?: Record<string, string>;
     reportID?: string;
+
+    /** We manually add this field while sorting to detect the end of the list */
+    isNewestReportAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
