@@ -173,6 +173,11 @@ function buildOnyxDataForMoneyRequest(
                 [iouAction.reportActionID]: iouAction,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `last_IOU_Action_Id`,
+            value: iouAction.reportActionID
+        },
     ];
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {

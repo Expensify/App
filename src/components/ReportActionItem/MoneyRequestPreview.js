@@ -384,6 +384,14 @@ function MoneyRequestPreview(props) {
     }
 
     if (props.chatReport.type === CONST.REPORT.TYPE.CHAT) {
+        if (props.action.reportActionID === props.lastIOUActionId && !_.isEmpty(props.iouReport)
+        ) {
+            const iouActions = {...ReportActionsUtils.getAllReportActions(props.reportID)}
+            const iouActionsArray = Object.entries(iouActions ?? {})
+                .filter(([key, reportAction]) => ReportActionsUtils.shouldReportActionBeVisible(reportAction, key))
+                .map((entry) => entry[1])
+            if (ReportUtils.excludeLastUnsettledIOUAction(ReportActionsUtils.getSortedReportActions(iouActionsArray), props.lastIOUActionId)) return null;
+        }
         return (<Text style={[styles.colorMuted]}> {getIOUMessage()}</Text>)
     }
 
@@ -429,5 +437,8 @@ export default compose(
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
         },
+        lastIOUActionId: {
+            key: 'last_IOU_Action_Id'
+        }
     }),
 )(MoneyRequestPreview);

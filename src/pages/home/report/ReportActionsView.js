@@ -103,8 +103,6 @@ function ReportActionsView(props) {
      */
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
-    const reportActionsWithoutUnsettledIOUAction = useMemo(() => excludeLastUnsettledIOUAction(props.reportActions, mostRecentIOUReportActionID), [mostRecentIOUReportActionID, props.reportActions])
-
     const openReportIfNecessary = () => {
         const createChatError = _.get(props.report, ['errorFields', 'createChat']);
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
@@ -258,7 +256,7 @@ function ReportActionsView(props) {
             <ReportActionsList
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={reportActionsWithoutUnsettledIOUAction}
+                sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
