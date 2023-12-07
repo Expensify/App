@@ -285,7 +285,7 @@ export default [
                     const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
                     Clipboard.setString(logMessage);
                 } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
-                    const submittedMessage = reportAction.message.reduce((acc, curr) => `${acc}${curr.text}`, '');
+                    const submittedMessage = _.reduce(reportAction.message, (acc, curr) => `${acc}${curr.text}`, '');
                     Clipboard.setString(submittedMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
