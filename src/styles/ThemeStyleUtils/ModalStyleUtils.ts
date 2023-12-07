@@ -2,7 +2,7 @@ import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
 import {type ThemeStyles} from '@styles/styles';
-import {type ThemeColors} from '@styles/themes/types';
+import {type ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
