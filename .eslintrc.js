@@ -23,22 +23,21 @@ const restrictedImportPaths = [
         name: '@styles/theme/Themes',
         importNames: ['default', 'defaultTheme'],
 
-        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.`',
+        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
     },
     {
         name: '@styles/styles',
         importNames: ['default', 'defaultStyles'],
-        message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.`',
+        message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.',
     },
     {
         name: '@styles/StyleUtils',
         importNames: ['default', 'DefaultStyleUtils'],
-
-        message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.`',
+        message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
     },
     {
-        name: ['@styles/illustrations/Illustrations'],
-        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
+        name: '@styles/illustrations/Illustrations',
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
 ];
 
@@ -49,11 +48,11 @@ const restrictedImportPatterns = [
     },
     {
         group: ['@styles/theme/themes/**/*'],
-        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.`',
+        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
     },
     {
-        group: ['@styles/illustrations/themes/*'],
-        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
+        group: ['@styles/illustrations/themes/**/*'],
+        message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
 ];
 
