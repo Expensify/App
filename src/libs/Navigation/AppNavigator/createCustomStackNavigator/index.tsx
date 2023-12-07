@@ -1,4 +1,4 @@
-import {createNavigatorFactory, ParamListBase, RouterFactory, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
+import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -29,8 +29,8 @@ function reduceReportRoutes(routes: Routes): Routes {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CustomRouterFactory = any;
 
-function ResponsiveStackNavigatorFactory(customRouter: CustomRouterFactory) {
-    function ResponsiveStackNavigator<ParamList extends ParamListBase>(props: ResponsiveStackNavigatorProps) {
+function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(customRouter: CustomRouterFactory) {
+    function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         const {isSmallScreenWidth} = useWindowDimensions();
 
         const isSmallScreenWidthRef = useRef<boolean>(isSmallScreenWidth);
@@ -77,6 +77,14 @@ function ResponsiveStackNavigatorFactory(customRouter: CustomRouterFactory) {
     return ResponsiveStackNavigator;
 }
 
-export default <ParamList extends ParamListBase>(customRouter: CustomRouterFactory) =>
+function createCustomStackNavigator<ParamList extends ParamListBase>(customRouter: CustomRouterFactory) {
+
+    const responsiveStackNavigator = ResponsiveStackNavigatorFactory<ParamList>(customRouter);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, any>(ResponsiveStackNavigatorFactory(customRouter))<ParamList>();
+    const navigatorFactory = createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, any>(responsiveStackNavigator);
+    return navigatorFactory<ParamList>();
+}
+
+
+export default createCustomStackNavigator;
