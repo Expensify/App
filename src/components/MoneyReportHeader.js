@@ -186,7 +186,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
                 {shouldShowNextSteps && (
-                    <View style={[styles.ph5, styles.pb2]}>
+                    <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
                 )}
