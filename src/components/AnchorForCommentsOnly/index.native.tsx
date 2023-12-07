@@ -3,14 +3,15 @@ import {Linking} from 'react-native';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 import type AnchorForCommentsOnlyProps from './types';
 
-function AnchorForCommentsOnly(props: AnchorForCommentsOnlyProps) {
-    const onPress = () => (typeof props.onPress === 'function' ? props.onPress() : Linking.openURL(props.href ?? ''));
+function AnchorForCommentsOnly({onPress, href, ...props}: AnchorForCommentsOnlyProps) {
+    const onLinkPress = () => (typeof onPress === 'function' ? onPress() : Linking.openURL(href ?? ''));
 
     return (
         <BaseAnchorForCommentsOnly
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onPress={onPress}
+            href={href}
+            onPress={onLinkPress}
         />
     );
 }
