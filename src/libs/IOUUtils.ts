@@ -57,8 +57,6 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
             iouReportUpdate.managerID = iouReport.ownerAccountID;
             iouReportUpdate.total = -iouReportUpdate.total;
         }
-
-        iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
     }
 
     return iouReportUpdate;
