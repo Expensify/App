@@ -9,8 +9,8 @@ import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html'
 import DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
-import colors from './colors';
 import {defaultTheme} from './theme';
+import colors from './theme/colors';
 import {type ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';

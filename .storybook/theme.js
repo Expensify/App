@@ -1,5 +1,5 @@
 import {create} from '@storybook/theming';
-import colors from '../src/styles/colors';
+import colors from '../src/styles/theme/colors';
 
 export default create({
     brandTitle: 'New Expensify UI Docs',
