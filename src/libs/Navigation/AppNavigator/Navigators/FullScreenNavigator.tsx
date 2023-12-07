@@ -1,16 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import createCustomStackNavigator from '@libs/Navigation/AppNavigator/createCustomStackNavigator';
-import CustomFullScreenRouter from '@libs/Navigation/AppNavigator/createCustomStackNavigator/CustomFullScreenRouter';
+
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
+import createCustomFullScreenNavigator from '@libs/Navigation/AppNavigator/createCustomFullScreenNavigator';
 
 const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;
 
-const RootStack = createCustomStackNavigator(CustomFullScreenRouter);
+const RootStack = createCustomFullScreenNavigator();
 
 function FullScreenNavigator() {
     const styles = useThemeStyles();

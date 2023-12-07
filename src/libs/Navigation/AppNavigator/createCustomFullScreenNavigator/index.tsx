@@ -2,10 +2,11 @@ import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigati
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import NAVIGATORS from '@src/NAVIGATORS';
-import CustomRouter from './CustomRouter';
+import SCREENS from '@src/SCREENS';
+import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
+// TODO: Extract to utils with ./createCustomStackNavigator/index.tsx
 type Routes = StackNavigationState<ParamListBase>['routes'];
 function reduceReportRoutes(routes: Routes): Routes {
     const result: Routes = [];
@@ -13,7 +14,7 @@ function reduceReportRoutes(routes: Routes): Routes {
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
-        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        if (route.name === SCREENS.SETTINGS_CENTRAL_PANE) {
             // Remove all report routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);
@@ -40,7 +41,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         StackActionHelpers<ParamListBase>,
         StackNavigationOptions,
         StackNavigationEventMap
-    >(CustomRouter, {
+    >(CustomFullScreenRouter, {
         children: props.children,
         screenOptions: props.screenOptions,
         initialRouteName: props.initialRouteName,

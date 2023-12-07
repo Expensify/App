@@ -33,7 +33,6 @@ import SCREENS from '@src/SCREENS';
 import * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import createCustomStackNavigator from './createCustomStackNavigator';
-import CustomRouter from './createCustomStackNavigator/CustomRouter';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
@@ -115,7 +114,7 @@ Onyx.connect({
     },
 });
 
-const RootStack = createCustomStackNavigator<AuthScreensParamList>(CustomRouter);
+const RootStack = createCustomStackNavigator<AuthScreensParamList>();
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx

@@ -1,50 +1,42 @@
-import {createNavigatorFactory, ParamListBase, RouterFactory, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
+import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type CustomRouterFactory<ParamList extends ParamListBase> = RouterFactory<StackNavigationState<ParamList>, any, ResponsiveStackNavigatorRouterOptions>;
+function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
+    const {isSmallScreenWidth} = useWindowDimensions();
 
-function ResponsiveStackNavigatorFactory<ParamList extends ParamListBase>(customRouter: CustomRouterFactory<ParamList>) {
-    function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-        const {isSmallScreenWidth} = useWindowDimensions();
+    const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
 
-        const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
+    isSmallScreenWidthRef.current = isSmallScreenWidth;
 
-        isSmallScreenWidthRef.current = isSmallScreenWidth;
+    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+        StackNavigationState<ParamListBase>,
+        ResponsiveStackNavigatorRouterOptions,
+        StackActionHelpers<ParamListBase>,
+        StackNavigationOptions,
+        StackNavigationEventMap
+    >(CustomRouter, {
+        children: props.children,
+        screenOptions: props.screenOptions,
+        initialRouteName: props.initialRouteName,
+    });
 
-        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-            StackNavigationState<ParamListBase>,
-            ResponsiveStackNavigatorRouterOptions,
-            StackActionHelpers<ParamListBase>,
-            StackNavigationOptions,
-            StackNavigationEventMap
-        >(customRouter, {
-            children: props.children,
-            screenOptions: props.screenOptions,
-            initialRouteName: props.initialRouteName,
-        });
-
-        return (
-            <NavigationContent>
-                <StackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={state}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-        );
-    }
-
-    ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
-    return ResponsiveStackNavigator;
+    return (
+        <NavigationContent>
+            <StackView
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+            />
+        </NavigationContent>
+    );
 }
 
-export default <ParamList extends ParamListBase>(customRouter: CustomRouterFactory<ParamList>) =>
-    createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, (props: ResponsiveStackNavigatorProps) => React.JSX.Element>(
-        ResponsiveStackNavigatorFactory(customRouter),
-    )();
+ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
+
+export default createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof ResponsiveStackNavigator>(ResponsiveStackNavigator);
