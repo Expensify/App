@@ -1970,10 +1970,10 @@ export default {
             body1: `You gotta send money to make money! Send money to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Refer a friend, ',
+            buttonText1: 'Invite a friend, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Refer a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Send your Expensify referral link to a friend or anyone else you know who spends too much time on expenses. When they start an annual subscription, you'll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Invite a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body1: `Send your Expensify invite link to a friend or anyone else you know who spends too much time on expenses. When they start an annual subscription, you'll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
@@ -1981,7 +1981,7 @@ export default {
             body1: 'If you know anyone who’s spending too much time on expenses (literally anyone – your neighbor, your boss, your friend in accounting), send them your Expensify referral link:',
             body2: `When they start an annual subscription, you’ll get $${CONST.REFERRAL_PROGRAM.REVENUE}. Easy as that.`,
         },
-        copyReferralLink: 'Copy referral link',
+        copyReferralLink: 'Copy invite link',
     },
     violations: {
         allTagLevelsRequired: 'dummy.violations.allTagLevelsRequired',
