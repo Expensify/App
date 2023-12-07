@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
 
 const propTypes = {
@@ -53,7 +54,7 @@ function BaseOptionsList({
     contentContainerStyles,
     sectionHeaderStyle,
     showScrollIndicator,
-    listContainerStyles,
+    listContainerStyles: listContainerStylesProp,
     shouldDisableRowInnerPadding,
     shouldPreventDefaultFocusOnSelectRow,
     disableFocusOptions,
@@ -70,11 +71,14 @@ function BaseOptionsList({
     isLoadingNewOptions,
     nestedScrollEnabled,
     bounces,
+    renderFooterContent,
 }) {
     const styles = useThemeStyles();
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
     const didLayout = useRef(false);
+
+    const listContainerStyles = listContainerStylesProp || [styles.flex1];
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -281,11 +285,12 @@ function BaseOptionsList({
                         renderSectionHeader={renderSectionHeader}
                         extraData={focusedIndex}
                         initialNumToRender={12}
-                        maxToRenderPerBatch={5}
+                        maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT}
                         windowSize={5}
                         viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
+                        ListFooterComponent={renderFooterContent}
                     />
                 </>
             )}
