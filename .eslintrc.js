@@ -36,6 +36,10 @@ const restrictedImportPaths = [
 
         message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.`',
     },
+    {
+        name: ['@styles/illustrations/Illustrations'],
+        message: 'Do not import illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -46,6 +50,10 @@ const restrictedImportPatterns = [
     {
         group: ['@styles/theme/themes/**/*'],
         message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.`',
+    },
+    {
+        group: ['@styles/illustrations/themes/*'],
+        message: 'Do not import illustrations directly. Please use the `useThemeIllustrations` hook instead.`',
     },
 ];
 
