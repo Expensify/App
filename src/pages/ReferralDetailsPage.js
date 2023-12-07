@@ -1,25 +1,23 @@
 import PropTypes from 'prop-types';
-import React, {useRef} from 'react';
+import React from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import ContextMenuItem from '@components/ContextMenuItem';
-import HeaderPageLayout from '@components/HeaderPageLayout';
+import Button from '@components/Button';
+import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PaymentHands} from '@components/Icon/Illustrations';
-import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useSingleExecution from '@hooks/useSingleExecution';
-import Clipboard from '@libs/Clipboard';
-import useTheme from '@styles/themes/useTheme';
+import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import {CONTEXT_MENU_TYPES} from './home/report/ContextMenu/ContextMenuActions';
-import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -42,11 +40,8 @@ const defaultProps = {
 };
 
 function ReferralDetailsPage({route, account}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const popoverAnchor = useRef(null);
-    const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
 
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
@@ -54,50 +49,71 @@ function ReferralDetailsPage({route, account}) {
     }
 
     const contentHeader = translate(`referralProgram.${contentType}.header`);
-    const contentBody = translate(`referralProgram.${contentType}.body`);
+    const contentBody = translate(`referralProgram.${contentType}.body1`);
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
+    const shouldShowBody2 = isShareCode;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
-    const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(account.primaryLogin)}`;
+
+    function generateReferralURL(email) {
+        return `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(email)}`;
+    }
+
+    function getFallbackRoute() {
+        const fallbackRoutes = {
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST),
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SEND),
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: ROUTES.NEW_CHAT,
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: ROUTES.SEARCH,
+        };
+
+        return fallbackRoutes[contentType];
+    }
 
     return (
-        <HeaderPageLayout
-            title={translate('common.referral')}
-            headerContent={
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={ReferralDetailsPage.displayName}
+        >
+            <HeaderWithBackButton
+                title={translate('common.referral')}
+                onBackButtonPress={() => Navigation.goBack(getFallbackRoute())}
+            />
+            <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.flex1]}>
                 <Icon
                     src={PaymentHands}
                     width={178}
                     height={232}
                 />
-            }
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-        >
-            <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mb3, styles.mt8, styles.ph4]}>{contentHeader}</Text>
-            <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6, styles.ph4]}>{contentBody}</Text>
-
-            {shouldShowClipboard && (
-                <ContextMenuItem
-                    isAnonymousAction
-                    text={translate('referralProgram.copyReferralLink')}
-                    icon={Expensicons.Copy}
-                    successIcon={Expensicons.Checkmark}
-                    successText={translate('qrCodes.copied')}
-                    onPress={() => Clipboard.setString(referralLink)}
+                <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mb3, styles.mt8]}>{contentHeader}</Text>
+                <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>{contentBody}</Text>
+                {shouldShowClipboard && (
+                    <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
+                        <CopyTextToClipboard
+                            text={translate('referralProgram.copyReferralLink')}
+                            textStyles={[styles.colorMuted]}
+                            urlToCopy={generateReferralURL(account.primaryLogin)}
+                        />
+                    </View>
+                )}
+                {shouldShowBody2 && (
+                    <Text style={[styles.textAlignCenter, styles.inlineSystemMessage, styles.mb6]}>
+                        {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.body2`)}
+                    </Text>
+                )}
+                <TextLink href={CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK}>{translate('requestorStep.learnMore')}</TextLink>
+            </View>
+            <FixedFooter>
+                <Button
+                    success
+                    style={[styles.w100]}
+                    text={translate('common.buttonConfirm')}
+                    onPress={() => Navigation.goBack(getFallbackRoute())}
+                    pressOnEnter
+                    enterKeyEventListenerPriority={1}
                 />
-            )}
-
-            <MenuItem
-                ref={popoverAnchor}
-                title={translate('requestorStep.learnMore')}
-                icon={Expensicons.QuestionMark}
-                shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
-                disabled={isExecuting}
-                shouldBlockSelection
-                onPress={singleExecution(() => Link.openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
-                onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
-            />
-        </HeaderPageLayout>
+            </FixedFooter>
+        </ScreenWrapper>
     );
 }
 
