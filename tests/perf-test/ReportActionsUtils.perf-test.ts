@@ -58,7 +58,7 @@ const runs = CONST.PERFORMANCE_TESTS.RUNS;
  * More on the measureFunction API:
  * @see https://callstack.github.io/reassure/docs/api#measurefunction-function
  */
-test('getLastVisibleAction on 10k reportActions', async () => {
+test('[ReportActionsUtils] getLastVisibleAction on 10k reportActions', async () => {
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
@@ -67,7 +67,7 @@ test('getLastVisibleAction on 10k reportActions', async () => {
     await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId), {runs});
 });
 
-test('getLastVisibleAction on 10k reportActions with actionsToMerge', async () => {
+test('[ReportActionsUtils] getLastVisibleAction on 10k reportActions with actionsToMerge', async () => {
     const parentReportActionId = '1';
     const fakeParentAction = reportActions[parentReportActionId];
     const actionsToMerge = {
@@ -96,7 +96,7 @@ test('getLastVisibleAction on 10k reportActions with actionsToMerge', async () =
     await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, actionsToMerge), {runs});
 });
 
-test('getMostRecentIOURequestActionID on 10k ReportActions', async () => {
+test('[ReportActionsUtils] getMostRecentIOURequestActionID on 10k ReportActions', async () => {
     const reportActionsArray = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
     await Onyx.multiSet({
         ...mockedReportActionsMap,
@@ -105,7 +105,7 @@ test('getMostRecentIOURequestActionID on 10k ReportActions', async () => {
     await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray), {runs});
 });
 
-test('getLastVisibleMessage on 10k ReportActions', async () => {
+test('[ReportActionsUtils] getLastVisibleMessage on 10k ReportActions', async () => {
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
@@ -113,7 +113,7 @@ test('getLastVisibleMessage on 10k ReportActions', async () => {
     await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId), {runs});
 });
 
-test('getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () => {
+test('[ReportActionsUtils] getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () => {
     const parentReportActionId = '1';
     const fakeParentAction = reportActions[parentReportActionId];
     const actionsToMerge = {
@@ -142,7 +142,7 @@ test('getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () 
     await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId, actionsToMerge), {runs});
 });
 
-test('getSortedReportActionsForDisplay on 10k ReportActions', async () => {
+test('[ReportActionsUtils] getSortedReportActionsForDisplay on 10k ReportActions', async () => {
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
@@ -150,7 +150,7 @@ test('getSortedReportActionsForDisplay on 10k ReportActions', async () => {
     await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions), {runs});
 });
 
-test('getLastClosedReportAction on 10k ReportActions', async () => {
+test('[ReportActionsUtils] getLastClosedReportAction on 10k ReportActions', async () => {
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
@@ -158,7 +158,7 @@ test('getLastClosedReportAction on 10k ReportActions', async () => {
     await measureFunction(() => ReportActionsUtils.getLastClosedReportAction(reportActions), {runs});
 });
 
-test('getMostRecentReportActionLastModified', async () => {
+test('[ReportActionsUtils] getMostRecentReportActionLastModified', async () => {
     await Onyx.multiSet({
         ...mockedReportActionsMap,
     });
