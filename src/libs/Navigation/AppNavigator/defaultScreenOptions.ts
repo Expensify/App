@@ -1,4 +1,6 @@
-const defaultScreenOptions = {
+import {StackNavigationOptions} from '@react-navigation/stack';
+
+const defaultScreenOptions: StackNavigationOptions = {
     cardStyle: {
         overflow: 'visible',
         flex: 1,
