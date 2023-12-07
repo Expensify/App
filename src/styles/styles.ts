@@ -2819,7 +2819,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonHoveredBG,
-            borderColor: theme.textReversed,
+            borderColor: theme.appBG,
             borderRadius: 14,
             borderWidth: 3,
             color: theme.textReversed,
