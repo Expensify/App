@@ -20,7 +20,6 @@ import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
-import defaultTheme from './theme/themes/dark';
 import {type ThemeColors} from './theme/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
@@ -3997,8 +3996,5 @@ const styles = (theme: ThemeColors) =>
 
 type ThemeStyles = ReturnType<typeof styles>;
 
-const stylesGenerator = styles;
-const defaultStyles = styles(defaultTheme);
-
-export default defaultStyles;
-export {stylesGenerator, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
+export default styles;
+export {type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
