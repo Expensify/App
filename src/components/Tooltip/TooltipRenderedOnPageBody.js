@@ -3,8 +3,8 @@ import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'reac
 import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
+import useStyleUtils from '@hooks/useStyleUtils';
 import Log from '@libs/Log';
-import useStyleUtils from '@styles/useStyleUtils';
 
 const propTypes = {
     /** Window width */

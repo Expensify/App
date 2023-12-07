@@ -1,9 +1,9 @@
 import React, {ReactElement, useCallback} from 'react';
 import {View} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
 import type {SimpleEmoji} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getStyledTextArray from '@libs/GetStyledTextArray';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Text from './Text';

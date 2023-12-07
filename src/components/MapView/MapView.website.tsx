@@ -9,8 +9,8 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState
 import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@styles/theme/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';

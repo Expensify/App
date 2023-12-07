@@ -5,8 +5,8 @@ import {Image, View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@styles/theme/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 

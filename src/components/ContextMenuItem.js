@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useImperativeHandle} from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';

@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import useTheme from '@styles/theme/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';

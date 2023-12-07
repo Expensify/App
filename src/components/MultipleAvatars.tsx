@@ -1,9 +1,9 @@
 import React, {memo, useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import useTheme from '@styles/theme/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
