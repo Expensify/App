@@ -1620,7 +1620,7 @@ function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict
     if (isMoneyRequestReport(report)) {
         moneyRequestReport = report;
     }
-    if (allAvailableReports && report?.hasOutstandingIOU && report?.iouReportID) {
+    if (allAvailableReports && report?.iouReportID) {
         moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
