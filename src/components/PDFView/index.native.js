@@ -11,7 +11,6 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as StyleUtils from '@styles/StyleUtils';
-import * as CachedPDFPaths from '@userActions/CachedPDFPaths';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
@@ -120,8 +119,6 @@ class PDFView extends Component {
      * indicator.
      */
     finishPDFLoad(_, path) {
-        console.log(path)
-        // CachedPDFPaths.save(path);
         this.setState({
             shouldRequestPassword: false,
             shouldShowLoadingIndicator: false,
