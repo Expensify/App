@@ -1,15 +1,22 @@
 import React from 'react';
 import {Text, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
-import {Report} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Policy, Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
 
-type AnonymousReportFooterProps = {
+type AnonymousReportFooterPropsWithOnyx = {
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
+};
+
+type AnonymousReportFooterProps = AnonymousReportFooterPropsWithOnyx & {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
@@ -17,7 +24,7 @@ type AnonymousReportFooterProps = {
     isSmallSizeLayout?: boolean;
 };
 
-function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousReportFooterProps) {
+function AnonymousReportFooter({isSmallSizeLayout = false, report, policy = {}}: AnonymousReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -28,6 +35,7 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
                     report={report}
                     isAnonymous
                     shouldEnableDetailPageNavigation
+                    policy={policy}
                 />
             </View>
             <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(isSmallSizeLayout)}>
@@ -52,4 +60,8 @@ function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousRep
 
 AnonymousReportFooter.displayName = 'AnonymousReportFooter';
 
-export default AnonymousReportFooter;
+export default withOnyx<AnonymousReportFooterProps, AnonymousReportFooterPropsWithOnyx>({
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
+    },
+})(AnonymousReportFooter);
