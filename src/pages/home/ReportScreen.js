@@ -15,10 +15,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useWindowFocusEvent from '@hooks/useWindowFocusEvent';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -281,8 +281,8 @@ function ReportScreen({
         [route],
     );
 
-    // Clear notifications for the current report when the window is focused (web/desktop only)
-    useWindowFocusEvent(
+    // Clear notifications for the current report when the app is focused
+    useAppFocusEvent(
         useCallback(() => {
             // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
             if (!isTopMostReportId) {

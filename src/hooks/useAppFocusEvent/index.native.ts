@@ -1,8 +1,8 @@
 import {useEffect} from 'react';
 import {AppState} from 'react-native';
-import {UseWindowFocusEvent, UseWindowFocusEventCallback} from './types';
+import {UseAppFocusEvent, UseAppFocusEventCallback} from './types';
 
-const useWindowFocusEvent: UseWindowFocusEvent = (callback: UseWindowFocusEventCallback) => {
+const useAppFocusEvent: UseAppFocusEvent = (callback: UseAppFocusEventCallback) => {
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (appState) => {
             if (appState !== 'active') {
@@ -17,4 +17,4 @@ const useWindowFocusEvent: UseWindowFocusEvent = (callback: UseWindowFocusEventC
     }, [callback]);
 };
 
-export default useWindowFocusEvent;
+export default useAppFocusEvent;
