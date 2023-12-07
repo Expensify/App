@@ -259,9 +259,7 @@ function MoneyRequestParticipantsSelector({
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        if (text.length) {
-            Report.searchInServer(text);
-        }
+        Report.searchInServer(text);
         setSearchTerm(text);
     }, []);
 
@@ -320,6 +318,8 @@ function MoneyRequestParticipantsSelector({
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
+                shouldShowReferralCTA
+                referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
                 footerContent={isAllowedToSplit && footerContent}

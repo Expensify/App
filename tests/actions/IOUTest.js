@@ -1115,9 +1115,7 @@ describe('actions/IOU', () => {
                                     expect(carlosTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(julesTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(vitTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(groupTransaction.merchant).toBe(
-                                        `Split bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`,
-                                    );
+                                    expect(groupTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
 
                                     expect(carlosTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
                                     expect(julesTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
@@ -1478,7 +1476,7 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1613,7 +1611,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     fetch.fail();
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1757,7 +1755,7 @@ describe('actions/IOU', () => {
                                                     }),
                                                 ]),
                                                 originalMessage: expect.objectContaining({
-                                                    amount,
+                                                    amount: -amount,
                                                     paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
                                                     type: 'pay',
                                                 }),

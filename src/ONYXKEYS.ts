@@ -84,6 +84,9 @@ const ONYXKEYS = {
     /** Contains all the users settings for the Settings page and sub pages */
     USER: 'user',
 
+    /** Contains latitude and longitude of user's last known location */
+    USER_LOCATION: 'userLocation',
+
     /** Contains metadata (partner, login, validation date) for all of the user's logins */
     LOGIN_LIST: 'loginList',
 
@@ -148,6 +151,12 @@ const ONYXKEYS = {
 
     /** The user's cash card and imported cards (including the Expensify Card) */
     CARD_LIST: 'cardList',
+
+    /** Whether the user has tried focus mode yet */
+    NVP_TRY_FOCUS_MODE: 'tryFocusMode',
+
+    /** Boolean flag used to display the focus mode notification */
+    FOCUS_MODE_NOTIFICATION: 'focusModeNotification',
 
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
@@ -246,6 +255,7 @@ const ONYXKEYS = {
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
+        WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
         // REPORT_METADATA is a perf optimization used to hold loading states (isLoadingInitialReportActions, isLoadingOlderReportActions, isLoadingNewerReportActions).
         // A lot of components are connected to the Report entity and do not care about the actions. Setting the loading state
@@ -261,6 +271,10 @@ const ONYXKEYS = {
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+        TRANSACTION_VIOLATIONS: 'transactionViolations_',
+
+        // Holds temporary transactions used during the creation and edit flow
+        TRANSACTION_DRAFT: 'transactionsDraft_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
@@ -334,6 +348,8 @@ const ONYXKEYS = {
         REPORT_PHYSICAL_CARD_FORM_DRAFT: 'requestPhysicalCardFormDraft',
         REPORT_VIRTUAL_CARD_FRAUD: 'reportVirtualCardFraudForm',
         REPORT_VIRTUAL_CARD_FRAUD_DRAFT: 'reportVirtualCardFraudFormDraft',
+        GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
+        GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
     },
 } as const;
 
@@ -366,12 +382,15 @@ type OnyxValues = {
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.COUNTRY]: string;
     [ONYXKEYS.USER]: OnyxTypes.User;
+    [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: Record<string, OnyxTypes.Login>;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
+    [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
+    [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
@@ -379,7 +398,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
-    [ONYXKEYS.NVP_PREFERRED_LOCALE]: ValueOf<typeof CONST.LOCALES>;
+    [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
@@ -397,6 +416,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
+    [ONYXKEYS.IS_LOADING_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
@@ -409,6 +429,7 @@ type OnyxValues = {
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
+    [ONYXKEYS.DEMO_INFO]: OnyxTypes.DemoInfo;
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
@@ -500,6 +521,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT]: OnyxTypes.Form | undefined;
 };
 
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;

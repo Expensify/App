@@ -14,7 +14,6 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -22,9 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Task title and description data */
     task: PropTypes.shape({
         title: PropTypes.string,
@@ -35,7 +31,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {},
 };
 
@@ -75,10 +70,6 @@ function NewTaskDetailsPage(props) {
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -109,6 +100,7 @@ function NewTaskDetailsPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
+                        autoCorrect={false}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -121,9 +113,7 @@ function NewTaskDetailsPage(props) {
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
                         defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
-                        inputStyle={[styles.verticalAlignTop]}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
@@ -139,9 +129,6 @@ NewTaskDetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

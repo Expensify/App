@@ -3,7 +3,7 @@ import {ActionListContext} from '@pages/home/ReportScreenContext';
 import ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const flatListRef = useContext(ActionListContext);
+    const {flatListRef, setScrollPosition} = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index.
@@ -24,8 +24,10 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
-        flatListRef.current.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef]);
+        setScrollPosition({offset: 0});
+
+        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
+    }, [flatListRef, setScrollPosition]);
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom};
 }
