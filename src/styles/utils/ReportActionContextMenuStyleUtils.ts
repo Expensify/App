@@ -1,7 +1,7 @@
 import {ViewStyle} from 'react-native';
-import {type ThemeStyles} from './styles';
-import {type ThemeColors} from './themes/types';
-import variables from './variables';
+import {type ThemeStyles} from '@styles/styles';
+import {type ThemeColors} from '@styles/themes/types';
+import variables from '@styles/variables';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
@@ -27,18 +27,20 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
  * @param isSmallScreenWidth
  * @param theme
  */
-function getReportActionContextMenuStyles(styles: ThemeStyles, isMini: boolean, isSmallScreenWidth: boolean, theme: ThemeColors): ViewStyle[] {
-    if (isMini) {
-        return getMiniWrapperStyle(theme, styles);
-    }
+const createReportActionContextMenuStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
+    getReportActionContextMenuStyles: (isMini: boolean, isSmallScreenWidth: boolean): ViewStyle[] => {
+        if (isMini) {
+            return getMiniWrapperStyle(theme, styles);
+        }
 
-    return [
-        styles.flexColumn,
-        getDefaultWrapperStyle(theme),
+        return [
+            styles.flexColumn,
+            getDefaultWrapperStyle(theme),
 
-        // Small screens use a bottom-docked modal that already has vertical padding.
-        isSmallScreenWidth ? {} : styles.pv3,
-    ];
-}
+            // Small screens use a bottom-docked modal that already has vertical padding.
+            isSmallScreenWidth ? {} : styles.pv3,
+        ];
+    },
+});
 
-export default getReportActionContextMenuStyles;
+export default createReportActionContextMenuStyleUtils;
