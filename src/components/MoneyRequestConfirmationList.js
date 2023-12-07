@@ -242,10 +242,7 @@ function MoneyRequestConfirmationList(props) {
     const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
     // A flag for showing tax rate
-    const shouldShowTaxRate = true;
-
-    // A flag for showing tax rate
-    const shouldShowTaxAmount = true;
+    const shouldShowTax = props.isPolicyExpenseChat && props.policy.isTaxTrackingEnabled;
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
@@ -727,7 +724,7 @@ function MoneyRequestConfirmationList(props) {
                         />
                     )}
 
-                    {shouldShowTaxRate && (
+                    {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title="UK_ZERO RATED (0%) * Default"
@@ -742,7 +739,7 @@ function MoneyRequestConfirmationList(props) {
                         />
                     )}
 
-                    {shouldShowTaxAmount && (
+                    {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title="€ 0.00"
