@@ -1,11 +1,11 @@
 import {TextStyle, View, ViewStyle} from 'react-native';
 import fontFamily from '@styles/fontFamily';
 import {type ThemeStyles} from '@styles/styles';
-import {type ThemeColors} from '@styles/themes/types';
-import roundToNearestMultipleOfFour from '@styles/ThemeStyleUtils/roundToNearestMultipleOfFour';
+import {type ThemeColors} from '@styles/theme/types';
 import positioning from '@styles/utilities/positioning';
 import spacing from '@styles/utilities/spacing';
 import variables from '@styles/variables';
+import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
  * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */

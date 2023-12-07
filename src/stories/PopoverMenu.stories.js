@@ -3,6 +3,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PopoverMenu from '@components/PopoverMenu';
+// eslint-disable-next-line no-restricted-imports
 import themeColors from '@styles/theme/themes/dark';
 
 /**
