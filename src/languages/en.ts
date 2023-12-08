@@ -1980,7 +1980,7 @@ export default {
             header: `Invite a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `Be the first to invite a friend (or anyone else) to Expensify and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer. Share your invite link by text, email, or post it on social media!`,
         },
-        copyReferralLink: 'Copy referral link',
+        copyReferralLink: 'Copy invite link',
     },
     violations: {
         allTagLevelsRequired: 'dummy.violations.allTagLevelsRequired',
