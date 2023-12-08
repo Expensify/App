@@ -1,8 +1,7 @@
-import lodashGet from 'lodash/get';
+import {get} from 'lodash';
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -33,7 +32,7 @@ function TaskHeaderActionButton({report, session, policy}: TaskHeaderActionButto
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!Task.canModifyTask(report, session?.accountID ?? 0, lodashGet(policy, 'role', ''))}
+                isDisabled={!Task.canModifyTask(report, session?.accountID ?? 0, get(policy, 'role', ''))}
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}
