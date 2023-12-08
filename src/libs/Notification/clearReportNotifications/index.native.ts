@@ -1,6 +1,7 @@
 import Airship, {PushPayload} from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import {NotificationData} from '@libs/Notification/PushNotification/NotificationType';
+import CONST from '@src/CONST';
 import ClearReportNotifications from './types';
 
 function parseNotificationAndReportIDs(pushPayload: PushPayload) {
@@ -18,15 +19,20 @@ function parseNotificationAndReportIDs(pushPayload: PushPayload) {
 const clearReportNotifications: ClearReportNotifications = (reportID: string) => {
     Log.info('[PushNotification] clearing report notifications', false, {reportID});
 
-    Airship.push.getActiveNotifications().then((pushPayloads) => {
-        const reportNotificationIDs = pushPayloads
-            .map(parseNotificationAndReportIDs)
-            .filter((notification) => notification.reportID === reportID)
-            .map((notification) => notification.notificationID);
+    Airship.push
+        .getActiveNotifications()
+        .then((pushPayloads) => {
+            const reportNotificationIDs = pushPayloads
+                .map(parseNotificationAndReportIDs)
+                .filter((notification) => notification.reportID === reportID)
+                .map((notification) => notification.notificationID);
 
-        Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
-        reportNotificationIDs.forEach((notificationID) => notificationID && Airship.push.clearNotification(notificationID));
-    });
+            Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
+            reportNotificationIDs.forEach((notificationID) => notificationID && Airship.push.clearNotification(notificationID));
+        })
+        .catch((error) => {
+            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
+        });
 };
 
 export default clearReportNotifications;
