@@ -19,14 +19,14 @@ import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
 import StepPropTypes from './StepPropTypes';
@@ -166,7 +166,12 @@ function BankAccountStep(props) {
 
                             <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
                                 {props.translate('bankAccount.validateAccountError.phrase1')}
-                                <TextLink fontSize={variables.fontSizeLabel} onPress={Session.signOutAndRedirectToSignIn}>{props.translate('bankAccount.validateAccountError.phrase2')}</TextLink>
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={Session.signOutAndRedirectToSignIn}
+                                >
+                                    {props.translate('bankAccount.validateAccountError.phrase2')}
+                                </TextLink>
                                 .
                             </Text>
                         </View>
