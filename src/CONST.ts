@@ -697,7 +697,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     THEME: {
-        DEFAULT: 'dark',
+        DEFAULT: 'system',
         LIGHT: 'light',
         DARK: 'dark',
         SYSTEM: 'system',
