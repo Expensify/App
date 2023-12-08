@@ -342,6 +342,7 @@
 				7E666D03089C35260C905B4A /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
+				7FD73CA32B23CE9500420AF3 /* Embed Foundation Extensions */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
@@ -349,7 +350,6 @@
 				5259EE1448507A682C02026F /* [CP] Copy Pods Resources */,
 				5E34288ECB69FCFA24851234 /* [CP-User] [RNFB] Core Configuration */,
 				E10553ABAB7762D41AC85C09 /* [CP-User] [RNFB] Crashlytics Configuration */,
-				7FD73CA32B23CE9500420AF3 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
