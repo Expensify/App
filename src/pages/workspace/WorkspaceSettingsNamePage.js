@@ -15,7 +15,7 @@ import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +36,7 @@ const defaultProps = {
 function WorkSpaceSettingsNamePage({policy, isLoadingReportData}) {
     const {translate} = useLocalize();
 
+    const styles = useThemeStyles();
     const focusTimeoutRef = useRef();
 
     const inputRef = useRef();
@@ -89,6 +90,7 @@ function WorkSpaceSettingsNamePage({policy, isLoadingReportData}) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={WorkSpaceSettingsNamePage.displayName}
+            shouldEnableMaxHeight
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
@@ -106,6 +108,8 @@ function WorkSpaceSettingsNamePage({policy, isLoadingReportData}) {
                     onSubmit={submit}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldValidateOnBlur
+                    shouldValidateOnChange
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper
