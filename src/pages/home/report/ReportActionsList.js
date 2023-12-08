@@ -15,7 +15,6 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
-import getPlatform from '@libs/getPlatform';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -121,9 +120,6 @@ function isMessageUnread(message, lastReadTime) {
     return Boolean(message && lastReadTime && message.created && lastReadTime < message.created);
 }
 
-const platform = getPlatform();
-const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
-
 function ReportActionsList({
     report,
     isLoadingInitialReportActions,
@@ -162,7 +158,7 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
-    const hasFocusedOnUnreadMessage = useRef(false);
+    const isUnreadMessageFocused = useRef(false);
 
     const sortedVisibleReportActions = _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors);
     const lastActionIndex = lodashGet(sortedVisibleReportActions, [0, 'reportActionID']);
@@ -295,41 +291,40 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report.reportID]);
 
+    /**
+     * Check if the new floating message counter needs to be shown/hidden.
+     * @returns {boolean}
+     */
     const showFloatingMessageCounter = () => {
-        const hasCurrentUnreadAndFloatingMessageIsHidden = !isFloatingMessageCounterVisible && !!currentUnreadMarker;
-        const isFocusOutsideUnreadMessage = isFloatingMessageCounterVisible && !hasFocusedOnUnreadMessage.current;
+        const hasUnreadMessageAndFloatingMessageIsHidden = !isFloatingMessageCounterVisible && !!currentUnreadMarker;
+        const isFocusOutsideUnreadMessage = isFloatingMessageCounterVisible && !isUnreadMessageFocused.current;
 
-        return hasCurrentUnreadAndFloatingMessageIsHidden || isFocusOutsideUnreadMessage;
+        if (isFloatingMessageCounterVisible && isUnreadMessageFocused.current) {
+            isUnreadMessageFocused.current = false;
+        }
+
+        return hasUnreadMessageAndFloatingMessageIsHidden || isFocusOutsideUnreadMessage;
     };
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD) {
-            setIsFloatingMessageCounterVisible(showFloatingMessageCounter());
+        const showMessageCounter = showFloatingMessageCounter();
 
-            if (isFloatingMessageCounterVisible && hasFocusedOnUnreadMessage.current) {
-                hasFocusedOnUnreadMessage.current = false;
-            }
-        }
+        setIsFloatingMessageCounterVisible(showMessageCounter);
 
-        if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible && !hasFocusedOnUnreadMessage.current) {
+        if (scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
                 Report.readNewestAction(report.reportID);
             }
-            setIsFloatingMessageCounterVisible(false);
         }
     };
 
     const trackVerticalScrolling = (event) => {
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         onScroll(event);
-
-        if (isNative) {
-            handleUnreadFloatingButton();
-        }
     };
 
     const getScrollIndex = () => {
@@ -342,7 +337,7 @@ function ReportActionsList({
     const scrollToUnreadMessageAndMarkReportAsRead = () => {
         const scrollIndex = getScrollIndex();
 
-        hasFocusedOnUnreadMessage.current = true;
+        isUnreadMessageFocused.current = true;
 
         reportScrollManager.scrollToIndex(scrollIndex, false);
         readActionSkipped.current = false;
