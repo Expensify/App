@@ -1879,8 +1879,8 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
  *
  */
 function hasRouteError(iouReportID) {
-    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return allTransactions.some((transaction) => TransactionUtils.hasRouteError(transaction));
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.some((transaction) => TransactionUtils.hasRouteError(transaction));
 }
 
 /**
