@@ -25,18 +25,25 @@ const propTypes = {
 
     /** Overlay content to display on top of animation */
     overlayContent: PropTypes.func,
+
+    /** When a screen is in the central pane, we have to use max height, to make it look good. */
+    // TODO: Merge this prop with shouldShowBackButtonOnlyOnMobile from HeaderWithBackButton. Can name it like isCentralPaneScreen
+    shouldUseMaxHeight: PropTypes.bool,
 };
 
 const defaultProps = {
     backgroundColor: undefined,
     footer: null,
     overlayContent: null,
+    shouldUseMaxHeight: false,
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    const shouldUseMaxHeight = propsToPassToHeader.shouldUseMaxHeight && !isSmallScreenWidth;
 
     return (
         <HeaderPageLayout
@@ -47,7 +54,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     <Lottie
                         source={illustration}
                         style={styles.w100}
-                        webStyle={isSmallScreenWidth ? styles.w100 : styles.h100}
+                        webStyle={shouldUseMaxHeight ? styles.h100 : styles.w100}
                         autoPlay
                         loop
                     />
@@ -55,7 +62,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                 </>
             }
             // TODO: move to variables
-            headerContainerStyles={[styles.justifyContentCenter, styles.w100, !isSmallScreenWidth && {height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT}]}
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldUseMaxHeight && {height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT}]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToPassToHeader}
