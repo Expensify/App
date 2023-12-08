@@ -1,19 +1,9 @@
-import PropTypes from 'prop-types';
+import UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 
-const propTypes = {
-    /** Children to wrap with Tooltip. */
-    children: PropTypes.node.isRequired,
-};
-
-/**
- * @param {propTypes} props
- * @returns {ReactNodeLike}
- */
-function BaseUserDetailsTooltip(props) {
-    return props.children;
+function BaseUserDetailsTooltip({children}: UserDetailsTooltipProps) {
+    return children;
 }
 
-BaseUserDetailsTooltip.propTypes = propTypes;
 BaseUserDetailsTooltip.displayName = 'BaseUserDetailsTooltip';
 
 export default BaseUserDetailsTooltip;

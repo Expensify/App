@@ -1,43 +1,60 @@
-import PropTypes from 'prop-types';
-import avatarPropTypes from '@components/avatarPropTypes';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
+import {AvatarSource} from '@libs/UserUtils';
+import {AvatarType} from '@src/types/onyx/OnyxCommon';
+import PersonalDetails from '@src/types/onyx/PersonalDetails';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const propTypes = {
+type FallbackUserDetails = {
+    /** The name to display in bold */
+    displayName?: string;
+
+    /** The login for the tooltip fallback */
+    login?: string;
+
+    /** The avatar for the tooltip fallback */
+    avatar?: AvatarSource;
+
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type?: AvatarType;
+};
+
+type Icon = {
+    /** Source for the avatar. Can be a URL or an icon. */
+    source?: AvatarSource;
+
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL.
+     * If the avatar is type === workspace, this fallback icon will be ignored and decided based on the name prop.
+     */
+    fallbackIcon?: AvatarSource;
+
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type?: AvatarType;
+
+    /** Owner of the avatar. If user, displayName. If workspace, policy name */
+    name?: string;
+};
+
+type UserDetailsTooltipProps = ChildrenProps & {
     /** User's Account ID */
-    accountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    accountID: number;
+
     /** Fallback User Details object used if no accountID */
-    fallbackUserDetails: PropTypes.shape({
-        /** Avatar URL */
-        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        /** Display Name */
-        displayName: PropTypes.string,
-        /** Login */
-        login: PropTypes.string,
-        /** Whether this is a Workspace Avatar or User Avatar */
-        type: PropTypes.string,
-    }),
+    fallbackUserDetails: FallbackUserDetails;
+
     /** Optionally, pass in the icon instead of calculating it. If defined, will take precedence. */
-    icon: avatarPropTypes,
-    /** Component that displays the tooltip */
-    children: PropTypes.node.isRequired,
+    icon?: Icon;
+
     /** List of personalDetails (keyed by accountID)  */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+    personalDetailsList: Record<string, PersonalDetails>;
 
     /** The accountID of the copilot who took this action on behalf of the user */
-    delegateAccountID: PropTypes.number,
+    delegateAccountID?: number;
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
-     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
-    shiftHorizontal: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
+    A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
+    shiftHorizontal?: number | (() => number);
+
+    /** Whether the actual UserDetailsTooltip should be rendered. If false, it's just going to return the children */
+    shouldRender?: boolean;
 };
 
-const defaultProps = {
-    accountID: '',
-    fallbackUserDetails: {displayName: '', login: '', avatar: '', type: ''},
-    personalDetailsList: {},
-    delegateAccountID: 0,
-    icon: undefined,
-    shiftHorizontal: 0,
-};
-
-export {propTypes, defaultProps};
+export default UserDetailsTooltipProps;

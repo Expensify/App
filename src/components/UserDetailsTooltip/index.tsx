@@ -1,21 +1,8 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import BaseUserDetailsTooltip from './BaseUserDetailsTooltip';
-import {defaultProps as userDetailsTooltipDefaultProps, propTypes as userDetailsTooltipPropTypes} from './types';
+import UserDetailsTooltipProps from './types';
 
-const propTypes = {
-    ...userDetailsTooltipPropTypes,
-
-    /** Whether the actual UserDetailsTooltip should be rendered. If false, it's just going to return the children */
-    shouldRender: PropTypes.bool,
-};
-
-const defaultProps = {
-    ...userDetailsTooltipDefaultProps,
-    shouldRender: true,
-};
-
-function UserDetailsTooltip({shouldRender = true, children, ...props}) {
+function UserDetailsTooltip({shouldRender = true, children, ...props}: UserDetailsTooltipProps) {
     if (!shouldRender) {
         return children;
     }
@@ -31,7 +18,5 @@ function UserDetailsTooltip({shouldRender = true, children, ...props}) {
 }
 
 UserDetailsTooltip.displayName = 'UserDetailsTooltip';
-UserDetailsTooltip.propTypes = propTypes;
-UserDetailsTooltip.defaultProps = defaultProps;
 
 export default UserDetailsTooltip;
