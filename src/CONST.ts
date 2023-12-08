@@ -483,6 +483,7 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -558,6 +559,7 @@ const CONST = {
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
                     UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
+                    UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
@@ -963,6 +965,7 @@ const CONST = {
         GUIDES_DOMAIN: 'team.expensify.com',
         HELP: 'help@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        NOTIFICATIONS: 'notifications@expensify.com',
         PAYROLL: 'payroll@expensify.com',
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
@@ -982,6 +985,7 @@ const CONST = {
         FIRST_RESPONDER: Number(Config?.EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER ?? 9375152),
         HELP: Number(Config?.EXPENSIFY_ACCOUNT_ID_HELP ?? -1),
         INTEGRATION_TESTING_CREDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS ?? -1),
+        NOTIFICATIONS: Number(Config?.EXPENSIFY_ACCOUNT_ID_NOTIFICATIONS ?? 11665625),
         PAYROLL: Number(Config?.EXPENSIFY_ACCOUNT_ID_PAYROLL ?? 9679724),
         QA: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA ?? 3126513),
         QA_TRAVIS: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_TRAVIS ?? 8595733),
@@ -1131,6 +1135,8 @@ const CONST = {
     },
 
     IOU: {
+        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         PAYMENT_TYPE: {
@@ -1142,6 +1148,11 @@ const CONST = {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
+        },
+        REQUEST_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -1408,6 +1419,7 @@ const CONST = {
             this.EMAIL.FIRST_RESPONDER,
             this.EMAIL.HELP,
             this.EMAIL.INTEGRATION_TESTING_CREDS,
+            this.EMAIL.NOTIFICATIONS,
             this.EMAIL.PAYROLL,
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
@@ -2750,6 +2762,9 @@ const CONST = {
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
+        IOU_REQUEST_TYPE: 'iouRequestType',
+    },
+    TAB_REQUEST: {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
@@ -2803,7 +2818,7 @@ const CONST = {
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
-        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_MARGIN_VERTICAL: 4,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
@@ -2873,6 +2888,7 @@ const CONST = {
         FIDELITY: 'fidelity',
         GENERIC_BANK: 'generic bank',
         HUNTINGTON_BANK: 'huntington bank',
+        HUNTINGTON_NATIONAL: 'huntington national',
         NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
         PNC: 'pnc',
         REGIONS_BANK: 'regions bank',
