@@ -192,7 +192,7 @@ function AddressSearch({
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 onPress({
-                    address: autocompleteData.description || lodashGet(details, 'formatted_address', ''),
+                    address: autocompleteData.description || lodashGet(details, 'description', ''),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
                     name: lodashGet(details, 'name'),
