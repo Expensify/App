@@ -318,7 +318,7 @@ function ReportActionItemMessageEdit(props) {
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
-            // Wait for report action compose re-mounting
+            // Wait for report action compose re-mounting on mWeb
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
