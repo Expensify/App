@@ -264,10 +264,7 @@ function OptionRow(props) {
                                                 text={props.selectedStateButtonText}
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 small
-                                                innerStyles={[
-                                                    hovered && !isDisabled ? StyleUtils.getBackgroundColorStyle(theme.buttonDefaultBG) : undefined,
-                                                    props.optionIsFocused && !isDisabled ? styles.buttonDefaultHovered : undefined,
-                                                ]}
+                                                shouldUseDefaultHover={false}
                                             />
                                         ) : (
                                             <PressableWithFeedback
