@@ -51,7 +51,6 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     const {isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
     const isWide = isMediumScreenWidth || isLargeScreenWidth;
     const isNarrow = !isWide;
-    const mainFlexDirection = isWide ? styles.flexRow : styles.flexColumn;
 
     const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
@@ -69,8 +68,8 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     }, [workspaceType, translate]);
 
     return (
-        <View style={[mainFlexDirection, styles.gap3, styles.highlightBG, styles.br3, styles.pv5, {backgroundColor: 'darkgreen'}]}>
-            <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.ml5, isNarrow && styles.mr2, styles.alignItemsCenter]}>
+        <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5]}>
+            <View style={[styles.flexRow, styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -92,51 +91,47 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     />
                 )}
             </View>
-            <View style={[mainFlexDirection, isWide && styles.gap3, styles.flex2, isNarrow && styles.mh5, {backgroundColor: 'green'}]}>
-                <View style={[styles.flexRow, styles.flex1, styles.gap2, styles.alignItemsCenter]}>
-                    <Avatar
-                        source={ownerDetails.avatar}
-                        size={CONST.AVATAR_SIZE.SMALL}
-                        containerStyles={styles.workspaceOwnerAvatarWrapper}
-                    />
-                    <View style={styles.flex1}>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.labelStrong]}
-                        >
-                            {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}
-                            {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}
-                        </Text>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicro, styles.textSupporting]}
-                        >
-                            {ownerDetails.login}
-                            {ownerDetails.login}
-                        </Text>
-                    </View>
+            <View style={[styles.flexRow, styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <Avatar
+                    source={ownerDetails.avatar}
+                    size={CONST.AVATAR_SIZE.SMALL}
+                    containerStyles={styles.workspaceOwnerAvatarWrapper}
+                />
+                <View style={styles.flex1}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.labelStrong]}
+                    >
+                        {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}
+                    </Text>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicro, styles.textSupporting]}
+                    >
+                        {ownerDetails.login}
+                    </Text>
                 </View>
-                <View style={[styles.flexRow, styles.flex1, styles.gap2, styles.alignItemsCenter]}>
-                    <Icon
-                        src={workspaceTypeIcon(workspaceType)}
-                        width={34}
-                        height={34}
-                        additionalStyles={styles.workspaceTypeWrapper}
-                    />
-                    <View style={styles.dFlex}>
-                        <Text
-                            numberOfLines={1}
-                            style={styles.labelStrong}
-                        >
-                            {userFriendlyWorkspaceType}
-                        </Text>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.textMicro, styles.textSupporting]}
-                        >
-                            {translate('workspace.common.plan')}
-                        </Text>
-                    </View>
+            </View>
+            <View style={[styles.flexRow, styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <Icon
+                    src={workspaceTypeIcon(workspaceType)}
+                    width={34}
+                    height={34}
+                    additionalStyles={styles.workspaceTypeWrapper}
+                />
+                <View style={styles.dFlex}>
+                    <Text
+                        numberOfLines={1}
+                        style={styles.labelStrong}
+                    >
+                        {userFriendlyWorkspaceType}
+                    </Text>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.textMicro, styles.textSupporting]}
+                    >
+                        {translate('workspace.common.plan')}
+                    </Text>
                 </View>
             </View>
             {isWide && (
