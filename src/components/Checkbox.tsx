@@ -1,7 +1,7 @@
 import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -63,6 +63,7 @@ function Checkbox(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const handleSpaceKey = (event?: ReactKeyboardEvent) => {
         if (event?.code !== 'Space') {
@@ -98,7 +99,7 @@ function Checkbox(
             {children ?? (
                 <View
                     style={[
-                        StyleUtils.getCheckboxContainerStyle(theme, containerSize, containerBorderRadius),
+                        StyleUtils.getCheckboxContainerStyle(containerSize, containerBorderRadius),
                         containerStyle,
                         isChecked && styles.checkedContainer,
                         hasError && styles.borderColorDanger,
