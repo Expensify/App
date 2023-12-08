@@ -1,4 +1,4 @@
-import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
+import roundToNearestMultipleOfFour from './utils/roundToNearestMultipleOfFour';
 import variables from './variables';
 
 /**
@@ -50,4 +50,6 @@ function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowH
     return 0;
 }
 
-export {computeHorizontalShift, computeVerticalShift};
+const PopoverWithMeasuredContentStyleUtils = {computeHorizontalShift, computeVerticalShift};
+
+export default PopoverWithMeasuredContentStyleUtils;

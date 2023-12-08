@@ -6,8 +6,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import reactionPropTypes from './reactionPropTypes';
 
@@ -27,14 +26,14 @@ const defaultProps = {
 };
 
 function HeaderReactionList(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
             <View style={styles.flexRow}>
-                <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(theme, false, props.hasUserReacted)]}>
+                <View style={[styles.emojiReactionListHeaderBubble, StyleUtils.getEmojiReactionBubbleStyle(false, props.hasUserReacted)]}>
                     <Text style={[styles.miniQuickEmojiReactionText, StyleUtils.getEmojiReactionBubbleTextStyle(true)]}>{props.emojiCodes.join('')}</Text>
-                    <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(theme, props.hasUserReacted)]}>{props.emojiCount}</Text>
+                    <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.emojiCount}</Text>
                 </View>
                 <Text style={styles.reactionListHeaderText}>{`:${EmojiUtils.getLocalizedEmojiName(props.emojiName, props.preferredLocale)}:`}</Text>
             </View>
