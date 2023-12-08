@@ -1,15 +1,15 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
-import getModalStyles from '@styles/getModalStyles';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
@@ -44,6 +44,7 @@ function BaseModal(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -134,19 +135,18 @@ function BaseModal(
         hideBackdrop,
     } = useMemo(
         () =>
-            getModalStyles(
+            StyleUtils.getModalStyles(
                 type,
                 {
                     windowWidth,
                     windowHeight,
-                    isSmallScreenWidth: shouldUseNarrowLayout,
                 },
                 shouldUseNarrowLayout,
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, shouldUseNarrowLayout, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
+        [StyleUtils, type, windowWidth, windowHeight, shouldUseNarrowLayout, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
@@ -208,7 +208,7 @@ function BaseModal(
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                 ref={ref}
             >
-                {children}
+                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
         </ReactNativeModal>
     );

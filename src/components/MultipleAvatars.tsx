@@ -2,8 +2,8 @@ import React, {memo, useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -80,6 +80,7 @@ function MultipleAvatars({
 }: MultipleAvatarsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
@@ -193,6 +194,7 @@ function MultipleAvatars({
                                     <Avatar
                                         iconAdditionalStyles={[
                                             StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                                theme,
                                                 isHovered,
                                                 isPressed,
                                                 isInReportAction,
@@ -220,6 +222,7 @@ function MultipleAvatars({
                                         styles.alignItemsCenter,
                                         styles.justifyContentCenter,
                                         StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                            theme,
                                             isHovered,
                                             isPressed,
                                             isInReportAction,

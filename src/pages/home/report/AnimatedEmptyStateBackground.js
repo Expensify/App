@@ -4,13 +4,14 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as NumberUtils from '@libs/NumberUtils';
 import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const IMAGE_OFFSET_Y = 75;
 
 function AnimatedEmptyStateBackground() {
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();

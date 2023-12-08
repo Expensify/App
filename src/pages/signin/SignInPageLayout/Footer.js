@@ -11,8 +11,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
@@ -144,6 +144,7 @@ const columns = ({scrollPageToTop}) => [
 function Footer(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const imageDirection = shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn;
     const imageStyle = shouldUseNarrowLayout ? styles.pr0 : styles.alignSelfCenter;

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MultipleAvatars from '@components/MultipleAvatars';
+import {withNetwork} from '@components/OnyxProvider';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import participantPropTypes from '@components/participantPropTypes';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -76,6 +77,17 @@ function ReportDetailsPage(props) {
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
 
+    const isPrivateNotesFetchTriggered = !_.isUndefined(props.report.isLoadingPrivateNotes);
+
+    useEffect(() => {
+        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
+        if (isPrivateNotesFetchTriggered || props.network.isOffline) {
+            return;
+        }
+
+        Report.getReportPrivateNote(props.report.reportID);
+    }, [props.report.reportID, props.network.isOffline, isPrivateNotesFetchTriggered]);
+
     const menuItems = useMemo(() => {
         const items = [];
 
@@ -93,7 +105,7 @@ function ReportDetailsPage(props) {
             return items;
         }
 
-        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
+        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && (!ReportUtils.isPublicRoom(props.report) || isPolicyMember))) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
@@ -108,7 +120,7 @@ function ReportDetailsPage(props) {
                     }
                 },
             });
-        } else if ((!participants.length || !isPolicyMember) && isUserCreatedPolicyRoom && !props.report.parentReportID) {
+        } else if (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember) && !props.report.parentReportID) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -137,13 +149,13 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
+                action: () => ReportUtils.navigateToPrivateNotes(props.report, props.session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, props.session]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -249,12 +261,16 @@ ReportDetailsPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withReportOrNotFound(),
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);
