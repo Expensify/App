@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -55,6 +55,7 @@ const defaultProps = {
 
 function AddReactionBubble(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const ref = useRef();
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
