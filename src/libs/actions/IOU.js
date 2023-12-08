@@ -29,9 +29,7 @@ import * as Report from './Report';
 let betas;
 Onyx.connect({
     key: ONYXKEYS.BETAS,
-    callback: (val) => {
-        betas = val || [];
-    },
+    callback: (val) => (betas = val || []),
 });
 
 let allPersonalDetails;
