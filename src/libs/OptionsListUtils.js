@@ -1046,6 +1046,55 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
     return tagSections;
 }
 
+function sortTaxRates(taxRates) {
+    const sortedtaxRates = _.chain(taxRates)
+        .values()
+        .sortBy((taxRates) => taxRates.name)
+        .value();
+
+    return sortedtaxRates;
+}
+
+function getTaxRatesOptions(taxRates) {
+    return _.map(taxRates, (taxRate) => ({
+        text:  `${taxRate.name} (${taxRate.value})`,
+        keyForList: taxRate.name,
+        searchText: taxRate.name,
+        tooltipText: taxRate.name,
+        isDisabled: false,
+    }));
+}
+
+function getTaxRatesSection(policyTaxRates, selectedOptions) {
+    const policyRatesSections = [];
+
+    const sortedTaxRates = sortTaxRates(policyTaxRates.taxes);
+    const numberOfTaxRates = _.size(sortedTaxRates);
+    let indexOffset = 0;
+
+    if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
+        categorySections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(getTaxRatesOptions),
+        });
+
+        return policyRatesSections;
+    }
+
+    policyRatesSections.push({
+        // "All" section when items amount more than the threshold
+        title: Localize.translateLocal('common.all'),
+        shouldShow: true,
+        indexOffset,
+        data: getTaxRatesOptions(sortedTaxRates),
+    });
+
+    return policyRatesSections;
+}
+
 /**
  * Build the options
  *
@@ -1087,6 +1136,8 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
+        includePolicyTaxRates,
+        policyTaxRates
     },
 ) {
     if (includeCategories) {
@@ -1099,6 +1150,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
+            policyTaxRatesOptions: []
         };
     }
 
@@ -1112,6 +1164,21 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
+            policyTaxRatesOptions: []
+        };
+    }
+
+    if (includePolicyTaxRates) {
+        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue, maxRecentReportsToShow);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            policyTaxRatesOptions
         };
     }
 
@@ -1123,6 +1190,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
+            policyTaxRatesOptions: []
         };
     }
 
@@ -1389,6 +1457,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
+        policyTaxRatesOptions: []
     };
 }
 
@@ -1478,6 +1547,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
  * @param {boolean} [includeSelectedOptions]
+ * @param {Object} [policyTaxRates]
  * @returns {Object}
  */
 function getFilteredOptions(
@@ -1497,6 +1567,8 @@ function getFilteredOptions(
     recentlyUsedTags = [],
     canInviteUser = true,
     includeSelectedOptions = false,
+    includePolicyTaxRates = false,
+    policyTaxRates = {},
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1516,6 +1588,8 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
+        includePolicyTaxRates,
+        policyTaxRates,
     });
 }
 
