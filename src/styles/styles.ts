@@ -1514,7 +1514,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.buttonHoveredBG,
             textDecorationLine: 'none',
         },
 
