@@ -49,10 +49,6 @@ const debouncedBroadcastUserIsTyping = _.debounce((reportID) => {
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
-// We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
-// prevent auto focus on existing chat for mobile device
-const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
 /**
  * This component holds the value and selection state.
  * If a component really needs access to these state values it should be put here.
@@ -120,9 +116,9 @@ function ComposerWithSuggestions({
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const isEmptyChat = useMemo(() => _.size(reportActions) === 1, [reportActions]);
-    const parentAction = ReportActionsUtils.getParentReportAction(report);
-    const shouldAutoFocus = !modal.isVisible && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentAction))) && shouldShowComposeInput;
+    const shouldAutoFocus = !modal.isVisible && shouldShowComposeInput;
+
+    const [showSoftInputOnFocus, setShowSoftInputOnFocus] = useState(false);
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -556,6 +552,14 @@ function ComposerWithSuggestions({
                         setComposerHeight(composerLayoutHeight);
                     }}
                     onScroll={hideSuggestionMenu}
+                    showSoftInputOnFocus={showSoftInputOnFocus}
+                    onTouchStart={() => {
+                        if (showSoftInputOnFocus) {
+                            return;
+                        }
+
+                        setShowSoftInputOnFocus(true);
+                    }}
                 />
             </View>
 

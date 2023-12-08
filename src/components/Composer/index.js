@@ -86,6 +86,8 @@ const propTypes = {
     /** Whether the sull composer is open */
     isComposerFullSize: PropTypes.bool,
 
+    showSoftInputOnFocus: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -113,6 +115,7 @@ const defaultProps = {
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
     isComposerFullSize: false,
+    showSoftInputOnFocus: true,
 };
 
 /**
@@ -164,6 +167,7 @@ function Composer({
     selection: selectionProp,
     isReportActionCompose,
     isComposerFullSize,
+    showSoftInputOnFocus,
     ...props
 }) {
     const theme = useTheme();
@@ -445,6 +449,7 @@ function Composer({
                 forwardedRef={forwardedRef}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
+                inputMode={!showSoftInputOnFocus && 'none'}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
