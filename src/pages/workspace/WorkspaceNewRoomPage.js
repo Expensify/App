@@ -25,6 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -160,6 +161,8 @@ function WorkspaceNewRoomPage(props) {
         setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     }, [isPolicyAdmin]);
 
+    const valueParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName);
+    const displayParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName, true);
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
@@ -191,7 +194,15 @@ function WorkspaceNewRoomPage(props) {
         [props.reports],
     );
 
-    const workspaceOptions = useMemo(() => _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({label: policy.name, key: policy.id, value: policy.id})), [props.policies]);
+    const workspaceOptions = useMemo(
+        () =>
+            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
+                label: policy.name,
+                key: policy.id,
+                value: policy.id,
+            })),
+        [props.policies],
+    );
 
     const writeCapabilityOptions = useMemo(
         () =>
@@ -249,12 +260,16 @@ function WorkspaceNewRoomPage(props) {
                             enabledWhenOffline
                         >
                             <View style={styles.mb5}>
-                                <RoomNameInput
+                                <InputWrapper
+                                    InputComponent={RoomNameInput}
                                     ref={inputCallbackRef}
                                     inputID="roomName"
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
                                     autoFocus
+                                    valueParser={valueParser}
+                                    displayParser={displayParser}
+                                    prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                                 />
                             </View>
                             <View style={styles.mb5}>

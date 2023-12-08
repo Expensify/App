@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,6 +14,7 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -46,6 +48,9 @@ function RoomNamePage({policy, report, reports, translate}) {
     const styles = useThemeStyles();
     const roomNameInputRef = useRef(null);
     const isFocused = useIsFocused();
+
+    const valueParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName);
+    const displayParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName, true);
 
     const validate = useCallback(
         (values) => {
@@ -95,12 +100,15 @@ function RoomNamePage({policy, report, reports, translate}) {
                     enabledWhenOffline
                 >
                     <View style={styles.mb4}>
-                        <RoomNameInput
+                        <InputWrapper
+                            InputComponent={RoomNameInput}
                             ref={roomNameInputRef}
                             inputID="roomName"
-                            defaultValue={report.reportName}
+                            defaultValue={report.reportName.slice(1)}
                             isFocused={isFocused}
-                            roomName={report.reportName.slice(1)}
+                            valueParser={valueParser}
+                            displayParser={displayParser}
+                            prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                         />
                     </View>
                 </FormProvider>
