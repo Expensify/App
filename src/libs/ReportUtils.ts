@@ -2556,7 +2556,7 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
 
     // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
-    const participantsAccountIDs = [payeeAccountID, payerAccountID]
+    const participantsAccountIDs = [payeeAccountID, payerAccountID];
 
     return {
         // If we're sending money, hasOutstandingIOU should be false
@@ -3305,7 +3305,6 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ): OptimisticTaskReport {
-
     // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
     const participantsAccountIDs = assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [];
 

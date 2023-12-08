@@ -278,13 +278,13 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
     };
 
     // Everyone in special policy rooms is visible
-    const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs]
+    const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
 
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
         value: {
-            participantAccountIDs: participantAccountIDs,
+            participantAccountIDs,
             visibleChatMemberAccountIDs: participantAccountIDs,
         },
     });
