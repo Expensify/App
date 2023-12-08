@@ -22,3 +22,9 @@ declare module '*.lottie' {
 }
 
 declare module 'react-native-device-info/jest/react-native-device-info-mock';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+interface Window {
+    enableMemoryOnlyKeys: () => void;
+    disableMemoryOnlyKeys: () => void;
+}
