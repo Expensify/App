@@ -2,8 +2,8 @@ import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
-import ROUTES from '@src/ROUTES';
 import * as Modal from '@userActions/Modal';
+import ROUTES from '@src/ROUTES';
 import backgroundRefresh from './backgroundRefresh';
 import PushNotification from './index';
 
@@ -33,7 +33,7 @@ export default function subscribeToReportCommentPushNotifications() {
                         if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
                             Navigation.goBack(ROUTES.HOME);
                         }
-    
+
                         Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
                     } catch (error) {
@@ -41,10 +41,10 @@ export default function subscribeToReportCommentPushNotifications() {
                         if (error instanceof Error) {
                             errorMessage = error.message;
                         }
-    
+
                         Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: errorMessage});
                     }
-                })
+                });
             });
     });
 }
