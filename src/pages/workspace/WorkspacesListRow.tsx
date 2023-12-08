@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -47,6 +48,11 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
 function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
+    const isWide = isMediumScreenWidth || isLargeScreenWidth;
+    const isNarrow = !isWide;
+    const mainFlexDirection = isWide ? styles.flexRow : styles.flexColumn;
+
     const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
     const userFriendlyWorkspaceType = useMemo(() => {
@@ -63,8 +69,8 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     }, [workspaceType, translate]);
 
     return (
-        <View style={[styles.dFlex, styles.gap3, styles.highlightBG, styles.br3, styles.pv5]}>
-            <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.pl5, styles.pr2, styles.alignItemsCenter]}>
+        <View style={[mainFlexDirection, styles.gap3, styles.highlightBG, styles.br3, styles.pv5, {backgroundColor: 'darkgreen'}]}>
+            <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.ml5, isNarrow && styles.mr2, styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -79,13 +85,15 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                 >
                     {title}
                 </Text>
-                <ThreeDotsMenu
-                    menuItems={[]}
-                    anchorPosition={{top: 0, right: 0}}
-                />
+                {isNarrow && (
+                    <ThreeDotsMenu
+                        menuItems={[]}
+                        anchorPosition={{top: 0, right: 0}}
+                    />
+                )}
             </View>
-            <View style={styles.ph5}>
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+            <View style={[mainFlexDirection, isWide && styles.gap3, styles.flex2, isNarrow && styles.mh5, {backgroundColor: 'green'}]}>
+                <View style={[styles.flexRow, styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <Avatar
                         source={ownerDetails.avatar}
                         size={CONST.AVATAR_SIZE.SMALL}
@@ -97,16 +105,18 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                             style={[styles.labelStrong]}
                         >
                             {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}
+                            {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}
                         </Text>
                         <Text
                             numberOfLines={1}
                             style={[styles.textMicro, styles.textSupporting]}
                         >
                             {ownerDetails.login}
+                            {ownerDetails.login}
                         </Text>
                     </View>
                 </View>
-                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <Icon
                         src={workspaceTypeIcon(workspaceType)}
                         width={34}
@@ -129,6 +139,13 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     </View>
                 </View>
             </View>
+            {isWide && (
+                <ThreeDotsMenu
+                    menuItems={[]}
+                    anchorPosition={{top: 0, right: 0}}
+                    iconStyles={[styles.mr2]}
+                />
+            )}
         </View>
     );
 }
