@@ -1190,8 +1190,10 @@ export default {
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        validateAccountError:
-            'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
+        validateAccountError: {
+            phrase1: 'Hold up! We need you to validate your account first. To do so, ',
+            phrase2: 'sign back in with a magic code',
+        },
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again',
