@@ -528,7 +528,7 @@ function subscribeToUserEvents() {
                 return;
             }
 
-            const onyxUpdatePromise = Onyx.update(pushJSON).then(()=>{
+            const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
                 triggerNotifications(pushJSON);
             });
 
