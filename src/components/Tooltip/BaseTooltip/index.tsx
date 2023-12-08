@@ -1,16 +1,18 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import Str from 'expensify-common/lib/str';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
-import _ from 'underscore';
 import Hoverable from '@components/Hoverable';
+import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
+import TooltipSense from '@components/Tooltip/TooltipSense';
+import TooltipProps from '@components/Tooltip/types';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as tooltipPropTypes from './tooltipPropTypes';
-import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
-import TooltipSense from './TooltipSense';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import StringUtils from '@src/libs/StringUtils';
+import callOrReturn from '@src/types/utils/callOrReturn';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
@@ -33,7 +35,7 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
  * @return {DOMRect} The chosen bounding box.
  */
 
-function chooseBoundingBox(target, clientX, clientY) {
+function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number): DOMRect {
     const slop = 5;
     const bbs = target.getClientRects();
     const clientXMin = clientX - slop;
@@ -41,6 +43,7 @@ function chooseBoundingBox(target, clientX, clientY) {
     const clientYMin = clientY - slop;
     const clientYMax = clientY + slop;
 
+    // eslint-disable-next-line @typescript-eslint/prefer-for-of
     for (let i = 0; i < bbs.length; i++) {
         const bb = bbs[i];
         if (clientXMin <= bb.right && clientXMax >= bb.left && clientYMin <= bb.bottom && clientYMax >= bb.top) {
@@ -52,7 +55,20 @@ function chooseBoundingBox(target, clientX, clientY) {
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey, shouldHandleScroll, shiftHorizontal, shiftVertical, tooltipRef}) {
+function Tooltip(
+    {
+        children,
+        numberOfLines = CONST.TOOLTIP_MAX_LINES,
+        maxWidth = variables.sideBarWidth,
+        text = '',
+        renderTooltipContent,
+        renderTooltipContentKey = [],
+        shouldHandleScroll = false,
+        shiftHorizontal = 0,
+        shiftVertical = 0,
+    }: TooltipProps,
+    ref: ForwardedRef<BoundsObserver>,
+) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -74,10 +90,13 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     const isAnimationCanceled = useRef(false);
     const prevText = usePrevious(text);
 
-    const target = useRef(null);
+    const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
-    const updateTargetAndMousePosition = useCallback((e) => {
+    const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
+        if (!(e.currentTarget instanceof HTMLElement)) {
+            return;
+        }
         target.current = e.currentTarget;
         initialMousePosition.current = {x: e.clientX, y: e.clientY};
     }, []);
@@ -120,10 +139,8 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
 
     /**
      * Update the tooltip bounding rectangle
-     *
-     * @param {Object} bounds - updated bounds
      */
-    const updateBounds = (bounds) => {
+    const updateBounds = (bounds: DOMRect) => {
         if (bounds.width === 0) {
             setIsRendered(false);
         }
@@ -169,7 +186,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
 
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
-    if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport) {
+    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !hasHoverSupport) {
         return children;
     }
 
@@ -183,21 +200,21 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
-                    shiftHorizontal={Str.result(shiftHorizontal)}
-                    shiftVertical={Str.result(shiftVertical)}
+                    shiftHorizontal={callOrReturn(shiftHorizontal)}
+                    shiftVertical={callOrReturn(shiftVertical)}
                     text={text}
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}
                     renderTooltipContent={renderTooltipContent}
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                     // This prevents flickering/moving while remaining performant.
-                    key={[text, ...renderTooltipContentKey, preferredLocale]}
+                    key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                 />
             )}
             <BoundsObserver
                 enabled={isVisible}
                 onBoundsChange={updateBounds}
-                ref={tooltipRef}
+                ref={ref}
             >
                 <Hoverable
                     onMouseEnter={updateTargetAndMousePosition}
@@ -212,8 +229,6 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
     );
 }
 
-Tooltip.propTypes = tooltipPropTypes.propTypes;
-Tooltip.defaultProps = tooltipPropTypes.defaultProps;
 Tooltip.displayName = 'Tooltip';
 
-export default memo(Tooltip);
+export default memo(forwardRef(Tooltip));
