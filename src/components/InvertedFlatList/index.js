@@ -60,7 +60,8 @@ function InvertedFlatList(props) {
     };
 
     /**
-     * Emits when the scrolling has ended.
+     * Emits when the scrolling has ended. Also,
+     * invokes the onScrollEnd callback function from props.
      */
     const onScrollEnd = () => {
         eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
