@@ -15,8 +15,8 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -168,14 +168,14 @@ function Composer({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
-    const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState({
-        start: initialValue.length,
-        end: initialValue.length,
+        start: selectionProp.start,
+        end: selectionProp.end,
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
@@ -429,7 +429,7 @@ function Composer({
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
         ],
 
-        [numberOfLines, maxLines, styles.overflowHidden, styles.rtlTextRenderForSafari, style, isComposerFullSize],
+        [numberOfLines, maxLines, styles.overflowHidden, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
     );
 
     return (

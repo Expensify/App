@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import viewForwardedRef from '@src/types/utils/viewForwardedRef';
@@ -39,6 +39,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
@@ -57,7 +58,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
         ),
-        [highlightedSuggestionIndex, renderSuggestionMenuItem, onSelect, accessibilityLabelExtractor],
+        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, onSelect],
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;

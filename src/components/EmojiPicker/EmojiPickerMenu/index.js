@@ -16,10 +16,10 @@ import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import useStyleUtils from '@styles/useStyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +51,9 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
 
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
     // Ref for the emoji search input
@@ -72,11 +75,7 @@ function EmojiPickerMenu(props) {
     function getEmojisAndHeaderRowIndices() {
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojiAssets, (emoji) => emoji.header && emoji.code === 'flags');
-        const filteredEmojis =
-            getOperatingSystem() === CONST.OS.WINDOWS
-                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets.slice(0, flagHeaderIndex))
-                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets);
+        const filteredEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojiAssets);
 
         // Get the header emojis along with the code, index and icon.
         // index is the actual header index starting at the first emoji and counting each one
@@ -310,6 +309,10 @@ function EmojiPickerMenu(props) {
                 }
                 const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 onEmojiSelected(emoji, item);
+                // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
+                keyBoardEvent.preventDefault();
+                // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
+                keyBoardEvent.stopPropagation();
                 return;
             }
 
@@ -322,7 +325,7 @@ function EmojiPickerMenu(props) {
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (searchInputRef.current && !searchInputRef.current.isFocused()) {
+            if (searchInputRef.current && !searchInputRef.current.isFocused() && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 searchInputRef.current.focus();
             }
         },
@@ -462,7 +465,7 @@ function EmojiPickerMenu(props) {
                 />
             );
         },
-        [isUsingKeyboardMovement, highlightedIndex, onEmojiSelected, preferredSkinTone, translate, highlightFirstEmoji],
+        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
     );
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
