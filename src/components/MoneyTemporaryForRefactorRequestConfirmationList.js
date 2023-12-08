@@ -714,9 +714,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouCategory}
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                            }
+                            onPress={() => {
+                                if (isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.CATEGORY));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                            }}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
@@ -729,9 +733,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             title={iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() =>
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                            }
+                            onPress={() => {
+                                if (isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.TAG));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                            }}
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
