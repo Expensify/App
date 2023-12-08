@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import HeaderPageLayout from './HeaderPageLayout';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import Lottie from './Lottie';
@@ -34,6 +36,8 @@ const defaultProps = {
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     return (
         <HeaderPageLayout
             backgroundColor={backgroundColor || theme.appBG}
@@ -43,7 +47,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     <Lottie
                         source={illustration}
                         style={styles.w100}
-                        webStyle={styles.h100}
+                        webStyle={isSmallScreenWidth ? styles.w100 : styles.h100}
                         autoPlay
                         loop
                     />
@@ -51,7 +55,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                 </>
             }
             // TODO: move to variables
-            headerContainerStyles={[styles.justifyContentCenter, styles.w100, {height: 200}]}
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100, !isSmallScreenWidth && {height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT}]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToPassToHeader}
