@@ -45,23 +45,23 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
     const iouReportUpdate: Report = {...iouReport};
 
     // Let us ensure a valid value before updating the total amount.
-    if (!iouReportUpdate.total) { 
+    if (!iouReportUpdate.total) {
         iouReportUpdate.total = 0;
     }
-        if (actorAccountID === iouReport.ownerAccountID) {
-            iouReportUpdate.total += isDeleting ? -amount : amount;
-        } else {
-            iouReportUpdate.total += isDeleting ? amount : -amount;
-        }
+    if (actorAccountID === iouReport.ownerAccountID) {
+        iouReportUpdate.total += isDeleting ? -amount : amount;
+    } else {
+        iouReportUpdate.total += isDeleting ? amount : -amount;
+    }
 
-        if (iouReportUpdate.total < 0) {
-            // The total sign has changed and hence we need to flip the manager and owner of the report.
-            iouReportUpdate.ownerAccountID = iouReport.managerID;
-            iouReportUpdate.managerID = iouReport.ownerAccountID;
-            iouReportUpdate.total = -iouReportUpdate.total;
-        }
+    if (iouReportUpdate.total < 0) {
+        // The total sign has changed and hence we need to flip the manager and owner of the report.
+        iouReportUpdate.ownerAccountID = iouReport.managerID;
+        iouReportUpdate.managerID = iouReport.ownerAccountID;
+        iouReportUpdate.total = -iouReportUpdate.total;
+    }
 
-        iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
+    iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
 
     return iouReportUpdate;
 }

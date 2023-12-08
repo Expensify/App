@@ -2030,34 +2030,34 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     let updatedIOUReport = {...iouReport};
     const updatedReportPreviewAction = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-        if (ReportUtils.isExpenseReport(iouReport)) {
-            updatedIOUReport = {...iouReport};
+    if (ReportUtils.isExpenseReport(iouReport)) {
+        updatedIOUReport = {...iouReport};
 
-            // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
-        } else {
-            updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
-                iouReport,
-                reportAction.actorAccountID,
-                TransactionUtils.getAmount(transaction, false),
-                TransactionUtils.getCurrency(transaction),
-                true,
-            );
-        }
+        // Because of the Expense reports are stored as negative values, we add the total from the amount
+        updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
+    } else {
+        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID,
+            TransactionUtils.getAmount(transaction, false),
+            TransactionUtils.getCurrency(transaction),
+            true,
+        );
+    }
 
-        updatedIOUReport.lastMessageText = iouReportLastMessageText;
-        updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
+    updatedIOUReport.lastMessageText = iouReportLastMessageText;
+    updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
-        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
-        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
-            amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
-        });
-        updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = messageText;
-        if (reportPreviewAction.childMoneyRequestCount > 0) {
-            updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
-        }
+    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
+    const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
+        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
+        amount: CurrencyUtils.convertToDisplayString(updatedIOUReport.total, updatedIOUReport.currency),
+    });
+    updatedReportPreviewAction.message[0].text = messageText;
+    updatedReportPreviewAction.message[0].html = messageText;
+    if (reportPreviewAction.childMoneyRequestCount > 0) {
+        updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
+    }
 
     // STEP 5: Build Onyx data
     const optimisticData = [
@@ -2118,29 +2118,33 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [reportAction.reportActionID]: shouldDeleteIOUReport ? null : {
-                    pendingAction: null
-                },
+                [reportAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                      },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [reportPreviewAction.reportActionID]: shouldDeleteIOUReport ? null : {
-                    pendingAction: null,
-                    errors: null,
-                },
+                [reportPreviewAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                          errors: null,
+                      },
             },
         },
         ...(shouldDeleteIOUReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                    value: null,
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: null,
+                  },
+              ]
             : []),
     ];
 

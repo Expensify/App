@@ -408,7 +408,7 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
  * Check if all the transactions in the iou report are distance requests. If so, return true. Else, return false.
  *
  */
-function areAllDistanceRequestTransactions(reportID?: string): boolean  {
+function areAllDistanceRequestTransactions(reportID?: string): boolean {
     const reportTransactions: Transaction[] = getAllReportTransactions(reportID);
     const areAllDistanceRequests = reportTransactions.every((transaction) => isDistanceRequest(transaction));
     return reportTransactions.length > 0 && areAllDistanceRequests;
