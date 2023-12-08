@@ -14,8 +14,8 @@ import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -195,6 +195,7 @@ function AddressSearch({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -546,7 +547,7 @@ function AddressSearch({
                         styles={{
                             textInputContainer: [styles.flexColumn],
                             listView: [
-                                StyleUtils.getGoogleListViewStyle(styles, displayListViewBorder),
+                                StyleUtils.getGoogleListViewStyle(displayListViewBorder),
                                 styles.overflowAuto,
                                 styles.borderLeft,
                                 styles.borderRight,
@@ -570,7 +571,7 @@ function AddressSearch({
                         inbetweenCompo={
                             // We want to show the current location button even if there are no recent destinations
                             predefinedPlaces.length === 0 && shouldShowCurrentLocationButton ? (
-                                <View style={[StyleUtils.getGoogleListViewStyle(styles, true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
+                                <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
                                         isDisabled={network.isOffline}

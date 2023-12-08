@@ -26,8 +26,8 @@ import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import containerComposeStyles from '@styles/containerComposeStyles';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
@@ -103,6 +103,7 @@ function ComposerWithSuggestions({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -516,7 +517,7 @@ function ComposerWithSuggestions({
 
     return (
         <>
-            <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
+            <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={shouldAutoFocus}
