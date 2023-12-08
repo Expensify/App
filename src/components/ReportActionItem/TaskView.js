@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -9,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -22,12 +24,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
@@ -44,7 +46,7 @@ const propTypes = {
 
 function TaskView(props) {
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     useEffect(() => {
         Task.setTaskReport({...props.report});
     }, [props.report]);
@@ -56,6 +58,7 @@ function TaskView(props) {
     const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
     const isDisableInteractive = !canModifyTask || !isOpen;
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     return (
         <View>
@@ -81,7 +84,7 @@ function TaskView(props) {
                             style={({pressed}) => [
                                 styles.ph5,
                                 styles.pv2,
-                                StyleUtils.getButtonBackgroundColorStyle(theme, getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                 isDisableInteractive && !disableState && styles.cursorDefault,
                             ]}
                             ref={props.forwardedRef}
@@ -121,7 +124,7 @@ function TaskView(props) {
                                                 <Icon
                                                     additionalStyles={[styles.alignItemsCenter]}
                                                     src={Expensicons.ArrowRight}
-                                                    fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, false, disableState))}
+                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                 />
                                             </View>
                                         )}
@@ -150,7 +153,7 @@ function TaskView(props) {
                         <MenuItem
                             label={props.translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
+                            icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
@@ -187,4 +190,13 @@ function TaskView(props) {
 TaskView.propTypes = propTypes;
 TaskView.displayName = 'TaskView';
 
-export default compose(withWindowDimensions, withLocalize, withCurrentUserPersonalDetails)(TaskView);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    }),
+)(TaskView);
