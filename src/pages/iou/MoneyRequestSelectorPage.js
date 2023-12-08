@@ -24,7 +24,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewDistanceRequestPage from './NewDistanceRequestPage';
-import ReceiptSelector from './request/step/IOURequestStepScan';
+import IOURequestStepScan from './request/step/IOURequestStepScan';
 import NewRequestAmountPage from './steps/NewRequestAmountPage';
 
 const propTypes = {
@@ -127,7 +127,7 @@ function MoneyRequestSelectorPage(props) {
                                     />
                                     <TopTab.Screen
                                         name={CONST.TAB.SCAN}
-                                        component={ReceiptSelector}
+                                        component={IOURequestStepScan}
                                         initialParams={{reportID, iouType, pageIndex: 1}}
                                     />
                                     {shouldDisplayDistanceRequest && (

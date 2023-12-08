@@ -7,7 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
-import ReceiptSelector from './iou/request/step/IOURequestStepScan';
+import IOURequestStepScan from './iou/request/step/IOURequestStepScan';
 
 const propTypes = {
     /** React Navigation route */
@@ -49,7 +49,7 @@ function EditRequestReceiptPage({route, transactionID}) {
                             title={translate('common.receipt')}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <ReceiptSelector
+                        <IOURequestStepScan
                             route={route}
                             transactionID={transactionID}
                             isInTabNavigator={false}
