@@ -1878,7 +1878,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
  * Check if any of the distance transactions in the report has invalid route
  *
  */
-function hasRouteError(iouReportID) {
+function hasRouteError(iouReportID: string | undefined) {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
     return transactions.some((transaction) => TransactionUtils.hasRouteError(transaction));
 }
