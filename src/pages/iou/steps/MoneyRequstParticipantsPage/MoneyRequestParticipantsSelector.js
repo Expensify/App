@@ -97,6 +97,9 @@ function MoneyRequestParticipantsSelector({
     const theme = useTheme();
     const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
+
+    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+
     const newChatOptions = useMemo(() => {
         const chatOptions = OptionsListUtils.getFilteredOptions(
             reports,
@@ -366,7 +369,7 @@ function MoneyRequestParticipantsSelector({
                 sections={sections}
                 textInputValue={searchTerm}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                textInputHint={offlineMessage}
                 onChangeText={setSearchTermAndSearchInServer}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 onSelectRow={addSingleParticipant}
