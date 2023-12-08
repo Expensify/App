@@ -283,7 +283,7 @@ function MoneyRequestParticipantsSelector({
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
     const shouldShowSplitButton = isAllowedToSplit && !shouldShowSplitBillErrorMessage && participants.length > 0;
-    const referralContentType = iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
+    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
 
     const footerContent = (
         <View>
