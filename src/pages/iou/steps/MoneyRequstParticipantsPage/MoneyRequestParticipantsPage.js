@@ -66,7 +66,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const isInvalidWaypoint = lodashSize(validatedWaypoints) < 2;
     const headerTitle = useMemo(() => {
-
         if (isDistanceRequest) {
             return translate('common.distance');
         }
