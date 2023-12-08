@@ -2003,7 +2003,8 @@ describe('actions/IOU', () => {
             });
 
             createIOUAction = _.find(reportActionsForReport, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
-            expect(createIOUAction).toBeFalsy();
+            // Then the IOU Action should be truthy for offline support.
+            expect(createIOUAction).toBeTruthy();
 
             // Then we check if the transaction is removed from the transactions collection
             const t = await new Promise((resolve) => {
@@ -2021,6 +2022,7 @@ describe('actions/IOU', () => {
 
             // Given fetch operations are resumed
             fetch.resume();
+            await waitForBatchedUpdates();
 
             // Then we recheck the IOU report action from the report actions collection
             reportActionsForReport = await new Promise((resolve) => {
@@ -2071,11 +2073,12 @@ describe('actions/IOU', () => {
                 });
             });
 
-            // Then the report should be falsy (indicating deletion)
-            expect(report).toBeFalsy();
+            // Then the report should be truthy for offline support
+            expect(report).toBeTruthy();
 
             // Given the resumed fetch state
             fetch.resume();
+            await waitForBatchedUpdates();
 
             report = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2088,7 +2091,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            // Then the report should still be falsy (confirming deletion persisted)
+            // Then the report should be falsy so that there is no trace of the money request.
             expect(report).toBeFalsy();
         });
 

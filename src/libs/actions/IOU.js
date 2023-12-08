@@ -2116,10 +2116,12 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 
     const successData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [reportAction.reportActionID]: {pendingAction: null},
+                [reportAction.reportActionID]: shouldDeleteIOUReport ? null : {
+                    pendingAction: null
+                },
             },
         },
         {
