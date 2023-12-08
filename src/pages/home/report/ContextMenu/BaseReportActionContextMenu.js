@@ -12,8 +12,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useNetwork from '@hooks/useNetwork';
 import compose from '@libs/compose';
-import getReportActionContextMenuStyles from '@styles/getReportActionContextMenuStyles';
-import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,10 +49,10 @@ const defaultProps = {
     ...GenericReportActionContextMenuDefaultProps,
 };
 function BaseReportActionContextMenu(props) {
-    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const menuItemRefs = useRef({});
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
-    const wrapperStyle = getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth, theme);
+    const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(props.isMini, props.isSmallScreenWidth);
     const {isOffline} = useNetwork();
 
     const reportAction = useMemo(() => {
