@@ -1,16 +1,16 @@
 import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useRef} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
+    const shouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
 
-    isSmallScreenWidthRef.current = isSmallScreenWidth;
+    shouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,

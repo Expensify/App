@@ -23,12 +23,14 @@ import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function CodesStep({account = defaultAccount, backTo}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {isExtraSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [error, setError] = useState('');
 
     const {setStep} = useTwoFactorAuthContext();
@@ -62,7 +64,7 @@ function CodesStep({account = defaultAccount, backTo}) {
                     <View style={styles.mv3}>
                         <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
+                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, shouldUseNarrowLayout})}>
                         {account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={theme.spinner} />

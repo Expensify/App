@@ -2,12 +2,12 @@ import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} fr
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import useTheme from '@styles/themes/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */
@@ -43,7 +43,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
     const theme = useTheme();
 
     const currentReportIDValue = useCurrentReportID();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(
@@ -65,11 +65,11 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
             firstRenderRef.current = false;
             return;
         }
-        if (!isSmallScreenWidth) {
+        if (!shouldUseNarrowLayout) {
             return;
         }
         Navigation.setShouldPopAllStateOnUP();
-    }, [isSmallScreenWidth]);
+    }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
         if (!navigationRef.isReady() || !authenticated) {
@@ -77,7 +77,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         }
         // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
         navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth, authenticated]);
+    }, [shouldUseNarrowLayout, authenticated]);
 
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {

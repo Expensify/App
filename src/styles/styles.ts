@@ -57,7 +57,7 @@ type CustomPickerStyle = PickerStyle & {icon?: ViewStyle};
 
 type OverlayStylesParams = {progress: Animated.AnimatedInterpolation<string | number>};
 
-type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; isSmallScreenWidth: boolean};
+type TwoFactorAuthCodesBoxParams = {isExtraSmallScreenWidth: boolean; shouldUseNarrowLayout: boolean};
 
 type Translation = 'perspective' | 'rotate' | 'rotateX' | 'rotateY' | 'rotateZ' | 'scale' | 'scaleX' | 'scaleY' | 'translateX' | 'translateY' | 'skewX' | 'skewY' | 'matrix';
 
@@ -1378,9 +1378,9 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
-        RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+        RHPNavigatorContainer: (shouldUseNarrowLayout: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
                 position: 'absolute',
                 right: 0,
                 height: '100%',
@@ -2283,10 +2283,10 @@ const styles = (theme: ThemeColors) =>
             padding: 0,
         },
 
-        twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}: TwoFactorAuthCodesBoxParams) => {
+        twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, shouldUseNarrowLayout}: TwoFactorAuthCodesBoxParams) => {
             let paddingHorizontal = spacing.ph9;
 
-            if (isSmallScreenWidth) {
+            if (shouldUseNarrowLayout) {
                 paddingHorizontal = spacing.ph4;
             }
 

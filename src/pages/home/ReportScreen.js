@@ -37,6 +37,7 @@ import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -153,7 +154,7 @@ function ReportScreen({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -386,7 +387,7 @@ function ReportScreen({
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowLink={false}
                     >
@@ -397,7 +398,7 @@ function ReportScreen({
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                            {ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>

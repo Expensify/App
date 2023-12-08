@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -11,6 +10,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
@@ -20,12 +20,12 @@ function ReportHeaderSkeletonView({shouldAnimate = true}: ReportHeaderSkeletonVi
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <View style={[styles.appContentHeader]}>
-            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
-                {isSmallScreenWidth && (
+            <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
+                {shouldUseNarrowLayout && (
                     <PressableWithFeedback
                         onPress={() => {}}
                         style={[styles.LHNToggle]}

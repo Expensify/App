@@ -4,10 +4,11 @@ import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import sidebarPropTypes from './sidebarPropTypes';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Method to hide popover when dragover.
@@ -34,7 +35,7 @@ function SidebarScreen(props) {
     };
 
     return (
-        <FreezeWrapper keepVisible={!isSmallScreenWidth}>
+        <FreezeWrapper keepVisible={!shouldUseNarrowLayout}>
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}

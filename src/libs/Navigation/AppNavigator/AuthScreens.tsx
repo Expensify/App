@@ -37,6 +37,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type AuthScreensProps = {
     /** Session of currently logged in user */
@@ -132,8 +133,8 @@ const modalScreenListeners = {
 
 function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles);
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -252,8 +253,8 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
     }, []);
 
     return (
-        <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-            <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+        <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
+            <RootStack.Navigator shouldUseNarrowLayout={shouldUseNarrowLayout}>
                 <RootStack.Screen
                     name={SCREENS.HOME}
                     options={screenOptions.homeScreen}

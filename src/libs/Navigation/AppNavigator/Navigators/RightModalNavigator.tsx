@@ -9,6 +9,7 @@ import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigati
 import useThemeStyles from '@styles/useThemeStyles';
 import NAVIGATORS from '@src/NAVIGATORS';
 import Overlay from './Overlay';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
@@ -16,13 +17,13 @@ const Stack = createStackNavigator<RightModalNavigatorParamList>();
 
 function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const screenOptions = useMemo(() => RHPScreenOptions(styles), [styles]);
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && <Overlay onPress={navigation.goBack} />}
-            <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
+            {!shouldUseNarrowLayout && <Overlay onPress={navigation.goBack} />}
+            <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
                         name="Settings"

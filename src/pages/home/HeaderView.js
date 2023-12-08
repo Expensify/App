@@ -36,6 +36,7 @@ import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -80,7 +81,8 @@ const defaultProps = {
 };
 
 function HeaderView(props) {
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -185,7 +187,7 @@ function HeaderView(props) {
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
+    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     const isLoading = !props.report || !title;
@@ -195,12 +197,12 @@ function HeaderView(props) {
             style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
+            <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
                 {isLoading ? (
                     <ReportHeaderSkeletonView />
                 ) : (
                     <>
-                        {isSmallScreenWidth && (
+                        {shouldUseNarrowLayout && (
                             <PressableWithoutFeedback
                                 onPress={props.onNavigationMenuButtonClicked}
                                 style={[styles.LHNToggle]}
@@ -273,7 +275,7 @@ function HeaderView(props) {
                                 )}
                             </PressableWithoutFeedback>
                             <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
+                                {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
                                 {shouldShowThreeDotsButton && (
                                     <ThreeDotsMenu
                                         anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
