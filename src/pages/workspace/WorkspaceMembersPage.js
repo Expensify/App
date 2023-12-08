@@ -90,9 +90,6 @@ function WorkspaceMembersPage(props) {
     const isFocusedScreen = useIsFocused();
 
     useEffect(() => {
-        if (!SearchInputManager.searchInput) {
-            return;
-        }
         setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
 

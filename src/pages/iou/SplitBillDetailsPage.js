@@ -143,7 +143,7 @@ function SplitBillDetailsPage(props) {
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction.reportActionID}
-                            transactionID={props.transaction.transactionID}
+                            transaction={isEditingSplitBill ? props.draftTransaction : props.transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
                             policyID={ReportUtils.isPolicyExpenseChat(props.report) && props.report.policyID}

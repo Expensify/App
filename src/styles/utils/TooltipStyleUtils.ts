@@ -1,11 +1,11 @@
-import {TextStyle, View, ViewStyle} from 'react-native';
-import {type ThemeStyles} from '@styles/index';
-import {type ThemeColors} from '@styles/theme/types';
-import fontFamily from '@styles/utils/fontFamily';
-import positioning from '@styles/utils/positioning';
-import spacing from '@styles/utils/spacing';
+import {Animated, TextStyle, View, ViewStyle} from 'react-native';
+import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
+import type {ThemeStyles} from '..';
+import fontFamily from './fontFamily';
+import positioning from './positioning';
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
+import spacing from './spacing';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
  * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */
@@ -102,18 +102,16 @@ type TooltipStyles = {
 };
 
 type TooltipParams = {
-    tooltip: View | HTMLDivElement;
-    currentSize: number;
+    tooltip: View | HTMLDivElement | null;
+    currentSize: Animated.Value;
     windowWidth: number;
     xOffset: number;
     yOffset: number;
     tooltipTargetWidth: number;
     tooltipTargetHeight: number;
     maxWidth: number;
-    tooltipContentWidth: number;
-    tooltipWrapperHeight: number;
-    theme: ThemeColors;
-    styles: ThemeStyles;
+    tooltipContentWidth?: number;
+    tooltipWrapperHeight?: number;
     manualShiftHorizontal?: number;
     manualShiftVertical?: number;
 };
@@ -165,7 +163,7 @@ const createTooltipStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
         // Set the scale to 1 to be able to measure the tooltip size correctly when it's not ready yet.
-        let scale = 1;
+        let scale = new Animated.Value(1);
         let shouldShowBelow = false;
         let horizontalShift = 0;
         let horizontalShiftPointer = 0;
@@ -180,7 +178,7 @@ const createTooltipStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
             // Or the wrapped component is overlapping at top-center with another element
             // we'll display it beneath its wrapped component rather than above it as usual.
-            shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight);
+            shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || !!(tooltip && isOverlappingAtTop(tooltip, xOffset, yOffset, tooltipTargetWidth, tooltipTargetHeight));
 
             // When the tooltip size is ready, we can start animating the scale.
             scale = currentSize;

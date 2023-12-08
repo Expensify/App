@@ -105,7 +105,6 @@ function PressableWithDelayToggle(
             <>
                 {inline && labelText}
                 <Tooltip
-                    containerStyles={[styles.flexRow]}
                     text={tooltipTexts}
                     shouldRender
                 >
