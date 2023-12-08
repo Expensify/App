@@ -66,9 +66,9 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         }, [props.isSmallScreenWidth, props.route.params.reportID]);
 
         // Perform all the loading checks
-        const isLoadingReport = props.isLoadingReportData && props.report?.reportID;
+        const isLoadingReport = props.isLoadingReportData && !props.report?.reportID;
         const isLoadingReportAction = isEmptyObject(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
-        const shouldHideReport = !isLoadingReport && (isEmptyObject(props.report?.reportID) || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, null));
+        const shouldHideReport = !isLoadingReport && (!props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas, null));
 
         if ((isLoadingReport ?? isLoadingReportAction) && !shouldHideReport) {
             return <FullscreenLoadingIndicator />;
