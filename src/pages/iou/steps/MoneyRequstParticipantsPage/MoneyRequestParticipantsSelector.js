@@ -340,17 +340,21 @@ function MoneyRequestParticipantsSelector({
             if (!isAllowedToSplit) {
                 return null;
             }
-            return item.isSelected ? (
-                <PressableWithFeedback
-                    onPress={() => addParticipantToSelection(item)}
-                    disabled={item.isDisabled}
-                    role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                    accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
-                >
-                    <SelectCircle isChecked={item.isSelected} />
-                </PressableWithFeedback>
-            ) : (
+            if (item.isSelected) {
+                return (
+                    <PressableWithFeedback
+                        onPress={() => addParticipantToSelection(item)}
+                        disabled={item.isDisabled}
+                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                    >
+                        <SelectCircle isChecked={item.isSelected} />
+                    </PressableWithFeedback>
+                );
+            }
+
+            return (
                 <Button
                     onPress={() => addParticipantToSelection(item)}
                     style={[styles.pl2]}
