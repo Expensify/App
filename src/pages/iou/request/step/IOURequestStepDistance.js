@@ -16,7 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
@@ -53,6 +53,7 @@ function IOURequestStepDistance({
 }) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const [optimisticWaypoints, setOptimisticWaypoints] = useState(null);
     const [hasError, setHasError] = useState(false);
