@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import Avatar from '@components/Avatar';
@@ -7,6 +7,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -43,22 +44,23 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
     }
 };
 
-const userFriendlyWorkspaceType = (workspaceType: WorkspacesListRowProps['workspaceType']) => {
-    switch (workspaceType) {
-        case CONST.POLICY.TYPE.FREE:
-            return 'Free';
-        case CONST.POLICY.TYPE.CORPORATE:
-            return 'Control';
-        case CONST.POLICY.TYPE.TEAM:
-            return 'Collect';
-        default:
-            throw new Error(`Don't know a friendly workspace name for this workspace type`);
-    }
-};
-
 function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
+
+    const userFriendlyWorkspaceType = useMemo(() => {
+        switch (workspaceType) {
+            case CONST.POLICY.TYPE.FREE:
+                return translate('workspace.type.free');
+            case CONST.POLICY.TYPE.CORPORATE:
+                return translate('workspace.type.control');
+            case CONST.POLICY.TYPE.TEAM:
+                return translate('workspace.type.collect');
+            default:
+                throw new Error(`Don't know a friendly workspace name for this workspace type`);
+        }
+    }, [workspaceType, translate]);
 
     return (
         <View style={[styles.dFlex, styles.gap3, styles.highlightBG, styles.br3, styles.pv5]}>
@@ -116,13 +118,13 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                             numberOfLines={1}
                             style={styles.labelStrong}
                         >
-                            {userFriendlyWorkspaceType(workspaceType)}
+                            {userFriendlyWorkspaceType}
                         </Text>
                         <Text
                             numberOfLines={1}
                             style={[styles.textMicro, styles.textSupporting]}
                         >
-                            Plan
+                            {translate('workspace.common.plan')}
                         </Text>
                     </View>
                 </View>
