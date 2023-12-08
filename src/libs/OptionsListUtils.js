@@ -499,7 +499,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
@@ -1154,7 +1154,7 @@ function getOptions(
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        const accountIDs = report.participantAccountIDs || [];
+        const accountIDs = report.visibleChatMemberAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;

@@ -2106,8 +2106,9 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
     const inviteeEmails = _.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = _.values(inviteeEmailsToAccountIDs);
 
-    const {participantAccountIDs} = report;
+    const {participantAccountIDs, visibleChatMemberAccountIDs} = report;
     const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, ...inviteeAccountIDs]);
+    const visibleChatMemberAccountIDsAfterInvitation = _.uniq([...visibleChatMemberAccountIDs, ...inviteeAccountIDs]);
 
     API.write(
         'InviteToRoom',
@@ -2122,6 +2123,7 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participantAccountIDs: participantAccountIDsAfterInvitation,
+                        visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterInvitation,
                     },
                 },
             ],
@@ -2131,6 +2133,7 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participantAccountIDs,
+                        visibleChatMemberAccountIDs,
                     },
                 },
             ],
@@ -2147,8 +2150,9 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
 function removeFromRoom(reportID, targetAccountIDs) {
     const report = lodashGet(allReports, [reportID], {});
 
-    const {participantAccountIDs} = report;
+    const {participantAccountIDs, visibleChatMemberAccountIDs} = report;
     const participantAccountIDsAfterRemoval = _.difference(participantAccountIDs, targetAccountIDs);
+    const visibleChatMemberAccountIDsAfterRemoval = _.difference(visibleChatMemberAccountIDs, targetAccountIDs);
 
     API.write(
         'RemoveFromRoom',
@@ -2163,6 +2167,7 @@ function removeFromRoom(reportID, targetAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participantAccountIDs: participantAccountIDsAfterRemoval,
+                        visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                     },
                 },
             ],
@@ -2172,6 +2177,7 @@ function removeFromRoom(reportID, targetAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participantAccountIDs,
+                        visibleChatMemberAccountIDs,
                     },
                 },
             ],
@@ -2184,6 +2190,7 @@ function removeFromRoom(reportID, targetAccountIDs) {
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         participantAccountIDs: participantAccountIDsAfterRemoval,
+                        visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                     },
                 },
             ],
