@@ -207,8 +207,8 @@ function ReportPreview(props) {
     const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isGroupPolicy
-        // In a group policy, the admin approver can pay the report directly by skipping the approval step
-        ? isPolicyAdmin && (isApproved || isCurrentUserManager)
+        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+          isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,

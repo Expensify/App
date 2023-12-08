@@ -78,8 +78,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isGroupPolicy = _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = isGroupPolicy
-        // In a group policy, the admin approver can pay the report directly by skipping the approval step
-        ?  isPolicyAdmin && (isApproved || isManager)
+        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+          isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const shouldShowPayButton = useMemo(
