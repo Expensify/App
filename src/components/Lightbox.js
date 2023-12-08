@@ -2,8 +2,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@styles/useStyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas, {getCanvasFitScale} from './MultiGestureCanvas';
@@ -60,7 +59,7 @@ const defaultProps = {
 };
 
 function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, index, activeIndex, hasSiblingCarouselItems, zoomRange}) {
-    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const [containerSize, setContainerSize] = useState({width: 0, height: 0});
     const isContainerLoading = containerSize.width === 0 || containerSize.height === 0;
@@ -187,7 +186,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                     {isFallbackVisible && (
                         <View
                             collapsable={false}
-                            style={StyleUtils.getFullscreenCenteredContentStyles(styles)}
+                            style={StyleUtils.getFullscreenCenteredContentStyles()}
                         >
                             <Image
                                 source={{uri: source}}
