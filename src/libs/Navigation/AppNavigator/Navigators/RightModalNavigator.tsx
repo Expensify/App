@@ -3,7 +3,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';

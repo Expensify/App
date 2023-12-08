@@ -2,7 +2,6 @@ import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Onyx, {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
