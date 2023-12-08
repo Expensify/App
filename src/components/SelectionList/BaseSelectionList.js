@@ -62,7 +62,6 @@ function BaseSelectionList({
     shouldStopPropagation = false,
     shouldUseDynamicMaxToRenderPerBatch = false,
     rightHandSideComponent,
-    onRightHandSideComponentPress,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -315,7 +314,6 @@ function BaseSelectionList({
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
-                onRightHandSideComponentPress={onRightHandSideComponentPress}
                 keyForList={item.keyForList}
             />
         );
