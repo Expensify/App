@@ -1540,32 +1540,9 @@ function navigateToConciergeChat(ignoreConciergeReportID = false) {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {String} policyID
- * @param {String} reportName
- * @param {String} visibility
- * @param {String} writeCapability
- * @param {String} welcomeMessage
+ * @param {Object} policyReport
  */
-function addPolicyReport(policyID, reportName, visibility, writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL, welcomeMessage = '') {
-    const participants = [currentUserAccountID];
-    const parsedWelcomeMessage = ReportUtils.getParsedComment(welcomeMessage);
-    const policyReport = ReportUtils.buildOptimisticChatReport(
-        participants,
-        reportName,
-        CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policyID,
-        CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-        false,
-        '',
-        visibility,
-        writeCapability,
-
-        // The room might contain all policy members so notifying always should be opt-in only.
-        CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-        '',
-        '',
-        parsedWelcomeMessage,
-    );
+function addPolicyReport(policyReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
@@ -1587,6 +1564,11 @@ function addPolicyReport(policyID, reportName, visibility, writeCapability = CON
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyReport.reportID}`,
             value: {[createdReportAction.reportActionID]: createdReportAction},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: true},
+        },
     ];
     const successData = [
         {
@@ -1607,6 +1589,11 @@ function addPolicyReport(policyID, reportName, visibility, writeCapability = CON
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
     const failureData = [
         {
@@ -1618,22 +1605,26 @@ function addPolicyReport(policyID, reportName, visibility, writeCapability = CON
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+            value: {isLoading: false},
+        },
     ];
 
     API.write(
         'AddWorkspaceRoom',
         {
             policyID: policyReport.policyID,
-            reportName,
-            visibility,
+            reportName: policyReport.reportName,
+            visibility: policyReport.visibility,
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
-            writeCapability,
-            welcomeMessage: parsedWelcomeMessage,
+            writeCapability: policyReport.writeCapability,
+            welcomeMessage: policyReport.welcomeMessage,
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.dismissModal(policyReport.reportID);
 }
 
 /**
@@ -1752,7 +1743,7 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
- * @param {Object} action the associated report action (optional)
+ * @param {Object|null} action the associated report action (optional)
  * @param {Boolean} isRemote whether or not this notification is a remote push notification
  * @returns {Boolean}
  */
@@ -2011,6 +2002,14 @@ function openReportFromDeepLink(url, isAuthenticated) {
                     Session.signOutAndRedirectToSignIn();
                     return;
                 }
+
+                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                // which is already called when AuthScreens mounts.
+                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                    return;
+                }
+
                 Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
@@ -2053,6 +2052,11 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
                   value: {
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS.CLOSED,
+                      chatType: report.chatType,
+                      parentReportID: report.parentReportID,
+                      parentReportActionID: report.parentReportActionID,
+                      policyID: report.policyID,
+                      type: report.type,
                   },
               },
     ];
@@ -2490,7 +2494,7 @@ const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SE
  * @param {string} searchInput
  */
 function searchInServer(searchInput) {
-    if (isNetworkOffline) {
+    if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
@@ -2500,6 +2504,13 @@ function searchInServer(searchInput) {
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
     debouncedSearchInServer(searchInput);
+}
+
+function clearNewRoomFormError() {
+    Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
+        isLoading: false,
+        errorFields: {},
+    });
 }
 
 export {
@@ -2563,4 +2574,5 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    clearNewRoomFormError,
 };
