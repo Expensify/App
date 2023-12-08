@@ -4,6 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
+import getPlatform from '@libs/getPlatform';
 
 const propTypes = {
     /** The comment of the report */
@@ -32,6 +34,8 @@ const defaultProps = {
     comment: '',
 };
 
+const isWeb = getPlatform() === CONST.PLATFORM.WEB
+
 /**
  * This component doesn't render anything. It runs a side effect to update the comment of a report under certain conditions.
  * It is connected to the actual draft comment in onyx. The comment in onyx might updates multiple times, and we want to avoid
@@ -52,7 +56,9 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
-        const shouldSyncComment = prevCommentProp !== comment && value !== comment;
+
+        // Adding isWeb check to fix issue on Android, assuming we don't need tab sync on mobiles - https://github.com/Expensify/App/issues/28562
+        const shouldSyncComment = isWeb && prevCommentProp !== comment && value !== comment;
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
         // we do not show incorrect data in there (ie. draft of message from other report).
@@ -61,7 +67,7 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
         }
 
         updateComment(comment);
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value, commentRef]);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value, commentRef, isWeb]);
 
     return null;
 }
