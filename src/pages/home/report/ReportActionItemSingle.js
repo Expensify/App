@@ -20,8 +20,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -81,6 +81,7 @@ const showWorkspaceDetails = (reportID) => {
 function ReportActionItemSingle(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);

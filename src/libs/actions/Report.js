@@ -1743,7 +1743,7 @@ function setIsComposerFullSize(reportID, isComposerFullSize) {
 
 /**
  * @param {String} reportID
- * @param {Object} action the associated report action (optional)
+ * @param {Object|null} action the associated report action (optional)
  * @param {Boolean} isRemote whether or not this notification is a remote push notification
  * @returns {Boolean}
  */
@@ -1781,8 +1781,13 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
         return false;
     }
 
-    // If this notification was delayed and the user saw the message already, don't show it
     const report = allReports[reportID];
+    if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
+        return false;
+    }
+
+    // If this notification was delayed and the user saw the message already, don't show it
     if (action && report && report.lastReadTime >= action.created) {
         Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
         return false;
@@ -2002,6 +2007,14 @@ function openReportFromDeepLink(url, isAuthenticated) {
                     Session.signOutAndRedirectToSignIn();
                     return;
                 }
+
+                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                // which is already called when AuthScreens mounts.
+                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                    return;
+                }
+
                 Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
@@ -2044,6 +2057,11 @@ function leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom = false) {
                   value: {
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS.CLOSED,
+                      chatType: report.chatType,
+                      parentReportID: report.parentReportID,
+                      parentReportActionID: report.parentReportActionID,
+                      policyID: report.policyID,
+                      type: report.type,
                   },
               },
     ];
