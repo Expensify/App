@@ -3,9 +3,7 @@ import React, {forwardRef, useImperativeHandle} from 'react';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
@@ -54,8 +52,8 @@ const defaultProps = {
 };
 
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -87,7 +85,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
                 <Icon
                     small
                     src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, !isThrottledButtonActive))}
+                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
             )}
         </BaseMiniContextMenuItem>
@@ -100,7 +98,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakAll}
-            style={getContextMenuItemStyles(styles, windowWidth)}
+            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}
