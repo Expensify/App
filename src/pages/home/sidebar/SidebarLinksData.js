@@ -67,7 +67,7 @@ const defaultProps = {
     policies: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode, network}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
