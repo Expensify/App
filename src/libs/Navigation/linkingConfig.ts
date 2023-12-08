@@ -363,6 +363,36 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     MoneyRequest: {
                         screens: {
+                            Money_Request_Create: {
+                                path: ROUTES.MONEY_REQUEST_CREATE.route,
+                                exact: true,
+                                screens: {
+                                    distance: {
+                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
+                                        exact: true,
+                                    },
+                                    manual: {
+                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
+                                        exact: true,
+                                    },
+                                    scan: {
+                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
+                                        exact: true,
+                                    },
+                                },
+                            },
+                            Money_Request_Step_Amount: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
+                            Money_Request_Step_Category: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
+                            Money_Request_Step_Confirmation: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
+                            Money_Request_Step_Currency: ROUTES.MONEY_REQUEST_STEP_CURRENCY.route,
+                            Money_Request_Step_Date: ROUTES.MONEY_REQUEST_STEP_DATE.route,
+                            Money_Request_Step_Description: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
+                            Money_Request_Step_Distance: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
+                            Money_Request_Step_Merchant: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
+                            Money_Request_Step_Participants: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
+                            Money_Request_Step_Scan: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
+                            Money_Request_Step_Tag: ROUTES.MONEY_REQUEST_STEP_TAG.route,
+                            Money_Request_Step_Waypoint: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                             Money_Request: {
                                 path: ROUTES.MONEY_REQUEST.route,
                                 exact: true,
