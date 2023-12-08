@@ -78,15 +78,13 @@ function IOURequestStepConfirmation({
     const receiptPath = lodashGet(transaction, 'receipt.source');
     const requestType = TransactionUtils.getRequestType(transaction);
     const headerTitle = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+
     const participants = useMemo(
         () =>
-            _.chain(transaction.participants)
-                .map((participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
-                    return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
-                })
-                .filter((participant) => !!participant.login || !!participant.text)
-                .value(),
+            _.map(transaction.participants, (participant) => {
+                const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
+            }),
         [transaction.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -208,7 +206,9 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.category,
+                    transaction.tag,
                     report.reportID,
+                    transaction.merchant,
                 );
                 return;
             }
@@ -223,6 +223,8 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.category,
+                    transaction.tag,
+                    transaction.merchant,
                 );
                 return;
             }
