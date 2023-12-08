@@ -911,8 +911,8 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
  *
  */
 function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined, transactions: Transaction[] | undefined = undefined): boolean {
-    const allTransactions = transactions ?? TransactionUtils.getAllReportTransactions(iouReportID);
-    return allTransactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
+    const allTransactionsOfPreview = transactions ?? TransactionUtils.getAllReportTransactions(iouReportID);
+    return allTransactionsOfPreview.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
 /**
@@ -1601,8 +1601,8 @@ function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData
  *
  */
 function hasNonReimbursableTransactions(iouReportID: string | undefined, transactions: Transaction[] | undefined = undefined): boolean {
-    const allTransactions = transactions ?? TransactionUtils.getAllReportTransactions(iouReportID);
-    return allTransactions.filter((transaction) => transaction.reimbursable === false).length > 0;
+    const allTransactionsOfPreview = transactions ?? TransactionUtils.getAllReportTransactions(iouReportID);
+    return allTransactionsOfPreview.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
 function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): number {
