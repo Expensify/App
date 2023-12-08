@@ -17,7 +17,6 @@ function getGroupChatName(report: Report): string | undefined {
     const participants = report.participantAccountIDs ?? [];
     const isMultipleParticipantReport = participants.length > 1;
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, allPersonalDetails ?? {});
-    // @ts-expect-error Error will gone when OptionsListUtils will be migrated to Typescript
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipantReport);
     return ReportUtils.getDisplayNamesStringFromTooltips(displayNamesWithTooltips);
 }

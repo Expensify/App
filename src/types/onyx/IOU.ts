@@ -2,7 +2,7 @@ import {Icon} from './OnyxCommon';
 
 type Participant = {
     accountID: number;
-    login?: string;
+    login: string | undefined;
     isPolicyExpenseChat?: boolean;
     isOwnPolicyExpenseChat?: boolean;
     selected?: boolean;
