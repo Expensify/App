@@ -672,7 +672,8 @@ function isGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
     return isPolicyExpenseChat(report) && isGroupPolicy(report);
 }
 
-/** Wether the provided report belongs to a Control policy and is an expense report
+/**
+ * Whether the provided report belongs to a Control policy and is an expense report
  */
 function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
