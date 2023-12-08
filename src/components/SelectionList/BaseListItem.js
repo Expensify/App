@@ -34,6 +34,14 @@ function BaseListItem({
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
 
+    const rightHandSideComponentRender = () => {
+        if (canSelectMultiple || !rightHandSideComponent) {
+            return null; // no right hand side component
+        }
+
+        return typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item) : rightHandSideComponent;
+    };
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -114,7 +122,7 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
-                    {!canSelectMultiple && !!rightHandSideComponent && typeof rightHandSideComponent === 'function' ? rightHandSideComponent(item) : rightHandSideComponent}
+                    {rightHandSideComponentRender()}
                 </View>
                 {Boolean(item.invitedSecondaryLogin) && (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
