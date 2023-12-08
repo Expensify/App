@@ -4284,12 +4284,7 @@ function navigateToPrivateNotes(report: Report, session: Session) {
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
 }
 
-function getReportByID(reportID: string) {
-    return allReports ? allReports[reportID] : {};
-}
-
 export {
-    getReportByID,
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
