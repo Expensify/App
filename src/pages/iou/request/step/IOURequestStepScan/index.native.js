@@ -132,11 +132,6 @@ function IOURequestStepScan({
                 const filePath = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, photo.path);
 
-                if (backTo) {
-                    Navigation.goBack(backTo);
-                    return;
-                }
-
                 const onSuccess = (receipt) => {
                     IOU.replaceReceipt(transactionID, receipt, filePath);
                 };
@@ -144,6 +139,11 @@ function IOURequestStepScan({
                 // When an existing transaction is being edited (eg. not the create transaction flow)
                 if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                     FileUtils.readFileAsync(filePath, photo.path, onSuccess);
+
+                    if (backTo) {
+                        Navigation.goBack(backTo);
+                        return;
+                    }
                     Navigation.dismissModal();
                     return;
                 }
