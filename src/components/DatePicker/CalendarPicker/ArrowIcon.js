@@ -3,7 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -21,10 +22,15 @@ const defaultProps = {
 };
 
 function ArrowIcon(props) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return (
         <View style={[styles.p1, StyleUtils.getDirectionStyle(props.direction), props.disabled ? styles.buttonOpacityDisabled : {}]}>
-            <Icon src={Expensicons.ArrowRight} />
+            <Icon
+                fill={theme.icon}
+                src={Expensicons.ArrowRight}
+            />
         </View>
     );
 }

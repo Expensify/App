@@ -25,6 +25,8 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
+const HEADER_IMAGE_SIZE = 240;
+
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -87,9 +89,11 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             onBackButtonPress={navigateBackToSettingsPage}
             headerContent={
                 <ImageSVG
+                    contentFit="contain"
                     src={MobileBackgroundImage}
                     pointerEvents="none"
-                    style={styles.staticHeaderImage}
+                    width={HEADER_IMAGE_SIZE}
+                    height={HEADER_IMAGE_SIZE}
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage]}
