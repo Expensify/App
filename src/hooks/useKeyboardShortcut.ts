@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import {GestureResponderEvent} from 'react-native';
 import {ValueOf} from 'type-fest';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
@@ -17,13 +18,15 @@ type KeyboardShortcutConfig = {
     excludedNodes?: string[];
     /* Is keyboard shortcut is already active */
     isActive?: boolean;
+    /* Shuld stop propagation? */
+    shouldStopPropagation?: boolean;
 };
 
 /**
  * Register a keyboard shortcut handler.
  * Recommendation: To ensure stability, wrap the `callback` function with the useCallback hook before using it with this hook.
  */
-export default function useKeyboardShortcut(shortcut: Shortcut, callback: () => void, config: KeyboardShortcutConfig | Record<string, never> = {}) {
+export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: GestureResponderEvent | KeyboardEvent) => void, config: KeyboardShortcutConfig | Record<string, never> = {}) {
     const {
         captureOnInputs = true,
         shouldBubble = false,
@@ -34,6 +37,9 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: () => 
         // Hence the use of CONST.EMPTY_ARRAY.
         excludedNodes = CONST.EMPTY_ARRAY,
         isActive = true,
+
+        // This flag is used to prevent auto submit form when press enter key on selection modal.
+        shouldStopPropagation = false,
     } = config;
 
     useEffect(() => {
@@ -51,6 +57,7 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: () => 
             priority,
             shouldPreventDefault,
             excludedNodes as string[],
+            shouldStopPropagation,
         );
 
         return () => {

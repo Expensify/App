@@ -7,7 +7,7 @@ import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@styles/useThemeStyles';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
-function UserListItem({item, isFocused = false, showTooltip}) {
+function UserListItem({item, textStyles, alternateTextStyles, showTooltip}) {
     const styles = useThemeStyles();
     return (
         <>
@@ -24,7 +24,7 @@ function UserListItem({item, isFocused = false, showTooltip}) {
                     text={item.text}
                 >
                     <Text
-                        style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold]}
+                        style={textStyles}
                         numberOfLines={1}
                     >
                         {item.text}
@@ -36,7 +36,7 @@ function UserListItem({item, isFocused = false, showTooltip}) {
                         text={item.alternateText}
                     >
                         <Text
-                            style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                            style={alternateTextStyles}
                             numberOfLines={1}
                         >
                             {item.alternateText}

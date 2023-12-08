@@ -16,8 +16,8 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -74,6 +74,7 @@ const defaultProps = {
 function BaseValidateCodeForm(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState('');
     const loginData = props.loginList[props.contactMethod];
@@ -89,12 +90,24 @@ function BaseValidateCodeForm(props) {
             }
             inputValidateCodeRef.current.focus();
         },
+        focusLastSelected() {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focusLastSelected, CONST.ANIMATED_TRANSITION);
+        },
     }));
 
     useFocusEffect(
         useCallback(() => {
             if (!inputValidateCodeRef.current) {
                 return;
+            }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
             }
             focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focus, CONST.ANIMATED_TRANSITION);
             return () => {

@@ -1,0 +1,28 @@
+diff --git a/node_modules/react-pdf/dist/esm/Document.js b/node_modules/react-pdf/dist/esm/Document.js
+index 91db4d4..82cafec 100644
+--- a/node_modules/react-pdf/dist/esm/Document.js
++++ b/node_modules/react-pdf/dist/esm/Document.js
+@@ -78,7 +78,10 @@ var Document = /*#__PURE__*/function (_PureComponent) {
+       cancelRunningTask(_this.runningTask);
+ 
+       // If another loading is in progress, let's destroy it
+-      if (_this.loadingTask) _this.loadingTask.destroy();
++      if (_this.loadingTask) {
++        _this.loadingTask._worker.destroy();
++        _this.loadingTask.destroy();
++      };
+       var cancellable = makeCancellable(_this.findDocumentSource());
+       _this.runningTask = cancellable;
+       cancellable.promise.then(function (source) {
+@@ -251,7 +254,10 @@ var Document = /*#__PURE__*/function (_PureComponent) {
+       cancelRunningTask(this.runningTask);
+ 
+       // If loading is in progress, let's destroy it
+-      if (this.loadingTask) this.loadingTask.destroy();
++      if (this.loadingTask) {
++        this.loadingTask._worker.destroy();
++        this.loadingTask.destroy();
++      };
+     }
+   }, {
+     key: "childContext",

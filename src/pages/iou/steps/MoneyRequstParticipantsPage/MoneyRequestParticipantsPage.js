@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import lodashGet from 'lodash/get';
 import lodashSize from 'lodash/size';
 import PropTypes from 'prop-types';
@@ -87,6 +88,8 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
 
     const navigateToConfirmationStep = (moneyRequestType) => {
         IOU.setMoneyRequestId(moneyRequestType);
+        IOU.resetMoneyRequestCategory();
+        IOU.resetMoneyRequestTag();
         Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(moneyRequestType, reportID));
     };
 
@@ -109,7 +112,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType}${reportID}`;
-        const shouldReset = iou.id !== moneyRequestId;
+        const shouldReset = iou.id !== moneyRequestId && !_.isEmpty(reportID);
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
