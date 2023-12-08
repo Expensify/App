@@ -152,7 +152,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
  * Returns the personal details for an array of accountIDs
  *
  * @param {Array} accountIDs
- * @param {Object} personalDetails
+ * @param {Object | null} personalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
 function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
@@ -357,6 +357,8 @@ function getAllReportErrors(report, reportActions) {
         if (ReportUtils.hasMissingSmartscanFields(report.reportID) && !ReportUtils.isSettled(report.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
+    } else if (ReportUtils.hasSmartscanError(_.values(reportActions))) {
+        _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
     }
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
