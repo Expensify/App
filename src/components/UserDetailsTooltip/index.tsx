@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import BaseUserDetailsTooltip from './BaseUserDetailsTooltip';
-import {defaultProps as userDetailsTooltipDefaultProps, propTypes as userDetailsTooltipPropTypes} from './userDetailsTooltipPropTypes';
+import {defaultProps as userDetailsTooltipDefaultProps, propTypes as userDetailsTooltipPropTypes} from './types';
 
 const propTypes = {
     ...userDetailsTooltipPropTypes,
