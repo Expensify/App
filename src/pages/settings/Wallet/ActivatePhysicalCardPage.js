@@ -123,7 +123,7 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        CardSettings.activatePhysicalExpensifyCard(Number(lastFourDigits), cardID);
+        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, cardID);
     }, [lastFourDigits, cardID, translate]);
 
     if (_.isEmpty(physicalCard)) {
@@ -134,7 +134,7 @@ function ActivatePhysicalCardPage({
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain))}
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
             childrenContainerStyles={[styles.flex1]}

@@ -1,9 +1,9 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback} from 'react';
-import {Image} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -17,7 +17,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import exampleCheckImage from './exampleCheckImage';
+import ExampleCheck from './ExampleCheck';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -26,7 +26,7 @@ const propTypes = {
 
 function BankAccountManualStep(props) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {reimbursementAccount, reimbursementAccountDraft} = props;
 
     const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
@@ -86,20 +86,17 @@ function BankAccountManualStep(props) {
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
                 onBackButtonPress={props.onBackButtonPress}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 onSubmit={submit}
                 validate={validate}
                 submitButtonText={translate('common.continue')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
             >
                 <Text style={[styles.mb5]}>{translate('bankAccount.checkHelpLine')}</Text>
-                <Image
-                    resizeMode="contain"
-                    style={[styles.exampleCheckImage, styles.mb5]}
-                    source={exampleCheckImage(preferredLocale)}
-                />
-                <TextInput
+                <ExampleCheck />
+                <InputWrapper
+                    InputComponent={TextInput}
                     autoFocus
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
@@ -112,7 +109,8 @@ function BankAccountManualStep(props) {
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
@@ -124,7 +122,8 @@ function BankAccountManualStep(props) {
                     shouldSaveDraft
                     shouldUseDefaultValue={shouldDisableInputs}
                 />
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     aria-label={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     style={styles.mt4}
                     inputID="acceptTerms"
@@ -137,7 +136,7 @@ function BankAccountManualStep(props) {
                     defaultValue={props.getDefaultStateForField('acceptTerms', false)}
                     shouldSaveDraft
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

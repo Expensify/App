@@ -27,8 +27,8 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import reportPropTypes from '@pages/reportPropTypes';
-import containerComposeStyles from '@styles/containerComposeStyles';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
@@ -82,6 +82,7 @@ const isMobileSafari = Browser.isMobileSafari();
 function ReportActionItemMessageEdit(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -122,6 +123,7 @@ function ReportActionItemMessageEdit(props) {
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
+    const draftRef = useRef(draft);
 
     useEffect(() => {
         if (ReportActionsUtils.isDeletedAction(props.action) || props.draftMessage === props.action.message[0].html) {
@@ -241,7 +243,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
+            const {text: newDraft, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
@@ -255,12 +257,14 @@ function ReportActionItemMessageEdit(props) {
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const remainder = ComposerUtils.getCommonSuffixLength(newDraftInput, newDraft);
+                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), cursorPosition || 0);
                 setSelection({
-                    start: newDraft.length - remainder,
-                    end: newDraft.length - remainder,
+                    start: position,
+                    end: position,
                 });
             }
+
+            draftRef.current = newDraft;
 
             // This component is rendered only when draft is set to a non-empty string. In order to prevent component
             // unmount when user deletes content of textarea, we set previous message instead of empty string.
@@ -271,7 +275,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -394,7 +398,7 @@ function ReportActionItemMessageEdit(props) {
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+                    <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
                             ref={(el) => {

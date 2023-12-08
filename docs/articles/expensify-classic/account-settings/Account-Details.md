@@ -59,3 +59,11 @@ Is your Secondary Login (personal email) invalidated in your company account? If
 3. You will be presented with a confirmation message saying Expensify sent you an email with a validation link
 4. Head to your personal email account and follow the prompts
 5. You'll receive a link in the email to click that will unlink the two accounts
+
+# FAQ
+## The profile picture on my account updated automatically. Why did this happen? 
+Our focus is always on making your experience user-friendly and saving you valuable time. One of the ways we achieve this is by utilizing a public API to retrieve public data linked to your email address.
+
+This tool searches for public accounts or profiles associated with your email address, such as on LinkedIn. When it identifies one, it pulls in the uploaded profile picture and name to Expensify.
+
+While this automated process is generally accurate, there may be instances where it's not entirely correct. If this happens, we apologize for any inconvenience caused. The good news is that rectifying such situations is a straightforward process. You can quickly update your information manually by following the directions provided above, ensuring your data is accurate and up to date in no time. 
