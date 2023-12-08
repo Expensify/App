@@ -3091,54 +3091,6 @@ function setUpDistanceTransaction() {
 }
 
 /**
- * Navigates to the next IOU page based on where the IOU request was started
- *
- * @param {Object} iou
- * @param {String} iouType
- * @param {Object} report
- * @param {String} report.reportID
- * @param {String} path
- */
-function navigateToNextPage(iou, iouType, report, path = '') {
-    const moneyRequestID = `${iouType}${report.reportID || ''}`;
-    const shouldReset = iou.id !== moneyRequestID && !_.isEmpty(report.reportID);
-
-    // If the money request ID in Onyx does not match the ID from params, we want to start a new request
-    // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
-    if (shouldReset) {
-        resetMoneyRequestInfo(moneyRequestID);
-    }
-
-    // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
-    if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report.reportID)) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
-        return;
-    }
-
-    // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-    if (report.reportID) {
-        // If the report is iou or expense report, we should get the chat report to set participant for request money
-        const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
-        // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-        if (_.isEmpty(iou.participants) || shouldReset) {
-            const currentUserAccountID = currentUserPersonalDetails.accountID;
-            const participants = ReportUtils.isPolicyExpenseChat(chatReport)
-                ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
-                : _.chain(chatReport.participantAccountIDs)
-                      .filter((accountID) => currentUserAccountID !== accountID)
-                      .map((accountID) => ({accountID, selected: true}))
-                      .value();
-            setMoneyRequestParticipants(participants);
-            resetMoneyRequestCategory();
-            resetMoneyRequestTag();
-        }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
-        return;
-    }
-    Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
-}
-
-/**
  *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
  * parameter.
  * Gets a report id from the first participant of the IOU object stored in Onyx.
@@ -3197,7 +3149,6 @@ export {
     setMoneyRequestReceipt,
     setMoneyRequestTag,
     setUpDistanceTransaction,
-    navigateToNextPage,
     replaceReceipt,
     detachReceipt,
     getIOUReportID,

@@ -111,9 +111,6 @@ const SCREENS = {
     SAML_SIGN_IN: 'SAMLSignIn',
 
     MONEY_REQUEST: {
-        MANUAL_TAB: 'manual',
-        SCAN_TAB: 'scan',
-        DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
@@ -128,19 +125,11 @@ const SCREENS = {
         STEP_TAG: 'Money_Request_Step_Tag',
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         ROOT: 'Money_Request',
-        AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
-        CURRENCY: 'Money_Request_Currency',
-        DATE: 'Money_Request_Date',
         DESCRIPTION: 'Money_Request_Description',
-        CATEGORY: 'Money_Request_Category',
-        TAG: 'Money_Request_Tag',
-        MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
-        DISTANCE: 'Money_Request_Distance',
-        RECEIPT: 'Money_Request_Receipt',
     },
 
     IOU_SEND: {

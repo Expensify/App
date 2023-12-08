@@ -177,7 +177,6 @@ type RoomInviteNavigatorParamList = {
 
 type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.ROOT]: undefined;
-    [SCREENS.MONEY_REQUEST.AMOUNT]: undefined;
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
@@ -186,33 +185,7 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.CURRENCY]: {
-        iouType: string;
-        reportID: string;
-        currency: string;
-        backTo: string;
-    };
-    [SCREENS.MONEY_REQUEST.DATE]: {
-        iouType: string;
-        reportID: string;
-        field: string;
-        threadReportID: string;
-    };
     [SCREENS.MONEY_REQUEST.DESCRIPTION]: {
-        iouType: string;
-        reportID: string;
-        field: string;
-        threadReportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.CATEGORY]: {
-        iouType: string;
-        reportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.TAG]: {
-        iouType: string;
-        reportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.MERCHANT]: {
         iouType: string;
         reportID: string;
         field: string;
@@ -232,14 +205,6 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         waypointIndex: string;
         threadReportID: number;
-    };
-    [SCREENS.MONEY_REQUEST.DISTANCE]: {
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        reportID: string;
-    };
-    [SCREENS.MONEY_REQUEST.RECEIPT]: {
-        iouType: string;
-        reportID: string;
     };
 };
 
@@ -306,7 +271,6 @@ type EditRequestNavigatorParamList = {
         field: string;
         threadReportID: string;
     };
-    [SCREENS.EDIT_REQUEST.CURRENCY]: undefined;
 };
 
 type SignInNavigatorParamList = {

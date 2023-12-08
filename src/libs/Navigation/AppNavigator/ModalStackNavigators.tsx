@@ -85,30 +85,16 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: () => require('../../../pages/iou/request/step/IOURequestStepParticipants').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require('../../../pages/iou/request/step/IOURequestStepScan').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require('../../../pages/iou/request/step/IOURequestStepTag').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require('../../../pages/iou/request/step/IOURequestStepWaypoint').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.ROOT]: () => require('../../../pages/iou/MoneyRequestSelectorPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.AMOUNT]: () => require('../../../pages/iou/steps/NewRequestAmountPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CONFIRMATION]: () => require('../../../pages/iou/steps/MoneyRequestConfirmPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.DATE]: () => require('../../../pages/iou/MoneyRequestDatePage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.DESCRIPTION]: () => require('../../../pages/iou/MoneyRequestDescriptionPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.CATEGORY]: () => require('../../../pages/iou/MoneyRequestCategoryPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.TAG]: () => require('../../../pages/iou/MoneyRequestTagPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.MERCHANT]: () => require('../../../pages/iou/MoneyRequestMerchantPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../pages/iou/NewDistanceRequestWaypointEditorPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: () => require('../../../pages/iou/MoneyRequestEditWaypointPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.DISTANCE]: () => require('../../../pages/iou/NewDistanceRequestPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../pages/EditRequestReceiptPage').default as React.ComponentType,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
     [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../pages/EditSplitBillPage').default as React.ComponentType,
-    [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
@@ -261,7 +247,6 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
     [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../pages/EditRequestPage').default as React.ComponentType,
-    [SCREENS.EDIT_REQUEST.CURRENCY]: () => require('../../../pages/iou/IOUCurrencySelection').default as React.ComponentType,
 });
 
 const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNavigatorParamList>({

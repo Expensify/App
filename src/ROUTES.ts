@@ -248,10 +248,6 @@ const ROUTES = {
         route: ':iouType/new/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}` as const,
     },
-    MONEY_REQUEST_AMOUNT: {
-        route: ':iouType/new/amount/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/amount/${reportID}` as const,
-    },
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
@@ -260,52 +256,14 @@ const ROUTES = {
         route: ':iouType/new/confirmation/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/confirmation/${reportID}` as const,
     },
-    MONEY_REQUEST_DATE: {
-        route: ':iouType/new/date/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/date/${reportID}` as const,
-    },
-    MONEY_REQUEST_CURRENCY: {
-        route: ':iouType/new/currency/:reportID?',
-        getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
-    },
-    MONEY_REQUEST_DESCRIPTION: {
-        route: ':iouType/new/description/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/description/${reportID}` as const,
-    },
-    MONEY_REQUEST_CATEGORY: {
-        route: ':iouType/new/category/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
-    },
-    MONEY_REQUEST_TAG: {
-        route: ':iouType/new/tag/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}` as const,
-    },
-    MONEY_REQUEST_MERCHANT: {
-        route: ':iouType/new/merchant/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
-    },
     MONEY_REQUEST_WAYPOINT: {
         route: ':iouType/new/waypoint/:waypointIndex',
         getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}` as const,
-    },
-    MONEY_REQUEST_RECEIPT: {
-        route: ':iouType/new/receipt/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
-    },
-    MONEY_REQUEST_DISTANCE: {
-        route: ':iouType/new/address/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/address/${reportID}` as const,
     },
     MONEY_REQUEST_EDIT_WAYPOINT: {
         route: 'r/:threadReportID/edit/distance/:transactionID/waypoint/:waypointIndex',
         getRoute: (threadReportID: number, transactionID: string, waypointIndex: number) => `r/${threadReportID}/edit/distance/${transactionID}/waypoint/${waypointIndex}` as const,
     },
-    MONEY_REQUEST_DISTANCE_TAB: {
-        route: ':iouType/new/:reportID?/distance',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/${reportID}/distance` as const,
-    },
-    MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
-    MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
 
     MONEY_REQUEST_CREATE: {
         route: 'create/:iouType/start/:transactionID/:reportID',

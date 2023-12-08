@@ -393,34 +393,12 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.MONEY_REQUEST.ROOT]: {
                                 path: ROUTES.MONEY_REQUEST.route,
                                 exact: true,
-                                screens: {
-                                    [SCREENS.MONEY_REQUEST.MANUAL_TAB]: {
-                                        path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
-                                        exact: true,
-                                    },
-                                    [SCREENS.MONEY_REQUEST.SCAN_TAB]: {
-                                        path: ROUTES.MONEY_REQUEST_SCAN_TAB,
-                                        exact: true,
-                                    },
-                                    [SCREENS.MONEY_REQUEST.DISTANCE_TAB]: {
-                                        path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
-                                        exact: true,
-                                    },
-                                },
+                                screens: {},
                             },
-                            [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
                             [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                             [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
-                            [SCREENS.MONEY_REQUEST.DATE]: ROUTES.MONEY_REQUEST_DATE.route,
-                            [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
-                            [SCREENS.MONEY_REQUEST.DESCRIPTION]: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
-                            [SCREENS.MONEY_REQUEST.CATEGORY]: ROUTES.MONEY_REQUEST_CATEGORY.route,
-                            [SCREENS.MONEY_REQUEST.TAG]: ROUTES.MONEY_REQUEST_TAG.route,
-                            [SCREENS.MONEY_REQUEST.MERCHANT]: ROUTES.MONEY_REQUEST_MERCHANT.route,
                             [SCREENS.MONEY_REQUEST.WAYPOINT]: ROUTES.MONEY_REQUEST_WAYPOINT.route,
                             [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
-                            [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                            [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
                             [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -463,7 +441,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {
                         screens: {
                             [SCREENS.EDIT_REQUEST.ROOT]: ROUTES.EDIT_REQUEST.route,
-                            [SCREENS.EDIT_REQUEST.CURRENCY]: ROUTES.EDIT_CURRENCY_REQUEST.route,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.SIGN_IN]: {
