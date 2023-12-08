@@ -25,17 +25,14 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** Callback to request parent modal to go to next step, which should be request */
-    navigateToRequest: PropTypes.func.isRequired,
-
     /** Callback to request parent modal to go to next step, which should be split */
-    navigateToSplit: PropTypes.func.isRequired,
+    onFinish: PropTypes.func.isRequired,
 
     /** A ref to forward to options selector's text input */
     forwardedRef: refPropTypes,
 
     /** Callback to add participants in MoneyRequestModal */
-    onAddParticipants: PropTypes.func.isRequired,
+    onParticipantsAdded: PropTypes.func.isRequired,
 
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
@@ -54,14 +51,14 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** padding bottom style of safe area */
+    /** Padding bottom style of safe area */
     safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** The type of IOU report, i.e. bill, request, send */
-    iouType: PropTypes.string.isRequired,
+    iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
-    /** Whether the money request is a distance request or not */
-    isDistanceRequest: PropTypes.bool,
+    /** The request type, ie. manual, scan, distance */
+    iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
@@ -76,23 +73,21 @@ const defaultProps = {
     personalDetails: {},
     reports: {},
     betas: [],
-    isDistanceRequest: false,
     isSearchingForReports: false,
 };
 
-function MoneyRequestParticipantsSelector({
+function MoneyTemporaryForRefactorRequestParticipantsSelector({
     forwardedRef,
     betas,
     participants,
     personalDetails,
     reports,
     translate,
-    navigateToRequest,
-    navigateToSplit,
-    onAddParticipants,
+    onFinish,
+    onParticipantsAdded,
     safeAreaPaddingBottomStyle,
     iouType,
-    isDistanceRequest,
+    iouRequestType,
     isSearchingForReports,
 }) {
     const styles = useThemeStyles();
@@ -168,11 +163,13 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onAddParticipants(
-            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
-            false,
-        );
-        navigateToRequest();
+        onParticipantsAdded([
+            {
+                ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
+                selected: true,
+            },
+        ]);
+        onFinish();
     };
 
     /**
@@ -210,9 +207,32 @@ function MoneyRequestParticipantsSelector({
                     },
                 ];
             }
-            onAddParticipants(newSelectedOptions, newSelectedOptions.length !== 0);
+
+            onParticipantsAdded(newSelectedOptions);
+
+            const chatOptions = OptionsListUtils.getFilteredOptions(
+                reports,
+                personalDetails,
+                betas,
+                isOptionInList ? searchTerm : '',
+                newSelectedOptions,
+                CONST.EXPENSIFY_EMAILS,
+
+                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+                // sees the option to request money from their admin on their own Workspace Chat.
+                iouType === CONST.IOU.TYPE.REQUEST,
+
+                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+                iouType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            );
+
+            setNewChatOptions({
+                recentReports: chatOptions.recentReports,
+                personalDetails: chatOptions.personalDetails,
+                userToInvite: chatOptions.userToInvite,
+            });
         },
-        [participants, onAddParticipants],
+        [participants, onParticipantsAdded, reports, personalDetails, betas, searchTerm, iouType],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -238,16 +258,14 @@ function MoneyRequestParticipantsSelector({
             iouType === CONST.IOU.TYPE.REQUEST,
 
             // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            !isDistanceRequest,
+            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
             {},
             [],
             false,
             {},
             [],
-            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
-            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
-            !isDistanceRequest,
+            true,
             true,
         );
         setNewChatOptions({
@@ -255,28 +273,30 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         });
-    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, isDistanceRequest]);
+    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, iouRequestType]);
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
-        Report.searchInServer(text);
+        if (text.length) {
+            Report.searchInServer(text);
+        }
         setSearchTerm(text);
     }, []);
 
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
-    // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
+    // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = !isDistanceRequest && iouType !== CONST.IOU.TYPE.SEND;
+    const isAllowedToSplit = iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE;
 
     const handleConfirmSelection = useCallback(() => {
         if (shouldShowSplitBillErrorMessage) {
             return;
         }
 
-        navigateToSplit();
-    }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
+        onFinish();
+    }, [shouldShowSplitBillErrorMessage, onFinish]);
 
     const footerContent = (
         <View>
@@ -312,8 +332,9 @@ function MoneyRequestParticipantsSelector({
                 ref={forwardedRef}
                 headerMessage={headerMessage}
                 boldStyle
-                shouldShowConfirmButton={isAllowedToSplit}
-                onConfirmSelection={handleConfirmSelection}
+                shouldShowConfirmButton={shouldShowSplitBillErrorMessage && isAllowedToSplit}
+                confirmButtonText={translate('iou.addToSplit')}
+                onConfirmSelection={onFinish}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
@@ -329,19 +350,19 @@ function MoneyRequestParticipantsSelector({
     );
 }
 
-MoneyRequestParticipantsSelector.propTypes = propTypes;
-MoneyRequestParticipantsSelector.defaultProps = defaultProps;
-MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
+MoneyTemporaryForRefactorRequestParticipantsSelector.propTypes = propTypes;
+MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps;
+MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-const MoneyRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
-    <MoneyRequestParticipantsSelector
-        // eslint-disable-next-line react/jsx-props-no-spreading
+const MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef = React.forwardRef((props, ref) => (
+    <MoneyTemporaryForRefactorRequestParticipantsSelector
+        /* eslint-disable-next-line react/jsx-props-no-spreading */
         {...props}
         forwardedRef={ref}
     />
 ));
 
-MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsSelectorWithRef';
+MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef';
 
 export default compose(
     withLocalize,
@@ -360,4 +381,4 @@ export default compose(
             initWithStoredValues: false,
         },
     }),
-)(MoneyRequestParticipantsSelectorWithRef);
+)(MoneyTemporaryForRefactorRequestParticipantsSelectorWithRef);
