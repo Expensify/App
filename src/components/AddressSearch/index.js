@@ -1,15 +1,15 @@
-import {filter, get as lodashGet, some} from 'lodash';
+import { filter, get as lodashGet, some } from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View } from 'react-native';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
+import { withNetwork } from '@components/OnyxProvider';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '@components/withLocalize';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -20,6 +20,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getOperatingSystem from '@libs/getOperatingSystem';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
@@ -147,8 +148,8 @@ const propTypes = {
 const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
-    onBlur: () => {},
-    onPress: () => {},
+    onBlur: () => { },
+    onPress: () => { },
     errorText: '',
     hint: '',
     value: undefined,
@@ -202,7 +203,7 @@ function AddressSearch({
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
     const [locationErrorCode, setLocationErrorCode] = useState(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
-    const {windowHeight} = useWindowDimensions();
+    const { windowHeight } = useWindowDimensions();
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef();
     const query = useMemo(
@@ -259,7 +260,7 @@ function AddressSearch({
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
-        const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
+        const { administrative_area_level_1: longStateName } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             administrative_area_level_1: 'long_name',
         });
 
@@ -436,6 +437,24 @@ function AddressSearch({
         [styles.pv4, theme.spinner],
     );
 
+    const listViewStyles = useMemo(() => {
+        let result = 200;
+        let overflow = styles.overflowAuto
+        if (getOperatingSystem() === CONST.OS.IOS || getOperatingSystem() === CONST.OS.ANDROID) {
+            overflow = styles.overflowHidden
+            result += 50;
+            if (network.isOffline) {
+                result += 50;
+            }
+        }
+        return {
+            overflow,
+            maxHeight: {
+                maxHeight: windowHeight - result
+            }
+        }
+    }, [windowHeight, network.isOffline, getOperatingSystem()])
+
     return (
         /*
          * The GooglePlacesAutocomplete component uses a VirtualizedList internally,
@@ -489,7 +508,7 @@ function AddressSearch({
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                            url: network.isOffline ? null : ApiUtils.getCommandURL({ command: 'Proxy_GooglePlaces&proxyUrl=' }),
                         }}
                         textInputProps={{
                             InputComp: TextInput,
@@ -532,7 +551,7 @@ function AddressSearch({
                                 if (inputID) {
                                     onInputChange(text);
                                 } else {
-                                    onInputChange({street: text});
+                                    onInputChange({ street: text });
                                 }
 
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
@@ -542,18 +561,17 @@ function AddressSearch({
                             },
                             maxLength: maxInputLength,
                             spellCheck: false,
-                            selectTextOnFocus: true,
-                            textInputContainerStyles: [styles.appBG]
+                            selectTextOnFocus: true
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
                             listView: [
                                 StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                                styles.overflowAuto,
+                                listViewStyles.overflow,
                                 styles.borderLeft,
                                 styles.borderRight,
-                                {maxHeight: windowHeight - 300},
-                                !isFocused && {height: 0},
+                                listViewStyles.maxHeight,
+                                !isFocused && { height: 0 },
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
