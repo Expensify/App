@@ -135,6 +135,7 @@ function BaseOptionsSelector(props) {
         return calcAllOptions;
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const initialAllOptions = useMemo(() => flattenSections(), []);
     const [allOptions, setAllOptions] = useState(initialAllOptions);
     const [focusedIndex, setFocusedIndex] = useState(getInitiallyFocusedIndex(initialAllOptions));
@@ -314,6 +315,8 @@ function BaseOptionsSelector(props) {
 
             unSubscribeFromKeyboardShortcut();
         };
+        // we want to run this effect only once, when the component is mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -331,7 +334,8 @@ function BaseOptionsSelector(props) {
                 textInputRef.current.focus();
             }, CONST.ANIMATED_TRANSITION);
         }
-    }, [isFocused]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isFocused, props.autoFocus]);
 
     useEffect(() => {
         const newSections = sliceSections();
@@ -349,6 +353,8 @@ function BaseOptionsSelector(props) {
         setSections(newSections);
         setAllOptions(newOptions);
         setFocusedIndex(_.isNumber(props.focusedIndex) ? props.focusedIndex : newFocusedIndex);
+        // we want to run this effect only when the sections change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.sections]);
 
     useEffect(() => {
@@ -366,7 +372,8 @@ function BaseOptionsSelector(props) {
             return;
         }
         scrollToIndex(props.focusedIndex);
-    }, [focusedIndex]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allOptions.length, focusedIndex, props.focusedIndex, props.selectedOptions, props.value]);
 
     const updateSearchValue = (value) => {
         setErrorMessage(value.length > props.maxLength ? translate('common.error.characterLimitExceedCounter', {length: value.length, limit: props.maxLength}) : '');
