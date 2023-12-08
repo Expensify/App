@@ -33,13 +33,6 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
-let allPolicies;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => (allPolicies = val),
-});
-
 /**
  * Clears out the task info from the store
  */
@@ -873,9 +866,11 @@ function getTaskOwnerAccountID(taskReport) {
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  * @param {Object} taskReport
  * @param {Number} sessionAccountID
+ * @param {String} policyRole
+ *
  * @returns {Boolean}
  */
-function canModifyTask(taskReport, sessionAccountID) {
+function canModifyTask(taskReport, sessionAccountID, policyRole = '') {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -885,9 +880,8 @@ function canModifyTask(taskReport, sessionAccountID) {
     }
 
     const parentReport = ReportUtils.getParentReport(taskReport);
-    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
 
-    if ((ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && lodashGet(policy, 'role', '') !== CONST.POLICY.ROLE.ADMIN) {
+    if (policyRole && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
 
