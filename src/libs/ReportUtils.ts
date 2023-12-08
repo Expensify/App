@@ -678,7 +678,8 @@ function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
-/** Wether the provided report belongs to a Control or Collect policy and is an expense report
+/** 
+ * Whether the provided report belongs to a Control or Collect policy and is an expense report
  */
 function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && isGroupPolicy(report);
