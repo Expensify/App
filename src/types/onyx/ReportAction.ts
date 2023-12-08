@@ -1,5 +1,9 @@
+import {ValueOf} from 'type-fest';
+import {AvatarSource} from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
+import {Receipt} from './Transaction';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
@@ -81,26 +85,47 @@ type ReportActionBase = {
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedToAccountIDs?: number[];
 
-    /** Report action child status number */
-    childStatusNum?: number;
+    avatar?: AvatarSource;
 
-    /** Report action child status name */
-    childStateNum?: number;
-
-    avatar?: string;
     automatic?: boolean;
+
     shouldShow?: boolean;
+
+    /** The ID of childReport */
     childReportID?: string;
+
+    /** Name of child report */
     childReportName?: string;
+
+    /** Type of child report  */
     childType?: string;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
+    parentReportID?: string;
+    childManagerAccountID?: number;
+
+    /** The status of the child report */
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+
+    /** Report action child status name */
+    childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+    childLastReceiptTransactionIDs?: string;
+    childLastMoneyRequestComment?: string;
+    childLastActorAccountID?: number;
     timestamp?: number;
     reportActionTimestamp?: number;
     childMoneyRequestCount?: number;
+    isFirstItem?: boolean;
+
+    /** Information about attachments of report action */
+    attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
+
+    /** Receipt tied to report action */
+    receipt?: Receipt;
 
     /** ISO-formatted datetime */
     lastModified?: string;
@@ -112,6 +137,11 @@ type ReportActionBase = {
     errors?: OnyxCommon.Errors;
 
     isAttachment?: boolean;
+    childRecentReceiptTransactionIDs?: Record<string, string>;
+    reportID?: string;
+
+    /** We manually add this field while sorting to detect the end of the list */
+    isNewestReportAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
@@ -119,4 +149,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, Message};
+export type {Message, ReportActions};
