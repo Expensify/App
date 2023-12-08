@@ -496,6 +496,7 @@ export default {
     tabSelector: {
         chat: 'Chat',
         room: 'Sala',
+        distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
     },
@@ -1133,6 +1134,10 @@ export default {
         year: 'Año',
         selectYear: 'Por favor, selecciona un año',
     },
+    focusModeUpdateModal: {
+        title: '¡Bienvenido al modo #concentración!',
+        prompt: 'Los mensajes leídos se ocultarán, a menos que tengan un punto verde, lo que significa que tienes que tomar una acción en ellos. Puedes cambiar esto en la configuración de tu cuenta ',
+    },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se pudo encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
@@ -1201,8 +1206,10 @@ export default {
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError:
-            'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
+        validateAccountError: {
+            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
+            phrase2: 'vuelve a iniciar sesión con un código mágico',
+        },
         hasPhoneLoginError:
             'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
