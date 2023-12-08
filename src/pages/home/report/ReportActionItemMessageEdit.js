@@ -27,8 +27,8 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import reportPropTypes from '@pages/reportPropTypes';
-import containerComposeStyles from '@styles/containerComposeStyles';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
@@ -82,6 +82,7 @@ const isMobileSafari = Browser.isMobileSafari();
 function ReportActionItemMessageEdit(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -397,7 +398,7 @@ function ReportActionItemMessageEdit(props) {
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
+                    <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
                             ref={(el) => {
