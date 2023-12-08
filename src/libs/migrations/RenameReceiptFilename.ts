@@ -6,6 +6,7 @@ import Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OldTransaction = Transaction & {receiptFilename?: string};
+type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 // This migration changes the property name on a transaction from receiptFilename to filename so that it matches what is stored in the database
 export default function () {
@@ -23,25 +24,23 @@ export default function () {
                     return resolve();
                 }
 
-                const transactionArray: Array<OldTransaction | null> = Object.values(transactions);
-                if (!transactionArray?.map((transaction) => transaction?.receiptFilename).filter(Boolean).length) {
+                const transactionsWithReceipt: Array<OldTransaction | null> = Object.values(transactions).filter((transaction) => transaction?.receiptFilename);
+                if (!transactionsWithReceipt?.length) {
                     Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there were no transactions with the receiptFilename property');
                     return resolve();
                 }
-
                 Log.info('[Migrate Onyx] Running  RenameReceiptFilename migration');
-                const dataToSave: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, NullishDeep<OldTransaction>> = {};
-
-                transactionArray?.forEach((transaction) => {
-                    // Do nothing if there is no receiptFilename property
-                    if (!transaction || !('receiptFilename' in transaction)) {
-                        return;
+                const dataToSave: Record<TransactionKey, NullishDeep<OldTransaction>> = transactionsWithReceipt?.reduce((result, transaction) => {
+                    if (!transaction) {
+                        return result;
                     }
-
-                    Log.info(`[Migrate Onyx] Renaming receiptFilename ${transaction?.receiptFilename} to filename`);
-                    dataToSave[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
-                        filename: transaction?.receiptFilename,
-                        receiptFilename: null,
+                    Log.info(`[Migrate Onyx] Renaming receiptFilename ${transaction.receiptFilename} to filename`);
+                    return {
+                        ...result,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            filename: transaction.receiptFilename,
+                            receiptFilename: null,
+                        },
                     };
                 }, {});
 

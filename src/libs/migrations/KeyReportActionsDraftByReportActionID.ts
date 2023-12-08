@@ -4,6 +4,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {ReportActionsDrafts} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`;
+
 /**
  * This migration updates reportActionsDrafts data to be keyed by reportActionID.
  *
@@ -24,7 +26,6 @@ export default function () {
                     return resolve();
                 }
 
-                type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`;
                 const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDraft]) => {
                     if (typeof reportActionDraft !== 'string') {
