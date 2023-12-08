@@ -25,6 +25,8 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import variables from '@styles/variables';
+import * as Session from '@userActions/Session';
 import BankAccountManualStep from './BankAccountManualStep';
 import BankAccountPlaidStep from './BankAccountPlaidStep';
 import StepPropTypes from './StepPropTypes';
@@ -162,7 +164,11 @@ function BankAccountStep(props) {
                                 fill={theme.danger}
                             />
 
-                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
+                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                {props.translate('bankAccount.validateAccountError.phrase1')}
+                                <TextLink fontSize={variables.fontSizeLabel} onPress={Session.signOutAndRedirectToSignIn}>{props.translate('bankAccount.validateAccountError.phrase2')}</TextLink>
+                                .
+                            </Text>
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
