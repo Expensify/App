@@ -1,5 +1,4 @@
 import {EventListenerCallback, NavigationContainerEventMap} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect} from 'react';
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -8,23 +7,13 @@ import CustomStatusBarContext from './CustomStatusBarContext';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 
 type CustomStatusBarProps = {
+    /** Whether the CustomStatusBar is nested within another CustomStatusBar.
+     *  A nested CustomStatusBar will disable the "root" CustomStatusBar. */
     isNested: boolean;
 };
 
-const propTypes = {
-    /** Whether the CustomStatusBar is nested within another CustomStatusBar.
-     *  A nested CustomStatusBar will disable the "root" CustomStatusBar. */
-    isNested: PropTypes.bool,
-};
-
-type CustomStatusBarType = {
-    (props: CustomStatusBarProps): React.ReactNode;
-    displayName: string;
-    propTypes: typeof propTypes;
-};
-
 // eslint-disable-next-line react/function-component-definition
-const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
+function CustomStatusBar({isNested = false}: CustomStatusBarProps) {
     const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
     const theme = useTheme();
 
@@ -83,9 +72,8 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
     }
 
     return <StatusBar />;
-};
+}
 
 CustomStatusBar.displayName = 'CustomStatusBar';
-CustomStatusBar.propTypes = propTypes;
 
 export default CustomStatusBar;
