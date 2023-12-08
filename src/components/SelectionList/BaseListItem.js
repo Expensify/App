@@ -39,10 +39,10 @@ function BaseListItem({
             return null; // no right hand side component
         }
 
-        if (typeof rightHandSideComponent === 'function' ) {
-            return rightHandSideComponent(item)
+        if (typeof rightHandSideComponent === 'function') {
+            return rightHandSideComponent(item);
         }
-        
+
         return rightHandSideComponent;
     };
 
