@@ -1,16 +1,17 @@
 /* eslint-disable no-continue */
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import lodashTimes from 'lodash/times';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-// import _ from 'underscore';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Beta, Login, PersonalDetails, Policy, PolicyCategory, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import {Participant} from '@src/types/onyx/IOU';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -342,17 +343,17 @@ function getSearchText(
 function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): OnyxCommon.Errors {
     const reportErrors = report?.errors ?? {};
     const reportErrorFields = report?.errorFields ?? {};
-    let reportActionErrors: OnyxCommon.Errors = Object.values(reportActions ?? {}).reduce(
+    let reportActionErrors = Object.values(reportActions ?? {}).reduce(
         (prevReportActionErrors, action) => (!action || isEmptyObject(action.errors) ? prevReportActionErrors : {...prevReportActionErrors, ...action.errors}),
         {},
     );
     const parentReportAction: OnyxEntry<ReportAction> =
-        !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions[report.parentReportID][report.parentReportActionID] ?? null;
+        !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
 
     if (parentReportAction?.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
-        const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : undefined;
+        const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
+        if (TransactionUtils.hasMissingSmartscanFields(transaction) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors = {...reportActionErrors, smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')};
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
@@ -664,8 +665,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
      */
     sortedCategories.forEach((category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-        const existedValue = hierarchy?.path ?? {};
-
+        const existedValue = lodashGet(hierarchy, path, {});
         lodashSet(hierarchy, path, {
             ...existedValue,
             name: category.name,
@@ -771,7 +771,7 @@ type CategorySection = {title: string; shouldShow: boolean; indexOffset: number;
 function getCategoryListSections(
     categories: Record<string, PolicyCategory>,
     recentlyUsedCategories: string[],
-    selectedOptions: Category[],
+    selectedOptions: Array<Category | Participant>,
     searchInputValue: string,
     maxRecentReportsToShow: number,
 ): CategorySection[] {
@@ -992,7 +992,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
 type GetOptionsConfig = {
     reportActions?: Record<string, ReportAction>;
     betas?: Beta[];
-    selectedOptions?: Category[];
+    selectedOptions?: Array<Participant | Option>;
     maxRecentReportsToShow?: number;
     excludeLogins?: string[];
     includeMultipleParticipantReports?: boolean;
@@ -1182,6 +1182,7 @@ function getOptions(
             obj[+key] = personalDetails[+key];
             return obj;
         }, {});
+
     const havingLoginPersonalDetails = !includeP2P ? {} : filteredDetails;
     let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
         createOption([personalDetail?.accountID ?? 0], personalDetails, reportMapForAccountIDs[personalDetail?.accountID], reportActions, {
@@ -1196,7 +1197,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude: Array<Partial<ReportUtils.OptionData>> = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Array<Partial<Participant>> = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
