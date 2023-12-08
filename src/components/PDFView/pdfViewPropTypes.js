@@ -1,7 +1,7 @@
-import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** URL to full-sized image */

@@ -1,4 +1,3 @@
-import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useRef} from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
@@ -11,6 +10,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import stylePropTypes from '@styles/stylePropTypes';
 import errorsPropType from './errorsPropType';
 
 const propTypes = {

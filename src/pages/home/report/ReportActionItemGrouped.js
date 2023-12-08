@@ -1,8 +1,8 @@
-import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** Children view component for this action item */

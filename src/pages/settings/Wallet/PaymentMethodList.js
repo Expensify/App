@@ -1,5 +1,4 @@
 import {FlashList} from '@shopify/flash-list';
-import {stylePropTypes} from '@styles';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
@@ -23,6 +22,7 @@ import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
+import stylePropTypes from '@styles/stylePropTypes';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';

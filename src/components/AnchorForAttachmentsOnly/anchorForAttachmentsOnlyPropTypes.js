@@ -1,5 +1,5 @@
-import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** The URL of the attachment */

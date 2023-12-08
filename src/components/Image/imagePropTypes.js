@@ -1,5 +1,5 @@
-import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
+import stylePropTypes from '@styles/stylePropTypes';
 import RESIZE_MODES from './resizeModes';
 import sourcePropTypes from './sourcePropTypes';
 

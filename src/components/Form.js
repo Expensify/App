@@ -1,4 +1,3 @@
-import {stylePropTypes} from '@styles';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -11,6 +10,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+import stylePropTypes from '@styles/stylePropTypes';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';

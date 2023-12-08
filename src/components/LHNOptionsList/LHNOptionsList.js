@@ -1,5 +1,4 @@
 import {FlashList} from '@shopify/flash-list';
-import {stylePropTypes} from '@styles';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
@@ -15,6 +14,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

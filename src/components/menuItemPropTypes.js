@@ -1,6 +1,6 @@
-import {stylePropTypes} from '@styles';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
 import refPropTypes from './refPropTypes';
