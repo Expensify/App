@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
 import useSingleExecution from '@hooks/useSingleExecution';
-import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import CONST from '@src/CONST';
 import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
 
@@ -31,9 +31,9 @@ function MenuItemList(props) {
      */
     const secondaryInteraction = (link, e) => {
         if (typeof link === 'function') {
-            link().then((url) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, url, popoverAnchor));
+            link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, url, popoverAnchor));
         } else if (!_.isEmpty(link)) {
-            ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, link, popoverAnchor);
+            ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, link, popoverAnchor);
         }
     };
 

@@ -2895,6 +2895,14 @@ const CONST = {
         DEFAULT: 5,
         CAROUSEL: 3,
     },
+
+    /** Context menu types */
+    CONTEXT_MENU_TYPES: {
+        LINK: 'LINK',
+        REPORT_ACTION: 'REPORT_ACTION',
+        EMAIL: 'EMAIL',
+        REPORT: 'REPORT',
+    },
 } as const;
 
 export default CONST;

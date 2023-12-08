@@ -1,8 +1,8 @@
 import React from 'react';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import CONST from '@src/CONST';
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,
@@ -28,7 +28,7 @@ function showContextMenuForReport(event, anchor, reportID, action, checkIfContex
         return;
     }
     ReportActionContextMenu.showContextMenu(
-        ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+        CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
         '',
         anchor,

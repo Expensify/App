@@ -2,9 +2,8 @@ import React from 'react';
 import {GestureResponderEvent, Text as RNText} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-// eslint-disable-next-line import/no-cycle
-import {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 
 type OnHideCallback = () => void;
 
@@ -12,7 +11,7 @@ type OnConfirm = () => void;
 
 type OnCancel = () => void;
 
-type ContextMenuType = ValueOf<typeof CONTEXT_MENU_TYPES>;
+type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
 type ShowContextMenu = (
     type: ContextMenuType,

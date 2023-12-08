@@ -60,7 +60,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -268,7 +267,7 @@ function ReportActionItem(props) {
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
-                ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
                 popoverAnchorRef,

@@ -9,7 +9,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
@@ -66,7 +65,7 @@ function AppDownloadLinksPage(props) {
                     <MenuItem
                         key={item.translationKey}
                         onPress={() => item.action()}
-                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
+                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor)}
                         onKeyDown={(event) => {
                             event.target.blur();
                         }}

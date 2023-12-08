@@ -6,7 +6,6 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -62,7 +61,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             suppressHighlighting
             style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}
             onSecondaryInteraction={(event) => {
-                ReportActionContextMenu.showContextMenu(isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK, event, href, linkRef.current);
+                ReportActionContextMenu.showContextMenu(isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK, event, href, linkRef.current);
             }}
             onPress={(event) => {
                 if (!linkProps.onPress) {
