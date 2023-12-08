@@ -2,7 +2,7 @@ import {DefaultNavigatorOptions, ParamListBase, StackNavigationState, StackRoute
 import {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 
 type ResponsiveStackNavigatorConfig = {
-    isSmallScreenWidth: boolean;
+    shouldUseNarrowLayout: boolean;
 };
 
 type ResponsiveStackNavigatorRouterOptions = StackRouterOptions;
