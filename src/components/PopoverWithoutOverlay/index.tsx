@@ -4,9 +4,7 @@ import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {PopoverContext} from '@components/PopoverProvider';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getModalStyles from '@styles/getModalStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 import PopoverWithoutOverlayProps from './types';
@@ -26,24 +24,23 @@ function PopoverWithoutOverlay(
     }: PopoverWithoutOverlayProps,
     ref: ForwardedRef<View>,
 ) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {onOpen, close} = useContext(PopoverContext);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
-    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
-        theme,
-        styles,
-        'popover',
-        {
-            windowWidth,
-            windowHeight,
-            isSmallScreenWidth: false,
-        },
-        anchorPosition,
-        innerContainerStyle,
-        outerStyle,
-    );
+    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
+        StyleUtils.getModalStyles(
+            'popover',
+            {
+                windowWidth,
+                windowHeight,
+                isSmallScreenWidth: false,
+            },
+            anchorPosition,
+            innerContainerStyle,
+            outerStyle,
+        );
 
     useEffect(() => {
         let removeOnClose: () => void;
@@ -77,7 +74,7 @@ function PopoverWithoutOverlay(
         paddingBottom: safeAreaPaddingBottom,
         paddingLeft: safeAreaPaddingLeft,
         paddingRight: safeAreaPaddingRight,
-    } = StyleUtils.getSafeAreaPadding(insets);
+    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [StyleUtils, insets]);
 
     const modalPaddingStyles = useMemo(
         () =>
@@ -97,6 +94,7 @@ function PopoverWithoutOverlay(
                 insets,
             }),
         [
+            StyleUtils,
             insets,
             modalContainerStyle.marginBottom,
             modalContainerStyle.marginTop,

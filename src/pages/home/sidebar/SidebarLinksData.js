@@ -9,7 +9,6 @@ import withCurrentReportID from '@components/withCurrentReportID';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
-import * as SessionUtils from '@libs/SessionUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -41,7 +40,7 @@ const propTypes = {
     ),
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoadingReportData: PropTypes.bool,
+    isLoadingApp: PropTypes.bool,
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
@@ -57,18 +56,18 @@ const propTypes = {
 const defaultProps = {
     chatReports: {},
     allReportActions: {},
-    isLoadingReportData: true,
+    isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
-    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
+    const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
@@ -201,8 +200,8 @@ export default compose(
             selector: chatReportSelector,
             initialValue: {},
         },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
