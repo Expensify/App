@@ -61,8 +61,8 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
     return (
-        <View style={[styles.dFlex, styles.gap3, styles.highlightBG, styles.w100, styles.p5, styles.br3]}>
-            <View style={[styles.flexRow, styles.flexGrow1, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.dFlex, styles.gap3, styles.highlightBG, styles.br3, styles.pv5]}>
+            <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.pl5, styles.pr2, styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -71,23 +71,37 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     name={title}
                     type={CONST.ICON_TYPE_WORKSPACE}
                 />
-                <Text style={styles.textStrong}>{title}</Text>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.flexGrow1, styles.textStrong]}
+                >
+                    {title}
+                </Text>
                 <ThreeDotsMenu
                     menuItems={[]}
                     anchorPosition={{top: 0, right: 0}}
-                    iconStyles={[styles.flexGrow1]}
                 />
             </View>
-            <View>
+            <View style={styles.ph5}>
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                     <Avatar
                         source={ownerDetails.avatar}
                         size={CONST.AVATAR_SIZE.SMALL}
                         containerStyles={styles.workspaceOwnerAvatarWrapper}
                     />
-                    <View style={styles.dFlex}>
-                        <Text style={styles.labelStrong}>{PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}</Text>
-                        <Text style={[styles.textMicro, styles.textSupporting]}>{ownerDetails.login}</Text>
+                    <View style={styles.flex1}>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.labelStrong]}
+                        >
+                            {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails, 'displayName')}
+                        </Text>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicro, styles.textSupporting]}
+                        >
+                            {ownerDetails.login}
+                        </Text>
                     </View>
                 </View>
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
@@ -98,8 +112,18 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                         additionalStyles={styles.workspaceTypeWrapper}
                     />
                     <View style={styles.dFlex}>
-                        <Text style={styles.labelStrong}>{userFriendlyWorkspaceType(workspaceType)}</Text>
-                        <Text style={[styles.textMicro, styles.textSupporting]}>Plan</Text>
+                        <Text
+                            numberOfLines={1}
+                            style={styles.labelStrong}
+                        >
+                            {userFriendlyWorkspaceType(workspaceType)}
+                        </Text>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textMicro, styles.textSupporting]}
+                        >
+                            Plan
+                        </Text>
                     </View>
                 </View>
             </View>
