@@ -161,7 +161,7 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
         const rootState = navigationRef.getRootState();
         const lastRoute = rootState.routes.at(-1);
         // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
-        if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && (lastRoute.state?.index ?? 0) > 0) {
+        if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             navigationRef.current.goBack();
             return;
         }
