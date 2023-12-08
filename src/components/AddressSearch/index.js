@@ -1,7 +1,7 @@
 import { filter, get as lodashGet, some } from 'lodash';
 import PropTypes from 'prop-types';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View, Platform } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -20,7 +20,6 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
@@ -438,22 +437,25 @@ function AddressSearch({
     );
 
     const listViewStyles = useMemo(() => {
-        let result = 200;
+        let result = 250;
         let overflow = styles.overflowAuto
-        if (getOperatingSystem() === CONST.OS.IOS || getOperatingSystem() === CONST.OS.ANDROID) {
+        if (Platform.OS === 'ios' || Platform.OS === 'android') {
             overflow = styles.overflowHidden
             result += 50;
             if (network.isOffline) {
                 result += 50;
             }
+        } else if (Platform.OS === "web") {
+            result = 200
         }
+
         return {
             overflow,
             maxHeight: {
                 maxHeight: windowHeight - result
             }
         }
-    }, [windowHeight, network.isOffline, getOperatingSystem()])
+    }, [windowHeight, network.isOffline, Platform.OS])
 
     return (
         /*
