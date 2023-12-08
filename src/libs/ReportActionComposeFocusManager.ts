@@ -7,10 +7,10 @@ type FocusCallback = () => void;
 
 const composerRef = React.createRef<TextInput>();
 const editComposerRef = React.createRef<TextInput>();
-// There are two types of composer: general composer (edit composer) and main composer.
-// The general composer callback will take priority if it exists.
+// There are two types of focus callbacks: priority and general
+// Priority callback would take priority if it existed
+let priorityFocusCallback: FocusCallback | null = null;
 let focusCallback: FocusCallback | null = null;
-let mainComposerFocusCallback: FocusCallback | null = null;
 
 /**
  * Register a callback to be called when focus is requested.
@@ -18,9 +18,9 @@ let mainComposerFocusCallback: FocusCallback | null = null;
  *
  * @param callback callback to register
  */
-function onComposerFocus(callback: FocusCallback, isMainComposer = false) {
-    if (isMainComposer) {
-        mainComposerFocusCallback = callback;
+function onComposerFocus(callback: FocusCallback, isPriorityCallback = false) {
+    if (isPriorityCallback) {
+        priorityFocusCallback = callback;
     } else {
         focusCallback = callback;
     }
@@ -35,26 +35,26 @@ function focus() {
         return;
     }
 
-    if (typeof focusCallback !== 'function' && typeof mainComposerFocusCallback !== 'function') {
+    if (typeof priorityFocusCallback !== 'function' && typeof focusCallback !== 'function') {
+        return;
+    }
+
+    if (typeof priorityFocusCallback === 'function') {
+        priorityFocusCallback();
         return;
     }
 
     if (typeof focusCallback === 'function') {
         focusCallback();
-        return;
-    }
-
-    if (typeof mainComposerFocusCallback === 'function') {
-        mainComposerFocusCallback();
     }
 }
 
 /**
  * Clear the registered focus callback
  */
-function clear(isMainComposer = false) {
-    if (isMainComposer) {
-        mainComposerFocusCallback = null;
+function clear(isPriorityCallback = false) {
+    if (isPriorityCallback) {
+        priorityFocusCallback = null;
     } else {
         focusCallback = null;
     }

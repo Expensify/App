@@ -400,16 +400,19 @@ function ComposerWithSuggestions({
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
+    /**
+     * Set focus callback
+     * @param {Boolean} [shouldTakeOverFocus=false] Whether this composer should gain focus priority
+     */
     const setUpComposeFocusManager = useCallback(
-        (isMainComposer = true) => {
-            // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus(() => {
                 if (!willBlurTextInputOnTapOutside || !isFocused) {
                     return;
                 }
 
                 focus(false);
-            }, isMainComposer);
+            }, shouldTakeOverFocus);
         },
         [focus, isFocused],
     );
@@ -464,8 +467,7 @@ function ComposerWithSuggestions({
         setUpComposeFocusManager();
 
         return () => {
-            ReportActionComposeFocusManager.clear(true);
-
+            ReportActionComposeFocusManager.clear();
             KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress);
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
@@ -534,7 +536,8 @@ function ComposerWithSuggestions({
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
                     onFocus={() => {
-                        setUpComposeFocusManager(false);
+                        // The last composer that had focus should re-gain focus
+                        setUpComposeFocusManager(true);
                         onFocus();
                     }}
                     onBlur={onBlur}

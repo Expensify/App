@@ -182,16 +182,17 @@ function ReportActionItemMessageEdit(props) {
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
     }, []);
 
+    // Take over focus priority
     const setUpComposeFocusManager = useCallback(() => {
         ReportActionComposeFocusManager.onComposerFocus(() => {
             focus(true);
-        }, false);
+        }, true);
     }, [focus]);
 
     useEffect(
         // Remove focus callback on unmount to avoid stale callbacks
         () => () => {
-            ReportActionComposeFocusManager.clear();
+            ReportActionComposeFocusManager.clear(true);
         },
         [],
     );
@@ -316,8 +317,9 @@ function ReportActionItemMessageEdit(props) {
         Report.saveReportActionDraft(props.reportID, props.action, '');
 
         if (isActive()) {
-            ReportActionComposeFocusManager.clear();
-            ReportActionComposeFocusManager.focus();
+            ReportActionComposeFocusManager.clear(true);
+            // Wait for report action compose re-mounting
+            InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
@@ -435,6 +437,7 @@ function ReportActionItemMessageEdit(props) {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex(props.index, true);
                                 setShouldShowComposeInputKeyboardAware(false);
+                                // The last composer that had focus should re-gain focus
                                 setUpComposeFocusManager();
 
                                 // Clear active report action when another action gets focused
@@ -466,7 +469,7 @@ function ReportActionItemMessageEdit(props) {
                             onEmojiSelected={addEmojiToTextBox}
                             id={emojiButtonID}
                             emojiPickerID={props.action.reportActionID}
-                            // Set this composer the focus target when its Emoji Picker is opened
+                            // Edit composer should be focused after emoji picker closed
                             onPress={setUpComposeFocusManager}
                         />
                     </View>
