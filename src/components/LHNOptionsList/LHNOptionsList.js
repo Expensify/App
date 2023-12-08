@@ -1,15 +1,16 @@
 import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {memo, useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {getReportActionsByReportID} from '@libs/ReportActionsUtils';
-import {getReportByID} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -46,24 +47,53 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
+    /** All reports shared with the user */
+    reports: PropTypes.objectOf(reportPropTypes),
+
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** The transaction from the parent report action */
+    transactions: PropTypes.objectOf(transactionPropTypes),
+    /** List of draft comments */
+    draftComments: PropTypes.objectOf(PropTypes.string),
 };
 
 const defaultProps = {
     style: undefined,
     shouldDisableFocusOptions: false,
+    reportActions: {},
+    reports: {},
     policy: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     personalDetails: {},
+    transactions: {},
+    draftComments: {},
 };
 
 const keyExtractor = (item) => `report_${item}`;
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions, preferredLocale, personalDetails}) {
+function LHNOptionsList({
+    style,
+    contentContainerStyles,
+    data,
+    onSelectRow,
+    optionMode,
+    shouldDisableFocusOptions,
+    reports,
+    reportActions,
+    policy,
+    preferredLocale,
+    personalDetails,
+    transactions,
+    draftComments,
+}) {
     const styles = useThemeStyles();
     /**
      * Function which renders a row in the list
@@ -75,11 +105,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      */
     const renderItem = useCallback(
         ({item: reportID}) => {
-            const itemFullReport = getReportByID(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-            const itemReportActions = getReportActionsByReportID(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-            const itemParentReportActions = getReportActionsByReportID(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`);
+            const itemFullReport = reports[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || {};
+            const itemReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const itemParentReportActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport.parentReportID}`] || {};
             const itemParentReportAction = itemParentReportActions[itemFullReport.parentReportActionID] || {};
+            const itemPolicy = policy[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport.policyID}`] || {};
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
+            const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
+            const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
             const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport.ownerAccountID];
 
             const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
@@ -90,17 +123,26 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     fullReport={itemFullReport}
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
+                    policy={itemPolicy}
                     personalDetails={participantsPersonalDetails}
-                    transactionID={transactionID}
+                    transaction={itemTransaction}
+                    receiptTransactions={transactions}
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
+                    comment={itemComment}
                 />
             );
         },
-        [onSelectRow, optionMode, personalDetails, preferredLocale, shouldDisableFocusOptions],
+        [draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
+
+    const extraData = useMemo(() => [
+            reportActions,
+            policy,
+            personalDetails,
+        ], [reportActions, policy, personalDetails])
 
     return (
         <View style={style || styles.flex1}>
@@ -114,6 +156,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 renderItem={renderItem}
                 estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
                 showsVerticalScrollIndicator={false}
+                extraData={extraData}
             />
         </View>
     );
@@ -124,10 +167,26 @@ LHNOptionsList.defaultProps = defaultProps;
 LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default withOnyx({
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(memo(LHNOptionsList));
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        reportActions: {
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        },
+        policy: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        transactions: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION,
+        },
+        draftComments: {
+            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+        },
+    }
+)(LHNOptionsList);

@@ -1,7 +1,6 @@
 import {deepEqual} from 'fast-equals';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
@@ -11,7 +10,6 @@ import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
@@ -64,7 +62,19 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails, preferredLocale, comment, policy, parentReportAction, transaction, ...propsToForward}) {
+function OptionRowLHNData({
+    isFocused,
+    fullReport,
+    reportActions,
+    personalDetails,
+    preferredLocale,
+    comment,
+    policy,
+    receiptTransactions,
+    parentReportAction,
+    transaction,
+    ...propsToForward
+}) {
     const reportID = propsToForward.reportID;
     const {currentReportID} = useCurrentReportID();
     const isReportFocused = isFocused && currentReportID === reportID;
@@ -75,7 +85,7 @@ function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails
         const lastReportAction = _.first(sortedReportActions);
         return TransactionUtils.getLinkedTransaction(lastReportAction);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions]);
+    }, [fullReport.reportID, receiptTransactions, reportActions]);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -88,7 +98,7 @@ function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, preferredLocale, policy, parentReportAction, transaction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
 
     return (
         <OptionRowLHN
@@ -96,7 +106,6 @@ function OptionRowLHNData({isFocused, fullReport, reportActions, personalDetails
             {...propsToForward}
             isFocused={isReportFocused}
             optionItem={optionItem}
-            hasDraft={!!comment}
         />
     );
 }
@@ -112,17 +121,4 @@ OptionRowLHNData.displayName = 'OptionRowLHNData';
  * Thats also why the React.memo is used on the outer component here, as we just
  * use it to prevent re-renders from parent re-renders.
  */
-export default withOnyx({
-    policy: {
-        key: ({fullReport}) => `${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`,
-        initialValue: {},
-    },
-    comment: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        initialValue: '',
-    },
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        initialValue: {},
-    },
-})(React.memo(OptionRowLHNData));
+export default React.memo(OptionRowLHNData);

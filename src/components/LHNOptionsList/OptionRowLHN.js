@@ -52,8 +52,6 @@ const propTypes = {
     /** The item that should be rendered */
     // eslint-disable-next-line react/forbid-prop-types
     optionItem: PropTypes.object,
-
-    hasDraft: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,7 +61,6 @@ const defaultProps = {
     style: null,
     optionItem: null,
     isFocused: false,
-    hasDraft: false,
 };
 
 function OptionRowLHN(props) {
@@ -295,7 +292,7 @@ function OptionRowLHN(props) {
                                     />
                                 </View>
                             )}
-                            {props.hasDraft && optionItem.isAllowedToComment && (
+                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
