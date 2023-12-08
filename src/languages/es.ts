@@ -496,6 +496,7 @@ export default {
     tabSelector: {
         chat: 'Chat',
         room: 'Sala',
+        distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
     },

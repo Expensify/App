@@ -3127,6 +3127,10 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
+        isDraggingOver: {
+            backgroundColor: theme.receiptDropUIBG,
+        },
+
         receiptImageWrapper: (receiptImageTopPosition: number) =>
             ({
                 position: 'absolute',

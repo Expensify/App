@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import lodashDebounce from 'lodash/debounce';
 import CONST from '@src/CONST';
 
 let active = false;
@@ -6,7 +6,7 @@ let active = false;
 /**
  * Debounced function to deactive the TooltipSense after a specific time
  */
-const debouncedDeactivate = _.debounce(() => {
+const debouncedDeactivate = lodashDebounce(() => {
     active = false;
 }, CONST.TIMING.TOOLTIP_SENSE);
 
