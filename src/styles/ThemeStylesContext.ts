@@ -1,6 +1,15 @@
 import React from 'react';
-import styles from './styles';
+import {defaultStyles} from './styles';
+import type {ThemeStyles} from './styles';
+import {DefaultStyleUtils} from './utils';
+import type {StyleUtilsType} from './utils';
 
-const ThemeStylesContext = React.createContext(styles);
+type ThemeStylesContextType = {
+    styles: ThemeStyles;
+    StyleUtils: StyleUtilsType;
+};
+
+const ThemeStylesContext = React.createContext<ThemeStylesContextType>({styles: defaultStyles, StyleUtils: DefaultStyleUtils});
 
 export default ThemeStylesContext;
+export {type ThemeStylesContextType};

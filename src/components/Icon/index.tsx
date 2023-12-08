@@ -1,8 +1,8 @@
 import React, {PureComponent} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import withStyleUtils, {WithStyleUtilsProps} from '@components/withStyleUtils';
+import withTheme, {WithThemeProps} from '@components/withTheme';
+import withThemeStyles, {type WithThemeStylesProps} from '@components/withThemeStyles';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
 
@@ -41,7 +41,9 @@ type IconProps = {
 
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
-};
+} & WithThemeStylesProps &
+    WithThemeProps &
+    WithStyleUtilsProps;
 
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function
@@ -50,7 +52,7 @@ class Icon extends PureComponent<IconProps> {
     public static defaultProps = {
         width: variables.iconSizeNormal,
         height: variables.iconSizeNormal,
-        fill: themeColors.icon,
+        fill: undefined,
         small: false,
         inline: false,
         additionalStyles: [],
@@ -61,19 +63,20 @@ class Icon extends PureComponent<IconProps> {
     render() {
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
-        const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, this.props.additionalStyles];
+        const iconStyles = [this.props.StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, this.props.themeStyles.pAbsolute, this.props.additionalStyles];
+        const fill = this.props.fill ?? this.props.theme.icon;
 
         if (this.props.inline) {
             return (
                 <View
                     testID={`${this.props.src.name} Icon`}
-                    style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
+                    style={[this.props.StyleUtils.getWidthAndHeightStyle(width ?? 0, height), this.props.themeStyles.bgTransparent, this.props.themeStyles.overflowVisible]}
                 >
                     <View style={iconStyles}>
                         <this.props.src
                             width={width}
                             height={height}
-                            fill={this.props.fill}
+                            fill={fill}
                             hovered={this.props.hovered?.toString()}
                             pressed={this.props.pressed?.toString()}
                         />
@@ -90,7 +93,7 @@ class Icon extends PureComponent<IconProps> {
                 <this.props.src
                     width={width}
                     height={height}
-                    fill={this.props.fill}
+                    fill={fill}
                     hovered={this.props.hovered?.toString()}
                     pressed={this.props.pressed?.toString()}
                 />
@@ -99,4 +102,4 @@ class Icon extends PureComponent<IconProps> {
     }
 }
 
-export default Icon;
+export default withTheme(withThemeStyles(withStyleUtils(Icon)));

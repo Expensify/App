@@ -114,7 +114,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-     * @returns {Number} the user wallet balance
+     * @returns {String|undefined} the user's wallet balance
      */
     function getWalletBalance(isPaymentItem) {
         return isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
@@ -183,7 +183,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
 
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
             illustration={LottieAnimations.WorkspacePlanet}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.workspaces')}

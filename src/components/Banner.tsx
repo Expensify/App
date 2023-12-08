@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Hoverable from './Hoverable';
@@ -41,6 +41,7 @@ type BannerProps = {
 
 function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     return (

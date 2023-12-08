@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import getStyledTextArray from '@libs/GetStyledTextArray';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {Icon} from '@src/types/onyx/OnyxCommon';
@@ -14,8 +14,11 @@ type Mention = {
     /** Display name of the user */
     text: string;
 
-    /** Email/phone number of the user */
+    /** The formatted email/phone number of the user */
     alternateText: string;
+
+    /** Email/phone number of the user */
+    login: string;
 
     /** Array of icons of the user. We use the first element of this array */
     icons: Icon[];
@@ -51,60 +54,76 @@ const keyExtractor = (item: Mention) => item.alternateText;
 function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     /**
      * Render a suggestion menu item component.
      */
-    const renderSuggestionMenuItem = (item: Mention) => {
-        const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
-        const styledDisplayName = getStyledTextArray(item.text, prefix);
-        const styledHandle = item.text === item.alternateText ? undefined : getStyledTextArray(item.alternateText, prefix);
+    const renderSuggestionMenuItem = useCallback(
+        (item: Mention) => {
+            const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
+            const styledDisplayName = getStyledTextArray(item.text, prefix);
+            const styledHandle = item.text === item.alternateText ? undefined : getStyledTextArray(item.alternateText, prefix);
 
-        return (
-            <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                <View style={styles.mentionSuggestionsAvatarContainer}>
-                    <Avatar
-                        source={item.icons[0].source}
-                        size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
-                        name={item.icons[0].name}
-                        type={item.icons[0].type}
-                        fill={theme.success}
-                        fallbackIcon={item.icons[0].fallbackIcon}
-                    />
+            return (
+                <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
+                    <View style={styles.mentionSuggestionsAvatarContainer}>
+                        <Avatar
+                            source={item.icons[0].source}
+                            size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                            name={item.icons[0].name}
+                            type={item.icons[0].type}
+                            fill={theme.success}
+                            fallbackIcon={item.icons[0].fallbackIcon}
+                        />
+                    </View>
+                    <Text
+                        style={[styles.mentionSuggestionsText, styles.flexShrink1]}
+                        numberOfLines={1}
+                    >
+                        {styledDisplayName?.map(({text, isColored}, i) => (
+                            <Text
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${text}${i}`}
+                                style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
+                            >
+                                {text}
+                            </Text>
+                        ))}
+                    </Text>
+                    <Text
+                        style={[styles.mentionSuggestionsText, styles.flex1]}
+                        numberOfLines={1}
+                    >
+                        {styledHandle?.map(
+                            ({text, isColored}, i) =>
+                                Boolean(text) && (
+                                    <Text
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${text}${i}`}
+                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                                    >
+                                        {text}
+                                    </Text>
+                                ),
+                        )}
+                    </Text>
                 </View>
-                <Text
-                    style={[styles.mentionSuggestionsText, styles.flexShrink1]}
-                    numberOfLines={1}
-                >
-                    {styledDisplayName?.map(({text, isColored}, i) => (
-                        <Text
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${text}${i}`}
-                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
-                        >
-                            {text}
-                        </Text>
-                    ))}
-                </Text>
-                <Text
-                    style={[styles.mentionSuggestionsText, styles.flex1]}
-                    numberOfLines={1}
-                >
-                    {styledHandle?.map(
-                        ({text, isColored}, i) =>
-                            Boolean(text) && (
-                                <Text
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${text}${i}`}
-                                    style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
-                                >
-                                    {text}
-                                </Text>
-                            ),
-                    )}
-                </Text>
-            </View>
-        );
-    };
+            );
+        },
+        [
+            prefix,
+            styles.autoCompleteSuggestionContainer,
+            styles.ph2,
+            styles.mentionSuggestionsAvatarContainer,
+            styles.mentionSuggestionsText,
+            styles.flexShrink1,
+            styles.flex1,
+            styles.mentionSuggestionsDisplayName,
+            styles.mentionSuggestionsHandle,
+            theme.success,
+            StyleUtils,
+        ],
+    );
 
     return (
         <AutoCompleteSuggestions
