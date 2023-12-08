@@ -23,7 +23,7 @@ type BaseAnchorForCommentsOnlyProps = AnchorForCommentsOnlyProps & {
 
 type LinkProps = {
     /** Press handler for the link, when not passed, default href is used to create a link like behaviour */
-    onPress?: () => Promise<void> | void;
+    onPress?: () => void;
 
     /** The URL to open */
     href?: string;
@@ -48,7 +48,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const linkProps: LinkProps = {};
-    if (typeof onPress === 'function') {
+    if (onPress) {
         linkProps.onPress = onPress;
     } else {
         linkProps.href = href;
