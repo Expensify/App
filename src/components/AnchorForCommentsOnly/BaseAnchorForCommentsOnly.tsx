@@ -10,23 +10,7 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import type AnchorForCommentsOnlyProps from './types';
-
-type BaseAnchorForCommentsOnlyProps = AnchorForCommentsOnlyProps & {
-    /** Press in handler for the link */
-    onPressIn?: () => void;
-
-    /** Press out handler for the link */
-    onPressOut?: () => void;
-};
-
-type LinkProps = {
-    /** Press handler for the link, when not passed, default href is used to create a link like behaviour */
-    onPress?: () => void;
-
-    /** The URL to open */
-    href?: string;
-};
+import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 
 /*
  * This is a default anchor component for regular links.

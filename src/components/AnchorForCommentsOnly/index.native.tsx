@@ -1,7 +1,7 @@
 import React from 'react';
 import {Linking} from 'react-native';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
-import type AnchorForCommentsOnlyProps from './types';
+import type {AnchorForCommentsOnlyProps} from './types';
 
 function AnchorForCommentsOnly({onPress, href, ...props}: AnchorForCommentsOnlyProps) {
     const onLinkPress = () => {
