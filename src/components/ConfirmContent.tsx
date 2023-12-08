@@ -6,7 +6,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import Button from './Button';
 import Header from './Header';
-import Icon from './Icon';
+import Icon, {type SrcProps} from './Icon';
 import Text from './Text';
 
 type ConfirmContentProps = {
@@ -14,52 +14,52 @@ type ConfirmContentProps = {
     title: string;
 
     /** A callback to call when the form has been submitted */
-    onConfirm: (...args: unknown[]) => void;
+    onConfirm: () => void;
 
     /** A callback to call when the form has been closed */
-    onCancel: (...args: unknown[]) => void;
+    onCancel?: () => void;
 
     /** Confirm button text */
-    confirmText: string;
+    confirmText?: string;
 
     /** Cancel button text */
-    cancelText: string;
+    cancelText?: string;
 
     /** Modal content text/element */
-    prompt: string | ReactNode;
+    prompt?: string | ReactNode;
 
     /** Whether we should use the success button color */
-    success: boolean;
+    success?: boolean;
 
     /** Whether we should use the danger button color. Use if the action is destructive */
-    danger: boolean;
+    danger?: boolean;
 
     /** Whether we should disable the confirm button when offline */
-    shouldDisableConfirmButtonWhenOffline: boolean;
+    shouldDisableConfirmButtonWhenOffline?: boolean;
 
     /** Whether we should show the cancel button */
-    shouldShowCancelButton: boolean;
+    shouldShowCancelButton?: boolean;
 
     /** Icon to display above the title */
-    iconSource: null | string | ((props: unknown) => ReactNode);
+    iconSource?: (props: SrcProps) => React.ReactNode;
 
     /** Whether to center the icon / text content */
-    shouldCenterContent: boolean;
+    shouldCenterContent?: boolean;
 
     /** Whether to stack the buttons */
-    shouldStackButtons: boolean;
+    shouldStackButtons?: boolean;
 
     /** Styles for title */
-    titleStyles: Array<StyleProp<TextStyle>>;
+    titleStyles?: StyleProp<TextStyle>;
 
     /** Styles for prompt */
-    promptStyles: Array<StyleProp<TextStyle>>;
+    promptStyles?: StyleProp<TextStyle>;
 
     /** Styles for view */
-    contentStyles: Array<StyleProp<ViewStyle>>;
+    contentStyles?: StyleProp<ViewStyle>;
 
     /** Styles for icon */
-    iconAdditionalStyles: Array<StyleProp<ViewStyle>>;
+    iconAdditionalStyles?: StyleProp<ViewStyle>;
 };
 
 function ConfirmContent({
@@ -73,13 +73,13 @@ function ConfirmContent({
     danger = false,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
-    iconSource = null,
+    iconSource,
     shouldCenterContent = false,
     shouldStackButtons = true,
-    titleStyles = [],
-    promptStyles = [],
-    contentStyles = [],
-    iconAdditionalStyles = [],
+    titleStyles,
+    promptStyles,
+    contentStyles,
+    iconAdditionalStyles,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -88,27 +88,25 @@ function ConfirmContent({
     const isCentered = shouldCenterContent;
 
     return (
-        <View style={[styles.m5, ...contentStyles]}>
+        <View style={[styles.m5, contentStyles]}>
             <View style={isCentered ? [styles.alignItemsCenter, styles.mb6] : []}>
-                {(iconSource !== null && Object.keys(iconSource).length !== 0) ||
-                    (typeof iconSource === 'function' && (
-                        <View style={[styles.flexRow, styles.mb3]}>
-                            <Icon
-                                src={iconSource}
-                                width={variables.appModalAppIconSize}
-                                height={variables.appModalAppIconSize}
-                                additionalStyles={iconAdditionalStyles}
-                            />
-                        </View>
-                    ))}
-
+                {typeof iconSource === 'function' && (
+                    <View style={[styles.flexRow, styles.mb3]}>
+                        <Icon
+                            src={iconSource}
+                            width={variables.appModalAppIconSize}
+                            height={variables.appModalAppIconSize}
+                            additionalStyles={iconAdditionalStyles}
+                        />
+                    </View>
+                )}
                 <View style={[styles.flexRow, isCentered ? {} : styles.mb4]}>
                     <Header
                         title={title}
                         textStyles={titleStyles}
                     />
                 </View>
-                {typeof prompt === 'string' ? <Text style={[...promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
+                {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
             </View>
 
             {shouldStackButtons ? (
