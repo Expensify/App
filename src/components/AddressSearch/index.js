@@ -19,6 +19,7 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
@@ -200,6 +201,7 @@ function AddressSearch({
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
     const [locationErrorCode, setLocationErrorCode] = useState(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+    const {height} = useWindowDimensions();
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef();
     const query = useMemo(
@@ -455,7 +457,6 @@ function AddressSearch({
                     ref={containerRef}
                 >
                     <GooglePlacesAutocomplete
-                        disableScroll
                         fetchDetails
                         suppressDefaultStyles
                         enablePoweredByContainer={false}
@@ -549,7 +550,7 @@ function AddressSearch({
                                 styles.overflowAuto,
                                 styles.borderLeft,
                                 styles.borderRight,
-                                {maxHeight: 'calc(100vh - 250px)'},
+                                {maxHeight: height - 250},
                                 !isFocused && {height: 0},
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
