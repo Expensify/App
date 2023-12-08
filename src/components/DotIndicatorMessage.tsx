@@ -3,8 +3,8 @@ import React from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import fileDownload from '@libs/fileDownload';
 import * as Localize from '@libs/Localize';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
@@ -45,6 +45,7 @@ function isReceiptError(message: string | ReceiptError): message is ReceiptError
 function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     if (Object.keys(messages).length === 0) {
         return null;
@@ -92,7 +93,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndica
                         <Text
                             // eslint-disable-next-line react/no-array-index-key
                             key={i}
-                            style={[StyleUtils.getDotIndicatorTextStyles(styles, isErrorMessage), textStyles]}
+                            style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
                         >
                             {message}
                         </Text>

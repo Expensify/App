@@ -73,6 +73,19 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
+    [SCREENS.MONEY_REQUEST.CREATE]: () => require('../../../pages/iou/request/IOURequestStartPage').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require('../../../pages/iou/request/step/IOURequestStepConfirmation').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: () => require('../../../pages/iou/request/step/IOURequestStepAmount').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require('../../../pages/iou/request/step/IOURequestStepCategory').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require('../../../pages/iou/request/step/IOURequestStepDate').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: () => require('../../../pages/iou/request/step/IOURequestStepDescription').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: () => require('../../../pages/iou/request/step/IOURequestStepDistance').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: () => require('../../../pages/iou/request/step/IOURequestStepMerchant').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: () => require('../../../pages/iou/request/step/IOURequestStepParticipants').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require('../../../pages/iou/request/step/IOURequestStepScan').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require('../../../pages/iou/request/step/IOURequestStepTag').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require('../../../pages/iou/request/step/IOURequestStepWaypoint').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.ROOT]: () => require('../../../pages/iou/MoneyRequestSelectorPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.AMOUNT]: () => require('../../../pages/iou/steps/NewRequestAmountPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,

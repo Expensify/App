@@ -360,6 +360,36 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
                         screens: {
+                            [SCREENS.MONEY_REQUEST.CREATE]: {
+                                path: ROUTES.MONEY_REQUEST_CREATE.route,
+                                exact: true,
+                                screens: {
+                                    distance: {
+                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
+                                        exact: true,
+                                    },
+                                    manual: {
+                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
+                                        exact: true,
+                                    },
+                                    scan: {
+                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
+                                        exact: true,
+                                    },
+                                },
+                            },
+                            [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
+                            [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
+                            [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: ROUTES.MONEY_REQUEST_STEP_CURRENCY.route,
+                            [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
+                            [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
+                            [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
+                            [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
+                            [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
+                            [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
+                            [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                             [SCREENS.MONEY_REQUEST.ROOT]: {
                                 path: ROUTES.MONEY_REQUEST.route,
                                 exact: true,
