@@ -1,5 +1,5 @@
-import {type ColorScheme, type StatusBarStyle} from '@styles/index';
 import CONST from '@src/CONST';
+import {type ColorScheme, type StatusBarStyle} from '..';
 
 type Color = string;
 
