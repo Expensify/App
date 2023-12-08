@@ -3,9 +3,7 @@ import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import Log from '@libs/Log';
-import getTooltipStyles from '@styles/getTooltipStyles';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@styles/useStyleUtils';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
 import TooltipProps from './types';
@@ -66,8 +64,7 @@ function TooltipRenderedOnPageBody({
     const contentRef = useRef<HTMLDivElement>(null);
     const rootWrapper = useRef<HTMLDivElement>(null);
 
-    const theme = useTheme();
-    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     useEffect(() => {
         if (!renderTooltipContent || !text) {
@@ -85,7 +82,7 @@ function TooltipRenderedOnPageBody({
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
-            getTooltipStyles({
+            StyleUtils.getTooltipStyles({
                 tooltip: rootWrapper.current,
                 currentSize: animation,
                 windowWidth,
@@ -96,12 +93,10 @@ function TooltipRenderedOnPageBody({
                 maxWidth,
                 tooltipContentWidth: contentMeasuredWidth,
                 tooltipWrapperHeight: wrapperMeasuredHeight,
-                theme,
-                styles,
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
             }),
-        [animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical, theme, styles],
+        [StyleUtils, animation, windowWidth, xOffset, yOffset, targetWidth, targetHeight, maxWidth, contentMeasuredWidth, wrapperMeasuredHeight, shiftHorizontal, shiftVertical],
     );
 
     let content;
