@@ -983,7 +983,7 @@ function getAmountFontSizeAndLineHeight(shouldUseNarrowLayout: boolean, windowWi
     const differentWithMaxLength = 17 - displayAmountLength;
 
     // with a window width is more than 420px the maximum amount will not be cut off with the maximum avatar displays
-    if (isSmallScreenWidth && windowWidth < 420) {
+    if (shouldUseNarrowLayout && windowWidth < 420) {
         // Based on width Difference we can see the max length of amount can be displayed with the number of avatars.
         // From there we can calculate subtract in accordance with the number of avatar and the length of amount text
         const widthDifference = 420 - windowWidth;
