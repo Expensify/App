@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -10,7 +11,6 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;

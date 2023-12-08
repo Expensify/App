@@ -4,11 +4,11 @@ import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function Popover(props) {
     const styles = useThemeStyles();

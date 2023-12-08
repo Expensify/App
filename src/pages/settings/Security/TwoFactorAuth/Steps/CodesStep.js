@@ -11,6 +11,7 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
@@ -23,7 +24,6 @@ import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function CodesStep({account = defaultAccount, backTo}) {
     const theme = useTheme();

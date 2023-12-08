@@ -2,12 +2,12 @@ import {DefaultTheme, getPathFromState, NavigationContainer, NavigationState} fr
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useFlipper from '@hooks/useFlipper';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Log from '@libs/Log';
 import useTheme from '@styles/themes/useTheme';
 import AppNavigator from './AppNavigator';
 import linkingConfig from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type NavigationRootProps = {
     /** Whether the current user is logged in with an authToken */

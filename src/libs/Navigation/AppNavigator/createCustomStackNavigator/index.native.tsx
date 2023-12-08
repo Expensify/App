@@ -1,9 +1,9 @@
 import {createNavigatorFactory, ParamListBase, StackActionHelpers, StackNavigationState, useNavigationBuilder} from '@react-navigation/native';
 import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
 import React, {useRef} from 'react';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();

@@ -1,10 +1,10 @@
 import React, {useCallback, useRef} from 'react';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import sidebarPropTypes from './sidebarPropTypes';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);

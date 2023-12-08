@@ -2,12 +2,12 @@ import React, {useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 type OfflineIndicatorProps = {
     /** Optional styles for container element that will override the default styling for the offline indicator */
