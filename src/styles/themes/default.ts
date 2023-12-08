@@ -79,7 +79,7 @@ const darkTheme = {
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
     skeletonLHNIn: colors.productDark400,
-    skeletonLHNOut: colors.productDark400,
+    skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
