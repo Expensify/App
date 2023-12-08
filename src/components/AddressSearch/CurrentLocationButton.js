@@ -7,7 +7,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import getButtonState from '@libs/getButtonState';
 import colors from '@styles/colors';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
@@ -25,6 +25,7 @@ const defaultProps = {
 
 function CurrentLocationButton({onPress, isDisabled}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     return (
