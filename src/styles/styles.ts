@@ -2189,16 +2189,16 @@ const styles = (theme: ThemeColors) =>
             outline: 'none',
         },
 
-        getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
+        getPDFPasswordFormStyle: (shouldUseNarrowLayout: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : 350,
-                ...(isSmallScreenWidth && flex.flex1),
+                width: shouldUseNarrowLayout ? '100%' : 350,
+                ...(shouldUseNarrowLayout && flex.flex1),
             } satisfies ViewStyle),
 
-        centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
+        centeredModalStyles: (shouldUseNarrowLayout: boolean, isFullScreenWhenSmall: boolean) =>
             ({
-                borderWidth: isSmallScreenWidth && !isFullScreenWhenSmall ? 1 : 0,
-                marginHorizontal: isSmallScreenWidth ? 0 : 20,
+                borderWidth: shouldUseNarrowLayout && !isFullScreenWhenSmall ? 1 : 0,
+                marginHorizontal: shouldUseNarrowLayout ? 0 : 20,
             } satisfies ViewStyle),
 
         imageModalImageCenterContainer: {
@@ -2403,7 +2403,7 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 88,
         },
 
-        rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
+        rootNavigatorContainerStyles: (shouldUseNarrowLayout: boolean) => ({marginLeft: shouldUseNarrowLayout ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {

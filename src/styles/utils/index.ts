@@ -567,8 +567,8 @@ function getCodeFontSize(isInsideH1: boolean) {
 /**
  * Gives the width for Emoji picker Widget
  */
-function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
-    if (isSmallScreenWidth) {
+function getEmojiPickerStyle(shouldUseNarrowLayout: boolean): ViewStyle {
+    if (shouldUseNarrowLayout) {
         return {
             width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
@@ -728,10 +728,10 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+function getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout: boolean, isMoneyReport = false): ViewStyle {
     const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return {
             height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
             width: '200%',
@@ -974,7 +974,7 @@ function getDropDownButtonHeight(buttonSize: ButtonSizeValue): ViewStyle {
 /**
  * Returns fitting fontSize and lineHeight values in order to prevent large amounts from being cut off on small screen widths.
  */
-function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
+function getAmountFontSizeAndLineHeight(shouldUseNarrowLayout: boolean, windowWidth: number, displayAmountLength: number, numberOfParticipant: number): TextStyle {
     let toSubtract = 0;
     const baseFontSize = variables.fontSizeXLarge;
     const baseLineHeight = variables.lineHeightXXLarge;
