@@ -16,8 +16,8 @@ type ReportActionItemDateProps = ReportActionItemDateOnyxProps & {
 
 function ReportActionItemDate({created}: ReportActionItemDateProps) {
     const {datetimeToCalendarTime} = useLocalize();
-
     const styles = useThemeStyles();
+
     return <Text style={[styles.chatItemMessageHeaderTimestamp]}>{datetimeToCalendarTime(created, false, false)}</Text>;
 }
 
