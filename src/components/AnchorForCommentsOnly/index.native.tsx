@@ -3,12 +3,12 @@ import {Linking} from 'react-native';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 import type {AnchorForCommentsOnlyProps} from './types';
 
-function AnchorForCommentsOnly({onPress, href, ...props}: AnchorForCommentsOnlyProps) {
+function AnchorForCommentsOnly({onPress, href = '', ...props}: AnchorForCommentsOnlyProps) {
     const onLinkPress = () => {
         if (onPress) {
             onPress();
         } else {
-            Linking.openURL(href ?? '');
+            Linking.openURL(href);
         }
     };
 
