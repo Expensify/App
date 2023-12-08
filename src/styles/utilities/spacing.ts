@@ -155,6 +155,10 @@ export default {
         marginLeft: 32,
     },
 
+    ml9: {
+        marginLeft: 36,
+    },
+
     ml10: {
         marginLeft: 40,
     },
@@ -199,8 +203,16 @@ export default {
         marginTop: 24,
     },
 
+    mt7: {
+        marginTop: 28,
+    },
+
     mt8: {
         marginTop: 32,
+    },
+
+    mt9: {
+        marginTop: 36,
     },
 
     mt11: {
@@ -249,6 +261,10 @@ export default {
 
     mb8: {
         marginBottom: 32,
+    },
+
+    mb9: {
+        marginBottom: 36,
     },
 
     mb10: {
@@ -459,10 +475,6 @@ export default {
 
     pt5: {
         paddingTop: 20,
-    },
-
-    pt6: {
-        paddingTop: 24,
     },
 
     pt8: {
