@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import {TabNavigatorAnimationEnabled} from '@libs/Navigation/OnyxTabNavigator';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import TabSelectorItem from './TabSelectorItem';
@@ -80,6 +81,7 @@ function TabSelector({state, navigation, onTabPress}) {
                         title={title}
                         onPress={onPress}
                         isFocused={isFocused}
+                        animationEnabled={TabNavigatorAnimationEnabled()}
                     />
                 );
             }),

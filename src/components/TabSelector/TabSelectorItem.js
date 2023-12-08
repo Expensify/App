@@ -20,6 +20,9 @@ const propTypes = {
 
     /** Whether this tab is active */
     isFocused: PropTypes.bool,
+
+    /** Whether animations should be skipped */
+    animationEnabled: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -27,20 +30,27 @@ const defaultProps = {
     icon: () => {},
     title: '',
     isFocused: false,
+    animationEnabled: true,
 };
 
-function TabSelectorItem({icon, title, onPress, isFocused}) {
+function TabSelectorItem({icon, title, onPress, isFocused, animationEnabled}) {
     const focusValueRef = useRef(new Animated.Value(isFocused ? 1 : 0));
     const styles = useThemeStyles();
     const theme = useTheme();
 
     useEffect(() => {
-        Animated.timing(focusValueRef.current, {
-            toValue: isFocused ? 1 : 0,
-            duration: CONST.ANIMATED_TRANSITION,
-            useNativeDriver: true,
-        }).start();
-    }, [isFocused]);
+        const focusValue = isFocused ? 1 : 0;
+
+        if (animationEnabled) {
+            return Animated.timing(focusValueRef.current, {
+                toValue: focusValue,
+                duration: CONST.ANIMATED_TRANSITION,
+                useNativeDriver: true,
+            }).start();
+        }
+
+        focusValueRef.current.setValue(focusValue);
+    }, [animationEnabled, isFocused]);
 
     const getBackgroundColorStyle = useCallback(
         (hovered) => {

@@ -1,11 +1,23 @@
 import {createMaterialTopTabNavigator, MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
 import React from 'react';
+import {Platform} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
+
+const TabNavigatorAnimationEnabled = () => {
+    switch (Platform.OS) {
+        case 'macos':
+        case 'windows':
+        case 'web':
+            return false;
+        default:
+            return true;
+    }
+};
 
 type OnyxTabNavigatorOnyxProps = {
     selectedTab: OnyxEntry<string>;
@@ -34,6 +46,7 @@ function OnyxTabNavigator({id, selectedTab = '', children, screenListeners, ...r
             {...rest}
             id={id}
             initialRouteName={selectedTab}
+            screenOptions={{animationEnabled: TabNavigatorAnimationEnabled()}}
             backBehavior="initialRoute"
             keyboardDismissMode="none"
             screenListeners={{
@@ -59,3 +72,5 @@ export default withOnyx<OnyxTabNavigatorProps, OnyxTabNavigatorOnyxProps>({
         key: ({id}) => `${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`,
     },
 })(OnyxTabNavigator);
+
+export {TabNavigatorAnimationEnabled};
