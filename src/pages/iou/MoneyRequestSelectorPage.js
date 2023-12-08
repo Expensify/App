@@ -125,11 +125,7 @@ function MoneyRequestSelectorPage(props) {
                                         component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
-                                        component={IOURequestStepScan}
-                                        initialParams={{reportID, iouType, pageIndex: 1}}
-                                    />
+                                    <TopTab.Screen name={CONST.TAB.SCAN}>{() => <IOURequestStepScan route={props.route} />}</TopTab.Screen>
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
                                             name={CONST.TAB.DISTANCE}

@@ -214,7 +214,10 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID, partici
  * @param {String} filename
  */
 function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {source}, filename});
+    Onyx.merge(`${transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        receipt: {source},
+        filename,
+    });
 }
 
 /**

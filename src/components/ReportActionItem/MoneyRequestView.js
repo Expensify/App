@@ -193,7 +193,11 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                 {!hasReceipt && canEdit && !isSettled && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.TYPE.REQUEST, transaction.transactionID, report.reportID, Navigation.getActiveRouteWithoutParams()),
+                            )
+                        }
                     />
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>

@@ -21,16 +21,9 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
-
-    /** The id of the transaction we're editing */
-    transactionID: PropTypes.string,
 };
 
-const defaultProps = {
-    transactionID: '',
-};
-
-function EditRequestReceiptPage({route, transactionID}) {
+function EditRequestReceiptPage({route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -49,11 +42,7 @@ function EditRequestReceiptPage({route, transactionID}) {
                             title={translate('common.receipt')}
                             onBackButtonPress={Navigation.goBack}
                         />
-                        <IOURequestStepScan
-                            route={route}
-                            transactionID={transactionID}
-                            isInTabNavigator={false}
-                        />
+                        <IOURequestStepScan route={route} />
                     </View>
                 </DragAndDropProvider>
             )}
@@ -62,7 +51,6 @@ function EditRequestReceiptPage({route, transactionID}) {
 }
 
 EditRequestReceiptPage.propTypes = propTypes;
-EditRequestReceiptPage.defaultProps = defaultProps;
 EditRequestReceiptPage.displayName = 'EditRequestReceiptPage';
 
 export default EditRequestReceiptPage;
