@@ -381,7 +381,7 @@ function InitialSettingsPage(props) {
             title={translate('common.settings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
         >
             <View style={styles.w100}>
                 {getMenuItems}
