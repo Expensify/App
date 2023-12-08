@@ -2099,6 +2099,17 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                 [reportPreviewAction.reportActionID]: updatedReportPreviewAction,
             },
         },
+        ...(updatedReportPreviewAction.childMoneyRequestCount === 0
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: false,
+                      },
+                  },
+              ]
+            : []),
         ...(shouldDeleteIOUReport
             ? [
                   {
