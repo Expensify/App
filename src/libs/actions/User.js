@@ -531,7 +531,6 @@ function subscribeToUserEvents() {
             const onyxUpdatePromise = Onyx.update(pushJSON).then(()=>{
                 triggerNotifications(pushJSON);
             });
-            
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
