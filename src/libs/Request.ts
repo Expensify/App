@@ -1,9 +1,9 @@
+import Request from '@src/types/onyx/Request';
+import Response from '@src/types/onyx/Response';
 import HttpUtils from './HttpUtils';
+import Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import * as NetworkStore from './Network/NetworkStore';
-import Request from '../types/onyx/Request';
-import Response from '../types/onyx/Response';
-import Middleware from './Middleware/types';
 
 let middlewares: Middleware[] = [];
 
@@ -16,7 +16,7 @@ function makeXHR(request: Request): Promise<Response | void> {
             return new Promise<void>((resolve) => resolve());
         }
 
-        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure) as Promise<Response>;
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
     });
 }
 

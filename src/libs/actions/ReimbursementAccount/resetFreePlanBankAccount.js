@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import * as API from '../../API';
-import * as PlaidDataProps from '../../../pages/ReimbursementAccount/plaidDataPropTypes';
-import * as ReimbursementAccountProps from '../../../pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import * as API from '@libs/API';
+import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
+import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
@@ -33,6 +33,7 @@ function resetFreePlanBankAccount(bankAccountID, session) {
                         shouldShowResetModal: false,
                         isLoading: true,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        achData: null,
                     },
                 },
             ],

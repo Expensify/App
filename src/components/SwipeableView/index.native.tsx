@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {PanResponder, View} from 'react-native';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import SwipeableViewProps from './types';
 
 function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {

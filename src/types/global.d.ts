@@ -16,4 +16,9 @@ declare module '*.svg' {
     export default content;
 }
 
+declare module '*.lottie' {
+    const value: import('lottie-react-native').LottieViewProps.source;
+    export default value;
+}
+
 declare module 'react-native-device-info/jest/react-native-device-info-mock';

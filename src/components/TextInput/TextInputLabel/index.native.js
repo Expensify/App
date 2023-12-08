@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import {Animated} from 'react-native';
-import styles from '../../../styles/styles';
+import * as styleConst from '@components/TextInput/styleConst';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as TextInputLabelPropTypes from './TextInputLabelPropTypes';
-import * as styleConst from '../styleConst';
 
 function TextInputLabel(props) {
+    const styles = useThemeStyles();
     const [width, setWidth] = useState(0);
 
     return (

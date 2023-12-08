@@ -1,19 +1,19 @@
-import React, {useState} from 'react';
+import PropTypes from 'prop-types';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import ONYXKEYS from '../ONYXKEYS';
-import * as StyleUtils from '../styles/StyleUtils';
-import transactionPropTypes from './transactionPropTypes';
-import styles from '../styles/styles';
+import * as ReportUtils from '@libs/ReportUtils';
+import useStyleUtils from '@styles/useStyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Icon from './Icon';
+import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
 import * as MCCIcons from './Icon/MCCIcons';
-import Icon from './Icon';
-import * as ReportUtils from '../libs/ReportUtils';
-import variables from '../styles/variables';
-import * as eReceiptBGs from './Icon/EReceiptBGs';
 import Image from './Image';
-import CONST from '../CONST';
+import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
     /* TransactionID of the transaction this EReceipt corresponds to */
@@ -37,11 +37,9 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function getBackgroundImage(transaction) {
-    return backgroundImages[StyleUtils.getEReceiptColorCode(transaction)];
-}
-
 function EReceiptThumbnail({transaction}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
 
@@ -73,6 +71,8 @@ function EReceiptThumbnail({transaction}) {
         receiptIconHeight = variables.eReceiptIconHeightMedium;
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
     }
+
+    const getBackgroundImage = useMemo((trans) => backgroundImages[StyleUtils.getEReceiptColorCode(trans)], [StyleUtils]);
 
     return (
         <View

@@ -1,15 +1,19 @@
+import {ValueOf} from 'type-fest';
+import {AvatarSource} from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
+import {Receipt} from './Transaction';
 
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
 
-    /** The html content of the fragment. */
-    html: string;
-
     /** The text content of the fragment. */
     text: string;
+
+    /** The html content of the fragment. */
+    html?: string;
 
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
@@ -32,17 +36,20 @@ type Message = {
     iconUrl?: string;
 
     /** Fragment edited flag */
-    isEdited: boolean;
+    isEdited?: boolean;
 
-    isDeletedParentAction: boolean;
+    isDeletedParentAction?: boolean;
 
     /** Whether the pending transaction was reversed and didn't post to the card */
     isReversedTransaction?: boolean;
-    whisperedTo: number[];
-    reactions: Reaction[];
+    whisperedTo?: number[];
+    reactions?: Reaction[];
 
     moderationDecision?: Decision;
     translationKey?: string;
+
+    /** ID of a task report */
+    taskReportID?: string;
 };
 
 type Person = {
@@ -75,24 +82,50 @@ type ReportActionBase = {
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
-    /** Error message that's come back from the server. */
-    error?: string;
-
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedToAccountIDs?: number[];
 
-    avatar?: string;
+    avatar?: AvatarSource;
+
     automatic?: boolean;
+
     shouldShow?: boolean;
+
+    /** The ID of childReport */
     childReportID?: string;
+
+    /** Name of child report */
     childReportName?: string;
+
+    /** Type of child report  */
     childType?: string;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
+    parentReportID?: string;
+    childManagerAccountID?: number;
+
+    /** The status of the child report */
+    childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+
+    /** Report action child status name */
+    childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+    childLastReceiptTransactionIDs?: string;
+    childLastMoneyRequestComment?: string;
+    childLastActorAccountID?: number;
+    timestamp?: number;
+    reportActionTimestamp?: number;
     childMoneyRequestCount?: number;
+    isFirstItem?: boolean;
+
+    /** Information about attachments of report action */
+    attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
+
+    /** Receipt tied to report action */
+    receipt?: Receipt;
 
     /** ISO-formatted datetime */
     lastModified?: string;
@@ -104,6 +137,11 @@ type ReportActionBase = {
     errors?: OnyxCommon.Errors;
 
     isAttachment?: boolean;
+    childRecentReceiptTransactionIDs?: Record<string, string>;
+    reportID?: string;
+
+    /** We manually add this field while sorting to detect the end of the list */
+    isNewestReportAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
@@ -111,4 +149,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, Message};
+export type {Message, ReportActions};

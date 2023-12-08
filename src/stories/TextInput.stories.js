@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import TextInput from '../components/TextInput';
+import TextInput from '@components/TextInput';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

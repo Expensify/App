@@ -1,4 +1,4 @@
-import {ReportAction} from '../types/onyx';
+import {ReportAction} from '@src/types/onyx';
 import en from './en';
 
 type AddressLineParams = {
@@ -111,19 +111,21 @@ type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: number};
 
-type PayerOwesAmountParams = {payer: string; amount: number};
+type PayerOwesAmountParams = {payer: string; amount: number | string};
 
 type PayerOwesParams = {payer: string};
 
-type PayerPaidAmountParams = {payer: string; amount: number};
+type PayerPaidAmountParams = {payer: string; amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
 
 type PayerPaidParams = {payer: string};
 
-type PayerSettledParams = {amount: number};
+type PayerSettledParams = {amount: number | string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
+
+type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
@@ -185,7 +187,7 @@ type OOOEventSummaryFullDayParams = {summary: string; dayCount: number; date: st
 
 type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; date: string};
 
-type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: string};
+type ParentNavigationSummaryParams = {rootReportName?: string; workspaceName?: string};
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
@@ -243,6 +245,7 @@ type TranslationFlatObject = {
 
 export type {
     TranslationBase,
+    TranslationPaths,
     EnglishTranslation,
     TranslationFlatObject,
     AddressLineParams,
@@ -281,6 +284,7 @@ export type {
     ManagerApprovedParams,
     PayerSettledParams,
     WaitingOnBankAccountParams,
+    CanceledRequestParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidWithExpensifyWithAmountParams,
