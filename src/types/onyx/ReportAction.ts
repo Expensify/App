@@ -79,6 +79,9 @@ type ReportActionBase = {
     /** report action message */
     message?: Message[];
 
+    /** previous report action message */
+    previousMessage?: Message[];
+
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 

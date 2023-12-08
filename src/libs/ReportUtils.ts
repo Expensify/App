@@ -1000,16 +1000,16 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 /**
  * Get the report given a reportID
  */
-function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
+function getReport(reportID: string | undefined): OnyxEntry<Report> {
     /**
      * Using typical string concatenation here due to performance issues
      * with template literals.
      */
     if (!allReports) {
-        return {};
+        return null;
     }
 
-    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
+    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? null;
 }
 
 /**

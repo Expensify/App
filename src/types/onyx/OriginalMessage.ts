@@ -24,6 +24,7 @@ type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
 };
+type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
 
 type IOUDetails = {
     amount: number;
@@ -94,6 +95,7 @@ type OriginalMessageAddComment = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
     originalMessage: {
         html: string;
+        source?: OriginalMessageSource;
         lastModified?: string;
         taskReportID?: string;
         edits?: string[];
@@ -231,4 +233,4 @@ type OriginalMessage =
     | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog, OriginalMessageAddComment};
