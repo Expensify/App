@@ -8,7 +8,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import type AnchorForCommentsOnlyProps from './types';
@@ -34,6 +34,7 @@ type LinkProps = {
  */
 function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, ...rest}: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
     const flattenStyle = StyleSheet.flatten(style);
 

@@ -14,9 +14,9 @@ import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as StyleUtils from '@styles/StyleUtils';
 import ThemeProvider from '@styles/themes/ThemeProvider';
 import ThemeStylesProvider from '@styles/ThemeStylesProvider';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
@@ -134,6 +134,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 
 function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
