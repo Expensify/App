@@ -1,7 +1,6 @@
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
@@ -122,48 +121,15 @@ function translateIfPhraseKey(message: MaybePhraseKey): string {
     }
 }
 
-function getPreferredListFormat(): Intl.ListFormat {
-    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
-        init();
-    }
-
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
-}
-
 /**
  * Format an array into a string with comma and "and" ("a dog, a cat and a chicken")
  */
-function formatList(components: string[]) {
-    const listFormat = getPreferredListFormat();
-    return listFormat.format(components);
-}
-
-function formatMessageElementList<E extends MessageElementBase>(elements: readonly E[]): ReadonlyArray<E | MessageTextElement> {
-    const listFormat = getPreferredListFormat();
-    const parts = listFormat.formatToParts(elements.map((e) => e.content));
-    const resultElements: Array<E | MessageTextElement> = [];
-
-    let nextElementIndex = 0;
-    for (const part of parts) {
-        if (part.type === 'element') {
-            /**
-             * The standard guarantees that all input elements will be present in the constructed parts, each exactly
-             * once, and without any modifications: https://tc39.es/ecma402/#sec-createpartsfromlist
-             */
-            const element = elements[nextElementIndex++];
-
-            resultElements.push(element);
-        } else {
-            const literalElement: MessageTextElement = {
-                kind: 'text',
-                content: part.value,
-            };
-
-            resultElements.push(literalElement);
-        }
+function arrayToString(anArray: string[]) {
+    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
+        init();
     }
-
-    return resultElements;
+    const listFormat = CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+    return listFormat.format(anArray);
 }
 
 /**
@@ -173,5 +139,5 @@ function getDevicePreferredLocale(): string {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};
 export type {PhraseParameters, Phrase, MaybePhraseKey};

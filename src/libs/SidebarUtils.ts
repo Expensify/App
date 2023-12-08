@@ -117,7 +117,7 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportActions>,
+    allReportActions: OnyxCollection<ReportAction[]>,
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
@@ -149,9 +149,7 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true),
-    );
+    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -375,17 +373,17 @@ function getOptionData(
             const targetAccountIDs = lastAction?.originalMessage?.targetAccountIDs ?? [];
             const verb =
                 lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                    ? Localize.translate(preferredLocale, 'workspace.invite.invited')
-                    : Localize.translate(preferredLocale, 'workspace.invite.removed');
-            const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
+                    ? 'invited'
+                    : 'removed';
+            const users = targetAccountIDs.length > 1 ? 'users' : 'user';
             result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
 
             const roomName = lastAction?.originalMessage?.roomName ?? '';
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                        ? ` ${Localize.translate(preferredLocale, 'workspace.invite.to')}`
-                        : ` ${Localize.translate(preferredLocale, 'workspace.invite.from')}`;
+                        ? ' to'
+                        : ' from';
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
