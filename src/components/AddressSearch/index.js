@@ -455,6 +455,7 @@ function AddressSearch({
                 maxHeight: windowHeight - result
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [windowHeight, network.isOffline, Platform.OS])
 
     return (
