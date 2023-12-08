@@ -1,5 +1,5 @@
 import {useContext} from 'react';
-import ThemeContext from '@styles/context/ThemeContext';
+import ThemeContext from '@styles/theme/context/ThemeContext';
 import {type ThemeColors} from '@styles/theme/types';
 
 function useTheme(): ThemeColors {

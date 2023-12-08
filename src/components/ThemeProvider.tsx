@@ -2,8 +2,8 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
-import ThemeContext from '@styles/context/ThemeContext';
 import themes from '@styles/theme';
+import ThemeContext from '@styles/theme/context/ThemeContext';
 import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 
 const propTypes = {
