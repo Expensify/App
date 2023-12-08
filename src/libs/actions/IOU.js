@@ -2099,7 +2099,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                 [reportPreviewAction.reportActionID]: updatedReportPreviewAction,
             },
         },
-        ...(updatedReportPreviewAction.childMoneyRequestCount === 0
+        ...(!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
