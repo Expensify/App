@@ -9,7 +9,6 @@ const propTypes = {
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
 
-
     /** Callback to fire when a tax is pressed */
     onSubmit: PropTypes.func.isRequired,
 };

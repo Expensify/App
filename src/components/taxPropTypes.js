@@ -4,8 +4,8 @@ const taxPropTypes = PropTypes.shape({
     /** Name of a tax */
     name: PropTypes.string.isRequired,
 
-     /** value of a tax */
-     value: PropTypes.string.isRequired,
+    /** value of a tax */
+    value: PropTypes.string.isRequired,
 });
 
 export default PropTypes.objectOf(
@@ -16,7 +16,7 @@ export default PropTypes.objectOf(
         /** Defualt external ID of taxes */
         defaultExternalID: PropTypes.string.isRequired,
 
-         /** Default value of taxes */
+        /** Default value of taxes */
         defaultValue: PropTypes.string.isRequired,
 
         /** Default Foreign Tax ID */

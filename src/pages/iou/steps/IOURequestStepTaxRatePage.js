@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
+import taxPropTypes from '@components/taxPropTypes';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
@@ -23,9 +24,12 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+    policyTaxRates: taxPropTypes,
 };
 
-const defaultProps = {};
+const defaultProps = {
+    policyTaxRates: {},
+};
 
 function IOURequestStepTaxRatePage({route, policyTaxRates}) {
     const iouType = lodashGet(route, 'params.iouType', '');
@@ -47,9 +51,9 @@ function IOURequestStepTaxRatePage({route, policyTaxRates}) {
                     onBackButtonPress={() => navigateBack()}
                 />
                 <TaxPicker
-                    selectedTaxRate={''}
+                    selectedTaxRate=""
                     policyTaxRates={policyTaxRates}
-                    onSubmit={() =>{}}
+                    onSubmit={() => {}}
                 />
             </>
         </ScreenWrapper>

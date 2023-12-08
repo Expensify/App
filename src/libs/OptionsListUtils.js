@@ -1049,7 +1049,7 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
 function sortTaxRates(taxRates) {
     const sortedtaxRates = _.chain(taxRates)
         .values()
-        .sortBy((taxRates) => taxRates.name)
+        .sortBy((taxRate) => taxRate.name)
         .value();
 
     return sortedtaxRates;
@@ -1057,7 +1057,7 @@ function sortTaxRates(taxRates) {
 
 function getTaxRatesOptions(taxRates) {
     return _.map(taxRates, (taxRate) => ({
-        text:  `${taxRate.name} (${taxRate.value})`,
+        text: `${taxRate.name} (${taxRate.value})`,
         keyForList: taxRate.name,
         searchText: taxRate.name,
         tooltipText: taxRate.name,
@@ -1070,10 +1070,10 @@ function getTaxRatesSection(policyTaxRates, selectedOptions) {
 
     const sortedTaxRates = sortTaxRates(policyTaxRates.taxes);
     const numberOfTaxRates = _.size(sortedTaxRates);
-    let indexOffset = 0;
+    const indexOffset = 0;
 
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
-        categorySections.push({
+        policyRatesSections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
@@ -1137,7 +1137,7 @@ function getOptions(
         canInviteUser = true,
         includeSelectedOptions = false,
         includePolicyTaxRates,
-        policyTaxRates
+        policyTaxRates,
     },
 ) {
     if (includeCategories) {
@@ -1150,7 +1150,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
-            policyTaxRatesOptions: []
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1164,7 +1164,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
-            policyTaxRatesOptions: []
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1178,7 +1178,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions
+            policyTaxRatesOptions,
         };
     }
 
@@ -1190,7 +1190,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
-            policyTaxRatesOptions: []
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1457,7 +1457,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
-        policyTaxRatesOptions: []
+        policyTaxRatesOptions: [],
     };
 }
 
@@ -1547,6 +1547,7 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
  * @param {boolean} [includeSelectedOptions]
+ * @param {boolean} [includePolicyTaxRates]
  * @param {Object} [policyTaxRates]
  * @returns {Object}
  */

@@ -45,7 +45,7 @@ function TaxPicker({selectedTaxRate, policyTaxRates, onSubmit}) {
             false, // canInviteUser boolean
             false, // includeSelectedOptions
             true, // includePolicyTaxRates boolean
-            policyTaxRates // policyTaxRates {}
+            policyTaxRates, // policyTaxRates {}
         );
         return policyTaxRatesOptions;
     }, [policyTaxRates, searchValue, selectedOptions]);
