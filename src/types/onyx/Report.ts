@@ -146,6 +146,9 @@ type Report = {
     /** Total amount of money owed for IOU report */
     iouReportAmount?: number;
 
+    /** Is this action pending? */
+    pendingAction?: OnyxCommon.PendingAction;
+
     /** Pending fields for the report */
     pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
