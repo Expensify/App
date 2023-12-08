@@ -7,6 +7,7 @@ import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactio
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import Clipboard from '@libs/Clipboard';
+import EmailUtils from '@libs/EmailUtils';
 import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
@@ -243,10 +244,10 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection.replace('mailto:', ''));
+            Clipboard.setString(EmailUtils.trimMailTo(selection));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: (selection) => selection.replace('mailto:', ''),
+        getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection)),
     },
     {
         isAnonymousAction: true,

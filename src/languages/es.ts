@@ -1205,8 +1205,10 @@ export default {
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError:
-            'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
+        validateAccountError: {
+            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
+            phrase2: 'vuelve a iniciar sesión con un código mágico',
+        },
         hasPhoneLoginError:
             'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',

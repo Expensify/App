@@ -6,8 +6,8 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import themeColors from '@styles/themes/default';
+import useStyleUtils from '@styles/useStyleUtils';
 import CONST from '@src/CONST';
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
@@ -25,6 +25,7 @@ const story = {
 const parser = new ExpensiMark();
 
 function Default(args) {
+    const StyleUtils = useStyleUtils();
     const [pastedFile, setPastedFile] = useState(null);
     const [comment, setComment] = useState(args.defaultValue);
     const renderedHTML = parser.replace(comment);
