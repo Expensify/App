@@ -2004,7 +2004,6 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     const updatedReportAction = {
         [reportAction.reportActionID]: {
             pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            childReportID: shouldDeleteTransactionThread ? null : reportAction.childReportID,
             previousMessage: reportAction.message,
             message: [
                 {
