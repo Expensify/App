@@ -202,7 +202,7 @@ function AddressSearch({
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
     const [locationErrorCode, setLocationErrorCode] = useState(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
-    const {height} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef();
     const query = useMemo(
@@ -543,6 +543,7 @@ function AddressSearch({
                             maxLength: maxInputLength,
                             spellCheck: false,
                             selectTextOnFocus: true,
+                            textInputContainerStyles: [styles.appBG]
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
@@ -551,7 +552,7 @@ function AddressSearch({
                                 styles.overflowAuto,
                                 styles.borderLeft,
                                 styles.borderRight,
-                                {maxHeight: height - 250},
+                                {maxHeight: windowHeight - 300},
                                 !isFocused && {height: 0},
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
