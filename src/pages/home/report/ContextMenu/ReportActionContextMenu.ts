@@ -135,6 +135,9 @@ function showContextMenu(
     );
 }
 
+/**
+ * Hides the Confirm delete action modal
+ */
 function hideDeleteModal() {
     if (!contextMenuRef.current) {
         return;

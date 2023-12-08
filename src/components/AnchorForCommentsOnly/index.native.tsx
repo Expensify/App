@@ -4,7 +4,13 @@ import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 import type AnchorForCommentsOnlyProps from './types';
 
 function AnchorForCommentsOnly({onPress, href, ...props}: AnchorForCommentsOnlyProps) {
-    const onLinkPress = () => (typeof onPress === 'function' ? onPress() : Linking.openURL(href ?? ''));
+    const onLinkPress = () => {
+        if (typeof onPress === 'function') {
+            onPress();
+        } else {
+            Linking.openURL(href ?? '');
+        }
+    };
 
     return (
         <BaseAnchorForCommentsOnly
