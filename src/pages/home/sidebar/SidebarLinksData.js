@@ -14,9 +14,9 @@ import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SidebarLinks, {basePropTypes} from './SidebarLinks';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
+import SidebarLinks, {basePropTypes} from './SidebarLinks';
 
 
 const propTypes = {
