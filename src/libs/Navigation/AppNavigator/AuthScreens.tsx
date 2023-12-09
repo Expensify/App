@@ -63,7 +63,7 @@ const loadConciergePage = () => require('../../../pages/ConciergePage').default 
 let timezone: Timezone | null;
 let currentAccountID = -1;
 let isLoadingApp = false;
-let lastUpdateIDAppliedToClient: number;
+let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -115,7 +115,7 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value: number) => {
+    callback: (value: OnyxEntry<number>) => {
         lastUpdateIDAppliedToClient = value;
     },
 });
