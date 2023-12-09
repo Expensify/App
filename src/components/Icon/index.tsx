@@ -1,8 +1,8 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import withTheme, {ThemeProps} from '@components/withTheme';
-import withThemeStyles, {ThemeStylesProps} from '@components/withThemeStyles';
-import * as StyleUtils from '@styles/StyleUtils';
+import withStyleUtils, {WithStyleUtilsProps} from '@components/withStyleUtils';
+import withTheme, {WithThemeProps} from '@components/withTheme';
+import withThemeStyles, {type WithThemeStylesProps} from '@components/withThemeStyles';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
 
@@ -41,8 +41,9 @@ type IconProps = {
 
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
-} & ThemeStylesProps &
-    ThemeProps;
+} & WithThemeStylesProps &
+    WithThemeProps &
+    WithStyleUtilsProps;
 
 const defaultProps = {
     width: variables.iconSizeNormal,
@@ -55,7 +56,7 @@ const defaultProps = {
     pressed: false,
 };
 
-function Icon({src, width, height, fill, small, inline, hovered, pressed, theme, themeStyles, additionalStyles}: IconProps) {
+function Icon({src, width, height, fill, small, inline, hovered, pressed, theme, themeStyles, StyleUtils, additionalStyles}: IconProps) {
     const iconWidth = small ? variables.iconSizeSmall : width;
     const iconHeight = small ? variables.iconSizeSmall : height;
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, themeStyles.pAbsolute, additionalStyles];
@@ -100,4 +101,4 @@ function Icon({src, width, height, fill, small, inline, hovered, pressed, theme,
 Icon.defaultProps = defaultProps;
 Icon.displayName = 'Icon';
 
-export default withTheme(withThemeStyles(Icon));
+export default withTheme(withThemeStyles(withStyleUtils(Icon)));

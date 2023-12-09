@@ -155,7 +155,7 @@ test('should render ReportScreen with composer interactions', () => {
     };
 
     const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '1'}};
 
     return waitForBatchedUpdates()
@@ -198,7 +198,7 @@ test('should press of the report item', () => {
     };
 
     const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '2'}};
 
     return waitForBatchedUpdates()

@@ -27,6 +27,7 @@ const propTypes = {
     /* An accessibility role for the button */
     role: PropTypes.string.isRequired,
 
+    ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
     ...withThemePropTypes,
 };
