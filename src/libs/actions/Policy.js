@@ -957,7 +957,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            ...(!networkStatus.isOffline && {lastModified}),
+            lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
