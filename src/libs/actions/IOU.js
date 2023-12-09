@@ -2202,6 +2202,10 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     updatedIOUReport.lastMessageText = iouReportLastMessageText;
     updatedIOUReport.lastVisibleActionCreated = lodashGet(lastVisibleAction, 'created');
 
+    if (shouldDeleteIOUReport) {
+        // In offline scenario, let us ensure that LHN does not consider this action for display text.
+        updatedReportPreviewAction.message[0].isDeletedParentAction = true;
+    }
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport);
     const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
         payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport.managerID).login || '',
@@ -2209,6 +2213,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     });
     updatedReportPreviewAction.message[0].text = messageText;
     updatedReportPreviewAction.message[0].html = messageText;
+
     if (reportPreviewAction.childMoneyRequestCount > 0) {
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
     }

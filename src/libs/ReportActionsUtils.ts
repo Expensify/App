@@ -356,6 +356,13 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 }
 
 /**
+ * A helper method to identify if the message is deleted or not.
+ */
+function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.message?.[0]?.isDeletedParentAction ?? false;
+}
+
+/**
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
@@ -365,6 +372,11 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
     }
 
     if (Object.keys(reportAction.errors ?? {}).length > 0) {
+        return false;
+    }
+
+    // Ignore Report Preview as last action for LHN display if the action is deleted and is also pending for deletion.
+    if (isReportPreviewAction(reportAction) && isMessageDeleted(reportAction) && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         return false;
     }
 
@@ -587,13 +599,6 @@ function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAct
 
 function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !!reportAction.originalMessage?.taskReportID;
-}
-
-/**
- * A helper method to identify if the message is deleted or not.
- */
-function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.message?.[0]?.isDeletedParentAction ?? false;
 }
 
 /**
