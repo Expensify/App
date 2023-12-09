@@ -164,6 +164,7 @@ function BaseSelectionList({
             const item = flattenedSections.allOptions[index];
 
             if (!listRef.current || !item) {
+                setIsInitialRender(false);
                 return;
             }
 
