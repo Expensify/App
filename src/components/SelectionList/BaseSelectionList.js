@@ -64,7 +64,6 @@ function BaseSelectionList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -73,6 +72,7 @@ function BaseSelectionList({
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+    const [isInitialRender, setIsInitialRender] = useState(true);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -185,6 +185,18 @@ function BaseSelectionList({
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [flattenedSections.allOptions],
+    );
+
+    const handleScroll = useCallback(
+        (event) => {
+            if (typeof onScroll === 'function') {
+                onScroll(event);
+            }
+            if (isInitialRender) {
+                setIsInitialRender(false);
+            }
+        },
+        [isInitialRender, onScroll],
     );
 
     /**
@@ -325,11 +337,10 @@ function BaseSelectionList({
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
-            if (!firstLayoutRef.current) {
+            if (!isInitialRender) {
                 return;
             }
             scrollToIndex(focusedIndex, false);
-            firstLayoutRef.current = false;
         },
         [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
@@ -359,7 +370,7 @@ function BaseSelectionList({
 
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
-        if (firstLayoutRef.current) {
+        if (isInitialRender) {
             return;
         }
 
@@ -394,7 +405,7 @@ function BaseSelectionList({
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, {opacity: isInitialRender ? 0 : 1}]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
@@ -459,7 +470,7 @@ function BaseSelectionList({
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
                                     getItemLayout={getItemLayout}
-                                    onScroll={onScroll}
+                                    onScroll={handleScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
