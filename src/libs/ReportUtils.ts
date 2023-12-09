@@ -151,7 +151,6 @@ type OptimisticReportPreview = Pick<
     | 'childRecentReceiptTransactionIDs'
     | 'childReportID'
     | 'whisperedToAccountIDs'
-    | 'childReportID'
 > & {reportID?: string; accountID?: number};
 
 type UpdateReportPreview = Pick<
