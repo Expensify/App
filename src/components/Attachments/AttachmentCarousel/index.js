@@ -196,6 +196,8 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             disableIntervalMomentum
                             pagingEnabled
                             snapToAlignment="start"
+                            // Without explicitly setting this value (despite it being the default), 
+                            // the view may appear slightly different (with a 1-2px padding)
                             contentInset={{top: 0, left: 0, bottom: 0, right: 0}}
                             contentInsetAdjustmentBehavior="automatic"
                             snapToOffsets={_.map(attachments, (__, index) => index * containerWidth)}
