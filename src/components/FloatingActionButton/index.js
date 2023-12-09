@@ -8,7 +8,6 @@ import withTheme, {withThemePropTypes} from '@components/withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
-import styles from '@styles/styles';
 import FabPlusIcon from './FabPlusIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
@@ -27,7 +26,6 @@ const propTypes = {
     /* An accessibility role for the button */
     role: PropTypes.string.isRequired,
 
-    ...withLocalizePropTypes,
     ...withThemeStylesPropTypes,
     ...withThemePropTypes,
 };
@@ -51,7 +49,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
         return {
             transform: [{rotate: `${animatedValue.value * 135}deg`}],
             backgroundColor,
-            borderRadius: styles.floatingActionButton.borderRadius,
+            borderRadius: themeStyles.floatingActionButton.borderRadius,
         };
     });
 
