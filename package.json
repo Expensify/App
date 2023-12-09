@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.10-0",
+  "version": "1.4.10-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -51,6 +51,7 @@
     "symbolicate:android": "npx metro-symbolicate android/app/build/generated/sourcemaps/react/release/index.android.bundle.map",
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "test:e2e": "node tests/e2e/testRunner.js --development --skipCheckout --skipInstallDeps --buildMode none",
+    "test:e2e:dev": "node tests/e2e/testRunner.js --development --skipCheckout --config ./config.dev.js --buildMode skip --skipInstallDeps",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
     "workflow-test": "./workflow_tests/scripts/runWorkflowTests.sh",
     "workflow-test:generate": "node workflow_tests/utils/preGenerateTest.js",

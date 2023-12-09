@@ -1781,8 +1781,13 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
         return false;
     }
 
-    // If this notification was delayed and the user saw the message already, don't show it
     const report = allReports[reportID];
+    if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
+        return false;
+    }
+
+    // If this notification was delayed and the user saw the message already, don't show it
     if (action && report && report.lastReadTime >= action.created) {
         Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
         return false;
