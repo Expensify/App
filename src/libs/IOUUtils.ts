@@ -83,9 +83,8 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
     const iouReportUpdate: Report = {...iouReport};
 
     // Let us ensure a valid value before updating the total amount.
-    if (!iouReportUpdate.total) {
-        iouReportUpdate.total = 0;
-    }
+    iouReportUpdate.total = iouReportUpdate.total ?? 0;
+    
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
     } else {
