@@ -2274,7 +2274,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 
     const successData = [
         {
-            onyxMethod: shouldDeleteIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
                 [reportAction.reportActionID]: shouldDeleteIOUReport
