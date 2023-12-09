@@ -10,7 +10,6 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
-import * as Task from './actions/Task';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -18,6 +17,7 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
 
 const visibleReportActionItems: ReportActions = {};
@@ -363,7 +363,7 @@ function getOptionData(
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
-            result.alternateText = Task.getTaskReportActionMessage(lastAction.actionName, report.reportID, false);
+            result.alternateText = TaskUtils.getTaskReportActionMessage(lastAction.actionName);
         } else if (
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
