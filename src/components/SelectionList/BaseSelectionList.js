@@ -164,7 +164,6 @@ function BaseSelectionList({
             const item = flattenedSections.allOptions[index];
 
             if (!listRef.current || !item) {
-                setIsInitialRender(false);
                 return;
             }
 
@@ -186,18 +185,6 @@ function BaseSelectionList({
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [flattenedSections.allOptions],
-    );
-
-    const handleScroll = useCallback(
-        (event) => {
-            if (typeof onScroll === 'function') {
-                onScroll(event);
-            }
-            if (isInitialRender) {
-                setIsInitialRender(false);
-            }
-        },
-        [isInitialRender, onScroll],
     );
 
     /**
@@ -342,6 +329,7 @@ function BaseSelectionList({
                 return;
             }
             scrollToIndex(focusedIndex, false);
+            setIsInitialRender(false);
         },
         [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
@@ -471,7 +459,7 @@ function BaseSelectionList({
                                     renderSectionHeader={renderSectionHeader}
                                     renderItem={renderItem}
                                     getItemLayout={getItemLayout}
-                                    onScroll={handleScroll}
+                                    onScroll={onScroll}
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
