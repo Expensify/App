@@ -42,8 +42,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const coordinates = lodashGet(route, 'geometry.coordinates', []);
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     const getWaypointMarkers = useCallback(
         (waypointsData) => {
@@ -115,9 +115,6 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
 }
 
 export default withOnyx({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },
