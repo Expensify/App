@@ -1,11 +1,10 @@
 import {Animated, TextStyle, View, ViewStyle} from 'react-native';
-import type {ThemeColors} from '@styles/theme/types';
+import fontFamily from '@styles/utils/fontFamily';
+import positioning from '@styles/utils/positioning';
+import roundToNearestMultipleOfFour from '@styles/utils/roundToNearestMultipleOfFour';
+import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
-import type {ThemeStyles} from '..';
-import fontFamily from './fontFamily';
-import positioning from './positioning';
-import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
-import spacing from './spacing';
+import StyleUtilGenerator from './types';
 
 /** This defines the proximity with the edge of the window in which tooltips should not be displayed.
  * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */
@@ -116,6 +115,8 @@ type TooltipParams = {
     manualShiftVertical?: number;
 };
 
+type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};
+
 /**
  * Generate styles for the tooltip component.
  *
@@ -137,7 +138,7 @@ type TooltipParams = {
  * @param [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
  */
-const createTooltipStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
+const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = ({theme, styles}) => ({
     getTooltipStyles: ({
         tooltip,
         currentSize,
@@ -151,7 +152,7 @@ const createTooltipStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         tooltipWrapperHeight,
         manualShiftHorizontal = 0,
         manualShiftVertical = 0,
-    }: TooltipParams): TooltipStyles => {
+    }) => {
         const tooltipVerticalPadding = spacing.pv1;
 
         // We calculate tooltip width based on the tooltip's content width

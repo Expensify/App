@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -12,54 +12,27 @@ import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import {defaultStyles, type ThemeStyles} from '..';
 import containerComposeStyles from './containerComposeStyles';
-import cursor from './cursor';
 import fontFamily from './fontFamily';
+import createModalStyleUtils from './generators/ModalStyleUtils';
+import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
+import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
-import createModalStyleUtils from './ModalStyleUtils';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import createReportActionContextMenuStyleUtils from './ReportActionContextMenuStyleUtils';
 import spacing from './spacing';
-import createTooltipStyleUtils from './TooltipStyleUtils';
-
-type AllStyles = ViewStyle | TextStyle | ImageStyle;
-type ParsableStyle = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
-
-type ColorValue = ValueOf<typeof colors>;
-type AvatarSizeName = ValueOf<typeof CONST.AVATAR_SIZE>;
-type EReceiptColorName = ValueOf<typeof CONST.ERECEIPT_COLORS>;
-type AvatarSizeValue = ValueOf<
-    Pick<
-        typeof variables,
-        | 'avatarSizeNormal'
-        | 'avatarSizeSmallSubscript'
-        | 'avatarSizeMidSubscript'
-        | 'avatarSizeSubscript'
-        | 'avatarSizeSmall'
-        | 'avatarSizeSmaller'
-        | 'avatarSizeXLarge'
-        | 'avatarSizeLarge'
-        | 'avatarSizeMedium'
-        | 'avatarSizeLargeBordered'
-        | 'avatarSizeHeader'
-        | 'avatarSizeMentionIcon'
-        | 'avatarSizeSmallNormal'
-    >
->;
-
-type AvatarStyle = {
-    width: number;
-    height: number;
-    borderRadius: number;
-    backgroundColor: string;
-};
-
-type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
-type AvatarSize = {width: number};
-
-type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
-type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
+import {
+    AllStyles,
+    AvatarSize,
+    AvatarSizeName,
+    AvatarSizeValue,
+    AvatarStyle,
+    ButtonSizeValue,
+    ButtonStateName,
+    EReceiptColorName,
+    EreceiptColorStyle,
+    ParsableStyle,
+    WorkspaceColorStyle,
+} from './types';
 
 const workspaceColorOptions: WorkspaceColorStyle[] = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -1103,9 +1076,13 @@ const staticStyleUtils = {
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     ...staticStyleUtils,
-    ...createModalStyleUtils(theme, styles),
-    ...createTooltipStyleUtils(theme, styles),
-    ...createReportActionContextMenuStyleUtils(theme, styles),
+    ...createModalStyleUtils({theme, styles}),
+    ...createTooltipStyleUtils({theme, styles}),
+    ...createReportActionContextMenuStyleUtils({theme, styles}),
+
+    getCompactContentContainerStyles: () => compactContentContainerStyles(styles),
+    getContextMenuItemStyles: (windowWidth?: number) => getContextMenuItemStyles(styles, windowWidth),
+    getContainerComposeStyles: () => containerComposeStyles(styles),
 
     /**
      * Gets styles for AutoCompleteSuggestion row
@@ -1236,7 +1213,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getDisabledLinkStyles: (isDisabled = false): ViewStyle => {
         const disabledLinkStyles = {
             color: theme.textSupporting,
-            ...cursor.cursorDisabled,
+            ...styles.cursorDisabled,
         };
 
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
@@ -1440,12 +1417,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         return containerStyles;
     },
-
-    getCompactContentContainerStyles: () => compactContentContainerStyles(styles),
-
-    getContextMenuItemStyles: (windowWidth?: number) => getContextMenuItemStyles(styles, windowWidth),
-
-    getContainerComposeStyles: () => containerComposeStyles(styles),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

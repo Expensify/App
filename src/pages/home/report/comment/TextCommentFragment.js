@@ -13,7 +13,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import reportActionFragmentPropTypes from '@pages/home/report/reportActionFragmentPropTypes';
 import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
-import editedLabelStyles from '@styles/utils/editedLabelStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import RenderCommentHTML from './RenderCommentHTML';
@@ -103,7 +102,7 @@ function TextCommentFragment(props) {
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[editedLabelStyles, styleAsDeleted ? styles.offlineFeedback.deleted : undefined, ...props.style]}
+                        style={[styles.editedLabelStyles, styleAsDeleted ? styles.offlineFeedback.deleted : undefined, ...props.style]}
                     >
                         {props.translate('reportActionCompose.edited')}
                     </Text>

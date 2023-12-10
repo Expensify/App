@@ -4,7 +4,6 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import editedLabelStyles from '@styles/utils/editedLabelStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
@@ -32,7 +31,7 @@ function EditedRenderer(props) {
                 {...defaultRendererProps}
                 fontSize={variables.fontSizeSmall}
                 color={theme.textSupporting}
-                style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
+                style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
             >
                 {props.translate('reportActionCompose.edited')}
             </Text>

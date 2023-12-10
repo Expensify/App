@@ -1,7 +1,8 @@
 import {ViewStyle} from 'react-native';
+import {ThemeStyles} from '@styles/index';
 import {type ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
-import {type ThemeStyles} from '..';
+import StyleUtilGenerator from './types';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
@@ -20,6 +21,8 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
     },
 ];
 
+type GetReportActionContextMenuStylesStyleUtil = {getReportActionContextMenuStyles: (isMini: boolean, isSmallScreenWidth: boolean) => ViewStyle[]};
+
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.
  *
@@ -27,8 +30,8 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
  * @param isSmallScreenWidth
  * @param theme
  */
-const createReportActionContextMenuStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
-    getReportActionContextMenuStyles: (isMini: boolean, isSmallScreenWidth: boolean): ViewStyle[] => {
+const createReportActionContextMenuStyleUtils: StyleUtilGenerator<GetReportActionContextMenuStylesStyleUtil> = ({theme, styles}) => ({
+    getReportActionContextMenuStyles: (isMini, isSmallScreenWidth) => {
         if (isMini) {
             return getMiniWrapperStyle(theme, styles);
         }

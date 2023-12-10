@@ -1,10 +1,10 @@
 import {ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
-import {type ThemeColors} from '@styles/theme/types';
+import {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {type ThemeStyles} from '..';
+import StyleUtilGenerator from './types';
 
 function getCenteredModalStyles(styles: ThemeStyles, windowWidth: number, isSmallScreenWidth: boolean, isFullScreenWhenSmall = false): ViewStyle {
     const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, isFullScreenWhenSmall);
@@ -36,14 +36,18 @@ type GetModalStyles = {
     shouldAddTopSafeAreaPadding: boolean;
 };
 
-const createModalStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
+type GetModalStylesStyleUtil = {
     getModalStyles: (
         type: ModalType | undefined,
         windowDimensions: WindowDimensions,
-        popoverAnchorPosition: ViewStyle = {},
-        innerContainerStyle: ViewStyle = {},
-        outerStyle: ViewStyle = {},
-    ): GetModalStyles => {
+        popoverAnchorPosition: ViewStyle,
+        innerContainerStyle: ViewStyle,
+        outerStyle: ViewStyle,
+    ) => GetModalStyles;
+};
+
+const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
+    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
         const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {

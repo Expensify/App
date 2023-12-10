@@ -17,6 +17,7 @@ import borders from './utils/borders';
 import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
+import editedLabelStyles from './utils/editedLabelStyles';
 import flex from './utils/flex';
 import fontFamily from './utils/fontFamily';
 import fontWeightBold from './utils/fontWeight/bold';
@@ -234,6 +235,7 @@ const styles = (theme: ThemeColors) =>
         ...textUnderline,
         ...objectFit,
         ...textDecorationLine,
+        editedLabelStyles,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
