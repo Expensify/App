@@ -18,7 +18,7 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         return {shouldUseNarrowLayout: isSmallScreenWidth || (params?.isInRHP ?? false)};
     } catch (error) {
         return {
-            shouldUseNarrowLayout: false,
+            shouldUseNarrowLayout: isSmallScreenWidth,
         };
     }
 }
