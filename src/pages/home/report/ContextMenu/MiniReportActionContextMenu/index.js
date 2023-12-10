@@ -7,7 +7,7 @@ import {
     defaultProps as GenericReportActionContextMenuDefaultProps,
     propTypes as genericReportActionContextMenuPropTypes,
 } from '@pages/home/report/ContextMenu/genericReportActionContextMenuPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -24,6 +24,8 @@ const defaultProps = {
 };
 
 function MiniReportActionContextMenu(props) {
+    const StyleUtils = useStyleUtils();
+
     return (
         <View
             style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}
