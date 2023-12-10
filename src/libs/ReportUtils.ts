@@ -1289,7 +1289,7 @@ function getIcons(
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         const actorAccountID = parentReportAction.actorAccountID;
-        const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails, [actorAccountID ?? -1, 'displayName']);
+        const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1]);
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(personalDetails?.[actorAccountID ?? -1]?.avatar ?? '', actorAccountID ?? -1),
@@ -1413,13 +1413,13 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formattedLogin;
     }
-    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, 'displayName', formattedLogin);
 
-    const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
-
+    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, false);
     if (!longName && shouldFallbackToHidden) {
         return Localize.translateLocal('common.hidden');
     }
+
+    const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
     return shouldUseShortForm ? shortName : longName;
 }
 

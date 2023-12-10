@@ -18,15 +18,16 @@ Onyx.connect({
 });
 
 /**
- * @param {Object | Null} passedPersonalDetails
- * @param {Array | String} pathToDisplayName
+ * @param {Object | Null | Undefined} passedPersonalDetails
  * @param {String} [defaultValue] optional default display name value
+ * @param {Boolean} [shouldFallbackToHidden] whether to fall back to 'hidden' if the display name and default value are empty
  * @returns {String}
  */
-function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue = '') {
-    const displayName = lodashGet(passedPersonalDetails, pathToDisplayName, '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+function getDisplayNameOrDefault(passedPersonalDetails, defaultValue = '', shouldFallbackToHidden = true) {
+    const displayName = lodashGet(passedPersonalDetails, 'displayName', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
 
-    return displayName || defaultValue || Localize.translateLocal('common.hidden');
+    return displayName || defaultValue || fallbackValue;
 }
 
 /**

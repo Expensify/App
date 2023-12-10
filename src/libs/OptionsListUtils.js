@@ -201,7 +201,7 @@ function isPersonalDetailsReady(personalDetails) {
 function getParticipantsOption(participant, personalDetails) {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
     const login = detail.login || participant.login;
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, 'displayName', LocalePhoneNumber.formatPhoneNumber(login));
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
     return {
         keyForList: String(detail.accountID),
         login,
@@ -246,8 +246,7 @@ function getParticipantNames(personalDetailList) {
             participantNames.add(participant.lastName.toLowerCase());
         }
         if (participant.displayName) {
-            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(participant, 'displayName');
-            participantNames.add(displayName.toLowerCase());
+            participantNames.add(PersonalDetailsUtils.getDisplayNameOrDefault(participant).toLowerCase());
         }
     });
     return participantNames;
@@ -301,9 +300,9 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
                 searchTerms = searchTerms.concat([
-                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, 'displayName'),
+                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
                     personalDetail.login,
-                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')
+                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
                 ]);
             }
         }
@@ -517,7 +516,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName')}: ` : '';
+        let lastMessageText =
+            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)}: ` : '';
         lastMessageText += report ? lastMessageTextFromReport : '';
 
         if (result.isArchivedRoom) {
@@ -525,7 +525,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -1438,8 +1438,8 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, 'displayName', formattedLogin),
-        alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, 'displayName'),
+        text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
+        alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
