@@ -17,6 +17,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
 import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -259,15 +260,13 @@ export default [
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportActionsUtils.isReportActionAttachment(reportAction) && !ReportActionsUtils.isMessageDeleted(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
-        // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
+        // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
-            const isCreateTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const reportID = lodashGet(reportAction, 'originalMessage.taskReportID', '').toString();
-            const messageHtml = isTaskAction || isCreateTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID, isCreateTaskAction) : lodashGet(message, 'html', '');
+            const messageHtml = isTaskAction ? Task.getTaskReportActionMessage(reportAction) : lodashGet(message, 'html', '');
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -282,6 +281,9 @@ export default [
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
+                    const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
+                    Clipboard.setString(taskPreviewMessage);
                 } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
                     const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
                     Clipboard.setString(logMessage);
