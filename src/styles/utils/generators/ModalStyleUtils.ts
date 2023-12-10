@@ -40,9 +40,9 @@ type GetModalStylesStyleUtil = {
     getModalStyles: (
         type: ModalType | undefined,
         windowDimensions: WindowDimensions,
-        popoverAnchorPosition: ViewStyle,
-        innerContainerStyle: ViewStyle,
-        outerStyle: ViewStyle,
+        popoverAnchorPosition?: ViewStyle,
+        innerContainerStyle?: ViewStyle,
+        outerStyle?: ViewStyle,
     ) => GetModalStyles;
 };
 

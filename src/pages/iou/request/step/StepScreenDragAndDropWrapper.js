@@ -35,7 +35,6 @@ function StepScreenDragAndDropWrapper({testID, headerTitle, onBackButtonPress, o
     const styles = useThemeStyles();
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const styles = useThemeStyles();
 
     if (!shouldShowWrapper) {
         return children;

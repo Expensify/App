@@ -13,7 +13,6 @@ function FocusModeNotification() {
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     useEffect(() => {
         User.updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
     }, []);
