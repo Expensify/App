@@ -166,6 +166,11 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    transactionsDraft: PropTypes.shape({
+        taxRate: PropTypes.string,
+        taxAmount: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
@@ -200,6 +205,10 @@ const defaultProps = {
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
     iou: iouDefaultProps,
+    transactionsDraft: {
+        taxRate: null,
+        taxAmount: null,
+    },
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -209,7 +218,7 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
-    const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
+    const transaction = props.isEditingSplitBill ? props.splitTransactionDraft || props.transaction : props.transaction;
     const {canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
@@ -255,6 +264,7 @@ function MoneyRequestConfirmationList(props) {
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : props.iouAmount,
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transactionsDraft.taxAmount, props.iouCurrencyCode);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
@@ -727,7 +737,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title="UK_ZERO RATED (0%) * Default"
+                            title={props.transactionsDraft.taxRate || `${props.policyTaxRates.defaultExternalID} (${props.policyTaxRates.defaultValue}) * Default`}
                             description="Tax rate"
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -742,7 +752,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title="€ 0.00"
+                            title={formattedTaxAmount}
                             description="Tax amount"
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -790,14 +800,20 @@ export default compose(
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
-        draftTransaction: {
+        splitTransactionDraft: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
         },
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
+        transactionsDraft: {
+            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
+        },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        policyTaxRates: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
         iou: {
             key: ONYXKEYS.IOU,
