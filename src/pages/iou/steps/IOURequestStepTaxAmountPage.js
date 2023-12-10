@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,13 +37,20 @@ const propTypes = {
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
+
+    transactionsDraft: PropTypes.shape({
+        taxAmount: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
     iou: iouDefaultProps,
+    transactionsDraft: {
+        taxAmount: null,
+    },
 };
 
-function IOURequestStepTaxAmountPage({route, iou}) {
+function IOURequestStepTaxAmountPage({route, iou, transactionsDraft}) {
     const styles = useThemeStyles();
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
@@ -79,15 +87,16 @@ function IOURequestStepTaxAmountPage({route, iou}) {
 
     const updateTaxAmount = (currentAmount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        IOU.setMoneyRequestTaxAmount(amountInSmallestCurrencyUnits);
-        navigateBack();
+        IOU.setMoneyRequestTaxAmount(iou.transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestCurrency(currency);
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     };
 
     const content = (
         <MoneyRequestAmountForm
             isEditing={isEditing}
             currency={currency}
-            amount={iou.amount}
+            amount={transactionsDraft.taxAmount}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={updateTaxAmount}
@@ -118,6 +127,13 @@ function IOURequestStepTaxAmountPage({route, iou}) {
 IOURequestStepTaxAmountPage.propTypes = propTypes;
 IOURequestStepTaxAmountPage.defaultProps = defaultProps;
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
-export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-})(IOURequestStepTaxAmountPage);
+export default compose(
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+    }),
+    withOnyx({
+        transactionsDraft: {
+            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${iou.transactionID}`,
+        },
+    }),
+)(IOURequestStepTaxAmountPage);

@@ -8,6 +8,7 @@ import TaxPicker from '@components/TaxPicker';
 import taxPropTypes from '@components/taxPropTypes';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,19 +26,36 @@ const propTypes = {
         }),
     }).isRequired,
     policyTaxRates: taxPropTypes,
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
+
+    transactionsDraft: PropTypes.shape({
+        taxRate: PropTypes.string,
+    }),
 };
 
 const defaultProps = {
     policyTaxRates: {},
+    iou: iouDefaultProps,
+    transactionsDraft: {
+        taxRate: null,
+    },
 };
 
-function IOURequestStepTaxRatePage({route, policyTaxRates}) {
+function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraft}) {
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
 
     function navigateBack() {
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
+
+    const updateTaxRates = (taxes) => {
+        IOU.setMoneyRequestTaxRate(iou.transactionID, taxes.text);
+
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+    };
 
     return (
         <ScreenWrapper
@@ -51,9 +69,9 @@ function IOURequestStepTaxRatePage({route, policyTaxRates}) {
                     onBackButtonPress={() => navigateBack()}
                 />
                 <TaxPicker
-                    selectedTaxRate=""
+                    selectedTaxRate={transactionsDraft.taxRate}
                     policyTaxRates={policyTaxRates}
-                    onSubmit={() => {}}
+                    onSubmit={updateTaxRates}
                 />
             </>
         </ScreenWrapper>
@@ -83,6 +101,11 @@ export default compose(
     withOnyx({
         policyTaxRates: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+        },
+    }),
+    withOnyx({
+        transactionsDraft: {
+            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${iou.transactionID}`,
         },
     }),
 )(IOURequestStepTaxRatePage);
