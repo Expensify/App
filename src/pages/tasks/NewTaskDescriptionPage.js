@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

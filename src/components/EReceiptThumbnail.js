@@ -72,7 +72,7 @@ function EReceiptThumbnail({transaction}) {
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
     }
 
-    const getBackgroundImage = useMemo((trans) => backgroundImages[StyleUtils.getEReceiptColorCode(trans)], [StyleUtils]);
+    const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
 
     return (
         <View
@@ -86,7 +86,7 @@ function EReceiptThumbnail({transaction}) {
             onLayout={onContainerLayout}
         >
             <Image
-                source={getBackgroundImage(transaction)}
+                source={backgroundImage}
                 style={styles.eReceiptBackgroundThumbnail}
                 resizeMode="cover"
             />

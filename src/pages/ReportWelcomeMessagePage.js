@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

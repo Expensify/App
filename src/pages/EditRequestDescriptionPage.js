@@ -10,7 +10,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
