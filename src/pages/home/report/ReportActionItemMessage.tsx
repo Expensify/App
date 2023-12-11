@@ -5,8 +5,8 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import {ReportAction} from '@src/types/onyx';
-import {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
+import type {ReportAction} from '@src/types/onyx';
+import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
 type ReportActionItemMessageProps = {
