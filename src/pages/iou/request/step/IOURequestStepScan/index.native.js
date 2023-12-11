@@ -15,13 +15,13 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -176,7 +176,7 @@ function IOURequestStepScan({
     };
 
     return (
-        <StepScreenWrapper 
+        <StepScreenWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper={Boolean(backTo)}
