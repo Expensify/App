@@ -1,6 +1,5 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback} from 'react';
-import {Image} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -18,7 +17,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import exampleCheckImage from './exampleCheckImage';
+import ExampleCheck from './ExampleCheck';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
@@ -27,7 +26,7 @@ const propTypes = {
 
 function BankAccountManualStep(props) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {reimbursementAccount, reimbursementAccountDraft} = props;
 
     const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
@@ -95,11 +94,7 @@ function BankAccountManualStep(props) {
                 style={[styles.mh5, styles.mt3, styles.flexGrow1]}
             >
                 <Text style={[styles.mb5]}>{translate('bankAccount.checkHelpLine')}</Text>
-                <Image
-                    resizeMode="contain"
-                    style={[styles.exampleCheckImage, styles.mb5]}
-                    source={exampleCheckImage(preferredLocale)}
-                />
+                <ExampleCheck />
                 <InputWrapper
                     InputComponent={TextInput}
                     autoFocus

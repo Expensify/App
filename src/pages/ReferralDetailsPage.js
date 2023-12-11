@@ -90,6 +90,7 @@ function ReferralDetailsPage({route, account}) {
                 {shouldShowClipboard && (
                     <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
                         <CopyTextToClipboard
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             text={translate('referralProgram.copyReferralLink')}
                             textStyles={[styles.colorMuted]}
                             urlToCopy={generateReferralURL(account.primaryLogin)}

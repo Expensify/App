@@ -149,11 +149,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 )}
             </HeaderWithBackButton>
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
-                {shouldShowNextSteps && (
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <MoneyReportHeaderStatusBar nextStep={nextStep} />
-                    </View>
-                )}
                 {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
@@ -188,6 +183,11 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             style={[styles.w100, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
                         />
+                    </View>
+                )}
+                {shouldShowNextSteps && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
                 )}
             </View>

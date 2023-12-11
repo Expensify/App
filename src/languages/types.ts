@@ -187,7 +187,7 @@ type OOOEventSummaryFullDayParams = {summary: string; dayCount: number; date: st
 
 type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; date: string};
 
-type ParentNavigationSummaryParams = {rootReportName: string; workspaceName: string};
+type ParentNavigationSummaryParams = {rootReportName?: string; workspaceName?: string};
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
@@ -204,6 +204,8 @@ type FormattedMaxLengthParams = {formattedMaxLength: string};
 type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
+
+type TaskCreatedActionParams = {title: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -324,4 +326,5 @@ export type {
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
     WalletProgramParams,
+    TaskCreatedActionParams,
 };
