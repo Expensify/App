@@ -28,8 +28,8 @@ import withLocalize from '@components/withLocalize';
 import * as Browser from '@libs/Browser';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -70,7 +70,8 @@ function BaseTextInput(
     const theme = useTheme();
     const styles = useThemeStyles();
     const {hasError = false} = inputProps;
-    const initialValue = value ?? defaultValue ?? '';
+    const StyleUtils = useStyleUtils();
+    const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
 
     const [isFocused, setIsFocused] = useState(false);
@@ -373,7 +374,7 @@ function BaseTextInput(
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight
-                                        ? [StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0), styles.verticalAlignTop]
+                                        ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0), styles.verticalAlignTop]
                                         : []),
 
                                     // Add disabled color theme when field is not editable.
