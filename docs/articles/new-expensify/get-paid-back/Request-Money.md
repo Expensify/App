@@ -1,6 +1,7 @@
 ---
 title: Request Money and Split Bills with Friends
 description: Everything you need to know about Requesting Money and Splitting Bills with Friends!
+redirect_from: articles/request-money/Request-and-Split-Bills/
 ---
 
 <!-- The lines above are required by Jekyll to process the .md file -->
