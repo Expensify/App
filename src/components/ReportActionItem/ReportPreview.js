@@ -27,6 +27,7 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -216,7 +217,17 @@ function ReportPreview(props) {
                     <View style={styles.reportPreviewBoxBody}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+                                <Text
+                                    style={[
+                                        styles.textLabelSupporting,
+                                        styles.mb1,
+                                        {
+                                            lineHeight: variables.lineHeightXXLarge,
+                                        },
+                                    ]}
+                                >
+                                    {getPreviewMessage()}
+                                </Text>
                             </View>
                             {!iouSettled && hasErrors && (
                                 <Icon
