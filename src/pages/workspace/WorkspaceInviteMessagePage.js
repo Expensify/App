@@ -1,7 +1,7 @@
 import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -26,6 +26,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -71,10 +72,26 @@ const defaultProps = {
 };
 
 function WorkspaceInviteMessagePage(props) {
-    if (_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID), true);
-        return;
-    }
+    const focusTimeoutRef = useRef();
+    const welcomeMessageInputRef = useRef(null);
+
+    const focusWelcomeMessageInput = () => {
+        focusTimeoutRef.current = setTimeout(() => {
+            welcomeMessageInputRef.current.focus();
+            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
+            if (welcomeMessageInputRef.current.value && welcomeMessageInputRef.current.setSelectionRange) {
+                const length = welcomeMessageInputRef.current.value.length;
+                welcomeMessageInputRef.current.setSelectionRange(length, length);
+            }
+        }, CONST.ANIMATED_TRANSITION);
+    };
+
+    useEffect(() => {
+        if (_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
+            Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID), true);
+        }
+        focusWelcomeMessageInput();
+    }, [props.invitedEmailsToAccountIDsDraft, props.route.params.policyID]);
 
     const saveDraft = (newDraft) => {
         Policy.setWorkspaceInviteMessageDraft(props.route.params.policyID, newDraft);
@@ -91,6 +108,7 @@ function WorkspaceInviteMessagePage(props) {
         Keyboard.dismiss();
         Policy.addMembersToWorkspace(props.invitedEmailsToAccountIDsDraft, welcomeMessage, props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, {});
+        SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack(ROUTES.HOME);
         Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
@@ -184,6 +202,7 @@ function WorkspaceInviteMessagePage(props) {
                             onChangeText={(text) => {
                                 saveDraft(text);
                             }}
+                            ref={(el) => (welcomeMessageInputRef.current = el)}
                         />
                     </View>
                 </FormProvider>
