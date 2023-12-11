@@ -205,6 +205,8 @@ type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
+type TaskCreatedActionParams = {title: string};
+
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
@@ -324,4 +326,5 @@ export type {
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
     WalletProgramParams,
+    TaskCreatedActionParams,
 };
