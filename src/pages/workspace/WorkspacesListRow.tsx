@@ -69,7 +69,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
 
     return (
         <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5]}>
-            <View style={[styles.flexRow, styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -91,7 +91,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     />
                 )}
             </View>
-            <View style={[styles.flexRow, styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                 <Avatar
                     source={ownerDetails.avatar}
                     size={CONST.AVATAR_SIZE.SMALL}
@@ -112,7 +112,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     </Text>
                 </View>
             </View>
-            <View style={[styles.flexRow, styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                 <Icon
                     src={workspaceTypeIcon(workspaceType)}
                     width={34}
