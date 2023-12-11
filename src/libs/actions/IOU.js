@@ -2183,6 +2183,17 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                   },
               ]
             : []),
+        ...(!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: true,
+                      },
+                  },
+              ]
+            : []),
     ];
 
     // STEP 6: Make the API request
