@@ -15,7 +15,7 @@ import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,16 +45,17 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
+    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
-    selectedTab: CONST.TAB.MANUAL,
+    selectedTab: CONST.TAB_REQUEST.MANUAL,
 };
 
 function NewRequestAmountPage({route, iou, report, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);

@@ -5,12 +5,13 @@ import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './categoryPickerPropTypes';
 
 function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -51,20 +52,9 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return categoryOptions;
     }, [policyCategories, policyRecentlyUsedCategories, searchValue, selectedOptions]);
 
-    const initialFocusedIndex = useMemo(() => {
-        let categoryInitialFocusedIndex = 0;
-
-        if (!_.isEmpty(searchValue) || isCategoriesCountBelowThreshold) {
-            const index = _.findIndex(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory);
-
-            categoryInitialFocusedIndex = index === -1 ? 0 : index;
-        }
-
-        return categoryInitialFocusedIndex;
-    }, [selectedCategory, searchValue, isCategoriesCountBelowThreshold, sections]);
-
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
     const shouldShowTextInput = !isCategoriesCountBelowThreshold;
+    const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (category) => category.searchText === selectedCategory)[0], 'keyForList');
 
     return (
         <OptionsSelector
@@ -73,7 +63,10 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             sections={sections}
             selectedOptions={selectedOptions}
             value={searchValue}
-            initialFocusedIndex={initialFocusedIndex}
+            // Focus the first option when searching
+            focusedIndex={0}
+            // Focus the selected option on first load
+            initiallyFocusedOptionKey={selectedOptionKey}
             headerMessage={headerMessage}
             shouldShowTextInput={shouldShowTextInput}
             textInputLabel={translate('common.search')}

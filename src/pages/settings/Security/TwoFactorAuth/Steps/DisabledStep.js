@@ -5,11 +5,12 @@ import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 
 function DisabledStep() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
@@ -25,7 +26,7 @@ function DisabledStep() {
                 <Button
                     success
                     text={translate('common.buttonConfirm')}
-                    onPress={TwoFactorAuthActions.quitAndNavigateBackToSettings}
+                    onPress={() => TwoFactorAuthActions.quitAndNavigateBack()}
                 />
             </FixedFooter>
         </StepWrapper>

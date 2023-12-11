@@ -12,18 +12,21 @@ const propTypes = {
     /** Styles to apply to the text */
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
-
+    urlToCopy: PropTypes.string,
+    accessibilityRole: PropTypes.string,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     textStyles: [],
+    urlToCopy: null,
+    accessibilityRole: undefined,
 };
 
 function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
-        Clipboard.setString(props.text);
-    }, [props.text]);
+        Clipboard.setString(props.urlToCopy || props.text);
+    }, [props.text, props.urlToCopy]);
 
     return (
         <PressableWithDelayToggle
@@ -33,6 +36,7 @@ function CopyTextToClipboard(props) {
             icon={Expensicons.Copy}
             textStyles={props.textStyles}
             onPress={copyToClipboard}
+            accessibilityRole={props.accessibilityRole}
         />
     );
 }

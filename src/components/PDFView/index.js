@@ -10,10 +10,10 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import withLocalize from '@components/withLocalize';
+import withThemeStyles from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
@@ -247,8 +247,9 @@ function PDFView(props) {
         );
     }
 
-    function renderPDFView() {
-        const pageWidth = calculatePageWidth();
+    renderPDFView() {
+        const styles = props.themeStyles;
+        const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
         // If we're requesting a password then we need to hide - but still render -
@@ -312,21 +313,22 @@ function PDFView(props) {
         );
     }
 
-
-    return props.onPress ? (
-        <PressableWithoutFeedback
-            onPress={props.onPress}
-            style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-            accessibilityLabel={props.fileName || props.translate('attachmentView.unknownFilename')}
-        >
-            {renderPDFView()}
-        </PressableWithoutFeedback>
-    ) : (
-        renderPDFView()
-    );
+    render() {
+        const styles = props.themeStyles;
+        return props.onPress ? (
+            <PressableWithoutFeedback
+                onPress={this.props.onPress}
+                style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
+                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
+            >
+                {renderPDFView()}
+            </PressableWithoutFeedback>
+        ) : (
+            renderPDFView()
+        );
+    }
 }
-
 
 PDFView.propTypes = pdfViewPropTypes.propTypes;
 PDFView.defaultProps = pdfViewPropTypes.defaultProps;
@@ -334,6 +336,7 @@ PDFView.defaultProps = pdfViewPropTypes.defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withThemeStyles,
     withOnyx({
         maxCanvasArea: {
             key: ONYXKEYS.MAX_CANVAS_AREA,

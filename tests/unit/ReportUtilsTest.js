@@ -310,6 +310,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.TASK,
                 managerID: currentUserAccountID,
+                isUnreadWithMention: false,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
             };

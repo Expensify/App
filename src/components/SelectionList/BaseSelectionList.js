@@ -18,8 +18,8 @@ import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
@@ -59,9 +59,11 @@ function BaseSelectionList({
     disableKeyboardShortcuts = false,
     children,
     shouldStopPropagation = false,
+    shouldUseDynamicMaxToRenderPerBatch = false,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -69,6 +71,10 @@ function BaseSelectionList({
     const shouldShowSelectAll = Boolean(onSelectAll);
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
+    const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+    const [isInitialRender, setIsInitialRender] = useState(true);
+    const wrapperStyles = useMemo(() => ({opacity: isInitialRender ? 0 : 1}), [isInitialRender]);
+
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
      * - `allOptions`: Contains all the items in the list, flattened, regardless of section
@@ -144,9 +150,6 @@ function BaseSelectionList({
 
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useState(() => _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey));
-    // initialFocusedIndex is needed only on component did mount event, don't need to update value
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initialFocusedIndex = useMemo(() => (focusedIndex > -1 ? focusedIndex : undefined), []);
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
     const disableEnterShortcut = activeElement && [CONST.ACCESSIBILITY_ROLE.BUTTON, CONST.ACCESSIBILITY_ROLE.CHECKBOX].includes(activeElement.role);
@@ -230,8 +233,9 @@ function BaseSelectionList({
         }
     };
 
-    const selectFocusedOption = () => {
-        const focusedOption = flattenedSections.allOptions[focusedIndex];
+    const selectFocusedOption = (e) => {
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
+        const focusedOption = focusedItemKey ? _.find(flattenedSections.allOptions, (option) => option.keyForList === focusedItemKey) : flattenedSections.allOptions[focusedIndex];
 
         if (!focusedOption || focusedOption.isDisabled) {
             return;
@@ -302,17 +306,34 @@ function BaseSelectionList({
                 item={item}
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
+                isHide={!maxToRenderPerBatch}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                keyForList={item.keyForList}
             />
         );
     };
-    const handleFirstLayout = useCallback(() => {
-        firstLayoutRef.current = false;
-    }, []);
+
+    const scrollToFocusedIndexOnFirstRender = useCallback(
+        ({nativeEvent}) => {
+            if (shouldUseDynamicMaxToRenderPerBatch) {
+                const listHeight = lodashGet(nativeEvent, 'layout.height', 0);
+                const itemHeight = lodashGet(nativeEvent, 'layout.y', 0);
+
+                setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+            }
+
+            if (!isInitialRender) {
+                return;
+            }
+            scrollToIndex(focusedIndex, false);
+            setIsInitialRender(false);
+        },
+        [focusedIndex, isInitialRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+    );
 
     const updateAndScrollToFocusedIndex = useCallback(
         (newFocusedIndex) => {
@@ -339,7 +360,7 @@ function BaseSelectionList({
 
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
-        if (firstLayoutRef.current) {
+        if (isInitialRender) {
             return;
         }
 
@@ -374,7 +395,7 @@ function BaseSelectionList({
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyles]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
@@ -443,17 +464,16 @@ function BaseSelectionList({
                                     onScrollBeginDrag={onScrollBeginDrag}
                                     keyExtractor={(item) => item.keyForList}
                                     extraData={focusedIndex}
-                                    indicatorStyle={themeColors.white}
+                                    indicatorStyle={theme.white}
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={showScrollIndicator}
                                     initialNumToRender={12}
-                                    maxToRenderPerBatch={5}
+                                    maxToRenderPerBatch={maxToRenderPerBatch}
                                     windowSize={5}
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
-                                    style={[styles.flexGrow0]}
-                                    onLayout={handleFirstLayout}
-                                    initialScrollIndex={initialFocusedIndex}
+                                    onLayout={scrollToFocusedIndexOnFirstRender}
+                                    style={!maxToRenderPerBatch && styles.opacity0}
                                 />
                                 {children}
                             </>

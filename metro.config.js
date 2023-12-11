@@ -30,7 +30,7 @@ const config = {
             const resolution = context.resolveRequest(context, moduleName, platform);
             if (isE2ETesting && moduleName.includes('/API')) {
                 const originalPath = resolution.filePath;
-                const mockPath = originalPath.replace('src/libs/API.ts', 'src/libs/E2E/API.mock.js').replace('/src/libs/API.js/', 'src/libs/E2E/API.mock.js');
+                const mockPath = originalPath.replace('src/libs/API.ts', 'src/libs/E2E/API.mock.ts').replace('/src/libs/API.ts/', 'src/libs/E2E/API.mock.ts');
                 // eslint-disable-next-line no-console
                 console.log('⚠️⚠️⚠️⚠️ Replacing resolution path', originalPath, ' => ', mockPath);
 

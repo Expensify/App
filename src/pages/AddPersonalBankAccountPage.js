@@ -5,13 +5,13 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import ConfirmationPage from '@components/ConfirmationPage';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +57,7 @@ const defaultProps = {
 };
 
 function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const shouldShowSuccess = lodashGet(personalBankAccount, 'shouldShowSuccess', false);
@@ -112,7 +113,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
                     onButtonPress={() => exitFlow(true)}
                 />
             ) : (
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.PERSONAL_BANK_ACCOUNT}
                     isSubmitButtonVisible={Boolean(selectedPlaidAccountId)}
                     submitButtonText={translate('common.saveAndContinue')}
@@ -128,7 +129,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}) {
                         receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                         selectedPlaidAccountID={selectedPlaidAccountId}
                     />
-                </Form>
+                </FormProvider>
             )}
         </ScreenWrapper>
     );
