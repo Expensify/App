@@ -3,8 +3,8 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Navigation from '@libs/Navigation/Navigation';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -34,6 +34,7 @@ function RoomHeaderAvatars(props) {
 
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     if (!props.icons.length) {
         return null;
     }
@@ -65,7 +66,7 @@ function RoomHeaderAvatars(props) {
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(theme, CONST.AVATAR_SIZE.LARGE_BORDERED),
+        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
         <View style={styles.pointerEventsBoxNone}>
