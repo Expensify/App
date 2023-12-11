@@ -285,7 +285,6 @@ function MoneyRequestConfirmPage(props) {
             receiptFile,
             iouType,
             reportID,
-            props.iou.merchant,
         ],
     );
 
