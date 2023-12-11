@@ -15,7 +15,6 @@ import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';

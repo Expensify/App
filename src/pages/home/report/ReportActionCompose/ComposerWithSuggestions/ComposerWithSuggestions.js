@@ -10,7 +10,6 @@ import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
