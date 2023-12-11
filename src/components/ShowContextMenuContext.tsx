@@ -3,6 +3,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import ReportAction from '@src/types/onyx/ReportAction';
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,
@@ -16,17 +17,18 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
 /**
  * Show the report action context menu.
  *
- * @param {Object} event - Press event object
- * @param {Element} anchor - Context menu anchor
- * @param {String} reportID - Active Report ID
- * @param {Object} action - ReportAction for ContextMenu
- * @param {Function} checkIfContextMenuActive Callback to update context menu active state
- * @param {Boolean} [isArchivedRoom=false] - Is the report an archived room
+ * @param event - Press event object
+ * @param anchor - Context menu anchor
+ * @param reportID - Active Report ID
+ * @param action - ReportAction for ContextMenu
+ * @param checkIfContextMenuActive Callback to update context menu active state
+ * @param isArchivedRoom - Is the report an archived room
  */
-function showContextMenuForReport(event, anchor, reportID, action, checkIfContextMenuActive, isArchivedRoom = false) {
+function showContextMenuForReport(event: Event, anchor: HTMLElement, reportID: string, action: ReportAction, checkIfContextMenuActive: () => void, isArchivedRoom = false) {
     if (!DeviceCapabilities.canUseTouchScreen()) {
         return;
     }
+
     ReportActionContextMenu.showContextMenu(
         ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
