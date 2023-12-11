@@ -169,7 +169,7 @@ function IOURequestStepScan({
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [cameraRef, report, iouType, transactionID, reportID, backTo]);
+    }, [cameraRef, report, iouType, transactionID, reportID]);
 
     const panResponder = useRef(
         PanResponder.create({
