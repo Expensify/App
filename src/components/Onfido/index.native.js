@@ -41,8 +41,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
                     return;
                 }
 
-                const os = getPlatform();
-                if (!_.isEmpty(errorMessage) && os === CONST.PLATFORM.IOS) {
+                if (!_.isEmpty(errorMessage) && getPlatform() === CONST.PLATFORM.IOS) {
                     checkMultiple([PERMISSIONS.IOS.MICROPHONE, PERMISSIONS.IOS.CAMERA])
                         .then((statuses) => {
                             const isMicAllowed = statuses[PERMISSIONS.IOS.MICROPHONE] === RESULTS.GRANTED;
