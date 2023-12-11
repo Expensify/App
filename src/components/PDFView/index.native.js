@@ -17,6 +17,7 @@ import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 const propTypes = {
     ...pdfViewPropTypes,
 };
+
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
  * password-protected we render a PDFPasswordForm to request a password
