@@ -548,10 +548,10 @@ function AddressSearch({
                             textInputContainer: [styles.flexColumn],
                             listView: [
                                 StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                                styles.overflowAuto,
+                                styles.overflowHidden,
                                 styles.borderLeft,
                                 styles.borderRight,
-                                {maxHeight: windowHeight - 230},
+                                {maxHeight: network.isOffline ? windowHeight - 330 : windowHeight - 280},
                                 !isFocused && {height: 0},
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
