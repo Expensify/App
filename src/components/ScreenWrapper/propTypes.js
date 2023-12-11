@@ -48,6 +48,12 @@ const propTypes = {
 
     /** Styles for the offline indicator */
     offlineIndicatorStyle: stylePropTypes,
+
+    /** Whether to disable the focus trap */
+    shouldDisableFocusTrap: PropTypes.bool,
+
+    /** Whether to disable auto focus of the focus trap */
+    shouldEnableAutoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,6 +69,8 @@ const defaultProps = {
     shouldShowOfflineIndicator: true,
     offlineIndicatorStyle: [],
     headerGapStyles: [],
+    shouldDisableFocusTrap: false,
+    shouldEnableAutoFocus: false,
 };
 
 export {propTypes, defaultProps};
