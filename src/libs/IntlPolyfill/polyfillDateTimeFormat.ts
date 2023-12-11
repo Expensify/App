@@ -67,6 +67,7 @@ export default function () {
     require('@formatjs/intl-datetimeformat/add-all-tz');
 
     if ('__setDefaultTimeZone' in Intl.DateTimeFormat) {
+        // eslint-disable-next-line no-underscore-dangle
         (Intl.DateTimeFormat as DateTimeFormatConstructor).__setDefaultTimeZone(currentTimezone);
     }
 }
