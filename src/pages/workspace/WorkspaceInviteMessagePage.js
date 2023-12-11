@@ -75,6 +75,13 @@ function WorkspaceInviteMessagePage(props) {
     const focusTimeoutRef = useRef();
     const welcomeMessageInputRef = useRef(null);
 
+    useEffect(
+        () => () => {
+            clearTimeout(focusTimeoutRef.current);
+        },
+        [],
+    );
+
     const focusWelcomeMessageInput = () => {
         focusTimeoutRef.current = setTimeout(() => {
             welcomeMessageInputRef.current.focus();
