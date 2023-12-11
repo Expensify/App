@@ -1531,14 +1531,14 @@ function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentRep
     return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
-function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
-    if (!report) {
+function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
+    if (!reportOrOption) {
         return false;
     }
     // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
-    const lastMentionedTime = report.lastMentionedTime ?? '';
-    const lastReadTime = report.lastReadTime ?? '';
-    return Boolean('isUnreadWithMention' in report && report.isUnreadWithMention) || lastReadTime < lastMentionedTime;
+    const lastMentionedTime = reportOrOption.lastMentionedTime ?? '';
+    const lastReadTime = reportOrOption.lastReadTime ?? '';
+    return Boolean('isUnreadWithMention' in reportOrOption && reportOrOption.isUnreadWithMention) || lastReadTime < lastMentionedTime;
 }
 
 /**
@@ -1550,25 +1550,25 @@ function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
-    if (!option) {
+function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
+    if (!optionOrReport) {
         return false;
     }
 
-    if (isArchivedRoom(option) || isArchivedRoom(getReport(option.parentReportID))) {
+    if (isArchivedRoom(optionOrReport) || isArchivedRoom(getReport(optionOrReport.parentReportID))) {
         return false;
     }
 
-    if (isUnreadWithMention(option)) {
+    if (isUnreadWithMention(optionOrReport)) {
         return true;
     }
 
-    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
+    if (isWaitingForAssigneeToCompleteTask(optionOrReport, parentReportAction)) {
         return true;
     }
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (option.hasOutstandingChildRequest) {
+    if (optionOrReport.hasOutstandingChildRequest) {
         return true;
     }
 
