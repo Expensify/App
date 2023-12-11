@@ -35,6 +35,8 @@ export default function (WrappedComponent) {
         const isFocused = useIsFocused();
 
         // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown.
+        // In addition, the not-found page should be shown only if the component screen's route is active (i.e. is focused).
+        // This is to prevent it from showing when the modal is being dismissed while navigating to a different route (e.g. on requesting money).
         if (!transactionID) {
             return <FullPageNotFoundView shouldShow={isFocused} />;
         }
