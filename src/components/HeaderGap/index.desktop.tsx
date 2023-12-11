@@ -1,13 +1,12 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
-import HeaderGapComponent from './types';
+import HeaderGapProps from './types';
 
-// eslint-disable-next-line react/function-component-definition
-const HeaderGap: HeaderGapComponent = ({styles}) => {
+function HeaderGap({styles}: HeaderGapProps) {
     const themeStyles = useThemeStyles();
     return <View style={[themeStyles.headerGap, styles]} />;
-};
+}
 
 HeaderGap.displayName = 'HeaderGap';
 

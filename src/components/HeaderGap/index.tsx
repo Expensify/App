@@ -1,7 +1,11 @@
-import HeaderGapComponent from './types';
+import {ReactNode} from 'react';
+import HeaderGapProps from './types';
 
-// eslint-disable-next-line react/function-component-definition
-const HeaderGap: HeaderGapComponent = () => null;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function HeaderGap({styles}: HeaderGapProps): ReactNode {
+    return null;
+}
 
 HeaderGap.displayName = 'HeaderGap';
+
 export default HeaderGap;
