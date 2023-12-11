@@ -304,7 +304,7 @@ function getParticipantNames(personalDetailList?: Array<Partial<PersonalDetails>
  * A very optimized method to remove duplicates from an array.
  * Taken from https://stackoverflow.com/a/9229821/9114791
  */
-function uniqFast(items: string[]) {
+function uniqFast(items: string[]): string[] {
     const seenItems: Record<string, number> = {};
     const result: string[] = [];
     let j = 0;
