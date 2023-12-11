@@ -64,9 +64,6 @@ type Report = {
     /** Whether the parent action was deleted */
     isDeletedParentAction?: boolean;
 
-    /** PayPalMe address of the submitter */
-    submitterPayPalMeAddress?: string;
-
     /** Linked policy's ID */
     policyID?: string;
 
@@ -93,6 +90,9 @@ type Report = {
 
     /** The report type */
     type?: string;
+
+    /** If the admin room should be opened */
+    openOnAdminRoom?: boolean;
 
     /** The report visibility */
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
