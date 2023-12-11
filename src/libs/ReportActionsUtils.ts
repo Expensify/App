@@ -97,6 +97,10 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
+function isSubmittedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
@@ -131,11 +135,11 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report>, allReportActionsParam?: OnyxCollection<ReportActions>): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report>): ReportAction | Record<string, never> {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return (allReportActionsParam ?? allReportActions)?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
 }
 
 /**
@@ -812,6 +816,7 @@ export {
     isDeletedParentAction,
     isMessageDeleted,
     isModifiedExpenseAction,
+    isSubmittedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isPendingRemove,

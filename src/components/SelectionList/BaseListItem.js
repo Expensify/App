@@ -7,8 +7,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
@@ -28,6 +28,7 @@ function BaseListItem({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
@@ -64,7 +65,7 @@ function BaseListItem({
                         <View style={StyleUtils.getCheckboxPressableStyle()}>
                             <View
                                 style={[
-                                    StyleUtils.getCheckboxContainerStyle(theme, 20),
+                                    StyleUtils.getCheckboxContainerStyle(20),
                                     styles.mr3,
                                     item.isSelected && styles.checkedContainer,
                                     item.isSelected && styles.borderColorFocus,
@@ -85,7 +86,13 @@ function BaseListItem({
                     )}
                     <ListItem
                         item={item}
-                        isFocused={isFocused}
+                        textStyles={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            isUserItem || item.isSelected ? styles.sidebarLinkTextBold : null,
+                            styles.pre,
+                        ]}
+                        alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
