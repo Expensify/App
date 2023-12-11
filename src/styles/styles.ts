@@ -1514,7 +1514,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.buttonHoveredBG,
             textDecorationLine: 'none',
         },
 
@@ -3781,9 +3781,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestHeaderStatusBarBadge: {
-            paddingHorizontal: 8,
-            borderRadius: variables.componentBorderRadiusSmall,
+            width: 68,
             height: variables.inputHeightSmall,
+            borderRadius: variables.componentBorderRadiusSmall,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
