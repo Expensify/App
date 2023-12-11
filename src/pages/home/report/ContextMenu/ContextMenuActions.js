@@ -287,6 +287,9 @@ export default [
                 } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
                     const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
                     Clipboard.setString(logMessage);
+                } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
+                    const submittedMessage = _.reduce(reportAction.message, (acc, curr) => `${acc}${curr.text}`, '');
+                    Clipboard.setString(submittedMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
