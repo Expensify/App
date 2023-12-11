@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Timezone} from '@src/types/onyx/PersonalDetails';
 
-/* eslint-enable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention */
 const tzLinks: Record<string, string> = {
     'Africa/Abidjan': 'Africa/Accra',
     CET: 'Europe/Paris',
@@ -23,7 +23,7 @@ const tzLinks: Record<string, string> = {
     PST8PDT: 'America/Los_Angeles',
     WET: 'Europe/Lisbon',
 };
-/* eslint-enable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention */
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
