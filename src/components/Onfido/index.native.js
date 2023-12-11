@@ -48,13 +48,12 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}) {
                             const isCameraAllowed = statuses[PERMISSIONS.IOS.CAMERA] === RESULTS.GRANTED;
                             let alertTitle = '';
                             let alertMessage = '';
-                            if (!isMicAllowed) {
-                                alertTitle = 'onfidoStep.microphonePermissionsNotGranted';
-                                alertMessage = 'onfidoStep.microphoneRequestMessage';
-                            }
                             if (!isCameraAllowed) {
                                 alertTitle = 'onfidoStep.cameraPermissionsNotGranted';
                                 alertMessage = 'onfidoStep.cameraRequestMessage';
+                            } else if (!isMicAllowed) {
+                                alertTitle = 'onfidoStep.microphonePermissionsNotGranted';
+                                alertMessage = 'onfidoStep.microphoneRequestMessage';
                             }
 
                             if (!_.isEmpty(alertTitle) && !_.isEmpty(alertMessage)) {
