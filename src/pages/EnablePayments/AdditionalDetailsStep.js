@@ -230,7 +230,8 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <DatePicker
+                    <InputWrapper
+                        InputComponent={DatePicker}
                         inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}

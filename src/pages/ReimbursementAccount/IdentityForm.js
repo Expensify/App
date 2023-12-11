@@ -171,14 +171,14 @@ function IdentityForm(props) {
                     />
                 </View>
             </View>
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 inputID={props.inputKeys.dob}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={props.translate('common.dateFormat')}
                 defaultValue={props.values.dob || props.defaultValues.dob}
-                onInputChange={(value) => props.onFieldChange({dob: value})}
                 errorText={dobErrorText}
                 minDate={minDate}
                 maxDate={maxDate}
