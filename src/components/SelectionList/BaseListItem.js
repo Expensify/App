@@ -36,7 +36,7 @@ function BaseListItem({
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
-            return null; // no right hand side component
+            return null;
         }
 
         if (typeof rightHandSideComponent === 'function') {
