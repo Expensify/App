@@ -9,10 +9,13 @@ import styles from '@styles/styles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
+    /** The title of the question */
     title: PropTypes.string.isRequired,
 
+    /** The default value of the radio button */
     defaultValue: PropTypes.bool.isRequired,
 
+    /** Callback when the value is selected */
     onSelectedValue: PropTypes.func.isRequired,
 };
 

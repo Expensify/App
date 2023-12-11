@@ -34,13 +34,13 @@ const defaultProps = {
 function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
 
-    const SSN_LAST_4_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}`;
-    const defaultSsnLast4 = lodashGet(reimbursementAccountDraft, SSN_LAST_4_INPUT_ID, '');
+    const ssnLast4InputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}`;
+    const defaultSsnLast4 = lodashGet(reimbursementAccountDraft, ssnLast4InputID, '');
 
     const validate = (values) => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [SSN_LAST_4_INPUT_ID]);
-        if (values[SSN_LAST_4_INPUT_ID] && !ValidationUtils.isValidSSNLastFour(values[SSN_LAST_4_INPUT_ID])) {
-            errors[SSN_LAST_4_INPUT_ID] = 'bankAccount.error.ssnLast4';
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [ssnLast4InputID]);
+        if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
+            errors[ssnLast4InputID] = 'bankAccount.error.ssnLast4';
         }
         return errors;
     };
@@ -59,7 +59,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
                 <Text style={[styles.mb3]}>{translate('beneficialOwnerInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
                     <TextInput
-                        inputID={SSN_LAST_4_INPUT_ID}
+                        inputID={ssnLast4InputID}
                         label={translate('beneficialOwnerInfoStep.last4SSN')}
                         aria-label={translate('beneficialOwnerInfoStep.last4SSN')}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}

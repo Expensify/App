@@ -33,13 +33,13 @@ const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BE
 function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
 
-    const FIRST_NAME_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}`;
-    const LAST_NAME_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}`;
+    const firstNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}`;
+    const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}`;
 
-    const defaultFirstName = lodashGet(reimbursementAccountDraft, FIRST_NAME_INPUT_ID, '');
-    const defaultLastName = lodashGet(reimbursementAccountDraft, LAST_NAME_INPUT_ID, '');
+    const defaultFirstName = lodashGet(reimbursementAccountDraft, firstNameInputID, '');
+    const defaultLastName = lodashGet(reimbursementAccountDraft, lastNameInputID, '');
 
-    const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [FIRST_NAME_INPUT_ID, LAST_NAME_INPUT_ID]);
+    const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [firstNameInputID, lastNameInputID]);
 
     return (
         <Form
@@ -55,7 +55,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
                 label={translate('beneficialOwnerInfoStep.legalFirstName')}
                 aria-label={translate('beneficialOwnerInfoStep.legalFirstName')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                inputID={FIRST_NAME_INPUT_ID}
+                inputID={firstNameInputID}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultFirstName}
                 shouldSaveDraft
@@ -64,7 +64,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
                 label={translate('beneficialOwnerInfoStep.legalLastName')}
                 aria-label={translate('beneficialOwnerInfoStep.legalLastName')}
                 role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                inputID={LAST_NAME_INPUT_ID}
+                inputID={lastNameInputID}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultLastName}
                 shouldSaveDraft

@@ -34,21 +34,21 @@ const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BE
 function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
 
-    const DOB_INPUT_ID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}`;
+    const dobInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}`;
 
-    const dobDefaultValue = lodashGet(reimbursementAccountDraft, DOB_INPUT_ID, '');
+    const dobDefaultValue = lodashGet(reimbursementAccountDraft, dobInputID, '');
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
     const validate = (values) => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [DOB_INPUT_ID]);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, [dobInputID]);
 
-        if (values[DOB_INPUT_ID]) {
-            if (!ValidationUtils.isValidPastDate(values[DOB_INPUT_ID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[DOB_INPUT_ID])) {
-                errors[DOB_INPUT_ID] = 'bankAccount.error.dob';
-            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[DOB_INPUT_ID])) {
-                errors[DOB_INPUT_ID] = 'bankAccount.error.age';
+        if (values[dobInputID]) {
+            if (!ValidationUtils.isValidPastDate(values[dobInputID]) || !ValidationUtils.meetsMaximumAgeRequirement(values[dobInputID])) {
+                errors[dobInputID] = 'bankAccount.error.dob';
+            } else if (!ValidationUtils.meetsMinimumAgeRequirement(values[dobInputID])) {
+                errors[dobInputID] = 'bankAccount.error.age';
             }
         }
 
@@ -66,7 +66,7 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}</Text>
             <DatePicker
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
-                inputID={DOB_INPUT_ID}
+                inputID={dobInputID}
                 label={translate('common.dob')}
                 containerStyles={[styles.mt6]}
                 placeholder={translate('common.dateFormat')}

@@ -50,26 +50,26 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const bodyContent = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
-const beneficialOwnerInfoStepKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
-const beneficialOwnerKeysKey = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.BENEFICIAL_OWNER_KEYS;
-const substep = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
+const BODY_CONTENT = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
+const BENEFICIAL_OWNER_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
+const BENEFICIAL_OWNER_KEYS_KEY = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.BENEFICIAL_OWNER_KEYS;
+const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 
 function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress, setIsBeneficialOwnerInfoSet}) {
     const {translate} = useLocalize();
     const companyName = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'companyName', '');
-    const values = useMemo(() => getSubstepValues(beneficialOwnerInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const defaultBeneficialOwnerKeys = lodashGet(reimbursementAccountDraft, beneficialOwnerKeysKey, []);
+    const values = useMemo(() => getSubstepValues(BENEFICIAL_OWNER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const defaultBeneficialOwnerKeys = lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_KEYS_KEY, []);
 
-    // TODO we're only reading beneficialOwnerKeys from draft values because there is not option to remove UBO
+    // We're only reading beneficialOwnerKeys from draft values because there is not option to remove UBO
     // if we were to set them based on values saved in BE then there would be no option to enter different UBOs
     // user would always see the same UBOs that was saved in BE when returning to this step and trying to change something
     const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState(defaultBeneficialOwnerKeys);
     const [beneficialOwnerBeingModifiedID, setBeneficialOwnerBeingModifiedID] = useState('');
     const [isEditingCreatedBeneficialOwner, setIsEditingCreatedBeneficialOwner] = useState(false);
-    const [isUserUBO, setIsUserUBO] = useState(values[beneficialOwnerInfoStepKeys.OWNS_MORE_THAN_25_PERCENT]);
-    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(values[beneficialOwnerInfoStepKeys.BENEFICIAL_OWNERS].length > 0);
+    const [isUserUBO, setIsUserUBO] = useState(values[BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT]);
+    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(values[BENEFICIAL_OWNER_INFO_STEP_KEYS.BENEFICIAL_OWNERS].length > 0);
     const [currentUBOSubstep, setCurrentUBOSubstep] = useState(1);
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 
@@ -117,7 +117,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
 
         // Because beneficialOwnerKeys array is not yet updated at this point we need to check against lower MAX_NUMBER_OF_UBOS (account for the one that is being added)
         const isLastUBOThatCanBeAdded = beneficialOwnerKeys.length === (isUserUBO ? MAX_NUMBER_OF_UBOS - 2 : MAX_NUMBER_OF_UBOS - 1);
-        setCurrentUBOSubstep(isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? substep.UBOS_LIST : substep.ARE_THERE_MORE_UBOS);
+        setCurrentUBOSubstep(isEditingCreatedBeneficialOwner || isLastUBOThatCanBeAdded ? SUBSTEP.UBOS_LIST : SUBSTEP.ARE_THERE_MORE_UBOS);
         setIsEditingCreatedBeneficialOwner(false);
     };
 
@@ -129,34 +129,34 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         prevScreen,
         moveTo,
         resetScreenIndex,
-    } = useSubStep({bodyContent, startFrom, onFinished: handleBeneficialOwnerDetailsFormSubmit});
+    } = useSubStep({bodyContent: BODY_CONTENT, startFrom, onFinished: handleBeneficialOwnerDetailsFormSubmit});
 
     const prepareBeneficialOwnerDetailsForm = () => {
         const beneficialOwnerID = Str.guid();
         setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
         // Reset Beneficial Owner Details Form to first substep
         resetScreenIndex();
-        setCurrentUBOSubstep(substep.UBO_DETAILS_FORM);
+        setCurrentUBOSubstep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
     const handleNextUBOSubstep = (value) => {
-        if (currentUBOSubstep === substep.IS_USER_UBO) {
+        if (currentUBOSubstep === SUBSTEP.IS_USER_UBO) {
             setIsUserUBO(value);
 
-            // user is an owner but there are 4 other owners already added, so we remove last one
+            // User is an owner but there are 4 other owners already added, so we remove last one
             if (value === true && beneficialOwnerKeys.length === 4) {
                 setBeneficialOwnerKeys((previousBeneficialOwners) => previousBeneficialOwners.slice(0, 3));
             }
 
-            setCurrentUBOSubstep(substep.IS_ANYONE_ELSE_UBO);
+            setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             return;
         }
 
-        if (currentUBOSubstep === substep.IS_ANYONE_ELSE_UBO) {
+        if (currentUBOSubstep === SUBSTEP.IS_ANYONE_ELSE_UBO) {
             setIsAnyoneElseUBO(value);
 
             if (!canAddMoreUBOS && value === true) {
-                setCurrentUBOSubstep(substep.UBOS_LIST);
+                setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
                 return;
             }
 
@@ -165,49 +165,49 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
                 return;
             }
 
-            // user is not an owner and no one else is an owner
+            // User is not an owner and no one else is an owner
             if (isUserUBO === false && value === false) {
                 submit();
                 return;
             }
 
-            // user is an owner and no one else is an owner
+            // User is an owner and no one else is an owner
             if (isUserUBO === true && value === false) {
-                setCurrentUBOSubstep(substep.UBOS_LIST);
+                setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
                 return;
             }
         }
 
         // Are there more UBOs
-        if (currentUBOSubstep === substep.ARE_THERE_MORE_UBOS) {
+        if (currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS) {
             if (value === true) {
                 prepareBeneficialOwnerDetailsForm();
                 return;
             }
-            setCurrentUBOSubstep(substep.UBOS_LIST);
+            setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
             return;
         }
 
         // User reached the limit of UBOs
-        if (currentUBOSubstep === substep.UBO_DETAILS_FORM && !canAddMoreUBOS) {
-            setCurrentUBOSubstep(substep.UBOS_LIST);
+        if (currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && !canAddMoreUBOS) {
+            setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
         }
     };
 
     const handleBackButtonPress = () => {
         // User goes back to previous step
-        if (currentUBOSubstep === substep.IS_USER_UBO) {
+        if (currentUBOSubstep === SUBSTEP.IS_USER_UBO) {
             onBackButtonPress();
             // User reached limit of UBOs and goes back to initial question about additional UBOs
-        } else if (currentUBOSubstep === substep.UBOS_LIST && !canAddMoreUBOS) {
-            setCurrentUBOSubstep(substep.IS_ANYONE_ELSE_UBO);
+        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && !canAddMoreUBOS) {
+            setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             // User goes back to last radio button
-        } else if (currentUBOSubstep === substep.UBOS_LIST && isAnyoneElseUBO === true) {
-            setCurrentUBOSubstep(substep.ARE_THERE_MORE_UBOS);
-        } else if (currentUBOSubstep === substep.UBOS_LIST && isUserUBO === true && isAnyoneElseUBO === false) {
-            setCurrentUBOSubstep(substep.IS_ANYONE_ELSE_UBO);
+        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isAnyoneElseUBO === true) {
+            setCurrentUBOSubstep(SUBSTEP.ARE_THERE_MORE_UBOS);
+        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isUserUBO === true && isAnyoneElseUBO === false) {
+            setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             // User moves between substeps of beneficial owner details form
-        } else if (currentUBOSubstep === substep.UBO_DETAILS_FORM && screenIndex > 0) {
+        } else if (currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && screenIndex > 0) {
             prevScreen();
         } else {
             setCurrentUBOSubstep((currentSubstep) => currentSubstep - 1);
@@ -217,7 +217,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     const handleUBOEdit = (beneficialOwnerID) => {
         setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
         setIsEditingCreatedBeneficialOwner(true);
-        setCurrentUBOSubstep(substep.UBO_DETAILS_FORM);
+        setCurrentUBOSubstep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
     return (
@@ -240,7 +240,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
                 />
             </View>
 
-            {currentUBOSubstep === substep.IS_USER_UBO && (
+            {currentUBOSubstep === SUBSTEP.IS_USER_UBO && (
                 <BeneficialOwnerCheckUBO
                     title={`${translate('beneficialOwnerInfoStep.doYouOwn25percent')} ${companyName}?`}
                     defaultValue={isUserUBO}
@@ -248,7 +248,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
                 />
             )}
 
-            {currentUBOSubstep === substep.IS_ANYONE_ELSE_UBO && (
+            {currentUBOSubstep === SUBSTEP.IS_ANYONE_ELSE_UBO && (
                 <BeneficialOwnerCheckUBO
                     title={`${translate('beneficialOwnerInfoStep.doAnyIndividualOwn25percent')} ${companyName}?`}
                     defaultValue={isAnyoneElseUBO}
@@ -256,7 +256,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
                 />
             )}
 
-            {currentUBOSubstep === substep.UBO_DETAILS_FORM && (
+            {currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && (
                 <BeneficialOwnerDetailsForm
                     isEditing={isEditing}
                     beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
@@ -266,7 +266,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
                 />
             )}
 
-            {currentUBOSubstep === substep.ARE_THERE_MORE_UBOS && (
+            {currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS && (
                 <BeneficialOwnerCheckUBO
                     title={`${translate('beneficialOwnerInfoStep.areThereMoreIndividualsWhoOwn25percent')} ${companyName}?`}
                     onSelectedValue={handleNextUBOSubstep}
@@ -274,7 +274,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
                 />
             )}
 
-            {currentUBOSubstep === substep.UBOS_LIST && (
+            {currentUBOSubstep === SUBSTEP.UBOS_LIST && (
                 <CompanyOwnersListUBO
                     beneficialOwnerKeys={beneficialOwnerKeys}
                     handleUBOsConfirmation={submit}

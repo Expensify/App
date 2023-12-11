@@ -48,13 +48,13 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const beneficialOwnerDataKeys = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
-const requestorPersonalInfoKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const BENEFICIAL_OWNER_DATA_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const REQUESTOR_PERSONAL_INFO_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
 function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwnerKeys, handleUBOEdit}) {
     const {translate} = useLocalize();
 
-    const requestorData = getSubstepValues(requestorPersonalInfoKeys, {}, reimbursementAccount);
+    const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, {}, reimbursementAccount);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     const renderExtraBeneficialOwners = () =>
@@ -64,10 +64,10 @@ function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, 
             return (
                 <MenuItem
                     key={ownerKey}
-                    title={`${beneficialOwnerData[beneficialOwnerDataKeys.FIRST_NAME]} ${beneficialOwnerData[beneficialOwnerDataKeys.LAST_NAME]}`}
-                    description={`${beneficialOwnerData[beneficialOwnerDataKeys.STREET]}, ${beneficialOwnerData[beneficialOwnerDataKeys.CITY]}, ${
-                        beneficialOwnerData[beneficialOwnerDataKeys.STATE]
-                    } ${beneficialOwnerData[beneficialOwnerDataKeys.ZIP_CODE]}`}
+                    title={`${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.FIRST_NAME]} ${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.LAST_NAME]}`}
+                    description={`${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.STREET]}, ${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.CITY]}, ${
+                        beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.STATE]
+                    } ${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.ZIP_CODE]}`}
                     wrapperStyle={[styles.ph0]}
                     icon={Expensicons.FallbackAvatar}
                     onPress={() => {
@@ -94,7 +94,7 @@ function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, 
                     <Text style={[styles.textLabelSupporting, styles.pv1]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                     {isUserUBO && (
                         <MenuItem
-                            title={`${requestorData[requestorPersonalInfoKeys.FIRST_NAME]} ${requestorData[requestorPersonalInfoKeys.LAST_NAME]}`}
+                            title={`${requestorData[REQUESTOR_PERSONAL_INFO_KEYS.FIRST_NAME]} ${requestorData[REQUESTOR_PERSONAL_INFO_KEYS.LAST_NAME]}`}
                             description={`${requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]}, ${requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]}, ${
                                 requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]
                             } ${requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]}`}

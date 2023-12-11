@@ -34,25 +34,25 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const bodyContent = [ConfirmAgreements];
-const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const BODY_CONTENT = [ConfirmAgreements];
+const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
 // This is a mocked step to showcase full transition between steps - will be removed with next PR
 const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, setIsBeneficialOwnerInfoSet}, ref) => {
     const {translate} = useLocalize();
 
-    const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKeys.BANK_ACCOUNT_ID, 0),
+            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, PERSONAL_INFO_STEP_KEYS.BANK_ACCOUNT_ID, 0),
             ...values,
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
     }, [reimbursementAccount, values]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
