@@ -1,9 +1,10 @@
 import React from 'react';
-import {defaultProps, propTypes} from './imageSVGPropTypes';
+import {SvgProps} from 'react-native-svg';
+import ImageSVGProps from './types';
 
-function ImageSVG({src, width, height, fill, hovered, pressed, style, pointerEvents, preserveAspectRatio}) {
-    const ImageSvgComponent = src;
-    const additionalProps = {};
+function ImageSVG({src, width = '100%', height = '100%', fill, hovered = false, pressed = false, style, pointerEvents, preserveAspectRatio}: ImageSVGProps) {
+    const ImageSvgComponent = src as React.FC<SvgProps>;
+    const additionalProps: Pick<ImageSVGProps, 'fill' | 'pointerEvents' | 'preserveAspectRatio'> = {};
 
     if (fill) {
         additionalProps.fill = fill;
@@ -21,9 +22,9 @@ function ImageSVG({src, width, height, fill, hovered, pressed, style, pointerEve
         <ImageSvgComponent
             width={width}
             height={height}
-            hovered={hovered.toString()}
-            pressed={pressed.toString()}
             style={style}
+            hovered={`${hovered}`}
+            pressed={`${pressed}`}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...additionalProps}
         />
@@ -31,6 +32,4 @@ function ImageSVG({src, width, height, fill, hovered, pressed, style, pointerEve
 }
 
 ImageSVG.displayName = 'ImageSVG';
-ImageSVG.propTypes = propTypes;
-ImageSVG.defaultProps = defaultProps;
 export default ImageSVG;

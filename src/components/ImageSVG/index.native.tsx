@@ -1,14 +1,15 @@
 import {Image} from 'expo-image';
 import React from 'react';
-import {defaultProps, propTypes} from './imageSVGPropTypes';
+import {ImageSourcePropType} from 'react-native';
+import ImageSVGProps from './types';
 
-function ImageSVG({src, width, height, fill, contentFit, style}) {
+function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style}: ImageSVGProps) {
     const tintColorProp = fill ? {tintColor: fill} : {};
 
     return (
         <Image
             contentFit={contentFit}
-            source={src}
+            source={src as ImageSourcePropType}
             style={[{width, height}, style]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...tintColorProp}
@@ -17,6 +18,4 @@ function ImageSVG({src, width, height, fill, contentFit, style}) {
 }
 
 ImageSVG.displayName = 'ImageSVG';
-ImageSVG.propTypes = propTypes;
-ImageSVG.defaultProps = defaultProps;
 export default ImageSVG;

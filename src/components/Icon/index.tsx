@@ -1,23 +1,17 @@
+import {ImageContentFit} from 'expo-image';
 import React, {PureComponent} from 'react';
-import {ImageSourcePropType, StyleProp, View, ViewStyle} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import withStyleUtils, {WithStyleUtilsProps} from '@components/withStyleUtils';
 import withTheme, {WithThemeProps} from '@components/withTheme';
 import withThemeStyles, {type WithThemeStylesProps} from '@components/withThemeStyles';
 import variables from '@styles/variables';
+import IconAsset from '@src/types/utils/IconAsset';
 import IconWrapperStyles from './IconWrapperStyles';
 
-type SrcProps = {
-    width?: number;
-    height?: number;
-    fill?: string;
-    hovered?: string;
-    pressed?: string;
-};
-
-type IconProps = {
+type IconBaseProps = {
     /** The asset to render. */
-    src: ((props: SrcProps) => React.ReactNode) | ImageSourcePropType;
+    src: IconAsset;
 
     /** The width of the icon. */
     width?: number;
@@ -47,16 +41,15 @@ type IconProps = {
     testID?: string;
 
     /** Determines how the image should be resized to fit its container */
-    contentFit?: string;
-} & WithThemeStylesProps &
-    WithThemeProps &
-    WithStyleUtilsProps;
+    contentFit?: ImageContentFit;
+};
+type IconProps = IconBaseProps & WithThemeStylesProps & WithThemeProps & WithStyleUtilsProps;
 
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function
 class Icon extends PureComponent<IconProps> {
     // eslint-disable-next-line react/static-property-placement
-    public static defaultProps = {
+    public static defaultProps: Partial<IconBaseProps> = {
         width: variables.iconSizeNormal,
         height: variables.iconSizeNormal,
         fill: undefined,
