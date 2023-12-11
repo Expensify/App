@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -12,6 +12,7 @@ import TextLinkWithRef from './TextLink';
 function FocusModeNotification() {
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     useEffect(() => {
         User.updateChatPriorityMode(CONST.PRIORITY_MODE.GSD, true);
     }, []);
