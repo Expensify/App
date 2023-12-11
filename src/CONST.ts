@@ -75,7 +75,7 @@ const CONST = {
     AVATAR_MAX_HEIGHT_PX: 4096,
 
     BREADCRUMB_TYPE: {
-        ROOT: 'root_workspace',
+        HEADER: 'header',
         STRONG: 'strong',
         NORMAL: 'normal',
     },
