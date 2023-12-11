@@ -2,7 +2,7 @@ import lodashDebounce from 'lodash/debounce';
 import PropTypes from 'prop-types';
 import React, {ComponentType, createContext, ForwardedRef, RefAttributes, useEffect, useMemo, useState} from 'react';
 import {Dimensions} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getWindowHeightAdjustment from '@libs/getWindowHeightAdjustment';
 import variables from '@styles/variables';

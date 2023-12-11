@@ -15,10 +15,10 @@ const ENVIRONMENT_SHORT_FORM = {
 
 function EnvironmentBadge() {
     const styles = useThemeStyles();
-    const {environment} = useEnvironment();
+    const {environment, isProduction} = useEnvironment();
 
     // If we are on production, don't show any badge
-    if (environment === CONST.ENVIRONMENT.PRODUCTION || environment === undefined) {
+    if (isProduction) {
         return null;
     }
 

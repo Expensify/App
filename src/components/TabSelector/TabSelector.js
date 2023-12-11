@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import TabSelectorItem from './TabSelectorItem';
 
@@ -38,15 +38,15 @@ const defaultProps = {
 
 const getIconAndTitle = (route, translate) => {
     switch (route) {
-        case CONST.TAB.MANUAL:
+        case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
-        case CONST.TAB.SCAN:
+        case CONST.TAB_REQUEST.SCAN:
             return {icon: Expensicons.Receipt, title: translate('tabSelector.scan')};
         case CONST.TAB.NEW_CHAT:
             return {icon: Expensicons.User, title: translate('tabSelector.chat')};
         case CONST.TAB.NEW_ROOM:
             return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
-        case CONST.TAB.DISTANCE:
+        case CONST.TAB_REQUEST.DISTANCE:
             return {icon: Expensicons.Car, title: translate('common.distance')};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
@@ -68,23 +68,27 @@ const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
     return activeValue;
 };
 
-const getBackgroundColor = (position, routesLength, tabIndex, affectedTabs) => {
-    if (routesLength > 1) {
-        const inputRange = Array.from({length: routesLength}, (v, i) => i);
-
-        return position.interpolate({
-            inputRange,
-            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? themeColors.border : themeColors.appBG)),
-        });
-    }
-    return themeColors.border;
-};
-
 function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
-
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+
+    const getBackgroundColor = useCallback(
+        (routesLength, tabIndex, affectedTabs) => {
+            if (routesLength > 1) {
+                const inputRange = Array.from({length: routesLength}, (v, i) => i);
+
+                return position.interpolate({
+                    inputRange,
+                    outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
+                });
+            }
+            return theme.border;
+        },
+        [theme, position],
+    );
 
     React.useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -98,7 +102,7 @@ function TabSelector({state, navigation, onTabPress, position}) {
             {_.map(state.routes, (route, index) => {
                 const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
                 const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);
-                const backgroundColor = getBackgroundColor(position, state.routes.length, index, affectedAnimatedTabs);
+                const backgroundColor = getBackgroundColor(state.routes.length, index, affectedAnimatedTabs);
                 const isFocused = index === state.index;
                 const {icon, title} = getIconAndTitle(route.name, translate);
 
