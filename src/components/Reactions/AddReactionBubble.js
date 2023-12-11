@@ -8,8 +8,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -55,8 +54,8 @@ const defaultProps = {
 };
 
 function AddReactionBubble(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const ref = useRef();
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -89,11 +88,7 @@ function AddReactionBubble(props) {
         <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
             <PressableWithFeedback
                 ref={ref}
-                style={({hovered, pressed}) => [
-                    styles.emojiReactionBubble,
-                    styles.userSelectNone,
-                    StyleUtils.getEmojiReactionBubbleStyle(theme, hovered || pressed, false, props.isContextMenu),
-                ]}
+                style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
                 onMouseDown={(e) => {
                     // Allow text input blur when Add reaction is right clicked
@@ -121,7 +116,7 @@ function AddReactionBubble(props) {
                                 src={Expensicons.AddReaction}
                                 width={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={props.isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed))}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
                     </>
