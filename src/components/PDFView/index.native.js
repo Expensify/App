@@ -1,18 +1,19 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
-import CONST from '@src/CONST';
-import compose from '@libs/compose';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import {withStyleUtilsPropTypes} from '@components/withStyleUtils';
+import {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import useKeyboardState, {keyboardStatePropTypes} from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import compose from '@libs/compose';
+import useStyleUtils from '@styles/useStyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 
@@ -61,6 +62,7 @@ function PDFView({
     const [failedToLoadPDF, setFailedToLoadPDF] = useState(false);
     const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
     const [password, setPassword] = useState('');
+    const StyleUtils = useStyleUtils();
 
     useEffect(() => {
         onToggleKeyboard(isKeyboardShown);
@@ -86,7 +88,7 @@ function PDFView({
         // The message provided by react-native-pdf doesn't indicate whether this
         // is an initial password request or if the password is invalid. So we just assume
         // that if a password was already entered then it's an invalid password error.
-        
+
         if (password) {
             setIsPasswordInvalid(true);
         }
@@ -195,4 +197,4 @@ PDFView.displayName = 'PDFView';
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(useWindowDimensions, useKeyboardState, useLocalize, useThemeStyles, withStyleUtils)(PDFView);
+export default compose(useWindowDimensions, useKeyboardState, useLocalize, useThemeStyles, useStyleUtils)(PDFView);
