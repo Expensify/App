@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import HeaderGapComponent from './types';
 
-// eslint-disable-next-line react/function-component-definition, react/prop-types
+// eslint-disable-next-line react/function-component-definition
 const HeaderGap: HeaderGapComponent = ({styles}) => {
     const themeStyles = useThemeStyles();
     return <View style={[themeStyles.headerGap, styles]} />;
