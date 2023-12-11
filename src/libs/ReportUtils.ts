@@ -107,7 +107,6 @@ type OptimisticExpenseReport = Pick<
     | 'policyID'
     | 'type'
     | 'ownerAccountID'
-    | 'hasOutstandingIOU'
     | 'currency'
     | 'reportName'
     | 'state'
@@ -197,7 +196,6 @@ type OptimisticChatReport = Pick<
     Report,
     | 'type'
     | 'chatType'
-    | 'hasOutstandingIOU'
     | 'isOwnPolicyExpenseChat'
     | 'isPinned'
     | 'lastActorAccountID'
@@ -297,7 +295,6 @@ type TransactionDetails =
 type OptimisticIOUReport = Pick<
     Report,
     | 'cachedTotal'
-    | 'hasOutstandingIOU'
     | 'type'
     | 'chatReportID'
     | 'currency'
@@ -2553,8 +2550,6 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     return {
-        // If we're sending money, hasOutstandingIOU should be false
-        hasOutstandingIOU: !isSendingMoney,
         type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
         chatReportID,
@@ -2608,7 +2603,6 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: payeeAccountID,
-        hasOutstandingIOU: true,
         currency: outputCurrency,
 
         // We don't translate reportName because the server response is always in English
@@ -3087,7 +3081,6 @@ function buildOptimisticChatReport(
     return {
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
-        hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || isNewlyCreatedWorkspaceChat,
         lastActorAccountID: 0,

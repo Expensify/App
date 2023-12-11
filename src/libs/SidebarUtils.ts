@@ -260,7 +260,6 @@ function getOptionData(
         keyForList: null,
         searchText: null,
         isPinned: false,
-        hasOutstandingIOU: false,
         hasOutstandingChildRequest: false,
         isIOUReportOwner: null,
         iouReportAmount: 0,
