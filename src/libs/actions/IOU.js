@@ -361,7 +361,7 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTags, policyTags, policy.requiresCategory, policyCategories);
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
 
     if (violationsOnyxData) {
         optimisticData.push({
