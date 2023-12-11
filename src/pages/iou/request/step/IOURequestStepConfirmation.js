@@ -207,6 +207,7 @@ function IOURequestStepConfirmation({
                     transaction.amount,
                     trimmedComment,
                     transaction.currency,
+                    transaction.merchant,
                     transaction.category,
                     report.reportID,
                 );
@@ -222,6 +223,7 @@ function IOURequestStepConfirmation({
                     transaction.amount,
                     trimmedComment,
                     transaction.currency,
+                    transaction.merchant,
                     transaction.category,
                 );
                 return;
