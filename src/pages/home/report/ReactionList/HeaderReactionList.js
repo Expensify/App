@@ -6,7 +6,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import reactionPropTypes from './reactionPropTypes';
 
@@ -27,6 +27,7 @@ const defaultProps = {
 
 function HeaderReactionList(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     return (
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.emojiReactionListHeader, !props.isSmallScreenWidth && styles.pt4]}>
             <View style={styles.flexRow}>
