@@ -99,7 +99,6 @@
     "domhandler": "^4.3.0",
     "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#ee14b3255da33d2b6924c357f43393251b6dc6d2",
     "expo": "^49.0.0",
-    "expo-asset": "~8.10.1",
     "expo-image": "^1.8.1",
     "fbjs": "^3.0.2",
     "htmlparser2": "^7.2.0",
