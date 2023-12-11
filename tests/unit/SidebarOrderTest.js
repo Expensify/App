@@ -889,7 +889,6 @@ describe('Sidebar', () => {
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
-                hasOutstandingIOU: false,
 
                 // This has to be added after the IOU report is generated
                 iouReportID: null,
