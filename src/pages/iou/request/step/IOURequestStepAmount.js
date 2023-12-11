@@ -45,8 +45,7 @@ function IOURequestStepAmount({
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
     const iouRequestType = getRequestType(transaction);
-    /* eslint-disable es/no-nullish-coalescing-operators */
-    const currency = selectedCurrency ?? originalCurrency;
+    const currency = selectedCurrency || originalCurrency;
 
     useFocusEffect(
         useCallback(() => {
