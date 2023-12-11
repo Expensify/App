@@ -474,6 +474,8 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
     clearReportNotifications(reportID);
 
+    const commandName = 'OpenReport';
+
     const optimisticReportData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -539,6 +541,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        idempotencyKey: `${commandName}_${reportID}`,
     };
 
     if (isFromDeepLink) {
@@ -616,6 +619,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
+        params.idempotencyKey = `${params.idempotencyKey}_NewReport_${optimisticCreatedAction.reportActionID}`;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
@@ -636,12 +640,12 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
+        API.makeRequestWithSideEffects(commandName, params, onyxData).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write('OpenReport', params, onyxData);
+        API.write(commandName, params, onyxData);
     }
 }
 
@@ -1785,8 +1789,13 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
         return false;
     }
 
-    // If this notification was delayed and the user saw the message already, don't show it
     const report = allReports[reportID];
+    if (!report || (report && report.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+        Log.info(`${tag} No notification because the report does not exist or is pending deleted`, false);
+        return false;
+    }
+
+    // If this notification was delayed and the user saw the message already, don't show it
     if (action && report && report.lastReadTime >= action.created) {
         Log.info(`${tag} No notification because the comment was already read`, false, {created: action.created, lastReadTime: report.lastReadTime});
         return false;
@@ -2002,6 +2011,14 @@ function openReportFromDeepLink(url, isAuthenticated) {
                     Session.signOutAndRedirectToSignIn();
                     return;
                 }
+
+                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                // which is already called when AuthScreens mounts.
+                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                    return;
+                }
+
                 Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
