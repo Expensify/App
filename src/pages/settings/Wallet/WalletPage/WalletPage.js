@@ -325,7 +325,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                     <HeaderWithBackButton
                         title={translate('common.wallet')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
-                        shouldShowBackButtonOnlyOnMobile
+                        shouldUseCentralPaneView
                     />
                     <View style={[styles.flex1, styles.mb4]}>
                         <ScrollView>

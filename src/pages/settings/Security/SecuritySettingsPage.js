@@ -70,8 +70,7 @@ function SecuritySettingsPage(props) {
             shouldShowBackButton
             illustration={LottieAnimations.Safe}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
-            shouldShowBackButtonOnlyOnMobile
-            shouldUseMaxHeight
+            shouldUseCentralPaneView
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>

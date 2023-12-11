@@ -187,7 +187,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             illustration={LottieAnimations.WorkspacePlanet}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
             title={translate('common.workspaces')}
-            shouldShowBackButtonOnlyOnMobile
+            shouldUseCentralPaneView
             footer={
                 <Button
                     accessibilityLabel={translate('workspace.new.newWorkspace')}

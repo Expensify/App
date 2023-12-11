@@ -2448,6 +2448,10 @@ const styles = (theme: ThemeColors) =>
             ...spacing.pt0,
         },
 
+        centralPaneAnimation: {
+            height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
+        },
+
         sectionTitle: {
             ...spacing.pt2,
             ...spacing.pr3,

@@ -10,6 +10,7 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import compose from '@libs/compose';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {qrShareDefaultProps, qrSharePropTypes} from './propTypes';
 
 const propTypes = {
@@ -35,9 +36,15 @@ class QRShare extends Component {
     onLayout(event) {
         const containerWidth = event.nativeEvent.layout.width - variables.qrShareHorizontalPadding * 2 || 0;
 
+        if (this.props.isSmallScreenWidth) {
+            this.setState({
+                qrCodeSize: Math.max(1, containerWidth),
+            });
+            return;
+        }
+
         this.setState({
-            // TODO: Check on mobile devices
-            qrCodeSize: Math.max(1, Math.min(containerWidth, 200)),
+            qrCodeSize: Math.max(1, Math.min(containerWidth, CONST.CENTRAL_PANE_ANIMATION_HEIGHT)),
         });
     }
 

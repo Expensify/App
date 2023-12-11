@@ -48,8 +48,7 @@ function PreferencesPage(props) {
             // onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES].backgroundColor}
             illustration={LottieAnimations.PreferencesDJ}
-            shouldUseMaxHeight
-            shouldShowBackButtonOnlyOnMobile
+            shouldUseCentralPaneView
         >
             <View style={styles.mb6}>
                 <Text
