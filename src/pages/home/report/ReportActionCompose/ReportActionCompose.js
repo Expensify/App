@@ -11,8 +11,7 @@ import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
-import participantPropTypes from '@components/participantPropTypes';
+import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -29,7 +28,7 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
@@ -48,9 +47,6 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -84,7 +80,6 @@ const propTypes = {
 const defaultProps = {
     report: {},
     blockedFromConcierge: {},
-    personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
@@ -108,7 +103,6 @@ function ReportActionCompose({
     network,
     onSubmit,
     pendingAction,
-    personalDetails,
     report,
     reportID,
     reportActions,
@@ -116,11 +110,12 @@ function ReportActionCompose({
     shouldShowComposeInput,
     isReportReadyForDisplay,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
-
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     /**
      * Updates the Highlight state of the composer
      */
@@ -194,8 +189,9 @@ function ReportActionCompose({
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
+    const isNextModalWillOpenRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current) {
+        if (!isKeyboardVisibleWhenShowingModalRef.current || isNextModalWillOpenRef.current) {
             return;
         }
         focus();
@@ -270,13 +266,7 @@ function ReportActionCompose({
         [onSubmit],
     );
 
-    const isNextModalWillOpenRef = useRef(false);
     const onTriggerAttachmentPicker = useCallback(() => {
-        // Set a flag to block suggestion calculation until we're finished using the file picker,
-        // which will stop any flickering as the file picker opens on non-native devices.
-        if (willBlurTextInputOnTapOutside) {
-            suggestionsRef.current.setShouldBlockSuggestionCalc(true);
-        }
         isNextModalWillOpenRef.current = true;
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
@@ -384,7 +374,10 @@ function ReportActionCompose({
                                         setMenuVisibility={setMenuVisibility}
                                         isMenuVisible={isMenuVisible}
                                         onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                                        onCanceledAttachmentPicker={restoreKeyboardState}
+                                        onCanceledAttachmentPicker={() => {
+                                            isNextModalWillOpenRef.current = false;
+                                            restoreKeyboardState();
+                                        }}
                                         onMenuClosed={restoreKeyboardState}
                                         onAddActionPressed={onAddActionPressed}
                                         onItemSelected={onItemSelected}
@@ -472,9 +465,6 @@ export default compose(
     withOnyx({
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,

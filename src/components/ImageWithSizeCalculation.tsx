@@ -3,7 +3,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import {OnLoadEvent} from 'react-native-fast-image';
 import Log from '@libs/Log';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 import RESIZE_MODES from './Image/resizeModes';
@@ -31,6 +31,7 @@ type ImageWithSizeCalculationProps = {
  * it can be appropriately resized.
  */
 function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
+    const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);

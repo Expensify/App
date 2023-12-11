@@ -1,15 +1,15 @@
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
-import getModalStyles from '@styles/getModalStyles';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -41,6 +41,9 @@ function BaseModal(
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -54,6 +57,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
+            Modal.willAlertModalBecomeVisible(false);
             if (shouldSetModalVisibility) {
                 Modal.setModalVisibility(false);
             }
@@ -70,14 +74,19 @@ function BaseModal(
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
+        let removeOnCloseListener: () => void;
         if (isVisible) {
             Modal.willAlertModalBecomeVisible(true);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            Modal.setCloseModal(onClose);
-        } else if (wasVisible && !isVisible) {
-            Modal.willAlertModalBecomeVisible(false);
-            Modal.setCloseModal(null);
+            removeOnCloseListener = Modal.setCloseModal(onClose);
         }
+
+        return () => {
+            if (!removeOnCloseListener) {
+                return;
+            }
+            removeOnCloseListener();
+        };
     }, [isVisible, wasVisible, onClose]);
 
     useEffect(
@@ -87,9 +96,6 @@ function BaseModal(
                 return;
             }
             hideModal(true);
-            Modal.willAlertModalBecomeVisible(false);
-            // To prevent closing any modal already unmounted when this modal still remains as visible state
-            Modal.setCloseModal(null);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
@@ -127,7 +133,7 @@ function BaseModal(
         hideBackdrop,
     } = useMemo(
         () =>
-            getModalStyles(
+            StyleUtils.getModalStyles(
                 type,
                 {
                     windowWidth,
@@ -138,7 +144,7 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
@@ -178,7 +184,7 @@ function BaseModal(
             onSwipeComplete={onClose}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
-            backdropColor={themeColors.overlay}
+            backdropColor={theme.overlay}
             backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}
@@ -200,7 +206,7 @@ function BaseModal(
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                 ref={ref}
             >
-                {children}
+                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
         </ReactNativeModal>
     );
