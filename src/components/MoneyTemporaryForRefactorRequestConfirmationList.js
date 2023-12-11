@@ -368,7 +368,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(selectedParticipantsFiltered, (participant) => !participant.selected);
+        const unselectedParticipants = _.filter(selectedParticipants, (participant) => !participant.selected);
         if (hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipantsFiltered);
             let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
@@ -416,6 +416,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         return sections;
     }, [
         selectedParticipantsFiltered,
+        selectedParticipants,
         hasMultipleParticipants,
         iouAmount,
         iouCurrencyCode,
