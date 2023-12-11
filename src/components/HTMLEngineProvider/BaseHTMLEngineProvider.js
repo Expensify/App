@@ -65,7 +65,17 @@ function BaseHTMLEngineProvider(props) {
     );
 
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
+    const defaultTextProps = useMemo(
+        () => ({
+            selectable: props.textSelectable,
+            allowFontScaling: false,
+            textBreakStrategy: 'simple',
+            style: {
+                overflowWrap: 'anywhere',
+            },
+        }),
+        [props.textSelectable],
+    );
     const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
 
     return (
