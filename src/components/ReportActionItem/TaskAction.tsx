@@ -1,23 +1,20 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import * as TaskUtils from '@libs/TaskUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import * as Task from '@userActions/Task';
 
 type TaskActionProps = {
     /** Name of the reportAction action */
     actionName: string;
-
-    /** The ID of the associated taskReport */
-    taskReportID: string;
 };
 
-function TaskAction({actionName, taskReportID}: TaskActionProps) {
+function TaskAction({actionName}: TaskActionProps) {
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-            <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Task.getTaskReportActionMessage(actionName, taskReportID, false)}</Text>
+            <Text style={[styles.chatItemMessage, styles.colorMuted]}>{TaskUtils.getTaskReportActionMessage(actionName)}</Text>
         </View>
     );
 }
