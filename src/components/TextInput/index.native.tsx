@@ -4,12 +4,11 @@ import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
 import BaseTextInputProps, {BaseTextInputRef} from './BaseTextInput/types';
 
-// eslint-disable-next-line react/function-component-definition
-const TextInput = ({inputStyle, disableKeyboard = false, prefixCharacter, inputID, ...props}: BaseTextInputProps, ref: BaseTextInputRef) => {
+function TextInput(props: BaseTextInputProps, ref: BaseTextInputRef) {
     const styles = useThemeStyles();
 
     useEffect(() => {
-        if (!disableKeyboard) {
+        if (!props.disableKeyboard) {
             return;
         }
 
@@ -24,20 +23,20 @@ const TextInput = ({inputStyle, disableKeyboard = false, prefixCharacter, inputI
         return () => {
             appStateSubscription.remove();
         };
-    }, [disableKeyboard]);
+    }, [props.disableKeyboard]);
 
     return (
         <BaseTextInput
+            autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Setting autoCompleteType to new-password throws an error on Android/iOS, so fall back to password in that case
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             ref={ref}
-            inputStyle={[styles.baseTextInput, inputStyle]}
+            inputStyle={[styles.baseTextInput, props.inputStyle]}
         />
     );
-};
+}
 
 TextInput.displayName = 'TextInput';
 

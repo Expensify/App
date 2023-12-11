@@ -24,7 +24,7 @@ import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
-import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
@@ -71,6 +71,7 @@ function BaseTextInput(
     const styles = useThemeStyles();
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
@@ -413,7 +414,7 @@ function BaseTextInput(
                                     onMouseDown={(e) => {
                                         e.preventDefault();
                                     }}
-                                    accessibilityLabel={inputProps.translate?.('common.visible') ?? ''}
+                                    accessibilityLabel={translate?.('common.visible') ?? ''}
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -475,4 +476,4 @@ function BaseTextInput(
 
 BaseTextInput.displayName = 'BaseTextInput';
 
-export default withLocalize(forwardRef(BaseTextInput));
+export default forwardRef(BaseTextInput);

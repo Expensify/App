@@ -1,6 +1,5 @@
-import React, {Component, useEffect, useRef} from 'react';
-import {StyleProp, TextInputProps, ViewStyle} from 'react-native';
-import {AnimatedProps} from 'react-native-reanimated';
+import React, {useEffect, useRef} from 'react';
+import {StyleProp, ViewStyle} from 'react-native';
 import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
@@ -12,22 +11,19 @@ import * as styleConst from './styleConst';
 
 type RemoveVisibilityListener = () => void;
 
-function TextInput(
-    {label = '', name = '', textInputContainerStyles, inputStyle, disableKeyboard = false, multiline = false, prefixCharacter, inputID, ...props}: BaseTextInputProps,
-    ref: BaseTextInputRef,
-) {
+function TextInput(props: BaseTextInputProps, ref: BaseTextInputRef) {
     const styles = useThemeStyles();
-    const textInputRef = useRef<HTMLFormElement>(null);
+    const textInputRef = useRef<HTMLElement | null>(null);
     const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
 
     useEffect(() => {
         let removeVisibilityListener = removeVisibilityListenerRef.current;
-        if (disableKeyboard) {
+        if (props.disableKeyboard) {
             textInputRef.current?.setAttribute('inputmode', 'none');
         }
 
-        if (name) {
-            textInputRef.current?.setAttribute('name', name);
+        if (props.name) {
+            textInputRef.current?.setAttribute('name', props.name);
         }
 
         removeVisibilityListener = Visibility.onVisibilityChange(() => {
@@ -47,7 +43,7 @@ function TextInput(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isLabeledMultiline = Boolean(label?.length) && multiline;
+    const isLabeledMultiline = Boolean(props.label?.length) && props.multiline;
     const labelAnimationStyle = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
@@ -62,9 +58,8 @@ function TextInput(
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={(element) => {
-                if (element) {
-                    (textInputRef.current as HTMLElement | Component<AnimatedProps<TextInputProps>>) = element;
-                }
+                textInputRef.current = element as HTMLElement;
+
                 if (!ref) {
                     return;
                 }
@@ -77,8 +72,8 @@ function TextInput(
                 // eslint-disable-next-line no-param-reassign
                 ref.current = element;
             }}
-            inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, inputStyle]}
-            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, textInputContainerStyles]}
+            inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, props.inputStyle]}
+            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles]}
         />
     );
 }

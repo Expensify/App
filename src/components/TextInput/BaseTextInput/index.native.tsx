@@ -24,7 +24,7 @@ import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
-import withLocalize from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import getSecureEntryKeyboardType from '@libs/getSecureEntryKeyboardType';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
@@ -34,7 +34,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type BaseTextInputProps from './types';
-import {BaseTextInputRef} from './types';
+import type {BaseTextInputRef} from './types';
 
 function BaseTextInput(
     {
@@ -70,6 +70,7 @@ function BaseTextInput(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {hasError = false} = inputProps;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
@@ -262,7 +263,7 @@ function BaseTextInput(
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
-    const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
+    const maxHeight = StyleSheet.flatten(containerStyles)?.maxHeight;
     const newTextInputContainerStyles: StyleProp<ViewStyle & FlexStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
@@ -394,7 +395,7 @@ function BaseTextInput(
                                     onMouseDown={(e) => {
                                         e.preventDefault();
                                     }}
-                                    accessibilityLabel={inputProps.translate?.('common.visible') ?? ''}
+                                    accessibilityLabel={translate?.('common.visible') ?? ''}
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -452,4 +453,4 @@ function BaseTextInput(
 
 BaseTextInput.displayName = 'BaseTextInput';
 
-export default withLocalize(forwardRef(BaseTextInput));
+export default forwardRef(BaseTextInput);

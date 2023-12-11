@@ -2,7 +2,6 @@ import React, {Component, ForwardedRef} from 'react';
 import {FlexStyle, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import {AnimatedProps} from 'react-native-reanimated';
 import {SrcProps} from '@components/Icon';
-import {LocaleContextProps} from '@components/LocaleContextProvider';
 import {MaybePhraseKey} from '@libs/Localize';
 
 type CustomBaseTextInputProps = {
@@ -114,7 +113,7 @@ type CustomBaseTextInputProps = {
 
 type BaseTextInputRef = ForwardedRef<HTMLFormElement | Component<AnimatedProps<TextInputProps>>>;
 
-type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps & LocaleContextProps;
+type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
 export default BaseTextInputProps;
 export type {CustomBaseTextInputProps, BaseTextInputRef};
