@@ -1014,7 +1014,8 @@ export default {
                 label: 'Use Device Settings',
             },
         },
-        chooseThemeBelowOrSync: 'Choose a theme below, or syn c with your device settings.',
+        chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
+``
     },
     signInPage: {
         expensifyDotCash: 'New Expensify',
