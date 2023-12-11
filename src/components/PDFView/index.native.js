@@ -174,6 +174,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         renderPDFView()
     );
 }
+
 PDFView.displayName = 'PDFView';
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
