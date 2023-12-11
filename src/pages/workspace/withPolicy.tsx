@@ -62,7 +62,7 @@ const policyPropTypes = {
         hasMultipleTagLists: PropTypes.bool,
 
         /** Whether or not the policy has tax tracking enabled */
-        isTrackingTaxEnabled: PropTypes.bool,
+        isTaxTrackingEnabled: PropTypes.bool,
     }),
 
     /** The employee list of this policy */
