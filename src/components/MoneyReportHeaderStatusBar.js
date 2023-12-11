@@ -27,7 +27,7 @@ function MoneyReportHeaderStatusBar({nextStep}) {
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
             <View style={styles.moneyRequestHeaderStatusBarBadge}>
-                <Text style={[styles.textStrong, styles.textLabel]}>{translate('iou.nextSteps')}</Text>
+                <Text style={[styles.textLabel, styles.textMicroBold]}>{translate('iou.nextSteps')}</Text>
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
                 <RenderHTML html={messageContent} />

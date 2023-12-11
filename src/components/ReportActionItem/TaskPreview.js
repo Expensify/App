@@ -85,7 +85,7 @@ function TaskPreview(props) {
     const isTaskCompleted = !_.isEmpty(props.taskReport)
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
-    const taskTitle = TaskUtils.getTaskTitle(props.taskReportID, props.action.childReportName);
+    const taskTitle = _.escape(TaskUtils.getTaskTitle(props.taskReportID, props.action.childReportName));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const assigneeLogin = lodashGet(personalDetails, [taskAssigneeAccountID, 'login'], '');
     const assigneeDisplayName = lodashGet(personalDetails, [taskAssigneeAccountID, 'displayName'], '');
