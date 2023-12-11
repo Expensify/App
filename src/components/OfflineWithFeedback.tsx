@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {ImageStyle, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -56,27 +56,6 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
 
-/**
- * This method applies the strikethrough to all the children passed recursively
- */
-function applyStrikeThrough(children: React.ReactNode, styles: ReturnType<typeof useThemeStyles>): React.ReactNode {
-    return React.Children.map(children, (child) => {
-        if (!React.isValidElement(child)) {
-            return child;
-        }
-
-        const props: StrikethroughProps = {
-            style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone),
-        };
-
-        if (child.props.children) {
-            props.children = applyStrikeThrough(child.props.children, styles);
-        }
-
-        return React.cloneElement(child, props);
-    });
-}
-
 function omitBy<T>(obj: Record<string, T> | undefined, predicate: (value: T) => boolean) {
     // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
     return Object.fromEntries(Object.entries(obj ?? {}).filter(([_, value]) => !predicate(value)));
@@ -98,6 +77,7 @@ function OfflineWithFeedback({
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
     const hasErrors = isNotEmptyObject(errors ?? {});
@@ -112,9 +92,32 @@ function OfflineWithFeedback({
     const hideChildren = shouldHideOnDelete && !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = rest.children;
 
+    /**
+     * This method applies the strikethrough to all the children passed recursively
+     */
+    const applyStrikeThrough = useCallback(
+        (childrenProp: React.ReactNode): React.ReactNode =>
+            React.Children.map(childrenProp, (child) => {
+                if (!React.isValidElement(child)) {
+                    return child;
+                }
+
+                const props: StrikethroughProps = {
+                    style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone),
+                };
+
+                if (child.props.children) {
+                    props.children = applyStrikeThrough(child.props.children);
+                }
+
+                return React.cloneElement(child, props);
+            }),
+        [StyleUtils, styles],
+    );
+
     // Apply strikethrough to children if needed, but skip it if we are not going to render them
     if (needsStrikeThrough && !hideChildren) {
-        children = applyStrikeThrough(children, styles);
+        children = applyStrikeThrough(children);
     }
     return (
         <View style={style}>

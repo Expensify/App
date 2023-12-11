@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails} from '@src/types/onyx';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
-import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -86,7 +86,7 @@ test('getOrderedReportIDs on 5k reports', async () => {
                 },
             ],
         ]),
-    ) as unknown as OnyxCollection<ReportActions>;
+    ) as unknown as OnyxCollection<ReportAction[]>;
 
     Onyx.multiSet({
         ...mockedResponseMap,
