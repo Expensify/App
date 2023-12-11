@@ -18,6 +18,7 @@ import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -414,6 +415,8 @@ function getLastMessageTextForReport(report) {
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
+    } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
+        lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
