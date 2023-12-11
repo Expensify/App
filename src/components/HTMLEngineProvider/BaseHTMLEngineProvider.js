@@ -61,7 +61,7 @@ function BaseHTMLEngineProvider(props) {
             'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
             'next-steps': defaultHTMLElementModels.span.extend({
-                tagName: 'mention-here',
+                tagName: 'next-steps',
                 mixedUAStyles: {...styles.textLabelSupporting},
             }),
         }),
