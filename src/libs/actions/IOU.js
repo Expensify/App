@@ -90,6 +90,134 @@ Onyx.connect({
 });
 
 /**
+ * Initialize money request info
+ * @param {String} reportID to attach the transaction to
+ * @param {String} [iouRequestType] one of manual/scan/distance
+ */
+function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+    // Generate a brand new transactionID
+    const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const created = currentDate || format(new Date(), 'yyyy-MM-dd');
+    const comment = {};
+
+    // Add initial empty waypoints when starting a distance request
+    if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+        comment.waypoints = {
+            waypoint0: {},
+            waypoint1: {},
+        };
+    }
+
+    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
+    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+        amount: 0,
+        comment,
+        created,
+        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        iouRequestType,
+        reportID,
+        transactionID: newTransactionID,
+    });
+}
+
+/**
+ * @param {String} transactionID
+ */
+function clearMoneyRequest(transactionID) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+/**
+ * @param {String} transactionID
+ * @param {Number} amount
+ * @param {String} currency
+ */
+function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} created
+ */
+function setMoneyRequestCreated_temporaryForRefactor(transactionID, created) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {created});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} currency
+ */
+function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} comment
+ */
+function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {comment: comment.trim()}});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} merchant
+ */
+function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {merchant: merchant.trim()});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} category
+ */
+function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+}
+
+/*
+ * @param {String} transactionID
+ * @param {String} tag
+ */
+function setMoneyRequestTag_temporaryForRefactor(transactionID, tag) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
+}
+
+/*
+ * @param {String} transactionID
+ */
+function resetMoneyRequestTag_temporaryForRefactor(transactionID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag: null});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {Boolean} billable
+ */
+function setMoneyRequestBillable_temporaryForRefactor(transactionID, billable) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {Object[]} participants
+ */
+function setMoneyRequestParticipants_temporaryForRefactor(transactionID, participants) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {String} source
+ * @param {String} filename
+ */
+function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {source}, filename});
+}
+
+/**
  * Reset money request info from the store with its initial value
  * @param {String} id
  */
@@ -172,6 +300,13 @@ function buildOnyxDataForMoneyRequest(
                 [iouAction.reportActionID]: iouAction,
             },
         },
+
+        // Remove the temporary transaction used during the creation flow
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+            value: null,
+        },
     ];
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
@@ -231,6 +366,7 @@ function buildOnyxDataForMoneyRequest(
                 pendingFields: null,
             },
         },
+
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -309,6 +445,14 @@ function buildOnyxDataForMoneyRequest(
                 pendingFields: null,
             },
         },
+
+        // Remove the temporary transaction used during the creation flow
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+            value: null,
+        },
+
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
@@ -588,15 +732,15 @@ function getMoneyRequestInformation(
  * @param {Object} participant
  * @param {String} comment
  * @param {String} created
- * @param {String} [transactionID]
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Number} amount
  * @param {String} currency
  * @param {String} merchant
  * @param {Boolean} [billable]
+ * @param {Obejct} validWaypoints
  */
-function createDistanceRequest(report, participant, comment, created, transactionID, category, tag, amount, currency, merchant, billable) {
+function createDistanceRequest(report, participant, comment, created, category, tag, amount, currency, merchant, billable, validWaypoints) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
@@ -616,7 +760,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
         userAccountID,
         currentUserEmail,
         optimisticReceipt,
-        transactionID,
+        undefined,
         category,
         tag,
         billable,
@@ -632,7 +776,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
             createdChatReportActionID,
             createdIOUReportActionID,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints: JSON.stringify(TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true)),
+            waypoints: JSON.stringify(validWaypoints),
             created,
             category,
             tag,
@@ -977,6 +1121,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
             value: {pendingAction: null},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+            value: null,
+        },
     ];
 
     if (!existingSplitChatReport) {
@@ -994,6 +1143,11 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+            value: null,
         },
     ];
 
@@ -2813,6 +2967,24 @@ function replaceReceipt(transactionID, receipt, filePath) {
 }
 
 /**
+ * Finds the participants for an IOU based on the attached report
+ * @param {String} transactionID of the transaction to set the participants of
+ * @param {Object} report attached to the transaction
+ */
+function setMoneyRequestParticipantsFromReport(transactionID, report) {
+    // If the report is iou or expense report, we should get the chat report to set participant for request money
+    const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const participants = ReportUtils.isPolicyExpenseChat(chatReport)
+        ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
+        : _.chain(chatReport.participantAccountIDs)
+              .filter((accountID) => currentUserAccountID !== accountID)
+              .map((accountID) => ({accountID, selected: true}))
+              .value();
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
+}
+
+/**
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
@@ -2982,6 +3154,7 @@ function getIOUReportID(iou, route) {
 }
 
 export {
+    setMoneyRequestParticipants,
     createDistanceRequest,
     deleteMoneyRequest,
     splitBill,
@@ -2996,20 +3169,33 @@ export {
     payMoneyRequest,
     sendMoneyWithWallet,
     startMoneyRequest,
+    startMoneyRequest_temporaryForRefactor,
+    resetMoneyRequestCategory,
     resetMoneyRequestInfo,
-    setMoneyRequestId,
+    resetMoneyRequestTag,
+    resetMoneyRequestTag_temporaryForRefactor,
+    clearMoneyRequest,
+    setMoneyRequestAmount_temporaryForRefactor,
+    setMoneyRequestBillable_temporaryForRefactor,
+    setMoneyRequestCategory_temporaryForRefactor,
+    setMoneyRequestCreated_temporaryForRefactor,
+    setMoneyRequestCurrency_temporaryForRefactor,
+    setMoneyRequestDescription_temporaryForRefactor,
+    setMoneyRequestMerchant_temporaryForRefactor,
+    setMoneyRequestParticipants_temporaryForRefactor,
+    setMoneyRequestReceipt_temporaryForRefactor,
+    setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,
+    setMoneyRequestBillable,
+    setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
+    setMoneyRequestId,
     setMoneyRequestMerchant,
-    setMoneyRequestCategory,
-    resetMoneyRequestCategory,
-    setMoneyRequestTag,
-    resetMoneyRequestTag,
-    setMoneyRequestBillable,
-    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
+    setMoneyRequestTag,
     setUpDistanceTransaction,
     navigateToNextPage,
     replaceReceipt,
