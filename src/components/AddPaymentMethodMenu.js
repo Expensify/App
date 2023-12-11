@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,8 +49,8 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -63,10 +62,10 @@ const defaultProps = {
     },
     anchorRef: () => {},
     session: {},
-    iou: iouDefaultProps,
+    shouldShowPersonalBankAccountOption: false,
 };
 
-function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, iou}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, shouldShowPersonalBankAccountOption}) {
     const {translate} = useLocalize();
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
@@ -75,7 +74,7 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
         ReportUtils.isExpenseReport(iouReport) ||
         (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
 
-    const canUsePersonalBankAccount = iou.id === CONST.IOU.TYPE.SEND || ReportUtils.isIOUReport(iouReport);
+    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || ReportUtils.isIOUReport(iouReport);
 
     return (
         <PopoverMenu
@@ -128,9 +127,6 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        iou: {
-            key: ONYXKEYS.IOU,
         },
     }),
 )(AddPaymentMethodMenu);
