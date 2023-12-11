@@ -1015,7 +1015,6 @@ export default {
             },
         },
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
-``
     },
     signInPage: {
         expensifyDotCash: 'New Expensify',
