@@ -1,28 +1,27 @@
+import {DateTimeFormatConstructor} from '@formatjs/intl-datetimeformat';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Timezone} from '@src/types/onyx/PersonalDetails';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 const tzLinks: Record<string, string> = {
-    "Africa/Abidjan": "Africa/Accra",
-    "CET": "Europe/Paris",
-    "CST6CDT": "America/Chicago",
-    "EET": "Europe/Sofia",
-    "EST": "America/Cancun",
-    "EST5EDT": "America/New_York",
-    "Etc/GMT": "UTC",
-    "Etc/UTC": "UTC",
-    "Factory": "UTC",
-    "GMT": "UTC",
-    "HST": "Pacific/Honolulu",
-    "MET": "Europe/Paris",
-    "MST": "America/Phoenix",
-    "MST7MDT": "America/Denver",
-    "PST8PDT": "America/Los_Angeles",
-    "WET": "Europe/Lisbon"
-}
-/* eslint-enable @typescript-eslint/naming-convention */
+    'Africa/Abidjan': 'Africa/Accra',
+    CET: 'Europe/Paris',
+    CST6CDT: 'America/Chicago',
+    EET: 'Europe/Sofia',
+    EST: 'America/Cancun',
+    EST5EDT: 'America/New_York',
+    'Etc/GMT': 'UTC',
+    'Etc/UTC': 'UTC',
+    Factory: 'UTC',
+    GMT: 'UTC',
+    HST: 'Pacific/Honolulu',
+    MET: 'Europe/Paris',
+    MST: 'America/Phoenix',
+    MST7MDT: 'America/Denver',
+    PST8PDT: 'America/Los_Angeles',
+    WET: 'Europe/Lisbon',
+};
 
 let currentUserAccountID: number | undefined;
 Onyx.connect({
@@ -68,9 +67,6 @@ export default function () {
     require('@formatjs/intl-datetimeformat/add-all-tz');
 
     if ('__setDefaultTimeZone' in Intl.DateTimeFormat) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        // eslint-disable-next-line no-underscore-dangle
-        Intl.DateTimeFormat.__setDefaultTimeZone(currentTimezone);
+        (Intl.DateTimeFormat as DateTimeFormatConstructor).__setDefaultTimeZone(currentTimezone);
     }
 }

@@ -1,4 +1,4 @@
-import polyfillDateTimeFormat from '@libs/IntlPolyfill/polyfillDateTimeFormat';
+import polyfillDateTimeFormat from './polyfillDateTimeFormat';
 import polyfillListFormat from './polyfillListFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
 import IntlPolyfill from './types';

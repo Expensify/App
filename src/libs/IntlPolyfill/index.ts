@@ -1,5 +1,5 @@
-import polyfillDateTimeFormat from '@libs/IntlPolyfill/polyfillDateTimeFormat';
-import polyfillNumberFormat from '@libs/IntlPolyfill/polyfillNumberFormat';
+import polyfillDateTimeFormat from './polyfillDateTimeFormat';
+import polyfillNumberFormat from './polyfillNumberFormat';
 import IntlPolyfill from './types';
 
 /**
