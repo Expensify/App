@@ -43,7 +43,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, pageIndex, backTo},
+        params: {iouType, reportID, transactionID, backTo},
     },
 }) {
     const theme = useTheme();
@@ -210,7 +210,7 @@ function IOURequestStepScan({
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
                     photo
-                    cameraTabIndex={pageIndex}
+                    cameraTabIndex={1}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
