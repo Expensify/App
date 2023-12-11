@@ -8,17 +8,22 @@ import CONST from '@src/CONST';
 import Header from './Header';
 import Text from './Text';
 
-type BreadcrumbRootWorkspace = {
-    type: typeof CONST.BREADCRUMB_TYPE.ROOT;
+type BreadcrumbHeader = {
+    type: typeof CONST.BREADCRUMB_TYPE.HEADER;
+};
+
+type BreadcrumbStrong = {
+    text: string;
+    type: typeof CONST.BREADCRUMB_TYPE.STRONG;
 };
 
 type Breadcrumb = {
     text: string;
-    type?: typeof CONST.BREADCRUMB_TYPE.STRONG | typeof CONST.BREADCRUMB_TYPE.NORMAL;
+    type?: typeof CONST.BREADCRUMB_TYPE.NORMAL;
 };
 
 type BreadcrumbsProps = {
-    breadcrumbs: Array<BreadcrumbRootWorkspace | Breadcrumb>;
+    breadcrumbs: [BreadcrumbHeader | BreadcrumbStrong, Breadcrumb];
 };
 
 function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
@@ -28,13 +33,13 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap1]}>
             {breadcrumbs.map((breadcrumb, index) => {
-                const key = `${breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? CONST.BREADCRUMB_TYPE.ROOT : breadcrumb.text}${index}`;
+                const key = `${JSON.stringify(breadcrumb)}${index}`;
                 const style = [styles.breadcrumb, breadcrumb.type === CONST.BREADCRUMB_TYPE.STRONG && styles.breadcrumbStrong];
                 const separatorStyle = [style, styles.breadcrumbSeparator];
 
                 return (
                     <Fragment key={key}>
-                        {breadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
+                        {breadcrumb.type === CONST.BREADCRUMB_TYPE.HEADER ? (
                             <View style={styles.breadcrumbLogo}>
                                 <Header
                                     title={
