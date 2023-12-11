@@ -1000,16 +1000,16 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 /**
  * Get the report given a reportID
  */
-function getReport(reportID: string | undefined): OnyxEntry<Report> {
+function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
     /**
      * Using typical string concatenation here due to performance issues
      * with template literals.
      */
     if (!allReports) {
-        return null;
+        return {};
     }
 
-    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? null;
+    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
 }
 
 /**
@@ -1922,7 +1922,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
  * @param [reportAction] This can be either a report preview action or the IOU action
  */
 function getReportPreviewMessage(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | EmptyObject,
     reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
