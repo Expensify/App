@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import ConvertToLTRForComposer from './types';
 
-/** Android only - We should remove the LTR unicode when the input is empty to prevent: Sending an empty message, metion suggestions not works if @ is the first character; (force option: always remove the unicode, should be used when the user starts writing with @) or placeholder not shows if unicode character is the only remaining character. */
+/** Android only - We should remove the LTR unicode when the input is empty to prevent: Sending an empty message, metion suggestions not works if @ or \s (at or space) is the first character; (force option: always remove the unicode, should be used when the user starts writing with @) or placeholder not shows if unicode character is the only remaining character. */
 const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
     const result = newComment.length <= 1 || force ? newComment.replace(CONST.UNICODE.LTR, '') : newComment;
     return result;
@@ -13,7 +13,7 @@ const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
  */
 const convertToLTRForComposer: ConvertToLTRForComposer = (text, isComposerEmpty) => {
     let newText = resetLTRWhenEmpty(text);
-    if (newText.startsWith(`${CONST.UNICODE.LTR}@`)) {
+    if (newText.startsWith(`${CONST.UNICODE.LTR}@`) || newText.match(/^(\s)*$/)) {
         newText = resetLTRWhenEmpty(newText, true);
         return newText;
     }
