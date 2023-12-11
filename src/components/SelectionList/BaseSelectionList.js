@@ -73,6 +73,7 @@ function BaseSelectionList({
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
     const [isInitialRender, setIsInitialRender] = useState(true);
+    const wrapperStyles = useMemo(() => ({opacity: isInitialRender ? 0 : 1}), [isInitialRender]);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -331,7 +332,7 @@ function BaseSelectionList({
             scrollToIndex(focusedIndex, false);
             setIsInitialRender(false);
         },
-        [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+        [focusedIndex, isInitialRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
@@ -394,7 +395,7 @@ function BaseSelectionList({
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, {opacity: isInitialRender ? 0 : 1}]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyles]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
