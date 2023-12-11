@@ -103,7 +103,7 @@ const lightTheme = {
             backgroundColor: colors.tangerine800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.PREFERENCES]: {
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
             backgroundColor: colors.blue500,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -111,7 +111,7 @@ const lightTheme = {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.WALLET]: {
+        [SCREENS.SETTINGS.WALLET.ROOT]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -119,7 +119,7 @@ const lightTheme = {
             backgroundColor: colors.ice500,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.SETTINGS.STATUS]: {
+        [SCREENS.SETTINGS.PROFILE.STATUS]: {
             backgroundColor: colors.green700,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
