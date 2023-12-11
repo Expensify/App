@@ -1393,6 +1393,8 @@ const styles = (theme: ThemeColors) =>
         breadcrumbSeparator: {
             color: colors.darkIcons,
             fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
         },
 
         breadcrumbLogo: {
