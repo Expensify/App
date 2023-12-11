@@ -1,3 +1,5 @@
+import UpdateMultilineInputRange from './types';
+
 /**
  * Place the cursor at the end of the value (if there is a value in the input).
  *
@@ -6,11 +8,8 @@
  * focus. This provides a better user experience in cases where the text in the field has to be edited. The auto-
  * scroll behaviour works on all platforms except iOS native.
  * See https://github.com/Expensify/App/issues/20836 for more details.
- *
- * @param {Object} input the input element
- * @param {boolean} shouldAutoFocus
  */
-export default function updateMultilineInputRange(input, shouldAutoFocus = true) {
+const updateMultilineInputRange: UpdateMultilineInputRange = (input, shouldAutoFocus = true) => {
     if (!input) {
         return;
     }
@@ -23,4 +22,6 @@ export default function updateMultilineInputRange(input, shouldAutoFocus = true)
     if (shouldAutoFocus) {
         input.focus();
     }
-}
+};
+
+export default updateMultilineInputRange;
