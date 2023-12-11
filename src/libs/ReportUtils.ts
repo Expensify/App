@@ -317,7 +317,6 @@ type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronou
 
 type OptionData = {
     alternateText?: string | null;
-    pendingAction?: PendingAction | null;
     allReportErrors?: Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
     tooltipText?: string | null;
