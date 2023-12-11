@@ -17,6 +17,10 @@ function Composer(
         autoFocus = false,
         isFullComposerAvailable = false,
         style,
+        // On native layers we like to have the Text Input not focused so the
+        // user can read new chats without the keyboard in the way of the view.
+        // On Android the selection prop is required on the TextInput but this prop has issues on IOS
+        selection,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
@@ -63,11 +67,6 @@ function Composer(
 
     const composerStyles = useMemo(() => StyleSheet.flatten(style), [style]);
 
-    // On native layers we like to have the Text Input not focused so the
-    // user can read new chats without the keyboard in the way of the view.
-    // On Android the selection prop is required on the TextInput but this prop has issues on IOS
-    const {selection, ...propsToPass} = props;
-
     return (
         <RNTextInput
             autoComplete="off"
@@ -81,7 +80,7 @@ function Composer(
             autoFocus={autoFocus}
             isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...propsToPass}
+            {...props}
             readOnly={isDisabled}
         />
     );
