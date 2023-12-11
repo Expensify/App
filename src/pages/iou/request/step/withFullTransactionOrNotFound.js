@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -31,9 +32,11 @@ export default function (WrappedComponent) {
             transaction: {transactionID},
         } = props;
 
-        // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown
+        const isFocused = useIsFocused();
+
+        // If the transaction does not have a transactionID, then the transaction no longer exists in Onyx as a full transaction and the not-found page should be shown.
         if (!transactionID) {
-            return <FullPageNotFoundView shouldShow />;
+            return <FullPageNotFoundView shouldShow={isFocused} />;
         }
 
         return (
