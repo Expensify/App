@@ -1,8 +1,10 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Fragment} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -18,6 +20,16 @@ import CONST from '@src/CONST';
  */
 function getTextMatrix(text) {
     return _.map(text.split('\n'), (row) => _.without(row.split(CONST.REGEX.SPACE_OR_EMOJI), ''));
+}
+
+/**
+ * Validates if the text contains any emoji
+ *
+ * @param {String} text
+ * @returns {Boolean}
+ */
+function containsEmoji(text) {
+    return CONST.REGEX.EMOJIS.test(text);
 }
 
 const propTypes = {
@@ -40,6 +52,7 @@ const defaultProps = {
 
 function WrappedText(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     if (!_.isString(props.children)) {
         return null;
     }
@@ -47,25 +60,28 @@ function WrappedText(props) {
     const textMatrix = getTextMatrix(props.children);
     return (
         <>
-            {_.map(textMatrix, (rowText, rowIndex) => (
-                <Fragment
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`${rowText}-${rowIndex}`}
-                >
-                    {_.map(rowText, (colText, colIndex) => (
-                        // Outer View is important to vertically center the Text
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${colText}-${colIndex}`}
-                            style={styles.codeWordWrapper}
-                        >
-                            <View style={[props.wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
-                                <Text style={props.textStyles}>{colText}</Text>
+            {_.map(textMatrix, (rowText, rowIndex) => {
+                const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), lodashGet(props.textStyles, 'fontSize', 13));
+                return (
+                    <Fragment
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={`${rowText}-${rowIndex}`}
+                    >
+                        {_.map(rowText, (colText, colIndex) => (
+                            // Outer View is important to vertically center the Text
+                            <View
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${colText}-${colIndex}`}
+                                style={styles.codeWordWrapper}
+                            >
+                                <View style={[props.wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
+                                    <Text style={[...props.textStyles, lineHeight ? {lineHeight} : {}]}>{colText}</Text>
+                                </View>
                             </View>
-                        </View>
-                    ))}
-                </Fragment>
-            ))}
+                        ))}
+                    </Fragment>
+                );
+            })}
         </>
     );
 }
