@@ -112,13 +112,7 @@ function MoneyRequestSelectorPage(props) {
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     selectedTab={props.selectedTab}
-                                    tabBar={({state, navigation, position}) => (
-                                        <TabSelector
-                                            state={state}
-                                            navigation={navigation}
-                                            position={position}
-                                        />
-                                    )}
+                                    tabBar={TabSelector}
                                 >
                                     <TopTab.Screen
                                         name={CONST.TAB.MANUAL}
