@@ -63,6 +63,7 @@ import type {
     SplitAmountParams,
     StepCounterParams,
     TagSelectionParams,
+    TaskCreatedActionParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -496,6 +497,7 @@ export default {
     tabSelector: {
         chat: 'Chat',
         room: 'Sala',
+        distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
     },
@@ -1696,6 +1698,7 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
+            created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
             canceled: 'tarea eliminado',
             reopened: 'marcada como incompleta',
@@ -2457,7 +2460,7 @@ export default {
             body: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Recomienda a un amigo y ',
+            buttonText1: 'Invita a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,

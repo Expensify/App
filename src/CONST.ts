@@ -1135,6 +1135,8 @@ const CONST = {
     },
 
     IOU: {
+        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         PAYMENT_TYPE: {
@@ -1146,6 +1148,11 @@ const CONST = {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
+        },
+        REQUEST_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -2755,6 +2762,9 @@ const CONST = {
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
+        IOU_REQUEST_TYPE: 'iouRequestType',
+    },
+    TAB_REQUEST: {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
