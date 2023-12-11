@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import viewRef from '@src/types/utils/viewRef';
 import FocusTrapViewProps from './types';
 
-function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus = false, ...props}: FocusTrapViewProps) {
+function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus = false, shouldReturnFocusOnDeactivate = true, ...props}: FocusTrapViewProps) {
     /**
      * Focus trap always needs a focusable element.
      * In case that we don't have any focusable elements in the modal,
@@ -23,6 +23,7 @@ function FocusTrapView({isEnabled = true, isActive = true, shouldEnableAutoFocus
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 fallbackFocus: () => ref.current!,
                 clickOutsideDeactivates: true,
+                returnFocusOnDeactivate: shouldReturnFocusOnDeactivate,
             }}
         >
             <View

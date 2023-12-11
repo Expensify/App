@@ -16,6 +16,12 @@ type FocusTrapViewProps = ChildrenProps & {
 
     /** Whether the FocusTrap is active (listening for events) */
     isActive?: boolean;
+
+    /**
+     * Whether the FocusTrap should return focus to the last focused element when it is deactivated.
+     * The default value is True, but sometimes we have to disable it, as it causes unexpected behavior.
+     */
+    shouldReturnFocusOnDeactivate?: boolean;
 } & ViewProps;
 
 export default FocusTrapViewProps;

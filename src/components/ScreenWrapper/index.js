@@ -42,6 +42,7 @@ const ScreenWrapper = React.forwardRef(
             testID,
             shouldDisableFocusTrap,
             shouldEnableAutoFocus,
+            shouldReturnFocusOnDeactivate,
         },
         ref,
     ) => {
@@ -155,6 +156,7 @@ const ScreenWrapper = React.forwardRef(
                                             style={[styles.flex1, styles.noSelect]}
                                             isEnabled={!shouldDisableFocusTrap}
                                             shouldEnableAutoFocus={shouldEnableAutoFocus}
+                                            shouldReturnFocusOnDeactivate={shouldReturnFocusOnDeactivate}
                                             isActive={isFocused}
                                         >
                                             <HeaderGap styles={headerGapStyles} />

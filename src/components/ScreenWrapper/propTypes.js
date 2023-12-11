@@ -54,6 +54,9 @@ const propTypes = {
 
     /** Whether to disable auto focus of the focus trap */
     shouldEnableAutoFocus: PropTypes.bool,
+
+    /** Whether to return focus on deactivate of the focus trap */
+    shouldReturnFocusOnDeactivate: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -71,6 +74,7 @@ const defaultProps = {
     headerGapStyles: [],
     shouldDisableFocusTrap: false,
     shouldEnableAutoFocus: false,
+    shouldReturnFocusOnDeactivate: true,
 };
 
 export {propTypes, defaultProps};

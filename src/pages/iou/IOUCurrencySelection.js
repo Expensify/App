@@ -156,6 +156,7 @@ function IOUCurrencySelection(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={IOUCurrencySelection.displayName}
+            shouldReturnFocusOnDeactivate={false}
         >
             {({didScreenTransitionEnd}) => (
                 <>
