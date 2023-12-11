@@ -21,6 +21,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import * as CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 
@@ -170,8 +171,17 @@ function IOURequestStepScan({
         return null;
     }
 
+    const navigateBack = () => {
+        Navigation.goBack(backTo || ROUTES.HOME);
+    };
+
     return (
-        <View style={styles.flex1}>
+        <StepScreenWrapper 
+            headerTitle={translate('common.receipt')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper={Boolean(backTo)}
+            testID={IOURequestStepScan.displayName}
+        >
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <Hand
@@ -282,7 +292,7 @@ function IOURequestStepScan({
                     />
                 </PressableWithFeedback>
             </View>
-        </View>
+        </StepScreenWrapper>
     );
 }
 
