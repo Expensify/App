@@ -14,7 +14,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,6 +40,7 @@ const defaultProps = {
 };
 
 function ReferralDetailsPage({route, account}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     let {contentType} = route.params;
 
@@ -89,6 +90,7 @@ function ReferralDetailsPage({route, account}) {
                 {shouldShowClipboard && (
                     <View style={[styles.border, styles.pv2, styles.ph3, styles.mb6]}>
                         <CopyTextToClipboard
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             text={translate('referralProgram.copyReferralLink')}
                             textStyles={[styles.colorMuted]}
                             urlToCopy={generateReferralURL(account.primaryLogin)}

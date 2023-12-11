@@ -71,9 +71,6 @@ type PersonalDetails = {
 
     /** Status of the current user from their personal details */
     status?: string;
-
-    /** PayPalMe address of the current user */
-    payPalMeAddress?: string;
 };
 
 export default PersonalDetails;

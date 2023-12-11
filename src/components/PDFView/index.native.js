@@ -7,10 +7,10 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
 import withLocalize from '@components/withLocalize';
+import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import withWindowDimensions from '@components/withWindowDimensions';
 import compose from '@libs/compose';
-import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
@@ -19,6 +19,7 @@ const propTypes = {
     ...pdfViewPropTypes,
     ...keyboardStatePropTypes,
     ...withThemeStylesPropTypes,
+    ...withStyleUtilsPropTypes,
 };
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
@@ -71,6 +72,7 @@ function PDFView({
      * Note that the message doesn't specify whether the password is simply empty or
      * invalid.
      */
+    
     function initiatePasswordChallenge() {
         setShouldShowLoadingIndicator(false);
         setShouldRequestPassword(true);
@@ -78,7 +80,7 @@ function PDFView({
         // The message provided by react-native-pdf doesn't indicate whether this
         // is an initial password request or if the password is invalid. So we just assume
         // that if a password was already entered then it's an invalid password error.
-        if (password !== '') {
+        if (password) {
             setIsPasswordInvalid(true);
         }
     }
@@ -186,4 +188,4 @@ PDFView.displayName = 'PDFView';
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles)(PDFView);
+export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles, withStyleUtils)(PDFView);
