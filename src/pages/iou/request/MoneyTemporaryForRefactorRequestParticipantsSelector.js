@@ -97,7 +97,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         personalDetails: [],
         userToInvite: null,
     });
-    const [selectedOptions, setSelectedOptions] = useState(participants);
     const {isOffline} = useNetwork();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -113,7 +112,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
-            selectedOptions,
+            participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
             personalDetails,
@@ -156,7 +155,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, selectedOptions, personalDetails, translate, searchTerm]);
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request
@@ -208,32 +207,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                     },
                 ];
             }
-            setSelectedOptions(newSelectedOptions);
+
             onParticipantsAdded(newSelectedOptions);
-
-            const chatOptions = OptionsListUtils.getFilteredOptions(
-                reports,
-                personalDetails,
-                betas,
-                isOptionInList ? searchTerm : '',
-                newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
-
-                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to request money from their admin on their own Workspace Chat.
-                iouType === CONST.IOU.TYPE.REQUEST,
-
-                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-                iouType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
-            );
-
-            setNewChatOptions({
-                recentReports: chatOptions.recentReports,
-                personalDetails: chatOptions.personalDetails,
-                userToInvite: chatOptions.userToInvite,
-            });
         },
-        [participants, onParticipantsAdded, reports, personalDetails, betas, searchTerm, iouType],
+        [participants, onParticipantsAdded],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -269,7 +246,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             true,
             true,
         );
-        setSelectedOptions(participants);
         setNewChatOptions({
             recentReports: chatOptions.recentReports,
             personalDetails: chatOptions.personalDetails,
@@ -327,7 +303,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 multipleOptionSelectorButtonText={translate('iou.split')}
                 onAddToSelection={addParticipantToSelection}
                 sections={sections}
-                selectedOptions={selectedOptions}
+                selectedOptions={participants}
                 value={searchTerm}
                 onSelectRow={addSingleParticipant}
                 onChangeText={setSearchTermAndSearchInServer}
