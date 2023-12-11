@@ -1386,14 +1386,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         breadcrumbStrong: {
-            marginTop: 0,
             color: colors.darkPrimaryText,
             fontSize: variables.fontSizeXLarge,
         },
 
         breadcrumbSeparator: {
-            marginTop: 0,
-            marginRight: 4,
             color: colors.darkIcons,
             fontSize: variables.fontSizeXLarge,
         },
