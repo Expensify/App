@@ -2002,7 +2002,7 @@ export default {
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
-        autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
+        autoReportedRejectedExpense: ({rejectReason, rejectedBy}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rejected this expense with the comment "${rejectReason}"`,
         billableExpense: 'Billable no longer valid',
         cashExpenseWithNoReceipt: ({amount}: ViolationsCashExpenseWithNoReceiptParams) => `Receipt required over ${amount}`,
         categoryOutOfPolicy: 'Category no longer valid',
@@ -2012,10 +2012,10 @@ export default {
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Marked up by ${invoiceMarkup}%`,
-        maxAge: ({workspaceMaxExpenseAge}: ViolationsMaxAgeParams) => `Date older than ${workspaceMaxExpenseAge} days`,
+        maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Missing comment',
-        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName}`,
+        missingTag: ({tagName}: ViolationsMissingTagParams) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: 'Amount greater than scanned receipt',
         modifiedDate: 'Date differs from scanned receipt',
         nonExpensiworksExpense: 'Non-Expensiworks expense',
@@ -2026,7 +2026,7 @@ export default {
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Amount over daily ${limit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
         receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Receipt required over ${amount} ${category ? ' category limit' : ''}`,
-        rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
+        rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection && isAdmin) {
                 return "Can't auto-match receipt due to broken bank connection which you need to fix";
             }
@@ -2036,17 +2036,16 @@ export default {
             if (isAdmin && !isTransactionOlderThan7Days) {
                 return `Ask ${member} to mark as a cash or wait 7 days and try again`;
             }
-
             if (!isTransactionOlderThan7Days) {
-                return `Awaiting merge with card transaction.`;
+                return 'Awaiting merge with card transaction.';
             }
-            return ``;
+            return '';
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',
         someTagLevelsRequired: 'Missing tag',
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName} no longer valid`,
+        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `${tagName ?? ''} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName} no longer valid`,
+        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? ''} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
     },

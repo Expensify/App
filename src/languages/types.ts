@@ -209,13 +209,13 @@ type ViolationsAutoReportedRejectedExpenseParams = {rejectedBy: string; rejectRe
 
 type ViolationsCashExpenseWithNoReceiptParams = {amount: string};
 
-type ViolationsConversionSurchargeParams = {surcharge: number};
+type ViolationsConversionSurchargeParams = {surcharge?: number};
 
-type ViolationsInvoiceMarkupParams = {invoiceMarkup: number};
+type ViolationsInvoiceMarkupParams = {invoiceMarkup?: number};
 
-type ViolationsMaxAgeParams = {workspaceMaxExpenseAge: number};
+type ViolationsMaxAgeParams = {maxAge: number};
 
-type ViolationsMissingTagParams = {tagName: string};
+type ViolationsMissingTagParams = {tagName?: string};
 
 type ViolationsOverAutoApprovalLimitParams = {formattedLimitAmount: string};
 
@@ -235,9 +235,9 @@ type ViolationsRterParams = {
     member?: string;
 };
 
-type ViolationsTagOutOfPolicyParams = {tagName: string};
+type ViolationsTagOutOfPolicyParams = {tagName?: string};
 
-type ViolationsTaxOutOfPolicyParams = {taxName: string};
+type ViolationsTaxOutOfPolicyParams = {taxName?: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

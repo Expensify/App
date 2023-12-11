@@ -9,7 +9,25 @@ type TransactionViolation = {
     type: string;
     name: ViolationName;
     userMessage: string;
-    data?: Record<string, string>;
+    data?: {
+        rejectedBy?: string;
+        rejectReason?: string;
+        amount?: string;
+        surcharge?: number;
+        invoiceMarkup?: number;
+        maxAge?: number;
+        tagName?: string;
+        formattedLimitAmount?: string;
+        categoryLimit?: string;
+        limit?: string;
+        category?: string;
+        brokenBankConnection?: boolean;
+        isAdmin?: boolean;
+        email?: string;
+        isTransactionOlderThan7Days?: boolean;
+        member?: string;
+        taxName?: string;
+    };
 };
 
 export type {TransactionViolation, ViolationName};

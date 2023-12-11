@@ -2497,7 +2497,7 @@ export default {
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Incrementado un ${invoiceMarkup}%`,
-        maxAge: ({workspaceMaxExpenseAge}: ViolationsMaxAgeParams) => `Fecha de más de ${workspaceMaxExpenseAge} días`,
+        maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Falta comentario',
         missingTag: ({tagName}: ViolationsMissingTagParams) => `Falta ${tagName}`,
@@ -2511,16 +2511,25 @@ export default {
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría de ${limit}/persona`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
         receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Recibo obligatorio para importes sobre ${amount} ${category ? ' el limite de la categoría de' : ''}`,
-        rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) =>
-            brokenBankConnection && isAdmin
-                ? `No se puede adjuntar recibo debido a una conexión con su banco que necesita arreglar`
-                : brokenBankConnection
-                ? `No se puede adjuntar recibo debido a una conexión con su banco que ${email} necesita arreglar`
-                : isAdmin && !isTransactionOlderThan7Days
-                ? `Pídele a ${member} que marque la transacción como efectivo o espere 7 días e intente de nuevo`
-                : !isTransactionOlderThan7Days
-                ? `Esperando adjuntar automáticamente con transacción de tarjeta de crédito`
-                : ``,
+        rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
+            if (brokenBankConnection && isAdmin) {
+                return `No se puede adjuntar recibo debido a una conexión con su banco que necesita arreglar`;
+            }
+
+            if (brokenBankConnection) {
+                return `No se puede adjuntar recibo debido a una conexión con su banco que ${email} necesita arreglar`;
+            }
+
+            if (isAdmin && !isTransactionOlderThan7Days) {
+                return `Pídele a ${member} que marque la transacción como efectivo o espere 7 días e intente de nuevo`;
+            }
+
+            if (!isTransactionOlderThan7Days) {
+                return `Esperando adjuntar automáticamente con transacción de tarjeta de crédito`;
+            }
+
+            return ``;
+        },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
         someTagLevelsRequired: 'Falta etiqueta',
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams) => `Le etiqueta ${tagName} ya no es válida`,
