@@ -1,9 +1,8 @@
 import {setYear} from 'date-fns';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import InputWrapper from '@components/Form/InputWrapper';
 import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
@@ -33,6 +32,12 @@ const propTypes = {
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
 
+    /** A function that is passed by FormWrapper */
+    onInputChange: PropTypes.func.isRequired,
+
+    /** A function that is passed by FormWrapper */
+    onTouched: PropTypes.func.isRequired,
+
     ...withLocalizePropTypes,
     ...baseTextInputPropTypes,
 };
@@ -48,36 +53,27 @@ function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID
     const styles = useThemeStyles();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
-    useEffect(() => {
-        if (selectedDate === value || _.isUndefined(value)) {
-            return;
-        }
-        setSelectedDate(value);
-    }, [selectedDate, value]);
-
-    useEffect(() => {
+    const onSelected = (newValue) => {
         if (_.isFunction(onTouched)) {
             onTouched();
         }
         if (_.isFunction(onInputChange)) {
-            onInputChange(selectedDate);
+            onInputChange(newValue);
         }
-        // To keep behavior from class component state update callback, we want to run effect only when the selected date is changed.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedDate]);
+        setSelectedDate(newValue);
+    };
 
     return (
         <View style={styles.datePickerRoot}>
             <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
-                <InputWrapper
-                    InputComponent={TextInput}
+                <TextInput
                     inputID={inputID}
                     forceActiveLabel
                     icon={Expensicons.Calendar}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    value={value || selectedDate || ''}
+                    value={selectedDate}
                     placeholder={placeholder || translate('common.dateFormat')}
                     errorText={errorText}
                     containerStyles={containerStyles}
@@ -92,7 +88,7 @@ function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID
                     minDate={minDate}
                     maxDate={maxDate}
                     value={selectedDate}
-                    onSelected={setSelectedDate}
+                    onSelected={onSelected}
                 />
             </View>
         </View>

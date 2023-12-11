@@ -69,7 +69,8 @@ function Template(args) {
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
             />
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 inputID="dob"
                 label="Date of Birth"
                 containerStyles={[styles.mt4]}
