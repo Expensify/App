@@ -118,3 +118,7 @@ target 'NewExpensify' do
     end
   end
 end
+
+target 'CustomNotificationServiceExtension' do
+  pod 'AirshipServiceExtension'
+end
