@@ -97,6 +97,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         personalDetails: [],
         userToInvite: null,
     });
+    const [selectedOptions, setSelectedOptions] = useState(participants);
     const {isOffline} = useNetwork();
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -112,7 +113,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             searchTerm,
-            participants,
+            selectedOptions,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
             personalDetails,
@@ -155,7 +156,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
+    }, [maxParticipantsReached, newChatOptions, selectedOptions, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request
@@ -207,7 +208,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                     },
                 ];
             }
-
+            setSelectedOptions(newSelectedOptions);
             onParticipantsAdded(newSelectedOptions);
 
             const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -268,6 +269,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             true,
             true,
         );
+        setSelectedOptions(participants);
         setNewChatOptions({
             recentReports: chatOptions.recentReports,
             personalDetails: chatOptions.personalDetails,
@@ -325,7 +327,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 multipleOptionSelectorButtonText={translate('iou.split')}
                 onAddToSelection={addParticipantToSelection}
                 sections={sections}
-                selectedOptions={participants}
+                selectedOptions={selectedOptions}
                 value={searchTerm}
                 onSelectRow={addSingleParticipant}
                 onChangeText={setSearchTermAndSearchInServer}
