@@ -64,9 +64,6 @@ type Report = {
     /** Whether the parent action was deleted */
     isDeletedParentAction?: boolean;
 
-    /** PayPalMe address of the submitter */
-    submitterPayPalMeAddress?: string;
-
     /** Linked policy's ID */
     policyID?: string;
 
