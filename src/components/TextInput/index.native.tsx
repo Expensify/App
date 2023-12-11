@@ -2,7 +2,8 @@ import React, {forwardRef, useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import BaseTextInputProps, {BaseTextInputRef} from './BaseTextInput/types';
+import type BaseTextInputProps from './BaseTextInput/types';
+import type {BaseTextInputRef} from './BaseTextInput/types';
 
 function TextInput(props: BaseTextInputProps, ref: BaseTextInputRef) {
     const styles = useThemeStyles();
@@ -27,12 +28,12 @@ function TextInput(props: BaseTextInputProps, ref: BaseTextInputRef) {
 
     return (
         <BaseTextInput
-            autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Setting autoCompleteType to new-password throws an error on Android/iOS, so fall back to password in that case
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             ref={ref}
+            autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             inputStyle={[styles.baseTextInput, props.inputStyle]}
         />
     );

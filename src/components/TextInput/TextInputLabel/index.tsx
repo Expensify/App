@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import {Animated, Text} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import TextInputLabelProps from './types';
+import type TextInputLabelProps from './types';
 
 function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}: TextInputLabelProps) {
     const styles = useThemeStyles();

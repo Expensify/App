@@ -1,25 +1,13 @@
 import Str from 'expensify-common/lib/str';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
-import {
-    ActivityIndicator,
-    Animated,
-    FlexStyle,
-    type GestureResponderEvent,
-    type LayoutChangeEvent,
-    type NativeSyntheticEvent,
-    StyleProp,
-    StyleSheet,
-    TextInput,
-    TextInputFocusEventData,
-    View,
-    ViewStyle,
-} from 'react-native';
+import {ActivityIndicator, Animated, StyleSheet, TextInput, View} from 'react-native';
+import type {FlexStyle, GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RNTextInput, {AnimatedTextInputRef} from '@components/RNTextInput';
+import RNTextInput, {type AnimatedTextInputRef} from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';

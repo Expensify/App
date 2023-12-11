@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
