@@ -63,6 +63,7 @@ import type {
     SplitAmountParams,
     StepCounterParams,
     TagSelectionParams,
+    TaskCreatedActionParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -496,6 +497,7 @@ export default {
     tabSelector: {
         chat: 'Chat',
         room: 'Sala',
+        distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
     },
@@ -1208,8 +1210,10 @@ export default {
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError:
-            'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
+        validateAccountError: {
+            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
+            phrase2: 'vuelve a iniciar sesión con un código mágico',
+        },
         hasPhoneLoginError:
             'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
@@ -1572,12 +1576,6 @@ export default {
             invitePeople: 'Invitar nuevos miembros',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
-            user: 'usuario',
-            users: 'usuarios',
-            invited: 'invitó',
-            removed: 'eliminó',
-            to: 'a',
-            from: 'de',
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
@@ -1703,6 +1701,7 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
+            created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
             canceled: 'tarea eliminado',
             reopened: 'marcada como incompleta',
@@ -2464,9 +2463,9 @@ export default {
             body1: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Recomienda a un amigo y ',
+            buttonText1: 'Invita a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recomienda a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Invita a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body1: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
