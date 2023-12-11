@@ -126,7 +126,8 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
-    transactionThreadReportAction,
+    transactionThreadReport,
+    transactionThreadCreatedReportAction,
 ) {
     const optimisticData = [
         {
@@ -175,9 +176,14 @@ function buildOnyxDataForMoneyRequest(
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
+            value: transactionThreadReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
             value: {
-                [transactionThreadReportAction.reportActionID]: transactionThreadReportAction,
+                [transactionThreadCreatedReportAction.reportActionID]: transactionThreadCreatedReportAction,
             },
         },
     ];
@@ -276,9 +282,9 @@ function buildOnyxDataForMoneyRequest(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
             value: {
-                [transactionThreadReportAction.reportActionID]: {
+                [transactionThreadCreatedReportAction.reportActionID]: {
                     pendingAction: null,
                     errors: null,
                 },
@@ -372,7 +378,7 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                [transactionThreadReportAction.reportActionID]: {
+                [transactionThreadCreatedReportAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 },
             },
@@ -593,6 +599,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
         isNewIOUReport,
+        transactionThread,
         optimisticCreatedActionForThread,
     );
 
@@ -612,7 +619,7 @@ function getMoneyRequestInformation(
             failureData,
         },
         transactionThreadReportID: Number(transactionThread.reportID),
-        createdReportActionForThread: optimisticCreatedActionForThread,
+        createdReportActionForThread: Number(optimisticCreatedActionForThread.reportActionID),
     };
 }
 
@@ -1234,7 +1241,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             optimisticPolicyRecentlyUsedTags,
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
-            transactionThread.reportID,
+            transactionThread,
             optimisticCreatedActionForThread,
         );
 
@@ -1765,6 +1772,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
             transactionThread.reportID,
+            transactionThread,
             optimisticCreatedActionForThread,
         );
 
