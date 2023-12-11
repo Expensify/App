@@ -12,7 +12,6 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
-import * as TransactionEdit from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import reportPropTypes from './reportPropTypes';
@@ -52,7 +51,6 @@ const defaultProps = {
 function EditRequestDistancePage({report, route, transaction, transactionBackup}) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const transactionWasSaved = useRef(false);
     const hasWaypointError = useRef(false);
     const prevIsLoading = usePrevious(transaction.isLoading);
 
@@ -65,26 +63,6 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
             Navigation.dismissModal(report.reportID);
         }
     }, [transaction, prevIsLoading, report]);
-
-    useEffect(() => {
-        // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
-        // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
-        // original transaction, letting the user modify the current transaction, and then if the user ever
-        // cancels out of the modal without saving changes, the original transaction is restored from the backup.
-
-        // On mount, create the backup transaction.
-        TransactionEdit.createBackupTransaction(transaction);
-
-        return () => {
-            // If the user cancels out of the modal without without saving changes, then the original transaction
-            // needs to be restored from the backup so that all changes are removed.
-            if (transactionWasSaved.current) {
-                return;
-            }
-            TransactionEdit.restoreOriginalTransactionFromBackup(transaction.transactionID);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     /**
      * Save the changes to the original transaction object
@@ -101,7 +79,6 @@ function EditRequestDistancePage({report, route, transaction, transactionBackup}
             return;
         }
 
-        transactionWasSaved.current = true;
         IOU.editMoneyRequest(transaction, report.reportID, {waypoints});
 
         // If the client is offline, then the modal can be closed as well (because there are no errors or other feedback to show them

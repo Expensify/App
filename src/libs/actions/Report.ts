@@ -481,6 +481,8 @@ function openReport(
               reportName: allReports?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
           };
 
+    const commandName = 'OpenReport';
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -539,6 +541,7 @@ function openReport(
         shouldRetry?: boolean;
         createdReportActionID?: string;
         clientLastReadTime?: string;
+        idempotencyKey?: string;
     };
 
     const parameters: OpenReportParameters = {
@@ -546,6 +549,7 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
+        idempotencyKey: `${commandName}_${reportID}`,
     };
 
     if (isFromDeepLink) {
@@ -629,6 +633,7 @@ function openReport(
 
         // Add the createdReportActionID parameter to the API call
         parameters.createdReportActionID = optimisticCreatedAction.reportActionID;
+        parameters.idempotencyKey = `${parameters.idempotencyKey}_NewReport_${optimisticCreatedAction.reportActionID}`;
 
         // If we are creating a thread, ensure the report action has childReportID property added
         if (newReportObject.parentReportID && parentReportActionID) {
@@ -649,12 +654,12 @@ function openReport(
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('OpenReport', parameters, {optimisticData, successData, failureData}).finally(() => {
+        API.makeRequestWithSideEffects(commandName, parameters, {optimisticData, successData, failureData}).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write('OpenReport', parameters, {optimisticData, successData, failureData});
+        API.write(commandName, parameters, {optimisticData, successData, failureData});
     }
 }
 
