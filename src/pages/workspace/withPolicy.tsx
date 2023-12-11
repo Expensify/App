@@ -56,7 +56,7 @@ const policyPropTypes = {
         requiresTag: PropTypes.bool,
 
         /** Whether or not the policy requires categories */
-        requiresCategories: PropTypes.bool,
+        requiresCategory: PropTypes.bool,
 
         /** Whether or not the policy has multiple tag lists */
         hasMultipleTagLists: PropTypes.bool,
