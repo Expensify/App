@@ -265,8 +265,6 @@ const ONYXKEYS = {
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
-
-        // Transaction Violations
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
 
         // Holds temporary transactions used during the creation and edit flow
