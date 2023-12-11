@@ -749,6 +749,13 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Returns true if report is still being processed
+ */
+function isProcessingReport(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && report?.statusNum === CONST.REPORT.STATUS.SUBMITTED;
+}
+
+/**
  * Check if the report is a single chat report that isn't a thread
  * and personal detail of participant is optimistic data
  */
@@ -1725,7 +1732,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    if ((report?.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && report?.statusNum === CONST.REPORT.STATUS.SUBMITTED) || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
+    if (isProcessingReport(report) || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
@@ -4339,6 +4346,7 @@ export {
     isPublicRoom,
     isPublicAnnounceRoom,
     isConciergeChatReport,
+    isProcessingReport,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
