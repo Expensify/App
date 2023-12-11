@@ -2,15 +2,13 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import withWindowDimensions from '@components/withWindowDimensions';
-import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import {Icon} from '@src/types/onyx/OnyxCommon';
 
-type ReportActionItemThreadProps = WindowDimensionsProps & {
+type ReportActionItemThreadProps = {
     /** List of participant icons for the thread */
     icons: Icon[];
 
@@ -30,7 +28,7 @@ type ReportActionItemThreadProps = WindowDimensionsProps & {
     onSecondaryInteraction: () => void;
 };
 
-function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps): React.ReactElement {
+function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
     const {translate, datetimeToRelative} = useLocalize();
@@ -81,4 +79,4 @@ function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childR
 
 ReportActionItemThread.displayName = 'ReportActionItemThread';
 
-export default withWindowDimensions(ReportActionItemThread);
+export default ReportActionItemThread;
