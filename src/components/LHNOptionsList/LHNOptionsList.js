@@ -138,11 +138,7 @@ function LHNOptionsList({
         [draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
-    const extraData = useMemo(() => [
-            reportActions,
-            policy,
-            personalDetails,
-        ], [reportActions, policy, personalDetails])
+    const extraData = useMemo(() => [reportActions, policy, personalDetails], [reportActions, policy, personalDetails]);
 
     return (
         <View style={style || styles.flex1}>
@@ -167,26 +163,25 @@ LHNOptionsList.defaultProps = defaultProps;
 LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        reportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        },
-        policy: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        transactions: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION,
-        },
-        draftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-        },
-    }
-)(LHNOptionsList);
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    reportActions: {
+        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    },
+    policy: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    transactions: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION,
+    },
+    draftComments: {
+        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    },
+})(LHNOptionsList);
