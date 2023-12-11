@@ -1,8 +1,8 @@
 import React from 'react';
 import {Image} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 function ExampleCheckImage() {
