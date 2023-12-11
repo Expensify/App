@@ -7,9 +7,9 @@ LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd ../../ && pwd)"
 readonly SRC_DIR="${LIB_PATH}/src"
 readonly STYLES_DIR="${LIB_PATH}/src/styles"
 readonly STYLES_FILE="${LIB_PATH}/src/styles/index.ts"
-readonly UTILITIES_STYLES_FILE="${LIB_PATH}/src/styles/utils"
+readonly UTILS_STYLES_FILE="${LIB_PATH}/src/styles/utils"
 readonly STYLES_KEYS_FILE="${LIB_PATH}/scripts/style_keys_list_temp.txt"
-readonly UTILITY_STYLES_KEYS_FILE="${LIB_PATH}/scripts/utility_keys_list_temp.txt"
+readonly UTIL_STYLES_KEYS_FILE="${LIB_PATH}/scripts/utility_keys_list_temp.txt"
 readonly REMOVAL_KEYS_FILE="${LIB_PATH}/scripts/removal_keys_list_temp.txt"
 readonly AMOUNT_LINES_TO_SHOW=3
 
@@ -295,7 +295,7 @@ lookfor_unused_spread_keywords() {
   done < "$STYLES_FILE"
 }
 
-find_utility_styles_store_prefix() {
+find_util_styles_store_prefix() {
   # Loop through all files in the src folder
   while read -r file; do
     # Search for keywords starting with "styles"
@@ -303,12 +303,12 @@ find_utility_styles_store_prefix() {
         local variable="${keyword##*/}"
         local variable_trimmed="${variable// /}"  # Trim spaces
 
-        echo "$variable_trimmed" >> "$UTILITY_STYLES_KEYS_FILE"
+        echo "$variable_trimmed" >> "$UTIL_STYLES_KEYS_FILE"
     done < <(grep -E -o './utils/[a-zA-Z0-9_-]+' "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
   done < <(find "${STYLES_DIR}" -type f \( "${FILE_EXTENSIONS[@]}" \))
 
   # Sort and remove duplicates from the temporary file
-  sort -u -o "${UTILITY_STYLES_KEYS_FILE}" "${UTILITY_STYLES_KEYS_FILE}"
+  sort -u -o "${UTIL_STYLES_KEYS_FILE}" "${UTIL_STYLES_KEYS_FILE}"
 }
 
 find_utility_usage_as_styles() {
@@ -320,15 +320,15 @@ find_utility_usage_as_styles() {
     parent_dir=$(dirname "$file")
     root_key=$(basename "${parent_dir}")
 
-    if [[ "${root_key}" == "utilities" ]]; then
+    if [[ "${root_key}" == "utils" ]]; then
       continue
     fi
 
     find_theme_style_and_store_keys "${file}" 0 "${root_key}"
-  done < <(find "${UTILITIES_STYLES_FILE}" -type f \( "${FILE_EXTENSIONS[@]}" \))
+  done < <(find "${UTILS_STYLES_FILE}" -type f \( "${FILE_EXTENSIONS[@]}" \))
 }
 
-lookfor_unused_utilities() {
+lookfor_unused_utils() {
   # Read each utility keyword from the file
   while read -r keyword; do
     # Creating a copy so later the replacement can reference it
@@ -345,7 +345,7 @@ lookfor_unused_utilities() {
         remove_keyword "${match}"
       done < <(grep -E -o "$original_keyword\.[a-zA-Z0-9_-]+" "$file" | grep -v '\/\/' | grep -vE '\/\*.*\*\/')
     done < <(find "${STYLES_DIR}" -type f \( "${FILE_EXTENSIONS[@]}" \))
-  done < "$UTILITY_STYLES_KEYS_FILE"
+  done < "$UTIL_STYLES_KEYS_FILE"
 }
 
 echo "🔍 Looking for styles."
@@ -360,8 +360,8 @@ collect_theme_keys_from_styles "$STYLES_FILE"
 
 echo "🗄️ Now going through the codebase and looking for unused keys."
 
-# Look for usages of utilities into src/styles
-lookfor_unused_utilities
+# Look for usages of utils into src/styles
+lookfor_unused_utils
 lookfor_unused_spread_keywords
 lookfor_unused_keywords
 
