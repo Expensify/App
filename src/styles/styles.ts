@@ -3617,6 +3617,7 @@ const styles = (theme: ThemeColors) =>
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
+                lineHeight: 14,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
