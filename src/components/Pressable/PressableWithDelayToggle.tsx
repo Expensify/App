@@ -48,6 +48,7 @@ type PressableWithDelayToggleProps = PressableProps & {
      * vertical text alignment of non-Text elements
      */
     inline?: boolean;
+    accessibilityRole?: string;
 };
 
 function PressableWithDelayToggle(
@@ -63,6 +64,7 @@ function PressableWithDelayToggle(
         textStyles,
         iconStyles,
         icon,
+        accessibilityRole,
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
@@ -101,6 +103,7 @@ function PressableWithDelayToggle(
             onPress={updatePressState}
             accessibilityLabel={tooltipTexts}
             suppressHighlighting={inline ? true : undefined}
+            accessibilityRole={accessibilityRole}
         >
             <>
                 {inline && labelText}

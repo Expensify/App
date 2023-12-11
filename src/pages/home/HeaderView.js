@@ -197,7 +197,7 @@ function HeaderView(props) {
         >
             <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
                 {isLoading ? (
-                    <ReportHeaderSkeletonView />
+                    <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                 ) : (
                     <>
                         {isSmallScreenWidth && (
