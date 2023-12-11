@@ -134,7 +134,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transactionID, waypointIndex);
+            Transaction.removeWaypoint(transaction, waypointIndex);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -154,7 +154,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transactionID, waypointIndex);
+        Transaction.removeWaypoint(transaction, waypointIndex);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };

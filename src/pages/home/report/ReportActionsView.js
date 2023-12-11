@@ -97,6 +97,7 @@ function ReportActionsView(props) {
 
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
+    const hasNewestReportAction = lodashGet(props.reportActions[0], 'isNewestReportAction');
 
     /**
      * @returns {Boolean}
@@ -219,7 +220,7 @@ function ReportActionsView(props) {
     const loadNewerChats = useMemo(
         () =>
             _.throttle(({distanceFromStart}) => {
-                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
+                if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions || hasNewestReportAction) {
                     return;
                 }
 
@@ -241,7 +242,7 @@ function ReportActionsView(props) {
                 const newestReportAction = _.first(props.reportActions);
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }, 500),
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID],
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, props.reportActions, reportID, hasNewestReportAction],
     );
 
     /**
