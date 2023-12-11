@@ -6,6 +6,7 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 /**
@@ -60,14 +61,14 @@ function WrappedText(props) {
     const textMatrix = getTextMatrix(props.children);
     return (
         <>
-            {_.map(textMatrix, (rowText, rowIndex) => {
-                const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), lodashGet(props.textStyles, 'fontSize', 13));
-                return (
-                    <Fragment
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${rowText}-${rowIndex}`}
-                    >
-                        {_.map(rowText, (colText, colIndex) => (
+            {_.map(textMatrix, (rowText, rowIndex) => (
+                <Fragment
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${rowText}-${rowIndex}`}
+                >
+                    {_.map(rowText, (colText, colIndex) => {
+                        const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), lodashGet(props.textStyles, 'fontSize', variables.fontSizeNormal));
+                        return (
                             // Outer View is important to vertically center the Text
                             <View
                                 // eslint-disable-next-line react/no-array-index-key
@@ -78,10 +79,10 @@ function WrappedText(props) {
                                     <Text style={[...props.textStyles, lineHeight ? {lineHeight} : {}]}>{colText}</Text>
                                 </View>
                             </View>
-                        ))}
-                    </Fragment>
-                );
-            })}
+                        );
+                    })}
+                </Fragment>
+            ))}
         </>
     );
 }

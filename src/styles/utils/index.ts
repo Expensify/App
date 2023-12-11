@@ -568,7 +568,7 @@ function getCodeFontSize(isInsideH1: boolean) {
  * Returns the line height for the HTML code tag renderer.
  */
 function getCodeLineHeight(isEmojiChunk: boolean, fontSize: number): number {
-    return !isEmojiChunk ? 0 : fontSize;
+    return isEmojiChunk ? 0 : fontSize;
 }
 
 /**
