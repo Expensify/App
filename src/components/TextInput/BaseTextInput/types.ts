@@ -3,6 +3,7 @@ import {FlexStyle, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, 
 import {AnimatedProps} from 'react-native-reanimated';
 import {SrcProps} from '@components/Icon';
 import {LocaleContextProps} from '@components/LocaleContextProvider';
+import {MaybePhraseKey} from '@libs/Localize';
 
 type CustomBaseTextInputProps = {
     /** Input label */
@@ -21,7 +22,7 @@ type CustomBaseTextInputProps = {
     placeholder?: string;
 
     /** Error text to display */
-    errorText: string | string[] | Record<string, string>;
+    errorText: MaybePhraseKey;
 
     /** Icon to display in right side of text input */
     icon: ((props: SrcProps) => React.ReactNode) | null;

@@ -71,6 +71,7 @@ function BaseTextInput(
     const styles = useThemeStyles();
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
 
