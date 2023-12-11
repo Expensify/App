@@ -138,7 +138,7 @@ function LHNOptionsList({
         [draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
-    const extraData = useMemo(() => [reportActions, policy, personalDetails], [reportActions, policy, personalDetails]);
+    const extraData = useMemo(() => [reportActions, reports, policy, personalDetails], [reportActions, reports, policy, personalDetails]);
 
     return (
         <View style={style || styles.flex1}>
