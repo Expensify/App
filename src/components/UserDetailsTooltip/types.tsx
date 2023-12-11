@@ -1,6 +1,5 @@
 import {AvatarSource} from '@libs/UserUtils';
 import {AvatarType} from '@src/types/onyx/OnyxCommon';
-import PersonalDetails from '@src/types/onyx/PersonalDetails';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type FallbackUserDetails = {
@@ -38,13 +37,10 @@ type UserDetailsTooltipProps = ChildrenProps & {
     accountID: number;
 
     /** Fallback User Details object used if no accountID */
-    fallbackUserDetails: FallbackUserDetails;
+    fallbackUserDetails?: FallbackUserDetails;
 
     /** Optionally, pass in the icon instead of calculating it. If defined, will take precedence. */
     icon?: Icon;
-
-    /** List of personalDetails (keyed by accountID)  */
-    personalDetailsList: Record<string, PersonalDetails>;
 
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID?: number;
