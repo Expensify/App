@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {getUrlWithBackToParam} from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -81,6 +82,9 @@ function IOURequestStepCurrency({
      */
     const confirmCurrencySelection = (option) => {
         Keyboard.dismiss();
+        if (pageIndex !== 'confirm') {
+            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, option.currencyCode);
+        }
         navigateBack(option.currencyCode);
     };
 
