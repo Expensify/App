@@ -597,6 +597,7 @@ export default {
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money.`,
         categorySelection: 'Select a category to add additional organization to your money.',
         error: {
+            invalidCategoryLength: 'The length of the category chosen exceeds the maximum allowed (255). Please choose a different or shorten the category name first.',
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
