@@ -84,7 +84,7 @@ const ViolationsUtils = {
     },
     /**
      * Gets the translated message for each violation type. Necessary because `translate` throws a type error if you
-     * attempt to pass it template strings, or any kind of string literal union that contains both function and string
+     * attempt to pass it template strings, or members of a string literal union that contains both function and string
      * members.
      *
      * The issue is with the type of {@link PhraseParameters} which is defined as
