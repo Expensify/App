@@ -44,17 +44,5 @@ FirstBreadcrumbStrong.args = {
     ],
 };
 
-const AllBreadcrumbsNormal = Template.bind({});
-AllBreadcrumbsNormal.args = {
-    breadcrumbs: [
-        {
-            text: 'Settings',
-        },
-        {
-            text: 'Profile',
-        },
-    ],
-};
-
 export default story;
-export {Default, FirstBreadcrumbStrong, AllBreadcrumbsNormal};
+export {Default, FirstBreadcrumbStrong};
