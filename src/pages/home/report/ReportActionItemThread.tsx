@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type ReportActionItemThreadProps = {
     /** List of participant icons for the thread */
@@ -31,12 +31,12 @@ type ReportActionItemThreadProps = {
 function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
 
-    const {translate, datetimeToRelative} = useLocalize();
+    const {translate, datetimeToCalendarTime} = useLocalize();
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
 
-    const timeStamp = datetimeToRelative(mostRecentReply);
+    const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
 
     return (
         <View style={[styles.chatItemMessage]}>
