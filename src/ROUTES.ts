@@ -13,7 +13,8 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 
 const ROUTES = {
     HOME: '',
-    /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
+
+    // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
@@ -306,6 +307,82 @@ const ROUTES = {
     MONEY_REQUEST_MANUAL_TAB: ':iouType/new/:reportID?/manual',
     MONEY_REQUEST_SCAN_TAB: ':iouType/new/:reportID?/scan',
 
+    MONEY_REQUEST_CREATE: {
+        route: 'create/:iouType/start/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}` as const,
+    },
+    MONEY_REQUEST_STEP_CONFIRMATION: {
+        route: 'create/:iouType/confirmation/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/confirmation/${transactionID}/${reportID}/` as const,
+    },
+    MONEY_REQUEST_STEP_AMOUNT: {
+        route: 'create/:iouType/amount/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_CATEGORY: {
+        route: 'create/:iouType/category/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/category/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_CURRENCY: {
+        route: 'create/:iouType/currency/:transactionID/:reportID/:pageIndex?/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
+    },
+    MONEY_REQUEST_STEP_DATE: {
+        route: 'create/:iouType/date/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/date/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_DESCRIPTION: {
+        route: 'create/:iouType/description/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/description/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_DISTANCE: {
+        route: 'create/:iouType/distance/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/distance/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_MERCHANT: {
+        route: 'create/:iouType/merchante/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/merchante/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_PARTICIPANTS: {
+        route: 'create/:iouType/participants/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_SCAN: {
+        route: 'create/:iouType/scan/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/scan/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_TAG: {
+        route: 'create/:iouType/tag/:transactionID/:reportID/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/tag/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_WAYPOINT: {
+        route: 'create/:iouType/waypoint/:transactionID/:reportID/:pageIndex/',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
+    },
+    MONEY_REQUEST_CREATE_TAB_DISTANCE: {
+        route: 'create/:iouType/start/:transactionID/:reportID/distance',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance` as const,
+    },
+    MONEY_REQUEST_CREATE_TAB_MANUAL: {
+        route: 'create/:iouType/start/:transactionID/:reportID/manual',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/manual` as const,
+    },
+    MONEY_REQUEST_CREATE_TAB_SCAN: {
+        route: 'create/:iouType/start/:transactionID/:reportID/scan',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/scan` as const,
+    },
+
     IOU_REQUEST: 'request/new',
     IOU_SEND: 'send/new',
     IOU_SEND_ADD_BANK_ACCOUNT: 'send/new/add-bank-account',
@@ -391,6 +468,7 @@ const ROUTES = {
     MONEY2020: 'money2020',
 } as const;
 
+export {getUrlWithBackToParam};
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
