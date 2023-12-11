@@ -9,7 +9,7 @@ readonly STYLES_DIR="${LIB_PATH}/src/styles"
 readonly STYLES_FILE="${LIB_PATH}/src/styles/index.ts"
 readonly UTILS_STYLES_FILE="${LIB_PATH}/src/styles/utils"
 readonly STYLES_KEYS_FILE="${LIB_PATH}/scripts/style_keys_list_temp.txt"
-readonly UTIL_STYLES_KEYS_FILE="${LIB_PATH}/scripts/utility_keys_list_temp.txt"
+readonly UTIL_STYLES_KEYS_FILE="${LIB_PATH}/scripts/util_keys_list_temp.txt"
 readonly REMOVAL_KEYS_FILE="${LIB_PATH}/scripts/removal_keys_list_temp.txt"
 readonly AMOUNT_LINES_TO_SHOW=3
 
@@ -311,12 +311,12 @@ find_util_styles_store_prefix() {
   sort -u -o "${UTIL_STYLES_KEYS_FILE}" "${UTIL_STYLES_KEYS_FILE}"
 }
 
-find_utility_usage_as_styles() {
+find_util_usage_as_styles() {
   while read -r file; do
     local root_key
     local parent_dir
 
-    # Get the folder name, given this utility files are index.js
+    # Get the folder name, given this util files are index.js
     parent_dir=$(dirname "$file")
     root_key=$(basename "${parent_dir}")
 
@@ -329,7 +329,7 @@ find_utility_usage_as_styles() {
 }
 
 lookfor_unused_utils() {
-  # Read each utility keyword from the file
+  # Read each util keyword from the file
   while read -r keyword; do
     # Creating a copy so later the replacement can reference it
     local original_keyword="${keyword}"
@@ -338,7 +338,7 @@ lookfor_unused_utils() {
     while read -r file; do
       # Find all words that match "$keyword.[a-zA-Z0-9_-]+"
       while IFS= read -r match; do
-        # Replace the utility prefix with "styles"
+        # Replace the util prefix with "styles"
         local variable="${match/#$original_keyword/styles}"
         # Call the remove_keyword function with the variable
         remove_keyword "${variable}"
@@ -349,9 +349,9 @@ lookfor_unused_utils() {
 }
 
 echo "🔍 Looking for styles."
-# Find and store the name of the utility files as keys
-find_utility_styles_store_prefix
-find_utility_usage_as_styles
+# Find and store the name of the util files as keys
+find_util_styles_store_prefix
+find_util_usage_as_styles
 
 # Find and store keys from styles.ts
 find_styles_object_and_store_keys "$STYLES_FILE"
