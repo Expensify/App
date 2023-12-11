@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Banner from '@components/Banner';
@@ -158,7 +158,6 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
-    const shouldScrollForAttachment = useRef(false);
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -272,24 +271,6 @@ function ReportScreen({
         },
         [route],
     );
-
-    const firstReportActions = lodashGet(reportActions, ['0']);
-
-    const scrollToBottomAfterInteraction = useCallback(() => InteractionManager.runAfterInteractions(() => flatListRef.current.scrollToOffset({animated: false, offset: 0})), []);
-    useEffect(() => {
-        if (!firstReportActions) {
-            return;
-        }
-        // Scroll to bottom if it's a new message or a new attachment following a message.
-        if (firstReportActions.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            scrollToBottomAfterInteraction();
-            shouldScrollForAttachment.current = firstReportActions.isAttachment;
-        } else if (shouldScrollForAttachment.current) {
-            // This handles scrolling for image attachments. Initially, a placeholder is added and we scroll to it, followed by the actual image, which also triggers a scroll.
-            scrollToBottomAfterInteraction();
-            shouldScrollForAttachment.current = false;
-        }
-    }, [firstReportActions, scrollToBottomAfterInteraction]);
 
     useEffect(() => {
         fetchReportIfNeeded();
