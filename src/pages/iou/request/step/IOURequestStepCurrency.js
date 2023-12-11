@@ -65,7 +65,11 @@ function IOURequestStepCurrency({
         // to the confirmation page
         if (pageIndex === 'confirm') {
             const routeToAmountPageWithConfirmationAsBackTo = getUrlWithBackToParam(backTo, `/${ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID)}`);
-            Navigation.goBack(`${routeToAmountPageWithConfirmationAsBackTo}${selectedCurrency ? `&currency=${selectedCurrency}` : ''}`);
+            if (selectedCurrency) {
+                Navigation.navigate(`${routeToAmountPageWithConfirmationAsBackTo}&currency=${selectedCurrency}`);
+            } else {
+                Navigation.goBack(routeToAmountPageWithConfirmationAsBackTo);
+            }
             return;
         }
         Navigation.goBack(backTo || ROUTES.HOME);
