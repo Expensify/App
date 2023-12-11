@@ -290,8 +290,8 @@ const ONYXKEYS = {
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
-        WORKSPACE_EDIT_NAME_DRAFT: 'workspaceEditNameDraft',
         WORKSPACE_EDIT_NAME: 'workspaceEditName',
+        WORKSPACE_EDIT_NAME_DRAFT: 'workspaceEditNameDraft',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         WORKSPACE_RATE_AND_UNIT_FORM_DRAFT: 'workspaceRateAndUnitFormDraft',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
