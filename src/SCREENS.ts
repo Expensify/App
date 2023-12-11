@@ -195,7 +195,7 @@ const SCREENS = {
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CURRENCY: 'Workspace_Settings_Currency',
-        NAME: "Workspace_Settings_Name"
+        NAME: 'Workspace_Settings_Name',
     },
 
     EDIT_REQUEST: {
@@ -240,5 +240,5 @@ const SCREENS = {
 type Screen = DeepValueOf<typeof SCREENS>;
 
 export default SCREENS;
-export { PROTECTED_SCREENS };
-export type { Screen };
+export {PROTECTED_SCREENS};
+export type {Screen};

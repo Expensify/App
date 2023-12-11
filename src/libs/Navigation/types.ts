@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import { CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route } from '@react-navigation/native';
-import { ValueOf } from 'type-fest';
+import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
+import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -9,9 +9,9 @@ type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
 type NavigationRoot = NavigationHelpers<RootStackParamList>;
 
-type GoBackAction = Extract<CommonActions.Action, { type: 'GO_BACK' }>;
-type ResetAction = Extract<CommonActions.Action, { type: 'RESET' }>;
-type SetParamsAction = Extract<CommonActions.Action, { type: 'SET_PARAMS' }>;
+type GoBackAction = Extract<CommonActions.Action, {type: 'GO_BACK'}>;
+type ResetAction = Extract<CommonActions.Action, {type: 'RESET'}>;
+type SetParamsAction = Extract<CommonActions.Action, {type: 'SET_PARAMS'}>;
 
 type ActionNavigate = {
     type: ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
@@ -161,11 +161,11 @@ type ReportSettingsNavigatorParamList = {
 };
 
 type ReportWelcomeMessageNavigatorParamList = {
-    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: { reportID: string };
+    [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: {reportID: string};
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS_ROOT]: { reportID: string };
+    [SCREENS.REPORT_PARTICIPANTS_ROOT]: {reportID: string};
 };
 
 type RoomMembersNavigatorParamList = {
