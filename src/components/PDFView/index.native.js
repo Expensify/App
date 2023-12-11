@@ -1,17 +1,18 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {View} from 'react-native';
 import PDF from 'react-native-pdf';
+import CONST from '@src/CONST';
+import compose from '@libs/compose';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
-import withLocalize from '@components/withLocalize';
+import useKeyboardState, {keyboardStatePropTypes} from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import withStyleUtils, {withStyleUtilsPropTypes} from '@components/withStyleUtils';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
-import withWindowDimensions from '@components/withWindowDimensions';
-import compose from '@libs/compose';
-import CONST from '@src/CONST';
+import useThemeStyles from '@styles/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import PDFPasswordForm from './PDFPasswordForm';
 import {defaultProps, propTypes as pdfViewPropTypes} from './pdfViewPropTypes';
 
@@ -21,6 +22,7 @@ const propTypes = {
     ...withThemeStylesPropTypes,
     ...withStyleUtilsPropTypes,
 };
+
 /**
  * On the native layer, we use react-native-pdf/PDF to display PDFs. If a PDF is
  * password-protected we render a PDFPasswordForm to request a password
@@ -72,18 +74,23 @@ function PDFView({
      * Note that the message doesn't specify whether the password is simply empty or
      * invalid.
      */
-    
-    function initiatePasswordChallenge() {
+
+    const initiatePasswordChallenge = useCallback(() => {
         setShouldShowLoadingIndicator(false);
+
+        // Render password form, and don't render PDF and loading indicator.
+
         setShouldRequestPassword(true);
         setShouldAttemptPDFLoad(false);
+
         // The message provided by react-native-pdf doesn't indicate whether this
         // is an initial password request or if the password is invalid. So we just assume
         // that if a password was already entered then it's an invalid password error.
+        
         if (password) {
             setIsPasswordInvalid(true);
         }
-    }
+    }, [password]);
 
     const handleFailureToLoadPDF = (error) => {
         if (error.message.match(/password/i)) {
@@ -188,4 +195,4 @@ PDFView.displayName = 'PDFView';
 PDFView.propTypes = propTypes;
 PDFView.defaultProps = defaultProps;
 
-export default compose(withWindowDimensions, withKeyboardState, withLocalize, withThemeStyles, withStyleUtils)(PDFView);
+export default compose(useWindowDimensions, useKeyboardState, useLocalize, useThemeStyles, withStyleUtils)(PDFView);
