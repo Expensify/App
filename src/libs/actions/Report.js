@@ -16,6 +16,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -2119,6 +2120,9 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
     const {participantAccountIDs} = report;
     const participantAccountIDsAfterInvitation = _.uniq([...participantAccountIDs, ...inviteeAccountIDs]);
 
+    const logins = _.map(inviteeEmails, (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
+
     API.write(
         'InviteToRoom',
         {
@@ -2134,7 +2138,9 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
                         participantAccountIDs: participantAccountIDsAfterInvitation,
                     },
                 },
+                ...newPersonalDetailsOnyxData.optimisticData,
             ],
+            successData: newPersonalDetailsOnyxData.successData,
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -2143,6 +2149,7 @@ function inviteToRoom(reportID, inviteeEmailsToAccountIDs) {
                         participantAccountIDs,
                     },
                 },
+                ...newPersonalDetailsOnyxData.failureData,
             ],
         },
     );
