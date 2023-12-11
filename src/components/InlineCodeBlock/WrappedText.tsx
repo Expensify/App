@@ -9,16 +9,23 @@ type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
     textStyles?: StyleProp<TextStyle>;
 
-    /** Style for each word(Token) in the text, remember that token also includes whitespaces among words */
+    /**
+     * Style for each individual word (token) in the text. Note that a token can also include whitespace characters between words.
+     */
     wordStyles?: StyleProp<ViewStyle>;
 };
 
 /**
  * Breaks the text into matrix
- * for eg: My Name  is Rajat
- *  [
- *    [My,' ',Name,' ',' ',is,' ',Rajat],
- *  ]
+ *
+ * @example
+ * const text = "My Name is Rajat";
+ * const resultMatrix = getTextMatrix(text);
+ * console.log(resultMatrix);
+ * // Output:
+ * // [
+ * //   ['My', ' ', 'Name', ' ', 'is', ' ', 'Rajat'],
+ * // ]
  */
 function getTextMatrix(text: string): string[][] {
     return text.split('\n').map((row) => row.split(CONST.REGEX.SPACE_OR_EMOJI).filter((value) => value !== ''));
