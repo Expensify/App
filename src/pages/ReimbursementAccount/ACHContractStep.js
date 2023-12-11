@@ -5,14 +5,15 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -28,6 +29,7 @@ const propTypes = {
 };
 
 function ACHContractStep(props) {
+    const styles = useThemeStyles();
     const [beneficialOwners, setBeneficialOwners] = useState(() =>
         lodashGet(props.reimbursementAccountDraft, 'beneficialOwners', lodashGet(props.reimbursementAccount, 'achData.beneficialOwners', [])),
     );
@@ -156,19 +158,20 @@ function ACHContractStep(props) {
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 validate={validate}
                 onSubmit={submit}
                 submitButtonText={props.translate('common.saveAndContinue')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
             >
                 {({inputValues}) => (
                     <>
                         <Text style={[styles.mb5]}>
                             <Text>{props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                         </Text>
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
                             inputID="ownsMoreThan25Percent"
                             style={[styles.mb2]}
@@ -189,7 +192,8 @@ function ACHContractStep(props) {
                             defaultValue={props.getDefaultStateForField('ownsMoreThan25Percent', false)}
                             shouldSaveDraft
                         />
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
                             inputID="hasOtherBeneficialOwners"
                             style={[styles.mb2]}
@@ -255,7 +259,8 @@ function ACHContractStep(props) {
                             </View>
                         )}
                         <Text style={[styles.mv5]}>{props.translate('beneficialOwnersStep.agreement')}</Text>
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('beneficialOwnersStep.termsAndConditions')}`}
                             inputID="acceptTermsAndConditions"
                             style={[styles.mt4]}
@@ -268,7 +273,8 @@ function ACHContractStep(props) {
                             defaultValue={props.getDefaultStateForField('acceptTermsAndConditions', false)}
                             shouldSaveDraft
                         />
-                        <CheckboxWithLabel
+                        <InputWrapper
+                            InputComponent={CheckboxWithLabel}
                             accessibilityLabel={props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}
                             inputID="certifyTrueInformation"
                             style={[styles.mt4]}
@@ -278,7 +284,7 @@ function ACHContractStep(props) {
                         />
                     </>
                 )}
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

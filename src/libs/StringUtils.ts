@@ -38,9 +38,16 @@ function removeInvisibleCharacters(value: string): string {
     // - \u2060: word joiner
     result = result.replace(/[\u200B\u00A0\u2060]/g, '');
 
+    // Temporarily replace all newlines with non-breaking spaces
+    // It is necessary because the next step removes all newlines because they are in the (Cc) category
+    result = result.replace(/\n/g, '\u00A0');
+
     // Remove all characters from the 'Other' (C) category except for format characters (Cf)
     // because some of them are used for emojis
     result = result.replace(/[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu, '');
+
+    // Replace all non-breaking spaces with newlines
+    result = result.replace(/\u00A0/g, '\n');
 
     // Remove characters from the (Cf) category that are not used for emojis
     result = result.replace(/[\u200E-\u200F]/g, '');
@@ -56,4 +63,13 @@ function removeInvisibleCharacters(value: string): string {
     return result.trim();
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters};
+/**
+ *  Replace all CRLF with LF
+ *  @param value - The input string
+ *  @returns The string with all CRLF replaced with LF
+ */
+function normalizeCRLF(value?: string): string | undefined {
+    return value?.replace(/\r\n/g, '\n');
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeCRLF};

@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -16,7 +16,7 @@ import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,6 +58,7 @@ const defaultProps = {
 };
 
 function ContactMethodsPage(props) {
+    const styles = useThemeStyles();
     const loginNames = _.keys(props.loginList);
     const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
 
@@ -110,6 +111,14 @@ function ContactMethodsPage(props) {
         );
     });
 
+    const onNewContactMethodButtonPress = useCallback(() => {
+        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
+            Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.route);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD.getRoute(navigateBackTo));
+    }, [navigateBackTo]);
+
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -135,7 +144,7 @@ function ContactMethodsPage(props) {
                     <Button
                         success
                         text={props.translate('contacts.newContactMethod')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD)}
+                        onPress={onNewContactMethodButtonPress}
                         pressOnEnter
                     />
                 </FixedFooter>

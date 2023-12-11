@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -17,6 +17,7 @@ const propTypes = {
 };
 
 function EditRequestCreatedPage({defaultCreated, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
@@ -33,7 +34,7 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <NewDatePicker
+                <DatePicker
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}

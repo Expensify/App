@@ -1,3 +1,4 @@
+import React from 'react';
 import {NativeSyntheticEvent} from 'react-native';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
@@ -6,7 +7,7 @@ import CONST from '@src/CONST';
  * Check if the Enter key was pressed during IME confirmation (i.e. while the text is being composed).
  * See {@link https://en.wikipedia.org/wiki/Input_method}
  */
-const isEnterWhileComposition = (event: KeyboardEvent): boolean => {
+const isEnterWhileComposition = (event: KeyboardEvent | React.KeyboardEvent): boolean => {
     // if on mobile chrome, the enter key event is never fired when the enter key is pressed while composition.
     if (Browser.isMobileChrome()) {
         return false;

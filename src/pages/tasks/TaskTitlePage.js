@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ const defaultProps = {
 };
 
 function TaskTitlePage(props) {
+    const styles = useThemeStyles();
     /**
      * @param {Object} values
      * @param {String} values.title
@@ -50,9 +51,13 @@ function TaskTitlePage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the title of the report in the store and then call Task.editTaskReport
-            // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, {title: values.title});
+            if (values.title !== props.report.reportName) {
+                // Set the title of the report in the store and then call EditTask API
+                // to update the title of the report on the server
+                Task.editTask(props.report, {title: values.title});
+            }
+
+            Navigation.dismissModal(props.report.reportID);
         },
         [props],
     );

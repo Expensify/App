@@ -9,7 +9,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/TextInput';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import withPolicy from '@pages/workspace/withPolicy';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -136,40 +136,42 @@ function getStepToOpenFromRouteParams(route) {
     }
 }
 
-function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingReportData, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
-    // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
-    // user left off. This view will refer to the achData as the single source of truth to determine which route to
-    // display. We can also specify a specific route to navigate to via route params when the component first
-    // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
-    // next step.
-    const achData = lodashGet(reimbursementAccount, 'achData', {});
-
-    /**
-     * @param {String} currentStep
-     * @returns {String}
-     */
-    function getRouteForCurrentStep(currentStep) {
-        switch (currentStep) {
-            case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                return ROUTE_NAMES.COMPANY;
-            case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return ROUTE_NAMES.PERSONAL_INFORMATION;
-            case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
-                return ROUTE_NAMES.CONTRACT;
-            case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                return ROUTE_NAMES.VALIDATE;
-            case CONST.BANK_ACCOUNT.STEP.ENABLE:
-                return ROUTE_NAMES.ENABLE;
-            case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-            default:
-                return ROUTE_NAMES.NEW;
-        }
+/**
+ * @param {String} currentStep
+ * @returns {String}
+ */
+function getRouteForCurrentStep(currentStep) {
+    switch (currentStep) {
+        case CONST.BANK_ACCOUNT.STEP.COMPANY:
+            return ROUTE_NAMES.COMPANY;
+        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+            return ROUTE_NAMES.PERSONAL_INFORMATION;
+        case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
+            return ROUTE_NAMES.CONTRACT;
+        case CONST.BANK_ACCOUNT.STEP.VALIDATION:
+            return ROUTE_NAMES.VALIDATE;
+        case CONST.BANK_ACCOUNT.STEP.ENABLE:
+            return ROUTE_NAMES.ENABLE;
+        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+        default:
+            return ROUTE_NAMES.NEW;
     }
+}
+
+function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingReportData, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
+    /**  
+        The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
+        user left off. This view will refer to the achData as the single source of truth to determine which route to
+        display. We can also specify a specific route to navigate to via route params when the component first
+        mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
+        next step.
+    */
+    const achData = lodashGet(reimbursementAccount, 'achData', {});
 
     /**
      * @param {Array} fieldNames
      *
-     * @returns {*}
+     * @returns {Object}
      */
     function getBankAccountFields(fieldNames) {
         return {
@@ -233,12 +235,14 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams(route));
     }
 
-    // When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx
-    // or could be partially loaded such that `reimbursementAccount.achData.currentStep` is unavailable.
-    // Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
-    // it relies on complete data. Thus, we should wait to calculate it until we have received
-    // the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
-    // which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
+    /** 
+        When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx
+        or could be partially loaded such that `reimbursementAccount.achData.currentStep` is unavailable.
+        Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as
+        it relies on complete data. Thus, we should wait to calculate it until we have received
+        the full `reimbursementAccount` data from the server. This logic is handled within the useEffect hook,
+        which acts similarly to `componentDidUpdate` when the `reimbursementAccount` dependency changes.
+     */
     const [hasACHDataBeenLoaded, setHasACHDataBeenLoaded] = useState(
         reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && _.has(reimbursementAccount, 'achData.currentStep'),
     );
@@ -248,6 +252,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = lodashGet(policy, 'name', '');
     const policyID = lodashGet(route.params, 'policyID', '');
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const requestorStepRef = useRef(null);
@@ -270,11 +275,6 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep);
     }
 
-    // Will run whenever reimbursementAccount prop changes, and update the hasACHDataBeenLoaded state if necessary
-    useEffect(() => {
-        setHasACHDataBeenLoaded(reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps);
-    }, [reimbursementAccount]);
-
     useEffect(
         () => {
             fetchData();
@@ -294,7 +294,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             }
 
             if (!hasACHDataBeenLoaded) {
-                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && !reimbursementAccount.isLoading) {
+                if (reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && reimbursementAccount.isLoading === false) {
                     setShouldShowContinueSetupButton(getShouldShowContinueSetupButtonInitialValue());
                     setHasACHDataBeenLoaded(true);
                 }
@@ -327,6 +327,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
             const backTo = lodashGet(route.params, 'backTo');
             const policyId = lodashGet(route.params, 'policyID');
+
             Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(getRouteForCurrentStep(currentStep), policyId, backTo));
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -447,7 +448,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                     subtitle={policyName}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 />
-                <View style={[styles.m5, styles.flex1]}>
+                <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>
                 </View>
             </ScreenWrapper>
@@ -524,6 +525,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
             <ValidationStep
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={goBack}
+                policyID={policyID}
             />
         );
     }

@@ -106,12 +106,8 @@ function InvertedFlatList(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={innerRef}
-            shouldMeasureItems
             contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}
-            // We need to keep batch size to one to workaround a bug in react-native-web.
-            // This can be removed once https://github.com/Expensify/App/pull/24482 is merged.
-            maxToRenderPerBatch={1}
         />
     );
 }

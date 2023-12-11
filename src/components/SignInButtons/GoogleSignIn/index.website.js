@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -32,6 +32,7 @@ const signIn = (response) => {
  * @returns {React.Component}
  */
 function GoogleSignIn({translate, isDesktopFlow}) {
+    const styles = useThemeStyles();
     const loadScript = useCallback(() => {
         const google = window.google;
         if (google) {

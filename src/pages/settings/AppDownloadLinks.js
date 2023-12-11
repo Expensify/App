@@ -11,7 +11,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -22,6 +22,7 @@ const propTypes = {
 };
 
 function AppDownloadLinksPage(props) {
+    const styles = useThemeStyles();
     let popoverAnchor;
 
     const menuItems = [
@@ -60,7 +61,7 @@ function AppDownloadLinksPage(props) {
                 title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_ABOUT)}
             />
-            <ScrollView style={[styles.mt5]}>
+            <ScrollView style={[styles.mt3]}>
                 {_.map(menuItems, (item) => (
                     <MenuItem
                         key={item.translationKey}
