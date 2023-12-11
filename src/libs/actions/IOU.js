@@ -1383,7 +1383,6 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         currency,
         merchant,
         category,
-        category,
         tag,
         existingSplitChatReportID,
     );
