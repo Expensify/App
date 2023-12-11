@@ -1514,7 +1514,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.buttonHoveredBG,
             textDecorationLine: 'none',
         },
 
@@ -3125,6 +3125,10 @@ const styles = (theme: ThemeColors) =>
         receiptDropOverlay: {
             backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
+        },
+
+        isDraggingOver: {
+            backgroundColor: theme.receiptDropUIBG,
         },
 
         receiptImageWrapper: (receiptImageTopPosition: number) =>

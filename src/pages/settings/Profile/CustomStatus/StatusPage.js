@@ -91,7 +91,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                 />
             }
             headerContainerStyles={[styles.staticHeaderImage]}
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.STATUS].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor}
             footer={footerComponent}
         >
             <View style={[styles.mh5, styles.mb5]}>
