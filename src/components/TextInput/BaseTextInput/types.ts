@@ -1,8 +1,9 @@
-import React, {Component, ForwardedRef} from 'react';
-import {FlexStyle, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
-import {AnimatedProps} from 'react-native-reanimated';
-import {SrcProps} from '@components/Icon';
-import {MaybePhraseKey} from '@libs/Localize';
+import React from 'react';
+import type {Component, ForwardedRef} from 'react';
+import type {FlexStyle, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatedProps} from 'react-native-reanimated';
+import type {SrcProps} from '@components/Icon';
+import type {MaybePhraseKey} from '@libs/Localize';
 
 type CustomBaseTextInputProps = {
     /** Input label */
