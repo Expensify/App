@@ -8,12 +8,12 @@ import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FrequentlyUsedEmoji} from '@src/types/onyx';
-import emojisTrie from './EmojiTrie';
+import {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
-type ReplacedEmoji = {text: string; emojis: Emoji[]};
+type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 type UserReactions = {
     id: string;
     skinTones: Record<number, string>;
@@ -322,6 +322,9 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
 function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
+    const emojisTrie = require('./EmojiTrie').default;
+
     const trie = emojisTrie[lang];
     if (!trie) {
         return {text, emojis: []};
@@ -333,8 +336,11 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
     if (!emojiData || emojiData.length === 0) {
         return {text: newText, emojis};
     }
-    for (let i = 0; i < emojiData.length; i++) {
-        const name = emojiData[i].slice(1, -1);
+
+    let cursorPosition;
+
+    for (const emoji of emojiData) {
+        const name = emoji.slice(1, -1);
         let checkEmoji = trie.search(name);
         // If the user has selected a language other than English, and the emoji doesn't exist in that language,
         // we will check if the emoji exists in English.
@@ -346,35 +352,46 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
             }
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
-            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
+            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
             emojis.push({
                 name,
                 code: checkEmoji.metaData?.code,
                 types: checkEmoji.metaData.types,
             });
 
-            // If this is the last emoji in the message and it's the end of the message so far,
-            // add a space after it so the user can keep typing easily.
-            if (i === emojiData.length - 1) {
-                emojiReplacement += ' ';
-            }
+            // Set the cursor to the end of the last replaced Emoji. Note that we position after
+            // the extra space, if we added one.
+            cursorPosition = newText.indexOf(emoji) + emojiReplacement.length;
 
-            newText = newText.replace(emojiData[i], emojiReplacement);
+            newText = newText.replace(emoji, emojiReplacement);
         }
     }
 
-    return {text: newText, emojis};
+    // cursorPosition, when not undefined, points to the end of the last emoji that was replaced.
+    // In that case we want to append a space at the cursor position, but only if the next character
+    // is not already a space (to avoid double spaces).
+    if (cursorPosition && cursorPosition > 0) {
+        const space = ' ';
+
+        if (newText.charAt(cursorPosition) !== space) {
+            newText = newText.slice(0, cursorPosition) + space + newText.slice(cursorPosition);
+        }
+        cursorPosition += space.length;
+    }
+
+    return {text: newText, emojis, cursorPosition};
 }
 
 /**
  * Find all emojis in a text and replace them with their code.
  */
 function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT): ReplacedEmoji {
-    const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+    const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
         text: convertedText,
         emojis: emojis.concat(extractEmojis(text)),
+        cursorPosition,
     };
 }
 
@@ -382,7 +399,10 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_D
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang: keyof typeof emojisTrie, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+function suggestEmojis(text: string, lang: keyof SupportedLanguage, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+    // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
+    const emojisTrie = require('./EmojiTrie').default;
+
     const trie = emojisTrie[lang];
     if (!trie) {
         return [];

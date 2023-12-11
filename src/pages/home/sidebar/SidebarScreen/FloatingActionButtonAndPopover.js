@@ -13,7 +13,7 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
+import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
@@ -54,9 +54,6 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
@@ -74,7 +71,6 @@ const defaultProps = {
     onHideCreateMenu: () => {},
     onShowCreateMenu: () => {},
     allPolicies: {},
-    betas: [],
     isLoading: false,
     innerRef: null,
     demoInfo: {},
@@ -133,8 +129,8 @@ function FloatingActionButtonAndPopover(props) {
             if (!isCreateMenuActive) {
                 return;
             }
-            props.onHideCreateMenu();
             setIsCreateMenuActive(false);
+            props.onHideCreateMenu();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
@@ -187,7 +183,7 @@ function FloatingActionButtonAndPopover(props) {
         <View>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive}
+                isVisible={isCreateMenuActive && (!props.isSmallScreenWidth || props.isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(props.windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!props.isSmallScreenWidth}
@@ -200,22 +196,27 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST)),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                Navigation.navigate(
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
+                                ),
+                            ),
                     },
                     {
                         icon: Expensicons.Send,
                         text: props.translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
-                    ...(Permissions.canUseTasks(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Task,
-                                  text: props.translate('newTaskPage.assignTask'),
-                                  onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                              },
-                          ]
-                        : []),
+                    ...[
+                        {
+                            icon: Expensicons.Task,
+                            text: props.translate('newTaskPage.assignTask'),
+                            onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                        },
+                    ],
                     {
                         icon: Expensicons.Heart,
                         text: props.translate('sidebarScreen.saveTheWorld'),
@@ -277,9 +278,6 @@ export default compose(
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_APP,

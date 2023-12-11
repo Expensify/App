@@ -6,7 +6,6 @@ import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -222,7 +221,7 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
         {optimisticData, successData, failureData},
     );
 
-    Navigation.dismissModal(optimisticTaskReport.reportID);
+    Navigation.dismissModal(parentReportID);
 }
 
 /**
@@ -366,7 +365,7 @@ function reopenTask(taskReport) {
  * @param {object} report
  * @param {Object} editedTask
  */
-function editTaskAndNavigate(report, {title, description}) {
+function editTask(report, {title, description}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
@@ -433,11 +432,9 @@ function editTaskAndNavigate(report, {title, description}) {
         },
         {optimisticData, successData, failureData},
     );
-
-    Navigation.dismissModal(report.reportID);
 }
 
-function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
+function editTaskAssignee(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
     const reportName = report.reportName.trim();
@@ -450,6 +447,9 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         pendingFields: {
             ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
         },
+        notificationPreference: [assigneeAccountID, ownerAccountID].includes(currentUserAccountID)
+            ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS
+            : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     };
 
     const optimisticData = [
@@ -522,8 +522,6 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assi
         },
         {optimisticData, successData, failureData},
     );
-
-    Navigation.dismissModal(report.reportID);
 }
 
 /**
@@ -625,9 +623,9 @@ function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, is
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee: assigneeEmail, assigneeAccountID});
 
-    // When we're editing the assignee, we immediately call EditTaskAndNavigate. Since setting the assignee is async,
-    // the chatReport is not yet set when EditTaskAndNavigate is called. So we return the chatReport here so that
-    // EditTaskAndNavigate can use it.
+    // When we're editing the assignee, we immediately call editTaskAssignee. Since setting the assignee is async,
+    // the chatReport is not yet set when editTaskAssignee is called. So we return the chatReport here so that
+    // editTaskAssignee can use it.
     return chatReport;
 }
 
@@ -758,7 +756,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
             value: {
                 lastMessageText: ReportActionsUtils.getLastVisibleMessage(parentReport.reportID, optimisticReportActions).lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(parentReport.reportID, optimisticReportActions).created,
+                lastVisibleActionCreated: lodashGet(ReportActionsUtils.getLastVisibleAction(parentReport.reportID, optimisticReportActions), 'created'),
             },
         },
         {
@@ -907,39 +905,10 @@ function clearTaskErrors(reportID) {
     });
 }
 
-/**
- * @param {string} actionName
- * @param {string} reportID
- * @param {boolean} isCreateTaskAction
- * @returns {string}
- */
-function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
-    const report = ReportUtils.getReport(reportID);
-    if (isCreateTaskAction) {
-        return `task for ${report.reportName}`;
-    }
-    let taskStatusText = '';
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            taskStatusText = Localize.translateLocal('task.messages.completed');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
-            taskStatusText = Localize.translateLocal('task.messages.canceled');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
-            taskStatusText = Localize.translateLocal('task.messages.reopened');
-            break;
-        default:
-            taskStatusText = Localize.translateLocal('task.task');
-    }
-
-    return `${taskStatusText}`;
-}
-
 export {
     createTaskAndNavigate,
-    editTaskAndNavigate,
-    editTaskAssigneeAndNavigate,
+    editTask,
+    editTaskAssignee,
     setTitleValue,
     setDescriptionValue,
     setTaskReport,
@@ -957,5 +926,4 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    getTaskReportActionMessage,
 };
