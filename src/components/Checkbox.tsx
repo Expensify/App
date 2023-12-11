@@ -1,15 +1,14 @@
-import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent, ReactNode} from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useTheme from '@styles/themes/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
-type CheckboxProps = ChildrenProps & {
+type CheckboxProps = {
     /** Whether checkbox is checked */
     isChecked?: boolean;
 
@@ -42,6 +41,9 @@ type CheckboxProps = ChildrenProps & {
 
     /** An accessibility label for the checkbox */
     accessibilityLabel: string;
+
+    /** Optional children */
+    children?: ReactNode;
 };
 
 function Checkbox(
