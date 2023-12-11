@@ -71,7 +71,7 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             isStaging: envFile === '.env.staging',
         }),
         new FontPreloadPlugin({
-            extensions: ['woff2'],
+            extensions: ['woff2', 'lottie'],
         }),
         new ProvidePlugin({
             process: 'process/browser',

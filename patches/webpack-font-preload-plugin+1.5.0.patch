@@ -1,0 +1,22 @@
+diff --git a/node_modules/webpack-font-preload-plugin/src/index.js b/node_modules/webpack-font-preload-plugin/src/index.js
+index 1dda023..499aa0e 100644
+--- a/node_modules/webpack-font-preload-plugin/src/index.js
++++ b/node_modules/webpack-font-preload-plugin/src/index.js
+@@ -143,6 +143,17 @@ class WebpackFontPreloadPlugin {
+    */
+   getLinkTag(name, publicPath) {
+     const { crossorigin, loadType } = this.options;
++    const isLottie = name.endsWith(".lottie");
++
++    if (isLottie) {
++        return `<link
++          rel="prefetch"
++          href="${publicPath}${name}"
++          as="fetch"
++          ${crossorigin ? "crossorigin" : ""}
++        >`;
++    }
++
+     return `<link
+       rel="${loadType}"
+       href="${publicPath}${name}"
