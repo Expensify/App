@@ -1,6 +1,6 @@
 import Account from './Account';
 import AccountData from './AccountData';
-import BankAccount from './BankAccount';
+import BankAccount, {BankAccountList} from './BankAccount';
 import Beta from './Beta';
 import BlockedFromConcierge from './BlockedFromConcierge';
 import Card from './Card';
@@ -11,10 +11,10 @@ import DemoInfo from './DemoInfo';
 import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
-import Fund from './Fund';
+import Fund, {FundList} from './Fund';
 import IOU from './IOU';
 import Locale from './Locale';
-import Login from './Login';
+import Login, {LoginList} from './Login';
 import MapboxAccessToken from './MapboxAccessToken';
 import Modal from './Modal';
 import Network from './Network';
@@ -61,6 +61,7 @@ export type {
     AccountData,
     AddDebitCardForm,
     BankAccount,
+    BankAccountList,
     Beta,
     BlockedFromConcierge,
     Card,
@@ -73,9 +74,11 @@ export type {
     Form,
     FrequentlyUsedEmoji,
     Fund,
+    FundList,
     IOU,
     Locale,
     Login,
+    LoginList,
     MapboxAccessToken,
     Modal,
     Network,
