@@ -334,7 +334,7 @@ function ReportActionCompose({
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
-                {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
+                {/* {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />} */}
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <PortalHost name="suggestions" />

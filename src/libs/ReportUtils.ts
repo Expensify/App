@@ -3076,6 +3076,7 @@ function buildOptimisticChatReport(
     parentReportActionID = '',
     parentReportID = '',
     welcomeMessage = '',
+    isDefaultPinned = false,
 ): OptimisticChatReport {
     const currentTime = DateUtils.getDBTime();
     const isNewlyCreatedWorkspaceChat = chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnPolicyExpenseChat;
@@ -3083,7 +3084,7 @@ function buildOptimisticChatReport(
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
         isOwnPolicyExpenseChat,
-        isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || isNewlyCreatedWorkspaceChat,
+        isPinned: isDefaultPinned || reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || isNewlyCreatedWorkspaceChat,
         lastActorAccountID: 0,
         lastMessageTranslationKey: '',
         lastMessageHtml: '',
@@ -3336,6 +3337,8 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction>, moneyRequ
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
         moneyRequestReportID,
+        '',
+        true,
     );
 }
 
