@@ -270,10 +270,10 @@ const ONYXKEYS = {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
         SECURITY_GROUP: 'securityGroup_',
+        TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
 
         // Holds temporary transactions used during the creation and edit flow
-        TRANSACTION: 'transactions_',
         TRANSACTION_DRAFT: 'transactionsDraft_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
