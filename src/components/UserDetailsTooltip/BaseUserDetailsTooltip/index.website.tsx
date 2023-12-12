@@ -17,7 +17,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
 
-    const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails;
+    const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
     let userDisplayName = ReportUtils.getDisplayNameForParticipant(accountID) ?? '';
     let userLogin = userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
