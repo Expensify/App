@@ -66,8 +66,8 @@ const defaultProps = {
 
 function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
     const textInput = useRef(null);
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     /**
      * Set the TextInput Ref

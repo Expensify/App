@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails} from '@src/types/onyx';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
-import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -46,7 +46,7 @@ const personalDetails = createCollection<PersonalDetails>(
 const mockedResponseMap = getMockedReports(5000) as Record<`${typeof ONYXKEYS.COLLECTION.REPORT}`, Report>;
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-test('getOptionData on 5k reports', async () => {
+test('[SidebarUtils] getOptionData on 5k reports', async () => {
     const report = createRandomReport(1);
     const preferredLocale = 'en';
     const policy = createRandomPolicy(1);
@@ -60,7 +60,7 @@ test('getOptionData on 5k reports', async () => {
     await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction), {runs});
 });
 
-test('getOrderedReportIDs on 5k reports', async () => {
+test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
     const currentReportId = '1';
     const allReports = getMockedReports();
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
@@ -86,7 +86,7 @@ test('getOrderedReportIDs on 5k reports', async () => {
                 },
             ],
         ]),
-    ) as unknown as OnyxCollection<ReportActions>;
+    ) as unknown as OnyxCollection<ReportAction[]>;
 
     Onyx.multiSet({
         ...mockedResponseMap,

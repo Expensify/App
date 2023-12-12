@@ -463,6 +463,7 @@ class BaseOptionsSelector extends Component {
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const listContainerStyles = this.props.listContainerStyles || [this.props.themeStyles.flex1];
+        const optionHoveredStyle = this.props.optionHoveredStyle || this.props.themeStyles.hoveredComponentBG;
 
         const textInput = (
             <TextInput
@@ -493,7 +494,7 @@ class BaseOptionsSelector extends Component {
         const optionsList = (
             <OptionsList
                 ref={(el) => (this.list = el)}
-                optionHoveredStyle={this.props.optionHoveredStyle || this.props.themeStyles.hoveredComponentBG}
+                optionHoveredStyle={optionHoveredStyle}
                 onSelectRow={this.props.onSelectRow ? this.selectRow : undefined}
                 sections={this.state.sections}
                 focusedIndex={this.state.focusedIndex}
