@@ -254,7 +254,8 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,
-                value: inputValues[inputID], // As the text input is controlled, we never set the defaultValue prop
+                value: inputValues[inputID],
+                // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
                 onTouched: (event) => {
