@@ -298,9 +298,9 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
 /**
  * Helper method to return eReceipt color code
  */
-function getEReceiptColorCode(transaction: Transaction): EReceiptColorName {
+function getEReceiptColorCode(transaction: Transaction | null): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const transactionID = transaction.parentTransactionID || transaction.transactionID || '';
+    const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
 
     const colorHash = UserUtils.hashText(transactionID.trim(), eReceiptColors.length);
 

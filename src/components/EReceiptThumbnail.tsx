@@ -7,7 +7,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import Icon from './Icon';
 import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
@@ -15,12 +15,13 @@ import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
 
 type EReceiptThumbnailOnyxProps = {
-    /* Onyx Props */
     transaction: OnyxEntry<Transaction>;
 };
 
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
-    /* TransactionID of the transaction this EReceipt corresponds to */
+    /** TransactionID of the transaction this EReceipt corresponds to
+     * It's used by withOnyx HOC
+     */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
 };
@@ -49,12 +50,7 @@ function EReceiptThumbnail({transaction}: EReceiptThumbnailProps) {
         return backgroundImages[StyleUtils.getEReceiptColorCode(transaction)];
     }, [StyleUtils, transaction]);
 
-    if (!transaction) {
-        return;
-    }
-
     // Get receipt colorway, or default to Yellow.
-    // const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
     const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
@@ -130,6 +126,5 @@ EReceiptThumbnail.displayName = 'EReceiptThumbnail';
 export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        selector: (transaction: OnyxEntry<Transaction>) => transaction,
     },
 })(EReceiptThumbnail);
