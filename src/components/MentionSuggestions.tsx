@@ -100,7 +100,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
-                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsDisplayName]}
+                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
                                     >
                                         {text}
                                     </Text>
