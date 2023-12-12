@@ -846,18 +846,6 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getIndentedOptionTree(enabledCategories),
-        });
-
-        return categorySections;
-    }
-
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
             // "Selected" section
@@ -868,6 +856,20 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         });
 
         indexOffset += selectedOptions.length;
+    }
+
+    const categoryListThreshold = !_.isEmpty(selectedOptions) ? CONST.CATEGORY_LIST_THRESHOLD - 1 : CONST.CATEGORY_LIST_THRESHOLD;
+
+    if (numberOfCategories < categoryListThreshold) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getIndentedOptionTree(enabledCategories),
+        });
+
+        return categorySections;
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
