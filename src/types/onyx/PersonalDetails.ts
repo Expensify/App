@@ -11,6 +11,7 @@ type Timezone = {
     /** Whether timezone is automatically set */
     automatic?: boolean;
 };
+type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
 
 type PersonalDetails = {
     /** ID of the current user from their personal details */
@@ -70,9 +71,9 @@ type PersonalDetails = {
     fallbackIcon?: string;
 
     /** Status of the current user from their personal details */
-    status?: string;
+    status?: CustomStatus;
 };
 
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone};
+export type {Timezone, SelectedTimezone, CustomStatus};

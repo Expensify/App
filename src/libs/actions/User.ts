@@ -15,8 +15,9 @@ import ROUTES from '@src/ROUTES';
 import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
-import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
+import OnyxPersonalDetails, {CustomStatus} from '@src/types/onyx/PersonalDetails';
 import ReportAction from '@src/types/onyx/ReportAction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
@@ -24,7 +25,6 @@ import * as Report from './Report';
 import * as Session from './Session';
 import redirectToSignIn from './SignInRedirect';
 
-type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
 type BlockedFromConciergeNVP = {expiresAt: number};
 
 let currentUserAccountID = -1;
@@ -58,10 +58,6 @@ function closeAccount(message: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
 
-    type CloseAccountParams = {message: string};
-
-    const parameters: CloseAccountParams = {message};
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -77,7 +73,9 @@ function closeAccount(message: string) {
         },
     ];
 
-    API.write('CloseAccount', parameters, {
+    type CloseAccountParams = {message: string};
+
+    API.write('CloseAccount', {message} as CloseAccountParams, {
         optimisticData,
         failureData,
     });
@@ -160,10 +158,6 @@ function requestContactMethodValidateCode(contactMethod: string) {
  * Sets whether the user is subscribed to Expensify news
  */
 function updateNewsletterSubscription(isSubscribed: boolean) {
-    type UpdateNewsletterSubscriptionParams = {isSubscribed: boolean};
-
-    const parameters: UpdateNewsletterSubscriptionParams = {isSubscribed};
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -179,7 +173,9 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
         },
     ];
 
-    API.write('UpdateNewsletterSubscription', parameters, {
+    type UpdateNewsletterSubscriptionParams = {isSubscribed: boolean};
+
+    API.write('UpdateNewsletterSubscription', {isSubscribed} as UpdateNewsletterSubscriptionParams, {
         optimisticData,
         failureData,
     });
@@ -449,11 +445,11 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
  *
  */
 function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromConciergeNVP>): boolean {
-    if (!blockedFromConciergeNVP || Object.keys(blockedFromConciergeNVP).length === 0) {
+    if (isEmptyObject(blockedFromConciergeNVP)) {
         return false;
     }
 
-    if (!blockedFromConciergeNVP.expiresAt) {
+    if (!blockedFromConciergeNVP?.expiresAt) {
         return false;
     }
 
@@ -469,8 +465,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        const actions = reportActions.filter((action) => ReportActionsUtils.isNotifiableReportAction(action)) as ReportAction[];
-        actions.forEach((action) => Report.showReportActionNotification(reportID, action));
+        reportActions.forEach((action) => ReportActionsUtils.isNotifiableReportAction(action) && Report.showReportActionNotification(reportID, action));
     });
 }
 
@@ -525,8 +520,9 @@ function subscribeToUserEvents() {
                 return;
             }
 
-            const onyxUpdatePromise = Onyx.update(pushJSON);
-            triggerNotifications(pushJSON);
+            const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
+                triggerNotifications(pushJSON);
+            });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
@@ -576,8 +572,11 @@ function updateFrequentlyUsedEmojis(frequentlyUsedEmojis: FrequentlyUsedEmoji[])
 
 /**
  * Sync user chat priority mode with Onyx and Server
+ * @param mode
+ * @param [automatic] if we changed the mode automatically
  */
-function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>) {
+function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, automatic = false) {
+    const autoSwitchedToFocusMode = mode === CONST.PRIORITY_MODE.GSD && automatic;
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -586,16 +585,33 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>) {
         },
     ];
 
+    if (autoSwitchedToFocusMode) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
+            value: true,
+        });
+    }
+
     type UpdateChatPriorityModeParams = {
-        value: string;
+        value: ValueOf<typeof CONST.PRIORITY_MODE>;
+        automatic: boolean;
     };
 
     const parameters: UpdateChatPriorityModeParams = {
         value: mode,
+        automatic,
     };
 
     API.write('UpdateChatPriorityMode', parameters, {optimisticData});
-    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+
+    if (!autoSwitchedToFocusMode) {
+        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+    }
+}
+
+function clearFocusModeNotification() {
+    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
 }
 
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
@@ -655,15 +671,14 @@ function generateStatementPDF(period: string) {
             },
         },
     ];
-    API.read(
-        'GetStatementPDF',
-        {period},
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+
+    type GetStatementPDFParams = {period: string};
+
+    API.read('GetStatementPDF', {period} as GetStatementPDFParams, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 /**
@@ -796,7 +811,7 @@ function updateCustomStatus(status: CustomStatus) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    status: status.text,
+                    status,
                 },
             },
         },
@@ -854,6 +869,7 @@ function clearDraftCustomStatus() {
 }
 
 export {
+    clearFocusModeNotification,
     closeAccount,
     resendValidateCode,
     requestContactMethodValidateCode,
