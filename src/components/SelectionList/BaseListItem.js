@@ -44,7 +44,7 @@ function BaseListItem({
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -86,7 +86,13 @@ function BaseListItem({
                     )}
                     <ListItem
                         item={item}
-                        isFocused={isFocused}
+                        textStyles={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            isUserItem || item.isSelected ? styles.sidebarLinkTextBold : null,
+                            styles.pre,
+                        ]}
+                        alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}

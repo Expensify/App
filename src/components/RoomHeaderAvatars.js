@@ -34,6 +34,7 @@ function RoomHeaderAvatars(props) {
             <AttachmentModal
                 headerTitle={props.icons[0].name}
                 source={UserUtils.getFullSizeAvatar(props.icons[0].source, props.icons[0].id)}
+                isAuthTokenRequired
                 isWorkspaceAvatar={props.icons[0].type === CONST.ICON_TYPE_WORKSPACE}
                 originalFileName={props.icons[0].name}
             >
@@ -41,7 +42,7 @@ function RoomHeaderAvatars(props) {
                     <PressableWithoutFocus
                         style={[styles.noOutline]}
                         onPress={show}
-                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={props.icons[0].name}
                     >
                         <Avatar
@@ -78,6 +79,7 @@ function RoomHeaderAvatars(props) {
                         <AttachmentModal
                             headerTitle={icon.name}
                             source={UserUtils.getFullSizeAvatar(icon.source, icon.id)}
+                            isAuthTokenRequired
                             originalFileName={icon.name}
                             isWorkspaceAvatar={icon.type === CONST.ICON_TYPE_WORKSPACE}
                         >
@@ -85,7 +87,7 @@ function RoomHeaderAvatars(props) {
                                 <PressableWithoutFocus
                                     style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                     onPress={show}
-                                    role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     accessibilityLabel={icon.name}
                                 >
                                     <Avatar
