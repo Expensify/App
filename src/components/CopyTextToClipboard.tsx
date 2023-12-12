@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {StyleProp, TextStyle} from 'react-native';
+import {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import * as Expensicons from './Icon/Expensicons';
@@ -13,9 +13,11 @@ type CopyTextToClipboardProps = {
     textStyles?: StyleProp<TextStyle>;
 
     urlToCopy?: string;
+
+    accessibilityRole?: AccessibilityRole;
 };
 
-function CopyTextToClipboard({text, textStyles, urlToCopy}: CopyTextToClipboardProps) {
+function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole}: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
 
     const copyToClipboard = useCallback(() => {
@@ -33,6 +35,7 @@ function CopyTextToClipboard({text, textStyles, urlToCopy}: CopyTextToClipboardP
             onPress={copyToClipboard}
             accessible
             accessibilityLabel={translate('reportActionContextMenu.copyEmailToClipboard')}
+            accessibilityRole={accessibilityRole}
         />
     );
 }

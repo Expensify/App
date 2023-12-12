@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -12,6 +11,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
@@ -27,7 +27,7 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, transaction}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
@@ -38,21 +38,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
-    const [isReceipt, setIsReceipt] = useState(false);
 
-    const compareImage = useCallback(
-        (attachment) => {
-            if (attachment.isReceipt && isReceipt) {
-                return attachment.transactionID === transaction.transactionID;
-            }
-            return attachment.source === source;
-        },
-        [source, isReceipt, transaction],
-    );
+    const compareImage = useCallback((attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
         const parentReportAction = parentReportActions[report.parentReportActionID];
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions, transaction);
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -87,12 +78,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             // to get the index of the current page
             const entry = _.first(viewableItems);
             if (!entry) {
-                setIsReceipt(false);
                 setActiveSource(null);
                 return;
             }
 
-            setIsReceipt(entry.item.isReceipt);
             setPage(entry.index);
             setActiveSource(entry.item.source);
 
@@ -203,7 +192,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                             initialScrollIndex={page}
                             initialNumToRender={3}
                             windowSize={5}
-                            maxToRenderPerBatch={3}
+                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                             data={attachments}
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
@@ -226,7 +215,6 @@ AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
@@ -238,15 +226,6 @@ export default compose(
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
         },
     }),
     withLocalize,
