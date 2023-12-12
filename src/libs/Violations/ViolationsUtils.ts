@@ -90,9 +90,29 @@ const ViolationsUtils = {
      * The issue is with the type of {@link PhraseParameters} which is defined as
      *   `type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];`
      *
-     *  When a union type is passed that _may_ include a key that returns  a `string` or a key that contains a
-     * `function`, the type returns `never`.
+     *  When a templated key is passed that _may_ include a translation key that resolves to  a `string` but could also
+     * include  a translation key that resolves to  a `function`, the type returns `never`.
      *
+     *  For instance:
+     *   `translate('violations.missingCategory')` resolves to the  string 'Missing category',
+     *   `translate('violations.overLimit') resolves to the function `({amount}: ViolationsOverLimitParams) => `Amount
+     * over ${amount}/person limit`,
+     *
+     *  So then:
+     *  ```
+     *  const missingCategory = {key: 'missingCategory' as ViolationName , params:undefined};
+     *  const overLimit = {key: }'overLimit' as ViolationName, params: {amount: 1};
+     *
+     *  //this works fine
+     *  const missingCategoryTranslation = translate(`violations.${missingCategory.key}`)
+     *  // this too
+     *  const overLimitsTranslation = translate(`violations.${overLimit.key}`, overLimit.params)
+     *
+     * // but this will throw an error on the params arg  because the type checker can't sufficiently resolve the type.
+     *  [missingCategory, overLimit].map({key, params}}=>params ? translate(`violations.${key}`, params) :
+     * translate(`violations.$key}`)
+     *
+     * ```
      *  If you have only switch cases with params, and use a default case to catch the strings, it will throw an error.
      *
      * @param violation
