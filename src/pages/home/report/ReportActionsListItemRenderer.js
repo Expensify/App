@@ -19,9 +19,6 @@ const propTypes = {
     /** Report for this action */
     report: reportPropTypes.isRequired,
 
-    /** Whether the option has an outstanding IOU */
-    hasOutstandingIOU: PropTypes.bool,
-
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
 
@@ -39,7 +36,6 @@ const propTypes = {
 
 const defaultProps = {
     mostRecentIOUReportActionID: '',
-    hasOutstandingIOU: false,
     linkedReportActionID: '',
 };
 
@@ -47,7 +43,6 @@ function ReportActionsListItemRenderer({
     reportAction,
     index,
     report,
-    hasOutstandingIOU,
     displayAsGroup,
     mostRecentIOUReportActionID,
     shouldHideThreadDividerLine,
@@ -115,10 +110,12 @@ function ReportActionsListItemRenderer({
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
-                _.contains([CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW], reportAction.actionName)
+                _.contains(
+                    [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                    reportAction.actionName,
+                )
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-            hasOutstandingIOU={hasOutstandingIOU}
             index={index}
         />
     );
