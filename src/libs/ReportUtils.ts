@@ -2884,9 +2884,9 @@ function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentRepo
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
         actorAccountID: currentUserAccountID,
-        message: {
+        message: [{
             cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN
-        },
+        }],
         person: [
             {
                 style: 'strong',
