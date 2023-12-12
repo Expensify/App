@@ -1,10 +1,10 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
     AlreadySignedInParams,
     AmountEachParams,
+    ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -26,6 +26,7 @@ import type {
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
@@ -63,6 +64,7 @@ import type {
     SplitAmountParams,
     StepCounterParams,
     TagSelectionParams,
+    TaskCreatedActionParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -425,9 +427,9 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
-        editAction: ({action}: EditActionParams) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Delete ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${ReportActionsUtils.isMoneyRequestAction(action) ? 'request' : 'comment'}?`,
+        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         subscribeToThread: 'Subscribe to thread',
@@ -504,6 +506,7 @@ export default {
     tabSelector: {
         chat: 'Chat',
         room: 'Room',
+        distance: 'Distance',
         manual: 'Manual',
         scan: 'Scan',
     },
@@ -560,6 +563,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
         nextSteps: 'Next Steps',
+        finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -572,7 +576,9 @@ export default {
         payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} spent ${amount}`,
         payerSpent: ({payer}: PayerPaidParams) => `${payer} spent: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
+        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} approved ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -595,6 +601,7 @@ export default {
         tagSelection: ({tagName}: TagSelectionParams) => `Select a ${tagName} to add additional organization to your money.`,
         categorySelection: 'Select a category to add additional organization to your money.',
         error: {
+            invalidCategoryLength: 'The length of the category chosen exceeds the maximum allowed (255). Please choose a different or shorten the category name first.',
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
@@ -1190,8 +1197,10 @@ export default {
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        validateAccountError:
-            'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
+        validateAccountError: {
+            phrase1: 'Hold up! We need you to validate your account first. To do so, ',
+            phrase2: 'sign back in with a magic code',
+        },
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again',
@@ -1547,6 +1556,12 @@ export default {
             invitePeople: 'Invite new members',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            user: 'user',
+            users: 'users',
+            invited: 'invited',
+            removed: 'removed',
+            to: 'to',
+            from: 'from',
         },
         inviteMessage: {
             inviteMessageTitle: 'Add message',
@@ -1670,6 +1685,7 @@ export default {
         assignee: 'Assignee',
         completed: 'Completed',
         messages: {
+            created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
             completed: 'marked as complete',
             canceled: 'deleted task',
             reopened: 'marked as incomplete',
@@ -1970,10 +1986,10 @@ export default {
             body1: `You gotta send money to make money! Send money to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Refer a friend, ',
+            buttonText1: 'Invite a friend, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Refer a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Send your Expensify referral link to a friend or anyone else you know who spends too much time on expenses. When they start an annual subscription, you'll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Invite a friend, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body1: `Send your Expensify invite link to a friend or anyone else you know who spends too much time on expenses. When they start an annual subscription, you'll get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
@@ -1981,7 +1997,7 @@ export default {
             body1: 'If you know anyone who’s spending too much time on expenses (literally anyone – your neighbor, your boss, your friend in accounting), send them your Expensify referral link:',
             body2: `When they start an annual subscription, you’ll get $${CONST.REFERRAL_PROGRAM.REVENUE}. Easy as that.`,
         },
-        copyReferralLink: 'Copy referral link',
+        copyReferralLink: 'Copy invite link',
     },
     violations: {
         allTagLevelsRequired: 'dummy.violations.allTagLevelsRequired',
