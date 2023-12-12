@@ -1,6 +1,6 @@
 import React from 'react';
 import type {Component, ForwardedRef} from 'react';
-import type {FlexStyle, GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedProps} from 'react-native-reanimated';
 import type {SrcProps} from '@components/Icon';
 import type {MaybePhraseKey} from '@libs/Localize';
@@ -22,19 +22,19 @@ type CustomBaseTextInputProps = {
     placeholder?: string;
 
     /** Error text to display */
-    errorText: MaybePhraseKey;
+    errorText?: MaybePhraseKey;
 
     /** Icon to display in right side of text input */
     icon: ((props: SrcProps) => React.ReactNode) | null;
 
     /** Customize the TextInput container */
-    textInputContainerStyles: StyleProp<ViewStyle & FlexStyle>;
+    textInputContainerStyles?: StyleProp<ViewStyle>;
 
     /** Customize the main container */
-    containerStyles: StyleProp<ViewStyle & FlexStyle>;
+    containerStyles?: StyleProp<ViewStyle>;
 
     /** input style */
-    inputStyle: StyleProp<TextStyle>;
+    inputStyle?: StyleProp<TextStyle>;
 
     /** If present, this prop forces the label to remain in a position where it will not collide with input text */
     forceActiveLabel?: boolean;
