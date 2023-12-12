@@ -28,17 +28,16 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
 import ConfirmedRoute from './ConfirmedRoute';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import optionPropTypes from './optionPropTypes';
 import OptionsSelector from './OptionsSelector';
 import SettlementButton from './SettlementButton';
+import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import Text from './Text';
@@ -210,7 +209,7 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
-    const transaction = props.isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction;
+    const transaction = props.transaction;
     const {canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
@@ -240,7 +239,7 @@ function MoneyRequestConfirmationList(props) {
     const policyTagList = lodashGet(policyTag, 'tags', {});
     const policyTagListName = lodashGet(policyTag, 'name', translate('common.tag'));
     // A flag for showing the tags field
-    const shouldShowTags = props.isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+    const shouldShowTags = props.isPolicyExpenseChat && (props.iouTag || OptionsListUtils.hasEnabledOptions(_.values(policyTagList)));
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(props.policy, 'disabledFields.defaultBillable', true);
@@ -410,8 +409,8 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest]);
+        IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
+    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
      * @param {Object} option
@@ -449,7 +448,10 @@ function MoneyRequestConfirmationList(props) {
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
-
+            if (props.iouCategory && props.iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+                setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
             if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
@@ -484,6 +486,7 @@ function MoneyRequestConfirmationList(props) {
             props.isEditingSplitBill,
             props.iouType,
             props.isDistanceRequest,
+            props.iouCategory,
             isDistanceRequestWithoutRoute,
             props.iouCurrencyCode,
             props.iouAmount,
@@ -509,7 +512,6 @@ function MoneyRequestConfirmationList(props) {
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={props.iouCurrencyCode}
                 policyID={props.policyID}
-                shouldShowPaymentOptions
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 kycWallAnchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -581,7 +583,7 @@ function MoneyRequestConfirmationList(props) {
         >
             {props.isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
-                    <ConfirmedRoute transactionID={props.transactionID} />
+                    <ConfirmedRoute transaction={props.transaction} />
                 </View>
             )}
             {(receiptImage || receiptThumbnail) && (
@@ -636,20 +638,10 @@ function MoneyRequestConfirmationList(props) {
                 numberOfLinesTitle={2}
             />
             {!shouldShowAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
-                    <Button
-                        small
-                        onPress={toggleShouldExpandFields}
-                        text={translate('common.showMore')}
-                        shouldShowRightIcon
-                        iconRight={Expensicons.DownArrow}
-                        iconFill={theme.icon}
-                        style={styles.mh0}
-                    />
-
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
-                </View>
+                <ShowMoreButton
+                    containerStyle={styles.mt1}
+                    onPress={toggleShouldExpandFields}
+                />
             )}
             {shouldShowAllFields && (
                 <>
@@ -711,7 +703,13 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouCategory}
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
+                            onPress={() => {
+                                if (props.isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.CATEGORY));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID));
+                            }}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
@@ -725,7 +723,13 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
+                            onPress={() => {
+                                if (props.isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.TAG));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
+                            }}
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -771,9 +775,6 @@ export default compose(
         },
         draftTransaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-        },
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

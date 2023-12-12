@@ -21,6 +21,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -74,6 +75,10 @@ function WorkspaceInvitePage(props) {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     };
+
+    useEffect(() => {
+        setSearchTerm(SearchInputManager.searchInput);
+    }, []);
 
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
@@ -130,15 +135,22 @@ function WorkspaceInvitePage(props) {
         const sections = [];
         let indexOffset = 0;
 
-        if (searchTerm === '') {
-            sections.push({
-                title: undefined,
-                data: selectedOptions,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += selectedOptions.length;
-        }
+        // Filter all options that is a part of the search term or in the personal details
+        const filterSelectedOptions = _.filter(selectedOptions, (option) => {
+            const accountID = lodashGet(option, 'accountID', null);
+            const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+
+            const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+            return isPartOfSearchTerm || isOptionInPersonalDetails;
+        });
+
+        sections.push({
+            title: undefined,
+            data: filterSelectedOptions,
+            shouldShow: true,
+            indexOffset,
+        });
+        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
@@ -257,7 +269,10 @@ function WorkspaceInvitePage(props) {
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchTerm(value);
+                            }}
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
                             onConfirm={inviteUser}

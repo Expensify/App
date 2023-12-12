@@ -101,6 +101,7 @@ function SplitBillDetailsPage(props) {
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
+        tag: splitTag,
     } = isEditingSplitBill && props.draftTransaction ? ReportUtils.getTransactionDetails(props.draftTransaction) : ReportUtils.getTransactionDetails(props.transaction);
 
     const onConfirm = useCallback(
@@ -109,10 +110,7 @@ function SplitBillDetailsPage(props) {
     );
 
     return (
-        <ScreenWrapper
-            testID={SplitBillDetailsPage.displayName}
-            shouldEnableAutoFocus
-        >
+        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(reportID) || _.isEmpty(reportAction) || _.isEmpty(props.transaction)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
@@ -134,6 +132,7 @@ function SplitBillDetailsPage(props) {
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
+                            iouTag={splitTag}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}
                             shouldShowSmartScanFields
@@ -144,9 +143,10 @@ function SplitBillDetailsPage(props) {
                             hasSmartScanFailed={hasSmartScanFailed}
                             reportID={reportID}
                             reportActionID={reportAction.reportActionID}
-                            transactionID={props.transaction.transactionID}
+                            transaction={isEditingSplitBill ? props.draftTransaction || props.transaction : props.transaction}
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(props.report)}
+                            policyID={ReportUtils.isPolicyExpenseChat(props.report) && props.report.policyID}
                         />
                     )}
                 </View>

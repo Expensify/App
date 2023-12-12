@@ -6,7 +6,8 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -43,6 +44,9 @@ const propTypes = {
         /** If user has two-factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
+
+    /** policyID of the workspace where user is setting up bank account */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -73,7 +77,7 @@ const filterInput = (amount) => {
     return value;
 };
 
-function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
+function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID}) {
     const styles = useThemeStyles();
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -141,19 +145,20 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                 </View>
             )}
             {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
                     validate={validate}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 >
                     <View style={[styles.mb2]}>
                         <Text style={[styles.mb5]}>{translate('validationStep.description')}</Text>
                         <Text style={[styles.mb2]}>{translate('validationStep.descriptionCTA')}</Text>
                     </View>
                     <View style={[styles.mv5]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="amount1"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
@@ -161,7 +166,8 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             inputMode={CONST.INPUT_MODE.DECIMAL}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
@@ -169,7 +175,8 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             inputMode={CONST.INPUT_MODE.DECIMAL}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         />
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}
@@ -180,10 +187,10 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                     </View>
                     {!requiresTwoFactorAuth && (
                         <View style={[styles.mln5, styles.mrn5]}>
-                            <Enable2FAPrompt />
+                            <Enable2FAPrompt policyID={policyID} />
                         </View>
                     )}
-                </Form>
+                </FormProvider>
             )}
             {isVerifying && (
                 <ScrollView style={[styles.flex1]}>
@@ -211,7 +218,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         />
                     </Section>
                     {reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
-                    {!requiresTwoFactorAuth && <Enable2FAPrompt />}
+                    {!requiresTwoFactorAuth && <Enable2FAPrompt policyID={policyID} />}
                 </ScrollView>
             )}
         </ScreenWrapper>

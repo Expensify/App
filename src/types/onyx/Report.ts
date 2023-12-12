@@ -1,13 +1,11 @@
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
+import PersonalDetails from './PersonalDetails';
 
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
-
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU?: boolean;
 
     /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
     hasOutstandingChildRequest?: boolean;
@@ -17,6 +15,9 @@ type Report = {
 
     /** Whether the user is not an admin of policyExpenseChat chat */
     isOwnPolicyExpenseChat?: boolean;
+
+    /** Whether the report is policyExpenseChat */
+    isPolicyExpenseChat?: boolean;
 
     /** Indicates if the report is pinned to the LHN or not */
     isPinned?: boolean;
@@ -40,13 +41,13 @@ type Report = {
     lastReadSequenceNumber?: number;
 
     /** The time of the last mention of the report */
-    lastMentionedTime?: string;
+    lastMentionedTime?: string | null;
 
     /** The current user's notification preference for this report */
     notificationPreference?: string | number;
 
     /** The policy name to use */
-    policyName?: string;
+    policyName?: string | null;
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
@@ -59,9 +60,6 @@ type Report = {
 
     /** Whether the parent action was deleted */
     isDeletedParentAction?: boolean;
-
-    /** PayPalMe address of the submitter */
-    submitterPayPalMeAddress?: string;
 
     /** Linked policy's ID */
     policyID?: string;
@@ -90,8 +88,11 @@ type Report = {
     /** The report type */
     type?: string;
 
+    /** If the admin room should be opened */
+    openOnAdminRoom?: boolean;
+
     /** The report visibility */
-    visibility?: string;
+    visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
 
     /** Report cached total */
     cachedTotal?: string;
@@ -111,9 +112,14 @@ type Report = {
     participantAccountIDs?: number[];
     total?: number;
     currency?: string;
+    parentReportActionIDs?: number[];
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
+
+    /** Whether the report is cancelled */
+    isCancelledIOU?: boolean;
 
     /** Whether the last message was deleted */
     isLastMessageDeletedParentAction?: boolean;
@@ -132,6 +138,11 @@ type Report = {
 
     /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
     nonReimbursableTotal?: number;
+    isHidden?: boolean;
+    isChatRoom?: boolean;
+    participantsList?: Array<Partial<PersonalDetails>>;
+    text?: string;
+    privateNotes?: Record<string, {note: string}>;
 };
 
 export default Report;
