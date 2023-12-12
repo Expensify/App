@@ -70,7 +70,7 @@ function IOURequestStepParticipants({
         (nextStepIOUType) => {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
         },
-        [iouType, transactionID, reportID],
+        [transactionID, reportID],
     );
 
     const navigateBack = useCallback(() => {
