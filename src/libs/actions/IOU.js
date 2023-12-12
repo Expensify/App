@@ -676,7 +676,7 @@ function getMoneyRequestInformation(
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
-    if (existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+    if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         optimisticTransaction = {
             ...optimisticTransaction,
             ...existingTransaction,
