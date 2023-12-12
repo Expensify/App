@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Response} from '@src/types/onyx';
 
-type Reason = 'damaged' | 'stolen';
+type ReplacementReason = 'damaged' | 'stolen';
 
 function reportVirtualExpensifyCardFraud(cardID: number) {
     const optimisticData: OnyxUpdate[] = [
@@ -54,7 +54,7 @@ function reportVirtualExpensifyCardFraud(cardID: number) {
  * @param cardId - id of the card that is going to be replaced
  * @param reason - reason for replacement
  */
-function requestReplacementExpensifyCard(cardId: number, reason: Reason) {
+function requestReplacementExpensifyCard(cardId: number, reason: ReplacementReason) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
