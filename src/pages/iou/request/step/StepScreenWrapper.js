@@ -25,13 +25,17 @@ const propTypes = {
 
     /** An ID used for unit testing */
     testID: PropTypes.string.isRequired,
+
+    /** Whether or not to include safe area padding */
+    includeSafeAreaPaddingBottom: PropTypes.bool,
 };
 
 const defaultProps = {
     onEntryTransitionEnd: () => {},
+    includeSafeAreaPaddingBottom: false,
 };
 
-function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper}) {
+function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper, includeSafeAreaPaddingBottom}) {
     const styles = useThemeStyles();
 
     if (!shouldShowWrapper) {
@@ -40,7 +44,7 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}

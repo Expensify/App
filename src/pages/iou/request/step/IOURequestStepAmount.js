@@ -98,6 +98,7 @@ function IOURequestStepAmount({
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
             shouldShowWrapper={Boolean(backTo)}
+            includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo)}
