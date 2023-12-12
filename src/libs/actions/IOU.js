@@ -54,8 +54,6 @@ Onyx.connect({
     },
 });
 
-<<<<<<< HEAD
-=======
 let allTransactionDrafts = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
@@ -65,21 +63,6 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        if (!val) {
-            allTransactionViolations = {};
-            return;
-        }
-
-        allTransactionViolations = val;
-    },
-});
-
->>>>>>> 380e687 (Merge pull request #32943 from dukenv0307/fix/32891)
 let allDraftSplitTransactions;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
