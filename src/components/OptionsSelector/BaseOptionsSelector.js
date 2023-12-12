@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
@@ -15,9 +15,9 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ShowMoreButton from '@components/ShowMoreButton';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
 import useTheme from '@styles/themes/useTheme';
@@ -49,7 +49,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    shouldDelayFocus: false,
     shouldShowReferralCTA: false,
     referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND,
     safeAreaPaddingBottomStyle: {},
@@ -97,12 +96,12 @@ function BaseOptionsSelector(props) {
     const relatedTarget = useRef(null);
     const listRef = useRef();
     const textInputRef = useRef();
-    const enterSubscription = useRef();
-    const CTRLEnterSubscription = useRef();
     const focusTimeout = useRef();
     const prevLocale = useRef(props.preferredLocale);
     const prevPaginationPage = useRef(paginationPage);
     const prevSelectedOptions = useRef(props.selectedOptions);
+
+    useImperativeHandle(props.forwardedRef, () => textInputRef.current);
 
     /**
      * Flattens the sections into a single array of options.
@@ -151,9 +150,11 @@ function BaseOptionsSelector(props) {
                 return section;
             }
 
+            const pagination = paginationPage || 1;
+
             return {
                 ...section,
-                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * lodashGet(paginationPage, 1)),
+                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * pagination),
             };
         });
     /**
@@ -190,16 +191,6 @@ function BaseOptionsSelector(props) {
             setFocusedIndex(props.selectedOptions.length);
         });
 
-    const unSubscribeFromKeyboardShortcut = () => {
-        if (enterSubscription.current) {
-            enterSubscription.current();
-        }
-
-        if (CTRLEnterSubscription.current) {
-            CTRLEnterSubscription.current();
-        }
-    };
-
     const selectFocusedOption = () => {
         const focusedOption = allOptions[focusedIndex];
 
@@ -225,38 +216,27 @@ function BaseOptionsSelector(props) {
         }
     };
 
-    const subscribeToKeyboardShortcut = () => {
-        const enterConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        enterSubscription.current = KeyboardShortcut.subscribe(
-            enterConfig.shortcutKey,
-            selectFocusedOption,
-            enterConfig.descriptionKey,
-            enterConfig.modifiers,
-            true,
-            () => !allOptions[focusedIndex],
-        );
+    const selectOptions = useCallback(() => {
+        if (props.canSelectMultipleOptions) {
+            props.onConfirmSelection();
+            return;
+        }
 
-        const CTRLEnterConfig = CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER;
-        CTRLEnterSubscription.current = KeyboardShortcut.subscribe(
-            CTRLEnterConfig.shortcutKey,
-            () => {
-                if (props.canSelectMultipleOptions) {
-                    props.onConfirmSelection();
-                    return;
-                }
+        const focusedOption = allOptions[focusedIndex];
+        if (!focusedOption) {
+            return;
+        }
 
-                const focusedOption = allOptions[focusedIndex];
-                if (!focusedOption) {
-                    return;
-                }
+        selectRow(focusedOption);
+        // we don't need to include the whole props object as the dependency
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [allOptions, focusedIndex, props.canSelectMultipleOptions, props.onConfirmSelection, selectRow]);
 
-                selectRow(focusedOption);
-            },
-            CTRLEnterConfig.descriptionKey,
-            CTRLEnterConfig.modifiers,
-            true,
-        );
-    };
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
+        shouldBubble: !allOptions[focusedIndex],
+        captureOnInputs: true,
+    });
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, selectOptions, {captureOnInputs: true});
 
     /**
      * Scrolls to the focused index within the SectionList
@@ -291,8 +271,6 @@ function BaseOptionsSelector(props) {
     };
 
     useEffect(() => {
-        subscribeToKeyboardShortcut();
-
         if (isFocused && props.autoFocus && textInputRef.current) {
             focusTimeout.current = setTimeout(() => {
                 textInputRef.current.focus();
@@ -308,24 +286,12 @@ function BaseOptionsSelector(props) {
             setSections(newSections);
         }
 
-        return () => {
-            if (focusTimeout.current) {
-                clearTimeout(focusTimeout.current);
-            }
-
-            unSubscribeFromKeyboardShortcut();
-        };
         // we want to run this effect only once, when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (isFocused) {
-            subscribeToKeyboardShortcut();
-        } else {
-            unSubscribeFromKeyboardShortcut();
-        }
-
         // Screen coming back into focus, for example
         // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
         // Only applies to platforms that support keyboard shortcuts
@@ -624,4 +590,14 @@ function BaseOptionsSelector(props) {
 BaseOptionsSelector.defaultProps = defaultProps;
 BaseOptionsSelector.propTypes = propTypes;
 
-export default BaseOptionsSelector;
+const BaseOptionsSelectorWithRef = forwardRef((props, ref) => (
+    <BaseOptionsSelector
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+BaseOptionsSelectorWithRef.displayName = 'BaseOptionsSelectorWithRef';
+
+export default BaseOptionsSelectorWithRef;

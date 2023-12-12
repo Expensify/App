@@ -260,7 +260,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             isLoadingNewOptions={isSearchingForReports}
-                            autoFocus={false}
                         />
                     </View>
                     {isSmallScreenWidth && <OfflineIndicator />}
