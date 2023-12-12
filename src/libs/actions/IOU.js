@@ -92,9 +92,10 @@ Onyx.connect({
 /**
  * Initialize money request info
  * @param {String} reportID to attach the transaction to
+ * @param {Boolean} isFromGlobalCreate
  * @param {String} [iouRequestType] one of manual/scan/distance
  */
-function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
@@ -118,6 +119,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
+        isFromGlobalCreate,
     });
 }
 
@@ -175,6 +177,13 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
  */
 function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+}
+
+/*
+ * @param {String} transactionID
+ */
+function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
 /*
@@ -3164,6 +3173,7 @@ export {
     startMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestCategory,
+    resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
     resetMoneyRequestTag,
     resetMoneyRequestTag_temporaryForRefactor,

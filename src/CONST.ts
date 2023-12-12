@@ -651,6 +651,9 @@ const CONST = {
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
     },
+    NEXT_STEP: {
+        FINISHED: 'Finished!',
+    },
     COMPOSER: {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
@@ -1167,6 +1170,7 @@ const CONST = {
             DECLINE: 'decline',
             CANCEL: 'cancel',
             DELETE: 'delete',
+            APPROVE: 'approve',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
