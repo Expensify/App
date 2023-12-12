@@ -7,10 +7,9 @@ import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 
-function RoomNameInput({value, isFocused, autoFocus, disabled, forwardedRef, onBlur, shouldDelayFocus, onChangeText, onInputChange, ...restProps}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus, ...restProps}) {
     const {translate} = useLocalize();
 
-    const keyboardType = getOperatingSystem() === CONST.OS.IOS ? CONST.KEYBOARD_TYPE.ASCII_CAPABLE : CONST.KEYBOARD_TYPE.VISIBLE_PASSWORD;
     const [selection, setSelection] = useState();
 
     /**
@@ -53,18 +52,17 @@ function RoomNameInput({value, isFocused, autoFocus, disabled, forwardedRef, onB
             accessibilityLabel={translate('newRoomPage.roomName')}
             role={CONST.ACCESSIBILITY_ROLE.TEXT}
             placeholder={translate('newRoomPage.social')}
-            autoCapitalize="none"
-            value={value.substring(1)}
             onChange={setModifiedRoomName}
+            value={value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
             selection={selection}
+            onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+            autoCapitalize="none"
             onBlur={(event) => isFocused && onBlur(event)}
             shouldDelayFocus={shouldDelayFocus}
             autoFocus={isFocused && autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
-            onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
             spellCheck={false}
             shouldInterceptSwipe
-            keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
         />
     );
 }
