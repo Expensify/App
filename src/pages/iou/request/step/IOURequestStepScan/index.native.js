@@ -161,7 +161,7 @@ function IOURequestStepScan({
                     return;
                 }
 
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             })
             .catch((error) => {
                 showCameraAlert();
@@ -255,7 +255,7 @@ function IOURequestStepScan({
                                             return;
                                         }
 
-                                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+                                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
                                     },
                                 });
                             }}
