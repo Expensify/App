@@ -1081,6 +1081,7 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
+        transactionViolations = {},
     },
 ) {
     if (includeCategories) {

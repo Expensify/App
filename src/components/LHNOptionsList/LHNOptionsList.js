@@ -226,7 +226,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
         transactionViolations: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATION,
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
     }),
 )(LHNOptionsList);

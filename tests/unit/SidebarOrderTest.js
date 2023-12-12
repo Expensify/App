@@ -11,6 +11,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
+jest.mock('../../src/hooks/usePermissions.ts');
 jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
