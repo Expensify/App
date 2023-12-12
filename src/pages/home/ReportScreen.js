@@ -10,6 +10,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
@@ -34,6 +35,7 @@ import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -282,12 +284,26 @@ function ReportScreen({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
     }, [accountManagerReportID]);
 
+    const allPersonalDetails = usePersonalDetails();
+
     /**
      * @param {String} text
      */
     const onSubmitComment = useCallback(
         (text) => {
-            Report.addComment(getReportID(route), text);
+            const taskRegex = /^\[\](?:\s+@([^\s@]+@[\w.-]+))?\s+(.+)/;
+            const match = text.match(taskRegex);
+            if (match) {
+                const email = match[1] ? match[1].trim() : undefined; // Email might be undefined if not captured
+                const title = match[2];
+                let assignee = {};
+                if (email) {
+                    assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+                }
+                Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
+            } else {
+                Report.addComment(getReportID(route), text);
+            }
 
             // We need to scroll to the bottom of the list after the comment is added
             const refID = setTimeout(() => {
