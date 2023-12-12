@@ -252,7 +252,7 @@ function ReportActionItemSingle(props) {
                                 >{`${status.emojiCode}`}</Text>
                             </Tooltip>
                         )}
-                        {/* <ReportActionItemDate created={props.action.created} /> */}
+                        <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
                 <View style={props.hasBeenFlagged ? styles.blockquote : {}}>{props.children}</View>
