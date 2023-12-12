@@ -2525,7 +2525,7 @@ export default {
                     ? `Pídele a ${member} que marque la transacción como efectivo o espera 7 días e intenta de nuevo`
                     : 'Esperando adjuntar automáticamente a transacción de tarjeta de crédito';
             }
-            return ``;
+            return '';
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
         someTagLevelsRequired: 'Falta etiqueta',
