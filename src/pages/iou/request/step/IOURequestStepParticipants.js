@@ -83,6 +83,7 @@ function IOURequestStepParticipants({
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
+            includeSafeAreaPaddingBottom
         >
             <MoneyRequestParticipantsSelector
                 ref={(el) => (optionsSelectorRef.current = el)}
