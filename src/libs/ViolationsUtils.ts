@@ -88,37 +88,6 @@ const ViolationsUtils = {
      * Necessary because `translate` throws a type error if you attempt to pass it a template strings, when the
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
-     *
-     * The issue is with the type of {@link PhraseParameters} which is defined as
-     *   `type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];`
-     *
-     *  This says that if T is a function from some args to a string, then T is the type of the arguments. If T is
-     * anything else, then T should not be assigned a value.
-     *
-     * When a templated key is passed whose final value could be either, the type checker pessimistically assigns it
-     * never. There seems to be some block somewhere in the type system that prevents it from fully resolving it.
-     *
-     *  For instance:
-     *   `translate('violations.missingCategory')` resolves to the  string 'Missing category',
-     *   `translate('violations.overLimit') resolves to the function `({amount}: ViolationsOverLimitParams) => `Amount
-     * over ${amount}/person limit`,
-     *
-     *  But for some reason, typescript can't correctly infer the types when there is a union of multiple strings:
-     *  ```
-     *  const missingCategory = {key: 'missingCategory' as ViolationName , params:undefined};
-     *  const overLimit = {key: }'overLimit' as ViolationName, params: {amount: 1};
-     *
-     *  //this works fine:
-     *  const missingCategoryTranslation = translate(`violations.${missingCategory.key}`)
-     *  // this too
-     *  const overLimitsTranslation = translate(`violations.${overLimit.key}`, overLimit.params)
-     *
-     * // but this will throw an error on the params arg  because the type checker can't sufficiently resolve the type.
-     * // Even though the type _should_ be sufficiently narrowed by the time it gets there.
-     *  [missingCategory, overLimit].map({key, params}} => params
-     *        ? translate(`violations.${key}`, params)
-     *        : translate(`violations.$key}`)
-     * ```
      */ getViolationTranslation(
         violation: TransactionViolation,
         translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
