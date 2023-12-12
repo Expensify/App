@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -29,7 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import WorkspacesListRow from './WorkspacesListRow';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -108,7 +106,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, personalDetails}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -164,30 +162,40 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
      */
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-
         return _.chain(policies)
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
             .map((policy) => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                type: policy.type,
-                ownerAccountID: policy.ownerAccountID,
-                // iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                // action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                // iconFill: theme.textLight,
-                // fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                // brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
-                // pendingAction: policy.pendingAction,
-                // errors: policy.errors,
-                // dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                // disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
+                iconFill: theme.textLight,
+                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                pendingAction: policy.pendingAction,
+                errors: policy.errors,
+                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
     }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
-        <View style={[styles.dFlex, styles.gap3, styles.m5]}>
+        <IllustratedHeaderPageLayout
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+            illustration={LottieAnimations.WorkspacePlanet}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            title={translate('common.workspaces')}
+            footer={
+                <Button
+                    accessibilityLabel={translate('workspace.new.newWorkspace')}
+                    success
+                    text={translate('workspace.new.newWorkspace')}
+                    onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                />
+            }
+        >
             {_.isEmpty(workspaces) ? (
                 <FeatureList
                     menuItems={workspaceFeatures}
@@ -195,22 +203,9 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     description="workspace.emptyWorkspace.subtitle"
                 />
             ) : (
-                _.map(workspaces, (item, index) => (
-                    <WorkspacesListRow
-                        key={`${item.title}${index}`}
-                        title={item.title}
-                        workspaceIcon={item.icon}
-                        fallbackWorkspaceIcon={item.fallbackIcon}
-                        // Real data
-                        // ownerAccountID={item.ownerAccountID}
-                        // workspaceType={item.type}
-                        // Randomized data for testing
-                        ownerAccountID={personalDetails ? Object.keys(personalDetails)[Math.floor(Math.random() * Object.keys(personalDetails).length)] : 1}
-                        workspaceType={[CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.FREE][Math.floor(Math.random() * 3)]}
-                    />
-                ))
+                _.map(workspaces, (item, index) => getMenuItem(item, index))
             )}
-        </View>
+        </IllustratedHeaderPageLayout>
     );
 }
 
@@ -232,9 +227,6 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(WorkspacesListPage);
