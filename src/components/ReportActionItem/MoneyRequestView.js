@@ -30,7 +30,6 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {transactionViolationsPropTypes} from '@libs/Violations/propTypes';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
@@ -43,6 +42,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemImage from './ReportActionItemImage';
+
+const violationNames = lodashValues(CONST.VIOLATIONS);
+
+const transactionViolationPropType = PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    name: PropTypes.oneOf(violationNames).isRequired,
+    data: PropTypes.objectOf(PropTypes.string),
+});
+
+const transactionViolationsPropTypes = PropTypes.arrayOf(transactionViolationPropType);
 
 const propTypes = {
     /** The report currently being looked at */
