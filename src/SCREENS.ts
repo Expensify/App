@@ -12,6 +12,7 @@ const PROTECTED_SCREENS = {
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
+    ALL_SETTINGS: 'AllSettings',
     REPORT: 'Report',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',

@@ -14,6 +14,8 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 const ROUTES = {
     HOME: '',
 
+    ALL_SETTINGS: 'all-settings',
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
