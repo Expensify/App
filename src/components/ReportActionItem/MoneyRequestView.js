@@ -147,7 +147,9 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (isCancelled) {
+        if (ReportUtils.isReportApproved(report)) {
+            amountDescription += ` • ${translate('iou.approved')}`;
+        } else if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
         } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;

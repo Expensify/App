@@ -1,9 +1,9 @@
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
     AlreadySignedInParams,
     AmountEachParams,
+    ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -26,6 +26,7 @@ import type {
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
@@ -417,9 +418,10 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: ({action}: EditActionParams) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
+        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
+            `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         subscribeToThread: 'Suscribirse al hilo',
@@ -554,6 +556,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         payElsewhere: 'Pagar de otra forma',
         nextSteps: 'Pasos Siguientes',
+        finished: 'Finalizado',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -566,7 +569,9 @@ export default {
         payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} gastó ${amount}`,
         payerSpent: ({payer}: PayerPaidParams) => `${payer} gastó: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
+        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
@@ -591,6 +596,7 @@ export default {
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero.`,
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {
+            invalidCategoryLength: 'El largo de la categoría escogida excede el máximo permitido (255). Por favor escoge otra categoría o acorta la categoría primero.',
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -1573,6 +1579,12 @@ export default {
             invitePeople: 'Invitar nuevos miembros',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            user: 'usuario',
+            users: 'usuarios',
+            invited: 'invitó',
+            removed: 'eliminó',
+            to: 'a',
+            from: 'de',
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
