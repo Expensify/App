@@ -8,7 +8,7 @@ import {PersonalDetails, TransactionViolations} from '@src/types/onyx';
 import Beta from '@src/types/onyx/Beta';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
-import Report from '@src/types/onyx/Report';
+import Report, {Message} from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -108,6 +108,51 @@ function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TV
 // Variable to verify if ONYX actions are loaded
 let hasInitialReportActions = false;
 
+// Originally we were passing down the reportActions as the type OnyxCollection<ReportActions> but
+// it was used as a Record<string, ReportAction[]> in the cachedReportsKey. This was causing a type error
+// for the ReportUtils.shouldReportBeInOptionList function. To fix this, we are now passing down the reportActions
+// as a Record<string, ReportActions> and then converting it to a Record<string, ReportAction[]> in the
+// reportActionsSelector function.
+// This function was originally in the parent component as an Onyx selector, but it was moved here to prevent
+// to simplify the logic and prevent the need to pass down the reportActions as an array.
+
+type MappedReportAction = {
+    id: string;
+    errors: OnyxCommon.Errors;
+    message: Message[];
+};
+
+type MappedReportActions = Record<string, MappedReportAction>;
+
+const reportActionsSelector = (reportActions?: MappedReportActions): Record<string, MappedReportAction[]> | undefined => {
+    if (!reportActions) {
+        return undefined;
+    }
+
+    return Object.values(reportActions).reduce((acc, reportAction) => {
+        const modifiedAction: MappedReportAction = {
+            id: reportAction.id,
+            errors: reportAction.errors || [],
+            message: [
+                {
+                    moderationDecision: {
+                        decision: reportAction.message?.[0]?.moderationDecision?.decision,
+                    },
+                },
+            ],
+        };
+
+        // If the key already exists, append to the array, otherwise create a new array
+        if (acc[reportAction.id]) {
+            acc[reportAction.id].push(modifiedAction);
+        } else {
+            acc[reportAction.id] = [modifiedAction];
+        }
+
+        return acc;
+    }, {} as Record<string, MappedReportAction[]>);
+};
+
 /**
  * @returns An array of reportIDs sorted in the proper order
  */
@@ -117,13 +162,14 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportAction[]>,
+    allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: TransactionViolations,
 ): string[] {
+    const mappedReportActions = reportActionsSelector(allReportActions as unknown as MappedReportActions);
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        [currentReportId, allReports, betas, policies, priorityMode, mappedReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value: unknown) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,

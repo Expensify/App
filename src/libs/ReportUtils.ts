@@ -3504,7 +3504,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
  *  then checks that the violation is of the proper type
  */
 function transactionHasViolation(transactionID: string, transactionViolations?: TransactionViolations): boolean {
-    const violations = transactionViolations ? transactionViolations[transactionID] : [];
+    const violations: TransactionViolation[] = transactionViolations ? transactionViolations[transactionID] || [] : [];
     if (!violations) {
         return false;
     }
@@ -3517,8 +3517,7 @@ function transactionHasViolation(transactionID: string, transactionViolations?: 
  */
 
 function transactionThreadHasViolations(report: Report, canUseViolations: boolean, transactionViolations?: TransactionViolations, parentReportAction?: ReportAction | null): boolean {
-    console.log('Parent Report Action : ', parentReportAction);
-    if (!canUseViolations || !parentReportAction) {
+    if (!parentReportAction) {
         return false;
     }
     if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
@@ -3623,7 +3622,12 @@ function shouldReportBeInOptionList(
     // Always show IOU reports with violations
     if (
         isExpenseRequest(report) &&
-        transactionThreadHasViolations(report, betas.includes(CONST.BETAS.VIOLATIONS), transactionViolations, allReportActions?.[`${report.parentReportActionID}`])
+        transactionThreadHasViolations(
+            report,
+            betas.includes(CONST.BETAS.VIOLATIONS),
+            transactionViolations,
+            allReportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`],
+        )
     ) {
         return true;
     }
