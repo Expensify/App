@@ -46,11 +46,11 @@ const defaultProps = {
  */
 
 function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
-    const styles = useThemeStyles();
 
     let receiptImageComponent;
 
@@ -83,12 +83,12 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
                     <AttachmentModal
-                        headerTitle="Receipt"
                         source={imageSource}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment
                         allowToDownload
+                        originalFileName={transaction.filename}
                     >
                         {({show}) => (
                             <PressableWithoutFocus

@@ -15,7 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -114,7 +114,6 @@ function ReportWelcomeMessagePage(props) {
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
-                            inputStyle={[styles.verticalAlignTop]}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>

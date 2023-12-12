@@ -236,6 +236,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.category,
                     props.iou.tag,
                     reportID,
+                    props.iou.merchant,
                 );
                 return;
             }
@@ -251,6 +252,7 @@ function MoneyRequestConfirmPage(props) {
                     props.iou.currency,
                     props.iou.category,
                     props.iou.tag,
+                    props.iou.merchant,
                 );
                 return;
             }
@@ -283,6 +285,7 @@ function MoneyRequestConfirmPage(props) {
             receiptFile,
             iouType,
             reportID,
+            props.iou.merchant,
         ],
     );
 

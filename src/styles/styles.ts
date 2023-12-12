@@ -20,8 +20,8 @@ import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
-import defaultTheme from './themes/default';
-import {ThemeColors} from './themes/types';
+import {defaultTheme} from './themes/themes';
+import {type ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
 import display from './utilities/display';
@@ -586,7 +586,7 @@ const styles = (theme: ThemeColors) =>
         buttonDivider: {
             height: variables.dropDownButtonDividerHeight,
             borderWidth: 0.7,
-            borderColor: theme.text,
+            borderColor: theme.textLight,
         },
 
         noBorderRadius: {
@@ -1016,7 +1016,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
         },
 
-        textInputDesktop: addOutlineWidth({}, theme, 0),
+        textInputDesktop: addOutlineWidth(theme, {}, 0),
 
         textInputIconContainer: {
             paddingHorizontal: 11,
@@ -1133,7 +1133,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.icon,
         },
 
-        noOutline: addOutlineWidth({}, theme, 0),
+        noOutline: addOutlineWidth(theme, {}, 0),
 
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -1150,7 +1150,7 @@ const styles = (theme: ThemeColors) =>
         textReceiptUpload: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            color: theme.textLight,
+            color: theme.text,
             textAlign: 'center',
         },
 
@@ -1158,7 +1158,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             lineHeight: variables.lineHeightLarge,
             textAlign: 'center',
-            color: theme.textLight,
+            color: theme.text,
         },
 
         furtherDetailsText: {
@@ -1339,7 +1339,7 @@ const styles = (theme: ThemeColors) =>
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
-            bottom: 25,
+            bottom: variables.fabBottom,
         },
 
         floatingActionButton: {
@@ -1421,7 +1421,9 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
-                vertical: windowHeight - 75,
+                // Menu should be displayed 12px above the floating action button.
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
             } satisfies AnchorPosition),
 
         createMenuPositionProfile: (windowWidth: number) =>
@@ -1515,6 +1517,8 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             paddingLeft: 8,
             paddingRight: 8,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
         },
 
         sidebarLinkText: {
@@ -1533,7 +1537,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.buttonHoveredBG,
             textDecorationLine: 'none',
         },
 
@@ -1802,6 +1806,7 @@ const styles = (theme: ThemeColors) =>
         // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
         // Make sure you run the following tests against any changes: #12669
         textInputCompose: addOutlineWidth(
+            theme,
             {
                 backgroundColor: theme.componentBG,
                 borderColor: theme.border,
@@ -1822,7 +1827,6 @@ const styles = (theme: ThemeColors) =>
                 alignSelf: 'center',
                 verticalAlign: 'middle',
             },
-            theme,
             0,
         ),
 
@@ -2642,6 +2646,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         iouAmountTextInput: addOutlineWidth(
+            theme,
             {
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
@@ -2649,7 +2654,6 @@ const styles = (theme: ThemeColors) =>
                 padding: 0,
                 lineHeight: undefined,
             },
-            theme,
             0,
         ),
 
@@ -2840,7 +2844,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonHoveredBG,
-            borderColor: theme.textReversed,
+            borderColor: theme.appBG,
             borderRadius: 14,
             borderWidth: 3,
             color: theme.textReversed,
@@ -3146,6 +3150,10 @@ const styles = (theme: ThemeColors) =>
             zIndex: 2,
         },
 
+        isDraggingOver: {
+            backgroundColor: theme.receiptDropUIBG,
+        },
+
         receiptImageWrapper: (receiptImageTopPosition: number) =>
             ({
                 position: 'absolute',
@@ -3376,7 +3384,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
-            color: theme.text,
+            color: theme.textColorfulBackground,
         },
 
         eReceiptWaypointTitle: {
@@ -3634,7 +3642,7 @@ const styles = (theme: ThemeColors) =>
                 marginLeft: 8,
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
-                color: isSelected ? theme.textLight : theme.textSupporting,
+                color: isSelected ? theme.text : theme.textSupporting,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
@@ -3799,9 +3807,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestHeaderStatusBarBadge: {
-            paddingHorizontal: 8,
-            borderRadius: variables.componentBorderRadiusSmall,
+            width: 68,
             height: variables.inputHeightSmall,
+            borderRadius: variables.componentBorderRadiusSmall,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -4021,8 +4029,7 @@ const styles = (theme: ThemeColors) =>
 
 type ThemeStyles = ReturnType<typeof styles>;
 
-const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
-export default defaultStyles;
-export {stylesGenerator, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
+export default styles;
+export {defaultStyles, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
