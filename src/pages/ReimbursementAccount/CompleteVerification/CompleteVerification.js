@@ -28,7 +28,7 @@ const propTypes = {
     /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
     /** Changes variable responsible for displaying step 4 or 5 */
-    setIsBeneficialOwnerInfoSet: PropTypes.func.isRequired,
+    // setIsBeneficialOwnerInfoSet: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -38,6 +38,7 @@ const defaultProps = {
 
 const bodyContent = [ConfirmAgreements];
 const completeVerificationKeys = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+const BENEFICIAL_OWNER_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
 
 const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}, ref) => {
     const {translate} = useLocalize();
@@ -49,19 +50,13 @@ const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAcc
             bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, completeVerificationKeys.BANK_ACCOUNT_ID, 0),
             ...values,
         };
-
-        // TODO mocked fieldsFrom UBO step should be replaced by real one
-        const tempValues = {
-            ownsMoreThan25Percent: false,
-            hasOtherBeneficialOwners: false,
-            beneficialOwners: '[]',
-        };
+        const uboStepValues = getSubstepValues(BENEFICIAL_OWNER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
 
         BankAccounts.updateBeneficialOwnersForBankAccount({
-            ...tempValues,
+            ...uboStepValues,
             ...payload,
         });
-    }, [reimbursementAccount, values]);
+    }, [reimbursementAccount, reimbursementAccountDraft, values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 

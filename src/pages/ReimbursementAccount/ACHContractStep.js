@@ -16,7 +16,7 @@ function ACHContractStep({onBackButtonPress, onCloseButtonPress}) {
     const [isBeneficialOwnerInfoSet, setIsBeneficialOwnerInfoSet] = useState(false);
 
     if (isBeneficialOwnerInfoSet) {
-        return <CompleteVerification setIsBeneficialOwnerInfoSet={setIsBeneficialOwnerInfoSet} />;
+        return <CompleteVerification onBackButtonPress={() => setIsBeneficialOwnerInfoSet(false)} />;
     }
 
     return (
