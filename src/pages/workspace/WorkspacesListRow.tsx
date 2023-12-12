@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -30,6 +29,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Icon to be used when workspaceIcon is not present */
     fallbackWorkspaceIcon: AvatarSource | undefined;
+
+    /** Renders the component using big screen layout or small screen layout */
+    isWide: boolean | undefined;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
@@ -45,12 +47,9 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
     }
 };
 
-function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails}: WorkspacesListRowProps) {
+function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails, isWide}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isMediumScreenWidth, isLargeScreenWidth} = useWindowDimensions();
-    const isWide = isMediumScreenWidth || isLargeScreenWidth;
-    const isNarrow = !isWide;
 
     const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
@@ -67,9 +66,13 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
         }
     }, [workspaceType, translate]);
 
+    if (isWide === undefined) {
+        return <></>;
+    }
+
     return (
         <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5]}>
-            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, !isWide && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -84,14 +87,23 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                 >
                     {title}
                 </Text>
-                {isNarrow && (
+                {!isWide && (
                     <ThreeDotsMenu
                         menuItems={[]}
                         anchorPosition={{top: 0, right: 0}}
+                        iconTooltip={undefined}
+                        icon={undefined}
+                        iconFill={undefined}
+                        iconStyles={undefined}
+                        onIconPress={undefined}
+                        anchorAlignment={undefined}
+                        shouldOverlay={undefined}
+                        shouldSetModalVisibility={undefined}
+                        disabled={undefined}
                     />
                 )}
             </View>
-            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, !isWide && styles.mr5, styles.alignItemsCenter]}>
                 <Avatar
                     source={ownerDetails.avatar}
                     size={CONST.AVATAR_SIZE.SMALL}
@@ -112,7 +124,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     </Text>
                 </View>
             </View>
-            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, !isWide && styles.mr5, styles.alignItemsCenter]}>
                 <Icon
                     src={workspaceTypeIcon(workspaceType)}
                     width={34}
@@ -139,6 +151,14 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                     menuItems={[]}
                     anchorPosition={{top: 0, right: 0}}
                     iconStyles={[styles.mr2]}
+                    iconTooltip={undefined}
+                    icon={undefined}
+                    iconFill={undefined}
+                    onIconPress={undefined}
+                    anchorAlignment={undefined}
+                    shouldOverlay={undefined}
+                    shouldSetModalVisibility={undefined}
+                    disabled={undefined}
                 />
             )}
         </View>
