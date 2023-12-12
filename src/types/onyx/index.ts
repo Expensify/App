@@ -37,6 +37,7 @@ import ReportAction, {ReportActions} from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
+import ReportUserIsTyping from './ReportUserIsTyping';
 import Request from './Request';
 import Response from './Response';
 import ScreenShareRequest from './ScreenShareRequest';
@@ -119,4 +120,5 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    ReportUserIsTyping,
 };

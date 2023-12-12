@@ -4,6 +4,7 @@ import type {
     AddressLineParams,
     AlreadySignedInParams,
     AmountEachParams,
+    ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -26,6 +27,7 @@ import type {
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
@@ -63,6 +65,7 @@ import type {
     SplitAmountParams,
     StepCounterParams,
     TagSelectionParams,
+    TaskCreatedActionParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -496,6 +499,7 @@ export default {
     tabSelector: {
         chat: 'Chat',
         room: 'Sala',
+        distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
     },
@@ -552,6 +556,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         payElsewhere: 'Pagar de otra forma',
         nextSteps: 'Pasos Siguientes',
+        finished: 'Finalizado',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -564,7 +569,9 @@ export default {
         payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} gastó ${amount}`,
         payerSpent: ({payer}: PayerPaidParams) => `${payer} gastó: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
+        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
@@ -589,6 +596,7 @@ export default {
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero.`,
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {
+            invalidCategoryLength: 'El largo de la categoría escogida excede el máximo permitido (255). Por favor escoge otra categoría o acorta la categoría primero.',
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -1205,8 +1213,10 @@ export default {
         toGetStarted: 'Añade una cuenta bancaria y emite tarjetas corporativas, reembolsa gastos y cobra y paga facturas, todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError:
-            'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor, revisa tu correo electrónico para validar tu cuenta y vuelve aquí para continuar.',
+        validateAccountError: {
+            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
+            phrase2: 'vuelve a iniciar sesión con un código mágico',
+        },
         hasPhoneLoginError:
             'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
@@ -1694,6 +1704,7 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
+            created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
             canceled: 'tarea eliminado',
             reopened: 'marcada como incompleta',
@@ -2455,9 +2466,9 @@ export default {
             body1: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Recomienda a un amigo y ',
+            buttonText1: 'Invita a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recomienda a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Invita a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body1: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
