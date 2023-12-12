@@ -21,6 +21,7 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -121,7 +122,15 @@ class ContactMethodDetailsPage extends Component {
     componentDidUpdate(prevProps) {
         const validatedDate = lodashGet(this.props.loginList, [this.getContactMethod(), 'validatedDate']);
         const prevValidatedDate = lodashGet(prevProps.loginList, [this.getContactMethod(), 'validatedDate']);
-
+        const contactMethod = this.getContactMethod();
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
+        const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
+        const shouldSignOut = isDefaultContactMethod && !loginData.validatedDate && !isFailedAddContactMethod;
+        if (shouldSignOut) {    
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         if (!prevValidatedDate && validatedDate) {
