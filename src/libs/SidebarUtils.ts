@@ -185,7 +185,8 @@ function getOrderedReportIDs(
         report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
 
         const isPinned = report.isPinned ?? false;
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
+        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
@@ -260,7 +261,6 @@ function getOptionData(
         keyForList: null,
         searchText: null,
         isPinned: false,
-        hasOutstandingIOU: false,
         hasOutstandingChildRequest: false,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -301,7 +301,6 @@ function getOptionData(
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
-    result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;

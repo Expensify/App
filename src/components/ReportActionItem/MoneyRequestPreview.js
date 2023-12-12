@@ -77,9 +77,6 @@ const propTypes = {
 
         /** Currency of outstanding amount of this transaction */
         currency: PropTypes.string,
-
-        /** Does the iouReport have an outstanding IOU? */
-        hasOutstandingIOU: PropTypes.bool,
     }),
 
     /** True if this is this IOU is a split instead of a 1:1 request */

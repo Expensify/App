@@ -107,7 +107,6 @@ type OptimisticExpenseReport = Pick<
     | 'policyID'
     | 'type'
     | 'ownerAccountID'
-    | 'hasOutstandingIOU'
     | 'currency'
     | 'reportName'
     | 'state'
@@ -197,7 +196,6 @@ type OptimisticChatReport = Pick<
     Report,
     | 'type'
     | 'chatType'
-    | 'hasOutstandingIOU'
     | 'isOwnPolicyExpenseChat'
     | 'isPinned'
     | 'lastActorAccountID'
@@ -297,7 +295,6 @@ type TransactionDetails =
 type OptimisticIOUReport = Pick<
     Report,
     | 'cachedTotal'
-    | 'hasOutstandingIOU'
     | 'type'
     | 'chatReportID'
     | 'currency'
@@ -773,6 +770,13 @@ function isDM(report: OnyxEntry<Report>): boolean {
  */
 function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
     return report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
+}
+
+/**
+ * Returns true if report is still being processed
+ */
+function isProcessingReport(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && report?.statusNum === CONST.REPORT.STATUS.SUBMITTED;
 }
 
 /**
@@ -1573,14 +1577,14 @@ function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentRep
     return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
 }
 
-function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
-    if (!report) {
+function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
+    if (!reportOrOption) {
         return false;
     }
     // lastMentionedTime and lastReadTime are both datetime strings and can be compared directly
-    const lastMentionedTime = report.lastMentionedTime ?? '';
-    const lastReadTime = report.lastReadTime ?? '';
-    return lastReadTime < lastMentionedTime;
+    const lastMentionedTime = reportOrOption.lastMentionedTime ?? '';
+    const lastReadTime = reportOrOption.lastReadTime ?? '';
+    return Boolean('isUnreadWithMention' in reportOrOption && reportOrOption.isUnreadWithMention) || lastReadTime < lastMentionedTime;
 }
 
 /**
@@ -1592,29 +1596,25 @@ function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(option: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
-    if (!option) {
+function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: EmptyObject | OnyxEntry<ReportAction> = {}) {
+    if (!optionOrReport) {
         return false;
     }
 
-    if (isArchivedRoom(option)) {
+    if (isArchivedRoom(optionOrReport) || isArchivedRoom(getReport(optionOrReport.parentReportID))) {
         return false;
     }
 
-    if (isArchivedRoom(getReport(option.parentReportID))) {
-        return false;
-    }
-
-    if (Boolean('isUnreadWithMention' in option && option.isUnreadWithMention) || isUnreadWithMention(option)) {
+    if (isUnreadWithMention(optionOrReport)) {
         return true;
     }
 
-    if (isWaitingForAssigneeToCompleteTask(option, parentReportAction)) {
+    if (isWaitingForAssigneeToCompleteTask(optionOrReport, parentReportAction)) {
         return true;
     }
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (option.hasOutstandingChildRequest) {
+    if (optionOrReport.hasOutstandingChildRequest) {
         return true;
     }
 
@@ -1636,7 +1636,7 @@ function getMoneyRequestReimbursableTotal(report: OnyxEntry<Report>, allReportsD
     if (isMoneyRequestReport(report)) {
         moneyRequestReport = report;
     }
-    if (allAvailableReports && report?.hasOutstandingIOU && report?.iouReportID) {
+    if (allAvailableReports && report?.iouReportID) {
         moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
@@ -1658,7 +1658,7 @@ function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict
     if (isMoneyRequestReport(report)) {
         moneyRequestReport = report;
     }
-    if (allAvailableReports && report?.hasOutstandingIOU && report?.iouReportID) {
+    if (allAvailableReports && report?.iouReportID) {
         moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
@@ -1759,7 +1759,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    if (!!report?.hasOutstandingIOU || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
+    if (isProcessingReport(report) || isDraftExpenseReport(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
@@ -2588,8 +2588,6 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
     return {
-        // If we're sending money, hasOutstandingIOU should be false
-        hasOutstandingIOU: !isSendingMoney,
         type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
         chatReportID,
@@ -2643,7 +2641,6 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: payeeAccountID,
-        hasOutstandingIOU: true,
         currency: outputCurrency,
 
         // We don't translate reportName because the server response is always in English
@@ -3122,7 +3119,6 @@ function buildOptimisticChatReport(
     return {
         type: CONST.REPORT.TYPE.CHAT,
         chatType,
-        hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS || isNewlyCreatedWorkspaceChat,
         lastActorAccountID: 0,
@@ -4387,6 +4383,7 @@ export {
     isPublicRoom,
     isPublicAnnounceRoom,
     isConciergeChatReport,
+    isProcessingReport,
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,

@@ -254,7 +254,6 @@ describe('ReportUtils', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: undefined,
-                hasOutstandingIOU: true,
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
@@ -266,7 +265,6 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
                 reportID: '1',
                 ownerAccountID: 99,
-                hasOutstandingIOU: true,
             }).then(() => {
                 expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
             });
@@ -274,7 +272,6 @@ describe('ReportUtils', () => {
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
-                hasOutstandingIOU: false,
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
@@ -283,7 +280,6 @@ describe('ReportUtils', () => {
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
-                hasOutstandingIOU: true,
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
@@ -292,7 +288,6 @@ describe('ReportUtils', () => {
         it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
-                hasOutstandingIOU: false,
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
@@ -310,6 +305,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 type: CONST.REPORT.TYPE.TASK,
                 managerID: currentUserAccountID,
+                isUnreadWithMention: false,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS.OPEN,
             };
@@ -319,7 +315,6 @@ describe('ReportUtils', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: 99,
-                hasOutstandingIOU: true,
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
