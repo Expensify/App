@@ -859,6 +859,8 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     }
 
     const categoryListThreshold = !_.isEmpty(selectedOptions) ? CONST.CATEGORY_LIST_THRESHOLD - 1 : CONST.CATEGORY_LIST_THRESHOLD;
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
 
     if (numberOfCategories < categoryListThreshold) {
         categorySections.push({
@@ -866,13 +868,12 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(enabledCategories),
+            data: getIndentedOptionTree(filteredCategories),
         });
 
         return categorySections;
     }
 
-    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
     const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
         .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
         .map((categoryName) => ({
@@ -895,7 +896,6 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         indexOffset += filteredRecentlyUsedCategories.length;
     }
 
-    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
