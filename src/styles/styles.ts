@@ -3782,9 +3782,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestHeaderStatusBarBadge: {
-            paddingHorizontal: 8,
-            borderRadius: variables.componentBorderRadiusSmall,
+            width: 68,
             height: variables.inputHeightSmall,
+            borderRadius: variables.componentBorderRadiusSmall,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',

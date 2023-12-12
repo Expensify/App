@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -48,6 +48,18 @@ const propTypes = {
     /** The report's policyID, used for Onyx subscription */
     policyID: PropTypes.string.isRequired,
 
+    /** The policy tied to the money request report */
+    policy: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+
+        /** Type of the policy */
+        type: PropTypes.string,
+
+        /** The role of the current user in the policy */
+        role: PropTypes.string,
+    }),
+
     /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: reportPropTypes,
@@ -69,9 +81,6 @@ const propTypes = {
 
         /** Currency of outstanding amount of this transaction */
         currency: PropTypes.string,
-
-        /** Does the iouReport have an outstanding IOU? */
-        hasOutstandingIOU: PropTypes.bool,
 
         /** Is the iouReport waiting for the submitter to add a credit bank account? */
         isWaitingOnBankAccount: PropTypes.bool,
@@ -105,6 +114,7 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
+    policy: {},
 };
 
 function ReportPreview(props) {
@@ -115,6 +125,7 @@ function ReportPreview(props) {
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
+    const policyType = lodashGet(props.policy, 'type');
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -122,7 +133,8 @@ function ReportPreview(props) {
     const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment', '');
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.chatReport);
     const isDraftExpenseReport = isPolicyExpenseChat && ReportUtils.isDraftExpenseReport(props.iouReport);
-
+    const isApproved = ReportUtils.isReportApproved(props.iouReport);
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(props.iouReport);
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
@@ -176,8 +188,9 @@ function ReportPreview(props) {
         if (isScanning) {
             return props.translate('common.receipt');
         }
-        if (ReportUtils.isControlPolicyExpenseChat(props.chatReport) && ReportUtils.isReportApproved(props.iouReport)) {
-            return props.translate('iou.managerApproved', {manager: ReportUtils.getDisplayNameForParticipant(managerID, true)});
+        const payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+        if (isApproved) {
+            return props.translate('iou.managerApproved', {manager: payerOrApproverName});
         }
         const managerName = isPolicyExpenseChat ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
         let paymentVerb = hasNonReimbursableTransactions ? 'iou.payerSpent' : 'iou.payerOwes';
@@ -188,10 +201,24 @@ function ReportPreview(props) {
     };
 
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
-        ? props.policy.role === CONST.POLICY.ROLE.ADMIN && ReportUtils.isReportApproved(props.iouReport) && !iouSettled && !iouCanceled
-        : !_.isEmpty(props.iouReport) && isCurrentUserManager && !isDraftExpenseReport && !iouSettled && !iouCanceled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0;
 
+    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
+    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const isPayer = isGroupPolicy
+        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+          isPolicyAdmin && (isApproved || isCurrentUserManager)
+        : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
+    const shouldShowPayButton = useMemo(
+        () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
+    );
+    const shouldShowApproveButton = useMemo(() => {
+        if (!isGroupPolicy) {
+            return false;
+        }
+        return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
+    }, [isGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
+    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
@@ -265,6 +292,8 @@ function ReportPreview(props) {
                                 onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={bankAccountRoute}
+                                shouldHidePaymentOptions={!shouldShowPayButton}
+                                shouldShowApproveButton={shouldShowApproveButton}
                                 style={[styles.mt3]}
                                 kycWallAnchorAlignment={{
                                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
