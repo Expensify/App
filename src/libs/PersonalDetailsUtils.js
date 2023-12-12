@@ -198,6 +198,18 @@ function getFormattedAddress(privatePersonalDetails) {
 }
 
 /**
+ * @param {Object} personalDetail - details object
+ * @returns {String | undefined} - The effective display name
+ */
+function getEffectiveDisplayName(personalDetail) {
+    if (personalDetail) {
+        return LocalePhoneNumber.formatPhoneNumber(personalDetail.login) || personalDetail.displayName;
+    }
+
+    return undefined;
+}
+
+/**
  * Whether personal details is empty
  * @returns {Boolean} true if personal details is empty
  */
@@ -215,4 +227,5 @@ export {
     isPersonalDetailsEmpty,
     getFormattedStreet,
     getStreetLines,
+    getEffectiveDisplayName,
 };
