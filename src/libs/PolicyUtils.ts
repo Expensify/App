@@ -219,3 +219,5 @@ export {
     isPendingDeletePolicy,
     isPolicyMember,
 };
+
+export type {PersonalDetailsList};

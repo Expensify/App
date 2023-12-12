@@ -24,6 +24,7 @@ import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import {PersonalDetailsList} from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -36,7 +37,7 @@ type Option = {text: string; keyForList: string; searchText: string; tooltipText
 
 type PayeePersonalDetails = {text: string; alternateText: string; icons: OnyxCommon.Icon[]; descriptiveText: string; login: string; accountID: number};
 
-type CategorySection = {title: string; shouldShow: boolean; indexOffset: number; data: Option[]};
+type CategorySection = {title: string | undefined; shouldShow: boolean; indexOffset: number; data: Option[] | Participant[] | ReportUtils.OptionData[]};
 
 type Category = {
     name: string;
@@ -96,7 +97,7 @@ Onyx.connect({
     callback: (value) => (loginList = Object.keys(value ?? {}).length === 0 ? {} : value),
 });
 
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (allPersonalDetails = Object.keys(value ?? {}).length === 0 ? {} : value),
@@ -186,9 +187,10 @@ function addSMSDomainIfPhoneNumber(login: string): string {
 }
 
 /**
- * Returns avatar data for a list of user accountIDs
+ * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
+ * @returns Returns avatar data for a list of user accountIDs
  */
-function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxCollection<PersonalDetails>, defaultValues: Record<string, number> = {}): OnyxCommon.Icon[] {
+function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>, defaultValues: Record<string, number> = {}): OnyxCommon.Icon[] {
     const reversedDefaultValues: Record<number, string> = {};
 
     Object.entries(defaultValues).forEach((item) => {
@@ -211,8 +213,8 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxColl
  * Returns the personal details for an array of accountIDs
  * @returns  keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: OnyxCollection<PersonalDetails>): Record<number, PersonalDetails> {
-    const personalDetailsForAccountIDs: Record<number, PersonalDetails> = {};
+function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+    const personalDetailsForAccountIDs: PersonalDetailsList = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
     }
@@ -241,7 +243,7 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: 
 /**
  * Return true if personal details data is ready, i.e. report list options can be created.
  */
-function isPersonalDetailsReady(personalDetails: OnyxCollection<PersonalDetails>): boolean {
+function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>): boolean {
     const personalDetailsKeys = Object.keys(personalDetails ?? {});
     return personalDetailsKeys.length > 0 && personalDetailsKeys.some((key) => personalDetails?.[Number(key)]?.accountID);
 }
@@ -249,14 +251,14 @@ function isPersonalDetailsReady(personalDetails: OnyxCollection<PersonalDetails>
 /**
  * Get the participant option for a report.
  */
-function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxCollection<PersonalDetails>): Participant {
+function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     const login = detail.login ?? participant.login ?? '';
     const displayName = detail.displayName ?? LocalePhoneNumber.formatPhoneNumber(login);
     return {
         keyForList: String(detail.accountID),
         login,
-        accountID: detail.accountID ?? 0,
+        accountID: detail.accountID ?? -1,
         text: displayName,
         firstName: detail.firstName ?? '',
         lastName: detail.lastName ?? '',
@@ -468,7 +470,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
  */
 function createOption(
     accountIDs: number[],
-    personalDetails: OnyxCollection<PersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     report: OnyxEntry<Report>,
     reportActions: Record<string, ReportAction>,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean},
@@ -790,7 +792,7 @@ function indentOption(option: Category, optionCollection: Map<string, Option>, i
  * Builds the options for the tree hierarchy via indents
  *
  * @param options - an initial object array
- * @param} [isOneLine] - a flag to determine if text should be one line
+ * @param [isOneLine] - a flag to determine if text should be one line
  */
 function getIndentedOptionTree(options: Category[] | Record<string, Category>, isOneLine = false): Option[] {
     const optionCollection = new Map<string, Option>();
@@ -1024,7 +1026,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
  */
 function getOptions(
     reports: Record<string, Report>,
-    personalDetails: OnyxCollection<PersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     {
         reportActions = {},
         betas = [],
@@ -1176,12 +1178,12 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
-    const filteredDetails: OnyxCollection<PersonalDetails> = Object.keys(personalDetails ?? {})
+    const filteredDetails: OnyxEntry<PersonalDetailsList> = Object.keys(personalDetails ?? {})
         .filter((key) => 'login' in (personalDetails?.[+key] ?? {}))
-        .reduce((obj: OnyxCollection<PersonalDetails>, key) => {
+        .reduce((obj: OnyxEntry<PersonalDetailsList>, key) => {
             if (obj) {
                 // eslint-disable-next-line no-param-reassign
-                obj[+key] = personalDetails?.[+key] ?? null;
+                obj[+key] = personalDetails?.[+key];
             }
 
             return obj;
@@ -1370,7 +1372,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(reports: Record<string, Report>, personalDetails: OnyxCollection<PersonalDetails>, searchValue = '', betas: Beta[] = []) {
+function getSearchOptions(reports: Record<string, Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1425,7 +1427,7 @@ function getIOUConfirmationOptionsFromParticipants(participants: Participant[], 
  */
 function getFilteredOptions(
     reports: Record<string, Report>,
-    personalDetails: OnyxCollection<PersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
     selectedOptions = [],
@@ -1468,7 +1470,7 @@ function getFilteredOptions(
 
 function getShareDestinationOptions(
     reports: Record<string, Report>,
-    personalDetails: OnyxCollection<PersonalDetails>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     betas: Beta[] = [],
     searchValue = '',
     selectedOptions = [],
@@ -1501,7 +1503,7 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}) {
+function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): ReportUtils.OptionData | undefined {
     if (!member) {
         return undefined;
     }
@@ -1526,7 +1528,7 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
 /**
  * Build the options for the Workspace Member Invite view
  */
-function getMemberInviteOptions(personalDetails: OnyxCollection<PersonalDetails>, betas: Beta[] = [], searchValue = '', excludeLogins: string[] = []) {
+function getMemberInviteOptions(personalDetails: OnyxEntry<PersonalDetailsList>, betas: Beta[] = [], searchValue = '', excludeLogins: string[] = []) {
     return getOptions({}, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1587,6 +1589,10 @@ function shouldOptionShowTooltip(option: ReportUtils.OptionData): boolean {
     return Boolean((!option.isChatRoom || option.isThread) && !option.isArchivedRoom);
 }
 
+type SectionForSearchTerm = {
+    section: CategorySection;
+    newIndexOffset: number;
+};
 /**
  * Handles the logic for displaying selected participants from the search term
  */
@@ -1595,10 +1601,10 @@ function formatSectionsFromSearchTerm(
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: PersonalDetails[],
-    personalDetails: OnyxCollection<PersonalDetails> = {},
+    personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     indexOffset = 0,
-) {
+): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
