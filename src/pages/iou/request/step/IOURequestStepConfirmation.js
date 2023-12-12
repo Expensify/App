@@ -192,14 +192,14 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
+                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(report.reportID) ? reportID : '';
                 IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, receiptFile, existingSplitChatReportID);
                 return;
             }
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
-            if (iouType === CONST.IOU.TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID)) {
+            if (iouType === CONST.IOU.TYPE.SPLIT && !transaction.isFromGlobalCreate) {
                 IOU.splitBill(
                     selectedParticipants,
                     currentUserPersonalDetails.login,
@@ -208,7 +208,9 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.category,
+                    transaction.tag,
                     report.reportID,
+                    transaction.merchant,
                 );
                 return;
             }
@@ -223,6 +225,8 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.category,
+                    transaction.tag,
+                    transaction.merchant,
                 );
                 return;
             }

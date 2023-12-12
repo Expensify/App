@@ -92,9 +92,10 @@ Onyx.connect({
 /**
  * Initialize money request info
  * @param {String} reportID to attach the transaction to
+ * @param {Boolean} isFromGlobalCreate
  * @param {String} [iouRequestType] one of manual/scan/distance
  */
-function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
@@ -118,6 +119,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
+        isFromGlobalCreate,
     });
 }
 
