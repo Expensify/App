@@ -45,7 +45,7 @@ function MentionUserRenderer(props) {
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if (!_.isEmpty(props.tnode.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
-        displayNameOrLogin = props.tnode.data.replace(CONST.UNICODE.LTR, '').slice(1);
+        displayNameOrLogin = props.tnode.data.replace(CONST.UNICODE.LTR, '').slice(1).toLowerCase();
 
         accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin]));
         navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
