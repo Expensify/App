@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import refPropTypes from '@components/refPropTypes';
 import Tooltip from '@components/Tooltip';
+import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -115,7 +116,7 @@ function ReportActionItemMessageEdit(props) {
     });
     const [selection, setSelection] = useState(getInitialSelection);
     const [isFocused, setIsFocused] = useState(false);
-    const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
+    const {handleValueChangeDebounce, hasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState(false);
     const [onyxFocused, setOnyxFocused] = useState(false);
 
@@ -367,21 +368,6 @@ function ReportActionItemMessageEdit(props) {
      * Focus the composer text input
      */
     const focus = focusComposerWithDelay(textInputRef.current);
-
-    const handleValueChange = useCallback(
-        (value) => {
-            if (ReportUtils.getCommentLength(value) <= CONST.MAX_COMMENT_LENGTH) {
-                if (hasExceededMaxCommentLength) {
-                    setHasExceededMaxCommentLength(false);
-                }
-                return;
-            }
-            setHasExceededMaxCommentLength(true);
-        },
-        [hasExceededMaxCommentLength],
-    );
-
-    const handleValueChangeDebounce = useMemo(() => _.debounce(handleValueChange, 1500), [handleValueChange]);
 
     useEffect(() => {
         handleValueChangeDebounce(draft);

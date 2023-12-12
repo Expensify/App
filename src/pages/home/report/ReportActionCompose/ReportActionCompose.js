@@ -13,6 +13,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -144,7 +145,7 @@ function ReportActionCompose({
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      */
-    const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
+    const {handleValueChangeDebounce, hasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
 
     const suggestionsRef = useRef(null);
     const composerRef = useRef(null);
@@ -330,21 +331,6 @@ function ReportActionCompose({
         updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
-
-    const handleValueChange = useCallback(
-        (value) => {
-            if (ReportUtils.getCommentLength(value) <= CONST.MAX_COMMENT_LENGTH) {
-                if (hasExceededMaxCommentLength) {
-                    setExceededMaxCommentLength(false);
-                }
-                return;
-            }
-            setExceededMaxCommentLength(true);
-        },
-        [hasExceededMaxCommentLength],
-    );
-
-    const handleValueChangeDebounce = useMemo(() => _.debounce(handleValueChange, 1500), [handleValueChange]);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !lodashGet(network, 'isOffline') && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
