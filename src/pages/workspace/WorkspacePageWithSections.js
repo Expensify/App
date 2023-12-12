@@ -1,10 +1,11 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
@@ -87,12 +88,19 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
+    const isLoading = lodashGet(reimbursementAccount, 'isLoading', true);
     const achState = lodashGet(reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const isUsingECard = lodashGet(user, 'isUsingExpensifyCard', false);
     const policyID = lodashGet(route, 'params.policyID');
     const policyName = lodashGet(policy, 'name');
     const content = children(hasVBA, policyID, isUsingECard);
+    const firstRender = useRef(true);
+
+    useEffect(() => {
+        // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
+        firstRender.current = false;
+    }, []);
 
     useEffect(() => {
         fetchData(shouldSkipVBBACall);
@@ -117,17 +125,23 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
                     guidesCallTaskID={guidesCallTaskID}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
-                {shouldUseScrollView ? (
-                    <ScrollViewWithContext
-                        keyboardShouldPersistTaps="handled"
-                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                    >
-                        <View style={[styles.w100, styles.flex1]}>{content}</View>
-                    </ScrollViewWithContext>
+                {isLoading || firstRender.current ? (
+                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
-                    content
+                    <>
+                        {shouldUseScrollView ? (
+                            <ScrollViewWithContext
+                                keyboardShouldPersistTaps="handled"
+                                style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                            >
+                                <View style={[styles.w100, styles.flex1]}>{content}</View>
+                            </ScrollViewWithContext>
+                        ) : (
+                            content
+                        )}
+                        {footer}
+                    </>
                 )}
-                {footer}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
