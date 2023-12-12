@@ -146,9 +146,6 @@ type Report = {
     /** Pending fields for the report */
     pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
-    /** Pending action for the report */
-    pendingAction?: OnyxCommon.PendingAction | null;
-
     /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
     preexistingReportID?: string;
 

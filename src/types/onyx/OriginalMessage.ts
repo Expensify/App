@@ -234,4 +234,4 @@ type OriginalMessage =
     | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, OriginalMessageCreated, ChangeLog, OriginalMessageIOU, OriginalMessageCreated};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, OriginalMessageCreated, ChangeLog, OriginalMessageIOU};
