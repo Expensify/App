@@ -1494,9 +1494,9 @@ export default {
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
         },
         type: {
-            free: '[Missing translation]',
-            control: '[Missing translation]',
-            collect: '[Missing translation]',
+            free: 'Gratis',
+            control: 'Control',
+            collect: 'Recolectar',
         },
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
