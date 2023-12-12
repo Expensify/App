@@ -210,7 +210,7 @@ function getZoneAbbreviation(datetime: string, selectedTimezone: SelectedTimezon
  *
  * @returns Sunday, July 9, 2023
  */
-function formatToLongDateWithWeekday(datetime: string): string {
+function formatToLongDateWithWeekday(datetime: string | Date): string {
     return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY);
 }
 
@@ -228,7 +228,7 @@ function formatToDayOfWeek(datetime: string): string {
  *
  * @returns 2:30 PM
  */
-function formatToLocalTime(datetime: string): string {
+function formatToLocalTime(datetime: string | Date): string {
     return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT);
 }
 
