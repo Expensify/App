@@ -1,34 +1,27 @@
-diff --git a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
-index f303b31..748173d 100644
---- a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
-+++ b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
-@@ -126,19 +126,6 @@ function windowSizeOrDefault(windowSize: ?number) {
-   return windowSize ?? 21;
+diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+index faeb323..8b6f618 100644
+--- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+@@ -78,14 +78,6 @@ function scrollEventThrottleOrDefault(scrollEventThrottle) {
+ function windowSizeOrDefault(windowSize) {
+   return windowSize !== null && windowSize !== void 0 ? windowSize : 21;
  }
- 
--function findLastWhere<T>(
--  arr: $ReadOnlyArray<T>,
--  predicate: (element: T) => boolean,
--): T | null {
--  for (let i = arr.length - 1; i >= 0; i--) {
+-function findLastWhere(arr, predicate) {
+-  for (var i = arr.length - 1; i >= 0; i--) {
 -    if (predicate(arr[i])) {
 -      return arr[i];
 -    }
 -  }
--
 -  return null;
 -}
--
- /**
-  * Base implementation for the more convenient [`<FlatList>`](https://reactnative.dev/docs/flatlist)
-  * and [`<SectionList>`](https://reactnative.dev/docs/sectionlist) components, which are also better
-@@ -1089,7 +1076,8 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
-       const spacerKey = this._getSpacerKey(!horizontal);
  
-       const renderRegions = this.state.renderMask.enumerateRegions();
--      const lastSpacer = findLastWhere(renderRegions, r => r.isSpacer);
+@@ -1119,7 +1050,8 @@ class VirtualizedList extends StateSafePureComponent {
+       _keylessItemComponentName = '';
+       var spacerKey = this._getSpacerKey(!horizontal);
+       var renderRegions = this.state.renderMask.enumerateRegions();
+-      var lastSpacer = findLastWhere(renderRegions, r => r.isSpacer);
 +      const lastRegion = renderRegions[renderRegions.length - 1];
 +      const lastSpacer = lastRegion?.isSpacer ? lastRegion : null;
- 
-       for (const section of renderRegions) {
+       for (var _iterator = _createForOfIteratorHelperLoose(renderRegions), _step; !(_step = _iterator()).done;) {
+         var section = _step.value;
          if (section.isSpacer) {
