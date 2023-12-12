@@ -199,8 +199,8 @@ function ReportPreview(props) {
                     return;
                 }
 
-                const allTransaction = _.filter(transactionAgrs, (transaction) => `${transaction.reportID}` === `${props.iouReportID}`);
-                setTransactions(allTransaction);
+                const allTransactions = TransactionUtils.getAllReportTransactions(props.iouReportID);
+                setTransactions(allTransactions);
             },
         });
 
