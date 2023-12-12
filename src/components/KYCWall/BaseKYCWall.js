@@ -12,6 +12,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Policy from '@userActions/Policy';
 import * as Wallet from '@userActions/Wallet';
+import * as BankAccounts from '@libs/actions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -118,7 +119,7 @@ function KYCWall({
     const selectPaymentMethod = (paymentMethod) => {
         onSelectPaymentMethod(paymentMethod);
         if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-            Navigation.navigate(addBankAccountRoute);
+            BankAccounts.openPersonalBankAccountSetupView();
         } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(addDebitCardRoute);
         } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
