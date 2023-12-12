@@ -25,6 +25,9 @@ declare module 'react-native-device-info/jest/react-native-device-info-mock';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface Window {
+    // Method to enable memory only keys feature
     enableMemoryOnlyKeys: () => void;
+
+    // Method to disable memory only keys feature
     disableMemoryOnlyKeys: () => void;
 }
