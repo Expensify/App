@@ -8,10 +8,7 @@ import Text from './Text';
 
 export default function ViolationMessages({violations}: {violations: TransactionViolation[]}) {
     const styles = useThemeStyles();
-
-    const localize = useLocalize();
-    const translate = localize.translate;
-
+    const {translate} = useLocalize();
     const violationMessages = useMemo(() => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate)]), [translate, violations]);
 
     return (
