@@ -1,6 +1,7 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
+import {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Pressables from '@components/Pressable';
@@ -11,20 +12,21 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
+import {GrowlNotificationProps} from './types';
 
 const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-function GrowlNotification(_, ref) {
+function GrowlNotification({ref}: GrowlNotificationProps) {
     const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
-    const [duration, setDuration] = useState();
+    const [duration, setDuration] = useState<number | undefined>();
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const types = {
+    const types: Record<string, {icon: React.FC<SvgProps>; iconColor: string}> = {
         [CONST.GROWL.SUCCESS]: {
             icon: Expensicons.Checkmark,
             iconColor: theme.success,
@@ -46,7 +48,7 @@ function GrowlNotification(_, ref) {
      * @param {String} type
      * @param {Number} duration
      */
-    const show = useCallback((text, growlType, growlDuration) => {
+    const show = useCallback((text: string, growlType: string, growlDuration: number) => {
         setBodyText(text);
         setType(growlType);
         setDuration(growlDuration);
@@ -58,13 +60,11 @@ function GrowlNotification(_, ref) {
      * @param {Number} val
      */
     const fling = useCallback(
-        (val = INACTIVE_POSITION_Y) => {
+        (val = INACTIVE_POSITION_Y) =>
             Animated.spring(translateY, {
                 toValue: val,
-                duration: 80,
                 useNativeDriver,
-            }).start();
-        },
+            }).start(),
         [translateY],
     );
 
