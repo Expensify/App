@@ -218,7 +218,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         Boolean(newChatOptions.userToInvite),
         searchTerm.trim(),
         maxParticipantsReached,
-        _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+        _.some(participants, (participant) => lodashGet(participant, 'searchText', '').toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
