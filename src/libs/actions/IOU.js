@@ -61,17 +61,12 @@ Onyx.connect({
     },
 });
 
-let allTransactionDrafts;
+let allTransactionDrafts = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
     callback: (val) => {
-        if (!val) {
-            allTransactionDrafts = {};
-            return;
-        }
-
-        allTransactionDrafts = val;
+        allTransactionDrafts = val || {};
     },
 });
 
