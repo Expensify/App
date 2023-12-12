@@ -71,6 +71,8 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             isStaging: envFile === '.env.staging',
         }),
         new FontPreloadPlugin({
+            // We add here 'lottie' as we want to prefetch lottie animations.
+            // To support it we patched the FontPreloadPlugin to support this extension.
             extensions: ['woff2', 'lottie'],
         }),
         new ProvidePlugin({

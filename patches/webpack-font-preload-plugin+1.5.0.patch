@@ -1,13 +1,14 @@
 diff --git a/node_modules/webpack-font-preload-plugin/src/index.js b/node_modules/webpack-font-preload-plugin/src/index.js
-index 1dda023..499aa0e 100644
+index 1dda023..b17b3ec 100644
 --- a/node_modules/webpack-font-preload-plugin/src/index.js
 +++ b/node_modules/webpack-font-preload-plugin/src/index.js
-@@ -143,6 +143,17 @@ class WebpackFontPreloadPlugin {
+@@ -143,6 +143,18 @@ class WebpackFontPreloadPlugin {
     */
    getLinkTag(name, publicPath) {
      const { crossorigin, loadType } = this.options;
 +    const isLottie = name.endsWith(".lottie");
 +
++    // If the asset is a lottie file, then preload it as fetch.
 +    if (isLottie) {
 +        return `<link
 +          rel="prefetch"
