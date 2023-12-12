@@ -24,10 +24,6 @@ export default {
         overscrollBehaviorX: 'none',
     },
 
-    overflowWrapAnywhere: {
-        overflowWrap: 'anywhere',
-    },
-
     overscrollBehaviorContain,
 
     overflowAuto,
