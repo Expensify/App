@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetails} from '@src/types/onyx';
 import Beta from '@src/types/onyx/Beta';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
@@ -184,7 +185,8 @@ function getOrderedReportIDs(
         report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
 
         const isPinned = report.isPinned ?? false;
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
+        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
@@ -244,7 +246,6 @@ function getOptionData(
 
     const result: ReportUtils.OptionData = {
         alternateText: null,
-        pendingAction: null,
         allReportErrors: null,
         brickRoadIndicator: null,
         tooltipText: null,
@@ -259,7 +260,6 @@ function getOptionData(
         keyForList: null,
         searchText: null,
         isPinned: false,
-        hasOutstandingIOU: false,
         hasOutstandingChildRequest: false,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -284,7 +284,7 @@ function getOptionData(
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
-    result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
+    result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = Object.keys(result.allReportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
@@ -300,11 +300,10 @@ function getOptionData(
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
-    result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
-    result.notificationPreference = report.notificationPreference ?? '';
+    result.notificationPreference = report.notificationPreference;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 

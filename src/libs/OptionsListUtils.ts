@@ -495,7 +495,6 @@ function createOption(
         searchText: null,
         isDefaultRoom: false,
         isPinned: false,
-        hasOutstandingIOU: false,
         isWaitingOnBankAccount: false,
         iouReportID: undefined,
         isIOUReportOwner: null,
@@ -541,8 +540,7 @@ function createOption(
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
-        result.hasOutstandingIOU = report.hasOutstandingIOU;
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
