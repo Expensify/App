@@ -1,5 +1,5 @@
+import _ from 'lodash';
 import {useCallback, useMemo, useState} from 'react';
-import _ from 'underscore';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
