@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -45,7 +46,9 @@ function LHNOptionsList({
             const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
             const itemComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] ?? '';
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport?.participantAccountIDs ?? [], personalDetails);
+            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport?.ownerAccountID];
+
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
             return (
                 <OptionRowLHNData
                     reportID={reportID}
