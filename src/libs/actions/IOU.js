@@ -92,9 +92,10 @@ Onyx.connect({
 /**
  * Initialize money request info
  * @param {String} reportID to attach the transaction to
+ * @param {Boolean} isFromGlobalCreate
  * @param {String} [iouRequestType] one of manual/scan/distance
  */
-function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
@@ -118,6 +119,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, iouRequestType = CONST
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
+        isFromGlobalCreate,
     });
 }
 
@@ -175,6 +177,13 @@ function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
  */
 function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+}
+
+/*
+ * @param {String} transactionID
+ */
+function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
 /*
@@ -264,7 +273,6 @@ function buildOnyxDataForMoneyRequest(
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
-                hasOutstandingIOU: iouReport.total !== 0,
                 iouReportID: iouReport.reportID,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
@@ -409,7 +417,6 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingIOU: chatReport.hasOutstandingIOU,
                 iouReportID: chatReport.iouReportID,
                 lastReadTime: chatReport.lastReadTime,
                 pendingFields: null,
@@ -2259,7 +2266,6 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: {
-                          hasOutstandingIOU: false,
                           hasOutstandingChildRequest: false,
                           iouReportID: null,
                           lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
@@ -2604,7 +2610,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 ...chatReport,
                 lastReadTime: DateUtils.getDBTime(),
                 lastVisibleActionCreated: optimisticIOUReportAction.created,
-                hasOutstandingIOU: false,
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
@@ -2628,7 +2633,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 ...iouReport,
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
-                hasOutstandingIOU: false,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS.REIMBURSED,
             },
@@ -2823,7 +2827,6 @@ function submitReport(expenseReport) {
                       key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
                       value: {
                           ...parentReport,
-                          hasOutstandingIOU: false,
                           hasOutstandingChildRequest: false,
                           iouReportID: null,
                       },
@@ -2868,7 +2871,6 @@ function submitReport(expenseReport) {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
                       value: {
-                          hasOutstandingIOU: parentReport.hasOutstandingIOU,
                           hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
                           iouReportID: expenseReport.reportID,
                       },
@@ -3171,6 +3173,7 @@ export {
     startMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestCategory,
+    resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
     resetMoneyRequestTag,
     resetMoneyRequestTag_temporaryForRefactor,
