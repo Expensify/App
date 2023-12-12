@@ -2518,11 +2518,11 @@ export default {
             if (brokenBankConnection) {
                 return isAdmin
                     ? `No se puede adjuntar recibo debido a una conexión con su banco que ${email} necesita arreglar`
-                    : `No se puede adjuntar recibo debido a una conexión con su banco que necesita arreglar`;
+                    : 'No se puede adjuntar recibo debido a una conexión con su banco que necesitas arreglar';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
-                    ? `Pídele a ${member} que marque la transacción como efectivo o espere 7 días e intente de nuevo`
+                    ? `Pídele a ${member} que marque la transacción como efectivo o espera 7 días e intenta de nuevo`
                     : `Esperando adjuntar automáticamente con transacción de tarjeta de crédito`;
             }
             return ``;
