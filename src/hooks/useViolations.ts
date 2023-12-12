@@ -47,12 +47,6 @@ const violationFields: Record<ViolationName, ViolationField> = {
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
-/**
- * Hook to access violations for a transaction. Returns `getViolationsForField()`
- * @example const {getViolationsForField} = useViolations(transactionViolations);
- * @param violations - Array of {@link TransactionViolation}s
- * @returns - Object with `getViolationsForField()` callback
- */
 function useViolations(violations: TransactionViolation[]) {
     const violationsByField = useMemo((): ViolationsMap => {
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
@@ -66,14 +60,6 @@ function useViolations(violations: TransactionViolation[]) {
         return violationGroups ?? new Map();
     }, [violations]);
 
-    /**
-     * Callback that filters the list of {@link TransactionViolation}s provided to the hook,
-     * and returns only those that apply to the given {@link ViolationField}.
-     * (return value memoized to prevent re-renders)
-     * @example const violations = getViolationsForField('amount');
-     * @param field - ViolationField to get violations for (e.g. 'amount', 'billable', 'category',
-     *     etc.)
-     */
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
