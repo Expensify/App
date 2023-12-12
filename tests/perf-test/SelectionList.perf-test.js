@@ -1,8 +1,9 @@
+import {fireEvent} from '@testing-library/react-native';
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
-import {fireEvent} from '@testing-library/react-native';
 import _ from 'underscore';
 import SelectionList from '../../src/components/SelectionList';
+import CONST from '../../src/CONST';
 import variables from '../../src/styles/variables';
 
 jest.mock('../../src/components/Icon/Expensicons');
@@ -13,13 +14,19 @@ jest.mock('../../src/hooks/useLocalize', () =>
     })),
 );
 
-jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        translate={() => ''}
-    />
-));
+jest.mock('../../src/components/withLocalize', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                translate={() => ''}
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('../../src/hooks/useNetwork', () =>
     jest.fn(() => ({
@@ -27,13 +34,19 @@ jest.mock('../../src/hooks/useNetwork', () =>
     })),
 );
 
-jest.mock('../../src/components/withKeyboardState', () => (Component) => (props) => (
-    <Component
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        isKeyboardShown={false}
-    />
-));
+jest.mock('../../src/components/withKeyboardState', () => (Component) => {
+    function WrappedComponent(props) {
+        return (
+            <Component
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                isKeyboardShown={false}
+            />
+        );
+    }
+    WrappedComponent.displayName = `WrappedComponent`;
+    return WrappedComponent;
+});
 
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => {},
@@ -80,29 +93,31 @@ function SelectionListWrapper(args) {
     );
 }
 
-test('should render 1 section and a thousand items', () => {
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
+test('[SelectionList] should render 1 section and a thousand items', () => {
     measurePerformance(<SelectionListWrapper />);
 });
 
-test('should press a list item', () => {
+test('[SelectionList] should press a list item', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 5'));
     };
 
-    measurePerformance(<SelectionListWrapper />, {scenario});
+    measurePerformance(<SelectionListWrapper />, {scenario, runs});
 });
 
-test('should render multiple selection and select 3 items', () => {
+test('[SelectionList] should render multiple selection and select 3 items', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 2'));
         fireEvent.press(screen.getByText('Item 3'));
     };
 
-    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario, runs});
 });
 
-test('should scroll and select a few items', () => {
+test('[SelectionList] should scroll and select a few items', () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {
@@ -128,5 +143,5 @@ test('should scroll and select a few items', () => {
         fireEvent.press(screen.getByText('Item 15'));
     };
 
-    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario});
+    measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario, runs});
 });

@@ -1,14 +1,14 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
-import * as Illustrations from '../Icon/Illustrations';
-import HeaderWithBackButton from '../HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import variables from '../../styles/variables';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Child elements */
@@ -53,6 +53,7 @@ const defaultProps = {
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, linkKey, onBackButtonPress, shouldShowLink, shouldShowBackButton, onLinkPress}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     if (shouldShow) {
         return (

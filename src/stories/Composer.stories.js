@@ -1,14 +1,14 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useState} from 'react';
-import {View, Image} from 'react-native';
-import Composer from '../components/Composer';
-import RenderHTML from '../components/RenderHTML';
-import Text from '../components/Text';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
-import CONST from '../CONST';
-import withNavigationFallback from '../components/withNavigationFallback';
+import {Image, View} from 'react-native';
+import Composer from '@components/Composer';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import withNavigationFallback from '@components/withNavigationFallback';
+import styles from '@styles/styles';
+import themeColors from '@styles/themes/default';
+import useStyleUtils from '@styles/useStyleUtils';
+import CONST from '@src/CONST';
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
 
@@ -25,6 +25,7 @@ const story = {
 const parser = new ExpensiMark();
 
 function Default(args) {
+    const StyleUtils = useStyleUtils();
     const [pastedFile, setPastedFile] = useState(null);
     const [comment, setComment] = useState(args.defaultValue);
     const renderedHTML = parser.replace(comment);
@@ -36,16 +37,15 @@ function Default(args) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...args}
                     multiline
-                    textAlignVertical="top"
                     onChangeText={setComment}
                     onPasteFile={setPastedFile}
-                    style={[styles.textInputCompose, styles.w100]}
+                    style={[styles.textInputCompose, styles.w100, styles.verticalAlignTop]}
                 />
             </View>
             <View style={[styles.flexRow, styles.mv5, styles.flexWrap, styles.w100]}>
                 <View
                     style={[styles.border, styles.noLeftBorderRadius, styles.noRightBorderRadius, styles.p5, styles.flex1]}
-                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    id={CONST.REPORT.DROP_NATIVE_ID}
                 >
                     <Text style={[styles.mb2, styles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
                     <Text>{comment}</Text>

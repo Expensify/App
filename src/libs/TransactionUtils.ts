@@ -1,11 +1,14 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
-import {format, parseISO, isValid} from 'date-fns';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
+import lodashHas from 'lodash/has';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
+import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-import {RecentWaypoint, ReportAction, Transaction} from '../types/onyx';
-import {Receipt, Comment, WaypointCollection} from '../types/onyx/Transaction';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
 
@@ -23,6 +26,46 @@ Onyx.connect({
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
 });
+
+function isDistanceRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    const type = transaction?.comment?.type;
+    const customUnitName = transaction?.comment?.customUnit?.name;
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isScanRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+
+    return Boolean(transaction?.receipt?.source);
+}
+
+function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+    if (isDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+    if (isScanRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+    return CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isManualRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    }
+
+    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
 
 /**
  * Optimistically generate a transaction.
@@ -58,16 +101,13 @@ function buildOptimisticTransaction(
         commentJSON.originalTransactionID = originalTransactionID;
     }
 
-    // For the SmartScan to run successfully, we need to pass the merchant field empty to the API
-    const defaultMerchant = !receipt || Object.keys(receipt).length === 0 ? CONST.TRANSACTION.DEFAULT_MERCHANT : '';
-
     return {
         transactionID,
         amount,
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || defaultMerchant,
+        merchant: merchant || CONST.TRANSACTION.DEFAULT_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
@@ -78,25 +118,46 @@ function buildOptimisticTransaction(
     };
 }
 
+/**
+ * Check if the transaction has an Ereceipt
+ */
+function hasEReceipt(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.hasEReceipt;
+}
+
 function hasReceipt(transaction: Transaction | undefined | null): boolean {
-    return !!transaction?.receipt?.state;
+    return !!transaction?.receipt?.state || hasEReceipt(transaction);
+}
+
+function isMerchantMissing(transaction: Transaction) {
+    const isMerchantEmpty =
+        transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+
+    const isModifiedMerchantEmpty =
+        !transaction.modifiedMerchant ||
+        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
+        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
+        transaction.modifiedMerchant === '';
+
+    return isMerchantEmpty && isModifiedMerchantEmpty;
+}
+
+function isAmountMissing(transaction: Transaction) {
+    return transaction.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+}
+
+function isCreatedMissing(transaction: Transaction) {
+    return transaction.created === '' && (!transaction.created || transaction.modifiedCreated === '');
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
-    return (
-        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
-        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        (transaction.modifiedMerchant === '' &&
-            (transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === '' || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) ||
-        (transaction.modifiedAmount === 0 && transaction.amount === 0) ||
-        (transaction.modifiedCreated === '' && transaction.created === '')
-    );
+    return isMerchantMissing(transaction) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 /**
  * Given the edit made to the money request, return an updated transaction object.
  */
-function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): Transaction {
+function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
     const updatedTransaction = {...transaction};
     let shouldStopSmartscan = false;
@@ -143,7 +204,14 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
         updatedTransaction.tag = transactionChanges.tag;
     }
 
-    if (shouldStopSmartscan && transaction?.receipt && Object.keys(transaction.receipt).length > 0 && transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN) {
+    if (
+        shouldUpdateReceiptState &&
+        shouldStopSmartscan &&
+        transaction?.receipt &&
+        Object.keys(transaction.receipt).length > 0 &&
+        transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.OPEN &&
+        updatedTransaction.receipt
+    ) {
         updatedTransaction.receipt.state = CONST.IOU.RECEIPT_STATE.OPEN;
     }
 
@@ -167,7 +235,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
  *
  * @deprecated Use withOnyx() or Onyx.connect() instead
  */
-function getTransaction(transactionID: string): Transaction | Record<string, never> {
+function getTransaction(transactionID: string): OnyxEntry<Transaction> | EmptyObject {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
 }
 
@@ -175,14 +243,15 @@ function getTransaction(transactionID: string): Transaction | Record<string, nev
  * Return the comment field (referred to as description in the App) from the transaction.
  * The comment does not have its modifiedComment counterpart.
  */
-function getDescription(transaction: Transaction): string {
-    return transaction?.comment?.comment ?? '';
+function getDescription(transaction: OnyxEntry<Transaction>): string {
+    // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
+    return transaction?.comment?.comment?.toString() ?? '';
 }
 
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: Transaction, isFromExpenseReport: boolean): number {
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         const amount = transaction?.modifiedAmount ?? 0;
@@ -208,7 +277,7 @@ function getAmount(transaction: Transaction, isFromExpenseReport: boolean): numb
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
-function getCurrency(transaction: Transaction): string {
+function getCurrency(transaction: OnyxEntry<Transaction>): string {
     const currency = transaction?.modifiedCurrency ?? '';
     if (currency) {
         return currency;
@@ -217,75 +286,142 @@ function getCurrency(transaction: Transaction): string {
 }
 
 /**
+ * Return the original currency field from the transaction.
+ */
+function getOriginalCurrency(transaction: Transaction): string {
+    return transaction?.originalCurrency ?? '';
+}
+
+/**
+ * Return the absolute value of the original amount field from the transaction.
+ */
+function getOriginalAmount(transaction: Transaction): number {
+    const amount = transaction?.originalAmount ?? 0;
+    return Math.abs(amount);
+}
+
+/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getMerchant(transaction: Transaction): string {
-    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant || '';
+function getMerchant(transaction: OnyxEntry<Transaction>): string {
+    return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
+}
+
+function getDistance(transaction: Transaction): number {
+    return transaction?.routes?.route0?.distance ?? 0;
 }
 
 /**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
-function getMCCGroup(transaction: Transaction): string {
-    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup ?? '';
+function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS> | undefined {
+    return transaction?.modifiedMCCGroup ? transaction.modifiedMCCGroup : transaction?.mccGroup;
 }
 
 /**
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
-function getWaypoints(transaction: Transaction): WaypointCollection | undefined {
+function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection | undefined {
     return transaction?.modifiedWaypoints ?? transaction?.comment?.waypoints;
 }
 
 /**
  * Return the category from the transaction. This "category" field has no "modified" complement.
  */
-function getCategory(transaction: Transaction): string {
+function getCategory(transaction: OnyxEntry<Transaction>): string {
     return transaction?.category ?? '';
+}
+
+/**
+ * Return the cardID from the transaction.
+ */
+function getCardID(transaction: Transaction): number {
+    return transaction?.cardID ?? 0;
 }
 
 /**
  * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  */
-function getBillable(transaction: Transaction): boolean {
+function getBillable(transaction: OnyxEntry<Transaction>): boolean {
     return transaction?.billable ?? false;
 }
 
 /**
  * Return the tag from the transaction. This "tag" field has no "modified" complement.
  */
-function getTag(transaction: Transaction): string {
+function getTag(transaction: OnyxEntry<Transaction>): string {
     return transaction?.tag ?? '';
 }
 
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: Transaction): string {
+function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-    const createdDate = parseISO(created);
-    if (isValid(createdDate)) {
-        return format(createdDate, CONST.DATE.FNS_FORMAT_STRING);
+
+    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
+}
+
+/**
+ * Returns the translation key to use for the header title
+ */
+function getHeaderTitleTranslationKey(transaction: Transaction): string {
+    const headerTitles = {
+        [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
+        [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
+        [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
+    };
+    return headerTitles[getRequestType(transaction)];
+}
+
+/**
+ * Determine whether a transaction is made with an Expensify card.
+ */
+function isExpensifyCardTransaction(transaction: Transaction): boolean {
+    if (!transaction.cardID) {
+        return false;
     }
-
-    return '';
+    return isExpensifyCard(transaction.cardID);
 }
 
-function isDistanceRequest(transaction: Transaction): boolean {
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+/**
+ * Determine whether a transaction is made with a card (Expensify or Company Card).
+ */
+function isCardTransaction(transaction: Transaction): boolean {
+    const cardID = transaction?.cardID ?? 0;
+    return isCorporateCard(cardID);
 }
 
-function isReceiptBeingScanned(transaction: Transaction): boolean {
-    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction.receipt.state);
+/**
+ * Check if the transaction status is set to Pending.
+ */
+function isPending(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.PENDING;
+}
+
+/**
+ * Check if the transaction status is set to Posted.
+ */
+function isPosted(transaction: Transaction): boolean {
+    if (!transaction.status) {
+        return false;
+    }
+    return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
+}
+
+function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
+    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
-function hasMissingSmartscanFields(transaction: Transaction): boolean {
-    return hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction);
+function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
+    return Boolean(transaction && hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
 /**
@@ -296,19 +432,12 @@ function hasRoute(transaction: Transaction): boolean {
 }
 
 /**
- * Check if the transaction has an Ereceipt
- */
-function hasEreceipt(transaction: Transaction): boolean {
-    return !!transaction?.hasEReceipt;
-}
-
-/**
  * Get the transactions related to a report preview with receipts
  * Get the details linked to the IOU reportAction
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getLinkedTransaction(reportAction: ReportAction): Transaction | Record<string, never> {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction>): Transaction | EmptyObject {
     let transactionID = '';
 
     if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
@@ -326,10 +455,7 @@ function getAllReportTransactions(reportID?: string): Transaction[] {
     return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
-/**
- * Checks if a waypoint has a valid address
- */
-function waypointHasValidAddress(waypoint: RecentWaypoint | null): boolean {
+function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 
@@ -344,7 +470,9 @@ function getWaypointIndex(key: string): number {
  * Filters the waypoints which are valid and returns those
  */
 function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = false): WaypointCollection {
-    const sortedIndexes = Object.keys(waypoints).map(getWaypointIndex).sort();
+    const sortedIndexes = Object.keys(waypoints)
+        .map(getWaypointIndex)
+        .sort((a, b) => a - b);
     const waypointValues = sortedIndexes.map((index) => waypoints[`waypoint${index}`]);
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
@@ -352,8 +480,9 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
     }
 
     let lastWaypointIndex = -1;
+    let waypointIndex = -1;
 
-    return waypointValues.reduce((acc, currentWaypoint, index) => {
+    return waypointValues.reduce<WaypointCollection>((acc, currentWaypoint, index) => {
         const previousWaypoint = waypointValues[lastWaypointIndex];
 
         // Check if the waypoint has a valid address
@@ -366,12 +495,22 @@ function getValidWaypoints(waypoints: WaypointCollection, reArrangeIndexes = fal
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? lastWaypointIndex + 1 : index}`]: currentWaypoint};
+        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
 
-        lastWaypointIndex += 1;
+        lastWaypointIndex = index;
+        waypointIndex += 1;
 
         return validatedWaypoints;
     }, {});
+}
+
+/**
+ * Returns the most recent transactions in an object
+ */
+function getRecentTransactions(transactions: Record<string, string>, size = 2): string[] {
+    return Object.keys(transactions)
+        .sort((transactionID1, transactionID2) => (new Date(transactions[transactionID1]) < new Date(transactions[transactionID2]) ? 1 : -1))
+        .slice(0, size);
 }
 
 export {
@@ -379,8 +518,16 @@ export {
     getUpdatedTransaction,
     getTransaction,
     getDescription,
+    getHeaderTitleTranslationKey,
+    getRequestType,
+    isManualRequest,
+    isScanRequest,
     getAmount,
     getCurrency,
+    getDistance,
+    getCardID,
+    getOriginalCurrency,
+    getOriginalAmount,
     getMerchant,
     getMCCGroup,
     getCreated,
@@ -390,13 +537,22 @@ export {
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,
-    hasEreceipt,
+    hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
     getValidWaypoints,
     isDistanceRequest,
+    isExpensifyCardTransaction,
+    isCardTransaction,
+    isPending,
+    isPosted,
     getWaypoints,
+    isAmountMissing,
+    isMerchantMissing,
+    isCreatedMissing,
+    areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     getWaypointIndex,
     waypointHasValidAddress,
+    getRecentTransactions,
 };

@@ -9,7 +9,9 @@ jobs:
   verifySignedCommits:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Verify signed commits
-        uses: Expensify/App/.github/actions/javascript/verifySignedCommits@main
+        uses: ./.github/actions/javascript/verifySignedCommits
         with:
           GITHUB_TOKEN: ${{ github.token }}

@@ -1,14 +1,11 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import avatarPropTypes from '../components/avatarPropTypes';
+import _ from 'underscore';
+import avatarPropTypes from '@components/avatarPropTypes';
+import CONST from '@src/CONST';
 
 export default PropTypes.shape({
     /** The specific type of chat */
     chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
-
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU: PropTypes.bool,
 
     /** List of icons for report participants */
     icons: PropTypes.arrayOf(avatarPropTypes),

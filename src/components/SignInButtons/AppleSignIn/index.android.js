@@ -1,10 +1,10 @@
-import React from 'react';
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
-import Log from '../../../libs/Log';
-import IconButton from '../IconButton';
-import * as Session from '../../../libs/actions/Session';
-import CONFIG from '../../../CONFIG';
-import CONST from '../../../CONST';
+import React from 'react';
+import IconButton from '@components/SignInButtons/IconButton';
+import Log from '@libs/Log';
+import * as Session from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 
 /**
  * Apple Sign In Configuration for Android.
