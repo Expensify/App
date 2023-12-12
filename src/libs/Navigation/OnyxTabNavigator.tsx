@@ -8,16 +8,9 @@ import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
-const TabNavigatorAnimationEnabled = () => {
-    switch (Platform.OS) {
-        case 'macos':
-        case 'windows':
-        case 'web':
-            return false;
-        default:
-            return true;
-    }
-};
+const TabNavigatorAnimationEnabled = ['ios', 'android'].includes(Platform.OS);
+
+const screenOptions = {animationEnabled: TabNavigatorAnimationEnabled};
 
 type OnyxTabNavigatorOnyxProps = {
     selectedTab: OnyxEntry<string>;
@@ -46,7 +39,7 @@ function OnyxTabNavigator({id, selectedTab = '', children, screenListeners, ...r
             {...rest}
             id={id}
             initialRouteName={selectedTab}
-            screenOptions={{animationEnabled: TabNavigatorAnimationEnabled()}}
+            screenOptions={screenOptions}
             backBehavior="initialRoute"
             keyboardDismissMode="none"
             screenListeners={{

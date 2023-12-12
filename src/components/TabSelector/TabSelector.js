@@ -81,7 +81,7 @@ function TabSelector({state, navigation, onTabPress}) {
                         title={title}
                         onPress={onPress}
                         isFocused={isFocused}
-                        animationEnabled={TabNavigatorAnimationEnabled()}
+                        animationEnabled={TabNavigatorAnimationEnabled}
                     />
                 );
             }),
