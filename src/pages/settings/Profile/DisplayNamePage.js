@@ -102,7 +102,7 @@ function DisplayNamePage(props) {
                             name="fname"
                             label={props.translate('common.firstName')}
                             aria-label={props.translate('common.firstName')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
@@ -115,7 +115,7 @@ function DisplayNamePage(props) {
                             name="lname"
                             label={props.translate('common.lastName')}
                             aria-label={props.translate('common.lastName')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}

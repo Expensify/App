@@ -117,7 +117,11 @@ type PayerOwesParams = {payer: string};
 
 type PayerPaidAmountParams = {payer: string; amount: number | string};
 
+type ApprovedAmountParams = {amount: number | string};
+
 type ManagerApprovedParams = {manager: string};
+
+type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 
 type PayerPaidParams = {payer: string};
 
@@ -280,6 +284,7 @@ type TranslationFlatObject = {
 };
 
 export type {
+    ApprovedAmountParams,
     AddressLineParams,
     AlreadySignedInParams,
     AmountEachParams,
@@ -305,6 +310,7 @@ export type {
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,

@@ -264,7 +264,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                 }}
                 onPressIn={onContainerPressIn}
                 onPress={onContainerPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGE}
+                role={CONST.ROLE.IMG}
                 accessibilityLabel={fileName}
             >
                 <Image
