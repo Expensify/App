@@ -16,16 +16,13 @@ import Image from './Image';
 
 type EReceiptThumbnailOnyxProps = {
     /* Onyx Props */
-    transaction?: OnyxEntry<Transaction>;
+    transaction: OnyxEntry<Transaction>;
 };
 
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /* TransactionID of the transaction this EReceipt corresponds to */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
-
-    // /* Onyx Props */
-    // transaction?: Transaction,
 };
 
 const backgroundImages = {
