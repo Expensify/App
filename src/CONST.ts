@@ -55,6 +55,9 @@ const CONST = {
         ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
+    // This is limit set on servers, do not update without wider internal discussion
+    API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
+
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
         SIGNING_IN: 'signing-in',
@@ -483,6 +486,7 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -507,6 +511,7 @@ const CONST = {
                 TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
+                    ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
                     ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
                     ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
@@ -516,6 +521,7 @@ const CONST = {
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
                     DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
+                    DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
@@ -537,6 +543,7 @@ const CONST = {
                     UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
                     UPDATE_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
                     UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
@@ -558,6 +565,7 @@ const CONST = {
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
                     UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
+                    UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
@@ -642,6 +650,9 @@ const CONST = {
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
+    },
+    NEXT_STEP: {
+        FINISHED: 'Finished!',
     },
     COMPOSER: {
         MAX_LINES: 16,
@@ -1134,6 +1145,8 @@ const CONST = {
     },
 
     IOU: {
+        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         PAYMENT_TYPE: {
@@ -1146,6 +1159,11 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        REQUEST_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
+        },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
@@ -1153,6 +1171,7 @@ const CONST = {
             DECLINE: 'decline',
             CANCEL: 'cancel',
             DELETE: 'delete',
+            APPROVE: 'approve',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -2754,6 +2773,9 @@ const CONST = {
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
+        IOU_REQUEST_TYPE: 'iouRequestType',
+    },
+    TAB_REQUEST: {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
@@ -2807,7 +2829,7 @@ const CONST = {
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
-        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_MARGIN_VERTICAL: 4,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 

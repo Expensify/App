@@ -68,6 +68,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             setPage(newPageIndex);
             setActiveSource(item.source);
+
             onNavigate(item);
         },
         [setShouldShowArrows, attachments, onNavigate],
@@ -160,7 +161,6 @@ AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
