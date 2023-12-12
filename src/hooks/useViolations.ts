@@ -2,7 +2,7 @@ import {useCallback, useMemo} from 'react';
 import {TransactionViolation, ViolationName} from '@src/types/onyx';
 
 /**
- * Names of Fields where violations can occur
+ * Names of Fields where violations can occur.
  */
 type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 
