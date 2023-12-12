@@ -234,6 +234,12 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
         runtimeChunk: 'single',
         splitChunks: {
             cacheGroups: {
+                // We have to load the whole lottie player to get the player to work in offline mode
+                lottiePlayer: {
+                    test: /[\\/]node_modules[\\/](@dotlottie\/react-player)[\\/]/,
+                    name: 'lottiePlayer',
+                    chunks: 'all',
+                },
                 // Extract all 3rd party dependencies (~75% of App) to separate js file
                 // This gives a more efficient caching - 3rd party deps don't change as often as main source
                 // When dependencies don't change webpack would produce the same js file (and content hash)
