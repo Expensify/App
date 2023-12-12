@@ -72,7 +72,7 @@ Onyx.connect({
         }
 
         allTransactionDrafts = val;
-    }
+    },
 });
 
 let allTransactionViolations;
