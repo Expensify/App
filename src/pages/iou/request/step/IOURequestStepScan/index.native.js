@@ -11,10 +11,13 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
+import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
+import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -40,7 +43,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, pageIndex, backTo},
+        params: {iouType, reportID, transactionID, backTo},
     },
 }) {
     const theme = useTheme();
@@ -207,7 +210,7 @@ function IOURequestStepScan({
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
                     photo
-                    cameraTabIndex={pageIndex}
+                    cameraTabIndex={1}
                 />
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
@@ -290,4 +293,4 @@ IOURequestStepScan.defaultProps = defaultProps;
 IOURequestStepScan.propTypes = propTypes;
 IOURequestStepScan.displayName = 'IOURequestStepScan';
 
-export default IOURequestStepScan;
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepScan);
