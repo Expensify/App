@@ -2030,18 +2030,16 @@ export default {
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
         receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Receipt required over ${amount} ${category ? ' category limit' : ''}`,
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
-            if (brokenBankConnection && isAdmin) {
-                return "Can't auto-match receipt due to broken bank connection which you need to fix";
-            }
             if (brokenBankConnection) {
-                return `Can't auto-match receipt due to broken bank connection which ${email} needs to fix`;
+                return isAdmin
+                    ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix`
+                    : "Can't auto-match receipt due to broken bank connection which you need to fix";
             }
-            if (isAdmin && !isTransactionOlderThan7Days) {
-                return `Ask ${member} to mark as a cash or wait 7 days and try again`;
-            }
+
             if (!isTransactionOlderThan7Days) {
-                return 'Awaiting merge with card transaction.';
+                return isAdmin ? `Ask ${member} to mark as a cash or wait 7 days and try again` : 'Awaiting merge with card transaction.';
             }
+
             return '';
         },
         smartscanFailed: 'Receipt scanning failed. Enter details manually.',

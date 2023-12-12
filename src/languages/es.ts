@@ -2513,24 +2513,18 @@ export default {
         overLimitAttendee: ({amount}: ViolationsOverLimitParams) => `Importe supera el límite de ${amount}/persona`,
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría de ${limit}/persona`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
-        receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Recibo obligatorio para importes sobre ${amount} ${category ? ' el limite de la categoría de' : ''}`,
+        receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Recibo obligatorio para importes sobre ${category ? 'el limite de la categoría de ' : ''}${amount}`,
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
-            if (brokenBankConnection && isAdmin) {
-                return `No se puede adjuntar recibo debido a una conexión con su banco que necesita arreglar`;
-            }
-
             if (brokenBankConnection) {
-                return `No se puede adjuntar recibo debido a una conexión con su banco que ${email} necesita arreglar`;
+                return isAdmin
+                    ? `No se puede adjuntar recibo debido a una conexión con su banco que ${email} necesita arreglar`
+                    : `No se puede adjuntar recibo debido a una conexión con su banco que necesita arreglar`;
             }
-
-            if (isAdmin && !isTransactionOlderThan7Days) {
-                return `Pídele a ${member} que marque la transacción como efectivo o espere 7 días e intente de nuevo`;
-            }
-
             if (!isTransactionOlderThan7Days) {
-                return `Esperando adjuntar automáticamente con transacción de tarjeta de crédito`;
+                return isAdmin
+                    ? `Pídele a ${member} que marque la transacción como efectivo o espere 7 días e intente de nuevo`
+                    : `Esperando adjuntar automáticamente con transacción de tarjeta de crédito`;
             }
-
             return ``;
         },
         smartscanFailed: 'No se pudo escanear el recibo. Introduce los datos manualmente',
