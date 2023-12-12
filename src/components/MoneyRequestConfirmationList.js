@@ -267,7 +267,8 @@ function MoneyRequestConfirmationList(props) {
         return (props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
     }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
 
-    const isIOUMerchantPresent = props.isPolicyExpenseChat && !props.isScanRequest && !props.iouMerchant;
+    const isMerchantEmpty = !props.iouMerchant || props.iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || props.iouMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
 
     useEffect(() => {
         if (shouldDisplayFieldError && props.hasSmartScanFailed) {
@@ -498,7 +499,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || isIOUMerchantPresent;
+        const shouldDisableButton = selectedParticipants.length === 0 || shouldDisplayMerchantError;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -549,7 +550,7 @@ function MoneyRequestConfirmationList(props) {
         props.iouCurrencyCode,
         props.policyID,
         selectedParticipants.length,
-        isIOUMerchantPresent,
+        shouldDisplayMerchantError,
         confirm,
         splitOrRequestOptions,
         formError,
@@ -679,7 +680,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={props.iouMerchant}
+                            title={isMerchantEmpty ? '' : props.iouMerchant}
                             description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -693,7 +694,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                             brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={isIOUMerchantPresent || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.enterMerchant') : ''}
+                            error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
