@@ -120,20 +120,21 @@ class ContactMethodDetailsPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        const validatedDate = lodashGet(this.props.loginList, [this.getContactMethod(), 'validatedDate']);
-        const prevValidatedDate = lodashGet(prevProps.loginList, [this.getContactMethod(), 'validatedDate']);
         const contactMethod = this.getContactMethod();
+        const validatedDate = lodashGet(this.props.loginList, [contactMethod, 'validatedDate']);
+        const prevValidatedDate = lodashGet(prevProps.loginList, [contactMethod, 'validatedDate']);
+
         const loginData = lodashGet(this.props.loginList, contactMethod, {});
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
         const shouldSignOut = isDefaultContactMethod && !loginData.validatedDate && !isFailedAddContactMethod;
-        if (shouldSignOut) {    
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         if (!prevValidatedDate && validatedDate) {
+            if (shouldSignOut) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
         }
     }
