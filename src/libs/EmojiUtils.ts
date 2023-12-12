@@ -7,8 +7,8 @@ import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FrequentlyUsedEmoji} from '@src/types/onyx';
-import IconAsset from '@src/types/utils/IconAsset';
 import {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
+import IconAsset from '@src/types/utils/IconAsset';
 import {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
