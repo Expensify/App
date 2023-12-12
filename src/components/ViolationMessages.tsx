@@ -11,13 +11,9 @@ export default function ViolationMessages({violations}: {violations: Transaction
     const {translate} = useLocalize();
     const violationMessages = useMemo(() => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate)]), [translate, violations]);
 
-    return (
-        <>
-            {violationMessages.map(([name, message]) => (
-                <View key={`violationMessages.${name}`}>
-                    <Text style={[styles.ph5, styles.textLabelError]}>{message}</Text>
-                </View>
-            ))}
-        </>
-    );
+    return violationMessages.map(([name, message]) => (
+        <View key={`violationMessages.${name}`}>
+            <Text style={[styles.ph5, styles.textLabelError]}>{message}</Text>
+        </View>
+    ));
 }
