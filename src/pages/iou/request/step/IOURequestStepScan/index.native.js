@@ -214,14 +214,18 @@ function IOURequestStepScan({
                 </View>
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <NavigationAwareCamera
-                    ref={camera}
-                    device={device}
-                    style={[styles.cameraView]}
-                    zoom={device.neutralZoom}
-                    photo
-                    cameraTabIndex={1}
-                />
+                <View style={[styles.cameraView]}>
+                    <View style={styles.flex1}>
+                        <NavigationAwareCamera
+                            ref={camera}
+                            device={device}
+                            style={[styles.flex1]}
+                            zoom={device.neutralZoom}
+                            photo
+                            cameraTabIndex={1}
+                        />
+                    </View>
+                </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker shouldHideCameraOption>
@@ -238,6 +242,11 @@ function IOURequestStepScan({
                                         }
                                         const filePath = file.uri;
                                         IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, file.name);
+
+                                        if (backTo) {
+                                            Navigation.goBack(backTo);
+                                            return;
+                                        }
 
                                         // When a transaction is being edited (eg. not in the creation flow)
                                         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
