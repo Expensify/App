@@ -7,9 +7,6 @@ export default PropTypes.shape({
     /** The specific type of chat */
     chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
 
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU: PropTypes.bool,
-
     /** List of icons for report participants */
     icons: PropTypes.arrayOf(avatarPropTypes),
 

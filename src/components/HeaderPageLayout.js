@@ -5,8 +5,8 @@ import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -53,16 +53,17 @@ const defaultProps = {
 function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, scrollViewContainerStyles, childrenContainerStyles, style, headerContent, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
     const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = (backgroundColor || theme.appBG) !== theme.appBG;
+        const isColorfulBackground = (backgroundColor || theme.appBG) !== theme.appBG && (backgroundColor || theme.highlightBG) !== theme.highlightBG;
         return {
             titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
             iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
         };
-    }, [backgroundColor, theme.appBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
+    }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
 
     return (
         <ScreenWrapper
