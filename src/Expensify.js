@@ -13,6 +13,7 @@ import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
+import CONST from './CONST';
 import * as DemoActions from './libs/actions/DemoActions';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
@@ -112,6 +113,7 @@ function Expensify(props) {
     }, [props.isCheckingPublicRoom]);
 
     const isAuthenticated = useMemo(() => Boolean(lodashGet(props.session, 'authToken', null)), [props.session]);
+    const autoAuthState = useMemo(() => lodashGet(props.session, 'autoAuthState', ''), [props.session]);
 
     const contextValue = useMemo(
         () => ({
@@ -207,7 +209,10 @@ function Expensify(props) {
     }
 
     return (
-        <DeeplinkWrapper isAuthenticated={isAuthenticated}>
+        <DeeplinkWrapper
+            isAuthenticated={isAuthenticated}
+            autoAuthState={autoAuthState}
+        >
             {shouldInit && (
                 <>
                     <GrowlNotification ref={Growl.growlRef} />
