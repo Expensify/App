@@ -557,7 +557,7 @@ function ComposerWithSuggestions({
                         setComposerHeight(composerLayoutHeight);
                     }}
                     onScroll={hideSuggestionMenu}
-                    shouldScrollContain={Browser.isMobileSafari()}
+                    shouldContainScroll={Browser.isMobileSafari()}
                 />
             </View>
 

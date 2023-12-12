@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 
-const useScrollBarVisible = (ref: React.RefObject<HTMLDivElement | HTMLTextAreaElement>, value: string) => {
+const useIsScrollBarVisible = (ref: React.RefObject<HTMLDivElement | HTMLTextAreaElement>, value: string) => {
     const [isScrollBarVisible, setIsScrollBarVisible] = useState(false);
 
     const handleResize = useCallback(() => {
@@ -25,4 +25,4 @@ const useScrollBarVisible = (ref: React.RefObject<HTMLDivElement | HTMLTextAreaE
     return isScrollBarVisible;
 };
 
-export default useScrollBarVisible;
+export default useIsScrollBarVisible;

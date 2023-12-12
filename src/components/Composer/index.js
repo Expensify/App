@@ -8,7 +8,7 @@ import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
-import useScrollBarVisible from '@hooks/useScrollBarVisible';
+import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
@@ -87,8 +87,8 @@ const propTypes = {
     /** Whether the sull composer is open */
     isComposerFullSize: PropTypes.bool,
 
-    /** Should set scroll behavior is contain for composer */
-    shouldScrollContain: PropTypes.bool,
+    /** Should make the input only scroll inside the element avoid scroll out to parent */
+    shouldContainScroll: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -117,7 +117,7 @@ const defaultProps = {
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
     isComposerFullSize: false,
-    shouldScrollContain: false,
+    shouldContainScroll: false,
 };
 
 /**
@@ -169,7 +169,7 @@ function Composer({
     selection: selectionProp,
     isReportActionCompose,
     isComposerFullSize,
-    shouldScrollContain,
+    shouldContainScroll,
     ...props
 }) {
     const theme = useTheme();
@@ -186,7 +186,7 @@ function Composer({
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
-    const isScrollBarVisible = useScrollBarVisible(textInput, value);
+    const isScrollBarVisible = useIsScrollBarVisible(textInput, value);
 
     useEffect(() => {
         if (!shouldClear) {
@@ -426,7 +426,7 @@ function Composer({
     );
 
     const scrollStyleMemo = useMemo(() => {
-        if (shouldScrollContain) {
+        if (shouldContainScroll) {
             return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
         }
         return [
@@ -434,7 +434,7 @@ function Composer({
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
         ];
-    }, [shouldScrollContain, isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
+    }, [shouldContainScroll, isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
 
     const inputStyleMemo = useMemo(
         () => [
