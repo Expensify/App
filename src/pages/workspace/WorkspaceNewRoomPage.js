@@ -264,7 +264,6 @@ function WorkspaceNewRoomPage(props) {
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
                                     autoFocus
-                                    prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                                 />
                             </View>
                             <View style={styles.mb5}>

@@ -2,12 +2,11 @@ import React, {useState} from 'react';
 import _ from 'underscore';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 
-function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus, ...restProps}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus, prefixCharacter, ...restProps}) {
     const {translate} = useLocalize();
 
     const [selection, setSelection] = useState();
@@ -42,6 +41,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             setSelection(newSelection);
         }
     };
+
     return (
         <TextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -51,6 +51,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
             role={CONST.ACCESSIBILITY_ROLE.TEXT}
+            prefixCharacter={prefixCharacter}
             placeholder={translate('newRoomPage.social')}
             onChange={setModifiedRoomName}
             value={value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.

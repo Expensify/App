@@ -14,7 +14,6 @@ import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -103,7 +102,6 @@ function RoomNamePage({policy, report, reports, translate}) {
                             inputID="roomName"
                             defaultValue={report.reportName}
                             isFocused={isFocused}
-                            prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                         />
                     </View>
                 </FormProvider>

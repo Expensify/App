@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
@@ -30,6 +31,9 @@ const propTypes = {
 
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    /** Prefix character */
+    prefixCharacter: PropTypes.string,
 };
 
 const defaultProps = {
@@ -43,6 +47,7 @@ const defaultProps = {
     onBlur: () => {},
     autoFocus: false,
     shouldDelayFocus: false,
+    prefixCharacter: CONST.POLICY.ROOM_PREFIX,
 };
 
 export {propTypes, defaultProps};
