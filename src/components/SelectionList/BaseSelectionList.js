@@ -64,7 +64,6 @@ function BaseSelectionList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -73,6 +72,8 @@ function BaseSelectionList({
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
+    const [isInitialRender, setIsInitialRender] = useState(true);
+    const wrapperStyles = useMemo(() => ({opacity: isInitialRender ? 0 : 1}), [isInitialRender]);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -325,13 +326,13 @@ function BaseSelectionList({
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
-            if (!firstLayoutRef.current) {
+            if (!isInitialRender) {
                 return;
             }
             scrollToIndex(focusedIndex, false);
-            firstLayoutRef.current = false;
+            setIsInitialRender(false);
         },
-        [focusedIndex, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+        [focusedIndex, isInitialRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
@@ -359,7 +360,7 @@ function BaseSelectionList({
 
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
-        if (firstLayoutRef.current) {
+        if (isInitialRender) {
             return;
         }
 
@@ -394,7 +395,7 @@ function BaseSelectionList({
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyles]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
