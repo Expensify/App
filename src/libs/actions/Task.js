@@ -6,7 +6,6 @@ import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -748,7 +747,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
-                updateReportInLHN: true,
                 isDeletedParentAction: true,
             },
         },
@@ -906,35 +904,6 @@ function clearTaskErrors(reportID) {
     });
 }
 
-/**
- * @param {string} actionName
- * @param {string} reportID
- * @param {boolean} isCreateTaskAction
- * @returns {string}
- */
-function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
-    const report = ReportUtils.getReport(reportID);
-    if (isCreateTaskAction) {
-        return `task for ${report.reportName}`;
-    }
-    let taskStatusText = '';
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            taskStatusText = Localize.translateLocal('task.messages.completed');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
-            taskStatusText = Localize.translateLocal('task.messages.canceled');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
-            taskStatusText = Localize.translateLocal('task.messages.reopened');
-            break;
-        default:
-            taskStatusText = Localize.translateLocal('task.task');
-    }
-
-    return `${taskStatusText}`;
-}
-
 export {
     createTaskAndNavigate,
     editTask,
@@ -956,5 +925,4 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    getTaskReportActionMessage,
 };
