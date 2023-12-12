@@ -103,10 +103,6 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /* Whether the option has an outstanding IOU */
-    // eslint-disable-next-line react/no-unused-prop-types
-    hasOutstandingIOU: PropTypes.bool,
-
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -128,7 +124,6 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     emojiReactions: {},
     shouldShowSubscriptAvatar: false,
-    hasOutstandingIOU: false,
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
     userWallet: {},
@@ -157,6 +152,7 @@ function ReportActionItem(props) {
         [StyleUtils, isReportActionLinked, theme.highlightBG],
     );
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
@@ -196,6 +192,15 @@ function ReportActionItem(props) {
         },
         [props.action.reportActionID, reactionListRef],
     );
+
+    useEffect(() => {
+        // We need to hide EmojiPicker when this is a deleted parent action
+        if (!isDeletedParentAction || !EmojiPickerAction.isActive(props.action.reportActionID)) {
+            return;
+        }
+
+        EmojiPickerAction.hideEmojiPicker(true);
+    }, [isDeletedParentAction, props.action.reportActionID]);
 
     useEffect(() => {
         if (prevDraftMessage || !props.draftMessage) {
@@ -778,7 +783,6 @@ export default compose(
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
-            prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
