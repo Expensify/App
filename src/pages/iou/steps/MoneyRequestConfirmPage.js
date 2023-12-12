@@ -77,7 +77,7 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(props.report)), [props.report]);
-    const isManualRequestDM = props.selectedTab === CONST.TAB.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
+    const isManualRequestDM = props.selectedTab === CONST.TAB_REQUEST.MANUAL && iouType === CONST.IOU.TYPE.REQUEST;
 
     useEffect(() => {
         const policyExpenseChat = _.find(participants, (participant) => participant.isPolicyExpenseChat);

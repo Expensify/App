@@ -68,6 +68,7 @@ function IOURequestStartPage({
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
+    const isFromGlobalCreate = _.isEmpty(report.reportID);
 
     // Clear out the temporary money request when this component is unmounted
     useEffect(
@@ -82,10 +83,9 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.startMoneyRequest_temporaryForRefactor(reportID, transactionRequestType.current);
-    }, [transaction, reportID, iouType]);
+        IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, transactionRequestType.current);
+    }, [transaction, reportID, iouType, isFromGlobalCreate]);
 
-    const isFromGlobalCreate = _.isEmpty(report.reportID);
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
     const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
@@ -102,10 +102,10 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            IOU.startMoneyRequest_temporaryForRefactor(reportID, newIouType);
+            IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID],
+        [previousIOURequestType, reportID, isFromGlobalCreate],
     );
 
     return (
