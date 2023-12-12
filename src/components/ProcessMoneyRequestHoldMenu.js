@@ -1,13 +1,10 @@
-import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
-import variables from '@styles/variables';
 import Button from './Button';
-import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
+import HoldMenuSectionList from './HoldMenuSectionList';
 import Popover from './Popover';
 import refPropTypes from './refPropTypes';
 import Text from './Text';
@@ -32,49 +29,6 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const holdMenuSections = useMemo(() => {
-        const baseHoldMenuSections = [
-            {
-                icon: Illustrations.Hourglass,
-                titleTranslationKey: 'iou.whatIsHoldTitle',
-                descriptionTranslationKey: 'iou.whatIsHoldExplain',
-            },
-            {
-                icon: Illustrations.CommentBubbles,
-                titleTranslationKey: 'iou.holdIsTemporaryTitle',
-                descriptionTranslationKey: 'iou.holdIsTemporaryExplain',
-            },
-            {
-                icon: Illustrations.TrashCan,
-                titleTranslationKey: 'iou.deleteHoldTitle',
-                descriptionTranslationKey: 'iou.deleteHoldExplain',
-            },
-        ];
-
-        return _.map(baseHoldMenuSections, (section, index) => (
-            <View
-                key={index}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}
-            >
-                <Icon
-                    width={variables.holdMenuIconSize}
-                    height={variables.holdMenuIconSize}
-                    src={section.icon}
-                    additionalStyles={[styles.mr3]}
-                />
-                <View style={[styles.flex1, styles.justifyContentCenter]}>
-                    <Text style={[styles.textStrong, styles.mb1]}>{translate(section.titleTranslationKey)}</Text>
-                    <Text
-                        style={[styles.textNormal]}
-                        numberOfLines={3}
-                    >
-                        {translate(section.descriptionTranslationKey)}
-                    </Text>
-                </View>
-            </View>
-        ));
-    }, [styles, translate]);
-
     return (
         <Popover
             isVisible={isVisible}
@@ -87,7 +41,7 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
                     <Text style={[styles.holdRequestInline]}>{translate('iou.hold')}</Text>
                 </View>
-                {holdMenuSections}
+                <HoldMenuSectionList />
                 <Button
                     success
                     style={[styles.mt5]}
