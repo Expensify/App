@@ -229,12 +229,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 inputValues[inputID] = propsToParse.defaultValue;
             } else if (_.isUndefined(inputValues[inputID])) {
                 // We want to initialize the input value if it's undefined
-                const initialValue = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
-
-                inputValues[inputID] = _.isFunction(propsToParse.valueParser) ? propsToParse.valueParser(initialValue) : initialValue;
-                if (_.isFunction(propsToParse.displayParser)) {
-                    inputValues[`${inputID}ToDisplay`] = propsToParse.displayParser(initialValue);
-                }
+                inputValues[inputID] = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
             }
 
             const errorFields = lodashGet(formState, 'errorFields', {});
@@ -246,8 +241,6 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     .map((key) => errorFields[inputID][key])
                     .first()
                     .value() || '';
-
-            const value = !_.isUndefined(inputValues[`${inputID}ToDisplay`]) ? inputValues[`${inputID}ToDisplay`] : inputValues[inputID];
 
             return {
                 ...propsToParse,
@@ -261,8 +254,7 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                 inputID,
                 key: propsToParse.key || inputID,
                 errorText: errors[inputID] || fieldErrorMessage,
-                value,
-                // As the text input is controlled, we never set the defaultValue prop
+                value: inputValues[inputID], // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
                 defaultValue: undefined,
                 onTouched: (event) => {
@@ -321,19 +313,13 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                         propsToParse.onBlur(event);
                     }
                 },
-                onInputChange: (inputValue, key) => {
+                onInputChange: (value, key) => {
                     const inputKey = key || inputID;
                     setInputValues((prevState) => {
-                        const newState = _.isFunction(propsToParse.valueParser)
-                            ? {
-                                  ...prevState,
-                                  [inputKey]: propsToParse.valueParser(inputValue),
-                                  [`${inputKey}ToDisplay`]: _.isFunction(propsToParse.displayParser) ? propsToParse.displayParser(inputValue) : inputValue,
-                              }
-                            : {
-                                  ...prevState,
-                                  [inputKey]: inputValue,
-                              };
+                        const newState = {
+                            ...prevState,
+                            [inputKey]: value,
+                        };
 
                         if (shouldValidateOnChange) {
                             onValidate(newState);
@@ -342,11 +328,11 @@ function FormProvider({validate, formID, shouldValidateOnBlur, shouldValidateOnC
                     });
 
                     if (propsToParse.shouldSaveDraft) {
-                        FormActions.setDraftValues(formID, {[inputKey]: _.isFunction(propsToParse.valueParser) ? propsToParse.valueParser(inputValue) : inputValue});
+                        FormActions.setDraftValues(formID, {[inputKey]: value});
                     }
 
                     if (_.isFunction(propsToParse.onValueChange)) {
-                        propsToParse.onValueChange(inputValue, inputKey);
+                        propsToParse.onValueChange(value, inputKey);
                     }
                 },
             };

@@ -25,7 +25,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
@@ -161,8 +160,6 @@ function WorkspaceNewRoomPage(props) {
         setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     }, [isPolicyAdmin]);
 
-    const valueParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName);
-    const displayParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName, true);
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
@@ -267,8 +264,6 @@ function WorkspaceNewRoomPage(props) {
                                     isFocused={props.isFocused}
                                     shouldDelayFocus
                                     autoFocus
-                                    valueParser={valueParser}
-                                    displayParser={displayParser}
                                     prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                                 />
                             </View>

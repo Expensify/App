@@ -49,9 +49,6 @@ function RoomNamePage({policy, report, reports, translate}) {
     const roomNameInputRef = useRef(null);
     const isFocused = useIsFocused();
 
-    const valueParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName);
-    const displayParser = (innerRoomName) => RoomNameInputUtils.modifyRoomName(innerRoomName, true);
-
     const validate = useCallback(
         (values) => {
             const errors = {};
@@ -104,10 +101,8 @@ function RoomNamePage({policy, report, reports, translate}) {
                             InputComponent={RoomNameInput}
                             ref={roomNameInputRef}
                             inputID="roomName"
-                            defaultValue={report.reportName.slice(1)}
+                            defaultValue={report.reportName}
                             isFocused={isFocused}
-                            valueParser={valueParser}
-                            displayParser={displayParser}
                             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                         />
                     </View>
