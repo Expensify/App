@@ -11,17 +11,17 @@ import {BaseErrorBoundaryProps, LogError} from './types';
  */
 
 function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseErrorBoundaryProps) {
-    const [error, setError] = useState<Error>(() => new Error());
+    const [errorContent, setErrorContent] = useState('');
     const catchError = (errorObject: Error, errorInfo: React.ErrorInfo) => {
         logError(errorMessage, errorObject, JSON.stringify(errorInfo));
         // We hide the splash screen since the error might happened during app init
         BootSplash.hide();
-        setError(errorObject);
+        setErrorContent(errorObject.message);
     };
 
     return (
         <ErrorBoundary
-            fallback={<GenericErrorPage error={error} />}
+            fallback={<GenericErrorPage errorContent={errorContent} />}
             onError={catchError}
         >
             {children}

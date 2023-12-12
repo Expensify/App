@@ -20,18 +20,18 @@ import AppDownloadLinksView from '@pages/settings/AppDownloadLinksView';
 import ErrorBodyText from './ErrorBodyText';
 
 const propTypes = {
-    /** Error object handled by the boundary */
-    error: PropTypes.instanceOf(Error).isRequired,
+    /** Error message handled by the boundary */
+    errorContent: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
 };
 
-function GenericErrorPage({translate, error}) {
+function GenericErrorPage({translate, errorContent}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {resetBoundary} = useErrorBoundary();
-    const upgradeRequired = error.message === CONST.ERROR.UPGRADE_REQUIRED;
+    const upgradeRequired = errorContent === CONST.ERROR.UPGRADE_REQUIRED;
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
