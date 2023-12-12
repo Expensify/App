@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import usePrevious from '@hooks/usePrevious';
@@ -12,6 +11,7 @@ import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import LoadingPage from '@pages/LoadingPage';
 import reportPropTypes from '@pages/reportPropTypes';
 import ONYXKEYS from '@src/ONYXKEYS';
 import withReportOrNotFound from './withReportOrNotFound';
@@ -91,7 +91,7 @@ export default function (WrappedComponent) {
         }, [report, network.isOffline, accountID, session.accountID, isPrivateNotesEmpty, shouldShowFullScreenLoadingIndicator, isReconnecting]);
 
         if (shouldShowFullScreenLoadingIndicator) {
-            return <FullScreenLoadingIndicator />;
+            return <LoadingPage />;
         }
 
         if (shouldShowNotFoundPage) {
