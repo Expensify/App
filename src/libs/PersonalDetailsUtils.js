@@ -80,7 +80,7 @@ function getAccountIDsByLogins(logins) {
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Array} - Array of logins according to passed accountIDs
+ * @returns {Array<string>} - Array of logins according to passed accountIDs
  */
 function getLoginsByAccountIDs(accountIDs) {
     return _.reduce(
