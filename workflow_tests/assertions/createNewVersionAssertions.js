@@ -34,7 +34,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, semverLevel = 'BUILD'
             'CREATENEWVERSION',
             'Generate version',
             [
-                {key: 'GITHUB_TOKEN', value: 'os_botify_token'},
+                {key: 'GITHUB_TOKEN', value: '***'},
                 {key: 'SEMVER_LEVEL', value: semverLevel},
             ],
             [],
