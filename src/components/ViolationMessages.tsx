@@ -6,7 +6,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import {TransactionViolation} from '@src/types/onyx';
 import Text from './Text';
 
-export default function FieldViolationMessages({violations}: {violations: TransactionViolation[]}) {
+export default function ViolationMessages({violations}: {violations: TransactionViolation[]}) {
     const styles = useThemeStyles();
 
     const localize = useLocalize();

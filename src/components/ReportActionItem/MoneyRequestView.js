@@ -5,7 +5,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import categoryPropTypes from '@components/categoryPropTypes';
-import FieldViolationMessages from '@components/FieldViolationMessages';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -15,6 +14,7 @@ import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
+import ViolationMessages from '@components/ViolationMessages';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -206,7 +206,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
                     />
                 )}
-                {canUseViolations && <FieldViolationMessages violations={getViolationsForField('receipt')} />}
+                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.amount')}>
                     <MenuItemWithTopDescription
                         title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
@@ -220,7 +220,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         brickRoadIndicator={hasViolations('amount') || (hasErrors && transactionAmount === 0) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
                     />
-                    {canUseViolations && <FieldViolationMessages violations={getViolationsForField('amount')} />}
+                    {canUseViolations && <ViolationMessages violations={getViolationsForField('amount')} />}
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.comment')}>
                     <MenuItemWithTopDescription
@@ -235,7 +235,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         brickRoadIndicator={hasViolations('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         numberOfLinesTitle={0}
                     />
-                    {canUseViolations && <FieldViolationMessages violations={getViolationsForField('comment')} />}
+                    {canUseViolations && <ViolationMessages violations={getViolationsForField('comment')} />}
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.waypoints') || lodashGet(transaction, 'pendingAction')}>
@@ -260,7 +260,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             brickRoadIndicator={hasViolations('merchant') || (hasErrors && isEmptyMerchant) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             error={hasErrors && isEmptyMerchant ? translate('common.error.enterMerchant') : ''}
                         />
-                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('merchant')} />}
+                        {canUseViolations && <ViolationMessages violations={getViolationsForField('merchant')} />}
                     </OfflineWithFeedback>
                 )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('pendingFields.created')}>
@@ -274,7 +274,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         brickRoadIndicator={hasViolations('date') || (hasErrors && transactionDate === '') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionDate === '' ? translate('common.error.enterDate') : ''}
                     />
-                    {canUseViolations && <FieldViolationMessages violations={getViolationsForField('date')} />}
+                    {canUseViolations && <ViolationMessages violations={getViolationsForField('date')} />}
                 </OfflineWithFeedback>
                 {shouldShowCategory && (
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.category') || lodashGet(transaction, 'pendingAction')}>
@@ -287,7 +287,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.CATEGORY))}
                             brickRoadIndicator={hasViolations('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         />
-                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('category')} />}
+                        {canUseViolations && <ViolationMessages violations={getViolationsForField('category')} />}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag && (
@@ -301,7 +301,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAG))}
                             brickRoadIndicator={hasViolations('tag') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         />
-                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('tag')} />}
+                        {canUseViolations && <ViolationMessages violations={getViolationsForField('tag')} />}
                     </OfflineWithFeedback>
                 )}
                 {isCardTransaction && (
@@ -323,7 +323,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                                 onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
                             />
                         </View>
-                        {canUseViolations && <FieldViolationMessages violations={getViolationsForField('billable')} />}
+                        {canUseViolations && <ViolationMessages violations={getViolationsForField('billable')} />}
                     </>
                 )}
             </View>
