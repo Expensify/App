@@ -648,7 +648,7 @@ function createDistanceRequest(report, participant, comment, created, transactio
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
- * @param {String} [transactionChanges.created] // Present when updated the date field
+ * @param {String} [transactionChanges.created] Present when updated the date field
  * @param {Boolean} onlyIncludeChangedFields
  *                      When 'true', then the returned params will only include the transaction details for the fields that were changed.
  *                      When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
