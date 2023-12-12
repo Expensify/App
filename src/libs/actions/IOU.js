@@ -234,6 +234,7 @@ function setMoneyRequestBillable_temporaryForRefactor(transactionID, billable) {
 /**
  * @param {String} transactionID
  * @param {Object[]} participants
+ * @param {Boolean} isSplitRequest
  */
 function setMoneyRequestParticipants_temporaryForRefactor(transactionID, participants, isSplitRequest) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, isSplitRequest});
