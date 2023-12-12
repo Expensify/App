@@ -77,7 +77,7 @@ function ImageRenderer(props) {
                             ReportUtils.isArchivedRoom(report),
                         )
                     }
-                    role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 >
                     <ThumbnailImage
