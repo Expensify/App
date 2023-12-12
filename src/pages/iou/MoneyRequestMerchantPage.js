@@ -48,7 +48,6 @@ const defaultProps = {
 };
 
 function MoneyRequestMerchantPage({iou, route}) {
-    console.log('iou :>> ', iou);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
