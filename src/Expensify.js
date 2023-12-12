@@ -7,6 +7,7 @@ import _ from 'underscore';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
+import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -80,6 +81,9 @@ const propTypes = {
     /** True when the user must update to the latest minimum version of the app */
     upgradeRequired: PropTypes.bool,
 
+    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
+    focusModeNotification: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -93,6 +97,7 @@ const defaultProps = {
     screenShareRequest: null,
     isCheckingPublicRoom: true,
     upgradeRequired: false,
+    focusModeNotification: false,
 };
 
 const SplashScreenHiddenContext = React.createContext({});
@@ -230,6 +235,7 @@ function Expensify(props) {
                             isVisible
                         />
                     ) : null}
+                    {props.focusModeNotification ? <FocusModeNotification /> : null}
                 </>
             )}
 
@@ -273,7 +279,11 @@ export default compose(
         upgradeRequired: {
             key: ONYXKEYS.UPGRADE_REQUIRED,
             initWithStoredValues: false,
-        }
+        },
+        focusModeNotification: {
+            key: ONYXKEYS.FOCUS_MODE_NOTIFICATION,
+            initWithStoredValues: false,
+        },
     }),
 )(Expensify);
 
