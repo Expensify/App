@@ -16,6 +16,7 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import IOURequestStepRoutePropTypes from '@pages/iou/request/step/IOURequestStepRoutePropTypes';
+import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -173,8 +174,17 @@ function IOURequestStepScan({
         return null;
     }
 
+    const navigateBack = () => {
+        Navigation.goBack(backTo || ROUTES.HOME);
+    };
+
     return (
-        <View style={styles.flex1}>
+        <StepScreenWrapper
+            headerTitle={translate('common.receipt')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper={Boolean(backTo)}
+            testID={IOURequestStepScan.displayName}
+        >
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <Hand
@@ -285,7 +295,7 @@ function IOURequestStepScan({
                     />
                 </PressableWithFeedback>
             </View>
-        </View>
+        </StepScreenWrapper>
     );
 }
 
