@@ -1,41 +1,28 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {PrivatePersonalDetails, Session} from '@src/types/onyx';
 import Text from './Text';
 
-const propTypes = {
+type CardPreviewOnyxProps = {
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-    }),
+    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged-in user email */
-        email: PropTypes.string,
-    }),
+    session: OnyxEntry<Session>;
 };
 
-const defaultProps = {
-    privatePersonalDetails: {
-        legalFirstName: '',
-        legalLastName: '',
-    },
-    session: {
-        email: '',
-    },
-};
+type CardPreviewProps = CardPreviewOnyxProps;
 
-function CardPreview({privatePersonalDetails: {legalFirstName, legalLastName}, session: {email}}) {
+function CardPreview({privatePersonalDetails, session}: CardPreviewProps) {
     const styles = useThemeStyles();
     usePrivatePersonalDetails();
-    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : email;
+    const {legalFirstName, legalLastName} = privatePersonalDetails ?? {};
+    const cardHolder = legalFirstName && legalLastName ? `${legalFirstName} ${legalLastName}` : session?.email ?? '';
 
     return (
         <View style={styles.walletCard}>
@@ -55,11 +42,9 @@ function CardPreview({privatePersonalDetails: {legalFirstName, legalLastName}, s
     );
 }
 
-CardPreview.propTypes = propTypes;
-CardPreview.defaultProps = defaultProps;
 CardPreview.displayName = 'CardPreview';
 
-export default withOnyx({
+export default withOnyx<CardPreviewProps, CardPreviewOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     },
