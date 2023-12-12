@@ -3448,15 +3448,9 @@ function transactionHasViolation(transactionID: string, transactionViolations?: 
  *  This only applies to report submitter and for reports in the open and processing states
  */
 
-function transactionThreadHasViolations(report: Report, canUseViolations: boolean, transactionViolations?: TransactionViolations, reportActions?: ReportActions | null): boolean {
-    if (!canUseViolations || !reportActions) {
-        return false;
-    }
-    if (!report.parentReportActionID) {
-        return false;
-    }
-    const parentReportAction = reportActions[`${report.parentReportActionID}`];
-    if (!parentReportAction) {
+function transactionThreadHasViolations(report: Report, canUseViolations: boolean, transactionViolations?: TransactionViolations, parentReportAction?: ReportAction | null): boolean {
+    console.log('Parent Report Action : ', parentReportAction);
+    if (!canUseViolations || !parentReportAction) {
         return false;
     }
     if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
@@ -3559,7 +3553,10 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && transactionThreadHasViolations(report, betas.includes(CONST.BETAS.VIOLATIONS), transactionViolations, allReportActions?.[report.reportID])) {
+    if (
+        isExpenseRequest(report) &&
+        transactionThreadHasViolations(report, betas.includes(CONST.BETAS.VIOLATIONS), transactionViolations, allReportActions?.[`${report.parentReportActionID}`])
+    ) {
         return true;
     }
 

@@ -293,7 +293,7 @@ function getOptionData(
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
     result.brickRoadIndicator =
-        Object.keys(result.allReportErrors ?? {}).length !== 0 || ReportUtils.transactionThreadHasViolations(report, canUseViolations, transactionViolations, reportActions)
+        Object.keys(result.allReportErrors ?? {}).length !== 0 || ReportUtils.transactionThreadHasViolations(report, canUseViolations, transactionViolations, parentReportAction)
             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
             : '';
     result.ownerAccountID = report.ownerAccountID;
