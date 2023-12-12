@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import useNativeDriver from '@libs/useNativeDriver';
-import styles from '@styles/styles';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import {AnimationDirection} from './AnimatedStepContext';
@@ -18,18 +18,15 @@ type AnimatedStepProps = ChildrenProps & {
     onAnimationEnd: () => void;
 };
 
-function getAnimationStyle(direction: AnimationDirection) {
-    let transitionValue;
+function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style, children}: AnimatedStepProps) {
+    const styles = useThemeStyles();
 
-    if (direction === 'in') {
-        transitionValue = CONST.ANIMATED_TRANSITION_FROM_VALUE;
-    } else {
-        transitionValue = -CONST.ANIMATED_TRANSITION_FROM_VALUE;
-    }
-    return styles.makeSlideInTranslation('translateX', transitionValue);
-}
+    const animationStyle = useMemo(() => {
+        const transitionValue = direction === 'in' ? CONST.ANIMATED_TRANSITION_FROM_VALUE : -CONST.ANIMATED_TRANSITION_FROM_VALUE;
 
-function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style = [], children}: AnimatedStepProps) {
+        return styles.makeSlideInTranslation('translateX', transitionValue);
+    }, [direction, styles]);
+
     return (
         <Animatable.View
             onAnimationEnd={() => {
@@ -39,7 +36,7 @@ function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN,
                 onAnimationEnd();
             }}
             duration={CONST.ANIMATED_TRANSITION}
-            animation={getAnimationStyle(direction)}
+            animation={animationStyle}
             useNativeDriver={useNativeDriver}
             style={style}
         >
