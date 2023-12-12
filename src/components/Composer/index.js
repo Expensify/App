@@ -87,6 +87,9 @@ const propTypes = {
     /** Whether the sull composer is open */
     isComposerFullSize: PropTypes.bool,
 
+    /** Should set scroll behavior is contain for composer */
+    shouldScrollContain: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -114,6 +117,7 @@ const defaultProps = {
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
     isComposerFullSize: false,
+    shouldScrollContain: false,
 };
 
 /**
@@ -165,6 +169,7 @@ function Composer({
     selection: selectionProp,
     isReportActionCompose,
     isComposerFullSize,
+    shouldScrollContain,
     ...props
 }) {
     const theme = useTheme();
@@ -421,7 +426,7 @@ function Composer({
     );
 
     const scrollStyleMemo = useMemo(() => {
-        if (Browser.isMobileSafari()) {
+        if (shouldScrollContain) {
             return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
         }
         return [
@@ -429,7 +434,7 @@ function Composer({
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
         ];
-    }, [isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
+    }, [shouldScrollContain, isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
 
     const inputStyleMemo = useMemo(
         () => [
