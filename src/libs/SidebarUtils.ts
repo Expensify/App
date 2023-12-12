@@ -10,7 +10,6 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
-import * as Task from './actions/Task';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
@@ -18,6 +17,7 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
 
 const visibleReportActionItems: ReportActions = {};
@@ -117,7 +117,7 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportActions>,
+    allReportActions: OnyxCollection<ReportAction[]>,
 ): string[] {
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
@@ -149,9 +149,7 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true),
-    );
+    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -187,7 +185,8 @@ function getOrderedReportIDs(
         report.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(report, allReports);
 
         const isPinned = report.isPinned ?? false;
-        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report)) {
+        const reportAction = ReportActionsUtils.getReportAction(report.parentReportID ?? '', report.parentReportActionID ?? '');
+        if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(report);
         } else if (report.hasDraft) {
             draftReports.push(report);
@@ -262,7 +261,6 @@ function getOptionData(
         keyForList: null,
         searchText: null,
         isPinned: false,
-        hasOutstandingIOU: false,
         hasOutstandingChildRequest: false,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -303,7 +301,6 @@ function getOptionData(
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
-    result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
@@ -365,7 +362,7 @@ function getOptionData(
             const newName = lastAction?.originalMessage?.newName ?? '';
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
-            result.alternateText = Task.getTaskReportActionMessage(lastAction.actionName, report.reportID, false);
+            result.alternateText = TaskUtils.getTaskReportActionMessage(lastAction.actionName);
         } else if (
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
             lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||

@@ -7,9 +7,6 @@ type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU?: boolean;
-
     /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
     hasOutstandingChildRequest?: boolean;
 
@@ -63,9 +60,6 @@ type Report = {
 
     /** Whether the parent action was deleted */
     isDeletedParentAction?: boolean;
-
-    /** PayPalMe address of the submitter */
-    submitterPayPalMeAddress?: string;
 
     /** Linked policy's ID */
     policyID?: string;
