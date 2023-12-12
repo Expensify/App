@@ -14,10 +14,12 @@ function parseMessage(messages: Message[] | undefined) {
         nextStepHTML += `<${tagType}>${Str.safeEscape(part.text)}</${tagType}>`;
     });
 
-    return nextStepHTML
+    const formattedHtml = nextStepHTML
         .replace(/%expenses/g, 'this expense')
         .replace(/%Expenses/g, 'This expense')
         .replace(/%tobe/g, 'is');
+
+    return `<next-steps>${formattedHtml}</next-steps>`;
 }
 
 // eslint-disable-next-line import/prefer-default-export

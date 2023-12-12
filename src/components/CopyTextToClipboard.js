@@ -13,12 +13,14 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
     urlToCopy: PropTypes.string,
+    accessibilityRole: PropTypes.string,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     textStyles: [],
     urlToCopy: null,
+    accessibilityRole: undefined,
 };
 
 function CopyTextToClipboard(props) {
@@ -34,6 +36,7 @@ function CopyTextToClipboard(props) {
             icon={Expensicons.Copy}
             textStyles={props.textStyles}
             onPress={copyToClipboard}
+            accessibilityRole={props.accessibilityRole}
         />
     );
 }
