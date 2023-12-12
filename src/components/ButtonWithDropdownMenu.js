@@ -80,7 +80,7 @@ function ButtonWithDropdownMenu(props) {
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
-    const selectedItem = props.options[selectedItemIndex];
+    const selectedItem = props.options[selectedItemIndex] || _.first(props.options);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(props.buttonSize);
     const isButtonSizeLarge = props.buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
