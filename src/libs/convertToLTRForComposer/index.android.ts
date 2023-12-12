@@ -1,9 +1,19 @@
 import CONST from '@src/CONST';
 import ConvertToLTRForComposer from './types';
 
-/** Android only - We should remove the LTR unicode when the input is empty to prevent: Sending an empty message, metion suggestions not works if @ or \s (at or space) is the first character; (force option: always remove the unicode, should be used when the user starts writing with @) or placeholder not shows if unicode character is the only remaining character. */
+/**
+ * Android only - We need to determinate when composer is considered empty this going to be used when we don't want to convert the input composer to LTR
+ */
+function hasBeenComposerConsideredEmpty(text: string): boolean {
+    // Regular expressions with all character that are consider as empty (spaces, unicode with spaces and unicode with at)
+    const emptyExpressions = [/^\s*$/, new RegExp(`^${CONST.UNICODE.LTR}@$`), new RegExp(`${CONST.UNICODE.LTR}\\s*$`)];
+    return emptyExpressions.some((exp) => exp.test(text));
+}
+
+/**
+ * Android only - We should remove the LTR unicode when the input is empty to prevent: Sending an empty message, metion suggestions not works if @ or \s (at or space) is the first character; (force option: always remove the unicode, going to be used when composer is consider as empty) or placeholder not shows if unicode character is the only remaining character. */
 const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
-    const result = newComment.length <= 1 || force ? newComment.replace(CONST.UNICODE.LTR, '') : newComment;
+    const result = newComment.length <= 1 || force ? newComment.replaceAll(CONST.UNICODE.LTR, '') : newComment;
     return result;
 };
 
@@ -12,12 +22,11 @@ const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
  * Android does not properly support bidirectional text for mixed content for input box
  */
 const convertToLTRForComposer: ConvertToLTRForComposer = (text, isComposerEmpty) => {
-    let newText = resetLTRWhenEmpty(text);
-    if (newText.startsWith(`${CONST.UNICODE.LTR}@`) || newText.match(/^(\s)*$/)) {
-        newText = resetLTRWhenEmpty(newText, true);
+    const isConsideredAsEmpty = hasBeenComposerConsideredEmpty(text);
+    const newText = resetLTRWhenEmpty(text, isConsideredAsEmpty);
+    if (isConsideredAsEmpty) {
         return newText;
     }
-
     return isComposerEmpty ? `${CONST.UNICODE.LTR}${newText}` : newText;
 };
 
