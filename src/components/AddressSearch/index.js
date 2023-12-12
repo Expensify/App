@@ -21,6 +21,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
+import getListViewHeight from './getListViewHeight';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
 /**
@@ -548,10 +549,9 @@ function AddressSearch({
                             textInputContainer: [styles.flexColumn],
                             listView: [
                                 StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                                styles.overflowAuto,
                                 styles.borderLeft,
-                                styles.borderRight,
-                                {maxHeight: windowHeight - 230},
+                                styles.borsderRight,
+                                getListViewHeight(windowHeight, network.isOffline),
                                 !isFocused && {height: 0},
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
