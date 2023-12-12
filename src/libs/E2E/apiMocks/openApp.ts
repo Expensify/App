@@ -1527,7 +1527,6 @@ const openApp = (): Response => ({
                         '<a href="mailto:applause.expensifail.com@expensify.cash" target="_blank" rel="noreferrer noopener">applause.expensifail.com@expensify.cash</a>. Learn more ' +
                         '<a href="https://www.expensify.com/inbox?policyID=C28C2634DD7226B8&amp;taskID=ForwardToExpensifyCash" target="_blank" rel="noreferrer noopener">here.' +
                         '</a> For questions, just reply to this message.',
-                    hasOutstandingIOU: false,
                 },
                 report_98258458: {
                     reportID: '98258458',
@@ -1549,7 +1548,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: true,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_98344717: {
                     reportID: '98344717',
@@ -1571,7 +1569,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com',
-                    hasOutstandingIOU: false,
                 },
                 report_98345050: {
                     reportID: '98345050',
@@ -1593,7 +1590,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Cancelled the \u20b440.00 request',
-                    hasOutstandingIOU: false,
                 },
                 report_98345315: {
                     reportID: '98345315',
@@ -1615,7 +1611,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: '<a href="mailto:applausetester+perf2@applause.expensifail.com">applausetester+perf2@applause.expensifail.com</a>',
-                    hasOutstandingIOU: false,
                 },
                 report_98345625: {
                     reportID: '98345625',
@@ -1637,7 +1632,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Say hello\ud83d\ude10',
-                    hasOutstandingIOU: false,
                 },
                 report_98345679: {
                     reportID: '98345679',
@@ -1659,7 +1653,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: true,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_98414813: {
                     reportID: '98414813',
@@ -1681,7 +1674,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and fake6@gmail.com',
-                    hasOutstandingIOU: false,
                 },
                 report_98817646: {
                     reportID: '98817646',
@@ -1703,7 +1695,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'RR',
-                    hasOutstandingIOU: true,
                     iouReportID: '2543745284790730',
                 },
                 report_358751490033727: {
@@ -1726,7 +1717,6 @@ const openApp = (): Response => ({
                     visibility: 'restricted',
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD',
-                    hasOutstandingIOU: false,
                 },
                 report_663424408122117: {
                     reportID: '663424408122117',
@@ -1748,7 +1738,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_944123936554214: {
                     reportID: '944123936554214',
@@ -1770,7 +1759,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: true,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_2242399088152511: {
                     reportID: '2242399088152511',
@@ -1792,7 +1780,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: '<p>Hi there, thanks for reaching out! How may I help?</p>',
-                    hasOutstandingIOU: false,
                 },
                 report_2576922422943214: {
                     reportID: '2576922422943214',
@@ -1814,7 +1801,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Test',
-                    hasOutstandingIOU: false,
                 },
                 report_2752461403207161: {
                     reportID: '2752461403207161',
@@ -1836,7 +1822,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_3785654888638968: {
                     reportID: '3785654888638968',
@@ -1858,7 +1843,6 @@ const openApp = (): Response => ({
                     visibility: 'restricted',
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Room renamed to #jack',
-                    hasOutstandingIOU: false,
                 },
                 report_4867098979334014: {
                     reportID: '4867098979334014',
@@ -1880,7 +1864,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Requested \u20ac200.00 from Christoph for Essen mit Kunden',
-                    hasOutstandingIOU: true,
                     iouReportID: '4249286573496381',
                 },
                 report_5277760851229035: {
@@ -1905,7 +1888,6 @@ const openApp = (): Response => ({
                     lastMessageHtml:
                         'fff<br />f<br />f<br />f<br />f<br />f<br />f<br />f<br />f<br /><br />f<br />f<br />f<br />f<br /><br />f<br />' +
                         'f<br />f<br />f<br />f<br />f<br /><br />f<br />f<br />f<br />f<br />f<br />ff',
-                    hasOutstandingIOU: false,
                 },
                 report_5324367938904284: {
                     reportID: '5324367938904284',
@@ -1927,7 +1909,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Iviviviv8b',
-                    hasOutstandingIOU: false,
                 },
                 report_5654270288238256: {
                     reportID: '5654270288238256',
@@ -1949,7 +1930,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_6194900075541844: {
                     reportID: '6194900075541844',
@@ -1971,7 +1951,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_6801643744224146: {
                     reportID: '6801643744224146',
@@ -1994,7 +1973,6 @@ const openApp = (): Response => ({
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml:
                         "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click the + icon on the homescreen to explore the features you can use.",
-                    hasOutstandingIOU: false,
                 },
                 report_7658708888047100: {
                     reportID: '7658708888047100',
@@ -2016,7 +1994,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Hi there! How can I help?\u00a0',
-                    hasOutstandingIOU: false,
                 },
                 report_7756405299640824: {
                     reportID: '7756405299640824',
@@ -2038,7 +2015,6 @@ const openApp = (): Response => ({
                     visibility: 'restricted',
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: 'Room renamed to #jackd23',
-                    hasOutstandingIOU: false,
                 },
                 report_7819732651025410: {
                     reportID: '7819732651025410',
@@ -2060,7 +2036,6 @@ const openApp = (): Response => ({
                     visibility: null,
                     isOwnPolicyExpenseChat: false,
                     lastMessageHtml: '',
-                    hasOutstandingIOU: false,
                 },
                 report_2543745284790730: {
                     reportID: '2543745284790730',
@@ -2072,7 +2047,6 @@ const openApp = (): Response => ({
                     cachedTotal: '($1,473.11)',
                     total: 147311,
                     stateNum: 1,
-                    hasOutstandingIOU: true,
                 },
                 report_4249286573496381: {
                     reportID: '4249286573496381',
@@ -2084,7 +2058,6 @@ const openApp = (): Response => ({
                     cachedTotal: '($212.78)',
                     total: 21278,
                     stateNum: 1,
-                    hasOutstandingIOU: true,
                 },
             },
         },

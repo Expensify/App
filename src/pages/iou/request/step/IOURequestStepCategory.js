@@ -50,7 +50,11 @@ function IOURequestStepCategory({
      * @param {String} category.searchText
      */
     const updateCategory = (category) => {
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, category.searchText);
+        if (category.searchText === transaction.category) {
+            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        } else {
+            IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, category.searchText);
+        }
         navigateBack();
     };
 
