@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, Text, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import {useCameraDevices} from 'react-native-vision-camera';
+import compose from '@libs/compose';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import AttachmentPicker from '@components/AttachmentPicker';
