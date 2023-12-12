@@ -896,7 +896,6 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         indexOffset += filteredRecentlyUsedCategories.length;
     }
 
-
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
