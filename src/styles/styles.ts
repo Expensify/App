@@ -474,6 +474,16 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        bottomTabBarContainer: {
+            height: 80,
+            borderTopWidth: 1,
+            borderTopColor: theme.border,
+            backgroundColor: theme.appBG,
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+        },
+
         button: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
@@ -1332,15 +1342,6 @@ const styles = (theme: ThemeColors) =>
                 width: 16,
                 zIndex: 10,
             } satisfies ViewStyle),
-
-        floatingActionButtonContainer: {
-            position: 'absolute',
-            right: 20,
-
-            // The bottom of the floating action button should align with the bottom of the compose box.
-            // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
-            bottom: variables.fabBottom,
-        },
 
         floatingActionButton: {
             backgroundColor: theme.success,
