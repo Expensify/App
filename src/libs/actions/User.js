@@ -69,8 +69,6 @@ function closeAccount(message) {
             ],
         },
     );
-    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
-    redirectToSignIn();
 }
 
 /**
