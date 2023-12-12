@@ -179,6 +179,13 @@ function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
 
 /*
  * @param {String} transactionID
+ */
+function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
+}
+
+/*
+ * @param {String} transactionID
  * @param {String} tag
  */
 function setMoneyRequestTag_temporaryForRefactor(transactionID, tag) {
@@ -3164,6 +3171,7 @@ export {
     startMoneyRequest,
     startMoneyRequest_temporaryForRefactor,
     resetMoneyRequestCategory,
+    resetMoneyRequestCategory_temporaryForRefactor,
     resetMoneyRequestInfo,
     resetMoneyRequestTag,
     resetMoneyRequestTag_temporaryForRefactor,
