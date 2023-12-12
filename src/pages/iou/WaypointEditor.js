@@ -256,7 +256,6 @@ WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
-        selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     recentWaypoints: {
         key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
