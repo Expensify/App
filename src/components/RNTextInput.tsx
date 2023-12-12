@@ -7,7 +7,6 @@ type AnimatedTextInputRef = Component<AnimatedProps<TextInputProps>>;
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>) {
     return (
         <AnimatedTextInput

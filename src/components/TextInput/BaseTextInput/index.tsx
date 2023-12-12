@@ -27,8 +27,12 @@ import type {BaseTextInputRef} from './types';
 function BaseTextInput(
     {
         label = '',
-        value,
-        defaultValue,
+        /**
+         * To be able to function as either controlled or uncontrolled component we should not
+         * assign a default prop value for `value` or `defaultValue` props
+         */
+        value = undefined,
+        defaultValue = undefined,
         placeholder = '',
         errorText = '',
         icon = null,
@@ -41,7 +45,7 @@ function BaseTextInput(
         autoGrow = false,
         autoGrowHeight = false,
         hideFocusedState = false,
-        maxLength,
+        maxLength = null,
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,
@@ -49,8 +53,10 @@ function BaseTextInput(
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
-        prefixCharacter,
+        prefixCharacter = '',
         inputID,
+        shouldSaveDraft = false,
+        shouldUseDefaultValue = false,
         ...inputProps
     }: BaseTextInputProps,
     ref: BaseTextInputRef,
@@ -60,6 +66,8 @@ function BaseTextInput(
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
+    // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
@@ -72,8 +80,7 @@ function BaseTextInput(
     const [width, setWidth] = useState<number | null>(null);
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
-
-    const input = useRef<TextInput>(null);
+    const input = useRef<TextInput & HTMLElement>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
@@ -109,7 +116,9 @@ function BaseTextInput(
     );
 
     const activateLabel = useCallback(() => {
-        const newValue = value ?? '';
+        // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const newValue = value || '';
 
         if (newValue.length < 0 || isLabelActive.current) {
             return;
@@ -120,7 +129,9 @@ function BaseTextInput(
     }, [animateLabel, value]);
 
     const deactivateLabel = useCallback(() => {
-        const newValue = value ?? '';
+        // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const newValue = value || '';
 
         if (!!forceActiveLabel || newValue.length !== 0 || prefixCharacter) {
             return;
@@ -131,16 +142,12 @@ function BaseTextInput(
     }, [animateLabel, forceActiveLabel, prefixCharacter, value]);
 
     const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
-        if (inputProps.onFocus) {
-            onFocus(event);
-        }
+        inputProps.onFocus?.(event);
         setIsFocused(true);
     };
 
     const onBlur = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
-        if (inputProps.onBlur) {
-            inputProps.onBlur(event);
-        }
+        inputProps.onBlur?.(event);
         setIsFocused(false);
     };
 
@@ -149,9 +156,7 @@ function BaseTextInput(
             return;
         }
 
-        if (inputProps.onPress) {
-            inputProps.onPress(event);
-        }
+        inputProps.onPress?.(event);
 
         if ('isDefaultPrevented' in event && !event?.isDefaultPrevented()) {
             input.current?.focus();
@@ -174,7 +179,9 @@ function BaseTextInput(
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
-    const inputValue = value ?? '';
+    // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const inputValue = value || '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
     // Activate or deactivate the label when either focus changes, or for controlled
@@ -185,7 +192,7 @@ function BaseTextInput(
             isFocused ||
             // If the text has been supplied by Chrome autofill, the value state is not synced with the value
             // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
-            isInputAutoFilled(input.current as unknown as Element)
+            isInputAutoFilled(input.current)
         ) {
             activateLabel();
         } else {
@@ -206,9 +213,8 @@ function BaseTextInput(
      * Set Value & activateLabel
      */
     const setValue = (newValue: string) => {
-        if (onInputChange) {
-            onInputChange(newValue);
-        }
+        onInputChange?.(newValue);
+
         if (inputProps.onChangeText) {
             Str.result(inputProps.onChangeText, newValue);
         }
@@ -247,7 +253,7 @@ function BaseTextInput(
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
-    const newTextInputContainerStyles: StyleProp<ViewStyle & FlexStyle> = StyleSheet.flatten([
+    const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
         autoGrow && StyleUtils.getWidthStyle(textInputWidth),
@@ -265,10 +271,10 @@ function BaseTextInput(
   See https://github.com/Expensify/App/issues/13802 */
 
     const lineHeight = useMemo(() => {
-        if ((Browser.isSafari() || Browser.isMobileChrome()) && Array.isArray(inputStyle)) {
-            const lineHeightValue = inputStyle?.find((style) => style && 'lineHeight' in style && style.lineHeight !== undefined);
-            if (lineHeightValue && 'lineHeight' in lineHeightValue) {
-                return lineHeightValue.lineHeight;
+        if (Browser.isSafari() || Browser.isMobileChrome()) {
+            const lineHeightValue = StyleSheet.flatten(inputStyle).lineHeight;
+            if (lineHeightValue !== undefined) {
+                return lineHeightValue;
             }
         }
 
@@ -285,8 +291,7 @@ function BaseTextInput(
                 <PressableWithoutFeedback
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={label ?? ''}
-                    accessible
+                    accessibilityLabel={label}
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
@@ -310,7 +315,7 @@ function BaseTextInput(
                                 {isMultiline && <View style={[styles.textInputLabelBackground, styles.pointerEventsNone]} />}
                                 <TextInputLabel
                                     isLabelActive={isLabelActive.current}
-                                    label={label ?? ''}
+                                    label={label}
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
                                     for={inputProps.nativeID}

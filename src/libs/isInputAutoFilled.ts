@@ -1,9 +1,10 @@
+import {TextInput} from 'react-native';
 import isSelectorSupported from './isSelectorSupported';
 
 /**
  * Check the input is auto filled or not
  */
-export default function isInputAutoFilled(input: Element): boolean {
+export default function isInputAutoFilled(input: (TextInput & HTMLElement) | null): boolean {
     if (!input?.matches) {
         return false;
     }
