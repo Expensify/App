@@ -41,13 +41,12 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
-                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                <View style={[styles.flex1]}>
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={onBackButtonPress}
