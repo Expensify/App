@@ -70,9 +70,6 @@ const propTypes = {
         /** Currency of outstanding amount of this transaction */
         currency: PropTypes.string,
 
-        /** Does the iouReport have an outstanding IOU? */
-        hasOutstandingIOU: PropTypes.bool,
-
         /** Is the iouReport waiting for the submitter to add a credit bank account? */
         isWaitingOnBankAccount: PropTypes.bool,
     }),
