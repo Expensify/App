@@ -34,7 +34,7 @@ const darkTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     signInPage: colors.green800,
-    darkSupportingText: colors.darkSupportingText,
+    darkSupportingText: colors.productDark800,
 
     // Additional keys
     overlay: colors.productDark400,
