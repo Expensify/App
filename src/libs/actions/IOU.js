@@ -141,6 +141,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, io
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        isSplitRequest: false,
     });
 }
 
@@ -234,8 +235,8 @@ function setMoneyRequestBillable_temporaryForRefactor(transactionID, billable) {
  * @param {String} transactionID
  * @param {Object[]} participants
  */
-function setMoneyRequestParticipants_temporaryForRefactor(transactionID, participants) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
+function setMoneyRequestParticipants_temporaryForRefactor(transactionID, participants, isSplitRequest) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, isSplitRequest});
 }
 
 /**

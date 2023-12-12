@@ -40,7 +40,7 @@ function IOURequestStepParticipants({
     const selectedReportID = useRef(reportID);
     const numberOfParticipants = useRef(participants.length);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
-    const headerTitle = translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
+    const headerTitle = translate(transaction.isSplitRequest ? 'iou.split' : TransactionUtils.getHeaderTitleTranslationKey(transaction));
     const receiptFilename = lodashGet(transaction, 'filename');
     const receiptPath = lodashGet(transaction, 'receipt.source');
 
@@ -52,8 +52,8 @@ function IOURequestStepParticipants({
     }, [receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
 
     const addParticipant = useCallback(
-        (val) => {
-            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+        (val, isSplitRequest) => {
+            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val, isSplitRequest);
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -67,10 +67,12 @@ function IOURequestStepParticipants({
         [reportID, transactionID],
     );
 
-    const goToNextStep = useCallback(() => {
-        const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
-    }, [iouType, transactionID, reportID]);
+    const goToNextStep = useCallback(
+        (nextStepIOUType) => {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
+        },
+        [iouType, transactionID, reportID],
+    );
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
@@ -86,7 +88,7 @@ function IOURequestStepParticipants({
         >
             <MoneyRequestParticipantsSelector
                 ref={(el) => (optionsSelectorRef.current = el)}
-                participants={participants}
+                participants={transaction.isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
