@@ -165,7 +165,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }),
             [mapRef],
         );
-        
+
         return (
             <>
                 {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
@@ -179,7 +179,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                             ref={setRef}
                             mapLib={mapboxgl}
                             mapboxAccessToken={accessToken}
-                            workerUrl={CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.ADHOC ? `https://api.mapbox.com/mapbox-gl-js/v${mapboxgl.version}/mapbox-gl-csp-worker.js` : undefined }
+                            workerUrl={CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.ADHOC ? `https://api.mapbox.com/mapbox-gl-js/v${mapboxgl.version}/mapbox-gl-csp-worker.js` : undefined}
                             initialViewState={{
                                 longitude: currentPosition?.longitude,
                                 latitude: currentPosition?.latitude,
