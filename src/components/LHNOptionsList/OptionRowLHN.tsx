@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {ColorValue, StyleProp, StyleSheet, TextStyle, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -15,15 +15,13 @@ import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as optionRowStyles from '@styles/optionRowStyles';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {OptionRowLHNProps} from './types';
@@ -32,6 +30,7 @@ function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = ()
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<Element>(null);
+    const StyleUtils = useStyleUtils();
     const isFocusedRef = useRef(true);
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -66,16 +65,16 @@ function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = ()
         style ?? {},
     );
     const contentContainerStyles =
-        viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles] : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten([
-        styles.chatLinkRowPressable,
-        styles.flexGrow1,
-        styles.optionItemAvatarNameWrapper,
-        viewMode === CONST.OPTION_MODE.COMPACT ? styles.optionRowCompact : styles.optionRow,
-        styles.justifyContentCenter,
-    ]);
-    const hoveredBackgroundColor: ColorValue =
-        !!hoverStyle && 'backgroundColor' in hoverStyle && 'backgroundColor' in styles.sidebarLinkHover ? (hoverStyle ?? styles.sidebarLinkHover).backgroundColor ?? '' : theme.sidebar;
+        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
+    const sidebarInnerRowStyle = StyleSheet.flatten(
+        props.viewMode === CONST.OPTION_MODE.COMPACT
+            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
+    );
+    const hoveredBackgroundColor =
+        (props.hoverStyle || styles.sidebarLinkHover) && (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            ? (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -117,8 +116,8 @@ function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = ()
     const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem?.reportID ?? ''));
 
-    const isGroupChat = optionItem.type === CONST.REPORT.TYPE.CHAT && !optionItem.chatType && !optionItem.isThread && (optionItem?.displayNamesWithTooltips?.length ?? 0) > 2;
-    const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem?.reportID ?? '')) : optionItem.text;
+    const subscriptAvatarBorderColor = props.isFocused ? focusedBackgroundColor : theme.sidebar;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -162,7 +161,7 @@ function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = ()
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
-                            styles.sidebarLinkInner,
+                            styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(theme.sidebar),
                             isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !isFocused ? hoverStyle ?? styles.sidebarLinkHover : null,
@@ -176,10 +175,10 @@ function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = ()
                                 {(optionItem.icons?.length ?? 0) > 0 &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={isFocused ? theme.activeComponentBG : theme.sidebar}
-                                            mainAvatar={optionItem?.icons?.[0]}
-                                            secondaryAvatar={optionItem?.icons?.[1]}
-                                            size={viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
+                                            backgroundColor={hovered && !props.isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                            mainAvatar={optionItem.icons[0]}
+                                            secondaryAvatar={optionItem.icons[1]}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
                                         />
                                     ) : (
                                         <MultipleAvatars

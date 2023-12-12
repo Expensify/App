@@ -5,14 +5,14 @@ import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import withWindowDimensions from '@components/withWindowDimensions';
 import CONST from '@src/CONST';
-import {PopoverPropsWithWindowDimensions} from './types';
+import {PopoverWithWindowDimensionsProps} from './types';
 
 /*
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 
-function Popover(props: PopoverPropsWithWindowDimensions) {
+function Popover(props: PopoverWithWindowDimensionsProps) {
     const {
         isVisible,
         onClose,
@@ -28,6 +28,7 @@ function Popover(props: PopoverPropsWithWindowDimensions) {
         animationIn = 'fadeIn',
         animationOut = 'fadeOut',
     } = props;
+
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
 
@@ -62,8 +63,8 @@ function Popover(props: PopoverPropsWithWindowDimensions) {
                 onClose={onCloseWithPopoverContext}
                 type={CONST.MODAL.MODAL_TYPE.POPOVER}
                 popoverAnchorPosition={anchorPosition}
-                animationInTiming={disableAnimation ? 1 : animationInTiming ?? 1}
-                animationOutTiming={disableAnimation ? 1 : animationOutTiming ?? 1}
+                animationInTiming={disableAnimation ? 1 : animationInTiming}
+                animationOutTiming={disableAnimation ? 1 : animationOutTiming}
                 shouldCloseOnOutsideClick
                 onLayout={onLayout}
                 animationIn={animationIn}
@@ -94,8 +95,8 @@ function Popover(props: PopoverPropsWithWindowDimensions) {
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
             popoverAnchorPosition={isSmallScreenWidth ? undefined : anchorPosition}
             fullscreen={isSmallScreenWidth ? true : fullscreen}
-            animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming ?? 1}
-            animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming ?? 1}
+            animationInTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationInTiming}
+            animationOutTiming={disableAnimation && !isSmallScreenWidth ? 1 : animationOutTiming}
             onLayout={onLayout}
             animationIn={animationIn}
             animationOut={animationOut}
