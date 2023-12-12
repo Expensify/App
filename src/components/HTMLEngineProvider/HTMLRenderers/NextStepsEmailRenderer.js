@@ -12,7 +12,7 @@ const propTypes = {
 function NextStepsEmailRenderer({tnode}) {
     const styles = useThemeStyles();
 
-    return <Text style={styles.overflowWrapAnywhere}>{tnode.data}</Text>;
+    return <Text style={[styles.overflowWrapAnywhere, styles.textLabelSupporting, styles.textStrong]}>{tnode.data}</Text>;
 }
 
 NextStepsEmailRenderer.propTypes = propTypes;

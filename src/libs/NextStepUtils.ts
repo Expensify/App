@@ -9,16 +9,11 @@ function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';
 
     messages?.forEach((part) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const tagType = part.type || 'span';
         const isEmail = Str.isValidEmail(part.text);
-        let content = Str.safeEscape(part.text);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const tagType = isEmail ? 'next-steps-email' : part.type || 'span';
 
-        if (isEmail) {
-            content = `<next-steps-email>${content}</next-steps-email>`;
-        }
-
-        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
+        nextStepHTML += `<${tagType}>${Str.safeEscape(part.text)}</${tagType}>`;
     });
 
     const formattedHtml = nextStepHTML
