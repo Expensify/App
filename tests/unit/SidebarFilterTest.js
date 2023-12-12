@@ -295,8 +295,6 @@ describe('Sidebar', () => {
             // 4. isUnread
             // 5. isPinned
             // 6. hasDraft
-            // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
-            // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
             // Given these combinations of booleans which result in the report being filtered out (not shown).
             const booleansWhichRemovesActiveReport = [
@@ -620,8 +618,6 @@ describe('Sidebar', () => {
         // 4. isUnread
         // 5. isPinned
         // 6. hasDraft
-        // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
-        // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
         // Given these combinations of booleans which result in the report being filtered out (not shown).
         const booleansWhichRemovesActiveReport = [
