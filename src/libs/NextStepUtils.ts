@@ -11,7 +11,14 @@ function parseMessage(messages: Message[] | undefined) {
     messages?.forEach((part) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const tagType = part.type || 'span';
-        nextStepHTML += `<${tagType}>${Str.safeEscape(part.text)}</${tagType}>`;
+        const isEmail = Str.isValidEmail(part.text);
+        let content = Str.safeEscape(part.text);
+
+        if (isEmail) {
+            content = `<next-steps-email>${content}</next-steps-email>`;
+        }
+
+        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
     });
 
     return nextStepHTML

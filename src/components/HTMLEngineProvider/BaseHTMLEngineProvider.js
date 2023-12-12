@@ -60,22 +60,13 @@ function BaseHTMLEngineProvider(props) {
             }),
             'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
+            'next-steps-email': defaultHTMLElementModels.span.extend({tagName: 'next-steps-email'}),
         }),
         [styles.colorMuted, styles.formError, styles.mb0],
     );
 
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(
-        () => ({
-            selectable: props.textSelectable,
-            allowFontScaling: false,
-            textBreakStrategy: 'simple',
-            style: {
-                overflowWrap: 'anywhere',
-            },
-        }),
-        [props.textSelectable],
-    );
+    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
     const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
 
     return (
