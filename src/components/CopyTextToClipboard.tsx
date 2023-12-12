@@ -34,7 +34,7 @@ function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole}: C
             textStyles={textStyles}
             onPress={copyToClipboard}
             accessible
-            accessibilityLabel={translate('reportActionContextMenu.copyEmailToClipboard')}
+            accessibilityLabel={translate('reportActionContextMenu.copyToClipboard')}
             accessibilityRole={accessibilityRole}
         />
     );
