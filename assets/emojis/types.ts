@@ -3,7 +3,7 @@ import {SvgProps} from 'react-native-svg';
 type Emoji = {
     code: string;
     name: string;
-    types?: string[];
+    types?: readonly string[];
 };
 
 type HeaderEmoji = {

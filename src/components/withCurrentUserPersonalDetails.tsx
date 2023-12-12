@@ -14,25 +14,25 @@ type OnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type HOCProps = {
+type WithCurrentUserPersonalDetailsHOCProps = {
     currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
-type WithCurrentUserPersonalDetailsProps = OnyxProps & HOCProps;
+type WithCurrentUserPersonalDetailsProps = OnyxProps & WithCurrentUserPersonalDetailsHOCProps;
 
 // TODO: remove when all components that use it will be migrated to TS
 const withCurrentUserPersonalDetailsPropTypes = {
     currentUserPersonalDetails: personalDetailsPropType,
 };
 
-const withCurrentUserPersonalDetailsDefaultProps: HOCProps = {
+const withCurrentUserPersonalDetailsDefaultProps: WithCurrentUserPersonalDetailsHOCProps = {
     currentUserPersonalDetails: {},
 };
 
 export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): ComponentType<Omit<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, keyof OnyxProps>> {
-    function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
+): ComponentType<Omit<Omit<TProps, keyof WithCurrentUserPersonalDetailsHOCProps> & RefAttributes<TRef>, keyof OnyxProps>> {
+    function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsHOCProps>, ref: ForwardedRef<TRef>) {
         const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
         const accountID = props.session?.accountID ?? 0;
         const accountPersonalDetails = personalDetails?.[accountID];
@@ -54,7 +54,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
 
     const withCurrentUserPersonalDetails = React.forwardRef(WithCurrentUserPersonalDetails);
 
-    return withOnyx<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>, OnyxProps>({
+    return withOnyx<Omit<TProps, keyof WithCurrentUserPersonalDetailsHOCProps> & RefAttributes<TRef>, OnyxProps>({
         session: {
             key: ONYXKEYS.SESSION,
         },
@@ -62,4 +62,4 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
 }
 
 export {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps};
-export type {WithCurrentUserPersonalDetailsProps};
+export type {WithCurrentUserPersonalDetailsProps, WithCurrentUserPersonalDetailsHOCProps};

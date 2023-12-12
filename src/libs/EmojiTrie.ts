@@ -14,7 +14,7 @@ type HeaderEmoji = {
 type SimpleEmoji = {
     code: string;
     name: string;
-    types?: string[];
+    types?: readonly string[];
 };
 
 type Emoji = HeaderEmoji | SimpleEmoji;
@@ -28,7 +28,7 @@ type LocalizedEmojis = Record<string, LocalizedEmoji>;
 
 type Suggestion = {
     code: string;
-    types?: string[];
+    types?: readonly string[];
     name: string;
 };
 

@@ -1,8 +1,8 @@
 import {createContext, RefObject} from 'react';
-import {FlatList, GestureResponderEvent} from 'react-native';
+import {FlatList, GestureResponderEvent, View} from 'react-native';
 
 type ReactionListRef = {
-    showReactionList: (event: GestureResponderEvent | undefined, reactionListAnchor: Element, emojiName: string, reportActionID: string) => void;
+    showReactionList: (event: GestureResponderEvent | MouseEvent | undefined, reactionListAnchor: View | HTMLDivElement | null, emojiName: string, reportActionID: string) => void;
     hideReactionList: () => void;
     isActiveReportAction: (actionID: number | string) => boolean;
 };

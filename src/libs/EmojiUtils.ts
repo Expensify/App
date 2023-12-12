@@ -1,13 +1,13 @@
 import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import * as Emojis from '@assets/emojis';
 import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {FrequentlyUsedEmoji} from '@src/types/onyx';
+import {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import {SupportedLanguage} from './EmojiTrie';
 
@@ -48,13 +48,17 @@ const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): 
 /**
  * Given an English emoji name, get its localized version
  */
-const getLocalizedEmojiName = (name: string, lang: 'en' | 'es'): string => {
+const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return name;
     }
 
-    const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
-    return Emojis.localeEmojis[lang]?.[emojiCode]?.name ?? '';
+    if (lang === CONST.LOCALES.ES) {
+        const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
+        return Emojis.localeEmojis[lang]?.[emojiCode]?.name ?? '';
+    }
+
+    return '';
 };
 
 /**
@@ -438,9 +442,9 @@ const getPreferredSkinToneIndex = (value: string | number | null): number => {
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
  */
-const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string => {
-    if (emoji.types) {
-        const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
+const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string | number>): string => {
+    if (emoji.types && preferredSkinTone) {
+        const emojiCodeWithSkinTone = emoji.types[Number(preferredSkinTone)];
 
         // Note: it can happen that preferredSkinTone has a outdated format,
         // so it makes sense to check if we actually got a valid emoji code back
