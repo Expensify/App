@@ -101,9 +101,7 @@ const propTypes = {
 const defaultProps = {
     isSidebarLoaded: false,
     reportActions: [],
-    report: {
-        hasOutstandingIOU: false,
-    },
+    report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
