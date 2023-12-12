@@ -199,7 +199,7 @@ function HeaderView(props) {
         >
             <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
                 {isLoading ? (
-                    <ReportHeaderSkeletonView />
+                    <ReportHeaderSkeletonView onBackButtonPress={props.onNavigationMenuButtonClicked} />
                 ) : (
                     <>
                         {shouldUseNarrowLayout && (

@@ -42,8 +42,8 @@ export default (shouldUseNarrowLayout: boolean, themeStyles: ThemeStyles): Scree
             ...getNavigationModalCardStyle(),
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
 
-            // We need to translate the sidebar to not be covered by the StackNavigator so it can be clickable.
-            transform: [{translateX: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth}],
+            // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
+            marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWidth,
             ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
         },
     },

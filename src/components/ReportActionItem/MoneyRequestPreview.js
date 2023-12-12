@@ -78,9 +78,6 @@ const propTypes = {
 
         /** Currency of outstanding amount of this transaction */
         currency: PropTypes.string,
-
-        /** Does the iouReport have an outstanding IOU? */
-        hasOutstandingIOU: PropTypes.bool,
     }),
 
     /** True if this is this IOU is a split instead of a 1:1 request */
@@ -156,8 +153,9 @@ function MoneyRequestPreview(props) {
 
     const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+    const sortedParticipantAvatars = _.sortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && props.isBillSplit) {
-        participantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
+        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
     }
 
     // Pay button should only be visible to the manager of the report.
@@ -219,7 +217,7 @@ function MoneyRequestPreview(props) {
         }
 
         let message = props.translate('iou.cash');
-        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
@@ -304,7 +302,7 @@ function MoneyRequestPreview(props) {
                                         style={[
                                             styles.textHeadline,
                                             props.isBillSplit &&
-                                                StyleUtils.getAmountFontSizeAndLineHeight(shouldUseNarrowLayout, windowWidth, displayAmount.length, participantAvatars.length),
+                                                StyleUtils.getAmountFontSizeAndLineHeight(shouldUseNarrowLayout, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
@@ -323,7 +321,7 @@ function MoneyRequestPreview(props) {
                                 {props.isBillSplit && (
                                     <View style={styles.moneyRequestPreviewBoxAvatar}>
                                         <MultipleAvatars
-                                            icons={participantAvatars}
+                                            icons={sortedParticipantAvatars}
                                             shouldStackHorizontally
                                             size="small"
                                             isHovered={props.isHovered}
