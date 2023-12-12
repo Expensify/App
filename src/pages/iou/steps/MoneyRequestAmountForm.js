@@ -46,7 +46,7 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
-    selectedTab: CONST.TAB.MANUAL,
+    selectedTab: CONST.TAB_REQUEST.MANUAL,
 };
 
 /**
@@ -123,9 +123,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
         initializeAmount(amount);
-        // we want to update the state only when the amount is changed
+        // we want to re-initialize the state only when the selected tab changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
+    }, [selectedTab]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input

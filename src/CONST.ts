@@ -651,6 +651,9 @@ const CONST = {
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
     },
+    NEXT_STEP: {
+        FINISHED: 'Finished!',
+    },
     COMPOSER: {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
@@ -1096,11 +1099,6 @@ const CONST = {
             USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
             USER_EXITED: 'User exited by manual action.',
-            USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
-            USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
-            // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED:
-                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -1167,6 +1165,7 @@ const CONST = {
             DECLINE: 'decline',
             CANCEL: 'cancel',
             DELETE: 'delete',
+            APPROVE: 'approve',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
