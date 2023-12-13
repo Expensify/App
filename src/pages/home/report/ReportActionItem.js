@@ -34,7 +34,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -75,7 +74,6 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import {getReimbursementDeQueuedActionMessage} from "@libs/ReportUtils";
 
 const propTypes = {
     ...windowDimensionsPropTypes,

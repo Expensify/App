@@ -17,15 +17,15 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Expensicons from './Icon/Expensicons';
+import ConfirmModal from './ConfirmModal';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
 import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import * as Expensicons from '@components/Icon/Expensicons';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import ConfirmModal from '@components/ConfirmModal';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -91,7 +91,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const cancelPayment = useCallback(() => {
         IOU.cancelPayment(moneyRequestReport, chatReport);
         setIsConfirmModalVisible(false);
-    }, [setIsConfirmModalVisible]);
+    }, [setIsConfirmModalVisible, moneyRequestReport, chatReport]);
 
     const threeDotsMenuItems = [];
     if (isPayer && isSettled) {
