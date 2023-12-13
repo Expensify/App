@@ -1086,7 +1086,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
 
     let indexOffset = 0;
 
-    // If all tax rates are disabled but there's a previously selected tag, show only the selected tag
+    // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
         const selectedTaxRateOptions = _.map(selectedOptions, (option) => ({
             name: option.name,
