@@ -3019,7 +3019,7 @@ const styles = (theme: ThemeColors) =>
 
         searchContainer: {
             backgroundColor: theme.highlightBG,
-            borderRadius: 999,
+            borderRadius: variables.componentBorderRadiusRounded,
             height: 40,
             minHeight: 40,
             maxHeight: 40,
