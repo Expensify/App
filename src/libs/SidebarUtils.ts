@@ -135,9 +135,9 @@ const reportActionsSelector = (reportActions?: MappedReportActions): Record<stri
             errors: reportAction.errors || [],
             message: [
                 {
-                    moderationDecision: {
-                        decision: reportAction.message?.[0]?.moderationDecision?.decision,
-                    },
+                    moderationDecision: reportAction.message?.[0]?.moderationDecision,
+                    type: reportAction.message?.[0]?.type,
+                    text: reportAction.message?.[0]?.text,
                 },
             ],
         };
