@@ -57,7 +57,7 @@ type CategorySection = {
     title: string | undefined;
     shouldShow: boolean;
     indexOffset: number;
-    data: Option[] | Participant[] | ReportUtils.OptionData[];
+    data: Option[] | Array<Participant | ReportUtils.OptionData>;
 };
 
 type Category = {
@@ -95,6 +95,33 @@ type GetOptionsConfig = {
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
+};
+
+type MemberForList = {
+    text: string;
+    alternateText: string | null;
+    keyForList: string | null;
+    isSelected: boolean;
+    isDisabled: boolean;
+    accountID?: number | null;
+    login: string | null;
+    rightElement: React.ReactNode | null;
+    icons?: OnyxCommon.Icon[];
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+type SectionForSearchTerm = {
+    section: CategorySection;
+    newIndexOffset: number;
+};
+
+type GetOptions = {
+    recentReports: ReportUtils.OptionData[];
+    personalDetails: ReportUtils.OptionData[];
+    userToInvite: ReportUtils.OptionData | null;
+    currentUserOption: ReportUtils.OptionData | null | undefined;
+    categoryOptions: CategorySection[];
+    tagOptions: CategorySection[];
 };
 
 /**
@@ -1076,7 +1103,7 @@ function getOptions(
         canInviteUser = true,
         includeSelectedOptions = false,
     }: GetOptionsConfig,
-) {
+): GetOptions {
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
 
@@ -1391,7 +1418,7 @@ function getOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(reports: Record<string, Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []) {
+function getSearchOptions(reports: Record<string, Report>, personalDetails: OnyxEntry<PersonalDetailsList>, searchValue = '', betas: Beta[] = []): GetOptions {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1522,7 +1549,7 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): Option | undefined {
+function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): MemberForList | undefined {
     if (!member) {
         return undefined;
     }
@@ -1547,7 +1574,7 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
 /**
  * Build the options for the Workspace Member Invite view
  */
-function getMemberInviteOptions(personalDetails: OnyxEntry<PersonalDetailsList>, betas: Beta[] = [], searchValue = '', excludeLogins: string[] = []) {
+function getMemberInviteOptions(personalDetails: OnyxEntry<PersonalDetailsList>, betas: Beta[] = [], searchValue = '', excludeLogins: string[] = []): GetOptions {
     return getOptions({}, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
@@ -1608,10 +1635,6 @@ function shouldOptionShowTooltip(option: ReportUtils.OptionData): boolean {
     return Boolean((!option.isChatRoom || option.isThread) && !option.isArchivedRoom);
 }
 
-type SectionForSearchTerm = {
-    section: CategorySection;
-    newIndexOffset: number;
-};
 /**
  * Handles the logic for displaying selected participants from the search term
  */
