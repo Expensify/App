@@ -34,7 +34,7 @@ const darkTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     signInPage: colors.green800,
-    dangerSection: colors.tangerine800,
+    darkSupportingText: colors.productDark800,
 
     // Additional keys
     overlay: colors.productDark400,
@@ -79,7 +79,7 @@ const darkTheme = {
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
     skeletonLHNIn: colors.productDark400,
-    skeletonLHNOut: colors.productDark400,
+    skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
     loungeAccessOverlay: colors.blue800,
@@ -103,7 +103,7 @@ const darkTheme = {
             backgroundColor: colors.tangerine800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.PREFERENCES]: {
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
             backgroundColor: colors.blue500,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -111,7 +111,7 @@ const darkTheme = {
             backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.WALLET]: {
+        [SCREENS.SETTINGS.WALLET.ROOT]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -119,12 +119,16 @@ const darkTheme = {
             backgroundColor: colors.ice500,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.SETTINGS.STATUS]: {
-            backgroundColor: colors.green700,
+        [SCREENS.SETTINGS.PROFILE.STATUS]: {
+            backgroundColor: colors.darkAppBackground,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
             backgroundColor: colors.productDark200,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.RIGHT_MODAL.REFERRAL]: {
+            backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },
