@@ -68,7 +68,7 @@ type Category = {
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
 type GetOptionsConfig = {
-    reportActions?: Record<string, ReportAction>;
+    reportActions?: ReportActions;
     betas?: Beta[];
     selectedOptions?: Array<Participant | Category>;
     maxRecentReportsToShow?: number;
@@ -174,7 +174,7 @@ Onyx.connect({
     },
 });
 
-const lastReportActions: Record<string, ReportAction> = {};
+const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 const allReportActions: Record<string, ReportActions> = {};
 Onyx.connect({
@@ -261,7 +261,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
  * Returns the personal details for an array of accountIDs
  * @returns  keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
     const personalDetailsForAccountIDs: PersonalDetailsList = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
@@ -293,7 +293,7 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[], personalDetails: 
  */
 function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>): boolean {
     const personalDetailsKeys = Object.keys(personalDetails ?? {});
-    return personalDetailsKeys.length > 0 && personalDetailsKeys.some((key) => personalDetails?.[Number(key)]?.accountID);
+    return personalDetailsKeys.some((key) => personalDetails?.[Number(key)]?.accountID);
 }
 
 /**
@@ -520,7 +520,7 @@ function createOption(
     accountIDs: number[],
     personalDetails: OnyxEntry<PersonalDetailsList>,
     report: OnyxEntry<Report>,
-    reportActions: Record<string, ReportAction>,
+    reportActions: ReportActions,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean},
 ): ReportUtils.OptionData {
     const result: ReportUtils.OptionData = {
