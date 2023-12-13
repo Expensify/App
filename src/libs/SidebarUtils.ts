@@ -108,55 +108,12 @@ function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TV
 // Variable to verify if ONYX actions are loaded
 let hasInitialReportActions = false;
 
-// Originally we were passing down the reportActions as the type OnyxCollection<ReportActions> but
-// it was used as a Record<string, ReportAction[]> in the cachedReportsKey. This was causing a type error
-// for the ReportUtils.shouldReportBeInOptionList function. To fix this, we are now passing down the reportActions
-// as a Record<string, ReportActions> and then converting it to a Record<string, ReportAction[]> in the
-// reportActionsSelector function.
-// This function was originally in the parent component as an Onyx selector, but it was moved here
-// to simplify the logic and prevent the need to pass down the reportActions as an array.
-
-type MappedReportAction = {
-    reportActionID: string;
-    errors: OnyxCommon.Errors;
-    message: Message[];
-};
-
-type MappedReportActions = Record<string, MappedReportAction>;
-
-const reportActionsSelector = (reportActionsCollection?: Record<string, MappedReportActions>): Record<string, MappedReportAction[]> | undefined => {
-    if (!reportActionsCollection) {
-        return undefined;
+type ReportActionsCount = Record<
+    string,
+    {
+        reportActionsCount: number;
     }
-
-    return Object.values(reportActionsCollection).reduce<Record<string, MappedReportAction[]>>((acc, reportActions) => {
-        if (!reportActions) {
-            return acc;
-        }
-        Object.entries(reportActions).forEach(([reportActionID, reportAction]) => {
-            const modifiedAction: MappedReportAction = {
-                reportActionID,
-                errors: reportAction.errors || [],
-                message: [
-                    {
-                        moderationDecision: reportAction.message?.[0]?.moderationDecision,
-                        type: reportAction.message?.[0]?.type,
-                        text: reportAction.message?.[0]?.text,
-                    },
-                ],
-            };
-
-            // If the key already exists, append to the array, otherwise create a new array
-            if (acc[reportActionID]) {
-                acc[reportActionID].push(modifiedAction);
-            } else {
-                acc[reportActionID] = [modifiedAction];
-            }
-        });
-
-        return acc;
-    }, {});
-};
+>;
 
 /**
  * @returns An array of reportIDs sorted in the proper order
@@ -170,11 +127,17 @@ function getOrderedReportIDs(
     allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: TransactionViolations,
 ): string[] {
-    const mappedReportActions = allReportActions ? reportActionsSelector(allReportActions as unknown as Record<string, MappedReportActions>) : {};
+    const reportActionsCount: ReportActionsCount | null =
+        allReportActions &&
+        Object.keys(allReportActions).reduce<ReportActionsCount>((acc, reportID) => {
+            acc[reportID] = {reportActionsCount: Object.keys(allReportActions[reportID] as Record<string, ReportAction>).length};
+            return acc;
+        }, {});
+
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [currentReportId, allReports, betas, policies, priorityMode, mappedReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionsCount?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.reportActionsCount || 1],
         (key, value: unknown) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
