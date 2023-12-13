@@ -38,7 +38,6 @@ import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import useTheme from './styles/themes/useTheme';
-import useThemePreference from './styles/themes/useThemePreference';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -100,7 +99,6 @@ const defaultProps = {
 const SplashScreenHiddenContext = React.createContext({});
 
 function Expensify(props) {
-    const themePreference = useThemePreference();
     const theme = useTheme();
     const appStateChangeListener = useRef(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
