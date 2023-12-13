@@ -8,6 +8,7 @@ import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 
@@ -16,8 +17,9 @@ const RootStack = createStackNavigator<PublicScreensParamList>();
 function PublicScreens() {
     return (
         <RootStack.Navigator>
+            {/* The structure for the HOME route have to be the same in public and auth screens. That's why we need to wrap the HOME screen with "fake" bottomTabNavigator. */}
             <RootStack.Screen
-                name={SCREENS.HOME}
+                name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                 options={defaultScreenOptions}
                 component={SignInPage}
             />
