@@ -252,6 +252,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
+        REPORT_FIELDS: 'reportFields',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
