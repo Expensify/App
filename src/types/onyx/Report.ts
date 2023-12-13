@@ -3,6 +3,16 @@ import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import PersonalDetails from './PersonalDetails';
 
+type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
+
+type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+
+type Note = {
+    note: string;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -47,7 +57,7 @@ type Report = {
     lastMentionedTime?: string | null;
 
     /** The current user's notification preference for this report */
-    notificationPreference?: string | number;
+    notificationPreference?: NotificationPreference;
 
     /** The policy name to use */
     policyName?: string | null;
@@ -89,7 +99,7 @@ type Report = {
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
 
     /** Which user role is capable of posting messages on the report */
-    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
+    writeCapability?: WriteCapability;
 
     /** The report type */
     type?: string;
@@ -136,8 +146,7 @@ type Report = {
 
     /** Pending fields for the report */
     pendingFields?: Record<string, OnyxCommon.PendingAction>;
-
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
 
     /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
     preexistingReportID?: string;
@@ -148,7 +157,10 @@ type Report = {
     isChatRoom?: boolean;
     participantsList?: Array<Partial<PersonalDetails>>;
     text?: string;
-    privateNotes?: Record<string, {note: string}>;
+    privateNotes?: Record<number, Note>;
+    isLoadingPrivateNotes?: boolean;
 };
 
 export default Report;
+
+export type {NotificationPreference, WriteCapability};

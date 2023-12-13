@@ -19,7 +19,7 @@ import Modal from './Modal';
 import Network from './Network';
 import {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import PersonalBankAccount from './PersonalBankAccount';
-import PersonalDetails from './PersonalDetails';
+import PersonalDetails, {PersonalDetailsList} from './PersonalDetails';
 import PlaidData from './PlaidData';
 import Policy from './Policy';
 import PolicyCategory, {PolicyCategories} from './PolicyCategory';
@@ -80,6 +80,7 @@ export type {
     OnyxUpdatesFromServer,
     PersonalBankAccount,
     PersonalDetails,
+    PersonalDetailsList,
     PlaidData,
     Policy,
     PolicyCategory,

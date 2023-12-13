@@ -6,7 +6,6 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
-import React from 'react';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
@@ -16,10 +15,11 @@ import CONST from '@src/CONST';
 import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {ChangeLog, IOUMessage, OriginalMessageActionName} from '@src/types/onyx/OriginalMessage';
-import {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import {NotificationPreference} from '@src/types/onyx/Report';
+import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -187,10 +187,8 @@ type OptimisticClosedReportAction = Pick<
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'originalMessage' | 'pendingAction' | 'person' | 'reportActionID' | 'shouldShow'
 >;
 
-type OptimisticCreatedReportAction = Pick<
-    ReportAction,
-    'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'
->;
+type OptimisticCreatedReportAction = OriginalMessageCreated &
+    Pick<ReportActionBase, 'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction'>;
 
 type OptimisticChatReport = Pick<
     Report,
@@ -277,20 +275,20 @@ type OptimisticTaskReport = Pick<
 
 type TransactionDetails =
     | {
-          created: string;
-          amount: number;
-          currency: string;
-          merchant: string;
-          waypoints?: WaypointCollection;
-          comment: string;
-          category: string;
-          billable: boolean;
-          tag: string;
-          mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-          cardID: number;
-          originalAmount: number;
-          originalCurrency: string;
-      }
+    created: string;
+    amount: number;
+    currency: string;
+    merchant: string;
+    waypoints?: WaypointCollection;
+    comment: string;
+    category: string;
+    billable: boolean;
+    tag: string;
+    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+    cardID: number;
+    originalAmount: number;
+    originalCurrency: string;
+}
     | undefined;
 
 type OptimisticIOUReport = Pick<
@@ -1409,7 +1407,7 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
 }
 
 function getDisplayNamesWithTooltips(
-    personalDetailsList: PersonalDetails[] | Record<string, PersonalDetails>,
+    personalDetailsList: PersonalDetails[] | PersonalDetailsList,
     isMultipleParticipantReport: boolean,
     shouldFallbackToHidden = true,
 ): DisplayNameWithTooltips {
@@ -1423,7 +1421,7 @@ function getDisplayNamesWithTooltips(
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user.pronouns;
-            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+            if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
                 pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
             }
@@ -1547,9 +1545,9 @@ function isUnreadWithMention(report: OnyxEntry<Report> | OptionData): boolean {
 
 /**
  * Determines if the option requires action from the current user. This can happen when it:
-    - is unread and the user was mentioned in one of the unread comments
-    - is for an outstanding task waiting on the user
-    - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ - is unread and the user was mentioned in one of the unread comments
+ - is for an outstanding task waiting on the user
+ - has an outstanding child money request that is waiting for an action from the current user (e.g. pay, approve, add bank account)
  *
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
@@ -1828,12 +1826,12 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
     return Boolean(
         reportAction?.actorAccountID === currentUserAccountID &&
-            isCommentOrIOU &&
-            canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
-            !isReportMessageAttachment(reportAction?.message?.[0] ?? {type: '', text: ''}) &&
-            !ReportActionsUtils.isDeletedAction(reportAction) &&
-            !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-            reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        isCommentOrIOU &&
+        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+        !isReportMessageAttachment(reportAction?.message?.[0] ?? {type: '', text: ''}) &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
 
@@ -2376,7 +2374,7 @@ function getParsedComment(text: string): string {
     return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : lodashEscape(text);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: File & {source: string; uri: string}): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(text?: string, file?: File): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
     const isAttachment = !text && file !== undefined;
@@ -2994,9 +2992,9 @@ function updateReportPreview(
         childMoneyRequestCount: (reportPreviewAction?.childMoneyRequestCount ?? 0) + (isPayRequest ? 0 : 1),
         childRecentReceiptTransactionIDs: hasReceipt
             ? {
-                  ...(transaction && {[transaction.transactionID]: transaction?.created}),
-                  ...previousTransactions,
-              }
+                ...(transaction && {[transaction.transactionID]: transaction?.created}),
+                ...previousTransactions,
+            }
             : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
@@ -3052,7 +3050,7 @@ function buildOptimisticChatReport(
     oldPolicyName = '',
     visibility: ValueOf<typeof CONST.REPORT.VISIBILITY> | undefined = undefined,
     writeCapability: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES> | undefined = undefined,
-    notificationPreference: string | number = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
     welcomeMessage = '',
@@ -3578,12 +3576,12 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
 
     return Boolean(
         !isCurrentUserAction &&
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-            !ReportActionsUtils.isDeletedAction(reportAction) &&
-            !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-            isNotEmptyObject(report) &&
-            report &&
-            isAllowedToComment(report),
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        isNotEmptyObject(report) &&
+        report &&
+        isAllowedToComment(report),
     );
 }
 
@@ -4227,12 +4225,12 @@ function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): stri
 function isGroupChat(report: OnyxEntry<Report>): boolean {
     return Boolean(
         report &&
-            !isChatThread(report) &&
-            !isTaskReport(report) &&
-            !isMoneyRequestReport(report) &&
-            !isArchivedRoom(report) &&
-            !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            (report.participantAccountIDs?.length ?? 0) > 2,
+        !isChatThread(report) &&
+        !isTaskReport(report) &&
+        !isMoneyRequestReport(report) &&
+        !isArchivedRoom(report) &&
+        !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
+        (report.participantAccountIDs?.length ?? 0) > 2,
     );
 }
 
@@ -4252,33 +4250,16 @@ function shouldDisableWelcomeMessage(report: OnyxEntry<Report>, policy: OnyxEntr
     return isMoneyRequestReport(report) || isArchivedRoom(report) || !isChatRoom(report) || isChatThread(report) || !PolicyUtils.isPolicyAdmin(policy);
 }
 
-function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
-    if (event.key.length > 1) {
-        return false;
-    }
-
-    // If a key is pressed in combination with Meta, Control or Alt do not focus
-    if (event.ctrlKey || event.metaKey) {
-        return false;
-    }
-
-    if (event.code === 'Space') {
-        return false;
-    }
-
-    return true;
-}
-
 /**
  * Navigates to the appropriate screen based on the presence of a private note for the current user.
  */
 function navigateToPrivateNotes(report: Report, session: Session) {
-    if (isEmpty(report) || isEmpty(session)) {
+    if (isEmpty(report) || isEmpty(session) || !session.accountID) {
         return;
     }
-    const currentUserPrivateNote = report.privateNotes?.[String(session.accountID)]?.note ?? '';
+    const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
-        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, String(session.accountID)));
+        Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, session.accountID));
         return;
     }
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
@@ -4451,7 +4432,6 @@ export {
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
-    shouldAutoFocusOnKeyPress,
 };
 
-export type {OptionData, OptimisticClosedReportAction};
+export type {OptionData, OptimisticChatReport, OptimisticClosedReportAction};
