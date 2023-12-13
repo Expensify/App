@@ -79,7 +79,7 @@ const propTypes = {
     isCheckingPublicRoom: PropTypes.bool,
 
     /** True when the user must update to the latest minimum version of the app */
-    upgradeRequired: PropTypes.bool,
+    updateRequired: PropTypes.bool,
 
     /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
     focusModeNotification: PropTypes.bool,
@@ -96,7 +96,7 @@ const defaultProps = {
     isSidebarLoaded: false,
     screenShareRequest: null,
     isCheckingPublicRoom: true,
-    upgradeRequired: false,
+    updateRequired: false,
     focusModeNotification: false,
 };
 
@@ -211,8 +211,8 @@ function Expensify(props) {
         return null;
     }
 
-    if (props.upgradeRequired) {
-        throw new Error(CONST.ERROR.UPGRADE_REQUIRED);
+    if (props.updateRequired) {
+        throw new Error(CONST.ERROR.UPDATE_REQUIRED);
     }
 
     return (
@@ -276,8 +276,8 @@ export default compose(
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
         },
-        upgradeRequired: {
-            key: ONYXKEYS.UPGRADE_REQUIRED,
+        updateRequired: {
+            key: ONYXKEYS.UPDATE_REQUIRED,
             initWithStoredValues: false,
         },
         focusModeNotification: {

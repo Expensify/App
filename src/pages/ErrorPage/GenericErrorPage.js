@@ -16,8 +16,8 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import AppDownloadLinksView from '@pages/settings/AppDownloadLinksView';
 import ErrorBodyText from './ErrorBodyText';
+import UpdateRequiredView from './UpdateRequiredView';
 
 const propTypes = {
     /** Error message handled by the boundary */
@@ -31,7 +31,7 @@ function GenericErrorPage({translate, errorContent}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {resetBoundary} = useErrorBoundary();
-    const upgradeRequired = errorContent === CONST.ERROR.UPGRADE_REQUIRED;
+    const updateRequired = errorContent === CONST.ERROR.UPDATE_REQUIRED;
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
@@ -40,16 +40,16 @@ function GenericErrorPage({translate, errorContent}) {
                         <View>
                             <View style={styles.mb5}>
                                 <Icon
-                                    src={upgradeRequired ? Expensicons.Gear : Expensicons.Bug}
+                                    src={updateRequired ? Expensicons.Gear : Expensicons.Bug}
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
                                     fill={theme.iconSuccessFill}
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <Text style={[styles.textHeadline]}>{upgradeRequired ? 'Upgrade required. Get the latest version now!' : translate('genericErrorPage.title')}</Text>
+                                <Text style={[styles.textHeadline]}>{updateRequired ? 'Please install the latest version of New Expensify' : translate('genericErrorPage.title')}</Text>
                             </View>
-                            {!upgradeRequired ? (
+                            {updateRequired ? <UpdateRequiredView /> : (
                                 <>
                                     <View style={styles.mb5}>
                                         <ErrorBodyText />
@@ -82,8 +82,9 @@ function GenericErrorPage({translate, errorContent}) {
                                             />
                                         </View>
                                     </View>
+
                                 </>
-                            ) : <AppDownloadLinksView rowWrapperStyle={[styles.ph0]} />}
+                            )}
                         </View>
                     </View>
                     <View styles={styles.alignSelfEnd}>

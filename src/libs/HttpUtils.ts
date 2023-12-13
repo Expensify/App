@@ -104,7 +104,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                     alert('Too many auth writes', message);
                 }
             }
-            if (response.jsonCode === CONST.JSON_CODE.UPGRADE_REQUIRED) {
+            if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
                 AppUpdate.triggerUpgradeRequired();
             }

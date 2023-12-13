@@ -244,7 +244,7 @@ const ONYXKEYS = {
     MAX_CANVAS_WIDTH: 'maxCanvasWidth',
 
     /** Indicates whether an forced upgrade is required */
-    UPGRADE_REQUIRED: 'upgradeRequired',
+    UPDATE_REQUIRED: 'updateRequired',
 
     /** Collection Keys */
     COLLECTION: {
@@ -436,7 +436,7 @@ type OnyxValues = {
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
-    [ONYXKEYS.UPGRADE_REQUIRED]: boolean;
+    [ONYXKEYS.UPDATE_REQUIRED]: boolean;
 
     // Collections
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
