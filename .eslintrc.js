@@ -20,13 +20,7 @@ const restrictedImportPaths = [
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
     },
     {
-        name: '@styles/theme/Themes',
-        importNames: ['default', 'defaultTheme'],
-
-        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
-    },
-    {
-        name: '@styles/styles',
+        name: '@styles/index',
         importNames: ['default', 'defaultStyles'],
         message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.',
     },
@@ -36,7 +30,13 @@ const restrictedImportPaths = [
         message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
     },
     {
-        name: '@styles/illustrations/Illustrations',
+        name: '@styles/theme',
+        importNames: ['default', 'defaultTheme'],
+
+        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+    },
+    {
+        name: '@styles/theme/illustrations',
         message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
 ];
@@ -55,7 +55,7 @@ const restrictedImportPatterns = [
         message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
     },
     {
-        group: ['@styles/illustrations/themes/**/*'],
+        group: ['@styles/theme/illustrations/themes/**/*'],
         message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
 ];
