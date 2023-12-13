@@ -197,7 +197,13 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         hasError={hasErrors}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.TYPE.REQUEST, transaction.transactionID, report.reportID, Navigation.getActiveRouteWithoutParams()),
+                                ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.REQUEST,
+                                    transaction.transactionID,
+                                    report.reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                ),
                             )
                         }
                     />

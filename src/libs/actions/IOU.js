@@ -251,9 +251,10 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID, partici
  * @param {String} transactionID
  * @param {String} source
  * @param {String} filename
+ * @param {Boolean} isDraft
  */
-function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename) {
-    Onyx.merge(`${transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename, isDraft) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         receipt: {source},
         filename,
     });
@@ -3047,10 +3048,10 @@ function detachReceipt(transactionID) {
 
 /**
  * @param {String} transactionID
- * @param {Object} receipt
- * @param {String} filePath
+ * @param {Object} file
+ * @param {String} source
  */
-function replaceReceipt(transactionID, receipt, filePath) {
+function replaceReceipt(transactionID, file, source) {
     const transaction = lodashGet(allTransactions, 'transactionID', {});
     const oldReceipt = lodashGet(transaction, 'receipt', {});
 
@@ -3060,10 +3061,10 @@ function replaceReceipt(transactionID, receipt, filePath) {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: {
-                    source: filePath,
+                    source,
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
-                filename: receipt.name,
+                filename: file.name,
             },
         },
     ];
@@ -3079,7 +3080,7 @@ function replaceReceipt(transactionID, receipt, filePath) {
         },
     ];
 
-    API.write('ReplaceReceipt', {transactionID, receipt}, {optimisticData, failureData});
+    API.write('ReplaceReceipt', {transactionID, receipt: file}, {optimisticData, failureData});
 }
 
 /**

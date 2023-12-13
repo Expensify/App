@@ -1148,6 +1148,10 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        ACTION: {
+            EDIT: 'edit',
+            CREATE: 'create',
+        },
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',

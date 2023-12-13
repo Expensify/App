@@ -47,7 +47,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
 }) {
     const theme = useTheme();
@@ -108,30 +108,7 @@ function IOURequestStepScan({
         Navigation.goBack(backTo || ROUTES.HOME);
     };
 
-    /**
-     * Sets the Receipt objects and navigates the user to the next page
-     * @param {Object} file
-     */
-    const setReceiptAndNavigate = (file) => {
-        if (!validateReceipt(file)) {
-            return;
-        }
-
-        const fileSource = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, file.name);
-
-        // When an existing transaction is being edited (eg. not the create transaction flow)
-        if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            IOU.replaceReceipt(transactionID, file, fileSource);
-
-            if (backTo) {
-                Navigation.goBack(backTo);
-                return;
-            }
-            Navigation.dismissModal();
-            return;
-        }
-
+    const navigateToConfirmationStep = useCallback(() => {
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
@@ -142,6 +119,39 @@ function IOURequestStepScan({
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+    }, [iouType, report, reportID, transactionID]);
+
+    const updateScanAndNavigate = useCallback(
+        (file, source) => {
+            IOU.replaceReceipt(transactionID, file, source);
+            if (backTo) {
+                Navigation.goBack(backTo);
+                return;
+            }
+            Navigation.dismissModal();
+        },
+        [backTo, transactionID],
+    );
+
+    /**
+     * Sets the Receipt objects and navigates the user to the next page
+     * @param {Object} file
+     */
+    const setReceiptAndNavigate = (file) => {
+        if (!validateReceipt(file)) {
+            return;
+        }
+
+        // Store the receipt on the transaction object in Onyx
+        const source = URL.createObjectURL(file);
+        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+
+        if (action === CONST.IOU.ACTION.EDIT) {
+            updateScanAndNavigate(file, source);
+            return;
+        }
+
+        navigateToConfirmationStep();
     };
 
     const capturePhoto = useCallback(() => {

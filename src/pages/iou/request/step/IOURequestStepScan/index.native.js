@@ -44,7 +44,7 @@ const defaultProps = {
 function IOURequestStepScan({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
 }) {
     const theme = useTheme();
@@ -117,6 +117,38 @@ function IOURequestStepScan({
             });
     };
 
+    const navigateBack = () => {
+        Navigation.goBack(backTo || ROUTES.HOME);
+    };
+
+    const navigateToConfirmationStep = useCallback(() => {
+        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+        // to the confirm step.
+        if (report.reportID) {
+            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            return;
+        }
+
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+    }, [iouType, report, reportID, transactionID]);
+
+    const updateScanAndNavigate = useCallback(
+        (photo, source) => {
+            FileUtils.readFileAsync(source, photo.path, (file) => {
+                IOU.replaceReceipt(transactionID, file, source);
+
+                if (backTo) {
+                    Navigation.goBack(backTo);
+                    return;
+                }
+                Navigation.dismissModal();
+            });
+        },
+        [backTo, transactionID],
+    );
+
     const takePhoto = useCallback(() => {
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
@@ -133,50 +165,27 @@ function IOURequestStepScan({
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                const filePath = `file://${photo.path}`;
-                IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, photo.path);
+                // Store the receipt on the transaction object in Onyx
+                const source = `file://${photo.path}`;
+                IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
-                const onSuccess = (receipt) => {
-                    IOU.replaceReceipt(transactionID, receipt, filePath);
-                };
-
-                // When an existing transaction is being edited (eg. not the create transaction flow)
-                if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                    FileUtils.readFileAsync(filePath, photo.path, onSuccess);
-
-                    if (backTo) {
-                        Navigation.goBack(backTo);
-                        return;
-                    }
-                    Navigation.dismissModal();
+                if (action === CONST.IOU.ACTION.EDIT) {
+                    updateScanAndNavigate(photo, source);
                     return;
                 }
 
-                // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-                // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-                // to the confirm step.
-                if (report.reportID) {
-                    IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+                navigateToConfirmationStep();
             })
             .catch((error) => {
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }, [flash, iouType, report, translate, transactionID, reportID, backTo]);
+    }, [flash, action, translate, transactionID, updateScanAndNavigate, navigateToConfirmationStep]);
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
     }
-
-    const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
-    };
 
     return (
         <StepScreenWrapper
