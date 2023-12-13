@@ -1,31 +1,38 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import Button from './Button';
-import HoldMenuSectionList from './HoldMenuSectionList';
+import HoldMenuSectionList, {HoldMenuSection} from './HoldMenuSectionList';
+import {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
-import refPropTypes from './refPropTypes';
+import {AnchorAlignment} from './Popover/types';
 import Text from './Text';
 
-const propTypes = {
-    isVisible: PropTypes.bool.isRequired,
-    onClose: PropTypes.func.isRequired,
-    onConfirm: PropTypes.func.isRequired,
-    anchorPosition: PropTypes.shape({
-        horizontal: PropTypes.number,
-        vertical: PropTypes.number,
-    }),
-    anchorRef: refPropTypes,
+type ProcessMoneyRequestHoldMenuProps = {
+    /** Array of sections with an icon, title and a description */
+    holdMenuSections: HoldMenuSection[];
+
+    /** Whether the content is visible */
+    isVisible: boolean;
+
+    /** Method to trigger when pressing outside of the popover menu to close it */
+    onClose: () => void;
+
+    /** Method to trigger when pressing confirm button */
+    onConfirm: () => void;
+
+    /** The anchor position of the popover menu */
+    anchorPosition?: PopoverAnchorPosition;
+
+    /** The anchor alignment of the popover menu */
+    anchorAlignment: AnchorAlignment;
+
+    /** The anchor ref of the popover menu */
+    anchorRef: React.RefObject<HTMLElement>;
 };
 
-const defaultProps = {
-    anchorPosition: {},
-    anchorRef: () => {},
-};
-
-function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorRef}) {
+function ProcessMoneyRequestHoldMenu({holdMenuSections, isVisible, onClose, onConfirm, anchorPosition, anchorAlignment, anchorRef}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -35,13 +42,16 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             onClose={onClose}
             anchorPosition={anchorPosition}
             anchorRef={anchorRef}
+            anchorAlignment={anchorAlignment}
+            disableAnimation={false}
+            withoutOverlay={false}
         >
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
                     <Text style={[styles.holdRequestInline]}>{translate('iou.hold')}</Text>
                 </View>
-                <HoldMenuSectionList />
+                <HoldMenuSectionList holdMenuSections={holdMenuSections} />
                 <Button
                     success
                     style={[styles.mt5]}
@@ -53,8 +63,6 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
     );
 }
 
-ProcessMoneyRequestHoldMenu.propTypes = propTypes;
-ProcessMoneyRequestHoldMenu.defaultProps = defaultProps;
 ProcessMoneyRequestHoldMenu.displayName = 'ProcessMoneyRequestHoldMenu';
 
 export default ProcessMoneyRequestHoldMenu;

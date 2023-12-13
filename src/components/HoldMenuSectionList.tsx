@@ -1,37 +1,36 @@
-import _ from 'lodash';
 import React from 'react';
 import {View} from 'react-native';
+import {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import {TranslationPaths} from '@src/languages/types';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
+import Text from './Text';
 
-function HoldMenuSectionList() {
+type HoldMenuSection = {
+    /** The icon supplied with the section */
+    icon: React.FC<SvgProps>;
+
+    /** Translation key for the title */
+    titleTranslationKey: TranslationPaths;
+
+    /** Translation key for the description */
+    descriptionTranslationKey: TranslationPaths;
+};
+
+type HoldMenuSelectionListProps = {
+    /** Array of sections with an icon, title and a description */
+    holdMenuSections: HoldMenuSection[];
+};
+
+function HoldMenuSectionList({holdMenuSections}: HoldMenuSelectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const holdMenuSections = [
-        {
-            icon: Illustrations.Hourglass,
-            titleTranslationKey: 'iou.whatIsHoldTitle',
-            descriptionTranslationKey: 'iou.whatIsHoldExplain',
-        },
-        {
-            icon: Illustrations.CommentBubbles,
-            titleTranslationKey: 'iou.holdIsTemporaryTitle',
-            descriptionTranslationKey: 'iou.holdIsTemporaryExplain',
-        },
-        {
-            icon: Illustrations.TrashCan,
-            titleTranslationKey: 'iou.deleteHoldTitle',
-            descriptionTranslationKey: 'iou.deleteHoldExplain',
-        },
-    ];
-
     return (
         <>
-            {_.map(holdMenuSections, (section) => (
+            {holdMenuSections.map((section) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Icon
                         width={variables.holdMenuIconSize}
@@ -55,5 +54,7 @@ function HoldMenuSectionList() {
 }
 
 HoldMenuSectionList.displayName = 'HoldMenuSectionList';
+
+export type {HoldMenuSection};
 
 export default HoldMenuSectionList;
