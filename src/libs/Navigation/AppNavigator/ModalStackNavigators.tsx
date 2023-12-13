@@ -28,10 +28,10 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
+import {ThemeStyles} from '@styles/styles';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
-import { ThemeStyles } from '@styles/styles';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 

@@ -4,11 +4,11 @@ import _ from 'underscore';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {qrShareDefaultProps, qrSharePropTypes} from './propTypes';
 
 function QRShare({innerRef, url, title, subtitle, logo, logoRatio, logoMarginRatio}) {

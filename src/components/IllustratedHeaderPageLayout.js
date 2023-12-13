@@ -3,7 +3,6 @@ import React from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
-import CONST from '@src/CONST';
 import HeaderPageLayout from './HeaderPageLayout';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import Lottie from './Lottie';

@@ -11,8 +11,6 @@ const isAtLeastOneInState = (state: State, screenName: string): boolean => !!sta
 /**
  * Adds report route without any specific reportID to the state.
  * The report screen will self set proper reportID param based on the helper function findLastAccessedReport (look at ReportScreenWrapper for more info)
- *
- * @param {Object} state - react-navigation state
  */
 const addCentralPaneNavigatorRoute = (state: State) => {
     const centralPaneNavigatorRoute = {

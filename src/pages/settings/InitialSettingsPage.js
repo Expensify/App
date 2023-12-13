@@ -301,7 +301,8 @@ function InitialSettingsPage(props) {
                                     onImageRemoved={PersonalDetails.deleteAvatar}
                                     anchorPosition={styles.createAccountMenuPositionProfile(props.windowWidth)}
                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    size={CONST.AVATAR_SIZE.XLARGE}
+                                    avatarStyle={styles.avatarXLarge}
                                     pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
                                     errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
                                     errorRowStyles={[styles.mt6]}
