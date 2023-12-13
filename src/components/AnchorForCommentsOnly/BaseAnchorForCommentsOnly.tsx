@@ -57,14 +57,14 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            role={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ROLE.LINK}
             accessibilityLabel={href}
         >
             <Tooltip text={href}>
                 <Text
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
-                    role={CONST.ACCESSIBILITY_ROLE.LINK}
+                    role={CONST.ROLE.LINK}
                     hrefAttrs={{
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,

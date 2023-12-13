@@ -35,14 +35,14 @@ export default PropTypes.shape({
     nextReceiver: PropTypes.string,
 
     /** An array of buttons to be displayed next to the next step */
-    buttons: PropTypes.arrayOf(
+    buttons: PropTypes.objectOf(
         PropTypes.shape({
             text: PropTypes.string,
             tooltip: PropTypes.string,
             disabled: PropTypes.bool,
             hidden: PropTypes.bool,
             // eslint-disable-next-line react/forbid-prop-types
-            data: PropTypes.array,
+            data: PropTypes.object,
         }),
     ),
 });
