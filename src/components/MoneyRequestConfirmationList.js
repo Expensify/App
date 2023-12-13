@@ -349,6 +349,9 @@ function MoneyRequestConfirmationList(props) {
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
+    const defaulTaxKey = props.policyTaxRates.defaultExternalID;
+    const defaultTaxName = props.policyTaxRates.taxes[defaulTaxKey].name;
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
@@ -737,7 +740,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={props.transactionsDraft.taxRate || `${props.policyTaxRates.defaultExternalID} (${props.policyTaxRates.defaultValue}) * Default`}
+                            title={props.transactionsDraft.taxRate || defaultTaxName}
                             description="Tax rate"
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
