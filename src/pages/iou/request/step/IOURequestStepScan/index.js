@@ -144,7 +144,7 @@ function IOURequestStepScan({
 
         // Store the receipt on the transaction object in Onyx
         const source = URL.createObjectURL(file);
-        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
+        IOU.setMoneyRequestReceipt(transactionID, source, file.name, action !== CONST.IOU.ACTION.EDIT);
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateScanAndNavigate(file, source);
@@ -162,7 +162,7 @@ function IOURequestStepScan({
         const filename = `receipt_${Date.now()}.png`;
         const imageFile = FileUtils.base64ToFile(imageBase64, filename);
         const fileSource = URL.createObjectURL(imageFile);
-        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, imageFile.name);
+        IOU.setMoneyRequestReceipt(transactionID, fileSource, imageFile.name);
 
         if (backTo) {
             Navigation.goBack(backTo);

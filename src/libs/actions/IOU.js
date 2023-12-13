@@ -253,7 +253,7 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID, partici
  * @param {String} filename
  * @param {Boolean} isDraft
  */
-function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename, isDraft) {
+function setMoneyRequestReceipt(transactionID, source, filename, isDraft) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         receipt: {source},
         filename,
@@ -3190,14 +3190,6 @@ function setMoneyRequestParticipants(participants, isSplitRequest) {
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
-/**
- * @param {String} receiptPath
- * @param {String} receiptFilename
- */
-function setMoneyRequestReceipt(receiptPath, receiptFilename) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
-}
-
 function setUpDistanceTransaction() {
     const transactionID = NumberUtils.rand64();
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -3301,7 +3293,7 @@ export {
     setMoneyRequestDescription_temporaryForRefactor,
     setMoneyRequestMerchant_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
-    setMoneyRequestReceipt_temporaryForRefactor,
+    setMoneyRequestReceipt,
     setMoneyRequestTag_temporaryForRefactor,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -3312,7 +3304,6 @@ export {
     setMoneyRequestId,
     setMoneyRequestMerchant,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
     setMoneyRequestTag,
     setUpDistanceTransaction,
     navigateToNextPage,
