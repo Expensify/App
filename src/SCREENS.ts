@@ -129,6 +129,8 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
+        TAX_AMOUNT: 'Money_Request_Tax_Amount',
+        TAX_RATE: 'Money_Request_Tax_Rate',
         PARTICIPANTS: 'Money_Request_Participants',
         CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',

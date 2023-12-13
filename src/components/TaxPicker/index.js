@@ -4,13 +4,14 @@ import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
 function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 

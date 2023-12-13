@@ -43,8 +43,8 @@ const propTypes = {
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
 
-     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-     iou: iouPropTypes,
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
