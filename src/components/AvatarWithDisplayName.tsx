@@ -111,7 +111,7 @@ function AvatarWithDisplayName({
                     <PressableWithoutFeedback
                         onPress={showActorDetails}
                         accessibilityLabel={title}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                     >
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
@@ -166,7 +166,7 @@ function AvatarWithDisplayName({
             onPress={() => ReportUtils.navigateToDetailsPage(report)}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
         >
             {headerView}
         </PressableWithoutFeedback>
