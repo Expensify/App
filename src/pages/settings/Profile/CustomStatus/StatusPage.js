@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButtonDropdown';
 import FormProvider from '@components/Form/FormProvider';
@@ -86,7 +86,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
             });
 
             User.clearDraftCustomStatus();
-            navigateBackToPreviousScreen();
+            InteractionManager.runAfterInteractions(() => {
+                navigateBackToPreviousScreen();
+            });
         },
         [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, navigateBackToPreviousScreen],
     );
