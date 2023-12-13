@@ -4,9 +4,9 @@ import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTimin
 import Logo from '@assets/images/new-expensify-dark.svg';
 import BootSplash from '@libs/BootSplash';
 import useThemeStyles from '@styles/useThemeStyles';
-import type SplashScreenHiderProps from './types';
+import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types';
 
-function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps) {
+function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashScreenHiderReturnType {
     const styles = useThemeStyles();
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;

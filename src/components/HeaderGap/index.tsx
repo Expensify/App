@@ -1,8 +1,7 @@
-import {ReactNode} from 'react';
-import HeaderGapProps from './types';
+import type {HeaderGapProps, HeaderGapReturnType} from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function HeaderGap({styles}: HeaderGapProps): ReactNode {
+function HeaderGap({styles}: HeaderGapProps): HeaderGapReturnType {
     return null;
 }
 

@@ -1,7 +1,10 @@
+import {ReactNode} from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 
 type HeaderGapProps = {
     styles?: StyleProp<ViewStyle>;
 };
 
-export default HeaderGapProps;
+type HeaderGapReturnType = ReactNode;
+
+export type {HeaderGapProps, HeaderGapReturnType};
