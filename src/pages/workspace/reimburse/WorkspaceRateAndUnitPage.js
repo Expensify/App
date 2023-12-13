@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -37,7 +37,7 @@ const defaultProps = {
 };
 
 function WorkspaceRateAndUnitPage(props) {
-    const fetchData = useCallback(() => {
+    useEffect(() => {
         if (lodashGet(props, 'policy.customUnits', []).length !== 0) {
             return;
         }
@@ -46,17 +46,13 @@ function WorkspaceRateAndUnitPage(props) {
         Policy.openWorkspaceReimburseView(props.policy.id);
     }, [props]);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    const getUnitItems = () => [
+    const unitItems = [
         {label: props.translate('common.kilometers'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
         {label: props.translate('common.miles'), value: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
     ];
 
     const saveUnitAndRate = (unit, rate) => {
-        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), (u) => u.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+        const distanceCustomUnit = _.find(lodashGet(props, 'policy.customUnits', {}), (customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return;
         }
@@ -148,7 +144,7 @@ function WorkspaceRateAndUnitPage(props) {
                                 InputComponent={Picker}
                                 inputID="unit"
                                 label={props.translate('workspace.reimburse.trackDistanceUnit')}
-                                items={getUnitItems()}
+                                items={unitItems}
                                 defaultValue={lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)}
                             />
                         </View>
