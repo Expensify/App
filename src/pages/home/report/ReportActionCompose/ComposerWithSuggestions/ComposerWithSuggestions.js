@@ -76,6 +76,7 @@ function ComposerWithSuggestions({
     // Focus
     onFocus,
     onBlur,
+    onValueChange,
     // Composer
     isComposerFullSize,
     isMenuVisible,
@@ -514,6 +515,10 @@ function ComposerWithSuggestions({
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
+
+    useEffect(() => {
+        onValueChange(value);
+    }, [onValueChange, value]);
 
     return (
         <>
