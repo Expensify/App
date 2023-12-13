@@ -46,6 +46,12 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Text for the button */
     buttonText: string;
+
+    /** Whether to use a smaller submit button size */
+    useSmallerSubmitButtonSize?: boolean;
+
+    /** Style for the error message for submit button */
+    errorMessageStyle?: StyleProp<ViewStyle>;
 };
 
 function FormAlertWithSubmitButton({
@@ -63,6 +69,8 @@ function FormAlertWithSubmitButton({
     buttonText,
     isAlertVisible,
     onSubmit,
+    useSmallerSubmitButtonSize = false,
+    errorMessageStyle,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
@@ -74,6 +82,7 @@ function FormAlertWithSubmitButton({
             isMessageHtml={isMessageHtml}
             message={message}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
+            errorMessageStyle={errorMessageStyle}
         >
             {(isOffline: boolean) => (
                 <View>
@@ -84,6 +93,7 @@ function FormAlertWithSubmitButton({
                             text={buttonText}
                             style={style}
                             danger={isSubmitActionDangerous}
+                            medium={useSmallerSubmitButtonSize}
                         />
                     ) : (
                         <Button
@@ -95,6 +105,7 @@ function FormAlertWithSubmitButton({
                             isDisabled={isDisabled}
                             isLoading={isLoading}
                             danger={isSubmitActionDangerous}
+                            medium={props.useSmallerSubmitButtonSize}
                         />
                     )}
                     {footerContent}
