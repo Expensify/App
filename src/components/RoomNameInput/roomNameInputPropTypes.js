@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback to execute when the text input is modified correctly */
