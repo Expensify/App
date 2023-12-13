@@ -537,11 +537,12 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
+    // Policy won't be set for P2P cases for which we don't need to compute violations
     if (!policy || !policy.id) {
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTags, policyTags, policy.requiresCategory, policyCategories);
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
 
     if (violationsOnyxData) {
         optimisticData.push({

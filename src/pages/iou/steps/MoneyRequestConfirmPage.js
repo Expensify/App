@@ -50,7 +50,7 @@ const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
-    /** The policy of the current report */
+    /** The policy of the current request */
     policy: policyPropTypes,
 
     policyTags: tagPropTypes,
