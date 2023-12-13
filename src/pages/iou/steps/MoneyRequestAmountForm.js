@@ -119,7 +119,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     }, []);
 
     useEffect(() => {
-        if (!currency || !_.isNumber(amount)) {
+        if (!currency || !_.isNumber(amount) || amount === 0) {
             return;
         }
         initializeAmount(amount);
