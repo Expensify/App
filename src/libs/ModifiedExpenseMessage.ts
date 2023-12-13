@@ -7,6 +7,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
+import {ExpenseOriginalMessage} from './ReportUtils';
 
 let allPolicyTags: Record<string, PolicyTags | null> = {};
 Onyx.connect({
@@ -96,7 +97,7 @@ function getForReportAction(reportAction: ReportAction): string {
     if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction.originalMessage;
+    const reportActionOriginalMessage = reportAction.originalMessage as ExpenseOriginalMessage | undefined;
     const policyID = ReportUtils.getReportPolicyID(reportAction.reportID) ?? '';
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');

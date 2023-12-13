@@ -1,6 +1,6 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
-import * as ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
 import focusApp from './focusApp';

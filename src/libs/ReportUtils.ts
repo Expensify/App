@@ -4340,4 +4340,4 @@ export {
     shouldAutoFocusOnKeyPress,
 };
 
-export type {OptionData, OptimisticChatReport};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};
