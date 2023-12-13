@@ -58,4 +58,5 @@ function Search({onPress, placeholder, tooltip, style}: SearchProps) {
 
 Search.displayName = 'Search';
 
+export type {SearchProps};
 export default Search;
