@@ -88,7 +88,8 @@ const ViolationsUtils = {
      * Necessary because `translate` throws a type error if you attempt to pass it a template strings, when the
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
-     */ getViolationTranslation(
+     */
+    getViolationTranslation(
         violation: TransactionViolation,
         translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     ): string {
