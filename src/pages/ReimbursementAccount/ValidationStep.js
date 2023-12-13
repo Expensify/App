@@ -164,7 +164,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -173,7 +173,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -182,7 +182,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (

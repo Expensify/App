@@ -98,7 +98,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                     e.preventDefault();
                 }}
                 accessibilityLabel={translate('emojiReactions.addReactionTooltip')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
