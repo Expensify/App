@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
@@ -15,8 +16,10 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -39,9 +42,13 @@ const propTypes = {
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: iouPropTypes,
 };
 
 const defaultProps = {
+    iou: iouDefaultProps,
     amount: 0,
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
@@ -63,12 +70,13 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
 };
 
 const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isTaxAmountInvalid = (currentAmount, amount) => amount > 0 && currentAmount > CurrencyUtils.convertToFrontendAmount(amount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
@@ -223,13 +231,18 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
 
+        if (isTaxAmountInvalid(currentAmount, iou.amount)) {
+            setFormError('iou.error.invalidAmount');
+            return;
+        }
+
         // Update display amount string post-edit to ensure consistency with backend amount
         // Reference: https://github.com/Expensify/App/issues/30505
         const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         initializeAmount(backendAmount);
 
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, iou.amount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -335,4 +348,6 @@ const MoneyRequestAmountFormWithRef = React.forwardRef((props, ref) => (
 
 MoneyRequestAmountFormWithRef.displayName = 'MoneyRequestAmountFormWithRef';
 
-export default MoneyRequestAmountFormWithRef;
+export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
+})(MoneyRequestAmountFormWithRef);
