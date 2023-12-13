@@ -1,6 +1,7 @@
 import {ParamListBase} from '@react-navigation/routers';
 import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -28,7 +29,6 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
 
