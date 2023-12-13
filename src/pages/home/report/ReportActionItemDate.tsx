@@ -6,6 +6,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 
 type ReportActionItemDateOnyxProps = {
+    /**
+     * UTC timestamp for when the action was created.
+     * This Onyx prop is hooked to the current date so that relative times can update when necessary
+     * e.g. past midnight.
+     */
     // eslint-disable-next-line react/no-unused-prop-types
     currentDate: OnyxEntry<string>;
 };
