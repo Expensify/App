@@ -28,10 +28,10 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import styles from '@styles/styles';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
+import { ThemeStyles } from '@styles/styles';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -40,7 +40,7 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  *
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
  */
-function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, screenOptions?: StackNavigationOptions): React.ComponentType {
+function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => StackNavigationOptions): React.ComponentType {
     const ModalStackNavigator = createStackNavigator<TStackParams>();
 
     function ModalStack() {
@@ -56,7 +56,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
         );
 
         return (
-            <ModalStackNavigator.Navigator screenOptions={screenOptions ?? defaultSubRouteOptions}>
+            <ModalStackNavigator.Navigator screenOptions={getScreenOptions?.(styles) ?? defaultSubRouteOptions}>
                 {Object.keys(screens as Required<Screens>).map((name) => (
                     <ModalStackNavigator.Screen
                         key={name}
@@ -182,14 +182,14 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
 const AccountSettingsModalStackNavigator = createModalStackNavigator(
     {
         [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.PREFERENCES]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
         [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-        [SCREENS.SETTINGS.PROFILE]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
+        [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
         [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
-        [SCREENS.SETTINGS.WALLET]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+        [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
         [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     },
-    {cardStyle: styles.navigationScreenCardStyle, headerShown: false},
+    (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
 );
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({

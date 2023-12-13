@@ -472,7 +472,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.STATUS]: {
+                            [SCREENS.SETTINGS.PROFILE.ROOT]: {
                                 path: ROUTES.SETTINGS_PROFILE,
                                 exact: true,
                             },
@@ -484,7 +484,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            Settings_Wallet: {
+                            [SCREENS.SETTINGS.WALLET.ROOT]: {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },

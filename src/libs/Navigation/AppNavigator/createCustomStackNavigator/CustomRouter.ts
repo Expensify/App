@@ -59,13 +59,7 @@ const addCentralPaneNavigatorRoute = (state: State) => {
 };
 
 const mapScreenNameToSettingsScreenName: Record<string, string> = {
-    [SCREENS.SETTINGS.DISPLAY_NAME]: SCREENS.SETTINGS.PROFILE,
-    [SCREENS.SETTINGS.CONTACT_METHODS]: SCREENS.SETTINGS.PROFILE,
-    [SCREENS.SETTINGS.CONTACT_METHOD_DETAILS]: SCREENS.SETTINGS.PROFILE,
-    [SCREENS.SETTINGS.SECURITY]: SCREENS.SETTINGS.SECURITY,
-    [SCREENS.SETTINGS.PREFERENCES_LANGUAGE]: SCREENS.SETTINGS.PREFERENCES,
-    [SCREENS.SETTINGS.PREFERENCES_THEME]: SCREENS.SETTINGS.PREFERENCES,
-    [SCREENS.SETTINGS.PREFERENCES_PRIORITY_MODE]: SCREENS.SETTINGS.PREFERENCES,
+    // [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: SCREENS.SETTINGS.PROFILE,
 };
 
 const handleSettingsOpened = (state: State) => {
@@ -89,7 +83,7 @@ const handleSettingsOpened = (state: State) => {
         return;
     }
 
-    const settingsHomeRouteName = mapScreenNameToSettingsScreenName[settingsScreenName] || SCREENS.SETTINGS.PROFILE;
+    const settingsHomeRouteName = mapScreenNameToSettingsScreenName[settingsScreenName] || SCREENS.SETTINGS.PROFILE.ROOT;
 
     const fullScreenRoute = {
         name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,

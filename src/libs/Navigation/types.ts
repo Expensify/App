@@ -360,13 +360,13 @@ type RightModalNavigatorParamList = {
 };
 
 type SettingsCentralPaneNavigatorParamList = {
-    Settings_Share_Code: undefined;
+    [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
-    [SCREENS.SETTINGS.PROFILE]: undefined;
-    [SCREENS.SETTINGS.PREFERENCES]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
-    Settings_Wallet: undefined;
-    Settings_About: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.ABOUT]: undefined;
 };
 
 type FullScreenNavigatorParamList = {
