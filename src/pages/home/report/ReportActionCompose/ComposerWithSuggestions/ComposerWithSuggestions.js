@@ -10,6 +10,7 @@ import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -76,6 +77,7 @@ function ComposerWithSuggestions({
     // Focus
     onFocus,
     onBlur,
+    onValueChange,
     // Composer
     isComposerFullSize,
     isMenuVisible,
@@ -515,6 +517,10 @@ function ComposerWithSuggestions({
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
+    useEffect(() => {
+        onValueChange(value);
+    }, [onValueChange, value]);
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -556,6 +562,7 @@ function ComposerWithSuggestions({
                         setComposerHeight(composerLayoutHeight);
                     }}
                     onScroll={hideSuggestionMenu}
+                    shouldContainScroll={Browser.isMobileSafari()}
                 />
             </View>
 
