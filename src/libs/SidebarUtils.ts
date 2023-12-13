@@ -307,7 +307,7 @@ function getOptionData(
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 
-    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(personalDetail?.login ?? '');
@@ -354,8 +354,12 @@ function getOptionData(
         }
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
+    console.log({result, lastMessageText})
+
+
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || ReportUtils.isExpenseReport(report)) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
+        console.log(lastAction?.actionName, lastActorDisplayName, lastMessageText);
 
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
@@ -385,6 +389,7 @@ function getOptionData(
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            console.log('hello');
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');

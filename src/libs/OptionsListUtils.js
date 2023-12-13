@@ -21,6 +21,7 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
+import {getDisplayNameForParticipant} from "./ReportUtils";
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -383,6 +384,8 @@ function getAllReportErrors(report, reportActions) {
 function getLastMessageTextForReport(report) {
     const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
+
+    console.log({lastReportAction});
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
