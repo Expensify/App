@@ -640,6 +640,18 @@ function getEnabledCategoriesCount(options) {
 }
 
 /**
+ * Calculates count of all tax enabled options
+ *
+ * @param {Object[]} options - an initial strings array
+ * @param {Boolean} options[].isDisabled - a flag to enable/disable option in a list
+ * @param {String} options[].name - a name of an option
+ * @returns {Number}
+ */
+function getEnabledTaxRateCount(options) {
+    return _.filter(options, (option) => !option.isDisabled).length;
+}
+
+/**
  * Verifies that there is at least one enabled option
  *
  * @param {Object[]} options - an initial strings array
@@ -1057,39 +1069,96 @@ function sortTaxRates(taxRates) {
 
 function getTaxRatesOptions(taxRates) {
     return _.map(taxRates, (taxRate) => ({
-        text: `${taxRate.name} (${taxRate.value})`,
+        text: taxRate.name,
         keyForList: taxRate.name,
         searchText: taxRate.name,
         tooltipText: taxRate.name,
-        isDisabled: false,
+        isDisabled: taxRate.isDisabled,
     }));
 }
 
-function getTaxRatesSection(policyTaxRates, selectedOptions) {
+function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     const policyRatesSections = [];
 
     const sortedTaxRates = sortTaxRates(policyTaxRates.taxes);
-    const numberOfTaxRates = _.size(sortedTaxRates);
-    const indexOffset = 0;
+    const enabledTaxRates = _.filter(sortedTaxRates, (taxRate) => !taxRate.isDisabled);
+    const numberOfTaxRates = _.size(enabledTaxRates);
 
+    let indexOffset = 0;
+
+    // If all tax rates are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
+        const selectedTaxRateOptions = _.map(selectedOptions, (option) => ({
+            name: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            isDisabled: false,
+        }));
         policyRatesSections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getCategoryOptionTree(getTaxRatesOptions),
+            data: getTaxRatesOptions(selectedTaxRateOptions),
         });
 
         return policyRatesSections;
     }
 
+    if (!_.isEmpty(searchInputValue)) {
+        const searchTaxRates = _.filter(enabledTaxRates, (taxRate) => taxRate.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        policyRatesSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(searchTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+        policyRatesSections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTaxRatesOptions(enabledTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredTaxRates = _.filter(enabledTaxRates, (taxRate) => !_.includes(selectedOptionNames, taxRate.name));
+
+    if (!_.isEmpty(selectedOptions)) {
+        const selectedTaxRatesOptions = _.map(selectedOptions, (option) => {
+            const taxRateObject = _.find(policyTaxRates.taxes, (taxRate) => taxRate.name === option.name);
+            return {
+                name: option.name,
+                enabled: Boolean(taxRateObject && !taxRateObject.isDisabled),
+            };
+        });
+
+        policyRatesSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(selectedTaxRatesOptions),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
     policyRatesSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: '',
         shouldShow: true,
         indexOffset,
-        data: getTaxRatesOptions(sortedTaxRates),
+        data: getTaxRatesOptions(filteredTaxRates),
     });
 
     return policyRatesSections;
@@ -1829,6 +1898,7 @@ export {
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
+    getEnabledTaxRateCount,
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,
