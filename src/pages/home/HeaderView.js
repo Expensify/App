@@ -206,7 +206,7 @@ function HeaderView(props) {
                                 style={[styles.LHNToggle]}
                                 accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                 accessibilityLabel={translate('common.back')}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                             >
                                 <Tooltip
                                     text={translate('common.back')}
@@ -224,7 +224,7 @@ function HeaderView(props) {
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                 disabled={shouldDisableDetailPage}
                                 accessibilityLabel={title}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                             >
                                 {shouldShowSubscript ? (
                                     <SubscriptAvatar
