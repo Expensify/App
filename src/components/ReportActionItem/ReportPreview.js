@@ -1,10 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-<<<<<<< HEAD
 import React, {useEffect, useMemo, useState} from 'react';
-=======
-import React, {useMemo} from 'react';
->>>>>>> main
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
