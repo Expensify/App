@@ -117,40 +117,45 @@ let hasInitialReportActions = false;
 // to simplify the logic and prevent the need to pass down the reportActions as an array.
 
 type MappedReportAction = {
-    id: string;
+    reportActionID: string;
     errors: OnyxCommon.Errors;
     message: Message[];
 };
 
 type MappedReportActions = Record<string, MappedReportAction>;
 
-const reportActionsSelector = (reportActions?: MappedReportActions): Record<string, MappedReportAction[]> | undefined => {
-    if (!reportActions) {
+const reportActionsSelector = (reportActionsCollection?: Record<string, MappedReportActions>): Record<string, MappedReportAction[]> | undefined => {
+    if (!reportActionsCollection) {
         return undefined;
     }
 
-    return Object.values(reportActions).reduce((acc, reportAction) => {
-        const modifiedAction: MappedReportAction = {
-            id: reportAction.id,
-            errors: reportAction.errors || [],
-            message: [
-                {
-                    moderationDecision: reportAction.message?.[0]?.moderationDecision,
-                    type: reportAction.message?.[0]?.type,
-                    text: reportAction.message?.[0]?.text,
-                },
-            ],
-        };
-
-        // If the key already exists, append to the array, otherwise create a new array
-        if (acc[reportAction.id]) {
-            acc[reportAction.id].push(modifiedAction);
-        } else {
-            acc[reportAction.id] = [modifiedAction];
+    return Object.values(reportActionsCollection).reduce<Record<string, MappedReportAction[]>>((acc, reportActions) => {
+        if (!reportActions) {
+            return acc;
         }
+        Object.entries(reportActions).forEach(([reportActionID, reportAction]) => {
+            const modifiedAction: MappedReportAction = {
+                reportActionID,
+                errors: reportAction.errors || [],
+                message: [
+                    {
+                        moderationDecision: reportAction.message?.[0]?.moderationDecision,
+                        type: reportAction.message?.[0]?.type,
+                        text: reportAction.message?.[0]?.text,
+                    },
+                ],
+            };
+
+            // If the key already exists, append to the array, otherwise create a new array
+            if (acc[reportActionID]) {
+                acc[reportActionID].push(modifiedAction);
+            } else {
+                acc[reportActionID] = [modifiedAction];
+            }
+        });
 
         return acc;
-    }, {} as Record<string, MappedReportAction[]>);
+    }, {});
 };
 
 /**
@@ -165,7 +170,7 @@ function getOrderedReportIDs(
     allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: TransactionViolations,
 ): string[] {
-    const mappedReportActions = reportActionsSelector(allReportActions as unknown as MappedReportActions);
+    const mappedReportActions = allReportActions ? reportActionsSelector(allReportActions as unknown as Record<string, MappedReportActions>) : {};
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
