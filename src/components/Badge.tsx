@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -34,19 +34,20 @@ type BadgeProps = {
 
 function Badge({success = false, error = false, pressable = false, text, environment = CONST.ENVIRONMENT.DEV, badgeStyles, textStyles, onPress = () => {}}: BadgeProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const textColorStyles = success || error ? styles.textWhite : undefined;
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
-        [styles.badge, styles.ml2, success, error, environment, badgeStyles],
+        [styles.badge, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
     );
 
     return (
         <Wrapper
             style={pressable ? wrapperStyles : wrapperStyles({focused: false, hovered: false, isDisabled: false, isScreenReaderActive: false, pressed: false})}
             onPress={onPress}
-            role={pressable ? CONST.ACCESSIBILITY_ROLE.BUTTON : CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={pressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
             accessibilityLabel={pressable ? text : undefined}
             aria-label={!pressable ? text : undefined}
             accessible={false}

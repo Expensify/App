@@ -28,12 +28,13 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -76,9 +77,6 @@ const propTypes = {
 
         /** Currency of outstanding amount of this transaction */
         currency: PropTypes.string,
-
-        /** Does the iouReport have an outstanding IOU? */
-        hasOutstandingIOU: PropTypes.bool,
     }),
 
     /** True if this is this IOU is a split instead of a 1:1 request */
@@ -139,6 +137,7 @@ const defaultProps = {
 function MoneyRequestPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
@@ -152,8 +151,9 @@ function MoneyRequestPreview(props) {
 
     const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+    const sortedParticipantAvatars = _.sortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && props.isBillSplit) {
-        participantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
+        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
     }
 
     // Pay button should only be visible to the manager of the report.
@@ -170,8 +170,7 @@ function MoneyRequestPreview(props) {
     const isDeleted = lodashGet(props.action, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     // Show the merchant for IOUs and expenses only if they are custom or not related to scanning smartscan
-    const shouldShowMerchant =
-        !_.isEmpty(requestMerchant) && !props.isBillSplit && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const shouldShowMerchant = !_.isEmpty(requestMerchant) && requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
@@ -216,10 +215,12 @@ function MoneyRequestPreview(props) {
         }
 
         let message = props.translate('iou.cash');
-        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+        if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${props.translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
+        } else if (props.iouReport.isCancelledIOU) {
+            message += ` • ${props.translate('iou.canceled')}`;
         }
         return message;
     };
@@ -231,6 +232,10 @@ function MoneyRequestPreview(props) {
 
         if (isScanning) {
             return props.translate('iou.receiptScanning');
+        }
+
+        if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
+            return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
@@ -280,9 +285,9 @@ function MoneyRequestPreview(props) {
                         <View style={styles.moneyRequestPreviewBoxText}>
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh20, styles.mb1]}>
-                                    {getPreviewHeaderText() + (isSettled ? ` • ${getSettledMessage()}` : '')}
+                                    {getPreviewHeaderText() + (isSettled && !props.iouReport.isCancelledIOU ? ` • ${getSettledMessage()}` : '')}
                                 </Text>
-                                {hasFieldErrors && (
+                                {!isSettled && hasFieldErrors && (
                                     <Icon
                                         src={Expensicons.DotIndicator}
                                         fill={theme.danger}
@@ -294,7 +299,8 @@ function MoneyRequestPreview(props) {
                                     <Text
                                         style={[
                                             styles.textHeadline,
-                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, participantAvatars.length),
+                                            props.isBillSplit &&
+                                                StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
@@ -313,7 +319,7 @@ function MoneyRequestPreview(props) {
                                 {props.isBillSplit && (
                                     <View style={styles.moneyRequestPreviewBoxAvatar}>
                                         <MultipleAvatars
-                                            icons={participantAvatars}
+                                            icons={sortedParticipantAvatars}
                                             shouldStackHorizontally
                                             size="small"
                                             isHovered={props.isHovered}
@@ -322,7 +328,7 @@ function MoneyRequestPreview(props) {
                                     </View>
                                 )}
                             </View>
-                            {shouldShowMerchant && (
+                            {shouldShowMerchant && !props.isBillSplit && (
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
                                         {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
@@ -334,7 +340,9 @@ function MoneyRequestPreview(props) {
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
                                     )}
-                                    {shouldShowDescription && <Text style={[styles.colorMuted]}>{description}</Text>}
+                                    {(shouldShowDescription || (shouldShowMerchant && props.isBillSplit)) && (
+                                        <Text style={[styles.colorMuted]}>{shouldShowDescription ? description : requestMerchant}</Text>
+                                    )}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>

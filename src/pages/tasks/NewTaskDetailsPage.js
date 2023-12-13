@@ -94,27 +94,26 @@ function NewTaskDetailsPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
+                        autoCorrect={false}
                     />
                 </View>
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
                         submitOnEnter={!Browser.isMobile()}
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
-                        textAlignVertical="top"
                         defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
-                        inputStyle={[styles.verticalAlignTop]}
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
