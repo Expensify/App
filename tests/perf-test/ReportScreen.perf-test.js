@@ -55,7 +55,6 @@ jest.mock('../../src/hooks/useEnvironment', () =>
 
 jest.mock('../../src/libs/Permissions', () => ({
     canUseLinkPreviews: jest.fn(() => true),
-    canUseViolations: jest.fn(() => false),
 }));
 jest.mock('../../src/hooks/usePermissions.ts');
 
