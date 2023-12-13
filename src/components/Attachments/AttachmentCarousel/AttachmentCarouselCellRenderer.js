@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {PixelRatio, View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Cell Container styles */
