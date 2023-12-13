@@ -22,6 +22,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -39,6 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import assignedCardPropTypes from './Wallet/assignedCardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -287,7 +289,7 @@ function InitialSettingsPage(props) {
                             disabled={isExecuting}
                             onPress={singleExecution(openProfileSettings)}
                             accessibilityLabel={translate('common.profile')}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <Avatar
@@ -304,7 +306,7 @@ function InitialSettingsPage(props) {
                         disabled={isExecuting}
                         onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
-                        role={CONST.ACCESSIBILITY_ROLE.LINK}
+                        role={CONST.ROLE.LINK}
                     >
                         <Tooltip text={translate('common.profile')}>
                             <Text
@@ -388,6 +390,9 @@ export default compose(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
         },
     }),
     withNetwork(),

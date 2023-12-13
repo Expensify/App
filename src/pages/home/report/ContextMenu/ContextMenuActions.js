@@ -20,7 +20,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TaskUtils from '@libs/TaskUtils';
 import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
-import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -266,7 +265,7 @@ export default [
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const messageHtml = isTaskAction ? Task.getTaskReportActionMessage(reportAction) : lodashGet(message, 'html', '');
+            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction.actionName) : lodashGet(message, 'html', '');
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -284,8 +283,8 @@ export default [
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
-                } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
-                    const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
+                } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
+                    const logMessage = ReportActionsUtils.getMemberChangeMessagePlainText(reportAction);
                     Clipboard.setString(logMessage);
                 } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
                     const submittedMessage = _.reduce(reportAction.message, (acc, curr) => `${acc}${curr.text}`, '');

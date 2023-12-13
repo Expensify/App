@@ -85,7 +85,7 @@ function TaskPreview(props) {
     const isTaskCompleted = !_.isEmpty(props.taskReport)
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
-    const taskTitle = TaskUtils.getTaskTitle(props.taskReportID, props.action.childReportName);
+    const taskTitle = _.escape(TaskUtils.getTaskTitle(props.taskReportID, props.action.childReportName));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const assigneeLogin = lodashGet(personalDetails, [taskAssigneeAccountID, 'login'], '');
     const assigneeDisplayName = lodashGet(personalDetails, [taskAssigneeAccountID, 'displayName'], '');
@@ -108,7 +108,7 @@ function TaskPreview(props) {
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
