@@ -9,7 +9,7 @@ import '../wdyr';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
-import CustomStatusBarContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarContextProvider';
+import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
@@ -68,7 +68,7 @@ function App() {
                     ReportAttachmentsProvider,
                     PickerStateProvider,
                     EnvironmentProvider,
-                    CustomStatusBarContextProvider,
+                    CustomStatusBarAndBackgroundContextProvider,
                 ]}
             >
                 <CustomStatusBarAndBackground />
