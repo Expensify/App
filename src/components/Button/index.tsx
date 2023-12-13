@@ -106,6 +106,9 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback?: boolean;
 
+    /** Should disable the long press? */
+    isLongPressDisabled?: boolean;
+
     /** Id to use for this button */
     id?: string;
 
@@ -149,6 +152,7 @@ function Button(
         shouldRemoveRightBorderRadius = false,
         shouldRemoveLeftBorderRadius = false,
         shouldEnableHapticFeedback = false,
+        isLongPressDisabled = false,
 
         id = '',
         accessibilityLabel = '',
@@ -255,6 +259,9 @@ function Button(
                 return onPress(event);
             }}
             onLongPress={(event) => {
+                if (isLongPressDisabled) {
+                    return;
+                }
                 if (shouldEnableHapticFeedback) {
                     HapticFeedback.longPress();
                 }
@@ -293,7 +300,7 @@ function Button(
             ]}
             id={id}
             accessibilityLabel={accessibilityLabel}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
             hoverDimmingValue={1}
         >
             {renderContent()}

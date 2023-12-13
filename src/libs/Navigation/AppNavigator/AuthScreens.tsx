@@ -147,7 +147,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
-        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession() || isLoggingInAsNewUser;
+        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         if (isLoggingInAsNewUser && isTransitioning) {

@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
+import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -106,6 +107,7 @@ const MenuItem = React.forwardRef((props, ref) => {
             props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
+            props.titleTextStyle,
         ],
         props.titleStyle,
     );
@@ -180,6 +182,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
                     style={({pressed}) => [
+                        props.containerStyle,
+                        props.errorText ? styles.pb5 : {},
                         style,
                         !props.interactive && styles.cursorDefault,
                         StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
@@ -189,7 +193,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     ]}
                     disabled={props.disabled}
                     ref={ref}
-                    role={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+                    role={CONST.ROLE.MENUITEM}
                     accessibilityLabel={props.title ? props.title.toString() : ''}
                 >
                     {({pressed}) => (
@@ -385,6 +389,14 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
+                            {Boolean(props.errorText) && (
+                                <FormHelpMessage
+                                    isError
+                                    shouldShowRedDotIndicator={false}
+                                    message={props.errorText}
+                                    style={styles.menuItemError}
+                                />
+                            )}
                         </>
                     )}
                 </PressableWithSecondaryInteraction>

@@ -237,7 +237,7 @@ function RoomMembersPage(props) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.report) || (ReportUtils.isPublicRoom(props.report) && !isPolicyMember)}
+                shouldShow={_.isEmpty(props.report) || !isPolicyMember}
                 subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
             >

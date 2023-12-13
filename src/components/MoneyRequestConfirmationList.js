@@ -448,7 +448,10 @@ function MoneyRequestConfirmationList(props) {
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
-
+            if (props.iouCategory && props.iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+                setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
             if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
@@ -483,6 +486,7 @@ function MoneyRequestConfirmationList(props) {
             props.isEditingSplitBill,
             props.iouType,
             props.isDistanceRequest,
+            props.iouCategory,
             isDistanceRequestWithoutRoute,
             props.iouCurrencyCode,
             props.iouAmount,

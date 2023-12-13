@@ -35,7 +35,7 @@ function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, 
             hoverDimmingValue={1}
             pressDimmingValue={1}
             accessibilityLabel={accessibilityLabel}
-            role={CONST.ACCESSIBILITY_ROLE.RADIO}
+            role={CONST.ROLE.RADIO}
         >
             <View style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}>
                 {isChecked && (

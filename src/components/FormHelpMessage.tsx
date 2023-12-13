@@ -20,9 +20,12 @@ type FormHelpMessageProps = {
 
     /** Container style props */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether to show dot indicator */
+    shouldShowRedDotIndicator?: boolean;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style}: FormHelpMessageProps) {
+function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     if (isEmpty(message) && isEmpty(children)) {
@@ -33,13 +36,15 @@ function FormHelpMessage({message = '', children, isError = true, style}: FormHe
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
-            {isError && (
+            {isError && shouldShowRedDotIndicator && (
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={theme.danger}
                 />
             )}
-            <View style={[styles.flex1, isError && styles.ml2]}>{children ?? <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}</View>
+            <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
+                {children ?? <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{translatedMessage}</Text>}
+            </View>
         </View>
     );
 }

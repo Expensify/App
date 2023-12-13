@@ -86,7 +86,7 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback
                                     onPress={onClose}
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />
