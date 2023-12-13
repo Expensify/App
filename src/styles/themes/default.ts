@@ -34,7 +34,7 @@ const darkTheme = {
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
     signInPage: colors.green800,
-    dangerSection: colors.tangerine800,
+    darkSupportingText: colors.productDark800,
 
     // Additional keys
     overlay: colors.productDark400,
@@ -125,6 +125,10 @@ const darkTheme = {
         },
         [SCREENS.SETTINGS.ROOT]: {
             backgroundColor: colors.productDark200,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.RIGHT_MODAL.REFERRAL]: {
+            backgroundColor: colors.pink800,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },
