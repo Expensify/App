@@ -365,20 +365,11 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-        },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,
@@ -388,9 +379,6 @@ export default compose(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
         },
     }),
     withNetwork(),
