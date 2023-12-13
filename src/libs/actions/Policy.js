@@ -171,6 +171,7 @@ function deleteWorkspace(policyID, reports, policyName) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                avatar: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: null,
             },
