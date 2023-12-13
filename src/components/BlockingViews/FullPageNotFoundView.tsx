@@ -49,7 +49,7 @@ function FullPageNotFoundView({
     onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     shouldShowLink = true,
     shouldShowBackButton = true,
-    onLinkPress = () => Navigation.dismissModal,
+    onLinkPress = () => Navigation.dismissModal(),
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -53,8 +53,8 @@ function BlockingView({
     shouldShowLink = false,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
-    onLinkPress = () => Navigation.dismissModal,
-    shouldEmbedLinkWithSubtitle,
+    onLinkPress = () => Navigation.dismissModal(),
+    shouldEmbedLinkWithSubtitle = false,
 }: BlockingViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
