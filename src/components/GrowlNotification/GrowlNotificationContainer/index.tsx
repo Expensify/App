@@ -1,12 +1,12 @@
 import React from 'react';
 import {Animated} from 'react-native';
-import withWindowDimensions from '@components/withWindowDimensions';
-import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import useThemeStyles from '@styles/useThemeStyles';
 import GrowlNotificationContainerProps from './types';
 
-function GrowlNotificationContainer({children, translateY, isSmallScreenWidth}: GrowlNotificationContainerProps & WindowDimensionsProps) {
+function GrowlNotificationContainer({children, translateY}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <Animated.View
@@ -19,4 +19,4 @@ function GrowlNotificationContainer({children, translateY, isSmallScreenWidth}: 
 
 GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';
 
-export default withWindowDimensions(GrowlNotificationContainer);
+export default GrowlNotificationContainer;
