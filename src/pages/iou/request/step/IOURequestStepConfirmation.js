@@ -350,7 +350,6 @@ function IOURequestStepConfirmation({
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction.merchant}
                         iouCreated={transaction.created}
-                        isScanRequest={requestType === CONST.IOU.REQUEST_TYPE.SCAN}
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                         shouldShowSmartScanFields={_.isEmpty(lodashGet(transaction, 'receipt.source', ''))}
                     />

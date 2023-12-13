@@ -174,13 +174,11 @@ function MoneyRequestPreview(props) {
     const shouldShowDescription = !_.isEmpty(description) && !shouldShowMerchant && !isScanning;
     const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
 
-    let merchantOrDescription = '';
+    let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
         merchantOrDescription = description || '';
     } else if (hasPendingWaypoints) {
         merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
-    } else {
-        merchantOrDescription = requestMerchant;
     }
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
