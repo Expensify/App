@@ -739,7 +739,7 @@ function getMoneyRequestInformation(
               },
           }
         : undefined;
-    
+
     // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
     // so the employee has to submit to tits manager manually.
     const hasOutstandingChildRequest = isPolicyExpenseChat && isFromPaidPolicy && needsToBeManuallySubmitted;

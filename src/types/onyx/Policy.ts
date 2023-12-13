@@ -75,7 +75,7 @@ type Policy = {
     autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
     /** Whether the scheduled submit is enabled */
-    isHarvestingEnabled: boolean,
+    isHarvestingEnabled: boolean;
 
     /** The employee list of the policy */
     employeeList?: [];
