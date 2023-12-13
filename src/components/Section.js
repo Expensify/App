@@ -7,6 +7,11 @@ import MenuItemList from './MenuItemList';
 import menuItemPropTypes from './menuItemPropTypes';
 import Text from './Text';
 
+const CARD_LAYOUT = {
+    ICON_ON_TOP: 'iconOnTop',
+    ICON_ON_RIGHT: 'iconOnRight',
+};
+
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
     menuItems: PropTypes.arrayOf(PropTypes.shape(menuItemPropTypes)),
@@ -23,7 +28,9 @@ const propTypes = {
     /** Icon component */
     IconComponent: PropTypes.func,
 
-    iconPosition: PropTypes.oneOf(['top', 'right']),
+    /** Card layout that affects icon positioning, margins, sizes. */
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    cardLayout: PropTypes.oneOf(Object.values(CARD_LAYOUT)),
 
     /** Contents to display inside the section */
     children: PropTypes.node,
@@ -63,7 +70,7 @@ const defaultProps = {
     children: null,
     icon: null,
     IconComponent: null,
-    iconPosition: 'right',
+    cardLayout: CARD_LAYOUT.ICON_ON_RIGHT,
     containerStyles: [],
     iconContainerStyles: [],
     titleStyles: [],
@@ -96,27 +103,13 @@ function IconSection({icon, IconComponent, iconContainerStyles}) {
     );
 }
 
-function Section({
-    children,
-    childrenStyles,
-    containerStyles,
-    icon,
-    IconComponent,
-    iconPosition,
-    iconContainerStyles,
-    menuItems,
-    subtitle,
-    subtitleStyles,
-    subtitleMuted,
-    title,
-    titleStyles,
-}) {
+function Section({children, childrenStyles, containerStyles, icon, IconComponent, cardLayout, iconContainerStyles, menuItems, subtitle, subtitleStyles, subtitleMuted, title, titleStyles}) {
     const styles = useThemeStyles();
 
     return (
         <>
             <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>
-                {iconPosition === 'top' && (
+                {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                     <IconSection
                         icon={icon}
                         IconComponent={IconComponent}
@@ -127,7 +120,7 @@ function Section({
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{title}</Text>
                     </View>
-                    {iconPosition === 'right' && (
+                    {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                         <IconSection
                             icon={icon}
                             IconComponent={IconComponent}
@@ -137,7 +130,7 @@ function Section({
                 </View>
 
                 {Boolean(subtitle) && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt4, styles.mh1, ...subtitleStyles]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt4, ...subtitleStyles]}>
                         <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
                     </View>
                 )}
@@ -156,4 +149,5 @@ Section.displayName = 'Section';
 Section.propTypes = propTypes;
 Section.defaultProps = defaultProps;
 
+export {CARD_LAYOUT};
 export default Section;
