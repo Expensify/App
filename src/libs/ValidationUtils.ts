@@ -1,5 +1,5 @@
 import {parsePhoneNumber} from 'awesome-phonenumber';
-import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, startOfDay, subYears} from 'date-fns';
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import {Report} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
+import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
 import StringUtils from './StringUtils';
 
@@ -196,11 +197,34 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
 }
 
 /**
+ * Validate that given date is not in the past.
+ */
+function getDatePassedError(inputDate: string): string {
+    const currentDate = new Date();
+    const parsedDate = new Date(`${inputDate}T00:00:00`); // set time to 00:00:00 for accurate comparison
+
+    // If input date is not valid, return an error
+    if (!isValid(parsedDate)) {
+        return 'common.error.dateInvalid';
+    }
+
+    // Clear time for currentDate so comparison is based solely on the date
+    currentDate.setHours(0, 0, 0, 0);
+
+    if (parsedDate < currentDate) {
+        return 'common.error.dateInvalid';
+    }
+
+    return '';
+}
+
+/**
  * Similar to backend, checks whether a website has a valid URL or not.
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
+    const isLowerCase = url === url.toLowerCase();
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -297,6 +321,13 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain special characters or numbers
+ */
+function isValidPersonName(value: string) {
+    return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
+}
+
+/**
  * Checks if the provided string includes any of the provided reserved words
  */
 function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
@@ -353,6 +384,27 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+/**
+ * Validates that the date and time are at least one minute in the future.
+ * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
+ * returns an object containing the error messages for the date and time
+ */
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidationErrorKey: string; timeValidationErrorKey: string} => {
+    if (!data) {
+        return {
+            dateValidationErrorKey: '',
+            timeValidationErrorKey: '',
+        };
+    }
+    const parsedInputData = parseISO(data);
+
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    return {
+        dateValidationErrorKey,
+        timeValidationErrorKey,
+    };
+};
 type ValuesType = Record<string, unknown>;
 
 /**
@@ -404,6 +456,9 @@ export {
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    getDatePassedError,
     isValidRecoveryCode,
+    validateDateTimeIsAtLeastOneMinuteInFuture,
     prepareValues,
+    isValidPersonName,
 };

@@ -59,7 +59,7 @@ const policyPropTypes = {
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyMembers: OnyxEntry<OnyxTypes.PolicyMember>;
+    policyMembers: OnyxEntry<OnyxTypes.PolicyMembers>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
     policyMembersDraft: OnyxEntry<OnyxTypes.PolicyMember>;
 };
@@ -116,3 +116,4 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
 }
 
 export {policyPropTypes, policyDefaultProps};
+export type {WithPolicyOnyxProps, WithPolicyProps};
