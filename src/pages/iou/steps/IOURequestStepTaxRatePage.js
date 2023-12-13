@@ -2,11 +2,13 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import taxPropTypes from '@components/taxPropTypes';
 import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import * as IOU from '@userActions/IOU';
@@ -43,6 +45,13 @@ const defaultProps = {
     },
 };
 
+// this is the formulae to calculate tax
+const calculateAmount = (taxRates, selectedTaxRate, amount) => {
+    const percentage = _.find(taxRates, (taxRate) => taxRate.name === selectedTaxRate).value;
+    const divisor = percentage.slice(0, -1) / 100 + 1; // slice to remove % at the end; converts "10%" to "10"
+    return parseInt(Math.round(amount - amount / divisor), 10) / 100; // returns The expense amount of transaction
+};
+
 function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraft}) {
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
@@ -52,7 +61,10 @@ function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraf
     }
 
     const updateTaxRates = (taxes) => {
+        calculateAmount(policyTaxRates.taxes, taxes.text, iou.amount);
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(calculateAmount));
         IOU.setMoneyRequestTaxRate(iou.transactionID, taxes.text);
+        IOU.setMoneyRequestTaxAmount(iou.transactionID, amountInSmallestCurrencyUnits);
 
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     };
@@ -63,17 +75,20 @@ function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraf
             shouldEnableMaxHeight
             testID={IOURequestStepTaxRatePage.displayName}
         >
-            <>
-                <HeaderWithBackButton
-                    title="Tax Rate"
-                    onBackButtonPress={() => navigateBack()}
-                />
-                <TaxPicker
-                    selectedTaxRate={transactionsDraft.taxRate}
-                    policyTaxRates={policyTaxRates}
-                    onSubmit={updateTaxRates}
-                />
-            </>
+            {({insets}) => (
+                <>
+                    <HeaderWithBackButton
+                        title="Tax Rate"
+                        onBackButtonPress={() => navigateBack()}
+                    />
+                    <TaxPicker
+                        selectedTaxRate={transactionsDraft.taxRate}
+                        policyTaxRates={policyTaxRates}
+                        insets={insets}
+                        onSubmit={updateTaxRates}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }
