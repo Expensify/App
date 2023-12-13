@@ -3019,20 +3019,6 @@ const CONST = {
         DEFAULT: 5,
         CAROUSEL: 3,
     },
-
-    TAB_TO_CENTRAL_PANE_MAPPING: {
-        [SCREENS.HOME]: [SCREENS.REPORT],
-        [SCREENS.ALL_SETTINGS]: [SCREENS.SETTINGS.WORKSPACES],
-        [SCREENS.WORKSPACE.INITIAL]: [
-            SCREENS.WORKSPACE.SETTINGS,
-            SCREENS.WORKSPACE.CARD,
-            SCREENS.WORKSPACE.REIMBURSE,
-            SCREENS.WORKSPACE.BILLS,
-            SCREENS.WORKSPACE.INVOICES,
-            SCREENS.WORKSPACE.TRAVEL,
-            SCREENS.WORKSPACE.MEMBERS,
-        ],
-    } satisfies Record<BottomTabName, CentralPaneName[]>,
 } as const;
 
 export default CONST;
