@@ -62,10 +62,13 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     const StyleUtils = useStyleUtils();
 
     const [containerSize, setContainerSize] = useState({width: 0, height: 0});
-    const isContainerLoading = containerSize.width === 0 || containerSize.height === 0;
+    const isContainerLoaded = containerSize.width !== 0 && containerSize.height !== 0;
 
-    const imageDimensions = cachedDimensions.get(source);
-    const setImageDimensions = (newDimensions) => cachedDimensions.set(source, newDimensions);
+    const [imageDimensions, _setImageDimensions] = useState(() => cachedDimensions.get(source));
+    const setImageDimensions = (newDimensions) => {
+        _setImageDimensions(newDimensions);
+        cachedDimensions.set(source, newDimensions);
+    };
 
     const isItemActive = index === activeIndex;
     const [isActive, setActive] = useState(isItemActive);
@@ -82,11 +85,12 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         }
 
         const indexCanvasOffset = Math.floor((NUMBER_OF_CONCURRENT_LIGHTBOXES - 1) / 2) || 0;
-        return !(index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset);
+        const indexOutOfRange = index > activeIndex + indexCanvasOffset || index < activeIndex - indexCanvasOffset;
+        return !indexOutOfRange;
     }, [activeIndex, index]);
     const isLightboxVisible = isLightboxInRange && (isActive || isLightboxLoaded || isFallbackLoaded);
 
-    const isLoading = isActive && (isContainerLoading || !isImageLoaded);
+    const isLoading = isActive && (!isContainerLoaded || !isImageLoaded);
 
     const updateCanvasSize = useCallback(
         ({nativeEvent}) => setContainerSize({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)}),
@@ -155,7 +159,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
             style={[StyleSheet.absoluteFill, style]}
             onLayout={updateCanvasSize}
         >
-            {!isContainerLoading && (
+            {isContainerLoaded && (
                 <>
                     {isLightboxVisible && (
                         <View style={[StyleSheet.absoluteFill, {opacity: hasSiblingCarouselItems && isFallbackVisible ? 0 : 1}]}>
@@ -168,7 +172,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                             >
                                 <Image
                                     source={{uri: source}}
-                                    style={imageDimensions?.lightboxSize == null ? undefined : imageDimensions.lightboxSize}
+                                    style={imageDimensions?.lightboxSize}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoadEnd={() => setImageLoaded(true)}
