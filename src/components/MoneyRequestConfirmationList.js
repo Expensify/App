@@ -757,7 +757,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={props.transactionsDraft.taxRate || defaultTaxName}
-                            description="Tax rate"
+                            description={translate('iou.taxRate')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_RATE.getRoute(props.iouType, props.reportID))}
@@ -772,7 +772,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={formattedTaxAmount}
-                            description="Tax amount"
+                            description={translate('iou.taxAmount')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_AMOUNT.getRoute(props.iouType, props.reportID))}
