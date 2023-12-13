@@ -1839,7 +1839,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
  * Checks if the current user can edit the provided property of a money request
  *
  */
-function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, reportID: string, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, reportID: string, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, transaction: Transaction): boolean {
     // A list of fields that cannot be edited by anyone, once a money request has been settled
     const nonEditableFieldsWhenSettled: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -1852,6 +1852,9 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, repor
     // Checks if this user has permissions to edit this money request
     if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
+    }
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+        return false;
     }
 
     // Checks if the report is settled
