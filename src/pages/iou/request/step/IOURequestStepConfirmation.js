@@ -107,6 +107,11 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
+            // When going back to the participants step, if the iou is a "request" (not a split), then the participants need to be cleared from the
+            // transaction so that the participant can be selected again.
+            if (iouType === CONST.IOU.TYPE.REQUEST) {
+                IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, []);
+            }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -192,14 +197,14 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
+                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(report.reportID) ? reportID : '';
                 IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, receiptFile, existingSplitChatReportID);
                 return;
             }
 
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
-            if (iouType === CONST.IOU.TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID)) {
+            if (iouType === CONST.IOU.TYPE.SPLIT && !transaction.isFromGlobalCreate) {
                 IOU.splitBill(
                     selectedParticipants,
                     currentUserPersonalDetails.login,
@@ -208,7 +213,9 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.category,
+                    transaction.tag,
                     report.reportID,
+                    transaction.merchant,
                 );
                 return;
             }
@@ -223,6 +230,8 @@ function IOURequestStepConfirmation({
                     trimmedComment,
                     transaction.currency,
                     transaction.category,
+                    transaction.tag,
+                    transaction.merchant,
                 );
                 return;
             }
@@ -326,7 +335,7 @@ function IOURequestStepConfirmation({
                         // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
                         // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                         // the floating-action-button (since it is something that exists outside the context of a report).
-                        canModifyParticipants={!_.isEmpty(report.reportID)}
+                        canModifyParticipants={!transaction.isFromGlobalCreate}
                         policyID={report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction.merchant}

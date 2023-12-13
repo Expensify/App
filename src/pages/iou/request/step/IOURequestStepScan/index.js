@@ -154,6 +154,11 @@ function IOURequestStepScan({
         const fileSource = URL.createObjectURL(imageFile);
         IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, fileSource, imageFile.name);
 
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
         // When an existing transaction is being edited (eg. not the create transaction flow)
         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
             IOU.replaceReceipt(transactionID, imageFile, fileSource);
@@ -171,7 +176,7 @@ function IOURequestStepScan({
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [cameraRef, report, iouType, transactionID, reportID]);
+    }, [cameraRef, report, iouType, transactionID, reportID, backTo]);
 
     const panResponder = useRef(
         PanResponder.create({
