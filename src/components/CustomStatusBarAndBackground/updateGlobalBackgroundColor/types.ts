@@ -1,4 +1,4 @@
-import {ThemeColors} from '@styles/themes/types';
+import {ThemeColors} from '@styles/theme/types';
 
 type UpdateGlobalBackgroundColor = (theme: ThemeColors) => void;
 
