@@ -61,8 +61,8 @@ function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraf
     }
 
     const updateTaxRates = (taxes) => {
-        calculateAmount(policyTaxRates.taxes, taxes.text, iou.amount);
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(calculateAmount));
+        const taxAmount = calculateAmount(policyTaxRates.taxes, taxes.text, iou.amount);
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
         IOU.setMoneyRequestTaxRate(iou.transactionID, taxes.text);
         IOU.setMoneyRequestTaxAmount(iou.transactionID, amountInSmallestCurrencyUnits);
 
