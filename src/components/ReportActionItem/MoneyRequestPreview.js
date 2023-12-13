@@ -183,6 +183,7 @@ function MoneyRequestPreview(props) {
         }
         switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
+            case CONST.IOU.PAYMENT_TYPE.VBBA:
                 return props.translate('iou.settledExpensify');
             default:
                 return props.translate('iou.settledElsewhere');
