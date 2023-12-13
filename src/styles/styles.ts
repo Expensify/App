@@ -3017,12 +3017,13 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        searchPressable: {
+            height: 40,
+        },
+
         searchContainer: {
             backgroundColor: theme.highlightBG,
             borderRadius: variables.componentBorderRadiusRounded,
-            height: 40,
-            minHeight: 40,
-            maxHeight: 40,
         },
 
         searchContainerHovered: {

@@ -34,6 +34,7 @@ function Search({onPress, placeholder, tooltip, style}: SearchProps) {
                 accessibilityLabel={tooltip ?? translate('common.search')}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 onPress={onPress}
+                style={styles.searchPressable}
             >
                 {({hovered}) => (
                     <View style={[styles.flex1, styles.flexRow, styles.gap2, styles.ph6, styles.alignItemsCenter, styles.searchContainer, hovered && styles.searchContainerHovered, style]}>
