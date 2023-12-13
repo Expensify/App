@@ -6,7 +6,7 @@ description: Share your invite link with a friend, start a chat with a coworker,
 
 # About
 
-New Expensify is growing thanks to members like you who love it so much that they tell their friends, family, colleagues, managers, and fellow business founders to use it, too. 
+[New Expensify](https://new.expensify.com/) is growing thanks to members like you who love it so much that they tell their friends, family, colleagues, managers, and fellow business founders to use it, too. 
 
 As a thank you, every time you bring a new customer into New Expensify, you'll get $250. Here's how it works. 
 
