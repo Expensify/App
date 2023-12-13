@@ -38,7 +38,7 @@ function Switch({isOn, onToggle, accessibilityLabel}: SwitchProps) {
             style={[styles.switchTrack, !isOn && styles.switchInactive]}
             onPress={() => onToggle(!isOn)}
             onLongPress={() => onToggle(!isOn)}
-            role={CONST.ACCESSIBILITY_ROLE.SWITCH}
+            role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
             accessibilityLabel={accessibilityLabel}
             // disable hover dim for switch

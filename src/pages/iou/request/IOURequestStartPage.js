@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -68,6 +69,7 @@ function IOURequestStartPage({
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const previousIOURequestType = usePrevious(transactionRequestType.current);
+    const isFromGlobalCreate = _.isEmpty(report.reportID);
 
     // Clear out the temporary money request when this component is unmounted
     useEffect(
@@ -82,10 +84,9 @@ function IOURequestStartPage({
         if (transaction.reportID === reportID) {
             return;
         }
-        IOU.startMoneyRequest_temporaryForRefactor(reportID, transactionRequestType.current);
-    }, [transaction, reportID, iouType]);
+        IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, transactionRequestType.current);
+    }, [transaction, reportID, iouType, isFromGlobalCreate]);
 
-    const isFromGlobalCreate = _.isEmpty(report.reportID);
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
     const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
@@ -102,11 +103,17 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
-            IOU.startMoneyRequest_temporaryForRefactor(reportID, newIouType);
+            IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID],
+        [previousIOURequestType, reportID, isFromGlobalCreate],
     );
+
+    if (!transaction.transactionID) {
+        // The draft transaction is initialized only after the component is mounted,
+        // which will lead to briefly displaying the Not Found page without this loader.
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper

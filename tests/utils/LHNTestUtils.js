@@ -196,9 +196,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
 }
 
 /**
- * There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
- * additional reports in Onyx, so it's being left out for now.
- *
  * @param {boolean} isArchived
  * @param {boolean} isUserCreatedPolicyRoom
  * @param {boolean} hasAddWorkspaceError
