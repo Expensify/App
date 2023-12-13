@@ -619,7 +619,7 @@ function getMoneyRequestInformation(
     let policy = {};
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
-        policy = ReportUtils.getPolicy(iouReport.policyID);
+        policy = ReportUtils.getPolicy(chatReport.policyID);
         const policyType = policy.type || '';
         isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
         needsToBeManuallySubmitted = policy.isHarvestingEnabled || false;
