@@ -7,6 +7,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
+import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
 type ReportActionItemMessageProps = {
@@ -32,6 +33,21 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
 
     const fragments = (action.previousMessage ?? action.message ?? []).filter((item) => !!item);
     const isIOUReport = ReportActionsUtils.isMoneyRequestAction(action);
+
+    if (ReportActionsUtils.isMemberChangeAction(action)) {
+        const fragment = ReportActionsUtils.getMemberChangeMessageFragment(action);
+
+        return (
+            <TextCommentFragment
+                fragment={fragment}
+                displayAsGroup={displayAsGroup}
+                style={style}
+                source=""
+                styleAsDeleted={false}
+            />
+        );
+    }
+
     let iouMessage: string | undefined;
     if (isIOUReport) {
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
