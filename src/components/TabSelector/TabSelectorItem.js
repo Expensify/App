@@ -3,7 +3,7 @@ import React from 'react';
 import {Animated, StyleSheet} from 'react-native';
 import sourcePropTypes from '@components/Image/sourcePropTypes';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 

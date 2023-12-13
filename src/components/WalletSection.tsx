@@ -1,5 +1,5 @@
 import React from 'react';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import IconAsset from '@src/types/utils/IconAsset';
 import Section from './Section';

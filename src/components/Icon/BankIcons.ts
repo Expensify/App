@@ -1,6 +1,6 @@
 import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
-import {type ThemeStyles} from '@styles/styles';
+import {type ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {BankIcon, BankName, BankNameKey} from '@src/types/onyx/Bank';

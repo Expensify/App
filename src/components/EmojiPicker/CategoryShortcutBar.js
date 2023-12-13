@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import sourcePropTypes from '@components/Image/sourcePropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CategoryShortcutButton from './CategoryShortcutButton';
 
 const propTypes = {

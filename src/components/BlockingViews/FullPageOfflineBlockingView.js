@@ -4,8 +4,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useTheme from '@hooks/useTheme';
 import compose from '@libs/compose';
-import useTheme from '@styles/themes/useTheme';
 import BlockingView from './BlockingView';
 
 const propTypes = {

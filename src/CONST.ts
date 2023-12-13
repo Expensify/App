@@ -255,6 +255,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
+        REPORT_FIELDS: 'reportFields',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2961,7 +2962,7 @@ const CONST = {
             SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
-        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/get-paid-back/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
 

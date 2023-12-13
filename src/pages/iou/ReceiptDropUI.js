@@ -5,7 +5,7 @@ import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import ImageSVG from '@components/ImageSVG';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {

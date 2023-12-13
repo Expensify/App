@@ -5,8 +5,8 @@ import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
 /**
