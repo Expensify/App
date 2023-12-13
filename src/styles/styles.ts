@@ -936,8 +936,12 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        calendarDayContainerSelected: {
+        buttonDefaultBG: {
             backgroundColor: theme.buttonDefaultBG,
+        },
+
+        buttonHoveredBG: {
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
@@ -1912,10 +1916,6 @@ const styles = (theme: ThemeColors) =>
         editChatItemEmojiWrapper: {
             marginRight: 3,
             alignSelf: 'flex-end',
-        },
-
-        hoveredButton: {
-            backgroundColor: theme.buttonHoveredBG,
         },
 
         composerSizeButton: {

@@ -339,7 +339,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                         badgeStyles={[
                                             styles.alignSelfCenter,
                                             props.brickRoadIndicator ? styles.mr2 : undefined,
-                                            props.focused || isHovered || pressed ? styles.hoveredButton : {},
+                                            props.focused || isHovered || pressed ? styles.buttonHoveredBG : {},
                                         ]}
                                     />
                                 )}
