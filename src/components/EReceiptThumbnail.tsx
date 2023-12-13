@@ -42,13 +42,7 @@ function EReceiptThumbnail({transaction}: EReceiptThumbnailProps) {
     const [containerWidth, setContainerWidth] = useState(0);
     const [containerHeight, setContainerHeight] = useState(0);
 
-    const backgroundImage = useMemo(() => {
-        if (!transaction) {
-            return;
-        }
-
-        return backgroundImages[StyleUtils.getEReceiptColorCode(transaction)];
-    }, [StyleUtils, transaction]);
+    const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
 
     // Get receipt colorway, or default to Yellow.
     const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));

@@ -1,5 +1,6 @@
 import {CSSProperties} from 'react';
 import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -298,7 +299,7 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
 /**
  * Helper method to return eReceipt color code
  */
-function getEReceiptColorCode(transaction: Transaction | null): EReceiptColorName {
+function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = transaction?.parentTransactionID || transaction?.transactionID || '';
 
