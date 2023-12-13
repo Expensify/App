@@ -24,14 +24,14 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -104,7 +104,6 @@ const propTypes = {
 
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
-
 };
 
 const defaultProps = {
