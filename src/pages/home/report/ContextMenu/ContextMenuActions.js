@@ -283,8 +283,8 @@ export default [
                 } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
-                } else if (ReportActionsUtils.isChannelLogMemberAction(reportAction)) {
-                    const logMessage = ReportUtils.getChannelLogMemberMessage(reportAction);
+                } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
+                    const logMessage = ReportActionsUtils.getMemberChangeMessagePlainText(reportAction);
                     Clipboard.setString(logMessage);
                 } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
                     const submittedMessage = _.reduce(reportAction.message, (acc, curr) => `${acc}${curr.text}`, '');

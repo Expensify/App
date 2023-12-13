@@ -74,6 +74,8 @@ type PersonalDetails = {
     status?: CustomStatus;
 };
 
+type PersonalDetailsList = Record<string, PersonalDetails>;
+
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone, CustomStatus};
+export type {Timezone, SelectedTimezone, CustomStatus, PersonalDetailsList};
