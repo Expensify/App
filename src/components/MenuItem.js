@@ -394,7 +394,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                     isError
                                     shouldShowRedDotIndicator={false}
                                     message={props.errorText}
-                                    style={[styles.menuItemError]}
+                                    style={styles.menuItemError}
                                 />
                             )}
                         </>
