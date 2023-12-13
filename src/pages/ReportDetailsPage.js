@@ -105,6 +105,9 @@ function ReportDetailsPage(props) {
             return items;
         }
 
+        // The Members page is only shown when:
+        // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
+        // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
         if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
@@ -120,7 +123,7 @@ function ReportDetailsPage(props) {
                     }
                 },
             });
-        } else if ((!participants.length || !isPolicyMember) && isUserCreatedPolicyRoom && !props.report.parentReportID) {
+        } else if (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember) && !props.report.parentReportID) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -212,7 +215,7 @@ function ReportDetailsPage(props) {
                                 <PressableWithoutFeedback
                                     style={[styles.w100]}
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));

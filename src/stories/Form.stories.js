@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import Picker from '@components/Picker';
@@ -29,6 +30,7 @@ const story = {
         CheckboxWithLabel,
         Picker,
         StatePicker,
+        DatePicker,
     },
 };
 
@@ -45,7 +47,7 @@ function Template(args) {
             <View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     accessibilityLabel="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
@@ -54,7 +56,7 @@ function Template(args) {
             </View>
             <InputWrapper
                 InputComponent={TextInput}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
@@ -66,6 +68,11 @@ function Template(args) {
                 inputID="street"
                 containerStyles={[styles.mt4]}
                 hint="No PO box"
+            />
+            <DatePicker
+                inputID="dob"
+                label="Date of Birth"
+                containerStyles={[styles.mt4]}
             />
             <View>
                 <InputWrapper
@@ -146,7 +153,7 @@ function WithNativeEventHandler(args) {
         <FormProvider {...args}>
             <InputWrapper
                 InputComponent={TextInput}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 accessibilityLabel="Routing number"
                 label="Routing number"
                 inputID="routingNumber"

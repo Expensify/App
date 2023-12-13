@@ -218,7 +218,7 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {onSendMoney, onConfirm, onSelectParticipant} = props;
     const {translate, toLocaleDigit} = useLocalize();
-    const transaction = props.isEditingSplitBill ? props.splitTransactionDraft || props.transaction : props.transaction;
+    const transaction = props.transaction;
     const {canUseViolations} = usePermissions();
 
     const isTypeRequest = props.iouType === CONST.IOU.TYPE.REQUEST;
@@ -425,8 +425,8 @@ function MoneyRequestConfirmationList(props) {
             return;
         }
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate, currency, translate, toLocaleDigit);
-        IOU.setMoneyRequestMerchant(distanceMerchant);
-    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest]);
+        IOU.setMoneyRequestMerchant_temporaryForRefactor(props.transactionID, distanceMerchant);
+    }, [hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, props.isDistanceRequest, props.transactionID]);
 
     /**
      * @param {Object} option
@@ -464,7 +464,10 @@ function MoneyRequestConfirmationList(props) {
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
-
+            if (props.iouCategory && props.iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+                setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
             if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
@@ -499,6 +502,7 @@ function MoneyRequestConfirmationList(props) {
             props.isEditingSplitBill,
             props.iouType,
             props.isDistanceRequest,
+            props.iouCategory,
             isDistanceRequestWithoutRoute,
             props.iouCurrencyCode,
             props.iouAmount,
@@ -595,7 +599,7 @@ function MoneyRequestConfirmationList(props) {
         >
             {props.isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
-                    <ConfirmedRoute transactionID={props.transactionID} />
+                    <ConfirmedRoute transaction={props.transaction} />
                 </View>
             )}
             {(receiptImage || receiptThumbnail) && (
@@ -715,7 +719,13 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouCategory}
                             description={translate('common.category')}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID))}
+                            onPress={() => {
+                                if (props.isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.CATEGORY));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORY.getRoute(props.iouType, props.reportID));
+                            }}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
@@ -729,7 +739,13 @@ function MoneyRequestConfirmationList(props) {
                             title={props.iouTag}
                             description={policyTagListName}
                             numberOfLinesTitle={2}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID))}
+                            onPress={() => {
+                                if (props.isEditingSplitBill) {
+                                    Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(props.reportID, props.reportActionID, CONST.EDIT_REQUEST_FIELD.TAG));
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_TAG.getRoute(props.iouType, props.reportID));
+                            }}
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
@@ -805,9 +821,6 @@ export default compose(
         },
         splitTransactionDraft: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
-        },
-        transaction: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         },
         transactionsDraft: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,

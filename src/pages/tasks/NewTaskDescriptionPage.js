@@ -13,7 +13,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -73,7 +73,7 @@ function NewTaskDescriptionPage(props) {
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
                                 inputCallbackRef(el);
                                 updateMultilineInputRange(el);
@@ -81,7 +81,6 @@ function NewTaskDescriptionPage(props) {
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputStyle={[styles.verticalAlignTop]}
                         />
                     </View>
                 </FormProvider>

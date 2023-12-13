@@ -27,8 +27,8 @@ const propTypes = {
         /** Additional information about the attachment file */
         file: PropTypes.shape({
             /** File name of the attachment */
-            name: PropTypes.string,
-        }),
+            name: PropTypes.string.isRequired,
+        }).isRequired,
 
         /** Whether the attachment has been flagged */
         hasBeenFlagged: PropTypes.bool,
@@ -81,7 +81,7 @@ function CarouselItem({item, isFocused, onPress}) {
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
                 {children}
