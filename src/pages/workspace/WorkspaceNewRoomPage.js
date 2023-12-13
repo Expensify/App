@@ -219,7 +219,7 @@ function WorkspaceNewRoomPage(props) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const emptyWorkspaceView = (
+    const renderEmptyWorkspaceView = () => (
         <>
             <BlockingView
                 icon={Illustrations.ToddBehindCloud}
@@ -251,7 +251,7 @@ function WorkspaceNewRoomPage(props) {
             >
                 {({insets}) =>
                     workspaceOptions.length === 0 ? (
-                        <>{emptyWorkspaceView}</>
+                        renderEmptyWorkspaceView()
                     ) : (
                         <KeyboardAvoidingView
                             style={styles.h100}
