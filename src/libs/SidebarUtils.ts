@@ -129,8 +129,10 @@ function getOrderedReportIDs(
 ): string[] {
     const reportActionsCount: ReportActionsCount | null =
         allReportActions &&
-        Object.keys(allReportActions).reduce<ReportActionsCount>((acc, reportID) => {
-            acc[reportID] = {reportActionsCount: Object.keys(allReportActions[reportID] as Record<string, ReportAction>).length};
+        Object.entries(allReportActions).reduce<ReportActionsCount>((acc, [reportID, reportActions]) => {
+            if (reportActions) {
+                acc[reportID] = {reportActionsCount: Object.keys(reportActions as Record<string, ReportAction>).length};
+            }
             return acc;
         }, {});
 
