@@ -83,6 +83,7 @@ class ShareCodePage extends React.Component {
                     title={this.props.translate('common.shareCode')}
                     onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS_HOME)}
                     shouldUseCentralPaneView
+                    shouldShowBorderBottom
                 />
 
                 <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>

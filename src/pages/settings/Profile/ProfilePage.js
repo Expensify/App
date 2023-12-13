@@ -110,6 +110,7 @@ function ProfilePage(props) {
                 title={props.translate('common.profile')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
                 shouldUseCentralPaneView
+                shouldShowBorderBottom
             />
             <ScrollView>
                 <View style={[styles.mt4]}>
