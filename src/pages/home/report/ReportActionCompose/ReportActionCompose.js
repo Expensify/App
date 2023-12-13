@@ -145,7 +145,7 @@ function ReportActionCompose({
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      */
-    const {handleValueChangeDebounce, hasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
+    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
 
     const suggestionsRef = useRef(null);
     const composerRef = useRef(null);
@@ -409,7 +409,7 @@ function ReportActionCompose({
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
-                                        onValueChange={handleValueChangeDebounce}
+                                        onValueChange={validateCommentMaxLength}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {

@@ -116,7 +116,7 @@ function ReportActionItemMessageEdit(props) {
     });
     const [selection, setSelection] = useState(getInitialSelection);
     const [isFocused, setIsFocused] = useState(false);
-    const {handleValueChangeDebounce, hasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
+    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState(false);
     const [onyxFocused, setOnyxFocused] = useState(false);
 
@@ -370,8 +370,8 @@ function ReportActionItemMessageEdit(props) {
     const focus = focusComposerWithDelay(textInputRef.current);
 
     useEffect(() => {
-        handleValueChangeDebounce(draft);
-    }, [draft, handleValueChangeDebounce]);
+        validateCommentMaxLength(draft);
+    }, [draft, validateCommentMaxLength]);
 
     return (
         <>

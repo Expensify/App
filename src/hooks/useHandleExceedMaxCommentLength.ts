@@ -19,9 +19,9 @@ const useHandleExceedMaxCommentLength = () => {
         [hasExceededMaxCommentLength],
     );
 
-    const handleValueChangeDebounce = useMemo(() => _.debounce(handleValueChange, 1500), [handleValueChange]);
+    const validateCommentMaxLength = useMemo(() => _.debounce(handleValueChange, 1500), [handleValueChange]);
 
-    return {hasExceededMaxCommentLength, handleValueChangeDebounce};
+    return {hasExceededMaxCommentLength, validateCommentMaxLength};
 };
 
 export default useHandleExceedMaxCommentLength;
