@@ -71,14 +71,6 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
         Navigation.setShouldPopAllStateOnUP();
     }, [isSmallScreenWidth]);
 
-    useEffect(() => {
-        if (!navigationRef.isReady() || !authenticated) {
-            return;
-        }
-        // We need to force state rehydration so the CustomRouter can add the CentralPaneNavigator route if necessary.
-        navigationRef.resetRoot(navigationRef.getRootState());
-    }, [isSmallScreenWidth, authenticated]);
-
     const handleStateChange = (state: NavigationState | undefined) => {
         if (!state) {
             return;
