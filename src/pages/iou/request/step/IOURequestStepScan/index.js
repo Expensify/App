@@ -115,16 +115,16 @@ function IOURequestStepScan({
     };
 
     const navigateToConfirmationStep = useCallback(() => {
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-        // to the confirm step.
+        // If the transaction was created from the global create, the person needs to select participants, so take them there.
         if (isFromGlobalCreate) {
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
 
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
+        // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
+        IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate]);
 
     const updateScanAndNavigate = useCallback(
