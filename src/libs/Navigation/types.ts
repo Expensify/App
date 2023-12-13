@@ -1,5 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention  */
-import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, NavigationState, NavigatorScreenParams, PartialRoute, Route} from '@react-navigation/native';
+import {
+    CommonActions,
+    NavigationContainerRefWithCurrent,
+    NavigationHelpers,
+    NavigationState,
+    NavigatorScreenParams,
+    ParamListBase,
+    PartialRoute,
+    PartialState,
+    Route,
+} from '@react-navigation/native';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -30,14 +40,42 @@ type ActionNavigate = {
 type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | undefined;
 
 type NavigationStateRoute = NavigationState['routes'][number];
-type NavigationPartialRoute = PartialRoute<Route<string>>;
+type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
+type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
 type CentralPaneNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
         reportID: string;
         openOnAdminRoom?: boolean;
+    };
+
+    [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.WORKSPACE.SETTINGS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.CARD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.REIMBURSE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.BILLS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.INVOICES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TRAVEL]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.MEMBERS]: {
+        policyID: string;
+    };
+    [SCREENS.REIMBURSEMENT_ACCOUNT]: {
+        stepToOpen: string;
+        policyID: string;
     };
 };
 
@@ -83,36 +121,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_SET]: undefined;
-    [SCREENS.WORKSPACE.INITIAL]: undefined;
-    [SCREENS.WORKSPACE.SETTINGS]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
-    [SCREENS.WORKSPACE.CARD]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.REIMBURSE]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: undefined;
-    [SCREENS.WORKSPACE.BILLS]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.INVOICES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.TRAVEL]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.MEMBERS]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVITE]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
-        policyID: string;
-    };
-    [SCREENS.REIMBURSEMENT_ACCOUNT]: {
-        stepToOpen: string;
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
@@ -359,8 +373,14 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
 
-type PublicScreensParamList = {
+type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
+    [SCREENS.ALL_SETTINGS]: undefined;
+    [SCREENS.WORKSPACE.INITIAL]: undefined;
+};
+
+type PublicScreensParamList = {
+    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         shouldForceLogin: string;
         email: string;
@@ -381,7 +401,7 @@ type PublicScreensParamList = {
 };
 
 type AuthScreensParamList = {
-    [SCREENS.HOME]: undefined;
+    [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: NavigatorScreenParams<BottomTabNavigatorParamList>;
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
@@ -412,15 +432,23 @@ type AuthScreensParamList = {
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
 
+type BottomTabName = keyof BottomTabNavigatorParamList;
+
+type CentralPaneName = keyof CentralPaneNavigatorParamList;
+
 export type {
     NavigationRef,
     StackNavigationAction,
     CentralPaneNavigatorParamList,
+    BottomTabName,
+    CentralPaneName,
     RootStackParamList,
     StateOrRoute,
     NavigationStateRoute,
+    NavigationPartialRoute,
     NavigationRoot,
     AuthScreensParamList,
+    BottomTabNavigatorParamList,
     RightModalNavigatorParamList,
     PublicScreensParamList,
     MoneyRequestNavigatorParamList,
@@ -448,4 +476,5 @@ export type {
     SignInNavigatorParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    State,
 };
