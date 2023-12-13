@@ -6,10 +6,10 @@ import Button from '@components/Button';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PDFInfoMessage from './PDFInfoMessage';
 

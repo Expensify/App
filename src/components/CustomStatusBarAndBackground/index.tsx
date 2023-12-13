@@ -1,12 +1,14 @@
 import React, {useCallback, useContext, useEffect} from 'react';
+import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
-import useTheme from '@styles/themes/useTheme';
 import CustomStatusBarContext from './CustomStatusBarContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 
 type CustomStatusBarAndBackgroundProps = {
+    /** Whether the CustomStatusBar is nested within another CustomStatusBar.
+     *  A nested CustomStatusBar will disable the "root" CustomStatusBar. */
     isNested: boolean;
 };
 
@@ -87,6 +89,6 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     return <StatusBar />;
 }
 
-CustomStatusBarAndBackground.displayName = 'CustomStatusBar';
+CustomStatusBarAndBackground.displayName = 'CustomStatusBarAndBackground';
 
 export default CustomStatusBarAndBackground;
