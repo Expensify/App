@@ -17,8 +17,12 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const isDisabled = !isNested && isRootStatusBarDisabled;
 
     useEffect(() => {
+        if (isDisabled) {
+            return;
+        }
+
         updateGlobalBackgroundColor(theme);
-    }, [theme]);
+    }, [isDisabled, theme]);
 
     useEffect(() => {
         if (isNested) {
