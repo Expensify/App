@@ -8,7 +8,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import Banner from './Banner';
 
 type ArchivedReportFooterOnyxProps = {
@@ -16,7 +16,7 @@ type ArchivedReportFooterOnyxProps = {
     reportClosedAction: OnyxEntry<ReportAction>;
 
     /** Personal details of all users */
-    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {

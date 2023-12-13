@@ -22,7 +22,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
@@ -76,6 +76,7 @@ function ComposerWithSuggestions({
     // Focus
     onFocus,
     onBlur,
+    onValueChange,
     // Composer
     isComposerFullSize,
     isMenuVisible,
@@ -514,6 +515,10 @@ function ComposerWithSuggestions({
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
+
+    useEffect(() => {
+        onValueChange(value);
+    }, [onValueChange, value]);
 
     return (
         <>
