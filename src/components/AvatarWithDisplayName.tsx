@@ -11,7 +11,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -35,7 +35,7 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Personal details of all the users */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** Whether if it's an unauthenticated user */
     isAnonymous?: boolean;
