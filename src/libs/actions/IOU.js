@@ -314,7 +314,9 @@ function buildOnyxDataForMoneyRequest(
                 ...iouReport,
                 lastMessageText: iouAction.message[0].text,
                 lastMessageHtml: iouAction.message[0].html,
-                ...(isNewIOUReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
+                pendingFields: {
+                    ...(isNewIOUReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
         {
@@ -384,18 +386,14 @@ function buildOnyxDataForMoneyRequest(
                   },
               ]
             : []),
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {
-                          pendingFields: null,
-                          errorFields: null,
-                      },
-                  },
-              ]
-            : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -554,6 +552,7 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Boolean} [billable]
+ * @param {Object} [policy]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -583,6 +582,7 @@ function getMoneyRequestInformation(
     category = undefined,
     tag = undefined,
     billable = undefined,
+    policy = undefined,
 ) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
@@ -624,9 +624,10 @@ function getMoneyRequestInformation(
     if (iouReport) {
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
-
-            // Because of the Expense reports are stored as negative values, we substract the total from the amount
-            iouReport.total -= amount;
+            if (policy.outputCurrency === currency) {
+                // Because of the Expense reports are stored as negative values, we substract the total from the amount
+                iouReport.total -= amount;
+            }
         } else {
             iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
         }
@@ -1030,6 +1031,7 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Boolean} [billable]
+ * @param {Object} [policy]
  */
 function requestMoney(
     report,
@@ -1045,12 +1047,13 @@ function requestMoney(
     category = undefined,
     tag = undefined,
     billable = undefined,
+    policy = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
     const {payerAccountID, payerEmail, iouReport, chatReport, transaction, iouAction, createdChatReportActionID, createdIOUReportActionID, reportPreviewAction, onyxData} =
-        getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable);
+        getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable, policy);
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
     API.write(

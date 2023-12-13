@@ -163,6 +163,7 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.category,
                 props.iou.tag,
                 props.iou.billable,
+                props.policy,
             );
         },
         [
@@ -176,6 +177,7 @@ function MoneyRequestConfirmPage(props) {
             props.iou.category,
             props.iou.tag,
             props.iou.billable,
+            props.policy,
         ],
     );
 
