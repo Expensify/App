@@ -550,7 +550,7 @@ function AddressSearch({
                             listView: [
                                 StyleUtils.getGoogleListViewStyle(displayListViewBorder),
                                 styles.borderLeft,
-                                styles.borsderRight,
+                                styles.borderRight,
                                 getListViewHeight(windowHeight, network.isOffline),
                                 !isFocused && {height: 0},
                             ],
