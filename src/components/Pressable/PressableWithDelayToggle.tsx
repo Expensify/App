@@ -19,7 +19,7 @@ type PressableWithDelayToggleProps = PressableProps & {
     text: string;
 
     /** The text to display once the pressable is pressed */
-    textChecked: string;
+    textChecked?: string;
 
     /** The tooltip text to display */
     tooltipText: string;

@@ -127,6 +127,10 @@ const lightTheme = {
             backgroundColor: colors.productLight200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
+        [SCREENS.RIGHT_MODAL.REFERRAL]: {
+            backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
     },
 
     statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
