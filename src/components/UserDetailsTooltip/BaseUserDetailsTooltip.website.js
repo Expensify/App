@@ -20,7 +20,7 @@ function BaseUserDetailsTooltip(props) {
     const personalDetails = usePersonalDetails();
 
     const userDetails = lodashGet(personalDetails, props.accountID, props.fallbackUserDetails);
-    let userDisplayName = ReportUtils.getDisplayNameForParticipant(props.accountID);
+    let userDisplayName = ReportUtils.getDisplayNameForParticipant(props.accountID) || (userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
     let userAccountID = props.accountID;
