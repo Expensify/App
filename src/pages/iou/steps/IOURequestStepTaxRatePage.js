@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import taxPropTypes from '@components/taxPropTypes';
+import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -53,6 +54,7 @@ const calculateAmount = (taxRates, selectedTaxRate, amount) => {
 };
 
 function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraft}) {
+    const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
 
@@ -78,7 +80,7 @@ function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraf
             {({insets}) => (
                 <>
                     <HeaderWithBackButton
-                        title="Tax Rate"
+                        title={translate('iou.taxRate')}
                         onBackButtonPress={() => navigateBack()}
                     />
                     <TaxPicker

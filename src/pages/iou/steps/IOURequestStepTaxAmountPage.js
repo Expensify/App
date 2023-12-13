@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -51,6 +52,7 @@ const defaultProps = {
 };
 
 function IOURequestStepTaxAmountPage({route, iou, transactionsDraft}) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
@@ -113,7 +115,7 @@ function IOURequestStepTaxAmountPage({route, iou, transactionsDraft}) {
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
-                            title="Tax Amount"
+                            title={translate('iou.taxAmount')}
                             onBackButtonPress={navigateBack}
                         />
                         {content}
