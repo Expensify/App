@@ -19,12 +19,12 @@ type UnlinkLoginPageOnyxProps = {
 type UnlinkLoginPageProps = UnlinkLoginPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
 
 function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
-    const accountID = route.params.accountID ?? '';
+    const accountID = route.params.accountID ?? -1;
     const validateCode = route.params.validateCode ?? '';
     const prevIsLoading = usePrevious(!!account?.isLoading);
 
     useEffect(() => {
-        Session.unlinkLogin(accountID, validateCode);
+        Session.unlinkLogin(Number(accountID), validateCode);
         // We only want this to run on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

@@ -718,7 +718,7 @@ function requestUnlinkValidationLink() {
     API.write('RequestUnlinkValidationLink', params, {optimisticData, successData, failureData});
 }
 
-function unlinkLogin(accountID: number | string, validateCode: string) {
+function unlinkLogin(accountID: number, validateCode: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -757,7 +757,7 @@ function unlinkLogin(accountID: number | string, validateCode: string) {
     ];
 
     type UnlinkLoginParams = {
-        accountID: number | string;
+        accountID: number;
         validateCode: string;
     };
 
