@@ -149,7 +149,7 @@ function IOURequestStepScan({
         [backTo, transactionID],
     );
 
-    const takePhoto = useCallback(() => {
+    const capturePhoto = useCallback(() => {
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
         };
@@ -291,7 +291,7 @@ function IOURequestStepScan({
                     role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
-                    onPress={takePhoto}
+                    onPress={capturePhoto}
                 >
                     <Shutter
                         width={CONST.RECEIPT.SHUTTER_SIZE}
