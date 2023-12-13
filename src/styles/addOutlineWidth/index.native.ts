@@ -2,9 +2,9 @@
  * Native platforms don't support the "addOutlineWidth" property, so this
  * function is a no-op
  */
-
 import AddOutlineWidth from './types';
 
-const addOutlineWidth: AddOutlineWidth = (obj) => obj;
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const addOutlineWidth: AddOutlineWidth = (_theme, obj) => obj;
 
 export default addOutlineWidth;

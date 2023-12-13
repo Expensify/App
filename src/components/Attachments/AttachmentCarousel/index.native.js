@@ -1,26 +1,26 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, Keyboard, PixelRatio} from 'react-native';
+import {Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import AttachmentCarouselPager from './Pager';
-import styles from '../../../styles/styles';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Illustrations from '@components/Icon/Illustrations';
+import withLocalize from '@components/withLocalize';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
-import ONYXKEYS from '../../../ONYXKEYS';
-import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
-import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import useCarouselArrows from './useCarouselArrows';
 import CarouselItem from './CarouselItem';
-import Navigation from '../../../libs/Navigation/Navigation';
-import BlockingView from '../../BlockingViews/BlockingView';
-import * as Illustrations from '../../Icon/Illustrations';
-import variables from '../../../styles/variables';
-import compose from '../../../libs/compose';
-import withLocalize from '../../withLocalize';
-import FullscreenLoadingIndicator from '../../FullscreenLoadingIndicator';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import CONST from '../../../CONST';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
+import AttachmentCarouselPager from './Pager';
+import useCarouselArrows from './useCarouselArrows';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import CONST from '@src/CONST';
 
-function AttachmentCarousel({report, reportMetadata, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, reportMetadata, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+    const styles = useThemeStyles();
     const pagerRef = useRef(null);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
 
@@ -31,17 +31,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
-    const compareImage = useCallback(
-        (attachment) => {
-            if (attachment.isReceipt) {
-                const action = ReportActionsUtils.getParentReportAction(report);
-                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
-                return attachment.transactionID === transactionID;
-            }
-            return attachment.source.includes(source);
-        },
-        [source, report],
-    );
+    const compareImage = useCallback((attachment) => attachment.source.includes(source), [source]);
 
     useEffect(() => {
         // Wait until attachment is loaded and return early if
@@ -52,7 +42,8 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
             return;
         }
 
-        const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
+        const parentReportAction = parentReportActions[report.parentReportActionID];
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -72,7 +63,7 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportMetadata, sourceID, reportActions, compareImage]);
+    }, [sourceID, reportActions, reportMetadata, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -186,11 +177,19 @@ function AttachmentCarousel({report, reportMetadata, reportActions, source, onNa
 }
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
+AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            canEvict: false,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
         reportMetadata: {

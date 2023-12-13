@@ -1,10 +1,10 @@
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
-import * as LocalePhoneNumber from './LocalePhoneNumber';
 
 let personalDetails = [];
 let allPersonalDetails = {};
@@ -17,12 +17,12 @@ Onyx.connect({
 });
 
 /**
- * @param {Object} passedPersonalDetails
- * @param {Array} pathToDisplayName
+ * @param {Object | Null} passedPersonalDetails
+ * @param {Array | String} pathToDisplayName
  * @param {String} [defaultValue] optional default display name value
  * @returns {String}
  */
-function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
+function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue = '') {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
     return displayName || defaultValue || Localize.translateLocal('common.hidden');
@@ -80,7 +80,7 @@ function getAccountIDsByLogins(logins) {
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Array} - Array of logins according to passed accountIDs
+ * @returns {Array<string>} - Array of logins according to passed accountIDs
  */
 function getLoginsByAccountIDs(accountIDs) {
     return _.reduce(
@@ -163,6 +163,26 @@ function formatPiece(piece) {
 }
 
 /**
+ *
+ * @param {String} street1 - street line 1
+ * @param {String} street2 - street line 2
+ * @returns {String} formatted street
+ */
+function getFormattedStreet(street1 = '', street2 = '') {
+    return `${street1}\n${street2}`;
+}
+
+/**
+ *
+ * @param {*} street - formatted address
+ * @returns {[string, string]} [street1, street2]
+ */
+function getStreetLines(street = '') {
+    const streets = street.split('\n');
+    return [streets[0], streets[1]];
+}
+
+/**
  * Formats an address object into an easily readable string
  *
  * @param {OnyxTypes.PrivatePersonalDetails} privatePersonalDetails - details object
@@ -170,11 +190,33 @@ function formatPiece(piece) {
  */
 function getFormattedAddress(privatePersonalDetails) {
     const {address} = privatePersonalDetails;
-    const [street1, street2] = (address.street || '').split('\n');
+    const [street1, street2] = getStreetLines(address.street);
     const formattedAddress = formatPiece(street1) + formatPiece(street2) + formatPiece(address.city) + formatPiece(address.state) + formatPiece(address.zip) + formatPiece(address.country);
 
     // Remove the last comma of the address
     return formattedAddress.trim().replace(/,$/, '');
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData, getFormattedAddress};
+/**
+ * @param {Object} personalDetail - details object
+ * @returns {String | undefined} - The effective display name
+ */
+function getEffectiveDisplayName(personalDetail) {
+    if (personalDetail) {
+        return LocalePhoneNumber.formatPhoneNumber(personalDetail.login) || personalDetail.displayName;
+    }
+
+    return undefined;
+}
+
+export {
+    getDisplayNameOrDefault,
+    getPersonalDetailsByIDs,
+    getAccountIDsByLogins,
+    getLoginsByAccountIDs,
+    getNewPersonalDetailsOnyxData,
+    getFormattedAddress,
+    getFormattedStreet,
+    getStreetLines,
+    getEffectiveDisplayName,
+};

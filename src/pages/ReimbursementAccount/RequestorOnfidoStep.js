@@ -1,18 +1,18 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
-import styles from '../../styles/styles';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import Onfido from '../../components/Onfido';
-import ONYXKEYS from '../../ONYXKEYS';
-import Growl from '../../libs/Growl';
-import CONST from '../../CONST';
-import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import useLocalize from '../../hooks/useLocalize';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Onfido from '@components/Onfido';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import Growl from '@libs/Growl';
+import useThemeStyles from '@styles/useThemeStyles';
+import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 
 const propTypes = {
@@ -34,6 +34,7 @@ const HEADER_STEP_COUNTER = {step: 3, total: 5};
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
 function RequestorOnfidoStep({onBackButtonPress, reimbursementAccount, onfidoToken}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const submitOnfidoData = (onfidoData) => {

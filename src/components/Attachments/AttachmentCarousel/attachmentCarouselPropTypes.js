@@ -1,11 +1,12 @@
 import PropTypes from 'prop-types';
-import reportPropTypes from '../../../pages/reportPropTypes';
-import reportActionPropTypes from '../../../pages/home/report/reportActionPropTypes';
-import reportMetadataPropTypes from '../../../pages/reportMetadataPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 
 const propTypes = {
     /** source is used to determine the starting index in the array of attachments */
-    source: PropTypes.string,
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate: PropTypes.func,
@@ -17,10 +18,19 @@ const propTypes = {
     setDownloadButtonVisibility: PropTypes.func,
 
     /** Object of report actions for this report */
-    reportActions: PropTypes.shape(reportActionPropTypes),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
+
+    /** The parent of `report` */
+    parentReport: reportPropTypes,
+
+    /** The report actions of the parent report */
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** The transaction attached to the parent report action */
+    transaction: transactionPropTypes,
 
     /** The report metadata */
     reportMetadata: reportMetadataPropTypes,
@@ -29,6 +39,9 @@ const propTypes = {
 const defaultProps = {
     source: '',
     reportActions: {},
+    parentReport: {},
+    parentReportActions: {},
+    transaction: {},
     reportMetadata: {},
     onNavigate: () => {},
     onClose: () => {},

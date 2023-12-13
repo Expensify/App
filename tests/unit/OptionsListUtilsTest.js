@@ -1,11 +1,11 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import CONST from '../../src/CONST';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import CONST from '../../src/CONST';
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
@@ -99,7 +99,6 @@ describe('OptionsListUtils', () => {
             participantAccountIDs: [8],
             reportName: 'Mister Sinister',
             iouReportID: 100,
-            hasOutstandingIOU: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
 
@@ -590,7 +589,7 @@ describe('OptionsListUtils', () => {
         // Filter current REPORTS as we do in the component, before getting share destination options
         const filteredReports = {};
         _.keys(REPORTS).forEach((reportKey) => {
-            if (ReportUtils.shouldDisableWriteActions(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS[reportKey])) {
                 return;
             }
             filteredReports[reportKey] = REPORTS[reportKey];
@@ -617,7 +616,7 @@ describe('OptionsListUtils', () => {
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
         const filteredReportsWithWorkspaceRooms = {};
         _.keys(REPORTS_WITH_WORKSPACE_ROOMS).forEach((reportKey) => {
-            if (ReportUtils.shouldDisableWriteActions(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
+            if (!ReportUtils.canUserPerformWriteAction(REPORTS_WITH_WORKSPACE_ROOMS[reportKey]) || ReportUtils.isExpensifyOnlyParticipantInReport(REPORTS_WITH_WORKSPACE_ROOMS[reportKey])) {
                 return;
             }
             filteredReportsWithWorkspaceRooms[reportKey] = REPORTS_WITH_WORKSPACE_ROOMS[reportKey];
@@ -729,7 +728,7 @@ describe('OptionsListUtils', () => {
         const smallSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -752,7 +751,7 @@ describe('OptionsListUtils', () => {
         const smallWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -818,7 +817,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -932,7 +931,7 @@ describe('OptionsListUtils', () => {
         const largeSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -962,7 +961,7 @@ describe('OptionsListUtils', () => {
         const largeWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -1077,14 +1076,8 @@ describe('OptionsListUtils', () => {
                 title: '',
                 shouldShow: false,
                 indexOffset: 0,
+                // data sorted alphabetically by name
                 data: [
-                    {
-                        text: 'Medical',
-                        keyForList: 'Medical',
-                        searchText: 'Medical',
-                        tooltipText: 'Medical',
-                        isDisabled: false,
-                    },
                     {
                         text: 'Accounting',
                         keyForList: 'Accounting',
@@ -1099,13 +1092,20 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'HR',
                         isDisabled: false,
                     },
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
+                        isDisabled: false,
+                    },
                 ],
             },
         ];
         const smallSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1121,7 +1121,7 @@ describe('OptionsListUtils', () => {
         const smallWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
             },
@@ -1175,7 +1175,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1205,6 +1205,7 @@ describe('OptionsListUtils', () => {
                 title: 'All',
                 shouldShow: true,
                 indexOffset: 2,
+                // data sorted alphabetically by name
                 data: [
                     {
                         text: 'Accounting',
@@ -1214,10 +1215,17 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'HR',
-                        keyForList: 'HR',
-                        searchText: 'HR',
-                        tooltipText: 'HR',
+                        text: 'Benefits',
+                        keyForList: 'Benefits',
+                        searchText: 'Benefits',
+                        tooltipText: 'Benefits',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
                         isDisabled: false,
                     },
                     {
@@ -1228,10 +1236,10 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'Cleaning',
-                        keyForList: 'Cleaning',
-                        searchText: 'Cleaning',
-                        tooltipText: 'Cleaning',
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
                         isDisabled: false,
                     },
                     {
@@ -1248,20 +1256,13 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Taxes',
                         isDisabled: false,
                     },
-                    {
-                        text: 'Benefits',
-                        keyForList: 'Benefits',
-                        searchText: 'Benefits',
-                        tooltipText: 'Benefits',
-                        isDisabled: false,
-                    },
                 ],
             },
         ];
         const largeSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [
                     {
@@ -1284,9 +1285,68 @@ describe('OptionsListUtils', () => {
         const largeWrongSearchResultList = [
             {
                 title: '',
-                shouldShow: false,
+                shouldShow: true,
                 indexOffset: 0,
                 data: [],
+            },
+        ];
+
+        const smallTagsListWithParentChild = {
+            Movies: {
+                enabled: true,
+                name: 'Movies',
+            },
+            'Movies: Avengers: Endgame': {
+                enabled: true,
+                name: 'Movies: Avengers: Endgame',
+                unencodedName: 'Movies: Avengers: Endgame',
+            },
+            Places: {
+                enabled: false,
+                name: 'Places',
+            },
+            Task: {
+                enabled: true,
+                name: 'Task',
+            },
+        };
+
+        const smallResultListWithParentChild = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        text: 'Movies',
+                        keyForList: 'Movies',
+                        searchText: 'Movies',
+                        tooltipText: 'Movies',
+                        isDisabled: false,
+                    },
+                    {
+                        text: '    Avengers',
+                        keyForList: 'Movies: Avengers',
+                        searchText: 'Movies: Avengers',
+                        tooltipText: 'Avengers',
+                        isDisabled: true,
+                    },
+                    {
+                        text: '        Endgame',
+                        keyForList: 'Movies: Avengers: Endgame',
+                        searchText: 'Movies: Avengers: Endgame',
+                        tooltipText: 'Endgame',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Task',
+                        keyForList: 'Task',
+                        searchText: 'Task',
+                        tooltipText: 'Task',
+                        isDisabled: false,
+                    },
+                ],
             },
         ];
 
@@ -1352,9 +1412,26 @@ describe('OptionsListUtils', () => {
             recentlyUsedTags,
         );
         expect(largeWrongSearchResult.tagOptions).toStrictEqual(largeWrongSearchResultList);
+
+        const smallResultWithParentChild = OptionsListUtils.getFilteredOptions(
+            REPORTS,
+            PERSONAL_DETAILS,
+            [],
+            emptySearch,
+            [],
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            true,
+            smallTagsListWithParentChild,
+        );
+        expect(smallResultWithParentChild.tagOptions).toStrictEqual(smallResultListWithParentChild);
     });
 
-    it('getCategoryOptionTree()', () => {
+    it('getIndentedOptionTree()', () => {
         const categories = {
             Meals: {
                 enabled: true,
@@ -1667,8 +1744,8 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        expect(OptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
-        expect(OptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
+        expect(OptionsListUtils.getIndentedOptionTree(categories)).toStrictEqual(result);
+        expect(OptionsListUtils.getIndentedOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('sortCategories', () => {

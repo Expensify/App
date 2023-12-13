@@ -1,10 +1,10 @@
-import React, {forwardRef, useEffect, useRef, useCallback} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
 import {Keyboard} from 'react-native';
 import _ from 'underscore';
+import withWindowDimensions from '@components/withWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseOptionsList from './BaseOptionsList';
-import withWindowDimensions from '../withWindowDimensions';
-import {propTypes, defaultProps} from './optionsListPropTypes';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import {defaultProps, propTypes} from './optionsListPropTypes';
 
 function OptionsList(props) {
     const isScreenTouched = useRef(false);

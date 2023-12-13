@@ -1,17 +1,18 @@
-import React, {useEffect, useRef} from 'react';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import AttachmentModal from '../../../components/AttachmentModal';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as Report from '../../../libs/actions/Report';
-import * as ReportActionUtils from '../../../libs/ReportActionsUtils';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import reportPropTypes from '../../reportPropTypes';
-import reportMetadataPropTypes from '../../reportMetadataPropTypes';
-import CONST from '../../../CONST';
+import _ from 'underscore';
+import AttachmentModal from '@components/AttachmentModal';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
+import Navigation from '@libs/Navigation/Navigation';
+import * as Report from '@libs/actions/Report';
+import * as ReportActionUtils from '@libs/ReportActionsUtils';
+import ROUTES from '@src/ROUTES';
+import lodashGet from 'lodash/get';
+import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
+import reportPropTypes from '@pages/reportPropTypes';
+import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -51,8 +52,10 @@ function getReportID(route) {
 
 function ReportAttachments(props) {
     const reportID = _.get(props, ['route', 'params', 'reportID']);
-    const source = decodeURI(_.get(props, ['route', 'params', 'source']));
-    const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+    // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+    const decodedSource = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const source = Number(decodedSource) || decodedSource;
+    const sourceID = (decodedSource.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
     const reportActionsLoadedRef = useRef(false);
 
     /** This effects handles 2x cases when report attachments are opened with deep link */
@@ -76,17 +79,26 @@ function ReportAttachments(props) {
         Report.openReport(reportID);
     }, [props.reportMetadata, reportID, sourceID]);
 
+    const onCarouselAttachmentChange = useCallback(
+        (attachment) => {
+            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
+            Navigation.navigate(route);
+        },
+        [reportID],
+    );
+
     return (
         <AttachmentModal
             allowDownload
             defaultOpen
             report={props.report}
             source={source}
-            onModalHide={() => Navigation.dismissModal()}
-            onCarouselAttachmentChange={(attachment) => {
-                const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
-                Navigation.navigate(route);
+            onModalHide={() => {
+                Navigation.dismissModal();
+                // This enables Composer refocus when the attachments modal is closed by the browser navigation
+                ComposerFocusManager.setReadyToFocus();
             }}
+            onCarouselAttachmentChange={onCarouselAttachmentChange}
         />
     );
 }

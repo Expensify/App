@@ -1,5 +1,5 @@
-import {useEffect, useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
 
 /**
  * Returns a promise that resolves when navigation finishes.

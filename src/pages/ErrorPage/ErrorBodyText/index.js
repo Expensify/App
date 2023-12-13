@@ -1,15 +1,16 @@
 import React from 'react';
-import Text from '../../../components/Text';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import TextLink from '../../../components/TextLink';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 function ErrorBodyText(props) {
+    const styles = useThemeStyles();
     return (
         <Text>
             {`${props.translate('genericErrorPage.body.helpTextMobile')} `}

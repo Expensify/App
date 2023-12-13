@@ -1,22 +1,19 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, {useMemo} from 'react';
+import stylesGenerator from './styles';
 import useTheme from './themes/useTheme';
 import ThemeStylesContext from './ThemeStylesContext';
-// TODO: Rename this to "styles" once the app is migrated to theme switching hooks and HOCs
-import {stylesGenerator as stylesUntyped} from './styles';
+import createStyleUtils from './utils';
 
-const styles = stylesUntyped;
-
-type ThemeStylesProviderProps = {
-    children: React.ReactNode;
-};
+type ThemeStylesProviderProps = React.PropsWithChildren;
 
 function ThemeStylesProvider({children}: ThemeStylesProviderProps) {
     const theme = useTheme();
 
-    const themeStyles = useMemo(() => styles(theme), [theme]);
+    const styles = useMemo(() => stylesGenerator(theme), [theme]);
+    const StyleUtils = useMemo(() => createStyleUtils(theme, styles), [theme, styles]);
+    const contextValue = useMemo(() => ({styles, StyleUtils}), [styles, StyleUtils]);
 
-    return <ThemeStylesContext.Provider value={themeStyles}>{children}</ThemeStylesContext.Provider>;
+    return <ThemeStylesContext.Provider value={contextValue}>{children}</ThemeStylesContext.Provider>;
 }
 
 ThemeStylesProvider.displayName = 'ThemeStylesProvider';

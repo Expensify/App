@@ -1,6 +1,6 @@
 import React from 'react';
 import {Linking} from 'react-native';
-import CONST from '../../CONST';
+import CONST from '@src/CONST';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
 

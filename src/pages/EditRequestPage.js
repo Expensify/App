@@ -1,35 +1,34 @@
-import React, {useEffect, useMemo} from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
+import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import ONYXKEYS from '../ONYXKEYS';
-import ROUTES from '../ROUTES';
-import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as TransactionUtils from '../libs/TransactionUtils';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import Permissions from '../libs/Permissions';
-import tagPropTypes from '../components/tagPropTypes';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import EditRequestDescriptionPage from './EditRequestDescriptionPage';
-import EditRequestMerchantPage from './EditRequestMerchantPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import categoryPropTypes from '@components/categoryPropTypes';
+import ScreenWrapper from '@components/ScreenWrapper';
+import tagPropTypes from '@components/tagPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import EditRequestAmountPage from './EditRequestAmountPage';
-import EditRequestReceiptPage from './EditRequestReceiptPage';
-import reportPropTypes from './reportPropTypes';
-import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestCategoryPage from './EditRequestCategoryPage';
+import EditRequestCreatedPage from './EditRequestCreatedPage';
+import EditRequestDescriptionPage from './EditRequestDescriptionPage';
+import EditRequestDistancePage from './EditRequestDistancePage';
+import EditRequestMerchantPage from './EditRequestMerchantPage';
+import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
-import categoryPropTypes from '../components/categoryPropTypes';
-import ScreenWrapper from '../components/ScreenWrapper';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
-import transactionPropTypes from '../components/transactionPropTypes';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -45,9 +44,6 @@ const propTypes = {
     }).isRequired,
 
     /** Onyx props */
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report object for the thread report */
     report: reportPropTypes,
 
@@ -68,7 +64,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     report: {},
     parentReport: {},
     policyCategories: {},
@@ -77,7 +72,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function EditRequestPage({betas, report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -104,10 +99,10 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
 
     // A flag for showing the categories page
-    const shouldShowCategories = isPolicyExpenseChat && Permissions.canUseCategories(betas) && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
+    const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
 
     // A flag for showing the tags page
-    const shouldShowTags = isPolicyExpenseChat && Permissions.canUseTags(betas) && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+    const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -124,11 +119,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
-        if (TransactionUtils.isDistanceRequest(transaction)) {
-            IOU.updateDistanceRequest(transaction.transactionID, report.reportID, transactionChanges);
-        } else {
-            IOU.editMoneyRequest(transaction.transactionID, report.reportID, transactionChanges);
-        }
+        IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
         Navigation.dismissModal(report.reportID);
     }
 
@@ -184,7 +175,7 @@ function EditRequestPage({betas, report, route, parentReport, policyCategories, 
                     });
                 }}
                 onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
                 }}
             />
@@ -278,9 +269,6 @@ EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
         },

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import * as AttachmentsPropTypes from '../propTypes';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 
 const attachmentViewPropTypes = {
     /** Whether source url requires authentication */

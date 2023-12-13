@@ -1,4 +1,5 @@
 import {TextStyle} from 'react-native';
+
 /**
  * Writing direction utility styles.
  * Note: writingDirection isn't supported on Android. Unicode controls are being used for Android

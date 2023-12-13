@@ -1,21 +1,23 @@
-import PropTypes from 'prop-types';
-import {useRef, useState, useEffect} from 'react';
 import Str from 'expensify-common/lib/str';
+import PropTypes from 'prop-types';
+import {useEffect, useRef, useState} from 'react';
 import _ from 'underscore';
-import * as Browser from '../../libs/Browser';
-import ROUTES from '../../ROUTES';
-import * as App from '../../libs/actions/App';
-import CONST from '../../CONST';
-import CONFIG from '../../CONFIG';
-import shouldPreventDeeplinkPrompt from '../../libs/Navigation/shouldPreventDeeplinkPrompt';
-import navigationRef from '../../libs/Navigation/navigationRef';
-import Navigation from '../../libs/Navigation/Navigation';
+import * as Browser from '@libs/Browser';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import shouldPreventDeeplinkPrompt from '@libs/Navigation/shouldPreventDeeplinkPrompt';
+import * as App from '@userActions/App';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
     /** User authentication status */
     isAuthenticated: PropTypes.bool.isRequired,
+    /** The auto authentication status */
+    autoAuthState: PropTypes.string,
 };
 
 function isMacOSWeb() {
@@ -36,7 +38,7 @@ function promptToOpenInDesktopApp() {
         App.beginDeepLinkRedirect(!isMagicLink);
     }
 }
-function DeeplinkWrapper({children, isAuthenticated}) {
+function DeeplinkWrapper({children, isAuthenticated, autoAuthState}) {
     const [currentScreen, setCurrentScreen] = useState();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef();
@@ -69,7 +71,7 @@ function DeeplinkWrapper({children, isAuthenticated}) {
             return routeRegex.test(window.location.pathname);
         });
         // Making a few checks to exit early before checking authentication status
-        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
+        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || hasShownPrompt || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED) {
             return;
         }
         // We want to show the prompt immediately if the user is already authenticated.
@@ -92,7 +94,7 @@ function DeeplinkWrapper({children, isAuthenticated}) {
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);
         }
-    }, [currentScreen, hasShownPrompt, isAuthenticated]);
+    }, [currentScreen, hasShownPrompt, isAuthenticated, autoAuthState]);
 
     return children;
 }

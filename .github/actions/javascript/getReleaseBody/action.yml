@@ -8,5 +8,5 @@ outputs:
   RELEASE_BODY:
     description: String body of a production release.
 runs:
-  using: 'node16'
+  using: 'node20'
   main: './index.js'

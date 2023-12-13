@@ -1,8 +1,8 @@
-import {StyleSheet, View, Animated} from 'react-native';
-import React from 'react';
 import PropTypes from 'prop-types';
-import Icon from '../Icon';
-import themeColors from '../../styles/themes/default';
+import React from 'react';
+import {Animated, StyleSheet, View} from 'react-native';
+import Icon from '@components/Icon';
+import useTheme from '@styles/themes/useTheme';
 
 const propTypes = {
     /** Icon to display on tab */
@@ -24,18 +24,19 @@ const defaultProps = {
 };
 
 function TabIcon({icon, activeOpacity, inactiveOpacity}) {
+    const theme = useTheme();
     return (
         <View>
             <Animated.View style={{opacity: inactiveOpacity}}>
                 <Icon
                     src={icon}
-                    fill={themeColors.icon}
+                    fill={theme.icon}
                 />
             </Animated.View>
             <Animated.View style={[StyleSheet.absoluteFill, {opacity: activeOpacity}]}>
                 <Icon
                     src={icon}
-                    fill={themeColors.iconMenu}
+                    fill={theme.iconMenu}
                 />
             </Animated.View>
         </View>
