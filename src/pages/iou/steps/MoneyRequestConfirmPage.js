@@ -4,11 +4,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import categoryPropTypes from '@components/categoryPropTypes';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import tagPropTypes from '@components/tagPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
 import useInitialValue from '@hooks/useInitialValue';
@@ -51,15 +53,9 @@ const propTypes = {
     /** The policy of the current report */
     policy: policyPropTypes,
 
-    policyTags: PropTypes.shape({
-        /** List of tags */
-        tags: PropTypes.arrayOf(PropTypes.string),
-    }),
+    policyTags: tagPropTypes,
 
-    policyCategories: PropTypes.shape({
-        /** List of categories */
-        categories: PropTypes.arrayOf(PropTypes.string),
-    }),
+    policyCategories: PropTypes.objectOf(categoryPropTypes),
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -446,14 +442,16 @@ export default compose(
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
         },
+    }),
+    withOnyx({
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
         policyCategories: {
-            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy ? policy.id : '0'}`,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`,
         },
         policyTags: {
-            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy ? policy.id : '0'}`,
+            key: ({policy}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`,
         },
     }),
 )(MoneyRequestConfirmPage);
