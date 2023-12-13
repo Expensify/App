@@ -15,7 +15,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import useStyleUtils from '@styles/useStyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -43,7 +43,6 @@ const defaultProps = {
 
 function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis}) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const emojiList = useAnimatedRef();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
@@ -158,7 +157,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
                     blurOnSubmit={filteredEmojis.length > 0}
                 />

@@ -15,7 +15,7 @@ import * as IOU from '@libs/actions/IOU';
 import * as Browser from '@libs/Browser';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +46,7 @@ const propTypes = {
     }).isRequired,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
+    selectedTab: PropTypes.oneOf(['', CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
@@ -132,7 +132,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                             defaultValue={iou.comment}
                             label={translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
                                 if (!el) {
                                     return;

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import useStyleUtils from '@styles/useStyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import BaseAutoCompleteSuggestions from './BaseAutoCompleteSuggestions';
 import type {AutoCompleteSuggestionsProps} from './types';
 
@@ -15,7 +15,6 @@ import type {AutoCompleteSuggestionsProps} from './types';
  */
 
 function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}, ...props}: AutoCompleteSuggestionsProps<TSuggestion>) {
-    const StyleUtils = useStyleUtils();
     const containerRef = React.useRef<HTMLDivElement>(null);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const [{width, left, bottom}, setContainerState] = React.useState({

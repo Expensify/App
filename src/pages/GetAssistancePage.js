@@ -45,7 +45,6 @@ const defaultProps = {
 
 function GetAssistancePage(props) {
     const styles = useThemeStyles();
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_CONTACT_METHODS);
     const menuItems = [
         {
             title: props.translate('getAssistancePage.chatWithConcierge'),
@@ -83,7 +82,7 @@ function GetAssistancePage(props) {
         <ScreenWrapper testID={GetAssistancePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
-                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             />
             <ScrollView>
                 <Section

@@ -107,7 +107,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="firstName"
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -119,7 +119,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="lastName"
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -131,7 +131,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="partnerUserID"
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />

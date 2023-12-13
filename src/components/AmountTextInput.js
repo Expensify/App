@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import refPropTypes from './refPropTypes';
@@ -28,12 +27,6 @@ const propTypes = {
     /** Function to call when selection in text input is changed */
     onSelectionChange: PropTypes.func,
 
-    /** Style for the input */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** Style for the container */
-    containerStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** Function to call to handle key presses in the text input */
     onKeyPress: PropTypes.func,
 };
@@ -43,19 +36,16 @@ const defaultProps = {
     selection: undefined,
     onSelectionChange: () => {},
     onKeyPress: () => {},
-    style: {},
-    containerStyles: {},
 };
 
 function AmountTextInput(props) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     return (
         <TextInput
             disableKeyboard
             autoGrow
             hideFocusedState
-            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, ...StyleUtils.parseStyleAsArray(props.style)]}
+            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={props.onChangeAmount}
             ref={props.forwardedRef}
@@ -65,9 +55,8 @@ function AmountTextInput(props) {
             blurOnSubmit={false}
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
-            role={CONST.ROLE.PRESENTATION}
+            role={CONST.ACCESSIBILITY_ROLE.TEXT}
             onKeyPress={props.onKeyPress}
-            containerStyles={[...StyleUtils.parseStyleAsArray(props.containerStyles)]}
         />
     );
 }

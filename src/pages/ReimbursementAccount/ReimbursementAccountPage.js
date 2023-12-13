@@ -56,8 +56,8 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    /** Indicated whether the app is loading */
-    isLoadingApp: PropTypes.bool,
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
 
     /** Holds information about the users account that is logging in */
     account: PropTypes.shape({
@@ -89,7 +89,7 @@ const defaultProps = {
     policy: {},
     plaidLinkToken: '',
     plaidCurrentEvent: '',
-    isLoadingApp: false,
+    isLoadingReportData: false,
     account: {},
     session: {
         email: null,
@@ -158,7 +158,7 @@ function getRouteForCurrentStep(currentStep) {
     }
 }
 
-function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingApp, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
+function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingReportData, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
     /**  
         The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         user left off. This view will refer to the achData as the single source of truth to determine which route to
@@ -409,7 +409,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         );
     }
 
-    const isLoading = (isLoadingApp || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
+    const isLoading = (isLoadingReportData || account.isLoading || reimbursementAccount.isLoading) && (!plaidCurrentEvent || plaidCurrentEvent === CONST.BANK_ACCOUNT.PLAID.EVENTS_NAME.EXIT);
     const shouldShowOfflineLoader = !(
         isOffline && _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
     );
@@ -565,8 +565,8 @@ export default compose(
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
         },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
         account: {
             key: ONYXKEYS.ACCOUNT,

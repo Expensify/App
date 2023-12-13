@@ -16,8 +16,8 @@ import withLocalize from '@components/withLocalize';
 import * as Browser from '@libs/Browser';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import useNativeDriver from '@libs/useNativeDriver';
+import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -26,7 +26,6 @@ import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 function BaseTextInput(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const initialValue = props.value || props.defaultValue || '';
     const initialActiveLabel = props.forceActiveLabel || initialValue.length > 0 || Boolean(props.prefixCharacter);
 
@@ -262,7 +261,6 @@ function BaseTextInput(props) {
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
-                        ...props.containerStyles,
                     ]}
                 >
                     <View
@@ -335,7 +333,7 @@ function BaseTextInput(props) {
                                     !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    ...(props.autoGrowHeight ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, maxHeight), styles.verticalAlignTop] : []),
+                                    ...(props.autoGrowHeight ? [StyleUtils.getAutoGrowHeightInputStyle(styles, textInputHeight, maxHeight), styles.verticalAlignTop] : []),
 
                                     // Add disabled color theme when field is not editable.
                                     props.disabled && styles.textInputDisabled,

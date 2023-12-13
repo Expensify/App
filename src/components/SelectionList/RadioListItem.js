@@ -1,38 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@styles/useThemeStyles';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
-function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}) {
+function RadioListItem({item, isFocused = false}) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.flex1, styles.alignItemsStart]}>
-            <Tooltip
-                shouldRender={showTooltip}
-                text={item.text}
-            >
-                <Text
-                    style={textStyles}
-                    numberOfLines={1}
-                >
-                    {item.text}
-                </Text>
-            </Tooltip>
+            <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold]}>{item.text}</Text>
 
             {Boolean(item.alternateText) && (
-                <Tooltip
-                    shouldRender={showTooltip}
-                    text={item.alternateText}
-                >
-                    <Text
-                        style={alternateTextStyles}
-                        numberOfLines={1}
-                    >
-                        {item.alternateText}
-                    </Text>
-                </Tooltip>
+                <Text style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>{item.alternateText}</Text>
             )}
         </View>
     );

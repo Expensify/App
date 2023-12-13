@@ -3,19 +3,12 @@ import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 import PersonalDetails from './PersonalDetails';
 
-type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
-
-type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
-
-type Note = {
-    note: string;
-    errors?: OnyxCommon.Errors;
-    pendingAction?: OnyxCommon.PendingAction;
-};
-
 type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+
+    /** Whether there is an outstanding amount in IOU */
+    hasOutstandingIOU?: boolean;
 
     /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
     hasOutstandingChildRequest?: boolean;
@@ -54,7 +47,7 @@ type Report = {
     lastMentionedTime?: string | null;
 
     /** The current user's notification preference for this report */
-    notificationPreference?: NotificationPreference;
+    notificationPreference?: string | number;
 
     /** The policy name to use */
     policyName?: string | null;
@@ -70,6 +63,9 @@ type Report = {
 
     /** Whether the parent action was deleted */
     isDeletedParentAction?: boolean;
+
+    /** PayPalMe address of the submitter */
+    submitterPayPalMeAddress?: string;
 
     /** Linked policy's ID */
     policyID?: string;
@@ -93,7 +89,7 @@ type Report = {
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
 
     /** Which user role is capable of posting messages on the report */
-    writeCapability?: WriteCapability;
+    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
 
     /** The report type */
     type?: string;
@@ -140,9 +136,6 @@ type Report = {
     /** Total amount of money owed for IOU report */
     iouReportAmount?: number;
 
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
-
     /** Pending fields for the report */
     pendingFields?: Record<string, OnyxCommon.PendingAction>;
 
@@ -155,10 +148,7 @@ type Report = {
     isChatRoom?: boolean;
     participantsList?: Array<Partial<PersonalDetails>>;
     text?: string;
-    privateNotes?: Record<number, Note>;
-    isLoadingPrivateNotes?: boolean;
+    privateNotes?: Record<string, {note: string}>;
 };
 
 export default Report;
-
-export type {NotificationPreference, WriteCapability};

@@ -77,6 +77,9 @@ function WorkspaceInvitePage(props) {
     };
 
     useEffect(() => {
+        if (!SearchInputManager.searchInput) {
+            return;
+        }
         setSearchTerm(SearchInputManager.searchInput);
     }, []);
 

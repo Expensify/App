@@ -2,23 +2,6 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import * as OnyxCommon from './OnyxCommon';
 
-type Unit = 'mi' | 'km';
-
-type Rate = {
-    name: string;
-    rate: number;
-    currency: string;
-};
-
-type CustomUnit = {
-    customUnitID?: string;
-    name?: string;
-    attributes: {
-        unit: Unit;
-    };
-    rates?: Record<string, Rate>;
-};
-
 type Policy = {
     /** The ID of the policy */
     id: string;
@@ -60,7 +43,7 @@ type Policy = {
     lastModified?: string;
 
     /** The custom units data for this policy */
-    customUnits?: Record<string, CustomUnit>;
+    customUnits?: Record<string, unknown>;
 
     /** Whether chat rooms can be created and used on this policy. Enabled manually by CQ/JS snippet. Always true for free policies. */
     areChatRoomsEnabled: boolean;
@@ -79,5 +62,3 @@ type Policy = {
 };
 
 export default Policy;
-
-export type {Unit};

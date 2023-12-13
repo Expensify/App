@@ -8,7 +8,6 @@ import RHPScreenOptions from '@libs/Navigation/AppNavigator/RHPScreenOptions';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import NAVIGATORS from '@src/NAVIGATORS';
-import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
 type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
@@ -26,99 +25,99 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SETTINGS}
+                        name="Settings"
                         component={ModalStackNavigators.SettingsModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.NEW_CHAT}
+                        name="NewChat"
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SEARCH}
+                        name="Search"
                         component={ModalStackNavigators.SearchModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.DETAILS}
+                        name="Details"
                         component={ModalStackNavigators.DetailsModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.PROFILE}
+                        name="Profile"
                         component={ModalStackNavigators.ProfileModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
+                        name="Report_Details"
                         component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}
+                        name="Report_Settings"
                         component={ModalStackNavigators.ReportSettingsModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE}
+                        name="Report_WelcomeMessage"
                         component={ModalStackNavigators.ReportWelcomeMessageModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
+                        name="Participants"
                         component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ROOM_MEMBERS}
+                        name="RoomMembers"
                         component={ModalStackNavigators.RoomMembersModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ROOM_INVITE}
+                        name="RoomInvite"
                         component={ModalStackNavigators.RoomInviteModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.MONEY_REQUEST}
+                        name="MoneyRequest"
                         component={ModalStackNavigators.MoneyRequestModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.NEW_TASK}
+                        name="NewTask"
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
+                        name="TeachersUnite"
                         component={ModalStackNavigators.NewTeachersUniteNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.TASK_DETAILS}
+                        name="Task_Details"
                         component={ModalStackNavigators.TaskModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS}
+                        name="EnablePayments"
                         component={ModalStackNavigators.EnablePaymentsStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SPLIT_DETAILS}
+                        name="SplitDetails"
                         component={ModalStackNavigators.SplitDetailsModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT}
+                        name="AddPersonalBankAccount"
                         component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.WALLET_STATEMENT}
+                        name="Wallet_Statement"
                         component={ModalStackNavigators.WalletStatementStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.FLAG_COMMENT}
+                        name="Flag_Comment"
                         component={ModalStackNavigators.FlagCommentStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.EDIT_REQUEST}
+                        name="EditRequest"
                         component={ModalStackNavigators.EditRequestStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SIGN_IN}
+                        name="SignIn"
                         component={ModalStackNavigators.SignInModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REFERRAL}
+                        name="Referral"
                         component={ModalStackNavigators.ReferralModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
+                        name="Private_Notes"
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                     />
                 </Stack.Navigator>

@@ -71,10 +71,11 @@ type PersonalDetails = {
 
     /** Status of the current user from their personal details */
     status?: string;
-};
 
-type PersonalDetailsList = Record<string, PersonalDetails>;
+    /** PayPalMe address of the current user */
+    payPalMeAddress?: string;
+};
 
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone, PersonalDetailsList};
+export type {Timezone, SelectedTimezone};

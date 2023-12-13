@@ -45,13 +45,13 @@ const propTypes = {
     iou: iouPropTypes,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
     report: {},
     iou: iouDefaultProps,
-    selectedTab: CONST.TAB_REQUEST.MANUAL,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
 function NewRequestAmountPage({route, iou, report, selectedTab}) {

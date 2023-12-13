@@ -60,12 +60,8 @@ function BaseHTMLEngineProvider(props) {
             }),
             'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
-            'next-steps': defaultHTMLElementModels.span.extend({
-                tagName: 'next-steps',
-                mixedUAStyles: {...styles.textLabelSupporting},
-            }),
         }),
-        [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
+        [styles.colorMuted, styles.formError, styles.mb0],
     );
 
     // We need to memoize this prop to make it referentially stable.

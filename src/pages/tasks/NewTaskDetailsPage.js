@@ -94,7 +94,7 @@ function NewTaskDetailsPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
@@ -106,7 +106,7 @@ function NewTaskDetailsPage(props) {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}

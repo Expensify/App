@@ -51,7 +51,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
                         onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         accessibilityLabel={props.translate('accessibilityHints.prestyledText')}
                     >
                         <View>

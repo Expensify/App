@@ -37,7 +37,7 @@ type ThemeColors = {
     successPressed: Color;
     transparent: Color;
     signInPage: Color;
-    darkSupportingText: Color;
+    dangerSection: Color;
 
     // Additional keys
     overlay: Color;

@@ -10,7 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
-import useStyleUtils from '@styles/useStyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
@@ -41,7 +41,6 @@ const propTypes = {
 function SignInPageContent(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     return (
         <View style={[styles.flex1, styles.signInPageLeftContainer]}>

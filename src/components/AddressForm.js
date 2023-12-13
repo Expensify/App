@@ -11,8 +11,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
-import FormProvider from './Form/FormProvider';
-import InputWrapper from './Form/InputWrapper';
+import Form from './Form';
 import StatePicker from './StatePicker';
 import TextInput from './TextInput';
 
@@ -116,7 +115,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
     }, []);
 
     return (
-        <FormProvider
+        <Form
             style={[styles.flexGrow1, styles.mh5]}
             formID={formID}
             validate={validator}
@@ -125,8 +124,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             enabledWhenOffline
         >
             <View>
-                <InputWrapper
-                    InputComponent={AddressSearch}
+                <AddressSearch
                     inputID="addressLine1"
                     label={translate('common.addressLine', {lineNumber: 1})}
                     onValueChange={(data, key) => {
@@ -148,8 +146,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 />
             </View>
             <View style={styles.formSpaceVertical} />
-            <InputWrapper
-                InputComponent={TextInput}
+            <TextInput
                 inputID="addressLine2"
                 label={translate('common.addressLine', {lineNumber: 2})}
                 aria-label={translate('common.addressLine', {lineNumber: 2})}
@@ -161,8 +158,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             />
             <View style={styles.formSpaceVertical} />
             <View style={styles.mhn5}>
-                <InputWrapper
-                    InputComponent={CountrySelector}
+                <CountrySelector
                     inputID="country"
                     value={country}
                     shouldSaveDraft={shouldSaveDraft}
@@ -171,8 +167,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
             <View style={styles.formSpaceVertical} />
             {isUSAForm ? (
                 <View style={styles.mhn5}>
-                    <InputWrapper
-                        InputComponent={StatePicker}
+                    <StatePicker
                         inputID="state"
                         defaultValue={state}
                         onValueChange={onAddressChanged}
@@ -180,8 +175,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                     />
                 </View>
             ) : (
-                <InputWrapper
-                    InputComponent={TextInput}
+                <TextInput
                     inputID="state"
                     label={translate('common.stateOrProvince')}
                     aria-label={translate('common.stateOrProvince')}
@@ -194,8 +188,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 />
             )}
             <View style={styles.formSpaceVertical} />
-            <InputWrapper
-                InputComponent={TextInput}
+            <TextInput
                 inputID="city"
                 label={translate('common.city')}
                 aria-label={translate('common.city')}
@@ -207,8 +200,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 shouldSaveDraft={shouldSaveDraft}
             />
             <View style={styles.formSpaceVertical} />
-            <InputWrapper
-                InputComponent={TextInput}
+            <TextInput
                 inputID="zipPostCode"
                 label={translate('common.zipPostCode')}
                 aria-label={translate('common.zipPostCode')}
@@ -220,7 +212,7 @@ function AddressForm({city, country, formID, onAddressChanged, onSubmit, shouldS
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}
             />
-        </FormProvider>
+        </Form>
     );
 }
 

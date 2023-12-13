@@ -71,10 +71,10 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
     }
 
-    const setDraftSplitTransaction = (transactionChanges) => {
+    function setDraftSplitTransaction(transactionChanges) {
         IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
         navigateBackToSplitDetails();
-    };
+    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
@@ -93,7 +93,13 @@ function EditSplitBillPage({route, transaction, draftTransaction, report}) {
         return (
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
-                onSubmit={setDraftSplitTransaction}
+                defaultAmount={transactionAmount}
+                reportID={reportID}
+                onSubmit={(transactionChanges) => {
+                    setDraftSplitTransaction({
+                        created: transactionChanges.created,
+                    });
+                }}
             />
         );
     }

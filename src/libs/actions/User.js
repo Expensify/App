@@ -528,9 +528,8 @@ function subscribeToUserEvents() {
                 return;
             }
 
-            const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON);
-            });
+            const onyxUpdatePromise = Onyx.update(pushJSON);
+            triggerNotifications(pushJSON);
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
@@ -859,7 +858,7 @@ function updateDraftCustomStatus(status) {
  *
  */
 function clearDraftCustomStatus() {
-    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: '', customDateTemporary: ''});
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
 export {

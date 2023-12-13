@@ -7,7 +7,6 @@ import useThemeStyles from '@styles/useThemeStyles';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
@@ -24,7 +23,7 @@ const propTypes = {
     inputID: PropTypes.string.isRequired,
 
     /** React ref being forwarded to the MenuItemWithTopDescription */
-    forwardedRef: refPropTypes,
+    forwardedRef: PropTypes.func,
 };
 
 const defaultProps = {

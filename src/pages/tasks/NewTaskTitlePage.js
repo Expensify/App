@@ -83,7 +83,7 @@ function NewTaskTitlePage(props) {
                 <View style={styles.mb5}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
                         ref={inputCallbackRef}
                         inputID="taskTitle"

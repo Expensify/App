@@ -2,7 +2,7 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import ThemeContext from './ThemeContext';
-import themes from './themes';
+import Themes from './Themes';
 import {ThemePreferenceWithoutSystem} from './types';
 import useThemePreferenceWithStaticOverride from './useThemePreferenceWithStaticOverride';
 
@@ -18,7 +18,7 @@ type ThemeProviderProps = React.PropsWithChildren & {
 function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderProps) {
     const themePreference = useThemePreferenceWithStaticOverride(staticThemePreference);
 
-    const theme = useMemo(() => themes[themePreference], [themePreference]);
+    const theme = useMemo(() => Themes[themePreference], [themePreference]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }

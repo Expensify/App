@@ -99,7 +99,7 @@ function ReportActionsListWrapper() {
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-test('[ReportActionsList] should render ReportActionsList with 500 reportActions stored', () => {
+test('should render ReportActionsList with 500 reportActions stored', () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
@@ -116,7 +116,7 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
         .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario, runs}));
 });
 
-test('[ReportActionsList] should scroll and click some of the reports', () => {
+test('should scroll and click some of the reports', () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {

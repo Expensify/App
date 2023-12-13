@@ -76,7 +76,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         <View style={styles.googlePillButtonContainer}>
             <div
                 id={desktopId}
-                role={CONST.ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
             />
         </View>
@@ -84,7 +84,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
             <div
                 id={mainId}
-                role={CONST.ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
             />
         </View>

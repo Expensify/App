@@ -3,7 +3,7 @@ import {GestureResponderEvent} from 'react-native';
 import {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import useStyleUtils from '@styles/useStyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import PressableWithSecondaryInteractionProps from './types';
 
@@ -24,7 +24,6 @@ function PressableWithSecondaryInteraction(
     ref: PressableRef,
 ) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {

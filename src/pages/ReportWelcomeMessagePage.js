@@ -15,7 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -101,7 +101,7 @@ function ReportWelcomeMessagePage(props) {
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el) => {

@@ -1,10 +1,10 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList, Report} from '@src/types/onyx';
+import {PersonalDetails, Report} from '@src/types/onyx';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportUtils from './ReportUtils';
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),

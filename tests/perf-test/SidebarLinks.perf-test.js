@@ -51,7 +51,7 @@ const mockedResponseMap = getMockedReportsMap(500);
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-test('[SidebarLinks] should render Sidebar with 500 reports stored', () => {
+test('should render Sidebar with 500 reports stored', () => {
     const scenario = async () => {
         // Query for the sidebar
         await screen.findByTestId('lhn-options-list');
@@ -76,7 +76,7 @@ test('[SidebarLinks] should render Sidebar with 500 reports stored', () => {
         .then(() => measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs}));
 });
 
-test('[SidebarLinks] should scroll and click some of the items', () => {
+test('should scroll and click some of the items', () => {
     const scenario = async () => {
         const eventData = {
             nativeEvent: {

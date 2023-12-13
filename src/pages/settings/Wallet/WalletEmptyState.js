@@ -36,7 +36,7 @@ function WalletEmptyState({onAddPaymentMethod}) {
     const {translate} = useLocalize();
     return (
         <IllustratedHeaderPageLayout
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET.ROOT].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WALLET].backgroundColor}
             illustration={LottieAnimations.FastMoney}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             title={translate('common.wallet')}

@@ -1,6 +1,5 @@
 import React, {ForwardedRef, forwardRef} from 'react';
 import {Text as RNText} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 import useThemeStyles from '@styles/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import RadioButtons, {Choice} from './RadioButtons';
@@ -8,7 +7,7 @@ import Text from './Text';
 
 type SingleChoiceQuestionProps = {
     prompt: string;
-    errorText?: MaybePhraseKey;
+    errorText?: string | string[];
     possibleAnswers: Choice[];
     currentQuestionIndex: number;
     onInputChange: (value: string) => void;

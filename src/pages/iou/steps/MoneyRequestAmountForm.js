@@ -38,7 +38,7 @@ const propTypes = {
     onSubmitButtonPress: PropTypes.func.isRequired,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
+    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]),
 };
 
 const defaultProps = {
@@ -46,7 +46,7 @@ const defaultProps = {
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
-    selectedTab: CONST.TAB_REQUEST.MANUAL,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
 /**
@@ -123,9 +123,9 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
         initializeAmount(amount);
-        // we want to re-initialize the state only when the selected tab changes
+        // we want to update the state only when the amount is changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab]);
+    }, [amount]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input

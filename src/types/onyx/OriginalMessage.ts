@@ -45,7 +45,6 @@ type IOUMessage = {
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
-
 type OriginalMessageIOU = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
     originalMessage: IOUMessage;
@@ -70,7 +69,7 @@ type DecisionName = ValueOf<
 >;
 type Decision = {
     decision: DecisionName;
-    timestamp?: string;
+    timestamp: string;
 };
 
 type User = {
@@ -106,7 +105,6 @@ type OriginalMessageAddComment = {
         reactions?: Reaction[];
     };
 };
-
 type OriginalMessageSubmitted = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
     originalMessage: unknown;
@@ -119,7 +117,7 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
-    originalMessage?: unknown;
+    originalMessage: unknown;
 };
 
 type OriginalMessageRenamed = {
@@ -142,7 +140,6 @@ type ChronosOOOTimestamp = {
 type ChangeLog = {
     targetAccountIDs?: number[];
     roomName?: string;
-    reportID?: number;
 };
 
 type ChronosOOOEvent = {
@@ -186,8 +183,7 @@ type OriginalMessagePolicyTask = {
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKEDITED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
-        | typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED;
     originalMessage: unknown;
 };
 
@@ -235,4 +231,4 @@ type OriginalMessage =
     | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog, OriginalMessageIOU, OriginalMessageCreated};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog};

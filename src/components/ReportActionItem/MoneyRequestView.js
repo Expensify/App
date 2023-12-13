@@ -32,8 +32,8 @@ import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateB
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -82,7 +82,6 @@ const defaultProps = {
 function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
@@ -147,9 +146,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (ReportUtils.isReportApproved(report)) {
-            amountDescription += ` • ${translate('iou.approved')}`;
-        } else if (isCancelled) {
+        if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
         } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;

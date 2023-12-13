@@ -59,7 +59,7 @@ const policyPropTypes = {
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyMembers: OnyxEntry<OnyxTypes.PolicyMembers>;
+    policyMembers: OnyxEntry<OnyxTypes.PolicyMember>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
     policyMembersDraft: OnyxEntry<OnyxTypes.PolicyMember>;
 };

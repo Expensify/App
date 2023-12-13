@@ -123,7 +123,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 ref={textInputRef}
                 label={translate('common.password')}
                 accessibilityLabel={translate('common.password')}
-                role={CONST.ROLE.PRESENTATION}
+                role={CONST.ACCESSIBILITY_ROLE.TEXT}
                 /**
                  * This is a workaround to bypass Safari's autofill odd behaviour.
                  * This tricks the browser not to fill the username somewhere else and still fill the password correctly.

@@ -159,7 +159,6 @@ function ProfilePage(props) {
                             <AttachmentModal
                                 headerTitle={displayName}
                                 source={UserUtils.getFullSizeAvatar(avatar, accountID)}
-                                isAuthTokenRequired
                                 originalFileName={originalFileName}
                                 fallbackSource={fallbackIcon}
                             >
@@ -168,7 +167,7 @@ function ProfilePage(props) {
                                         style={[styles.noOutline]}
                                         onPress={show}
                                         accessibilityLabel={props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar

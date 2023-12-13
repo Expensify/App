@@ -122,7 +122,7 @@ function MoneyRequestAction({
     if (
         !_.isEmpty(iouReport) &&
         !_.isEmpty(reportActions) &&
-        chatReport.iouReportID &&
+        chatReport.hasOutstandingIOU &&
         isMostRecentIOUReportAction &&
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         network.isOffline

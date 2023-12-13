@@ -45,7 +45,7 @@ Onyx.connect({
 });
 
 function resetDidUserLogInDuringSession() {
-    loggedInDuringSession = true;
+    loggedInDuringSession = undefined;
 }
 
 function didUserLogInDuringSession() {

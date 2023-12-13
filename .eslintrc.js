@@ -174,7 +174,6 @@ module.exports = {
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',
                 'react/require-default-props': 'off',
-                'react/prop-types': 'off',
                 'no-restricted-syntax': [
                     'error',
                     {

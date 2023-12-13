@@ -1,10 +1,8 @@
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as OnyxCommon from './OnyxCommon';
 import OriginalMessage, {Decision, Reaction} from './OriginalMessage';
-import {NotificationPreference} from './Report';
 import {Receipt} from './Transaction';
 
 type Message = {
@@ -54,37 +52,6 @@ type Message = {
     taskReportID?: string;
 };
 
-type ImageMetadata = {
-    /**  The height of the image. */
-    height?: number;
-
-    /**  The width of the image. */
-    width?: number;
-
-    /**  The URL of the image. */
-    url?: string;
-};
-
-type LinkMetadata = {
-    /**  The URL of the link. */
-    url?: string;
-
-    /**  A description of the link. */
-    description?: string;
-
-    /**  The title of the link. */
-    title?: string;
-
-    /**  The publisher of the link. */
-    publisher?: string;
-
-    /**  The image associated with the link. */
-    image?: ImageMetadata;
-
-    /**  The provider logo associated with the link. */
-    logo?: ImageMetadata;
-};
-
 type Person = {
     type?: string;
     style?: string;
@@ -111,9 +78,6 @@ type ReportActionBase = {
 
     /** report action message */
     message?: Message[];
-
-    /** report action message */
-    previousMessage?: Message[];
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -157,8 +121,8 @@ type ReportActionBase = {
     childMoneyRequestCount?: number;
     isFirstItem?: boolean;
 
-    /** Informations about attachments of report action */
-    attachmentInfo?: File | EmptyObject;
+    /** Information about attachments of report action */
+    attachmentInfo?: (File & {source: string; uri: string}) | Record<string, never>;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -166,27 +130,15 @@ type ReportActionBase = {
     /** ISO-formatted datetime */
     lastModified?: string;
 
-    /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
     delegateAccountID?: string;
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;
 
-    /** Whether the report action is attachment */
     isAttachment?: boolean;
-
-    /** Recent receipt transaction IDs keyed by reportID */
     childRecentReceiptTransactionIDs?: Record<string, string>;
-
-    /** ReportID of the report action */
     reportID?: string;
-
-    /** Metadata of the link */
-    linkMetadata?: LinkMetadata[];
-
-    /** The current user's notification preference for this report's child */
-    childReportNotificationPreference?: NotificationPreference;
 
     /** We manually add this field while sorting to detect the end of the list */
     isNewestReportAction?: boolean;
@@ -197,4 +149,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message};
+export type {Message, ReportActions};

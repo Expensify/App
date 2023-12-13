@@ -7,15 +7,7 @@ import SCREENS from '@src/SCREENS';
 import {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
-    prefixes: [
-        'app://-/',
-        'new-expensify://',
-        'https://www.expensify.cash',
-        'https://staging.expensify.cash',
-        'https://dev.new.expensify.com',
-        CONST.NEW_EXPENSIFY_URL,
-        CONST.STAGING_NEW_EXPENSIFY_URL,
-    ],
+    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -47,7 +39,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
 
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
-                    [SCREENS.RIGHT_MODAL.SETTINGS]: {
+                    Settings: {
                         screens: {
                             [SCREENS.SETTINGS.ROOT]: {
                                 path: ROUTES.SETTINGS,
@@ -56,23 +48,23 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                            [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
+                            Settings_Preferences_PriorityMode: {
                                 path: ROUTES.SETTINGS_PRIORITY_MODE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: {
+                            Settings_Preferences_Language: {
                                 path: ROUTES.SETTINGS_LANGUAGE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PREFERENCES.THEME]: {
+                            Settings_Preferences_Theme: {
                                 path: ROUTES.SETTINGS_THEME,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.CLOSE]: {
+                            Settings_Close: {
                                 path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
@@ -80,242 +72,237 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.ROOT]: {
+                            Settings_Wallet: {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
+                            Settings_Wallet_DomainCard: {
                                 path: ROUTES.SETTINGS_WALLET_DOMAINCARD.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
+                            Settings_Wallet_ReportVirtualCardFraud: {
                                 path: ROUTES.SETTINGS_REPORT_FRAUD.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
+                            [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
+                            Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
+                            Settings_Wallet_Transfer_Balance: {
                                 path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: {
+                            Settings_Wallet_Choose_Transfer_Account: {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
+                            Settings_ReportCardLostOrDamaged: {
                                 path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
+                            Settings_Wallet_Card_Activate: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: {
+                            Settings_Wallet_Cards_Digital_Details_Update_Address: {
                                 path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.ADD_DEBIT_CARD]: {
+                            Settings_Add_Debit_Card: {
                                 path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
+                            Settings_Add_Bank_Account: {
                                 path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                            Settings_Profile: {
                                 path: ROUTES.SETTINGS_PROFILE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
+                            Settings_Pronouns: {
                                 path: ROUTES.SETTINGS_PRONOUNS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: {
+                            Settings_Display_Name: {
                                 path: ROUTES.SETTINGS_DISPLAY_NAME,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.TIMEZONE]: {
+                            Settings_Timezone: {
                                 path: ROUTES.SETTINGS_TIMEZONE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: {
+                            Settings_Timezone_Select: {
                                 path: ROUTES.SETTINGS_TIMEZONE_SELECT,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.ABOUT]: {
+                            Settings_About: {
                                 path: ROUTES.SETTINGS_ABOUT,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
+                            Settings_App_Download_Links: {
                                 path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: {
+                            Settings_ContactMethods: {
                                 path: ROUTES.SETTINGS_CONTACT_METHODS.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
+                            Settings_ContactMethodDetails: {
                                 path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
                             },
-                            [SCREENS.SETTINGS.LOUNGE_ACCESS]: {
+                            Settings_Lounge_Access: {
                                 path: ROUTES.SETTINGS_LOUNGE_ACCESS,
                             },
-                            [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
+                            Settings_NewContactMethod: {
                                 path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: {
+                            Settings_PersonalDetails_Initial: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: {
+                            Settings_PersonalDetails_LegalName: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_LEGAL_NAME,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: {
+                            Settings_PersonalDetails_DateOfBirth: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: {
+                            Settings_PersonalDetails_Address: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: {
+                            Settings_PersonalDetails_Address_Country: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
+                            Settings_TwoFactorAuth: {
                                 path: ROUTES.SETTINGS_2FA.route,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.SHARE_CODE]: {
+                            Settings_Share_Code: {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.STATUS]: {
+                            [SCREENS.SETTINGS.STATUS]: {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: {
-                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER,
+                            Settings_Status_Set: {
+                                path: ROUTES.SETTINGS_STATUS_SET,
+                                exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: {
-                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE,
-                            },
-                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
-                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
-                            },
-                            [SCREENS.WORKSPACE.INITIAL]: {
+                            Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL.route,
                             },
-                            [SCREENS.WORKSPACE.SETTINGS]: {
+                            Workspace_Settings: {
                                 path: ROUTES.WORKSPACE_SETTINGS.route,
                             },
-                            [SCREENS.WORKSPACE.CURRENCY]: {
+                            Workspace_Settings_Currency: {
                                 path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
                             },
-                            [SCREENS.WORKSPACE.CARD]: {
+                            Workspace_Card: {
                                 path: ROUTES.WORKSPACE_CARD.route,
                             },
-                            [SCREENS.WORKSPACE.REIMBURSE]: {
+                            Workspace_Reimburse: {
                                 path: ROUTES.WORKSPACE_REIMBURSE.route,
                             },
-                            [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
+                            Workspace_RateAndUnit: {
                                 path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
                             },
-                            [SCREENS.WORKSPACE.BILLS]: {
+                            Workspace_Bills: {
                                 path: ROUTES.WORKSPACE_BILLS.route,
                             },
-                            [SCREENS.WORKSPACE.INVOICES]: {
+                            Workspace_Invoices: {
                                 path: ROUTES.WORKSPACE_INVOICES.route,
                             },
-                            [SCREENS.WORKSPACE.TRAVEL]: {
+                            Workspace_Travel: {
                                 path: ROUTES.WORKSPACE_TRAVEL.route,
                             },
-                            [SCREENS.WORKSPACE.MEMBERS]: {
+                            Workspace_Members: {
                                 path: ROUTES.WORKSPACE_MEMBERS.route,
                             },
-                            [SCREENS.WORKSPACE.INVITE]: {
+                            Workspace_Invite: {
                                 path: ROUTES.WORKSPACE_INVITE.route,
                             },
-                            [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
+                            Workspace_Invite_Message: {
                                 path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
                             },
-                            [SCREENS.REIMBURSEMENT_ACCOUNT]: {
+                            ReimbursementAccount: {
                                 path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                                 exact: true,
                             },
-                            [SCREENS.GET_ASSISTANCE]: {
+                            GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE.route,
                             },
-                            [SCREENS.KEYBOARD_SHORTCUTS]: {
+                            KeyboardShortcuts: {
                                 path: ROUTES.KEYBOARD_SHORTCUTS,
                             },
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
+                    Private_Notes: {
                         screens: {
-                            [SCREENS.PRIVATE_NOTES.VIEW]: ROUTES.PRIVATE_NOTES_VIEW.route,
-                            [SCREENS.PRIVATE_NOTES.LIST]: ROUTES.PRIVATE_NOTES_LIST.route,
-                            [SCREENS.PRIVATE_NOTES.EDIT]: ROUTES.PRIVATE_NOTES_EDIT.route,
+                            PrivateNotes_View: ROUTES.PRIVATE_NOTES_VIEW.route,
+                            PrivateNotes_List: ROUTES.PRIVATE_NOTES_LIST.route,
+                            PrivateNotes_Edit: ROUTES.PRIVATE_NOTES_EDIT.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
+                    Report_Details: {
                         screens: {
-                            [SCREENS.REPORT_DETAILS.ROOT]: ROUTES.REPORT_WITH_ID_DETAILS.route,
-                            [SCREENS.REPORT_DETAILS.SHARE_CODE]: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
+                            Report_Details_Root: ROUTES.REPORT_WITH_ID_DETAILS.route,
+                            Report_Details_Share_Code: ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: {
+                    Report_Settings: {
                         screens: {
-                            [SCREENS.REPORT_SETTINGS.ROOT]: {
+                            Report_Settings_Root: {
                                 path: ROUTES.REPORT_SETTINGS.route,
                             },
-                            [SCREENS.REPORT_SETTINGS.ROOM_NAME]: {
+                            Report_Settings_Room_Name: {
                                 path: ROUTES.REPORT_SETTINGS_ROOM_NAME.route,
                             },
-                            [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
+                            Report_Settings_Notification_Preferences: {
                                 path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
                             },
-                            [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {
+                            Report_Settings_Write_Capability: {
                                 path: ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.route,
                             },
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.REPORT_WELCOME_MESSAGE]: {
+                    Report_WelcomeMessage: {
                         screens: {
-                            [SCREENS.REPORT_WELCOME_MESSAGE_ROOT]: ROUTES.REPORT_WELCOME_MESSAGE.route,
+                            Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.NEW_CHAT]: {
+                    NewChat: {
                         screens: {
-                            [SCREENS.NEW_CHAT.ROOT]: {
+                            NewChat_Root: {
                                 path: ROUTES.NEW,
                                 exact: true,
                                 screens: {
-                                    [SCREENS.NEW_CHAT.NEW_CHAT]: {
+                                    chat: {
                                         path: ROUTES.NEW_CHAT,
                                         exact: true,
                                     },
-                                    [SCREENS.NEW_CHAT.NEW_ROOM]: {
+                                    room: {
                                         path: ROUTES.NEW_ROOM,
                                         exact: true,
                                     },
@@ -323,170 +310,140 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.NEW_TASK]: {
+                    NewTask: {
                         screens: {
-                            [SCREENS.NEW_TASK.ROOT]: ROUTES.NEW_TASK,
-                            [SCREENS.NEW_TASK.TASK_ASSIGNEE_SELECTOR]: ROUTES.NEW_TASK_ASSIGNEE,
-                            [SCREENS.NEW_TASK.TASK_SHARE_DESTINATION_SELECTOR]: ROUTES.NEW_TASK_SHARE_DESTINATION,
-                            [SCREENS.NEW_TASK.DETAILS]: ROUTES.NEW_TASK_DETAILS,
-                            [SCREENS.NEW_TASK.TITLE]: ROUTES.NEW_TASK_TITLE,
-                            [SCREENS.NEW_TASK.DESCRIPTION]: ROUTES.NEW_TASK_DESCRIPTION,
+                            NewTask_Root: ROUTES.NEW_TASK,
+                            NewTask_TaskAssigneeSelector: ROUTES.NEW_TASK_ASSIGNEE,
+                            NewTask_TaskShareDestinationSelector: ROUTES.NEW_TASK_SHARE_DESTINATION,
+                            NewTask_Details: ROUTES.NEW_TASK_DETAILS,
+                            NewTask_Title: ROUTES.NEW_TASK_TITLE,
+                            NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: {
+                    TeachersUnite: {
                         screens: {
                             [SCREENS.SAVE_THE_WORLD.ROOT]: ROUTES.TEACHERS_UNITE,
-                            [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
-                            [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
-                            [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
+                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
+                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
+                            I_Am_A_Teacher: ROUTES.I_AM_A_TEACHER,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.SEARCH]: {
+                    Search: {
                         screens: {
-                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
+                            Search_Root: ROUTES.SEARCH,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.DETAILS]: {
+                    Details: {
                         screens: {
-                            [SCREENS.DETAILS_ROOT]: ROUTES.DETAILS.route,
+                            Details_Root: ROUTES.DETAILS.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.PROFILE]: {
+                    Profile: {
                         screens: {
-                            [SCREENS.PROFILE_ROOT]: ROUTES.PROFILE.route,
+                            Profile_Root: ROUTES.PROFILE.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {
+                    Participants: {
                         screens: {
-                            [SCREENS.REPORT_PARTICIPANTS_ROOT]: ROUTES.REPORT_PARTICIPANTS.route,
+                            ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.ROOM_INVITE]: {
+                    RoomInvite: {
                         screens: {
-                            [SCREENS.ROOM_INVITE_ROOT]: ROUTES.ROOM_INVITE.route,
+                            RoomInvite_Root: ROUTES.ROOM_INVITE.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: {
+                    RoomMembers: {
                         screens: {
-                            [SCREENS.ROOM_MEMBERS_ROOT]: ROUTES.ROOM_MEMBERS.route,
+                            RoomMembers_Root: ROUTES.ROOM_MEMBERS.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
+                    MoneyRequest: {
                         screens: {
-                            [SCREENS.MONEY_REQUEST.CREATE]: {
-                                path: ROUTES.MONEY_REQUEST_CREATE.route,
-                                exact: true,
-                                screens: {
-                                    distance: {
-                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
-                                        exact: true,
-                                    },
-                                    manual: {
-                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
-                                        exact: true,
-                                    },
-                                    scan: {
-                                        path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
-                                        exact: true,
-                                    },
-                                },
-                            },
-                            [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
-                            [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
-                            [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
-                            [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: ROUTES.MONEY_REQUEST_STEP_CURRENCY.route,
-                            [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
-                            [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
-                            [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
-                            [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
-                            [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
-                            [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
-                            [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
-                            [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
-                            [SCREENS.MONEY_REQUEST.ROOT]: {
+                            Money_Request: {
                                 path: ROUTES.MONEY_REQUEST.route,
                                 exact: true,
                                 screens: {
-                                    [SCREENS.MONEY_REQUEST.MANUAL_TAB]: {
+                                    manual: {
                                         path: ROUTES.MONEY_REQUEST_MANUAL_TAB,
                                         exact: true,
                                     },
-                                    [SCREENS.MONEY_REQUEST.SCAN_TAB]: {
+                                    scan: {
                                         path: ROUTES.MONEY_REQUEST_SCAN_TAB,
                                         exact: true,
                                     },
-                                    [SCREENS.MONEY_REQUEST.DISTANCE_TAB]: {
+                                    distance: {
                                         path: ROUTES.MONEY_REQUEST_DISTANCE_TAB.route,
                                         exact: true,
                                     },
                                 },
                             },
-                            [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
-                            [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
-                            [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
-                            [SCREENS.MONEY_REQUEST.DATE]: ROUTES.MONEY_REQUEST_DATE.route,
-                            [SCREENS.MONEY_REQUEST.CURRENCY]: ROUTES.MONEY_REQUEST_CURRENCY.route,
-                            [SCREENS.MONEY_REQUEST.DESCRIPTION]: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
-                            [SCREENS.MONEY_REQUEST.CATEGORY]: ROUTES.MONEY_REQUEST_CATEGORY.route,
-                            [SCREENS.MONEY_REQUEST.TAG]: ROUTES.MONEY_REQUEST_TAG.route,
-                            [SCREENS.MONEY_REQUEST.MERCHANT]: ROUTES.MONEY_REQUEST_MERCHANT.route,
-                            [SCREENS.MONEY_REQUEST.WAYPOINT]: ROUTES.MONEY_REQUEST_WAYPOINT.route,
-                            [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
-                            [SCREENS.MONEY_REQUEST.RECEIPT]: ROUTES.MONEY_REQUEST_RECEIPT.route,
-                            [SCREENS.MONEY_REQUEST.DISTANCE]: ROUTES.MONEY_REQUEST_DISTANCE.route,
-                            [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
-                            [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
-                            [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
+                            Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT.route,
+                            Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
+                            Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
+                            Money_Request_Date: ROUTES.MONEY_REQUEST_DATE.route,
+                            Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY.route,
+                            Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION.route,
+                            Money_Request_Category: ROUTES.MONEY_REQUEST_CATEGORY.route,
+                            Money_Request_Tag: ROUTES.MONEY_REQUEST_TAG.route,
+                            Money_Request_Merchant: ROUTES.MONEY_REQUEST_MERCHANT.route,
+                            Money_Request_Waypoint: ROUTES.MONEY_REQUEST_WAYPOINT.route,
+                            Money_Request_Edit_Waypoint: ROUTES.MONEY_REQUEST_EDIT_WAYPOINT.route,
+                            Money_Request_Receipt: ROUTES.MONEY_REQUEST_RECEIPT.route,
+                            Money_Request_Distance: ROUTES.MONEY_REQUEST_DISTANCE.route,
+                            IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
+                            IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
+                            IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
+                    SplitDetails: {
                         screens: {
-                            [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
-                            [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: ROUTES.EDIT_SPLIT_BILL.route,
-                            [SCREENS.SPLIT_DETAILS.EDIT_CURRENCY]: ROUTES.EDIT_SPLIT_BILL_CURRENCY.route,
+                            SplitDetails_Root: ROUTES.SPLIT_BILL_DETAILS.route,
+                            SplitDetails_Edit_Request: ROUTES.EDIT_SPLIT_BILL.route,
+                            SplitDetails_Edit_Currency: ROUTES.EDIT_SPLIT_BILL_CURRENCY.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.TASK_DETAILS]: {
+                    Task_Details: {
                         screens: {
-                            [SCREENS.TASK.TITLE]: ROUTES.TASK_TITLE.route,
-                            [SCREENS.TASK.DESCRIPTION]: ROUTES.TASK_DESCRIPTION.route,
-                            [SCREENS.TASK.ASSIGNEE]: ROUTES.TASK_ASSIGNEE.route,
+                            Task_Title: ROUTES.TASK_TITLE.route,
+                            Task_Description: ROUTES.TASK_DESCRIPTION.route,
+                            Task_Assignee: ROUTES.TASK_ASSIGNEE.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT]: {
+                    AddPersonalBankAccount: {
                         screens: {
-                            [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: ROUTES.BANK_ACCOUNT_PERSONAL,
+                            AddPersonalBankAccount_Root: ROUTES.BANK_ACCOUNT_PERSONAL,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: {
+                    EnablePayments: {
                         screens: {
-                            [SCREENS.ENABLE_PAYMENTS_ROOT]: ROUTES.ENABLE_PAYMENTS,
+                            EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.WALLET_STATEMENT]: {
+                    Wallet_Statement: {
                         screens: {
-                            [SCREENS.WALLET_STATEMENT_ROOT]: ROUTES.WALLET_STATEMENT_WITH_DATE,
+                            WalletStatement_Root: ROUTES.WALLET_STATEMENT_WITH_DATE,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.FLAG_COMMENT]: {
+                    Flag_Comment: {
                         screens: {
-                            [SCREENS.FLAG_COMMENT_ROOT]: ROUTES.FLAG_COMMENT.route,
+                            FlagComment_Root: ROUTES.FLAG_COMMENT.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {
+                    EditRequest: {
                         screens: {
-                            [SCREENS.EDIT_REQUEST.ROOT]: ROUTES.EDIT_REQUEST.route,
-                            [SCREENS.EDIT_REQUEST.CURRENCY]: ROUTES.EDIT_CURRENCY_REQUEST.route,
+                            EditRequest_Root: ROUTES.EDIT_REQUEST.route,
+                            EditRequest_Currency: ROUTES.EDIT_CURRENCY_REQUEST.route,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.SIGN_IN]: {
+                    SignIn: {
                         screens: {
-                            [SCREENS.SIGN_IN_ROOT]: ROUTES.SIGN_IN_MODAL,
+                            SignIn_Root: ROUTES.SIGN_IN_MODAL,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.REFERRAL]: {
+                    Referral: {
                         screens: {
-                            [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                            Referral_Details: ROUTES.REFERRAL_DETAILS_MODAL.route,
                         },
                     },
                 },

@@ -13,7 +13,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -73,7 +73,7 @@ function NewTaskDescriptionPage(props) {
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ROLE.PRESENTATION}
+                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => {
                                 inputCallbackRef(el);
                                 updateMultilineInputRange(el);

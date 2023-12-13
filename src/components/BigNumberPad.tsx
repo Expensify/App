@@ -15,9 +15,6 @@ type BigNumberPadProps = {
 
     /** Used to locate this view from native classes. */
     id?: string;
-
-    /** Whether long press is disabled */
-    isLongPressDisabled: boolean;
 };
 
 const padNumbers = [
@@ -27,7 +24,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ] as const;
 
-function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView', isLongPressDisabled = false}: BigNumberPadProps) {
+function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView'}: BigNumberPadProps) {
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
@@ -88,7 +85,6 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 onMouseDown={(e) => {
                                     e.preventDefault();
                                 }}
-                                isLongPressDisabled={isLongPressDisabled}
                             />
                         );
                     })}

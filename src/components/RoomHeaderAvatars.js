@@ -3,8 +3,8 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import * as UserUtils from '@libs/UserUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
@@ -24,7 +24,6 @@ const defaultProps = {
 function RoomHeaderAvatars(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     if (!props.icons.length) {
         return null;
     }
@@ -34,7 +33,6 @@ function RoomHeaderAvatars(props) {
             <AttachmentModal
                 headerTitle={props.icons[0].name}
                 source={UserUtils.getFullSizeAvatar(props.icons[0].source, props.icons[0].id)}
-                isAuthTokenRequired
                 isWorkspaceAvatar={props.icons[0].type === CONST.ICON_TYPE_WORKSPACE}
                 originalFileName={props.icons[0].name}
             >
@@ -42,7 +40,7 @@ function RoomHeaderAvatars(props) {
                     <PressableWithoutFocus
                         style={[styles.noOutline]}
                         onPress={show}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={props.icons[0].name}
                     >
                         <Avatar
@@ -66,7 +64,7 @@ function RoomHeaderAvatars(props) {
         styles.roomHeaderAvatar,
 
         // Due to border-box box-sizing, the Avatars have to be larger when bordered to visually match size with non-bordered Avatars
-        StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
+        StyleUtils.getAvatarStyle(theme, CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
         <View style={styles.pointerEventsBoxNone}>
@@ -79,7 +77,6 @@ function RoomHeaderAvatars(props) {
                         <AttachmentModal
                             headerTitle={icon.name}
                             source={UserUtils.getFullSizeAvatar(icon.source, icon.id)}
-                            isAuthTokenRequired
                             originalFileName={icon.name}
                             isWorkspaceAvatar={icon.type === CONST.ICON_TYPE_WORKSPACE}
                         >
@@ -87,7 +84,7 @@ function RoomHeaderAvatars(props) {
                                 <PressableWithoutFocus
                                     style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                     onPress={show}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                    role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     accessibilityLabel={icon.name}
                                 >
                                     <Avatar

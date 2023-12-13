@@ -2,7 +2,7 @@
 import {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
 import {LineLayer} from 'react-map-gl';
-import {AnimatableNumericValue, Animated, ImageStyle, StyleSheet, TextStyle, ViewStyle} from 'react-native';
+import {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {CustomAnimation} from 'react-native-animatable';
 import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
@@ -20,7 +20,7 @@ import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
-import {defaultTheme} from './themes/themes';
+import defaultTheme from './themes/default';
 import {type ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
@@ -1339,7 +1339,7 @@ const styles = (theme: ThemeColors) =>
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
-            bottom: variables.fabBottom,
+            bottom: 25,
         },
 
         floatingActionButton: {
@@ -1398,9 +1398,7 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
-                // Menu should be displayed 12px above the floating action button.
-                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
-                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
+                vertical: windowHeight - 75,
             } satisfies AnchorPosition),
 
         createMenuPositionProfile: (windowWidth: number) =>
@@ -1514,7 +1512,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.border,
             textDecorationLine: 'none',
         },
 
@@ -2422,11 +2420,6 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             padding: 20,
         },
-        numberPadWrapper: {
-            width: '100%',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-        },
 
         avatarSectionWrapper: {
             width: '100%',
@@ -2826,7 +2819,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonHoveredBG,
-            borderColor: theme.appBG,
+            borderColor: theme.textReversed,
             borderRadius: 14,
             borderWidth: 3,
             color: theme.textReversed,
@@ -3130,10 +3123,6 @@ const styles = (theme: ThemeColors) =>
         receiptDropOverlay: {
             backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
-        },
-
-        isDraggingOver: {
-            backgroundColor: theme.receiptDropUIBG,
         },
 
         receiptImageWrapper: (receiptImageTopPosition: number) =>
@@ -3682,6 +3671,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             paddingLeft: 10,
             paddingRight: 4,
+            marginBottom: 32,
             alignSelf: 'flex-start',
             ...userSelect.userSelectNone,
         },
@@ -3785,9 +3775,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestHeaderStatusBarBadge: {
-            width: 68,
-            height: variables.inputHeightSmall,
+            paddingHorizontal: 8,
             borderRadius: variables.componentBorderRadiusSmall,
+            height: variables.inputHeightSmall,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -3901,58 +3891,9 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             marginRight: 4,
         },
-        timePickerInput: {
-            fontSize: 69,
-            minWidth: 56,
-            alignSelf: 'center',
-        },
-        timePickerWidth100: {
-            width: 100,
-        },
-        timePickerHeight100: {
-            height: 100,
-        },
-        timePickerSemiDot: {
-            fontSize: 69,
-            height: 84,
-            alignSelf: 'center',
-        },
-        timePickerSwitcherContainer: {
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-        },
-        selectionListRadioSeparator: {
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: theme.border,
-            marginHorizontal: 20,
-        },
-
         draggableTopBar: {
             height: 30,
             width: '100%',
-        },
-        menuItemError: {
-            position: 'absolute',
-            bottom: -4,
-            left: 20,
-            right: 20,
-        },
-        formHelperMessage: {
-            height: 32,
-        },
-        timePickerInputExtraSmall: {
-            fontSize: 50,
-        },
-        setTimeFormButtonContainer: {
-            minHeight: 54,
-        },
-        timePickerInputsContainer: {
-            maxHeight: 100,
-        },
-        timePickerButtonErrorText: {
-            position: 'absolute',
-            top: -36,
         },
 
         chatBottomLoader: {
@@ -3998,7 +3939,7 @@ const styles = (theme: ThemeColors) =>
             left: 16,
             bottom: 16,
             width: variables.cardNameWidth,
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightLarge,
         },
@@ -4010,15 +3951,23 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
 
-        walletRedDotSectionTitle: {
-            color: theme.text,
-            fontWeight: fontWeightBold,
+        walletDangerSection: {
+            backgroundColor: theme.dangerSection,
+            color: theme.dangerSection,
+            borderRadius: variables.componentBorderRadiusCard,
+            width: 'auto',
+            marginHorizontal: 20,
+            marginBottom: 6,
+        },
+
+        walletDangerSectionTitle: {
             fontSize: variables.fontSizeNormal,
+            fontFamily: fontFamily.EXP_NEUE_BOLD,
+            fontWeight: fontWeightBold,
             lineHeight: variables.lineHeightXLarge,
         },
 
-        walletRedDotSectionText: {
-            color: theme.darkSupportingText,
+        walletDangerSectionText: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
         },
@@ -4048,7 +3997,8 @@ const styles = (theme: ThemeColors) =>
 
 type ThemeStyles = ReturnType<typeof styles>;
 
+const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
-export default styles;
-export {defaultStyles, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
+export default defaultStyles;
+export {stylesGenerator, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};

@@ -49,7 +49,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
         >
             <HeaderWithBackButton title={translate('iou.amount')} />
             <MoneyRequestAmountForm
-                buttonTranslationText="common.save"
+                isEditing
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 ref={(e) => (textInput.current = e)}

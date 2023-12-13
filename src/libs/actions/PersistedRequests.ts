@@ -17,18 +17,14 @@ function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
-function save(requestToPersist: Request) {
-    const requests = [...persistedRequests];
-    const existingRequestIndex = requests.findIndex((request) => request.data?.idempotencyKey && request.data?.idempotencyKey === requestToPersist.data?.idempotencyKey);
-    if (existingRequestIndex > -1) {
-        // Merge the new request into the existing one, keeping its place in the queue
-        requests.splice(existingRequestIndex, 1, requestToPersist);
+function save(requestsToPersist: Request[]) {
+    let requests: Request[] = [];
+    if (persistedRequests.length) {
+        requests = persistedRequests.concat(requestsToPersist);
     } else {
-        // If not, push the new request to the end of the queue
-        requests.push(requestToPersist);
+        requests = requestsToPersist;
     }
     persistedRequests = requests;
-
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 

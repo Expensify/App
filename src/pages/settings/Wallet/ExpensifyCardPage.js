@@ -19,6 +19,7 @@ import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Card from '@userActions/Card';
 import * as Link from '@userActions/Link';
@@ -26,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import RedDotCardSection from './RedDotCardSection';
+import DangerCardSection from './DangerCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
 const propTypes = {
@@ -122,6 +123,7 @@ function ExpensifyCardPage({
         params: {domain},
     },
 }) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -182,8 +184,8 @@ function ExpensifyCardPage({
 
                         {hasDetectedDomainFraud ? (
                             <DotIndicatorMessage
-                                style={styles.pageWrapper}
-                                textStyles={styles.walletLockedMessage}
+                                style={[styles.pageWrapper]}
+                                textStyle={[styles.walletLockedMessage]}
                                 messages={{0: translate('cardPage.cardLocked')}}
                                 type="error"
                             />
@@ -191,15 +193,17 @@ function ExpensifyCardPage({
 
                         {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
-                                <RedDotCardSection
+                                <DangerCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
                                     description={translate('cardPage.suspiciousBannerDescription')}
                                 />
-
-                                <Button
-                                    medium
-                                    style={[styles.mh5, styles.mb5]}
-                                    text={translate('cardPage.reviewTransaction')}
+                                <MenuItemWithTopDescription
+                                    title={translate('cardPage.reviewTransaction')}
+                                    titleStyle={styles.walletCardMenuItem}
+                                    icon={Expensicons.MagnifyingGlass}
+                                    iconFill={theme.icon}
+                                    shouldShowRightIcon
+                                    brickRoadIndicator="error"
                                     onPress={() => Link.openOldDotLink('inbox')}
                                 />
                             </>

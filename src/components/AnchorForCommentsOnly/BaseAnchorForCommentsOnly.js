@@ -11,7 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import useStyleUtils from '@styles/useStyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {propTypes as anchorForCommentsOnlyPropTypes} from './anchorForCommentsOnlyPropTypes';
@@ -33,7 +33,6 @@ const propTypes = {
  */
 function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style = {}, onPress, ...rest}) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     useEffect(
         () => () => {
             ReportActionContextMenu.hideContextMenu();
@@ -77,14 +76,14 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            role={CONST.ROLE.LINK}
+            role={CONST.ACCESSIBILITY_ROLE.LINK}
             accessibilityLabel={href}
         >
             <Tooltip text={href}>
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
-                    role={CONST.ROLE.LINK}
+                    role={CONST.ACCESSIBILITY_ROLE.LINK}
                     hrefAttrs={{
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,

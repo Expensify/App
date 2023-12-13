@@ -18,7 +18,7 @@ import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import * as ReportUtils from '@libs/ReportUtils';
-import useStyleUtils from '@styles/useStyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -52,7 +52,6 @@ function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
 
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
@@ -319,13 +318,13 @@ function EmojiPickerMenu(props) {
             // Enable keyboard movement if tab or enter is pressed or if shift is pressed while the input
             // is not focused, so that the navigation and tab cycling can be done using the keyboard without
             // interfering with the input behaviour.
-            if (keyBoardEvent.key === 'Tab' || keyBoardEvent.key === 'Enter' || (keyBoardEvent.key === 'Shift' && searchInputRef.current && !searchInputRef.current.isFocused())) {
+            if (!ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 setIsUsingKeyboardMovement(true);
                 return;
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (searchInputRef.current && !searchInputRef.current.isFocused() && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
+            if (searchInputRef.current && !searchInputRef.current.isFocused()) {
                 searchInputRef.current.focus();
             }
         },
@@ -485,7 +484,7 @@ function EmojiPickerMenu(props) {
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    role={CONST.ROLE.PRESENTATION}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
                     onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}

@@ -14,10 +14,9 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
-    onBackButtonPress?: () => void;
 };
 
-function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}}: ReportHeaderSkeletonViewProps) {
+function ReportHeaderSkeletonView({shouldAnimate = true}: ReportHeaderSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -28,9 +27,9 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
             <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
                 {isSmallScreenWidth && (
                     <PressableWithFeedback
-                        onPress={onBackButtonPress}
+                        onPress={() => {}}
                         style={[styles.LHNToggle]}
-                        role={CONST.ROLE.BUTTON}
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
                     >
                         <Icon src={Expensicons.BackArrow} />

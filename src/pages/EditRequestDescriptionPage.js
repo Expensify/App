@@ -9,7 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
-import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +67,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                         defaultValue={defaultDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        role={CONST.ROLE.PRESENTATION}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => {
                             if (!el) {
                                 return;

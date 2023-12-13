@@ -4,7 +4,6 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -43,20 +42,18 @@ function AvatarWithOptionalStatus({emojiStatus, isCreateMenuOpen}) {
         <View style={styles.sidebarStatusAvatarContainer}>
             <PressableWithoutFeedback
                 accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
-                role={CONST.ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 onPress={showStatusPage}
                 style={styles.flex1}
             >
-                <Tooltip text={translate('statusPage.status')}>
-                    <View style={styles.sidebarStatusAvatar}>
-                        <Text
-                            style={styles.emojiStatusLHN}
-                            numberOfLines={1}
-                        >
-                            {emojiStatus}
-                        </Text>
-                    </View>
-                </Tooltip>
+                <View style={styles.sidebarStatusAvatar}>
+                    <Text
+                        style={styles.emojiStatusLHN}
+                        numberOfLines={1}
+                    >
+                        {emojiStatus}
+                    </Text>
+                </View>
             </PressableWithoutFeedback>
             <PressableAvatarWithIndicator isCreateMenuOpen={isCreateMenuOpen} />
         </View>

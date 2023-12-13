@@ -8,7 +8,8 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
-import useStyleUtils from '@styles/useStyleUtils';
+import * as StyleUtils from '@styles/StyleUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import PressableProps, {PressableRef} from './GenericPressable/types';
@@ -19,7 +20,7 @@ type PressableWithDelayToggleProps = PressableProps & {
     text: string;
 
     /** The text to display once the pressable is pressed */
-    textChecked?: string;
+    textChecked: string;
 
     /** The tooltip text to display */
     tooltipText: string;
@@ -48,7 +49,6 @@ type PressableWithDelayToggleProps = PressableProps & {
      * vertical text alignment of non-Text elements
      */
     inline?: boolean;
-    accessibilityRole?: string;
 };
 
 function PressableWithDelayToggle(
@@ -64,12 +64,11 @@ function PressableWithDelayToggle(
         textStyles,
         iconStyles,
         icon,
-        accessibilityRole,
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
+    const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {
@@ -103,11 +102,11 @@ function PressableWithDelayToggle(
             onPress={updatePressState}
             accessibilityLabel={tooltipTexts}
             suppressHighlighting={inline ? true : undefined}
-            accessibilityRole={accessibilityRole}
         >
             <>
                 {inline && labelText}
                 <Tooltip
+                    containerStyles={[styles.flexRow]}
                     text={tooltipTexts}
                     shouldRender
                 >
@@ -123,7 +122,7 @@ function PressableWithDelayToggle(
                                 {icon && (
                                     <Icon
                                         src={!isActive ? iconChecked : icon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
+                                        fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}

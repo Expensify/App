@@ -31,7 +31,7 @@ function PinButton(props) {
                 style={[styles.touchableButtonImage]}
                 ariaChecked={props.report.isPinned}
                 accessibilityLabel={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}
-                role={CONST.ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
                     src={Expensicons.Pin}

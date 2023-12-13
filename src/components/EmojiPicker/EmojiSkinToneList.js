@@ -49,7 +49,7 @@ function EmojiSkinToneList(props) {
                     onPress={toggleIsSkinToneListVisible}
                     style={[styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
                     accessibilityLabel={props.translate('emojiPicker.skinTonePickerLabel')}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 >
                     <View style={[styles.emojiItem, styles.wAuto, styles.justifyContentCenter]}>
                         <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>

@@ -47,7 +47,7 @@ function ReportActionItemThread(props) {
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
-                role={CONST.ROLE.BUTTON}
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
                 onSecondaryInteraction={props.onSecondaryInteraction}
             >

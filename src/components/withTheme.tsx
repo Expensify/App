@@ -7,12 +7,12 @@ import useTheme from '@styles/themes/useTheme';
 const withThemePropTypes = {
     theme: PropTypes.object.isRequired,
 };
-type WithThemeProps = {theme: ThemeColors};
+type ThemeProps = {theme: ThemeColors};
 
-export default function withTheme<TProps extends WithThemeProps, TRef>(
+export default function withTheme<TProps extends ThemeProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof WithThemeProps> & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithTheme(props: Omit<TProps, keyof WithThemeProps>, ref: ForwardedRef<TRef>): ReactElement {
+): (props: Omit<TProps, keyof ThemeProps> & React.RefAttributes<TRef>) => ReactElement | null {
+    function WithTheme(props: Omit<TProps, keyof ThemeProps>, ref: ForwardedRef<TRef>): ReactElement {
         const theme = useTheme();
         return (
             <WrappedComponent
@@ -29,5 +29,4 @@ export default function withTheme<TProps extends WithThemeProps, TRef>(
     return forwardRef(WithTheme);
 }
 
-export {withThemePropTypes};
-export type {WithThemeProps};
+export {withThemePropTypes, type ThemeProps};

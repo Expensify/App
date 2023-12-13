@@ -25,7 +25,7 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** Callback to request parent modal to go to next step, which should be request */
+    /** Callback to request parent modal to go to next step, which should be split */
     navigateToRequest: PropTypes.func.isRequired,
 
     /** Callback to request parent modal to go to next step, which should be split */
@@ -149,7 +149,7 @@ function MoneyRequestParticipantsSelector({
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
-                title: undefined,
+                undefined,
                 data: _.map([newChatOptions.userToInvite], (participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
