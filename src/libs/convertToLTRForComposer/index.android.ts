@@ -2,16 +2,25 @@ import CONST from '@src/CONST';
 import ConvertToLTRForComposer from './types';
 
 /**
- * Android only - We need to determinate when composer is considered empty this going to be used when we don't want to convert the input composer to LTR
+ * Android only - The composer is considered "empty" if all it contains is the LTR character followed by an @ or space.
  */
-function hasBeenComposerConsideredEmpty(text: string): boolean {
-    // Regular expressions with all character that are consider as empty (spaces, unicode with spaces and unicode with at)
-    const emptyExpressions = [/^\s*$/, new RegExp(`^${CONST.UNICODE.LTR}@$`), new RegExp(`${CONST.UNICODE.LTR}\\s*$`)];
+function canComposerBeConvertedToLTR(text: string): boolean {
+    // this handle cases when user type only spaces
+    const containOnlySpaces = /^\s*$/;
+    // this handle the case where someone has RTL enabled and they began typing an @mention for someone.
+    const startsWithLTRAndAt = new RegExp(`^${CONST.UNICODE.LTR}@$`);
+    // this handle cases could send empty messages when composer is multiline
+    const startsWithLTRAndSpace = new RegExp(`${CONST.UNICODE.LTR}\\s*$`);
+    const emptyExpressions = [containOnlySpaces, startsWithLTRAndAt, startsWithLTRAndSpace];
     return emptyExpressions.some((exp) => exp.test(text));
 }
 
 /**
- * Android only - We should remove the LTR unicode when the input is empty to prevent: Sending an empty message, metion suggestions not works if @ or \s (at or space) is the first character; (force option: always remove the unicode, going to be used when composer is consider as empty) or placeholder not shows if unicode character is the only remaining character. */
+ * Android only - We should remove the LTR unicode when the input is empty to prevent:
+ *  Sending an empty message;
+ *  Mention suggestions not works if @ or \s (at or space) is the first character;
+ *  Placeholder is not displayed if the unicode character is the only character remaining;
+ * force: always remove the LTR unicode, going to be used when composer is consider as empty */
 const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
     const result = newComment.length <= 1 || force ? newComment.replaceAll(CONST.UNICODE.LTR, '') : newComment;
     return result;
@@ -22,7 +31,7 @@ const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
  * Android does not properly support bidirectional text for mixed content for input box
  */
 const convertToLTRForComposer: ConvertToLTRForComposer = (text, isComposerEmpty) => {
-    const isConsideredAsEmpty = hasBeenComposerConsideredEmpty(text);
+    const isConsideredAsEmpty = canComposerBeConvertedToLTR(text);
     const newText = resetLTRWhenEmpty(text, isConsideredAsEmpty);
     if (isConsideredAsEmpty) {
         return newText;
