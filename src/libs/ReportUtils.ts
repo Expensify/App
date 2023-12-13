@@ -416,32 +416,6 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-// const transactionViolations: OnyxCollection<TransactionViolations> = {};
-// Onyx.connect({
-//     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-//     callback: (violations, key) => {
-//         if (!key || !violations) {
-//             return;
-//         }
-
-//         const transactionID = CollectionUtils.extractCollectionItemID(key);
-//         transactionViolations[transactionID] = violations;
-//     },
-// });
-
-// const reportActions: OnyxCollection<ReportActions> = {};
-// Onyx.connect({
-//     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-//     callback: (actions, key) => {
-//         if (!key || !actions) {
-//             return;
-//         }
-
-//         const reportID = CollectionUtils.extractCollectionItemID(key);
-//         reportActions[reportID] = actions;
-//     },
-// });
-
 let allPolicyTags: Record<string, PolicyTags | null> = {};
 
 Onyx.connect({

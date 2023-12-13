@@ -113,7 +113,7 @@ let hasInitialReportActions = false;
 // for the ReportUtils.shouldReportBeInOptionList function. To fix this, we are now passing down the reportActions
 // as a Record<string, ReportActions> and then converting it to a Record<string, ReportAction[]> in the
 // reportActionsSelector function.
-// This function was originally in the parent component as an Onyx selector, but it was moved here to prevent
+// This function was originally in the parent component as an Onyx selector, but it was moved here
 // to simplify the logic and prevent the need to pass down the reportActions as an array.
 
 type MappedReportAction = {
