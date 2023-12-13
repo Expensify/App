@@ -70,7 +70,7 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
 };
 
 const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount, amount) => amount > 0 && currentAmount > CurrencyUtils.convertToFrontendAmount(amount);
+const isTaxAmountInvalid = (currentAmount, amount, isEditing) => isEditing && currentAmount > CurrencyUtils.convertToFrontendAmount(amount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -96,6 +96,8 @@ function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef,
     });
 
     const forwardDeletePressedRef = useRef(false);
+
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(iou.amount, iou.currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -227,12 +229,12 @@ function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef,
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         if (isAmountInvalid(currentAmount)) {
-            setFormError('iou.error.invalidAmount');
+            setFormError(translate('iou.error.invalidAmount'));
             return;
         }
 
-        if (isTaxAmountInvalid(currentAmount, iou.amount)) {
-            setFormError('iou.error.invalidAmount');
+        if (isTaxAmountInvalid(currentAmount, iou.amount, isEditing)) {
+            setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
             return;
         }
 
@@ -242,7 +244,7 @@ function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef,
         initializeAmount(backendAmount);
 
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, iou.amount, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, iou.amount, isEditing, formattedTaxAmount, translate, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -303,7 +305,7 @@ function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef,
                     <FormHelpMessage
                         style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
                         isError
-                        message={translate(formError)}
+                        message={formError}
                     />
                 )}
             </View>
