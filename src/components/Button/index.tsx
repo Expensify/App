@@ -293,7 +293,7 @@ function Button(
             ]}
             id={id}
             accessibilityLabel={accessibilityLabel}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
             hoverDimmingValue={1}
         >
             {renderContent()}

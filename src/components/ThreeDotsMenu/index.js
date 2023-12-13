@@ -114,7 +114,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                         }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon

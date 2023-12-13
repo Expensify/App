@@ -471,7 +471,7 @@ class BaseOptionsSelector extends Component {
                 value={this.props.value}
                 label={this.props.textInputLabel}
                 accessibilityLabel={this.props.textInputLabel}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 onChangeText={this.updateSearchValue}
                 errorText={this.state.errorMessage}
                 onSubmitEditing={this.selectFocusedOption}
