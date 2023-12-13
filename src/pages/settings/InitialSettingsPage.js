@@ -245,10 +245,7 @@ function InitialSettingsPage(props) {
                         return (
                             <MenuItem
                                 key={`${keyTitle}_${index}`}
-                                wrapperStyle={{
-                                    borderRadius: 8,
-                                    paddingHorizontal: 8,
-                                }}
+                                wrapperStyle={styles.sectionMenuItem}
                                 title={keyTitle}
                                 icon={item.icon}
                                 iconType={item.iconType}
@@ -272,7 +269,7 @@ function InitialSettingsPage(props) {
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, translate, props.userWallet.currentBalance, isExecuting, singleExecution],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, props.userWallet.currentBalance, isExecuting, singleExecution],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);

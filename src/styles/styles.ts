@@ -2462,6 +2462,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        sectionMenuItem: {
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            height: 56,
+            alignItems: 'center',
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
