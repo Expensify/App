@@ -1568,12 +1568,12 @@ function createWorkspaceFromIOUPayment(iouReport) {
 
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: newWorkspace,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: {
                 [sessionAccountID]: {
@@ -1587,7 +1587,7 @@ function createWorkspaceFromIOUPayment(iouReport) {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1597,12 +1597,12 @@ function createWorkspaceFromIOUPayment(iouReport) {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: announceReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: {
                 pendingFields: {
@@ -1612,12 +1612,12 @@ function createWorkspaceFromIOUPayment(iouReport) {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: adminsReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
             value: {
                 pendingFields: {
@@ -1627,17 +1627,17 @@ function createWorkspaceFromIOUPayment(iouReport) {
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: workspaceChatReportActionData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: null,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
             value: null,
         },
@@ -1712,37 +1712,37 @@ function createWorkspaceFromIOUPayment(iouReport) {
 
     const failureData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: null,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
             value: null,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: null,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
             value: null,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
             value: null,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
             value: null,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
             value: null,
         },
