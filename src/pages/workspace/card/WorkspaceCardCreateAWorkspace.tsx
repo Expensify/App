@@ -12,15 +12,15 @@ function WorkspaceCardCreateAWorkspace({translate}: WorkspaceCardCreateAWorkspac
 
     return (
         <Section
-            title={translate('workspace.card.createAWorkspace')}
+            title={translate('workspace.emptyWorkspace.title')}
             icon={Illustrations.HotDogStand}
             cardLayout={CARD_LAYOUT.ICON_ON_TOP}
-            subtitle={translate('workspace.card.createAWorkspaceCopy')}
+            subtitle={translate('workspace.emptyWorkspace.subtitle')}
             subtitleMuted
             containerStyles={[styles.highlightBG]}
         >
             <Button
-                text={translate('workspace.card.createAWorkspaceCTA')}
+                text={translate('workspace.emptyWorkspace.createAWorkspaceCTA')}
                 style={styles.mt5}
                 success
                 medium

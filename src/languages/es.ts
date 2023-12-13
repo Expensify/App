@@ -1493,8 +1493,9 @@ export default {
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
         },
         emptyWorkspace: {
-            title: 'Crear un nuevo espacio de trabajo',
-            subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+            title: 'Crea un espacio de trabajo',
+            subtitle: 'Administra gastos de empresa, emite tarjetas, envía facturas y mucho más.',
+            createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
                 companyCards: 'Tarjetas de crédito corporativas',
@@ -1531,9 +1532,6 @@ export default {
             benefit4: 'Límites personalizables',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
             checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
-            createAWorkspace: 'Crea un espacio de trabajo',
-            createAWorkspaceCopy: 'Administra gastos de empresa, emite tarjetas, envía facturas y mucho más.',
-            createAWorkspaceCTA: 'Comenzar',
         },
         reimburse: {
             captureReceipts: 'Captura recibos',
