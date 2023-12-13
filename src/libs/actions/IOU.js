@@ -293,6 +293,7 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
+    hasOutstandingChildRequest = false,
 ) {
     const optimisticData = [
         {
@@ -304,6 +305,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
+                hasOutstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
@@ -612,12 +614,21 @@ function getMoneyRequestInformation(
     const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport);
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
-    // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
-    if (isPolicyExpenseChat && iouReport) {
-        const policyType = ReportUtils.getPolicy(iouReport.policyID).type || '';
-        const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-        if (isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
-            iouReport = null;
+    // Check if the scheduled submit is enabled in case of expense report
+    let needsToBeManuallySubmitted = false;
+    let policy = {};
+    let isFromPaidPolicy = false;
+    if (isPolicyExpenseChat) {
+        policy = ReportUtils.getPolicy(iouReport.policyID);
+        const policyType = policy.type || '';
+        isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+        needsToBeManuallySubmitted = policy.isHarvestingEnabled || false;
+
+        // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
+        if (iouReport) {
+            if (isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
+                iouReport = null;
+            }
         }
     }
 
@@ -728,6 +739,10 @@ function getMoneyRequestInformation(
               },
           }
         : undefined;
+    
+    // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
+    // so the employee has to submit to tits manager manually.
+    const hasOutstandingChildRequest = isPolicyExpenseChat && isFromPaidPolicy && needsToBeManuallySubmitted;
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
@@ -743,6 +758,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
         isNewIOUReport,
+        hasOutstandingChildRequest,
     );
 
     return {
@@ -2945,6 +2961,7 @@ function approveMoneyRequest(expenseReport) {
 function submitReport(expenseReport) {
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
+    const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
 
     const optimisticData = [
         {
@@ -2976,7 +2993,9 @@ function submitReport(expenseReport) {
                       key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
                       value: {
                           ...parentReport,
-                          hasOutstandingChildRequest: false,
+
+                          // In case its a manager who force submitted the report, they are the next user who needs to take an action
+                          hasOutstandingChildRequest: isCurrentUserManager,
                           iouReportID: null,
                       },
                   },
