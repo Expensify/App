@@ -113,7 +113,7 @@ const FormProvider = forwardRef(
     ({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}, forwardedRef) => {
         const inputRefs = useRef({});
         const touchedInputs = useRef({});
-        const [inputValues, setInputValues] = useState({});
+        const [inputValues, setInputValues] = useState(() => ({...draftValues}));
         const [errors, setErrors] = useState({});
         const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
 

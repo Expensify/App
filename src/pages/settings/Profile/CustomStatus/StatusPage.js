@@ -18,8 +18,8 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as StyleUtils from '@styles/StyleUtils';
 import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -41,6 +41,7 @@ const initialEmoji = '💬';
 function StatusPage({draftStatus, currentUserPersonalDetails}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const formRef = useRef(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState('');
@@ -122,7 +123,7 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
 
     return (
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.STATUS].backgroundColor)]}
+            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             testID={HeaderPageLayout.displayName}
