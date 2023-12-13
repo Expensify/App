@@ -64,6 +64,7 @@ function MoneyRequestConfirmPage(props) {
     const iouType = useInitialValue(() => lodashGet(props.route, 'params.iouType', ''));
     const reportID = useInitialValue(() => lodashGet(props.route, 'params.reportID', ''));
     const isDistanceRequest = MoneyRequestUtils.isDistanceRequest(iouType, props.selectedTab);
+    const isScanRequest = MoneyRequestUtils.isScanRequest(props.selectedTab);
     const [receiptFile, setReceiptFile] = useState();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
@@ -388,6 +389,7 @@ function MoneyRequestConfirmPage(props) {
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
                         iouCreated={props.iou.created}
+                        isScanRequest={isScanRequest}
                         isDistanceRequest={isDistanceRequest}
                         shouldShowSmartScanFields={_.isEmpty(props.iou.receiptPath)}
                     />
