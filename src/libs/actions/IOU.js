@@ -184,7 +184,7 @@ function buildOnyxDataForMoneyRequest(
 
     if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
         optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
             value: optimisticPolicyRecentlyUsedTags,
         });
@@ -769,7 +769,7 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
         const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
         if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
                 value: optimisticPolicyRecentlyUsedTags,
             });
@@ -1909,7 +1909,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
         const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
         if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
                 value: optimisticPolicyRecentlyUsedTags,
             });
