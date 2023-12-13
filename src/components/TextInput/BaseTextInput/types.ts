@@ -113,5 +113,4 @@ type BaseTextInputRef = ForwardedRef<HTMLFormElement | Component<AnimatedProps<T
 
 type BaseTextInputProps = CustomBaseTextInputProps & TextInputProps;
 
-export default BaseTextInputProps;
-export type {CustomBaseTextInputProps, BaseTextInputRef};
+export type {CustomBaseTextInputProps, BaseTextInputRef, BaseTextInputProps};

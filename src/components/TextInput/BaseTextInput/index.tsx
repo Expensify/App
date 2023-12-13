@@ -21,8 +21,7 @@ import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type BaseTextInputProps from './types';
-import type {BaseTextInputRef} from './types';
+import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
     {
@@ -114,9 +113,7 @@ function BaseTextInput(
     );
 
     const activateLabel = useCallback(() => {
-        // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const newValue = value || '';
+        const newValue = value ?? '';
 
         if (newValue.length < 0 || isLabelActive.current) {
             return;
@@ -127,9 +124,7 @@ function BaseTextInput(
     }, [animateLabel, value]);
 
     const deactivateLabel = useCallback(() => {
-        // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const newValue = value || '';
+        const newValue = value ?? '';
 
         if (!!forceActiveLabel || newValue.length !== 0 || prefixCharacter) {
             return;
@@ -177,9 +172,7 @@ function BaseTextInput(
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
-    // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const inputValue = value || '';
+    const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
     // Activate or deactivate the label when either focus changes, or for controlled

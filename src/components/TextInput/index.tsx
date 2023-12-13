@@ -5,8 +5,7 @@ import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
-import type BaseTextInputProps from './BaseTextInput/types';
-import type {BaseTextInputRef} from './BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
 type RemoveVisibilityListener = () => void;

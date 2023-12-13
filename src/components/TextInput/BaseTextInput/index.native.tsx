@@ -21,8 +21,7 @@ import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type BaseTextInputProps from './types';
-import type {BaseTextInputRef} from './types';
+import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
     {
@@ -66,7 +65,7 @@ function BaseTextInput(
     const {translate} = useLocalize();
 
     const {hasError = false} = inputProps;
-    // Disabling this line for saftiness as nullish coalescing works only if value is undefined or null
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter;
@@ -80,7 +79,7 @@ function BaseTextInput(
     const [width, setWidth] = useState<number | null>(null);
     const labelScale = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE)).current;
     const labelTranslateY = useRef(new Animated.Value(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y)).current;
-    const input = useRef<TextInput & HTMLElement>(null);
+    const input = useRef<TextInput>(null);
     const isLabelActive = useRef(initialActiveLabel);
 
     // AutoFocus which only works on mount:
@@ -377,8 +376,8 @@ function BaseTextInput(
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
-                                    onMouseDown={(e) => {
-                                        e.preventDefault();
+                                    onMouseDown={(event) => {
+                                        event.preventDefault();
                                     }}
                                     accessibilityLabel={translate?.('common.visible') ?? ''}
                                 >
