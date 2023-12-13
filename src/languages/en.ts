@@ -528,6 +528,8 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        taxAmount: 'Tax amount',
+        taxRate: 'Tax rate',
         approve: 'Approve',
         approved: 'Approved',
         cash: 'Cash',
@@ -596,6 +598,7 @@ export default {
         categorySelection: 'Select a category to add additional organization to your money.',
         error: {
             invalidAmount: 'Please enter a valid amount before continuing.',
+            invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',

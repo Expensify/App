@@ -520,6 +520,8 @@ export default {
     },
     iou: {
         amount: 'Importe',
+        taxAmount: 'Tax amount',
+        taxRate: 'Tax rate',
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
@@ -590,6 +592,7 @@ export default {
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
+            invalidTaxAmount: ({amount}: RequestAmountParams) => `El monto máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',
