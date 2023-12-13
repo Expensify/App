@@ -1,7 +1,16 @@
 import {useTabAnimation} from '@react-navigation/material-top-tabs';
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
+import {Animated} from 'react-native';
 import DomUtils from '@libs/DomUtils';
+
+type UseTabNavigatorFocusParams = {
+    tabIndex: number;
+};
+
+type PositionAnimationListenerCallback = {
+    value: number;
+};
 
 /**
  * Custom React hook to determine the focus status of a tab in a Material Top Tab Navigator.
@@ -17,15 +26,16 @@ import DomUtils from '@libs/DomUtils';
  * might not be used within a Material Top Tabs Navigator context. Proper usage should ensure that
  * this hook is only used where appropriate.
  *
- * @param {Object} params - The parameters object.
- * @param {Number} params.tabIndex - The index of the tab for which focus status is being determined.
- * @returns {Boolean} Returns `true` if the tab is both animation-focused and screen-focused, otherwise `false`.
+ * @param params - The parameters object.
+ * @param params.tabIndex - The index of the tab for which focus status is being determined.
+ * @returns Returns `true` if the tab is both animation-focused and screen-focused, otherwise `false`.
  *
  * @example
  * const isTabFocused = useTabNavigatorFocus({ tabIndex: 1 });
  */
-function useTabNavigatorFocus({tabIndex}) {
-    let tabPositionAnimation = null;
+function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
+    let tabPositionAnimation: Animated.AnimatedInterpolation<number> | null = null;
+
     try {
         // Retrieve the animation value from the tab navigator, which ranges from 0 to the total number of pages displayed.
         // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
@@ -46,7 +56,7 @@ function useTabNavigatorFocus({tabIndex}) {
         }
         const index = Number(tabIndex);
 
-        const listenerId = tabPositionAnimation.addListener(({value}) => {
+        const listenerId = tabPositionAnimation.addListener(({value}: PositionAnimationListenerCallback) => {
             // Activate camera as soon the index is animating towards the `tabIndex`
             DomUtils.requestAnimationFrame(() => {
                 setIsTabFocused(value > index - 1 && value < index + 1);
@@ -56,6 +66,7 @@ function useTabNavigatorFocus({tabIndex}) {
         // We need to get the position animation value on component initialization to determine
         // if the tab is focused or not. Since it's an Animated.Value the only synchronous way
         // to retrieve the value is to use a private method.
+        // @ts-expect-error -- __getValue is a private method
         // eslint-disable-next-line no-underscore-dangle
         const initialTabPositionValue = tabPositionAnimation.__getValue();
 
