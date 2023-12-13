@@ -3781,9 +3781,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestHeaderStatusBarBadge: {
-            paddingHorizontal: 8,
-            borderRadius: variables.componentBorderRadiusSmall,
+            width: 68,
             height: variables.inputHeightSmall,
+            borderRadius: variables.componentBorderRadiusSmall,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -3957,23 +3957,15 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
 
-        walletDangerSection: {
-            backgroundColor: theme.dangerSection,
-            color: theme.dangerSection,
-            borderRadius: variables.componentBorderRadiusCard,
-            width: 'auto',
-            marginHorizontal: 20,
-            marginBottom: 6,
-        },
-
-        walletDangerSectionTitle: {
-            fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+        walletRedDotSectionTitle: {
+            color: theme.text,
             fontWeight: fontWeightBold,
+            fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
         },
 
-        walletDangerSectionText: {
+        walletRedDotSectionText: {
+            color: theme.darkSupportingText,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
         },
