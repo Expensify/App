@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useEffect} from 'react';
 import useTheme from '@hooks/useTheme';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
-import CustomStatusBarContext from './CustomStatusBarContext';
+import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackgroundContext';
 import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 
@@ -13,8 +13,9 @@ type CustomStatusBarAndBackgroundProps = {
 };
 
 function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
-    const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
+    const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarAndBackgroundContext);
     const theme = useTheme();
+    const [statusBarStyle, setStatusBarStyle] = React.useState(theme.statusBarStyle);
 
     const isDisabled = !isNested && isRootStatusBarDisabled;
 
@@ -46,20 +47,25 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         }
 
         let currentScreenBackgroundColor = theme.appBG;
-        let statusBarStyle = theme.statusBarStyle;
+        let newStatusBarStyle = theme.statusBarStyle;
         if (currentRoute && 'name' in currentRoute && currentRoute.name in theme.PAGE_THEMES) {
             const screenTheme = theme.PAGE_THEMES[currentRoute.name];
             currentScreenBackgroundColor = screenTheme.backgroundColor;
-            statusBarStyle = screenTheme.statusBarStyle;
+            newStatusBarStyle = screenTheme.statusBarStyle;
         }
 
-        updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle});
-    }, [isDisabled, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
+        // Don't update the status bar style if it's the same as the current one, to prevent flashing.
+        if (newStatusBarStyle === statusBarStyle) {
+            updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor});
+        } else {
+            updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle: newStatusBarStyle});
+            setStatusBarStyle(newStatusBarStyle);
+        }
+    }, [isDisabled, statusBarStyle, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
 
     // Update the status bar style everytime the navigation state changes
     useEffect(() => {
         navigationRef.addListener('state', updateStatusBarStyle);
-
         return () => navigationRef.removeListener('state', updateStatusBarStyle);
     }, [updateStatusBarStyle]);
 
