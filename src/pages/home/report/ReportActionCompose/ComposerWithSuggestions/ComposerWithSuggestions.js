@@ -376,13 +376,6 @@ function ComposerWithSuggestions({
 
     const onChangeText = useCallback(
         (commentValue) => {
-            if (syncSelectionWithOnChangeTextRef.current) {
-                setSelection({
-                    start: syncSelectionWithOnChangeTextRef.current.position,
-                    end: syncSelectionWithOnChangeTextRef.current.position,
-                });
-            }
-
             updateComment(commentValue, true);
 
             if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
