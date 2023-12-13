@@ -14,7 +14,7 @@ import compose from '@libs/compose';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -50,6 +50,7 @@ const defaultProps = {
 
 function ReportActionItemCreated(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -75,7 +76,7 @@ function ReportActionItemCreated(props) {
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                         style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         disabled={shouldDisableDetailPage}
                     >
                         <MultipleAvatars
