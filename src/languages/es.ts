@@ -190,6 +190,8 @@ export default {
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
             characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
+            invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
+            invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
@@ -259,6 +261,8 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
+        am: 'AM',
+        pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
@@ -1165,12 +1169,19 @@ export default {
     },
     statusPage: {
         status: 'Estado',
-        setStatusTitle: 'Establece tu estado',
         statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        timePeriods: {
+            never: 'Nunca',
+            thirtyMinutes: '30 minutos',
+            oneHour: '1 hora',
+            afterToday: 'Hoy',
+            afterWeek: 'Una semana',
+            custom: 'Personalizado',
+        },
         untilTomorrow: 'Hasta mañana',
         untilTime: ({time}: UntilTimeParams) => {
             // Check for HH:MM AM/PM format and starts with '01:'
@@ -1188,6 +1199,10 @@ export default {
             // Default case
             return `Hasta ${time}`;
         },
+        date: 'Fecha',
+        time: 'Hora',
+        clearAfter: 'Borrar después',
+        whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Paso ${step}`;

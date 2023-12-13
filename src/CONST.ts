@@ -2902,6 +2902,10 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
+    TIME_PERIOD: {
+        AM: 'AM',
+        PM: 'PM',
+    },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
@@ -2911,7 +2915,7 @@ const CONST = {
         SBE: 'SbeDemoSetup',
         MONEY2020: 'Money2020DemoSetup',
     },
-
+    COLON: ':',
     MAPBOX: {
         PADDING: 50,
         DEFAULT_ZOOM: 10,
