@@ -10,6 +10,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -35,10 +36,14 @@ const propTypes = {
     /* Onyx Props */
     /** The report that the transaction belongs to */
     report: reportPropTypes,
+
+    /** The transaction (or draft transaction) being changed */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     report: {},
+    transaction: {},
 };
 
 function IOURequestStepScan({
@@ -46,6 +51,7 @@ function IOURequestStepScan({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
+    transaction: {isFromGlobalCreate},
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -125,14 +131,14 @@ function IOURequestStepScan({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report.reportID) {
+        if (isFromGlobalCreate) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
             return;
         }
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID]);
+    }, [iouType, report, reportID, transactionID, isFromGlobalCreate]);
 
     const updateScanAndNavigate = useCallback(
         (photo, source) => {
