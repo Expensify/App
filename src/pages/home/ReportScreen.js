@@ -28,7 +28,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
@@ -37,7 +36,7 @@ import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, {getSortedReportActionsForDisplayKey} from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import HeaderView from './HeaderView';
 import reportActionPropTypes from './report/reportActionPropTypes';
@@ -567,9 +566,7 @@ export default compose(
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
             },
             reportActions: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-                canEvict: false,
-                selector: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+                key: ({route}) => getSortedReportActionsForDisplayKey(getReportID(route)),
             },
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,

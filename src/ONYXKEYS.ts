@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
+import {getMostRecentIOURequestActionID, getSortedReportActionsForDisplay, getSortedReportActionsV2} from './libs/ReportActionsUtils';
 import type * as OnyxTypes from './types/onyx';
 import type DeepValueOf from './types/utils/DeepValueOf';
 
@@ -351,6 +352,12 @@ const ONYXKEYS = {
         GET_PHYSICAL_CARD_FORM: 'getPhysicalCardForm',
         GET_PHYSICAL_CARD_FORM_DRAFT: 'getPhysicalCardFormDraft',
     },
+
+    COMPUTED: {
+        SORTED_REPORT_ACTIONS: 'sortedReportActions_',
+        SORTED_REPORT_ACTIONS_FOR_DISPLAY: 'sortedReportActionsForDisplay_',
+        MOST_RECENT_IOU_REQUEST_ACTION_ID: 'mostRecentIOURequestActionID_',
+    },
 } as const;
 
 type OnyxKeysMap = typeof ONYXKEYS;
@@ -533,3 +540,47 @@ type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxVal
 
 export default ONYXKEYS;
 export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};
+
+/**
+ * A computed key is a key that is not stored in the database, but instead is computed from other keys
+ * and cached in memory. This is useful for expensive computations that are used in multiple places.
+ */
+type OnyxComputedKey<DependenciesT = unknown, ValueT = unknown> = {
+    cacheKey: string;
+    /**
+     * Keys that this computed key depends on. The values of these keys will be passed to the compute function.
+     * This will also cause the key to be recomputed whenever any of the dependencies value change.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dependencies?: {[KeyT in keyof DependenciesT]: string | OnyxComputedKey<any, unknown>};
+    /**
+     * Compute the value and cache key for this computed key.
+     */
+    compute: (params: DependenciesT) => ValueT;
+};
+
+function getSortedReportActionsKey(reportID: string): OnyxComputedKey<{reportActions: OnyxTypes.ReportActions}, OnyxTypes.ReportAction[]> {
+    return {
+        cacheKey: `${ONYXKEYS.COMPUTED.SORTED_REPORT_ACTIONS}${reportID}`,
+        dependencies: {reportActions: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`},
+        compute: ({reportActions}) => getSortedReportActionsV2(reportActions),
+    };
+}
+
+function getSortedReportActionsForDisplayKey(reportID: string): OnyxComputedKey<{sortedReportActions: OnyxTypes.ReportAction[]}> {
+    return {
+        cacheKey: `${ONYXKEYS.COMPUTED.SORTED_REPORT_ACTIONS_FOR_DISPLAY}${reportID}`,
+        dependencies: {sortedReportActions: getSortedReportActionsKey(reportID)},
+        compute: ({sortedReportActions}) => getSortedReportActionsForDisplay(sortedReportActions),
+    };
+}
+
+function getMostRecentIOURequestActionIDKey(reportID: string): OnyxComputedKey<{sortedReportActions: OnyxTypes.ReportAction[]}> {
+    return {
+        cacheKey: `${ONYXKEYS.COMPUTED.MOST_RECENT_IOU_REQUEST_ACTION_ID}${reportID}`,
+        dependencies: {sortedReportActions: getSortedReportActionsKey(reportID)},
+        compute: ({sortedReportActions}) => getMostRecentIOURequestActionID(sortedReportActions),
+    };
+}
+
+export {getSortedReportActionsKey, getSortedReportActionsForDisplayKey, getMostRecentIOURequestActionIDKey};

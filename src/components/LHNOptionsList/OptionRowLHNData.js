@@ -1,15 +1,16 @@
 import {deepEqual} from 'fast-equals';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import {getSortedReportActionsForDisplayKey} from '@src/ONYXKEYS';
 import OptionRowLHN, {defaultProps as baseDefaultProps, propTypes as basePropTypes} from './OptionRowLHN';
 
 const propTypes = {
@@ -66,6 +67,7 @@ function OptionRowLHNData({
     isFocused,
     fullReport,
     reportActions,
+    sortedReportActions,
     personalDetails,
     preferredLocale,
     comment,
@@ -79,7 +81,6 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef();
     const linkedTransaction = useMemo(() => {
-        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = _.first(sortedReportActions);
         return TransactionUtils.getLinkedTransaction(lastReportAction);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,4 +128,10 @@ OptionRowLHNData.displayName = 'OptionRowLHNData';
  * Thats also why the React.memo is used on the outer component here, as we just
  * use it to prevent re-renders from parent re-renders.
  */
-export default React.memo(OptionRowLHNData);
+export default React.memo(
+    withOnyx({
+        sortedReportActions: {
+            key: ({fullReport}) => getSortedReportActionsForDisplayKey(fullReport.reportID),
+        },
+    })(OptionRowLHNData),
+);

@@ -226,21 +226,46 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
 }
 
 /**
+ * Sort an array of reportActions by their created timestamp first, and reportActionID second
+ * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
+ */
+function getSortedReportActionsV2(reportActions: ReportActions | null): ReportAction[] {
+    console.warn('getSortedReportActionsV2');
+
+    return Object.values<ReportAction>(reportActions ?? {}).sort((first, second) => {
+        // First sort by timestamp
+        if (first.created !== second.created) {
+            return first.created < second.created ? 1 : -1;
+        }
+
+        // Then by action type, ensuring that `CREATED` actions always come first if they have the same timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+            return first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? 1 : -1;
+        }
+        // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
+            return first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? -1 : 1;
+        }
+
+        // Then fallback on reportActionID as the final sorting criteria. It is a random number,
+        // but using this will ensure that the order of reportActions with the same created time and action type
+        // will be consistent across all users and devices
+        return first.reportActionID < second.reportActionID ? 1 : -1;
+    });
+}
+
+/**
  * Finds most recent IOU request action ID.
  */
-function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): string | null {
-    if (!Array.isArray(reportActions)) {
-        return null;
-    }
+function getMostRecentIOURequestActionID(sortedReportActions: ReportAction[]): string | null {
     const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT];
-    const iouRequestActions = reportActions?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
+    const iouRequestActions = sortedReportActions.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && iouRequestTypes.includes(action.originalMessage.type)) ?? [];
 
     if (iouRequestActions.length === 0) {
         return null;
     }
 
-    const sortedReportActions = getSortedReportActions(iouRequestActions);
-    return sortedReportActions.at(-1)?.reportActionID ?? null;
+    return iouRequestActions.at(0)?.reportActionID ?? null;
 }
 
 /**
@@ -494,12 +519,9 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
-    const filteredReportActions = Object.entries(reportActions ?? {})
-        .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
-        .map((entry) => entry[1]);
-    const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true, shouldMarkTheFirstItemAsNewest);
+function getSortedReportActionsForDisplay(sortedReportActions: ReportAction[]): ReportAction[] {
+    const filteredReportActions = sortedReportActions.filter((reportAction) => shouldReportActionBeVisible(reportAction, reportAction.reportActionID));
+    return filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
 }
 
 /**
@@ -826,6 +848,7 @@ export {
     getReportAction,
     getReportPreviewAction,
     getSortedReportActions,
+    getSortedReportActionsV2,
     getSortedReportActionsForDisplay,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,

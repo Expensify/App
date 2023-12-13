@@ -14,7 +14,6 @@ import usePrevious from '@hooks/usePrevious';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
@@ -22,7 +21,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, {getMostRecentIOURequestActionIDKey} from '@src/ONYXKEYS';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionsList from './ReportActionsList';
@@ -87,7 +86,6 @@ function ReportActionsView(props) {
     const didSubscribeToReportTypingEvents = useRef(false);
     const isFirstRender = useRef(true);
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
-    const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
@@ -257,7 +255,7 @@ function ReportActionsView(props) {
                 report={props.report}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
+                mostRecentIOUReportActionID={props.mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 isLoadingInitialReportActions={props.isLoadingInitialReportActions}
@@ -372,6 +370,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        mostRecentIOUReportActionID: {
+            key: ({report}) => getMostRecentIOURequestActionIDKey(report.reportID),
         },
     }),
 )(MemoizedReportActionsView);
