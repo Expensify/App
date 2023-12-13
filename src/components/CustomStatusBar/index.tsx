@@ -1,4 +1,3 @@
-import {EventListenerCallback, NavigationContainerEventMap} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect} from 'react';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -43,7 +42,7 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
         };
     }, [disableRootStatusBar, isNested]);
 
-    const updateStatusBarStyle = useCallback<EventListenerCallback<NavigationContainerEventMap, 'state'>>(() => {
+    const updateStatusBarStyle = useCallback(() => {
         if (isDisabled) {
             return;
         }
@@ -51,7 +50,10 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
         // Set the status bar colour depending on the current route.
         // If we don't have any colour defined for a route, fall back to
         // appBG color.
-        const currentRoute = navigationRef.getCurrentRoute();
+        let currentRoute: ReturnType<typeof navigationRef.getCurrentRoute> | undefined;
+        if (navigationRef.isReady()) {
+            currentRoute = navigationRef.getCurrentRoute();
+        }
 
         let currentScreenBackgroundColor = theme.appBG;
         let statusBarStyle = theme.statusBarStyle;
@@ -75,8 +77,8 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
             return;
         }
 
-        updateStatusBarAppearance({statusBarStyle: theme.statusBarStyle});
-    }, [isDisabled, theme.statusBarStyle]);
+        updateStatusBarStyle();
+    }, [isDisabled, theme.statusBarStyle, updateStatusBarStyle]);
 
     if (isDisabled) {
         return null;
