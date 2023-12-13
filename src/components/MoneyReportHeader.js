@@ -25,8 +25,7 @@ import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import ConfirmModal from "@components/ConfirmModal";
-import * as ReportActionsUtils from "@libs/ReportActionsUtils";
+import ConfirmModal from '@components/ConfirmModal';
 
 const propTypes = {
     /** The report currently being looked at */
