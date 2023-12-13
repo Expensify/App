@@ -1,18 +1,18 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
+import * as Report from '@libs/actions/Report';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Report from '@libs/actions/Report';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
-import ROUTES from '@src/ROUTES';
-import lodashGet from 'lodash/get';
-import ONYXKEYS from '@src/ONYXKEYS';
-import CONST from '@src/CONST';
-import reportPropTypes from '@pages/reportPropTypes';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
