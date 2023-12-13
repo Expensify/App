@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -26,7 +26,7 @@ const propTypes = {
     formID: PropTypes.string.isRequired,
 
     /** Text to be displayed in the submit button */
-    submitButtonText: PropTypes.string.isRequired,
+    submitButtonText: PropTypes.string,
 
     /** Controls the submit button's visibility */
     isSubmitButtonVisible: PropTypes.bool,
@@ -91,6 +91,9 @@ const propTypes = {
     /** Scroll view styles */
     scrollViewStyle: stylePropTypes,
 
+    /** Style for the error message for submit button */
+    errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
@@ -108,11 +111,13 @@ const defaultProps = {
     footerContent: null,
     style: [],
     scrollViewStyle: [],
+    errorMessageStyle: [],
     submitButtonStyles: [],
     validate: () => ({}),
+    submitButtonText: '',
 };
 
-function Form(props) {
+const Form = forwardRef((props, forwardedRef) => {
     const styles = useThemeStyles();
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState(() => ({...props.draftValues}));
@@ -248,6 +253,30 @@ function Form(props) {
         // Call submit handler
         onSubmit(trimmedStringValues);
     }, [props.formState.isLoading, props.network.isOffline, props.enabledWhenOffline, inputValues, onValidate, onSubmit]);
+
+    /**
+     * Resets the form
+     */
+    const resetForm = useCallback(
+        (optionalValue) => {
+            _.each(inputValues, (inputRef, inputID) => {
+                setInputValues((prevState) => {
+                    const copyPrevState = _.clone(prevState);
+
+                    touchedInputs.current[inputID] = false;
+                    copyPrevState[inputID] = optionalValue[inputID] || '';
+
+                    return copyPrevState;
+                });
+            });
+            setErrors({});
+        },
+        [inputValues],
+    );
+
+    useImperativeHandle(forwardedRef, () => ({
+        resetForm,
+    }));
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -468,7 +497,9 @@ function Form(props) {
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...props.submitButtonStyles]}
                         enabledWhenOffline={props.enabledWhenOffline}
                         isSubmitActionDangerous={props.isSubmitActionDangerous}
+                        useSmallerSubmitButtonSize={props.useSmallerSubmitButtonSize}
                         disablePressOnEnter
+                        errorMessageStyle={props.errorMessageStyle}
                     />
                 )}
             </FormSubmit>
@@ -478,6 +509,8 @@ function Form(props) {
             props.style,
             props.isSubmitButtonVisible,
             props.submitButtonText,
+            props.useSmallerSubmitButtonSize,
+            props.errorMessageStyle,
             props.formState.errorFields,
             props.formState.isLoading,
             props.footerContent,
@@ -543,7 +576,7 @@ function Form(props) {
             }
         </SafeAreaConsumer>
     );
-}
+});
 
 Form.displayName = 'Form';
 Form.propTypes = propTypes;

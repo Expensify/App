@@ -19,7 +19,7 @@ type PressableWithDelayToggleProps = PressableProps & {
     text: string;
 
     /** The text to display once the pressable is pressed */
-    textChecked: string;
+    textChecked?: string;
 
     /** The tooltip text to display */
     tooltipText: string;
@@ -48,6 +48,7 @@ type PressableWithDelayToggleProps = PressableProps & {
      * vertical text alignment of non-Text elements
      */
     inline?: boolean;
+    accessibilityRole?: string;
 };
 
 function PressableWithDelayToggle(
@@ -63,6 +64,7 @@ function PressableWithDelayToggle(
         textStyles,
         iconStyles,
         icon,
+        accessibilityRole,
     }: PressableWithDelayToggleProps,
     ref: PressableRef,
 ) {
@@ -101,11 +103,11 @@ function PressableWithDelayToggle(
             onPress={updatePressState}
             accessibilityLabel={tooltipTexts}
             suppressHighlighting={inline ? true : undefined}
+            accessibilityRole={accessibilityRole}
         >
             <>
                 {inline && labelText}
                 <Tooltip
-                    containerStyles={[styles.flexRow]}
                     text={tooltipTexts}
                     shouldRender
                 >

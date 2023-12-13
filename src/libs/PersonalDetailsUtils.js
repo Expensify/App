@@ -80,7 +80,7 @@ function getAccountIDsByLogins(logins) {
  * Given a list of accountIDs, find the associated personal detail and return related logins.
  *
  * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Array} - Array of logins according to passed accountIDs
+ * @returns {Array<string>} - Array of logins according to passed accountIDs
  */
 function getLoginsByAccountIDs(accountIDs) {
     return _.reduce(
@@ -197,6 +197,18 @@ function getFormattedAddress(privatePersonalDetails) {
     return formattedAddress.trim().replace(/,$/, '');
 }
 
+/**
+ * @param {Object} personalDetail - details object
+ * @returns {String | undefined} - The effective display name
+ */
+function getEffectiveDisplayName(personalDetail) {
+    if (personalDetail) {
+        return LocalePhoneNumber.formatPhoneNumber(personalDetail.login) || personalDetail.displayName;
+    }
+
+    return undefined;
+}
+
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
@@ -206,4 +218,5 @@ export {
     getFormattedAddress,
     getFormattedStreet,
     getStreetLines,
+    getEffectiveDisplayName,
 };
