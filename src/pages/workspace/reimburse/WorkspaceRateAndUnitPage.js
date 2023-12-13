@@ -130,7 +130,7 @@ function WorkspaceRateAndUnitPage(props) {
                     >
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             inputID="rate"
                             containerStyles={[props.themeStyles.mt4]}
                             defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, props.toLocaleDigit)}
