@@ -21,7 +21,7 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, borderBottomStyle]}>
             <View style={[styles.moneyRequestHeaderStatusBarBadge]}>
-                <Text style={[styles.textStrong, styles.textLabel]}>{title}</Text>
+                <Text style={[styles.textStrong, styles.textMicroBold]}>{title}</Text>
             </View>
             <View style={[styles.flexShrink1]}>
                 <Text style={[styles.textLabelSupporting]}>{description}</Text>
