@@ -20,20 +20,18 @@ function Template(args) {
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 Default.args = {
-    placeholder: 'Search...',
     onPress: () => alert('Pressed'),
 };
 
 const CustomPlaceholderAndTooltip = Template.bind({});
 CustomPlaceholderAndTooltip.args = {
-    placeholder: 'Search for something...',
+    placeholder: 'Search for a specific thing',
     tooltip: 'Custom tooltip text',
     onPress: () => alert('This component has custom placeholder text. Also custom tooltip text when hovered.'),
 };
 
 const CustomBackground = Template.bind({});
 CustomBackground.args = {
-    placeholder: 'Search...',
     onPress: () => alert('This component has custom styles applied'),
     style: {backgroundColor: 'darkgreen'},
 };

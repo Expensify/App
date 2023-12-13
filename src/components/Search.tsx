@@ -15,7 +15,7 @@ type SearchProps = {
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     // Text explaining what the user can search for
-    placeholder: string;
+    placeholder?: string;
 
     // Text showing up in a tooltip when component is hovered
     tooltip?: string;
@@ -31,7 +31,7 @@ function Search({onPress, placeholder, tooltip, style}: SearchProps) {
     return (
         <Tooltip text={tooltip ?? translate('common.search')}>
             <PressableWithFeedback
-                accessibilityLabel={translate('sidebarScreen.buttonSearchLabel')}
+                accessibilityLabel={tooltip ?? translate('common.search')}
                 role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 onPress={onPress}
             >
@@ -46,7 +46,7 @@ function Search({onPress, placeholder, tooltip, style}: SearchProps) {
                             style={styles.searchInputStyle}
                             numberOfLines={1}
                         >
-                            {placeholder}
+                            {placeholder ?? translate('common.searchWithThreeDots')}
                         </Text>
                     </View>
                 )}
