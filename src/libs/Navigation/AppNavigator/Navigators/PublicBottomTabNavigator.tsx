@@ -5,6 +5,7 @@ import {BottomTabNavigatorParamList} from '@libs/Navigation/types';
 import SignInPage from '@pages/signin/SignInPage';
 import SCREENS from '@src/SCREENS';
 
+// This type is not exactly right because we are using the same route in public and auth screens.
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
 const screenOptions: StackNavigationOptions = {
