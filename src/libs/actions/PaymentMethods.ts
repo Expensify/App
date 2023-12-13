@@ -1,12 +1,14 @@
 import {createRef} from 'react';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS, {OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {BankAccountList, FundList} from '@src/types/onyx';
 import PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
@@ -304,7 +306,7 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  *
  */
-function hasPaymentMethodError(bankList: OnyxValues[typeof ONYXKEYS.BANK_ACCOUNT_LIST], fundList: OnyxValues[typeof ONYXKEYS.FUND_LIST]): boolean {
+function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>): boolean {
     const combinedPaymentMethods = {...bankList, ...fundList};
 
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);

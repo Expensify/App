@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {StyleSheet} from 'react-native';
 import Animated from 'react-native-reanimated';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const imageWrapperPropTypes = {
     children: PropTypes.node.isRequired,

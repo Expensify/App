@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -24,6 +24,7 @@ const defaultProps = {
 };
 
 function SpacerView({shouldShow = true, style = []}) {
+    const StyleUtils = useStyleUtils();
     const marginVertical = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL);
     const borderBottomWidth = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH);
     const prevShouldShow = usePrevious(shouldShow);

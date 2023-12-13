@@ -13,7 +13,7 @@ jest.mock('../../src/libs/Permissions');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+    IS_LOADING_APP: 'isLoadingApp',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -84,7 +84,7 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                         }),
                     )
 
@@ -113,7 +113,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                         }),
                     )
 
@@ -143,7 +143,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -196,7 +196,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -248,7 +248,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                         }),
@@ -295,8 +295,6 @@ describe('Sidebar', () => {
             // 4. isUnread
             // 5. isPinned
             // 6. hasDraft
-            // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
-            // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
             // Given these combinations of booleans which result in the report being filtered out (not shown).
             const booleansWhichRemovesActiveReport = [
@@ -337,7 +335,7 @@ describe('Sidebar', () => {
                                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                     [ONYXKEYS.BETAS]: betas,
                                     [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                    [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                                    [ONYXKEYS.IS_LOADING_APP]: false,
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                     [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
@@ -381,7 +379,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report3.reportID}`]: report3,
@@ -452,7 +450,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${draftReport.reportID}`]: draftReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${pinnedReport.reportID}`]: pinnedReport,
                         }),
@@ -500,7 +498,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`]: archivedReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedPolicyRoomReport.reportID}`]: archivedPolicyRoomReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${archivedUserCreatedPolicyRoomReport.reportID}`]: archivedUserCreatedPolicyRoomReport,
@@ -563,7 +561,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${policyRoomReport.reportID}`]: policyRoomReport,
                             [`${ONYXKEYS.COLLECTION.REPORT}${userCreatedPolicyRoomReport.reportID}`]: userCreatedPolicyRoomReport,
                         }),
@@ -620,8 +618,6 @@ describe('Sidebar', () => {
         // 4. isUnread
         // 5. isPinned
         // 6. hasDraft
-        // There is one setting not represented here, which is hasOutstandingIOU. In order to test that setting, there must be
-        // additional reports in Onyx, so it's being left out for now. It's identical to the logic for hasDraft and isPinned though.
 
         // Given these combinations of booleans which result in the report being filtered out (not shown).
         const booleansWhichRemovesActiveReport = [
@@ -662,7 +658,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
@@ -714,7 +710,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
@@ -765,7 +761,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
@@ -814,7 +810,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
@@ -859,7 +855,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                                [ONYXKEYS.IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             }),
                         )
