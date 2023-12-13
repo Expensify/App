@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';

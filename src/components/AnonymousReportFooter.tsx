@@ -1,11 +1,10 @@
 import React from 'react';
 import {Text, View} from 'react-native';
-import {OnyxCollection} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
-import {PersonalDetails, Report} from '@src/types/onyx';
+import {PersonalDetailsList, Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
@@ -18,7 +17,7 @@ type AnonymousReportFooterProps = {
     isSmallSizeLayout?: boolean;
 
     /** Personal details of all the users */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 function AnonymousReportFooter({isSmallSizeLayout = false, personalDetails, report}: AnonymousReportFooterProps) {
