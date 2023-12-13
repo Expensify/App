@@ -2379,7 +2379,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copyUrlToClipboard: 'Copiar URL al portapapeles',
+        copy: 'Copiar',
         copied: '¡Copiado!',
     },
     moderation: {
