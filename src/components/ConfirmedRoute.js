@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
+import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import transactionPropTypes from './transactionPropTypes';
 
@@ -70,7 +71,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat],
                         markerComponent: () => (
-                            <MarkerComponent
+                            <ImageSVG
+                                src={MarkerComponent}
                                 width={CONST.MAP_MARKER_SIZE}
                                 height={CONST.MAP_MARKER_SIZE}
                                 fill={theme.icon}
