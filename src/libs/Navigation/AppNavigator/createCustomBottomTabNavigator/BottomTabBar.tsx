@@ -8,12 +8,14 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import Navigation from '@libs/Navigation/Navigation';
 import {RootStackParamList} from '@libs/Navigation/types';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 function BottomTabBar() {
+    const theme = useTheme();
     const styles = useThemeStyles();
 
     // Parent navigator of the bottom tab bar is the root navigator.
@@ -30,7 +32,7 @@ function BottomTabBar() {
             >
                 <Icon
                     src={Expensicons.ChatBubble}
-                    fill={currentTabName === SCREENS.HOME ? 'white' : undefined}
+                    fill={currentTabName === SCREENS.HOME ? theme.iconMenu : undefined}
                 />
             </PressableWithFeedback>
             <BottomTabBarFloatingActionButton />
@@ -43,7 +45,7 @@ function BottomTabBar() {
             >
                 <Icon
                     src={Expensicons.Gear}
-                    fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? 'white' : undefined}
+                    fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : undefined}
                 />
             </PressableWithFeedback>
         </View>
