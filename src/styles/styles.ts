@@ -20,7 +20,7 @@ import overflowXHidden from './overflowXHidden';
 import pointerEventsAuto from './pointerEventsAuto';
 import pointerEventsBoxNone from './pointerEventsBoxNone';
 import pointerEventsNone from './pointerEventsNone';
-import defaultTheme from './themes/default';
+import {defaultTheme} from './themes/themes';
 import {type ThemeColors} from './themes/types';
 import borders from './utilities/borders';
 import cursor from './utilities/cursor';
@@ -1339,7 +1339,7 @@ const styles = (theme: ThemeColors) =>
 
             // The bottom of the floating action button should align with the bottom of the compose box.
             // The value should be equal to the height + marginBottom + marginTop of chatItemComposeSecondaryRow
-            bottom: 25,
+            bottom: variables.fabBottom,
         },
 
         floatingActionButton: {
@@ -1398,7 +1398,9 @@ const styles = (theme: ThemeColors) =>
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
-                vertical: windowHeight - 75,
+                // Menu should be displayed 12px above the floating action button.
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
             } satisfies AnchorPosition),
 
         createAccountMenuPositionProfile: () =>
@@ -1518,7 +1520,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.buttonHoveredBG,
             textDecorationLine: 'none',
         },
 
@@ -2470,6 +2472,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        sectionMenuItem: {
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            height: 56,
+            alignItems: 'center',
+        },
+
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
@@ -2855,7 +2864,7 @@ const styles = (theme: ThemeColors) =>
         smallEditIcon: {
             alignItems: 'center',
             backgroundColor: theme.buttonHoveredBG,
-            borderColor: theme.textReversed,
+            borderColor: theme.appBG,
             borderRadius: 14,
             borderWidth: 3,
             color: theme.textReversed,
@@ -3159,6 +3168,10 @@ const styles = (theme: ThemeColors) =>
         receiptDropOverlay: {
             backgroundColor: theme.receiptDropUIBG,
             zIndex: 2,
+        },
+
+        isDraggingOver: {
+            backgroundColor: theme.receiptDropUIBG,
         },
 
         receiptImageWrapper: (receiptImageTopPosition: number) =>
@@ -3811,9 +3824,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         moneyRequestHeaderStatusBarBadge: {
-            paddingHorizontal: 8,
-            borderRadius: variables.componentBorderRadiusSmall,
+            width: 68,
             height: variables.inputHeightSmall,
+            borderRadius: variables.componentBorderRadiusSmall,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -3987,23 +4000,15 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 0,
         },
 
-        walletDangerSection: {
-            backgroundColor: theme.dangerSection,
-            color: theme.dangerSection,
-            borderRadius: variables.componentBorderRadiusCard,
-            width: 'auto',
-            marginHorizontal: 20,
-            marginBottom: 6,
-        },
-
-        walletDangerSectionTitle: {
-            fontSize: variables.fontSizeNormal,
-            fontFamily: fontFamily.EXP_NEUE_BOLD,
+        walletRedDotSectionTitle: {
+            color: theme.text,
             fontWeight: fontWeightBold,
+            fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
         },
 
-        walletDangerSectionText: {
+        walletRedDotSectionText: {
+            color: theme.darkSupportingText,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
         },
@@ -4033,8 +4038,7 @@ const styles = (theme: ThemeColors) =>
 
 type ThemeStyles = ReturnType<typeof styles>;
 
-const stylesGenerator = styles;
 const defaultStyles = styles(defaultTheme);
 
-export default defaultStyles;
-export {stylesGenerator, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};
+export default styles;
+export {defaultStyles, type Styles, type ThemeStyles, type StatusBarStyle, type ColorScheme};

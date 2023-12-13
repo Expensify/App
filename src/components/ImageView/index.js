@@ -5,7 +5,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -33,6 +33,7 @@ const defaultProps = {
 
 function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -257,13 +258,13 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
             <PressableWithoutFeedback
                 style={{
                     ...StyleUtils.getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth, isLoading),
-                    ...StyleUtils.getZoomCursorStyle(styles, isZoomed, isDragging),
+                    ...StyleUtils.getZoomCursorStyle(isZoomed, isDragging),
                     ...(isZoomed && zoomScale >= 1 ? styles.pRelative : styles.pAbsolute),
                     ...styles.flex1,
                 }}
                 onPressIn={onContainerPressIn}
                 onPress={onContainerPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGE}
+                role={CONST.ROLE.IMG}
                 accessibilityLabel={fileName}
             >
                 <Image

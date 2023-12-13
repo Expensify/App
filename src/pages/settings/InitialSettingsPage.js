@@ -236,10 +236,7 @@ function InitialSettingsPage(props) {
                         return (
                             <MenuItem
                                 key={`${keyTitle}_${index}`}
-                                wrapperStyle={{
-                                    borderRadius: 8,
-                                    paddingHorizontal: 8,
-                                }}
+                                wrapperStyle={styles.sectionMenuItem}
                                 title={keyTitle}
                                 icon={item.icon}
                                 iconType={item.iconType}
@@ -272,7 +269,7 @@ function InitialSettingsPage(props) {
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, translate, props.userWallet.currentBalance, isExecuting, singleExecution, activeRoute, waitForNavigate],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, props.userWallet.currentBalance, isExecuting, singleExecution, activeRoute, waitForNavigate],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
@@ -294,7 +291,7 @@ function InitialSettingsPage(props) {
                             disabled={isExecuting}
                             onPress={singleExecution(openProfileSettings)}
                             accessibilityLabel={translate('common.profile')}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <AvatarWithImagePicker
@@ -323,7 +320,7 @@ function InitialSettingsPage(props) {
                         disabled={isExecuting}
                         onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
-                        role={CONST.ACCESSIBILITY_ROLE.LINK}
+                        role={CONST.ROLE.LINK}
                     >
                         <Tooltip text={translate('common.profile')}>
                             <Text
@@ -387,20 +384,11 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-        },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,
