@@ -49,7 +49,7 @@ function AttachmentViewImage({
             onPress={onPress}
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
-            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
             accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}
         >
             {children}

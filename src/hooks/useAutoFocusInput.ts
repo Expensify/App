@@ -1,24 +1,29 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import {InteractionManager, TextInput} from 'react-native';
 import CONST from '@src/CONST';
 import * as Expensify from '@src/Expensify';
 
-export default function useAutoFocusInput() {
+type UseAutoFocusInput = {
+    inputCallbackRef: (ref: TextInput | null) => void;
+};
+
+export default function useAutoFocusInput(): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
+    // @ts-expect-error TODO: Remove this when Expensify.js is migrated.
     const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
 
-    const inputRef = useRef(null);
-    const focusTimeoutRef = useRef(null);
+    const inputRef = useRef<TextInput | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || !isSplashHidden) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
-            inputRef.current.focus();
+            inputRef.current?.focus();
             setIsScreenTransitionEnded(false);
         });
     }, [isScreenTransitionEnded, isInputInitialized, isSplashHidden]);
@@ -38,7 +43,7 @@ export default function useAutoFocusInput() {
         }, []),
     );
 
-    const inputCallbackRef = (ref) => {
+    const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;
         setIsInputInitialized(true);
     };

@@ -1248,6 +1248,19 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     /**
+     * Get the style for the AM and PM buttons in the TimePicker
+     */
+    getStatusAMandPMButtonStyle: (amPmValue: string): {styleForAM: ViewStyle; styleForPM: ViewStyle} => {
+        const computedStyleForAM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.AM ? {backgroundColor: theme.componentBG} : {};
+        const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: theme.componentBG} : {};
+
+        return {
+            styleForAM: [styles.timePickerWidth100, computedStyleForAM] as unknown as ViewStyle,
+            styleForPM: [styles.timePickerWidth100, computedStyleForPM] as unknown as ViewStyle,
+        };
+    },
+
+    /**
      * Get the styles of the text next to dot indicators
      */
     getDotIndicatorTextStyles: (isErrorText = true): TextStyle => (isErrorText ? {...styles.offlineFeedback.text, color: styles.formError.color} : {...styles.offlineFeedback.text}),
