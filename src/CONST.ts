@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import {BottomTabName, CentralPaneName} from '@libs/Navigation/types';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
@@ -3031,7 +3032,7 @@ const CONST = {
             SCREENS.WORKSPACE.TRAVEL,
             SCREENS.WORKSPACE.MEMBERS,
         ],
-    },
+    } satisfies Record<BottomTabName, CentralPaneName[]>,
 } as const;
 
 export default CONST;
