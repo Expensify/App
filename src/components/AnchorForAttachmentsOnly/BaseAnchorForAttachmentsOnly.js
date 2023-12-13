@@ -58,7 +58,7 @@ function BaseAnchorForAttachmentsOnly(props) {
                     onPressOut={props.onPressOut}
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     accessibilityLabel={fileName}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}
