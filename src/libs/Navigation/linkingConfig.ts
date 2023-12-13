@@ -7,7 +7,15 @@ import SCREENS from '@src/SCREENS';
 import {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
-    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
+    prefixes: [
+        'app://-/',
+        'new-expensify://',
+        'https://www.expensify.cash',
+        'https://staging.expensify.cash',
+        'https://dev.new.expensify.com',
+        CONST.NEW_EXPENSIFY_URL,
+        CONST.STAGING_NEW_EXPENSIFY_URL,
+    ],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
