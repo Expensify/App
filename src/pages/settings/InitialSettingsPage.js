@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Avatar from '@components/Avatar';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import bankAccountPropTypes from '@components/bankAccountPropTypes';
 import cardPropTypes from '@components/cardPropTypes';
 import ConfirmModal from '@components/ConfirmModal';
@@ -35,6 +35,7 @@ import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Session from '@userActions/Session';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -277,6 +278,10 @@ function InitialSettingsPage(props) {
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
     const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
 
+    const currentUserDetails = props.currentUserPersonalDetails || {};
+    const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
+    const accountID = lodashGet(currentUserDetails, 'accountID', '');
+
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
@@ -292,11 +297,23 @@ function InitialSettingsPage(props) {
                             role={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                <Avatar
-                                    imageStyles={[styles.avatarXLarge]}
-                                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
-                                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
+                                <AvatarWithImagePicker
+                                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                                    source={UserUtils.getAvatar(avatarURL, accountID)}
+                                    onImageSelected={PersonalDetails.updateAvatar}
+                                    onImageRemoved={PersonalDetails.deleteAvatar}
+                                    anchorPosition={styles.createAccountMenuPositionProfile(props.windowWidth)}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                    errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                                    errorRowStyles={[styles.mt6]}
+                                    onErrorClose={PersonalDetails.clearAvatarErrors}
+                                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                    originalFileName={currentUserDetails.originalFileName}
+                                    headerTitle={props.translate('profilePage.profileAvatar')}
+                                    style={[styles.mh5]}
+                                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                                 />
                             </OfflineWithFeedback>
                         </PressableWithoutFeedback>

@@ -1401,6 +1401,12 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - 75,
             } satisfies AnchorPosition),
 
+        createAccountMenuPositionProfile: () =>
+            ({
+                horizontal: 18,
+                ...getPopOverVerticalOffset(162),
+            } satisfies AnchorPosition),
+
         createMenuPositionProfile: (windowWidth: number) =>
             ({
                 horizontal: windowWidth - 355,
