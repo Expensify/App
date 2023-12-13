@@ -3040,7 +3040,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchInputStyle: {
-            color: colors.darkSupportingText,
+            color: colors.productDark800,
             fontSize: 13,
             lineHeight: 16,
             width: '100%',
