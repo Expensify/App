@@ -29,7 +29,7 @@ function promptToOpenInDesktopApp() {
     }
 }
 
-function DeeplinkWrapper({children, isAuthenticated}: DeeplinkWrapperProps) {
+function DeeplinkWrapper({children, isAuthenticated, autoAuthState}: DeeplinkWrapperProps) {
     const [currentScreen, setCurrentScreen] = useState<string | undefined>();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef<() => void>();
@@ -62,7 +62,7 @@ function DeeplinkWrapper({children, isAuthenticated}: DeeplinkWrapperProps) {
         const isUnsupportedDeeplinkRoute = routeRegex.test(window.location.pathname);
 
         // Making a few checks to exit early before checking authentication status
-        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
+        if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || hasShownPrompt || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED) {
             return;
         }
         // We want to show the prompt immediately if the user is already authenticated.
@@ -85,7 +85,7 @@ function DeeplinkWrapper({children, isAuthenticated}: DeeplinkWrapperProps) {
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);
         }
-    }, [currentScreen, hasShownPrompt, isAuthenticated]);
+    }, [currentScreen, hasShownPrompt, isAuthenticated, autoAuthState]);
 
     return children;
 }
