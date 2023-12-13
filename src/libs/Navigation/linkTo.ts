@@ -1,13 +1,19 @@
-import {getActionFromState} from '@react-navigation/core';
-import {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import {getActionFromState, PartialState} from '@react-navigation/core';
+import {NavigationAction, NavigationContainerRef, NavigationState} from '@react-navigation/native';
 import {Writable} from 'type-fest';
+import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
+import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import getStateFromPath from './getStateFromPath';
+import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import {NavigationRoot, RootStackParamList, StackNavigationAction} from './types';
+import {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
 
 type ActionPayloadParams = {
     screen?: string;
@@ -28,7 +34,7 @@ type ActionPayload = {
  */
 function getMinimalAction(action: NavigationAction, state: NavigationState): Writable<NavigationAction> {
     let currentAction: NavigationAction = action;
-    let currentState: NavigationState | PartialState<NavigationState> | undefined = state;
+    let currentState: State | undefined = state;
     let currentTargetKey: string | undefined;
 
     while (currentAction.payload && 'name' in currentAction.payload && currentState?.routes[currentState.index ?? -1].name === currentAction.payload.name) {
@@ -55,6 +61,27 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Wri
     return currentAction;
 }
 
+// Because we need to change the type to push, we also need to set target for this action to the bottom tab navigator.
+function getActionForBottomTabNavigator(action: StackNavigationAction, state: NavigationState<RootStackParamList>): Writable<NavigationAction> | undefined {
+    const bottomTabNavigatorRoute = state.routes.at(0);
+
+    if (!bottomTabNavigatorRoute || bottomTabNavigatorRoute.state === undefined || !action || action.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+        return;
+    }
+
+    const params = action.payload.params as ActionPayloadParams;
+    const screen = params.screen;
+
+    return {
+        type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+        payload: {
+            name: screen,
+            params: params.params,
+        },
+        target: bottomTabNavigatorRoute.state.key,
+    };
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -69,18 +96,33 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         root = current;
     }
 
-    const rootState = root.getState();
-    const state = getStateFromPath(path);
-    const action: StackNavigationAction = getActionFromState(state, linkingConfig.config);
+    const rootState = root.getState() as NavigationState<RootStackParamList>;
+    const stateFromPath = getStateFromPath(path) as PartialState<NavigationState<RootStackParamList>>;
+    const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
-        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && getTopmostReportId(rootState) !== getTopmostReportId(state)) {
+        } else if (
+            action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
+            topmostCentralPaneRoute &&
+            (topmostCentralPaneRoute.name !== SCREENS.REPORT || getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath))
+        ) {
+            // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
+            const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath);
+            if (topmostBottomTabRoute.name !== matchingBottomTabRoute.name) {
+                root.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                    payload: matchingBottomTabRoute,
+                });
+            }
+
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
@@ -91,6 +133,30 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
         } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rootState?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
+            const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState);
+
+            if (!actionForBottomTabNavigator) {
+                throw new Error('Could not get action for bottom tab navigator');
+            }
+
+            root.dispatch(actionForBottomTabNavigator);
+            // If the layout is wide we need to push matching central pane route to the stack.
+            if (!getIsSmallScreenWidth()) {
+                const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath);
+                root.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+                    payload: {
+                        name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
+                        params: {
+                            screen: matchingCentralPaneRoute.name,
+                            params: matchingCentralPaneRoute.params,
+                        },
+                    },
+                });
+            }
+            return;
         }
     }
 
@@ -116,6 +182,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     if (action !== undefined) {
         root.dispatch(action);
     } else {
-        root.reset(state);
+        root.reset(stateFromPath);
     }
 }
