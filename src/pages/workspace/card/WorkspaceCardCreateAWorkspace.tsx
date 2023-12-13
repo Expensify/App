@@ -23,6 +23,7 @@ function WorkspaceCardCreateAWorkspace({translate}: WorkspaceCardCreateAWorkspac
                 text={translate('workspace.card.createAWorkspaceCTA')}
                 style={styles.mt5}
                 success
+                medium
             />
         </Section>
     );
