@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import {CommonActions, EventMapCore, getPathFromState, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import {CommonActions, EventMapCore, getPathFromState, NavigationState, StackActions} from '@react-navigation/native';
 import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -12,7 +12,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import {StackNavigationAction, StateOrRoute} from './types';
+import {StackNavigationAction, State, StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -286,7 +286,7 @@ function setIsNavigationReady() {
  *
  * @param state - react-navigation state object
  */
-function navContainsProtectedRoutes(state: NavigationState | PartialState<NavigationState> | undefined): boolean {
+function navContainsProtectedRoutes(state: State | undefined): boolean {
     if (!state?.routeNames || !Array.isArray(state.routeNames)) {
         return false;
     }
