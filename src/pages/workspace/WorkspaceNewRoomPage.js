@@ -251,7 +251,7 @@ function WorkspaceNewRoomPage(props) {
             >
                 {({insets}) =>
                     workspaceOptions.length === 0 ? (
-                        {emptyWorkspaceView}
+                        <>{emptyWorkspaceView}</>
                     ) : (
                         <KeyboardAvoidingView
                             style={styles.h100}
