@@ -1,12 +1,8 @@
 /* eslint-disable no-continue */
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
-// eslint-disable-next-line you-dont-need-lodash-underscore/get
-import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
-import lodashSortBy from 'lodash/sortBy';
-import lodashTimes from 'lodash/times';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
@@ -16,6 +12,9 @@ import {Participant} from '@src/types/onyx/IOU';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import get from '@src/utils/get';
+import sortBy from '@src/utils/sortBy';
+import times from '@src/utils/times';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -31,13 +30,35 @@ import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
-type Tag = {enabled: boolean; name: string; accountID: number | null};
+type Tag = {
+    enabled: boolean;
+    name: string;
+    accountID: number | null;
+};
 
-type Option = {text: string; keyForList: string; searchText: string; tooltipText: string; isDisabled: boolean};
+type Option = {
+    text: string | null;
+    keyForList: string;
+    searchText: string;
+    tooltipText: string;
+    isDisabled: boolean;
+};
 
-type PayeePersonalDetails = {text: string; alternateText: string; icons: OnyxCommon.Icon[]; descriptiveText: string; login: string; accountID: number};
+type PayeePersonalDetails = {
+    text: string;
+    alternateText: string;
+    icons: OnyxCommon.Icon[];
+    descriptiveText: string;
+    login: string;
+    accountID: number;
+};
 
-type CategorySection = {title: string | undefined; shouldShow: boolean; indexOffset: number; data: Option[] | Participant[] | ReportUtils.OptionData[]};
+type CategorySection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    indexOffset: number;
+    data: Option[] | Participant[] | ReportUtils.OptionData[];
+};
 
 type Category = {
     name: string;
@@ -478,7 +499,7 @@ function createOption(
     const result: ReportUtils.OptionData = {
         text: undefined,
         alternateText: null,
-        pendingAction: null,
+        pendingAction: undefined,
         allReportErrors: null,
         brickRoadIndicator: null,
         icons: undefined,
@@ -532,7 +553,7 @@ function createOption(
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = isNotEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : null;
+        result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
@@ -540,7 +561,7 @@ function createOption(
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
@@ -700,7 +721,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
      */
     sortedCategories.forEach((category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-        const existedValue = lodashGet(hierarchy, path, {});
+        const existedValue = get(hierarchy, path, {});
         lodashSet(hierarchy, path, {
             ...existedValue,
             name: category.name,
@@ -769,7 +790,7 @@ function indentOption(option: Category, optionCollection: Map<string, Option>, i
     }
 
     option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
-        const indents = lodashTimes(index, () => CONST.INDENTS).join('');
+        const indents = times(index, () => CONST.INDENTS).join('');
         const isChild = array.length - 1 === index;
         const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
 
@@ -1105,7 +1126,7 @@ function getOptions(
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
     // - All archived reports should remain at the bottom
-    const orderedReports = lodashSortBy(filteredReports, (report) => {
+    const orderedReports = sortBy(filteredReports, (report) => {
         if (ReportUtils.isArchivedRoom(report)) {
             return CONST.DATE.UNIX_EPOCH;
         }
@@ -1179,7 +1200,7 @@ function getOptions(
     const filteredDetails: OnyxEntry<PersonalDetailsList> = Object.keys(personalDetails ?? {})
         .filter((key) => 'login' in (personalDetails?.[+key] ?? {}))
         .reduce((obj: OnyxEntry<PersonalDetailsList>, key) => {
-            if (obj) {
+            if (obj && personalDetails?.[+key]) {
                 // eslint-disable-next-line no-param-reassign
                 obj[+key] = personalDetails?.[+key];
             }
@@ -1501,7 +1522,7 @@ function getShareDestinationOptions(
  * @param member - personalDetails or userToInvite
  * @param config - keys to overwrite the default values
  */
-function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): ReportUtils.OptionData | undefined {
+function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils.OptionData | EmptyObject = {}): Option | undefined {
     if (!member) {
         return undefined;
     }
@@ -1511,7 +1532,7 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
     return {
         text: member.text ?? member.displayName ?? '',
         alternateText: member.alternateText ?? member.login ?? '',
-        keyForList: member.keyForList ?? String(accountID),
+        keyForList: member.keyForList ?? String(accountID ?? 0) ?? '',
         isSelected: false,
         isDisabled: false,
         accountID,

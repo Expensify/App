@@ -331,6 +331,7 @@ type OptionData = {
     selected?: boolean;
     isOptimisticAccount?: boolean;
     isDisabled?: boolean;
+    isSelected?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
