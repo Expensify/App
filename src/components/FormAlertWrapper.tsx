@@ -16,6 +16,9 @@ type FormAlertWrapperProps = {
     /** Styles for container element */
     containerStyles?: StyleProp<ViewStyle>;
 
+    /** Style for the error message for submit button */
+    errorMessageStyle?: StyleProp<ViewStyle>;
+
     /** Whether to show the alert text */
     isAlertVisible?: boolean;
 
@@ -36,7 +39,16 @@ type FormAlertWrapperProps = {
 //
 // This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
-function FormAlertWrapper({children, containerStyles, isAlertVisible = false, isMessageHtml = false, message = '', network, onFixTheErrorsLinkPressed = () => {}}: FormAlertWrapperProps) {
+function FormAlertWrapper({
+    children,
+    containerStyles,
+    errorMessageStyle,
+    isAlertVisible = false,
+    isMessageHtml = false,
+    message = '',
+    network,
+    onFixTheErrorsLinkPressed = () => {},
+}: FormAlertWrapperProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -63,7 +75,7 @@ function FormAlertWrapper({children, containerStyles, isAlertVisible = false, is
             {isAlertVisible && (
                 <FormHelpMessage
                     message={message}
-                    style={[styles.mb3]}
+                    style={[styles.mb3, errorMessageStyle]}
                 >
                     {content}
                 </FormHelpMessage>
