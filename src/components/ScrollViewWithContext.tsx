@@ -1,5 +1,5 @@
-import React, {ForwardedRef, useMemo, useRef, useState} from 'react';
-import {NativeScrollEvent, NativeSyntheticEvent, ScrollView} from 'react-native';
+import React, {createContext, ForwardedRef, forwardRef, ReactNode, useMemo, useRef, useState} from 'react';
+import {NativeScrollEvent, NativeSyntheticEvent, ScrollView, ScrollViewProps} from 'react-native';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
 
@@ -8,16 +8,16 @@ type ScrollContextValue = {
     scrollViewRef: ForwardedRef<ScrollView>;
 };
 
-const ScrollContext = React.createContext<ScrollContextValue>({
+const ScrollContext = createContext<ScrollContextValue>({
     contentOffsetY: 0,
     scrollViewRef: null,
 });
 
 type ScrollViewWithContextProps = {
-    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    children?: React.ReactNode;
-    scrollEventThrottle: number;
-} & Partial<ScrollView>;
+    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+    children?: ReactNode;
+    scrollEventThrottle?: number;
+} & Partial<ScrollViewProps>;
 
 /*
  * <ScrollViewWithContext /> is a wrapper around <ScrollView /> that provides a ref to the <ScrollView />.
@@ -26,7 +26,7 @@ type ScrollViewWithContextProps = {
  * Using this wrapper will automatically handle scrolling to the picker's <TextInput />
  * when the picker modal is opened
  */
-function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children, ...restProps}: ScrollViewWithContextProps, ref: ForwardedRef<ScrollView>) {
+function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ...restProps}: ScrollViewWithContextProps, ref: ForwardedRef<ScrollView>) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
     const defaultScrollViewRef = useRef<ScrollView>(null);
     const scrollViewRef = ref ?? defaultScrollViewRef;
@@ -52,15 +52,15 @@ function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children, 
             {...restProps}
             ref={scrollViewRef}
             onScroll={setContextScrollPosition}
-            scrollEventThrottle={scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+            scrollEventThrottle={scrollEventThrottle ?? MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
         >
             <ScrollContext.Provider value={contextValue}>{children}</ScrollContext.Provider>
         </ScrollView>
     );
 }
 
-ScrollViewWithContextWithRef.displayName = 'ScrollViewWithContextWithRef';
+ScrollViewWithContext.displayName = 'ScrollViewWithContext';
 
-export default React.forwardRef(ScrollViewWithContextWithRef);
+export default forwardRef(ScrollViewWithContext);
 export {ScrollContext};
 export type {ScrollContextValue};

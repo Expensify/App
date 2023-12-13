@@ -14,6 +14,30 @@ import CONST from '@src/CONST';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 
+// type ErrorsType = string | Record<string, string | string[] | Record<string, string | boolean | number>>;
+// const errorsPropType = PropTypes.oneOfType([
+//     PropTypes.string,
+//     PropTypes.objectOf(
+//         PropTypes.oneOfType([
+//             PropTypes.string,
+//             PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number]))])),
+//         ]),
+//     ),
+// ]);
+
+// const defaultProps = {
+//     isSubmitButtonVisible: true,
+//     formState: {
+//         isLoading: false,
+//     },
+//     enabledWhenOffline: false,
+//     isSubmitActionDangerous: false,
+//     scrollContextEnabled: false,
+//     footerContent: null,
+//     style: [],
+//     submitButtonStyles: [],
+// };
+
 const propTypes = {
     /** A unique Onyx key identifying the form */
     formID: PropTypes.string.isRequired,
