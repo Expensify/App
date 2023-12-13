@@ -56,7 +56,9 @@ function IOURequestStepParticipants({
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
+            // So we are resetting selectedReportID ref to the reportID coming from params.
             if (val.length !== 1) {
+                selectedReportID.current = reportID;
                 return;
             }
 
@@ -81,6 +83,7 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
+            includeSafeAreaPaddingBottom
         >
             <MoneyRequestParticipantsSelector
                 participants={participants}

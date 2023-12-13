@@ -109,7 +109,7 @@ function CloseAccountPage(props) {
                         autoGrowHeight
                         label={props.translate('closeAccountPage.enterMessageHere')}
                         aria-label={props.translate('closeAccountPage.enterMessageHere')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
@@ -121,7 +121,7 @@ function CloseAccountPage(props) {
                         autoCapitalize="none"
                         label={props.translate('closeAccountPage.enterDefaultContact')}
                         aria-label={props.translate('closeAccountPage.enterDefaultContact')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
                         inputMode={Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
