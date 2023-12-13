@@ -20,23 +20,23 @@ function Template(args) {
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 Default.args = {
-    prompt: 'Search...',
+    placeholder: 'Search...',
     onPress: () => alert('Pressed'),
 };
 
-const CustomPromptAndTooltip = Template.bind({});
-CustomPromptAndTooltip.args = {
-    prompt: 'Search for something...',
+const CustomPlaceholderAndTooltip = Template.bind({});
+CustomPlaceholderAndTooltip.args = {
+    placeholder: 'Search for something...',
     tooltip: 'Custom tooltip text',
-    onPress: () => alert('This component has custom prompt text. Also custom tooltip text when hovered.'),
+    onPress: () => alert('This component has custom placeholder text. Also custom tooltip text when hovered.'),
 };
 
 const CustomBackground = Template.bind({});
 CustomBackground.args = {
-    prompt: 'Search...',
+    placeholder: 'Search...',
     onPress: () => alert('This component has custom styles applied'),
     style: {backgroundColor: 'darkgreen'},
 };
 
 export default story;
-export {Default, CustomPromptAndTooltip, CustomBackground};
+export {Default, CustomPlaceholderAndTooltip, CustomBackground};

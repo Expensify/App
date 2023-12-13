@@ -15,7 +15,7 @@ type SearchProps = {
     onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     // Text explaining what the user can search for
-    prompt: string;
+    placeholder: string;
 
     // Text showing up in a tooltip when component is hovered
     tooltip?: string;
@@ -24,7 +24,7 @@ type SearchProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function Search({onPress, prompt, tooltip, style}: SearchProps) {
+function Search({onPress, placeholder, tooltip, style}: SearchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -46,7 +46,7 @@ function Search({onPress, prompt, tooltip, style}: SearchProps) {
                             style={styles.searchInputStyle}
                             numberOfLines={1}
                         >
-                            {prompt}
+                            {placeholder}
                         </Text>
                     </View>
                 )}
