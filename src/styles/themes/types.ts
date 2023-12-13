@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 type Color = string;
 
 type ThemePreference = (typeof CONST.THEME)[keyof typeof CONST.THEME];
-type ThemePreferenceWithoutSystem = Exclude<ThemePreference, 'system'>;
+type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM>;
 
 type ThemeColors = {
     // Figma keys

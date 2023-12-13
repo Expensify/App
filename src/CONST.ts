@@ -707,8 +707,9 @@ const CONST = {
     },
     THEME: {
         DEFAULT: 'system',
-        LIGHT: 'light',
+        FALLBACK: 'dark',
         DARK: 'dark',
+        LIGHT: 'light',
         SYSTEM: 'system',
     },
     COLOR_SCHEME: {
