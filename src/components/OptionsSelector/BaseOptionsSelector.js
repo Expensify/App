@@ -404,7 +404,7 @@ function BaseOptionsSelector(props) {
             value={props.value}
             label={props.textInputLabel}
             accessibilityLabel={props.textInputLabel}
-            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ROLE.PRESENTATION}
             onChangeText={updateSearchValue}
             errorText={errorMessage}
             onSubmitEditing={selectFocusedOption}

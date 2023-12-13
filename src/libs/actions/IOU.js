@@ -15,6 +15,7 @@ import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import Permissions from '@libs/Permissions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -24,6 +25,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as Policy from './Policy';
 import * as Report from './Report';
+
+let betas;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (val) => (betas = val || []),
+});
 
 let allPersonalDetails;
 Onyx.connect({
@@ -51,6 +58,29 @@ Onyx.connect({
         }
 
         allTransactions = val;
+    },
+});
+
+let allTransactionDrafts = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        allTransactionDrafts = val || {};
+    },
+});
+
+let allTransactionViolations;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        if (!val) {
+            allTransactionViolations = {};
+            return;
+        }
+
+        allTransactionViolations = val;
     },
 });
 
@@ -640,11 +670,12 @@ function getMoneyRequestInformation(
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
-    const existingTransaction = existingTransactionID && TransactionUtils.getTransaction(existingTransactionID);
-    if (existingTransaction) {
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         optimisticTransaction = {
             ...optimisticTransaction,
             ...existingTransaction,
+            transactionID: optimisticTransaction.transactionID,
         };
     }
 
@@ -796,18 +827,17 @@ function createDistanceRequest(report, participant, comment, created, category, 
 }
 
 /**
- * Edits an existing distance request
- *
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {Object} transactionChanges
- * @param {String} [transactionChanges.created]
- * @param {Number} [transactionChanges.amount]
- * @param {Object} [transactionChanges.comment]
- * @param {Object} [transactionChanges.waypoints]
- *
+ * @param {String} [transactionChanges.created] Present when updated the date field
+ * @param {Boolean} onlyIncludeChangedFields
+ *                      When 'true', then the returned params will only include the transaction details for the fields that were changed.
+ *                      When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
+ *                      This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
+ * @returns {object}
  */
-function editDistanceMoneyRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, onlyIncludeChangedFields) {
     const optimisticData = [];
     const successData = [];
     const failureData = [];
@@ -827,11 +857,15 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
     const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
+    // This needs to be a JSON string since we're sending this to the MapBox API
+    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+
+    const dataToIncludeInParams = onlyIncludeChangedFields ? _.pick(transactionDetails, _.keys(transactionChanges)) : transactionDetails;
+
     const params = {
-        ...transactionDetails,
+        ...dataToIncludeInParams,
+        reportID: iouReport.reportID,
         transactionID,
-        // This needs to be a JSON string since we're sending this to the MapBox API
-        waypoints: JSON.stringify(transactionDetails.waypoints),
     };
 
     // Step 3: Build the modified expense report actions
@@ -891,12 +925,13 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
     }
 
     // Optimistically modify the transaction
+    const optimisticTransaction = onlyIncludeChangedFields ? _.pick(updatedTransaction, _.keys(transactionChanges)) : updatedTransaction;
     optimisticData.push({
         // We need to use SET method to save updated waypoint instead MERGE method to avoid wrong update of waypoints. More detail: https://github.com/Expensify/App/issues/30290#issuecomment-1778957070
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...updatedTransaction,
+            ...optimisticTransaction,
             pendingFields,
             isLoading: _.has(transactionChanges, 'waypoints'),
             errorFields: null,
@@ -941,7 +976,42 @@ function editDistanceMoneyRequest(transactionID, transactionThreadReportID, tran
         value: iouReport,
     });
 
-    API.write('UpdateDistanceRequest', params, {optimisticData, successData, failureData});
+    return {
+        params,
+        onyxData: {optimisticData, successData, failureData},
+    };
+}
+
+/**
+ * Updates the created date of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} val
+ */
+function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
+    const transactionChanges = {
+        created: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestDate', params, onyxData);
+}
+
+/**
+ * Edits an existing distance request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {Object} transactionChanges
+ * @param {String} [transactionChanges.created]
+ * @param {Number} [transactionChanges.amount]
+ * @param {Object} [transactionChanges.comment]
+ * @param {Object} [transactionChanges.waypoints]
+ *
+ */
+function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, false);
+    API.write('UpdateDistanceRequest', params, onyxData);
 }
 
 /**
@@ -2132,7 +2202,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
  */
 function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges) {
     if (TransactionUtils.isDistanceRequest(transaction)) {
-        editDistanceMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
+        updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
     } else {
         editRegularMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
     }
@@ -2149,6 +2219,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
     let transactionThread = null;
     if (transactionThreadID) {
@@ -2229,6 +2300,15 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: null,
         },
+        ...(Permissions.canUseViolations(betas)
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                      value: null,
+                  },
+              ]
+            : []),
         ...(shouldDeleteTransactionThread
             ? [
                   {
@@ -2260,6 +2340,17 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                 [reportPreviewAction.reportActionID]: updatedReportPreviewAction,
             },
         },
+        ...(!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: false,
+                      },
+                  },
+              ]
+            : []),
         ...(shouldDeleteIOUReport
             ? [
                   {
@@ -2292,6 +2383,15 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: transaction,
         },
+        ...(Permissions.canUseViolations(betas)
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                      value: transactionViolations,
+                  },
+              ]
+            : []),
         ...(shouldDeleteTransactionThread
             ? [
                   {
@@ -2329,6 +2429,17 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                       value: chatReport,
+                  },
+              ]
+            : []),
+        ...(!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingChildRequest: true,
+                      },
                   },
               ]
             : []),
@@ -3201,6 +3312,7 @@ export {
     setMoneyRequestTag,
     setUpDistanceTransaction,
     navigateToNextPage,
+    updateMoneyRequestDate,
     replaceReceipt,
     detachReceipt,
     getIOUReportID,

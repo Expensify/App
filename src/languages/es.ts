@@ -190,6 +190,8 @@ export default {
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
             characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
+            invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
+            invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
@@ -259,6 +261,8 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
+        am: 'AM',
+        pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
@@ -1165,12 +1169,19 @@ export default {
     },
     statusPage: {
         status: 'Estado',
-        setStatusTitle: 'Establece tu estado',
         statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        timePeriods: {
+            never: 'Nunca',
+            thirtyMinutes: '30 minutos',
+            oneHour: '1 hora',
+            afterToday: 'Hoy',
+            afterWeek: 'Una semana',
+            custom: 'Personalizado',
+        },
         untilTomorrow: 'Hasta mañana',
         untilTime: ({time}: UntilTimeParams) => {
             // Check for HH:MM AM/PM format and starts with '01:'
@@ -1188,6 +1199,10 @@ export default {
             // Default case
             return `Hasta ${time}`;
         },
+        date: 'Fecha',
+        time: 'Hora',
+        clearAfter: 'Borrar después',
+        whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Paso ${step}`;
@@ -1285,8 +1300,11 @@ export default {
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
-        cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
-        cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
+        cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
+        cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
+        microphonePermissionsNotGranted: 'Permiso para acceder al micrófono',
+        microphoneRequestMessage:
+            'Necesitamos acceso a tu micrófono para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
         originalDocumentNeeded: 'Por favor, sube una imagen original de tu identificación en lugar de una captura de pantalla o imagen escaneada.',
         documentNeedsBetterQuality:
             'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
@@ -2457,31 +2475,30 @@ export default {
             buttonText1: 'Inicia un chat y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Pide dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Pide dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Envía dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Invita a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Invita a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE} por cada recomendación`,
-            body1: 'Si conoces a alguien que dedique demasiado tiempo a los gastos (literalmente cualquiera: tu vecino, tu jefe, tu amigo de contabilidad), envíale tu enlace de invitación de Expensify:',
-            body2: `Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}. Así de fácil.`,
+            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
