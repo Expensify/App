@@ -1,4 +1,3 @@
-import {tr} from 'date-fns/locale';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONST from '../../src/CONST';
