@@ -15,11 +15,11 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
@@ -63,6 +63,7 @@ const defaultProps = {
 function AvatarCropModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -412,7 +413,7 @@ function AvatarCropModal(props) {
                                     onLayout={initializeSliderContainer}
                                     onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
                                     accessibilityLabel="slider"
-                                    role={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
+                                    role={CONST.ROLE.SLIDER}
                                 >
                                     <Slider
                                         sliderValue={translateSlider}

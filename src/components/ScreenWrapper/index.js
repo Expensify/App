@@ -14,9 +14,9 @@ import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import useThemeStyles from '@styles/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './propTypes';
@@ -51,7 +51,7 @@ const ScreenWrapper = React.forwardRef(
         const navigation = useNavigation();
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
-        const minHeight = shouldEnableMinHeight ? initialHeight : undefined;
+        const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
         const isKeyboardShown = lodashGet(keyboardState, 'isKeyboardShown', false);
 
         const isKeyboardShownRef = useRef();

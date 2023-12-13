@@ -2,20 +2,21 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
+import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -88,6 +89,7 @@ const defaultProps = {
 const MenuItem = React.forwardRef((props, ref) => {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const style = StyleUtils.combineStyles(props.style, styles.popoverMenuItem);
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = React.useState('');
@@ -105,6 +107,7 @@ const MenuItem = React.forwardRef((props, ref) => {
             props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
+            props.titleTextStyle,
         ],
         props.titleStyle,
     );
@@ -179,6 +182,8 @@ const MenuItem = React.forwardRef((props, ref) => {
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
                     style={({pressed}) => [
+                        props.containerStyle,
+                        props.errorText ? styles.pb5 : {},
                         style,
                         !props.interactive && styles.cursorDefault,
                         StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true),
@@ -188,7 +193,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                     ]}
                     disabled={props.disabled}
                     ref={ref}
-                    role={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+                    role={CONST.ROLE.MENUITEM}
                     accessibilityLabel={props.title ? props.title.toString() : ''}
                 >
                     {({pressed}) => (
@@ -384,6 +389,14 @@ const MenuItem = React.forwardRef((props, ref) => {
                                 {props.shouldShowRightComponent && props.rightComponent}
                                 {props.shouldShowSelectedState && <SelectCircle isChecked={props.isSelected} />}
                             </View>
+                            {Boolean(props.errorText) && (
+                                <FormHelpMessage
+                                    isError
+                                    shouldShowRedDotIndicator={false}
+                                    message={props.errorText}
+                                    style={styles.menuItemError}
+                                />
+                            )}
                         </>
                     )}
                 </PressableWithSecondaryInteraction>

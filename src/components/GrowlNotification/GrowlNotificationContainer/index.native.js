@@ -1,8 +1,8 @@
 import React from 'react';
 import {Animated} from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import growlNotificationContainerPropTypes from './growlNotificationContainerPropTypes';
 
 const propTypes = {
@@ -11,14 +11,13 @@ const propTypes = {
 
 function GrowlNotificationContainer(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const insets = useSafeAreaInsets;
+
     return (
-        <SafeAreaInsetsContext.Consumer>
-            {(insets) => (
-                <Animated.View style={[StyleUtils.getSafeAreaPadding(insets), styles.growlNotificationContainer, styles.growlNotificationTranslateY(props.translateY)]}>
-                    {props.children}
-                </Animated.View>
-            )}
-        </SafeAreaInsetsContext.Consumer>
+        <Animated.View style={[StyleUtils.getSafeAreaPadding(insets), styles.growlNotificationContainer, styles.growlNotificationTranslateY(props.translateY)]}>
+            {props.children}
+        </Animated.View>
     );
 }
 
