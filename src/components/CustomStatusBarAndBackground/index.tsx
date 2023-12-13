@@ -16,14 +16,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
     const isDisabled = !isNested && isRootStatusBarDisabled;
 
-    useEffect(() => {
-        if (isDisabled) {
-            return;
-        }
-
-        updateGlobalBackgroundColor(theme);
-    }, [isDisabled, theme]);
-
+    // Disable the root status bar when a nested status bar is rendered
     useEffect(() => {
         if (isNested) {
             disableRootStatusBar(true);
@@ -61,12 +54,14 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         updateStatusBarAppearance({backgroundColor: currentScreenBackgroundColor, statusBarStyle});
     }, [isDisabled, theme.PAGE_THEMES, theme.appBG, theme.statusBarStyle]);
 
+    // Update the status bar style everytime the navigation state changes
     useEffect(() => {
         navigationRef.addListener('state', updateStatusBarStyle);
 
         return () => navigationRef.removeListener('state', updateStatusBarStyle);
     }, [updateStatusBarStyle]);
 
+    // Update the status bar style everytime the theme changes
     useEffect(() => {
         if (isDisabled) {
             return;
@@ -74,6 +69,16 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
 
         updateStatusBarStyle();
     }, [isDisabled, theme.statusBarStyle, updateStatusBarStyle]);
+
+    // Update the global background (on web) everytime the theme changes.
+    // The background of the html element needs to be updated, otherwise you will see a big contrast when resizing the window or when the keyboard is open on iOS web.
+    useEffect(() => {
+        if (isDisabled) {
+            return;
+        }
+
+        updateGlobalBackgroundColor(theme);
+    }, [isDisabled, theme]);
 
     if (isDisabled) {
         return null;
