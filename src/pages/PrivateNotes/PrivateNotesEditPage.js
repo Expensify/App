@@ -54,6 +54,7 @@ const defaultProps = {
 function PrivateNotesEditPage({route, personalDetailsList, report}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     // We need to edit the note in markdown format, but display it in HTML format
     const parser = new ExpensiMark();
     const [privateNote, setPrivateNote] = useState(
