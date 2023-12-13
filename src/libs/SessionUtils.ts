@@ -5,14 +5,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Determine if the transitioning user is logging in as a new user.
  */
 function isLoggingInAsNewUser(transitionURL: string | null, sessionEmail?: string): boolean {
-    if (!transitionURL || !sessionEmail) {
-        return true;
-    }
-
     // The OldDot mobile app does not URL encode the parameters, but OldDot web
     // does. We don't want to deploy OldDot mobile again, so as a work around we
     // compare the session email to both the decoded and raw email from the transition link.
-    const params = new URLSearchParams(transitionURL);
+    const params = new URLSearchParams(transitionURL ?? undefined);
     const paramsEmail = params.get('email');
 
     // If the email param matches what is stored in the session then we are
@@ -24,7 +20,7 @@ function isLoggingInAsNewUser(transitionURL: string | null, sessionEmail?: strin
     // If they do not match it might be due to encoding, so check the raw value
     // Capture the un-encoded text in the email param
     const emailParamRegex = /[?&]email=([^&]*)/g;
-    const matches = emailParamRegex.exec(transitionURL);
+    const matches = emailParamRegex.exec(transitionURL ?? '');
     const linkedEmail = matches?.[1] ?? null;
     return linkedEmail !== sessionEmail;
 }
