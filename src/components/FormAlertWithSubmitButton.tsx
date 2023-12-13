@@ -105,7 +105,7 @@ function FormAlertWithSubmitButton({
                             isDisabled={isDisabled}
                             isLoading={isLoading}
                             danger={isSubmitActionDangerous}
-                            medium={props.useSmallerSubmitButtonSize}
+                            medium={useSmallerSubmitButtonSize}
                         />
                     )}
                     {footerContent}
