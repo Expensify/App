@@ -3487,10 +3487,6 @@ function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: 
     ) {
         return false;
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> main
     if (!canAccessReport(report, policies, betas)) {
         return false;
     }
