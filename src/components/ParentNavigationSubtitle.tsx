@@ -1,8 +1,8 @@
 import React from 'react';
 import {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {ParentNavigationSummaryParams} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -31,7 +31,7 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID 
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {rootReportName, workspaceName})}
-            role={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ROLE.LINK}
             style={pressableStyles}
         >
             <Text

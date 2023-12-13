@@ -3,8 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
-// eslint-disable-next-line no-restricted-imports
-import styles from '@styles/styles';
+import {defaultStyles} from '@styles/index';
 import CONST from '@src/CONST';
 
 /**
@@ -229,8 +228,8 @@ function MultipleSelection(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
+                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
                         </View>
                     ),
                 };
@@ -291,8 +290,8 @@ function WithSectionHeader(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
+                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
                         </View>
                     ),
                 };
@@ -351,8 +350,8 @@ function WithConfirmButton(args) {
                     accountID: item.keyForList,
                     login: item.text,
                     rightElement: isAdmin && (
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={styles.peopleBadgeText}>Admin</Text>
+                        <View style={[defaultStyles.badge, defaultStyles.peopleBadge]}>
+                            <Text style={defaultStyles.peopleBadgeText}>Admin</Text>
                         </View>
                     ),
                 };
