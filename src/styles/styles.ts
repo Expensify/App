@@ -3022,6 +3022,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchContainer: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingHorizontal: 24,
             backgroundColor: theme.highlightBG,
             borderRadius: variables.componentBorderRadiusRounded,
         },
