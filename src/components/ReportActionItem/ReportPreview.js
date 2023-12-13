@@ -112,6 +112,15 @@ const propTypes = {
 
                 /** The transaction violation message */
                 message: PropTypes.string,
+
+                /** The transaction violation data */
+                data: PropTypes.shape({
+                    /** The transaction violation data field */
+                    field: PropTypes.string,
+
+                    /** The transaction violation data value */
+                    value: PropTypes.string,
+                }),
             }),
         ),
     }),
