@@ -144,9 +144,43 @@ type ReportActionBase = {
     isNewestReportAction?: boolean;
 };
 
+type ImageData = {
+    /** The height of the image. */
+    height: number;
+
+    /** The width of the image. */
+    width: number;
+
+    /** The URL of the image. */
+    url: string;
+
+    /** The type of the image. */
+    type?: string;
+};
+
+type LinkMetadata = {
+    /** The URL of the link. */
+    url?: string;
+
+    /** A description of the link. */
+    description?: string;
+
+    /** The title of the link. */
+    title?: string;
+
+    /** The publisher of the link. */
+    publisher?: string;
+
+    /** The image associated with the link. */
+    image?: ImageData;
+
+    /** The provider logo associated with the link. */
+    logo?: ImageData;
+};
+
 type ReportAction = ReportActionBase & OriginalMessage;
 
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {Message, ReportActions};
+export type {Message, ReportActions, LinkMetadata};

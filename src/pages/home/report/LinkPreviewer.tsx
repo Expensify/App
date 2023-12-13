@@ -6,44 +6,11 @@ import useTheme from '@styles/themes/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
+import type {LinkMetadata} from '@src/types/onyx/ReportAction';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
 const MAX_IMAGE_HEIGHT = 180;
 const MAX_IMAGE_WIDTH = 340;
-
-type ImageData = {
-    /** The height of the image. */
-    height: number;
-
-    /** The width of the image. */
-    width: number;
-
-    /** The URL of the image. */
-    url: string;
-
-    /** The type of the image. */
-    type?: string;
-};
-
-type LinkMetadata = {
-    /** The URL of the link. */
-    url?: string;
-
-    /** A description of the link. */
-    description?: string;
-
-    /** The title of the link. */
-    title?: string;
-
-    /** The publisher of the link. */
-    publisher?: string;
-
-    /** The image associated with the link. */
-    image?: ImageData;
-
-    /** The provider logo associated with the link. */
-    logo?: ImageData;
-};
 
 type LinkPreviewerProps = {
     /** Data about links provided in message. */
@@ -58,8 +25,12 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const uniqueLinks = linkMetadata.filter((link, index, self) => self.findIndex((t) => t.url === link.url) === index);
-    const linksToShow = uniqueLinks.slice(0, maxAmountOfPreviews >= 0 ? Math.min(maxAmountOfPreviews, linkMetadata.length) : linkMetadata.length);
+    const maxAmmountOfLinks = maxAmountOfPreviews >= 0 ? Math.min(maxAmountOfPreviews, linkMetadata.length) : linkMetadata.length;
+    const linksToShow = uniqueLinks.slice(0, maxAmmountOfLinks);
     return linksToShow.map((linkData) => {
+        if (Array.isArray(linkData)) {
+            return;
+        }
         const {description, image, title, logo, publisher, url} = linkData;
         return (
             linkData && (
