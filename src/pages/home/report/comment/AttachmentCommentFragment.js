@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import reportActionSourcePropType from '@pages/home/report/reportActionSourcePropType';
-import useThemeStyles from '@styles/useThemeStyles';
 import RenderCommentHTML from './RenderCommentHTML';
 
 const propTypes = {

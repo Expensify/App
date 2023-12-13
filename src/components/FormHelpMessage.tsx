@@ -1,9 +1,9 @@
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Localize from '@libs/Localize';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
