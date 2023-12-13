@@ -1,33 +1,24 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect} from 'react';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import StatusBar from '@libs/StatusBar';
 import useTheme from '@styles/themes/useTheme';
 import CustomStatusBarContext from './CustomStatusBarContext';
+import updateGlobalBackgroundColor from './updateGlobalBackgroundColor';
 import updateStatusBarAppearance from './updateStatusBarAppearance';
 
-type CustomStatusBarProps = {
+type CustomStatusBarAndBackgroundProps = {
     isNested: boolean;
 };
 
-const propTypes = {
-    /** Whether the CustomStatusBar is nested within another CustomStatusBar.
-     *  A nested CustomStatusBar will disable the "root" CustomStatusBar. */
-    isNested: PropTypes.bool,
-};
-
-type CustomStatusBarType = {
-    (props: CustomStatusBarProps): React.ReactNode;
-    displayName: string;
-    propTypes: typeof propTypes;
-};
-
-// eslint-disable-next-line react/function-component-definition
-const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
+function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBackgroundProps) {
     const {isRootStatusBarDisabled, disableRootStatusBar} = useContext(CustomStatusBarContext);
     const theme = useTheme();
 
     const isDisabled = !isNested && isRootStatusBarDisabled;
+
+    useEffect(() => {
+        updateGlobalBackgroundColor(theme);
+    }, [theme]);
 
     useEffect(() => {
         if (isNested) {
@@ -85,9 +76,8 @@ const CustomStatusBar: CustomStatusBarType = ({isNested = false}) => {
     }
 
     return <StatusBar />;
-};
+}
 
-CustomStatusBar.displayName = 'CustomStatusBar';
-CustomStatusBar.propTypes = propTypes;
+CustomStatusBarAndBackground.displayName = 'CustomStatusBar';
 
-export default CustomStatusBar;
+export default CustomStatusBarAndBackground;

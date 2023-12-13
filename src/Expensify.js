@@ -37,7 +37,6 @@ import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import useTheme from './styles/themes/useTheme';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -99,7 +98,6 @@ const defaultProps = {
 const SplashScreenHiddenContext = React.createContext({});
 
 function Expensify(props) {
-    const theme = useTheme();
     const appStateChangeListener = useRef(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
@@ -203,11 +201,6 @@ function Expensify(props) {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
-
-    useEffect(() => {
-        const htmlElement = document.getElementsByTagName('html')[0];
-        htmlElement.style.setProperty('background-color', theme.appBG);
-    }, [theme.appBG]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
