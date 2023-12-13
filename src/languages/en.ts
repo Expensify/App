@@ -10,6 +10,7 @@ import type {
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
+    AdminCanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
@@ -577,6 +578,7 @@ export default {
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} approved:`,
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `The ${amount} payment has been cancelled by the admin.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>

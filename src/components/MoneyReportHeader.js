@@ -26,6 +26,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import * as Expensicons from '@components/Icon/Expensicons';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ConfirmModal from "@components/ConfirmModal";
+import * as ReportActionsUtils from "@libs/ReportActionsUtils";
 
 const propTypes = {
     /** The report currently being looked at */
