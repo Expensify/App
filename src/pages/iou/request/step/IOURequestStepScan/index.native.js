@@ -149,6 +149,26 @@ function IOURequestStepScan({
         [backTo, transactionID],
     );
 
+    /**
+     * Sets the Receipt objects and navigates the user to the next page
+     * @param {Object} file
+     */
+    const setReceiptAndNavigate = (file) => {
+        if (!validateReceipt(file)) {
+            return;
+        }
+
+        // Store the receipt on the transaction object in Onyx
+        IOU.setMoneyRequestReceipt(transactionID, file.uri, file.name, action !== CONST.IOU.ACTION.EDIT);
+
+        if (action === CONST.IOU.ACTION.EDIT) {
+            updateScanAndNavigate(file, file.uri);
+            return;
+        }
+
+        navigateToConfirmationStep();
+    };
+
     const capturePhoto = useCallback(() => {
         const showCameraAlert = () => {
             Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
@@ -245,36 +265,7 @@ function IOURequestStepScan({
                             style={[styles.alignItemsStart]}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: (file) => {
-                                        if (!validateReceipt(file)) {
-                                            return;
-                                        }
-                                        const filePath = file.uri;
-                                        IOU.setMoneyRequestReceipt(transactionID, filePath, file.name);
-
-                                        if (backTo) {
-                                            Navigation.goBack(backTo);
-                                            return;
-                                        }
-
-                                        // When a transaction is being edited (eg. not in the creation flow)
-                                        if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                                            IOU.replaceReceipt(transactionID, file, filePath);
-                                            Navigation.dismissModal();
-                                            return;
-                                        }
-
-                                        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-                                        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-                                        // to the confirm step.
-                                        if (report.reportID) {
-                                            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-                                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-                                            return;
-                                        }
-
-                                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-                                    },
+                                    onPicked: setReceiptAndNavigate,
                                 });
                             }}
                         >
