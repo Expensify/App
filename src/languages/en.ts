@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
+    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -10,7 +11,6 @@ import type {
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
-    AdminCanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,

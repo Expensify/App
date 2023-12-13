@@ -3034,17 +3034,17 @@ function cancelPayment(expenseReport, chatReport) {
         },
         ...(chatReport.reportID
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        ...chatReport,
-                        hasOutstandingIOU: true,
-                        hasOutstandingChildRequest: true,
-                        iouReportID: expenseReport.reportID,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          ...chatReport,
+                          hasOutstandingIOU: true,
+                          hasOutstandingChildRequest: true,
+                          iouReportID: expenseReport.reportID,
+                      },
+                  },
+              ]
             : []),
     ];
 
@@ -3079,16 +3079,16 @@ function cancelPayment(expenseReport, chatReport) {
         },
         ...(chatReport.reportID
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        hasOutstandingIOU: false,
-                        hasOutstandingChildRequest: false,
-                        iouReportID: 0,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingIOU: false,
+                          hasOutstandingChildRequest: false,
+                          iouReportID: 0,
+                      },
+                  },
+              ]
             : []),
     ];
 

@@ -178,10 +178,7 @@ type OptimisticSubmittedReportAction = Pick<
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
-type OptimisticCancelPaymentReportAction = Pick<
-    ReportAction,
-    'actionName' | 'actorAccountID' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
-    >;
+type OptimisticCancelPaymentReportAction = Pick<ReportAction, 'actionName' | 'actorAccountID' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'>;
 
 type OptimisticEditedTaskReportAction = Pick<
     ReportAction,
@@ -2930,15 +2927,16 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  *
  */
 function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentReportAction {
-
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
         actorAccountID: currentUserAccountID,
-        message: [{
-            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN
-        }],
+        message: [
+            {
+                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            },
+        ],
         originalMessage: {
-            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN
+            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
         },
         person: [
             {

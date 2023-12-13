@@ -1,10 +1,11 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo, useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -17,11 +18,10 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Expensicons from './Icon/Expensicons';
-import ConfirmModal from './ConfirmModal';
 import Button from './Button';
+import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
 import SettlementButton from './SettlementButton';
@@ -126,8 +126,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldEnableDetailPageNavigation
-                shouldShowThreeDotsButton = {shouldShowThreeDotsButton}
-                threeDotsMenuItems = {threeDotsMenuItems}
+                shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
