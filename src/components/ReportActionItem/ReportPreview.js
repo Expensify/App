@@ -19,6 +19,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import {usePermissions} from '@libs/Permissions';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -149,6 +150,8 @@ function ReportPreview(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const {canUseViolations} = usePermissions();
+
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
@@ -167,7 +170,8 @@ function ReportPreview(props) {
     const hasReceipts = transactionsWithReceipts.length > 0;
     const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID);
     const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action);
-    const hasErrors = (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || ReportUtils.reportHasViolations(props.iouReportID, props.transactionViolations);
+    const hasErrors =
+        (hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID)) || (canUseViolations && ReportUtils.reportHasViolations(props.iouReportID, props.transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID);

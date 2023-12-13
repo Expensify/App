@@ -3468,8 +3468,8 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReport(currentReportId);
     const parentReport = getParentReport(isNotEmptyObject(currentReport) ? currentReport : null);
-    const allReportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
-    const isChildReportHasComment = Object.values(allReportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
+    const reportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
+    const isChildReportHasComment = Object.values(reportActions ?? {})?.some((reportAction) => (reportAction?.childVisibleActionCount ?? 0) > 0);
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
@@ -3490,14 +3490,24 @@ function transactionHasViolation(transactionID: string, transactionViolations?: 
  *  This only applies to report submitter and for reports in the open and processing states
  */
 
-function transactionThreadHasViolations(report: Report, canUseViolations: boolean, transactionViolations?: TransactionViolations, parentReportAction?: ReportAction | null): boolean {
-    if (!parentReportAction) {
+function transactionThreadHasViolations(
+    report: Report,
+    canUseViolations: boolean,
+    transactionViolations?: TransactionViolations,
+    reportActions?: OnyxCollection<ReportActions> | null,
+    parentReportAction?: ReportAction | null,
+): boolean {
+    if (!canUseViolations || !reportActions) {
         return false;
     }
-    if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+    const resolvedParentReportAction = parentReportAction ?? reportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
+    if (!resolvedParentReportAction) {
         return false;
     }
-    const {IOUTransactionID, IOUReportID} = parentReportAction?.originalMessage;
+    if (resolvedParentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return false;
+    }
+    const {IOUTransactionID, IOUReportID} = resolvedParentReportAction?.originalMessage;
     if (!IOUTransactionID || !IOUReportID) {
         return false;
     }
@@ -3594,15 +3604,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (
-        isExpenseRequest(report) &&
-        transactionThreadHasViolations(
-            report,
-            betas.includes(CONST.BETAS.VIOLATIONS),
-            transactionViolations,
-            allReportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`],
-        )
-    ) {
+    if (isExpenseRequest(report) && transactionThreadHasViolations(report, betas.includes(CONST.BETAS.VIOLATIONS), transactionViolations, allReportActions)) {
         return true;
     }
 

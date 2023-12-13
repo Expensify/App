@@ -11,6 +11,7 @@ import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import SidebarUtils from '@libs/SidebarUtils';
+import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
@@ -25,20 +26,9 @@ const propTypes = {
     chatReports: PropTypes.objectOf(reportPropTypes),
 
     /** All report actions for all reports */
-    allReportActions: PropTypes.objectOf(
-        PropTypes.arrayOf(
-            PropTypes.shape({
-                error: PropTypes.string,
-                message: PropTypes.arrayOf(
-                    PropTypes.shape({
-                        moderationDecision: PropTypes.shape({
-                            decision: PropTypes.string,
-                        }),
-                    }),
-                ),
-            }),
-        ),
-    ),
+
+    /** Object of report actions for this report */
+    allReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: PropTypes.bool,
