@@ -95,11 +95,11 @@ function SelectionListWrapper(args) {
 
 const runs = CONST.PERFORMANCE_TESTS.RUNS;
 
-test('should render 1 section and a thousand items', () => {
+test('[SelectionList] should render 1 section and a thousand items', () => {
     measurePerformance(<SelectionListWrapper />);
 });
 
-test('should press a list item', () => {
+test('[SelectionList] should press a list item', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 5'));
     };
@@ -107,7 +107,7 @@ test('should press a list item', () => {
     measurePerformance(<SelectionListWrapper />, {scenario, runs});
 });
 
-test('should render multiple selection and select 3 items', () => {
+test('[SelectionList] should render multiple selection and select 3 items', () => {
     const scenario = (screen) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 2'));
@@ -117,7 +117,7 @@ test('should render multiple selection and select 3 items', () => {
     measurePerformance(<SelectionListWrapper canSelectMultiple />, {scenario, runs});
 });
 
-test('should scroll and select a few items', () => {
+test('[SelectionList] should scroll and select a few items', () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {
