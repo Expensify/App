@@ -68,9 +68,8 @@ function CheckboxWithLabel(
     const [isChecked, setIsChecked] = useState(() => [value, defaultValue, isCheckedProp].find((item) => typeof item === 'boolean'));
 
     const toggleCheckbox = () => {
-        const newState = !isChecked;
-        onInputChange(newState);
-        setIsChecked(newState);
+        onInputChange(!isChecked);
+        setIsChecked(!isChecked);
     };
 
     return (
@@ -80,7 +79,7 @@ function CheckboxWithLabel(
                     isChecked={isChecked}
                     onPress={toggleCheckbox}
                     style={[styles.checkboxWithLabelCheckboxStyle]}
-                    hasError={Boolean(errorText)}
+                    hasError={!!errorText}
                     ref={ref}
                     accessibilityLabel={accessibilityLabel ?? label ?? ''}
                 />
