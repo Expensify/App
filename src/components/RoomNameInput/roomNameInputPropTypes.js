@@ -31,9 +31,6 @@ const propTypes = {
 
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
-
-    /** Prefix character */
-    prefixCharacter: PropTypes.string,
 };
 
 const defaultProps = {
@@ -47,7 +44,6 @@ const defaultProps = {
     onBlur: () => {},
     autoFocus: false,
     shouldDelayFocus: false,
-    prefixCharacter: CONST.POLICY.ROOM_PREFIX,
 };
 
 export {propTypes, defaultProps};
