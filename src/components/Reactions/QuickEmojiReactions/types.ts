@@ -33,7 +33,9 @@ type ReportActionContextMenu = {
     clearActiveReportAction: () => void;
 };
 
-type OpenPickerCallback = (element: TextInput | ReportActionContextMenu | null, anchorOrigin?: AnchorOrigin) => void;
+type PickerRefElement = TextInput | ReportActionContextMenu | null;
+
+type OpenPickerCallback = (element: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
 
 type CloseContextMenuCallback = () => void;
 
@@ -80,4 +82,12 @@ type QuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
     closeContextMenu: (callback: CloseContextMenuCallback) => void;
 };
 
-export type {BaseQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps, QuickEmojiReactionsProps, OpenPickerCallback, CloseContextMenuCallback, ReportActionContextMenu};
+export type {
+    BaseQuickEmojiReactionsProps,
+    BaseQuickEmojiReactionsOnyxProps,
+    QuickEmojiReactionsProps,
+    OpenPickerCallback,
+    CloseContextMenuCallback,
+    ReportActionContextMenu,
+    PickerRefElement,
+};

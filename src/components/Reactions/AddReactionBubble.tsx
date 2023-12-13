@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {TextInput, View} from 'react-native';
+import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -16,7 +16,7 @@ import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type {CloseContextMenuCallback, OpenPickerCallback, ReportActionContextMenu} from './QuickEmojiReactions/types';
+import type {CloseContextMenuCallback, OpenPickerCallback, PickerRefElement} from './QuickEmojiReactions/types';
 
 type AddReactionBubbleProps = {
     /** Whether it is for context menu so we can modify its style */
@@ -54,7 +54,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
-        const openPicker = (refParam?: TextInput | ReportActionContextMenu | null, anchorOrigin?: AnchorOrigin) => {
+        const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
             EmojiPickerAction.showEmojiPicker(
                 () => {},
                 (emojiCode, emojiObject) => {
@@ -88,14 +88,14 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, isContextMenu)]}
                 onPress={Session.checkIfActionIsAllowed(onPress)}
-                onMouseDown={(e) => {
+                onMouseDown={(event) => {
                     // Allow text input blur when Add reaction is right clicked
-                    if (!e || e.button === 2) {
+                    if (!event || event.button === 2) {
                         return;
                     }
 
                     // Prevent text input blur when Add reaction is left clicked
-                    e.preventDefault();
+                    event.preventDefault();
                 }}
                 accessibilityLabel={translate('emojiReactions.addReactionTooltip')}
                 role={CONST.ROLE.BUTTON}

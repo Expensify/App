@@ -22,6 +22,7 @@ function BaseQuickEmojiReactions({
     onWillShowPicker = () => {},
 }: BaseQuickEmojiReactionsProps) {
     const styles = useThemeStyles();
+
     return (
         <View style={styles.quickReactionsContainer}>
             {CONST.QUICK_REACTIONS.map((emoji: Emoji) => (
