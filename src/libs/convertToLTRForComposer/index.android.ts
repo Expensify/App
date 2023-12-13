@@ -32,7 +32,6 @@ const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
  */
 const convertToLTRForComposer: ConvertToLTRForComposer = (text, isComposerEmpty) => {
     const shouldComposerMaintainAsLTR = canComposerBeConvertedToLTR(text);
-    console.log({shouldComposerMaintainAsLTR, isComposerEmpty});
     const newText = resetLTRWhenEmpty(text, shouldComposerMaintainAsLTR);
     if (shouldComposerMaintainAsLTR) {
         return newText;
