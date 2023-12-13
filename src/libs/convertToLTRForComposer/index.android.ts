@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 import ConvertToLTRForComposer from './types';
 
 /**
- * Android only - The composer is considered "empty" if all it contains is the LTR character followed by an @ or space.
+ * Android only - The composer can be converted to LTR if its content is the LTR character followed by an @ or space
  */
 function canComposerBeConvertedToLTR(text: string): boolean {
     // this handle cases when user type only spaces
@@ -31,9 +31,10 @@ const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
  * Android does not properly support bidirectional text for mixed content for input box
  */
 const convertToLTRForComposer: ConvertToLTRForComposer = (text, isComposerEmpty) => {
-    const isConsideredAsEmpty = canComposerBeConvertedToLTR(text);
-    const newText = resetLTRWhenEmpty(text, isConsideredAsEmpty);
-    if (isConsideredAsEmpty) {
+    const shouldComposerMaintainAsLTR = canComposerBeConvertedToLTR(text);
+    console.log({shouldComposerMaintainAsLTR, isComposerEmpty});
+    const newText = resetLTRWhenEmpty(text, shouldComposerMaintainAsLTR);
+    if (shouldComposerMaintainAsLTR) {
         return newText;
     }
     return isComposerEmpty ? `${CONST.UNICODE.LTR}${newText}` : newText;
