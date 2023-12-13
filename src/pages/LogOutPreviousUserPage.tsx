@@ -1,79 +1,67 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import {RouteProp} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {Linking} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
-import * as Session from '@userActions/Session';
+import * as SessionUserAction from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {Route} from '@src/ROUTES';
+import type {Account, Session} from '@src/types/onyx';
 
-const propTypes = {
+type LogOutPreviousUserPageOnyxProps = {
     /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** Whether the account data is loading */
-        isLoading: PropTypes.bool,
-    }),
+    account: OnyxEntry<Account>;
 
     /** The data about the current session which will be set once the user is authenticated and we return to this component as an AuthScreen */
-    session: PropTypes.shape({
-        /** The user's email for the current session */
-        email: PropTypes.string,
-    }),
+    session: OnyxEntry<Session>;
 };
 
-const defaultProps = {
-    account: {
-        isLoading: false,
-    },
-    session: {
-        email: null,
-    },
+type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & {
+    route: RouteProp<{params: {shouldForceLogin?: string; email?: string; shortLivedAuthToken?: string; exitTo?: Route}}>;
 };
 
-function LogOutPreviousUserPage(props) {
+function LogOutPreviousUserPage({account = {isLoading: false}, session, route}: LogOutPreviousUserPageProps) {
     useEffect(() => {
         Linking.getInitialURL().then((transitionURL) => {
-            const sessionEmail = props.session.email;
+            const sessionEmail = session?.email;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
 
             if (isLoggingInAsNewUser) {
-                Session.signOutAndRedirectToSignIn();
+                SessionUserAction.signOutAndRedirectToSignIn();
             }
 
             // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
             // and their authToken stored in Onyx becomes invalid.
             // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
             // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
-            const shouldForceLogin = lodashGet(props, 'route.params.shouldForceLogin', '') === 'true';
+            const shouldForceLogin = route.params?.shouldForceLogin === 'true';
+
             if (shouldForceLogin) {
-                const email = lodashGet(props, 'route.params.email', '');
-                const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
-                Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
+                const email = route.params?.email ?? '';
+                const shortLivedAuthToken = route.params?.shortLivedAuthToken ?? '';
+                SessionUserAction.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
 
-            const exitTo = lodashGet(props, 'route.params.exitTo', '');
+            const exitTo = route.params?.exitTo ?? '';
             // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
             // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
             // which is already called when AuthScreens mounts.
-            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
+            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !account?.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     Navigation.navigate(exitTo);
                 });
             }
         });
-    }, [props]);
+    }, [account?.isLoading, route.params?.email, route.params?.exitTo, route.params?.shortLivedAuthToken, route.params?.shouldForceLogin, session?.email]);
 
     return <FullScreenLoadingIndicator />;
 }
 
-LogOutPreviousUserPage.propTypes = propTypes;
-LogOutPreviousUserPage.defaultProps = defaultProps;
 LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
 
-export default withOnyx({
+export default withOnyx<LogOutPreviousUserPageProps, LogOutPreviousUserPageOnyxProps>({
     account: {
         key: ONYXKEYS.ACCOUNT,
     },
