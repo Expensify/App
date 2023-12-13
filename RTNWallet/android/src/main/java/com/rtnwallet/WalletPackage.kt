@@ -14,19 +14,17 @@ class WalletPackage : TurboReactPackage() {
             null
         }
 
-    override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-        return ReactModuleInfoProvider {
-            mapOf(
-                WalletModule.NAME to ReactModuleInfo(
-                    WalletModule.NAME,
-                    WalletModule.NAME,
-                    false, // canOverrideExistingModule
-                    false, // needsEagerInit
-                    true,  // hasConstants
-                    false, // isCxxModule
-                    true   // isTurboModule
-                )
+    override fun getReactModuleInfoProvider(): ReactModuleInfoProvider = ReactModuleInfoProvider {
+        mapOf(
+            WalletModule.NAME to ReactModuleInfo(
+                WalletModule.NAME,
+                WalletModule.NAME,
+                false, // canOverrideExistingModule
+                false, // needsEagerInit
+                true,  // hasConstants
+                false, // isCxxModule
+                true   // isTurboModule
             )
-        }
+        )
     }
 }
