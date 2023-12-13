@@ -9,7 +9,7 @@ import useThemeStyles from "@styles/useThemeStyles";
 import useTheme from '@styles/themes/useTheme';
 import useWindowDimensions from "@hooks/useWindowDimensions";
 import * as Report from '@userActions/Report';
-import * as StyleUtils from "@styles/StyleUtils";
+import useStyleUtils from "@styles/useStyleUtils";
 import SCREENS from "@src/SCREENS";
 import {View} from "react-native";
 import LottieAnimations from "./LottieAnimations";
@@ -42,6 +42,7 @@ const defaultProps = {
 
 function PurposeForUsingExpensifyModal(props) {
     const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isModalOpen, setIsModalOpen] = useState(true);
