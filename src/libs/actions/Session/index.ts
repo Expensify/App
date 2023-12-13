@@ -342,7 +342,7 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
         },
     ];
 
-    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' (undefined) in 'successData' or 'failureData' to ensure the user is logged out on refresh
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
     // We are combining both success and failure data params into one const as they are identical
     const resolutionData: OnyxUpdate[] = [
         {
@@ -356,7 +356,7 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.SESSION,
             value: {
-                signedInWithShortLivedAuthToken: undefined,
+                signedInWithShortLivedAuthToken: null,
             },
         },
     ];
