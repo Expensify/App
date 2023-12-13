@@ -49,7 +49,6 @@ describe('actions/IOU', () => {
     });
 
     describe('requestMoney', () => {
-        jest.setTimeout(30000);
         it('creates new chat if needed', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
@@ -385,7 +384,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
 
         it('updates existing IOU report if there is one', () => {
             const amount = 10000;
@@ -568,7 +567,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
 
         it('correctly implements RedBrickRoad error handling', () => {
             const amount = 10000;
@@ -846,7 +845,7 @@ describe('actions/IOU', () => {
                     // Cleanup
                     .then(fetch.succeed)
             );
-        }, 25000);
+        });
     });
 
     describe('split bill', () => {
@@ -1253,7 +1252,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
     });
 
     describe('payMoneyRequestElsewhere', () => {
@@ -1449,7 +1448,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 15000);
+        });
     });
 
     describe('edit money request', () => {
@@ -1725,7 +1724,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
     });
 
     describe('pay expense report via ACH', () => {
@@ -1846,7 +1845,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
 
         it('shows an error when paying results in an error', () => {
             let expenseReport = {};
@@ -1912,7 +1911,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
     });
 
     describe('deleteMoneyRequest', () => {
@@ -2571,7 +2570,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport.hasOutstandingIOU).toBeTruthy();
             expect(iouReport.total).toBe(20000);
-        }, 10000);
+        });
 
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             await waitForBatchedUpdates();
@@ -2792,7 +2791,7 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
         it('correctly implements error handling', () => {
             const amount = 10000;
             const comment = '💸💸💸💸';
@@ -2892,6 +2891,6 @@ describe('actions/IOU', () => {
                             });
                         }),
                 );
-        }, 10000);
+        });
     });
 });
