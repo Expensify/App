@@ -4,13 +4,20 @@ import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as StyleUtils from '@styles/StyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
-function TaxPicker({selectedTaxRate, policyTaxRates, onSubmit}) {
+function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
+
+    const policyTaxRatesCount = OptionsListUtils.getEnabledTaxRateCount(policyTaxRates.taxes);
+    const isTaxRatesCountBelowThreshold = policyTaxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
+
+    const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
     const selectedOptions = useMemo(() => {
         if (!selectedTaxRate) {
@@ -54,6 +61,7 @@ function TaxPicker({selectedTaxRate, policyTaxRates, onSubmit}) {
 
     return (
         <OptionsSelector
+            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
             optionHoveredStyle={styles.hoveredComponentBG}
             sectionHeaderStyle={styles.mt5}
             sections={sections}
@@ -66,6 +74,7 @@ function TaxPicker({selectedTaxRate, policyTaxRates, onSubmit}) {
             boldStyle
             highlightSelectedOptions
             isRowMultilineSupported
+            shouldShowTextInput={shouldShowTextInput}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />
