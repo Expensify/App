@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -107,6 +108,12 @@ function IOURequestStartPage({
         },
         [previousIOURequestType, reportID, isFromGlobalCreate],
     );
+
+    if (!transaction.transactionID) {
+        // The draft transaction is initialized only after the component is mounted,
+        // which will lead to briefly displaying the Not Found page without this loader.
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper

@@ -61,6 +61,15 @@ Onyx.connect({
     },
 });
 
+let allTransactionDrafts = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        allTransactionDrafts = val || {};
+    },
+});
+
 let allTransactionViolations;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -661,11 +670,12 @@ function getMoneyRequestInformation(
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
-    const existingTransaction = existingTransactionID && TransactionUtils.getTransaction(existingTransactionID);
-    if (existingTransaction) {
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         optimisticTransaction = {
             ...optimisticTransaction,
             ...existingTransaction,
+            transactionID: optimisticTransaction.transactionID,
         };
     }
 
