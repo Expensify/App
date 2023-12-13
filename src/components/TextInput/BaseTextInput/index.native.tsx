@@ -45,7 +45,7 @@ function BaseTextInput(
         autoGrow = false,
         autoGrowHeight = false,
         hideFocusedState = false,
-        maxLength = null,
+        maxLength = undefined,
         hint = '',
         onInputChange = () => {},
         shouldDelayFocus = false,

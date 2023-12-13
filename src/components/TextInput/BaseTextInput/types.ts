@@ -62,9 +62,6 @@ type CustomBaseTextInputProps = {
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
 
-    /** Maximum characters allowed */
-    maxLength?: number | null;
-
     /** Hint text to display below the TextInput */
     hint?: string;
 
