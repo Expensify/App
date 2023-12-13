@@ -55,7 +55,7 @@ function AmountTextInput(props) {
             blurOnSubmit={false}
             selection={props.selection}
             onSelectionChange={props.onSelectionChange}
-            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ROLE.PRESENTATION}
             onKeyPress={props.onKeyPress}
         />
     );

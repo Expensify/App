@@ -141,7 +141,7 @@ function HeaderWithBackButton({
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
                                 disabled={shouldDisableGetAssistanceButton}
-                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
+                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))))}
                                 style={[styles.touchableButtonImage]}
                                 role="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -168,7 +168,7 @@ function HeaderWithBackButton({
                             <PressableWithoutFeedback
                                 onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon
