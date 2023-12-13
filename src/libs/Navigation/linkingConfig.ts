@@ -1,12 +1,48 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {LinkingOptions} from '@react-navigation/native';
+import {getStateFromPath, LinkingOptions, NavigationState, PartialState} from '@react-navigation/native';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {RootStackParamList} from './types';
+import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
+import {BottomTabName, NavigationPartialRoute, RootStackParamList} from './types';
+
+function getStateWithProperTab(state: PartialState<NavigationState<RootStackParamList>>) {
+    // If the bottom tab navigator state is defined we don't need to do anything.
+    const isBottomTabNavigatorStateDefined = state.routes.at(0)?.state !== undefined;
+    if (isBottomTabNavigatorStateDefined) {
+        return state;
+    }
+
+    // If not, we need to insert the tab that matches the currently generated state.
+    const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
+
+    // We need to have at least one HOME route in the state, otherwise the app won't load.
+    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME}];
+
+    if (matchingBottomTabRoute.name !== SCREENS.HOME) {
+        // If the generated state requires tab other than HOME, we need to insert it.
+        routesForBottomTabNavigator.push(matchingBottomTabRoute);
+    }
+
+    const stateWithTab = {...state};
+
+    // The first route in root stack is always the BOTTOM_TAB_NAVIGATOR
+    stateWithTab.routes[0] = {name: NAVIGATORS.BOTTOM_TAB_NAVIGATOR, state: {routes: routesForBottomTabNavigator}};
+
+    return stateWithTab;
+}
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
+    getStateFromPath: (path, options) => {
+        const state = getStateFromPath(path, options);
+
+        if (state === undefined) {
+            throw new Error('Unable to parse path');
+        }
+        const stateWithTab = getStateWithProperTab(state as PartialState<NavigationState<RootStackParamList>>);
+        return stateWithTab;
+    },
     prefixes: [
         'app://-/',
         'new-expensify://',
@@ -17,7 +53,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
         CONST.STAGING_NEW_EXPENSIFY_URL,
     ],
     config: {
-        initialRouteName: SCREENS.HOME,
+        initialRouteName: NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
         screens: {
             // Main Routes
             [SCREENS.VALIDATE_LOGIN]: ROUTES.VALIDATE_LOGIN,
@@ -34,13 +70,43 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
 
             // Sidebar
-            [SCREENS.HOME]: {
-                path: ROUTES.HOME,
+            [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
+                path: '',
+                initialRouteName: SCREENS.HOME,
+                screens: {
+                    [SCREENS.HOME]: ROUTES.HOME,
+                    [SCREENS.ALL_SETTINGS]: ROUTES.ALL_SETTINGS,
+                    [SCREENS.WORKSPACE.INITIAL]: {
+                        path: ROUTES.WORKSPACE_INITIAL.route,
+                        exact: true,
+                    },
+                },
             },
 
             [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
                 screens: {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+
+                    [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+                    [SCREENS.WORKSPACE.SETTINGS]: ROUTES.WORKSPACE_SETTINGS.route,
+                    [SCREENS.WORKSPACE.CARD]: {
+                        path: ROUTES.WORKSPACE_CARD.route,
+                    },
+                    [SCREENS.WORKSPACE.REIMBURSE]: {
+                        path: ROUTES.WORKSPACE_REIMBURSE.route,
+                    },
+                    [SCREENS.WORKSPACE.BILLS]: {
+                        path: ROUTES.WORKSPACE_BILLS.route,
+                    },
+                    [SCREENS.WORKSPACE.INVOICES]: {
+                        path: ROUTES.WORKSPACE_INVOICES.route,
+                    },
+                    [SCREENS.WORKSPACE.TRAVEL]: {
+                        path: ROUTES.WORKSPACE_TRAVEL.route,
+                    },
+                    [SCREENS.WORKSPACE.MEMBERS]: {
+                        path: ROUTES.WORKSPACE_MEMBERS.route,
+                    },
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
@@ -51,10 +117,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                         screens: {
                             [SCREENS.SETTINGS.ROOT]: {
                                 path: ROUTES.SETTINGS,
-                            },
-                            [SCREENS.SETTINGS.WORKSPACES]: {
-                                path: ROUTES.SETTINGS_WORKSPACES,
-                                exact: true,
                             },
                             [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
@@ -218,35 +280,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_STATUS_SET,
                                 exact: true,
                             },
-                            [SCREENS.WORKSPACE.INITIAL]: {
-                                path: ROUTES.WORKSPACE_INITIAL.route,
-                            },
-                            [SCREENS.WORKSPACE.SETTINGS]: {
-                                path: ROUTES.WORKSPACE_SETTINGS.route,
-                            },
                             [SCREENS.WORKSPACE.CURRENCY]: {
                                 path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
                             },
-                            [SCREENS.WORKSPACE.CARD]: {
-                                path: ROUTES.WORKSPACE_CARD.route,
-                            },
-                            [SCREENS.WORKSPACE.REIMBURSE]: {
-                                path: ROUTES.WORKSPACE_REIMBURSE.route,
-                            },
                             [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                                 path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
-                            },
-                            [SCREENS.WORKSPACE.BILLS]: {
-                                path: ROUTES.WORKSPACE_BILLS.route,
-                            },
-                            [SCREENS.WORKSPACE.INVOICES]: {
-                                path: ROUTES.WORKSPACE_INVOICES.route,
-                            },
-                            [SCREENS.WORKSPACE.TRAVEL]: {
-                                path: ROUTES.WORKSPACE_TRAVEL.route,
-                            },
-                            [SCREENS.WORKSPACE.MEMBERS]: {
-                                path: ROUTES.WORKSPACE_MEMBERS.route,
                             },
                             [SCREENS.WORKSPACE.INVITE]: {
                                 path: ROUTES.WORKSPACE_INVITE.route,
