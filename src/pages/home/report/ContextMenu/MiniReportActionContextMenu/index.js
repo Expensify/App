@@ -2,12 +2,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
 import BaseReportActionContextMenu from '@pages/home/report/ContextMenu/BaseReportActionContextMenu';
 import {
     defaultProps as GenericReportActionContextMenuDefaultProps,
     propTypes as genericReportActionContextMenuPropTypes,
 } from '@pages/home/report/ContextMenu/genericReportActionContextMenuPropTypes';
-import useStyleUtils from '@styles/useStyleUtils';
 import CONST from '@src/CONST';
 
 const propTypes = {
