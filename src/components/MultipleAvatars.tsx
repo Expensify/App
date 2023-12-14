@@ -152,7 +152,7 @@ function MultipleAvatars({
                     <Avatar
                         source={icons[0].source}
                         size={size}
-                        fill={theme.iconSuccessFill}
+                        fill={icons[0].fill ?? theme.iconSuccessFill}
                         name={icons[0].name}
                         type={icons[0].type}
                         fallbackIcon={icons[0].fallbackIcon}

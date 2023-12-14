@@ -20,6 +20,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import OptionsSelector from '@components/OptionsSelector';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import OptionRow from '@components/OptionRow';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -49,21 +52,6 @@ const defaultProps = {
     activeWorkspaceID: undefined,
 };
 
-const INDICATOR_STYLES = {
-    checkmark: {
-        icon: Expensicons.Checkmark,
-        fill: colors.green,
-    },
-    greenIndicator: {
-        icon: Expensicons.DotIndicator,
-        fill: colors.green,
-    },
-    redIndicator: {
-        icon: Expensicons.DotIndicator,
-        fill: colors.red,
-    },
-};
-
 function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -72,56 +60,57 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
 
     const getIndicatorTypeForPolicy = useCallback(
         // TO DO: Wait for missing logic to be implemented in other PR
-        (policyId) => {
-            if (policyId === activeWorkspaceID) {
-                return 'checkmark';
-            }
-
-            return undefined;
-        },
-        [activeWorkspaceID],
-    );
-
-    const workspaceStatusComponent = useCallback(
-        (iconType) => {
-            const indicatorStyle = INDICATOR_STYLES[iconType];
-            return (
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <Icon
-                        src={indicatorStyle.icon}
-                        fill={indicatorStyle.fill}
-                        small
-                    />
-                </View>
-            );
-        },
-        [styles.alignItemsCenter, styles.justifyContentCenter],
+        // CONST.BRICK_ROAD_INDICATOR_STATUS.INFO or CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+        (policyId) => undefined,
+        [],
     );
 
     const getMenuItem = useCallback(
         (item) => {
             const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
 
-            const shouldShowRightComponent = _.keys(INDICATOR_STYLES).includes(item.indicatorType);
-            const rightComponent = shouldShowRightComponent ? workspaceStatusComponent(item.indicatorType) : undefined;
+
+            const option = {
+                text: keyTitle,
+                brickRoadIndicator: getIndicatorTypeForPolicy(item.policyId),
+                icons: [{
+                    source: item.icon,
+                    type: item.iconType,
+                    fill: item.iconFill,
+                    name: keyTitle,
+                    fallbackIcon: item.fallbackIcon,
+                }],
+            }
+
+            // return (
+            //     <MenuItem
+            //         title={keyTitle}
+            //         icon={item.icon}
+            //         iconType={CONST.ICON_TYPE_WORKSPACE}
+            //         onPress={item.action}
+            //         iconStyles={item.iconStyles}
+            //         iconFill={item.iconFill}
+            //         fallbackIcon={item.fallbackIcon}
+            //         brickRoadIndicator={item.brickRoadIndicator}
+            //         disabled={item.disabled}
+            //         rightComponent={rightComponent}
+            //         shouldShowRightComponent={shouldShowRightComponent}
+            //     />
+            // );
 
             return (
-                <MenuItem
-                    title={keyTitle}
-                    icon={item.icon}
-                    iconType={item.iconType}
-                    onPress={item.action}
-                    iconStyles={item.iconStyles}
-                    iconFill={item.iconFill}
-                    fallbackIcon={item.fallbackIcon}
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    disabled={item.disabled}
-                    rightComponent={rightComponent}
-                    shouldShowRightComponent={shouldShowRightComponent}
+                <OptionRow
+                    option={option}
+                    onSelectRow={item.action}
+                    showTitleTooltip={false}
+                    shouldShowSubscript={false}
+                    highlightSelected
+                    isSelected={item.policyId === activeWorkspaceID}
                 />
             );
+
         },
-        [translate, workspaceStatusComponent],
+        [activeWorkspaceID, getIndicatorTypeForPolicy, translate],
     );
 
     const usersWorkspaces = useMemo(
@@ -130,6 +119,7 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
                 .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
                 .map((policy) => ({
                     title: policy.name,
+                    policyId: policy.id,
                     icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     iconType: CONST.ICON_TYPE_WORKSPACE,
                     action: () => {
@@ -139,11 +129,20 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    indicatorType: getIndicatorTypeForPolicy(policy.id),
                 }))
                 .sortBy((policy) => policy.title.toLowerCase())
                 .value(),
-        [policies, isOffline, getIndicatorTypeForPolicy],
+        [policies, isOffline],
+    );
+
+    const usersWorkspacesSectionData = useMemo(
+        () =>
+           [{
+                data: usersWorkspaces,
+                shouldShow: true,
+                indexOffset: 0,
+            }],
+        [usersWorkspaces],
     );
 
     const allWorkspaces = useMemo(
@@ -162,8 +161,7 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
     );
 
     const getWorkspacesSection = useCallback(
-        (workspaces, section, renderSearchBar, showAddWorkspaceButton) => {
-            const xd = renderSearchBar;
+        (workspaces, section, showAddWorkspaceButton) => {
 
             return (
                 <View>
@@ -197,6 +195,9 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
     const allWorkspacesSection = useMemo(() => getWorkspacesSection(allWorkspaces, 'Everything', false, false), [allWorkspaces, getWorkspacesSection]);
     const usersWorkspacesSection = useMemo(() => getWorkspacesSection(usersWorkspaces, 'Workspaces', true, true), [getWorkspacesSection, usersWorkspaces]);
 
+    // const {inputCallbackRef} = useAutoFocusInput();
+
+
     return (
         <HeaderPageLayout
             title="Choose a workspace"
@@ -204,6 +205,20 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
         >
             {allWorkspacesSection}
             {usersWorkspacesSection}
+            {/* <OptionsSelector
+                            ref={inputCallbackRef}
+                            onAddToSelection={(option) => {}}
+                            sections={usersWorkspacesSectionData}
+                            selectedOptions={[]}
+                            value="Find"
+                            onSelectRow={(option) => {}}
+                            onChangeText
+                            headerMessage
+                            boldStyle
+                            shouldPreventDefaultFocusOnSelectRow
+                            shouldShowOptions
+                            autoFocus={false}
+                        /> */}
         </HeaderPageLayout>
     );
 }
