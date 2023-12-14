@@ -350,7 +350,7 @@ function MenuItem(
         return title ? convertToLTR(title) : '';
     };
 
-    const onPressAction = (event: GestureResponderEvent | KeyboardEvent) => {
+    const onPressAction = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         if (disabled || !interactive) {
             return;
         }
@@ -359,7 +359,7 @@ function MenuItem(
             (event.currentTarget as HTMLElement).blur();
         }
 
-        if (onPress) {
+        if (onPress && event) {
             onPress(event);
         }
     };
@@ -368,7 +368,7 @@ function MenuItem(
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed((args) => onPressAction(args as GestureResponderEvent), isAnonymousAction) : onPressAction}
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
