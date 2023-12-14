@@ -37,5 +37,8 @@ export default function enhanceParameters(command: string, parameters: Record<st
     // Include current user's email in every request and the server logs
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
+    // idempotencyKey declared in JS is front-end-only. We delete it here so it doesn't interfere with idempotency in other layers.
+    delete finalParameters.idempotencyKey;
+
     return finalParameters;
 }

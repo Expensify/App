@@ -4,11 +4,12 @@ import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FormProvider from '@components/Form/FormProvider';
+import Form from '@components/Form';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +17,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,8 +42,13 @@ const defaultProps = {
     policy: {},
 };
 
-function RoomNamePage({policy, report, reports, translate}) {
+function RoomNamePage(props) {
     const styles = useThemeStyles();
+    const policy = props.policy;
+    const report = props.report;
+    const reports = props.reports;
+    const translate = props.translate;
+
     const roomNameInputRef = useRef(null);
     const isFocused = useIsFocused();
 
@@ -86,7 +91,7 @@ function RoomNamePage({policy, report, reports, translate}) {
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report.reportID))}
                 />
-                <FormProvider
+                <Form
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
                     onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
@@ -96,14 +101,13 @@ function RoomNamePage({policy, report, reports, translate}) {
                 >
                     <View style={styles.mb4}>
                         <RoomNameInput
-                            ref={roomNameInputRef}
+                            ref={(ref) => (roomNameInputRef.current = ref)}
                             inputID="roomName"
                             defaultValue={report.reportName}
                             isFocused={isFocused}
-                            roomName={report.reportName.slice(1)}
                         />
                     </View>
-                </FormProvider>
+                </Form>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

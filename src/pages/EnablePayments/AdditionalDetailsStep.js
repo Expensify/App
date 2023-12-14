@@ -5,20 +5,20 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NewDatePicker from '@components/NewDatePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -193,7 +193,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
@@ -203,7 +203,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
@@ -225,12 +225,12 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <NewDatePicker
+                    <DatePicker
                         inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
@@ -245,7 +245,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
