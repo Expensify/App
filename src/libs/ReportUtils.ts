@@ -3485,17 +3485,11 @@ function transactionHasViolation(transactionID: string, transactionViolations: T
 /**
  *  Checks to see if a report's parentAction is a money request that contains a violation
  */
-
-function transactionThreadHasViolations(
-    report: Report,
-    transactionViolations: TransactionViolations,
-    reportActions?: OnyxCollection<ReportActions> | null,
-    parentReportAction?: ReportAction | null,
-): boolean {
+function transactionThreadHasViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions> | null = {}): boolean {
     if (!reportActions) {
         return false;
     }
-    const resolvedParentReportAction = parentReportAction ?? reportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
+    const resolvedParentReportAction = reportActions[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
     if (!resolvedParentReportAction) {
         return false;
     }
