@@ -14,8 +14,8 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Constants from './Constants';
 import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
 
