@@ -54,8 +54,11 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Any additional styles to apply on the outer element */
+    containerStyle?: StyleProp<ViewStyle>;
+
     /** Used to apply styles specifically to the title */
-    titleStyle?: StyleProp<ViewStyle>;
+    titleStyle?: ViewStyle;
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle: StyleProp<AnimatedStyle<ViewStyle>>;
@@ -118,6 +121,9 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
 
     /** Error to display below the title */
     error?: string;
+
+    /** Error to display at the bottom of the component */
+    errorText?: string;
 
     /** A boolean flag that gives the icon a green fill if true */
     success?: boolean;
@@ -205,6 +211,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        containerStyle,
         titleStyle,
         hoverAndPressStyle,
         descriptionTextStyle,
@@ -227,6 +234,7 @@ function MenuItem(
         furtherDetails,
         description,
         error,
+        errorText,
         success = false,
         focused = false,
         disabled = false,
@@ -265,28 +273,27 @@ function MenuItem(
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
 
-    const isDeleted = _.contains(style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
-    const titleTextStyle = StyleUtils.combineStyles(
+    const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
-            icon && !Array.isArray(icon) && (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
-            shouldShowBasicTitle ? undefined : styles.textStrong,
+            // eslint-disable-next-line no-nested-ternary
+            icon && !Array.isArray(icon) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
+            shouldShowBasicTitle ? {} : styles.textStrong,
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
-            interactive && disabled ? {...styles.userSelectNone} : undefined,
+            interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
             styles.offlineFeedback.deleted,
-            titleTextStyle,
         ],
-        titleStyle,
+        titleStyle ?? {},
     );
     const descriptionTextStyles = StyleUtils.combineStyles([
         styles.textLabelSupporting,
-        icon && !Array.isArray(icon) && styles.ml3,
+        icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
-        descriptionTextStyle || styles.breakWord,
+        descriptionTextStyle as ViewStyle || styles.breakWord,
         styles.offlineFeedback.deleted,
     ]);
 
@@ -351,7 +358,7 @@ function MenuItem(
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
-                    style={({pressed}: {pressed: PressableStateCallbackType}) => [
+                    style={({pressed}: PressableStateCallbackType) => [
                         containerStyle,
                         errorText ? styles.pb5 : {},
                         style,
@@ -360,7 +367,7 @@ function MenuItem(
                         (isHovered || pressed) && hoverAndPressStyle,
                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                    ]}
+                    ] as StyleProp<ViewStyle>}
                     disabled={disabled}
                     ref={ref}
                     role={CONST.ROLE.MENUITEM}
@@ -452,7 +459,7 @@ function MenuItem(
                                             )}
                                             {!shouldRenderAsHTML && !shouldParseTitle && Boolean(title) && (
                                                 <Text
-                                                    style={titleTextStyle}
+                                                    style={combinedTitleTextStyle}
                                                     numberOfLines={numberOfLinesTitle || undefined}
                                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
                                                 >
