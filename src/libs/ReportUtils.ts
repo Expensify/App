@@ -3474,9 +3474,6 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 
 function transactionHasViolation(transactionID: string, transactionViolations: TransactionViolations): boolean {
     const violations: TransactionViolation[] = transactionViolations[transactionID];
-    if (!violations) {
-        return false;
-    }
     return violations.some((violation: TransactionViolation) => violation.type === 'violation');
 }
 
