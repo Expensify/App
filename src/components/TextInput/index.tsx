@@ -1,9 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
-import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
