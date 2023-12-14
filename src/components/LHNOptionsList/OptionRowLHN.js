@@ -15,6 +15,9 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
@@ -24,10 +27,6 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as optionRowStyles from '@styles/optionRowStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -66,6 +65,7 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const popoverAnchor = useRef(null);
     const isFocusedRef = useRef(true);
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -103,7 +103,7 @@ function OptionRowLHN(props) {
         props.style,
     );
     const contentContainerStyles =
-        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, optionRowStyles.compactContentContainerStyles(styles)] : [styles.flex1];
+        props.viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten(
         props.viewMode === CONST.OPTION_MODE.COMPACT
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
@@ -158,6 +158,8 @@ function OptionRowLHN(props) {
         optionItem.type === CONST.REPORT.TYPE.CHAT && _.isEmpty(optionItem.chatType) && !optionItem.isThread && lodashGet(optionItem, 'displayNamesWithTooltips.length', 0) > 2;
     const fullTitle = isGroupChat ? getGroupChatName(ReportUtils.getReport(optionItem.reportID)) : optionItem.text;
 
+    const subscriptAvatarBorderColor = props.isFocused ? focusedBackgroundColor : theme.sidebar;
+
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -206,7 +208,7 @@ function OptionRowLHN(props) {
                             props.isFocused ? styles.sidebarLinkActive : null,
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle || styles.sidebarLinkHover : null,
                         ]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
                         needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
                     >
@@ -215,7 +217,7 @@ function OptionRowLHN(props) {
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
-                                            backgroundColor={props.isFocused ? theme.activeComponentBG : theme.sidebar}
+                                            backgroundColor={hovered && !props.isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
                                             size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}

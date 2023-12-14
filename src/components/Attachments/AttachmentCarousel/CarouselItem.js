@@ -8,8 +8,8 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ReportAttachmentsContext from '@pages/home/report/ReportAttachmentsContext';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -81,7 +81,7 @@ function CarouselItem({item, isFocused, onPress}) {
             <PressableWithoutFeedback
                 style={[styles.attachmentRevealButtonContainer]}
                 onPress={onPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
             >
                 {children}

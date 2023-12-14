@@ -32,6 +32,9 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -46,9 +49,6 @@ import SelectionScraper from '@libs/SelectionScraper';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as store from '@userActions/ReimbursementAccount/store';
@@ -103,10 +103,6 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /* Whether the option has an outstanding IOU */
-    // eslint-disable-next-line react/no-unused-prop-types
-    hasOutstandingIOU: PropTypes.bool,
-
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -128,7 +124,6 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     emojiReactions: {},
     shouldShowSubscriptAvatar: false,
-    hasOutstandingIOU: false,
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
     userWallet: {},
@@ -137,6 +132,7 @@ const defaultProps = {
 function ReportActionItem(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
@@ -151,8 +147,12 @@ function ReportActionItem(props) {
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
 
-    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}), [isReportActionLinked, theme]);
+    const highlightedBackgroundColorIfNeeded = useMemo(
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.highlightBG],
+    );
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
@@ -192,6 +192,15 @@ function ReportActionItem(props) {
         },
         [props.action.reportActionID, reactionListRef],
     );
+
+    useEffect(() => {
+        // We need to hide EmojiPicker when this is a deleted parent action
+        if (!isDeletedParentAction || !EmojiPickerAction.isActive(props.action.reportActionID)) {
+            return;
+        }
+
+        EmojiPickerAction.hideEmojiPicker(true);
+    }, [isDeletedParentAction, props.action.reportActionID]);
 
     useEffect(() => {
         if (prevDraftMessage || !props.draftMessage) {
@@ -686,7 +695,7 @@ function ReportActionItem(props) {
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                         />
-                        <View style={StyleUtils.getReportActionItemStyle(theme, styles, hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
+                        <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || props.draftMessage)}>
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}
@@ -774,7 +783,6 @@ export default compose(
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
-            prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
