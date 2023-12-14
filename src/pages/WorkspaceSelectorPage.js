@@ -6,7 +6,11 @@ import _ from 'underscore';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import OptionRow from '@components/OptionRow';
+import OptionsSelector from '@components/OptionsSelector';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -19,10 +23,6 @@ import Icon from '@src/components/Icon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import OptionsSelector from '@components/OptionsSelector';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import OptionRow from '@components/OptionRow';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -69,18 +69,19 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
         (item) => {
             const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
 
-
             const option = {
                 text: keyTitle,
                 brickRoadIndicator: getIndicatorTypeForPolicy(item.policyId),
-                icons: [{
-                    source: item.icon,
-                    type: item.iconType,
-                    fill: item.iconFill,
-                    name: keyTitle,
-                    fallbackIcon: item.fallbackIcon,
-                }],
-            }
+                icons: [
+                    {
+                        source: item.icon,
+                        type: item.iconType,
+                        fill: item.iconFill,
+                        name: keyTitle,
+                        fallbackIcon: item.fallbackIcon,
+                    },
+                ],
+            };
 
             // return (
             //     <MenuItem
@@ -108,7 +109,6 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
                     isSelected={item.policyId === activeWorkspaceID}
                 />
             );
-
         },
         [activeWorkspaceID, getIndicatorTypeForPolicy, translate],
     );
@@ -136,12 +136,13 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
     );
 
     const usersWorkspacesSectionData = useMemo(
-        () =>
-           [{
+        () => [
+            {
                 data: usersWorkspaces,
                 shouldShow: true,
                 indexOffset: 0,
-            }],
+            },
+        ],
         [usersWorkspaces],
     );
 
@@ -161,42 +162,51 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
     );
 
     const getWorkspacesSection = useCallback(
-        (workspaces, section, showAddWorkspaceButton) => {
-
-            return (
-                <View>
-                   <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb3]}>
-                <Text
-                    style={styles.label}
-                    color={theme.textSupporting}
-                >
-                    {section}
-                </Text>
-                {showAddWorkspaceButton && <PressableWithFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}>
-                    {({hovered}) => (
-                        <Icon
-                            src={Expensicons.Plus}
-                            width={12}
-                            height={12}
-                            additionalStyles={[styles.highlightBG, styles.borderRadiusNormal, styles.p2, hovered && styles.bordersBG]}
-                        />
+        (workspaces, section, showAddWorkspaceButton) => (
+            <View>
+                <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb3]}>
+                    <Text
+                        style={styles.label}
+                        color={theme.textSupporting}
+                    >
+                        {section}
+                    </Text>
+                    {showAddWorkspaceButton && (
+                        <PressableWithFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}>
+                            {({hovered}) => (
+                                <Icon
+                                    src={Expensicons.Plus}
+                                    width={12}
+                                    height={12}
+                                    additionalStyles={[styles.highlightBG, styles.borderRadiusNormal, styles.p2, hovered && styles.bordersBG]}
+                                />
+                            )}
+                        </PressableWithFeedback>
                     )}
-                </PressableWithFeedback>}
-            </View>
-                    <View style={{marginBottom: 12}}>
-                        {_.map(workspaces, (item, index) => getMenuItem(item, index))}
-                    </View>
                 </View>
-            );
-        },
-        [getMenuItem, styles.alignItemsCenter, styles.borderRadiusNormal, styles.bordersBG, styles.flexRow, styles.highlightBG, styles.justifyContentBetween, styles.label, styles.mb3, styles.mh4, styles.p2, theme.textSupporting],
+                <View style={{marginBottom: 12}}>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</View>
+            </View>
+        ),
+        [
+            getMenuItem,
+            styles.alignItemsCenter,
+            styles.borderRadiusNormal,
+            styles.bordersBG,
+            styles.flexRow,
+            styles.highlightBG,
+            styles.justifyContentBetween,
+            styles.label,
+            styles.mb3,
+            styles.mh4,
+            styles.p2,
+            theme.textSupporting,
+        ],
     );
 
     const allWorkspacesSection = useMemo(() => getWorkspacesSection(allWorkspaces, 'Everything', false, false), [allWorkspaces, getWorkspacesSection]);
     const usersWorkspacesSection = useMemo(() => getWorkspacesSection(usersWorkspaces, 'Workspaces', true, true), [getWorkspacesSection, usersWorkspaces]);
 
     // const {inputCallbackRef} = useAutoFocusInput();
-
 
     return (
         <HeaderPageLayout

@@ -1025,7 +1025,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputLeftIconContainer: {
-            justifyContent: "center",
+            justifyContent: 'center',
             paddingRight: 8,
         },
 
