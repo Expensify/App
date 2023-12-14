@@ -161,6 +161,11 @@ const propTypes = {
 
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
+
+    transactionsDraft: PropTypes.shape({
+        taxRate: PropTypes.string,
+        taxAmount: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
@@ -194,6 +199,13 @@ const defaultProps = {
     isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
+    transactionsDraft: {
+        taxRate: null,
+        taxAmount: null,
+    },
+    policyTaxRates: {
+        defaultExternalID: '',
+    },
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
@@ -235,7 +247,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
+    transactionsDraft,
+    policyTaxRates,
 }) {
+    console.log('transactions ', transaction);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -271,6 +286,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // A flag for showing the tags field
     const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
 
+    // A flag for showing tax rate
+    const shouldShowTax = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
 
@@ -282,7 +300,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
           );
-
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionsDraft.taxAmount, iouCurrencyCode);
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
 
@@ -365,6 +383,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
     const shouldDisablePaidBySection = userCanModifyParticipants.current;
+
+    const defaulTaxKey = policyTaxRates.defaultExternalID;
+    const defaultTaxName = policyTaxRates.taxes[defaulTaxKey].name;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -738,6 +759,35 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             interactive={!isReadOnly}
                         />
                     )}
+                    {shouldShowTax && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!isReadOnly}
+                            title={transactionsDraft.taxRate || defaultTaxName}
+                            description={translate('iou.taxRate')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                            }
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                        />
+                    )}
+
+                    {shouldShowTax && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!isReadOnly}
+                            title={formattedTaxAmount}
+                            description={translate('iou.taxAmount')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                            }
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                        />
+                    )}
                     {shouldShowBillable && (
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
                             <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
@@ -774,8 +824,14 @@ export default compose(
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
         },
+        transactionsDraft: {
+            key: ({transaction}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
+        },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        policyTaxRates: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);

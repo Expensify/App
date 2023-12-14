@@ -760,11 +760,13 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('iou.taxRate')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_RATE.getRoute(props.iouType, props.reportID))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(props.iouType, props.transaction.transactionID, props.reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
+                            }
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator=""
-                            error=""
                         />
                     )}
 
@@ -775,11 +777,13 @@ function MoneyRequestConfirmationList(props) {
                             description={translate('iou.taxAmount')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_TAX_AMOUNT.getRoute(props.iouType, props.reportID))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(props.iouType, props.transaction.transactionID, props.reportID, Navigation.getActiveRouteWithoutParams()),
+                                )
+                            }
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
-                            brickRoadIndicator=""
-                            error=""
                         />
                     )}
 
@@ -823,7 +827,7 @@ export default compose(
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`,
         },
         transactionsDraft: {
-            key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
+            key: ({transaction}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
