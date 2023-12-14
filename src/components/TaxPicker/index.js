@@ -3,9 +3,9 @@ import React, {useMemo, useState} from 'react';
 import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
