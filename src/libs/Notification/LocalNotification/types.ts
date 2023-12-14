@@ -1,3 +1,4 @@
+import ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import {Report, ReportAction} from '@src/types/onyx';
 
 type LocalNotificationClickHandler = () => void;
@@ -10,7 +11,7 @@ type LocalNotificationModule = {
     showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
     showUpdateAvailableNotification: () => void;
     showModifiedExpenseNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
-    clearReportNotifications: (reportID: string) => void;
+    clearReportNotifications: ClearReportNotifications;
 };
 
 export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData};
