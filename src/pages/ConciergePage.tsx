@@ -1,11 +1,14 @@
 import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {Session} from '@src/types/onyx';
 
 type ConciergePageOnyxProps = {
@@ -13,7 +16,7 @@ type ConciergePageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type ConciergePageProps = ConciergePageOnyxProps;
+type ConciergePageProps = ConciergePageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.CONCIERGE>;
 
 /*
  * This is a "utility page", that does this:
