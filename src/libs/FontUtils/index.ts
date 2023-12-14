@@ -6,8 +6,8 @@ import fontWeightBold from './fontWeight/bold';
 const FontUtils = {
     fontFamily: {
         platform: fontFamily,
-        singleFontFamily,
-        multiFontFamily,
+        single: singleFontFamily,
+        multi: multiFontFamily,
     },
     fontWeight: {
         bold: fontWeightBold,
