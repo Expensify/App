@@ -1,9 +1,9 @@
 import React, {ReactElement} from 'react';
 import {StyleProp, Text, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
