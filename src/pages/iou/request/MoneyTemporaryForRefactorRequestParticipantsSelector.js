@@ -22,7 +22,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
