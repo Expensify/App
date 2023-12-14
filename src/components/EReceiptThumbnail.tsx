@@ -1,9 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import {LayoutChangeEvent, View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
