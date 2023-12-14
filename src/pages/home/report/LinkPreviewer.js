@@ -5,9 +5,9 @@ import {Image, View} from 'react-native';
 import _ from 'underscore';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
