@@ -7,6 +7,8 @@ type CustomStatusDraft = {
 
     /** ISO 8601 format string, which represents the time when the status should be cleared */
     clearAfter: string;
+
+    customDateTemporary: string;
 };
 
 export default CustomStatusDraft;

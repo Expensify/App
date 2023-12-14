@@ -1809,7 +1809,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
 
     // Only show notifications for supported types of report actions
     if (!ReportActionsUtils.isNotifiableReportAction(action)) {
-        Log.info(`${tag} No notification because this action type is not supported`, false, {actionName: action?.actionName});
+        Log.info(`${tag} No notification because this action type is not supported`, false, {});
         return false;
     }
 
