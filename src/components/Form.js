@@ -4,13 +4,13 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import stylePropTypes from '@styles/stylePropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
