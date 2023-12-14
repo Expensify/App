@@ -10,9 +10,9 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -125,5 +125,4 @@ LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
-    session: {key: ONYXKEYS.SESSION},
 })(LogInWithShortLivedAuthTokenPage);

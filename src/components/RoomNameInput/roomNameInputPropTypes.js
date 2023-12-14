@@ -18,7 +18,7 @@ const propTypes = {
     forwardedRef: refPropTypes,
 
     /** The ID used to uniquely identify the input in a Form */
-    inputID: PropTypes.string.isRequired,
+    inputID: PropTypes.string,
 
     /** Callback that is called when the text input is blurred */
     onBlur: PropTypes.func,
@@ -31,8 +31,6 @@ const propTypes = {
 
     /** Whether navigation is focused */
     isFocused: PropTypes.bool.isRequired,
-
-    roomName: PropTypes.string,
 };
 
 const defaultProps = {
@@ -42,10 +40,10 @@ const defaultProps = {
     errorText: '',
     forwardedRef: () => {},
 
+    inputID: undefined,
     onBlur: () => {},
     autoFocus: false,
     shouldDelayFocus: false,
-    roomName: '',
 };
 
 export {propTypes, defaultProps};
