@@ -19,6 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getCanvasFitScale from './getCanvasFitScale';
 import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
 
+const DOUBLE_TAP_SCALE = 3;
+
 const defaultZoomRange = {
     min: 1,
     max: 20,
@@ -79,7 +81,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const scaledHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
 
     // On double tap zoom to fill, but at least 3x zoom
-    const doubleTapScale = useMemo(() => maxContentScale / minContentScale, [maxContentScale, minContentScale]);
+    const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the content into the canvas
