@@ -5,20 +5,36 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName} from '@src/types/onyx/OriginalMessage';
+import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
-import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as Localize from './Localize';
 import Log from './Log';
+import {MessageElementBase, MessageTextElement} from './MessageElement';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
     lastMessageText: string;
     lastMessageHtml?: string;
 };
+
+type MemberChangeMessageUserMentionElement = {
+    readonly kind: 'userMention';
+    readonly accountID: number;
+} & MessageElementBase;
+
+type MemberChangeMessageRoomReferenceElement = {
+    readonly kind: 'roomReference';
+    readonly roomName: string;
+    readonly roomID: number;
+} & MessageElementBase;
+
+type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -92,6 +108,10 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
+function isSubmittedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
@@ -100,13 +120,17 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
 
-function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
     return (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
     );
+}
+
+function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
 }
 
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -126,11 +150,11 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report>, allReportActionsParam?: OnyxCollection<ReportActions>): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report>): ReportAction | Record<string, never> {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return (allReportActionsParam ?? allReportActions)?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
 }
 
 /**
@@ -351,7 +375,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !!reportAction.pendingAction;
+    const isPending = !!reportAction.pendingAction && !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
@@ -649,6 +673,89 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
+    const isInviteAction = isInviteMemberAction(reportAction);
+
+    // Currently, we only render messages when members are invited
+    const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
+
+    const originalMessage = reportAction?.originalMessage as ChangeLog;
+    const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+
+    const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
+        const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
+        const handleText = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
+
+        return {
+            kind: 'userMention',
+            content: `@${handleText}`,
+            accountID,
+        };
+    });
+
+    const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
+        const roomName = originalMessage?.roomName;
+
+        if (roomName) {
+            const preposition = isInviteAction ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
+
+            if (originalMessage.reportID) {
+                return [
+                    {
+                        kind: 'text',
+                        content: preposition,
+                    },
+                    {
+                        kind: 'roomReference',
+                        roomName,
+                        roomID: originalMessage.reportID,
+                        content: roomName,
+                    },
+                ];
+            }
+        }
+
+        return [];
+    };
+
+    return [
+        {
+            kind: 'text',
+            content: `${verb} `,
+        },
+        ...Localize.formatMessageElementList(mentionElements),
+        ...buildRoomElements(),
+    ];
+}
+
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+    const html = messageElements
+        .map((messageElement) => {
+            switch (messageElement.kind) {
+                case 'userMention':
+                    return `<mention-user accountID=${messageElement.accountID}></mention-user>`;
+                case 'roomReference':
+                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
+                default:
+                    return messageElement.content;
+            }
+        })
+        .join('');
+
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: reportAction?.message ? reportAction?.message[0].text : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
+function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
+    const messageElements = getMemberChangeMessageElements(reportAction);
+    return messageElements.map((element) => element.content).join('');
+}
+
 /**
  * Helper method to determine if the provided accountID has made a request on the specified report.
  *
@@ -693,6 +800,7 @@ export {
     isDeletedParentAction,
     isMessageDeleted,
     isModifiedExpenseAction,
+    isSubmittedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isPendingRemove,
@@ -711,7 +819,9 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
-    isChannelLogMemberAction,
+    isMemberChangeAction,
+    getMemberChangeMessageFragment,
+    getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
 };
 

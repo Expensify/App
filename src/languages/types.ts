@@ -117,7 +117,11 @@ type PayerOwesParams = {payer: string};
 
 type PayerPaidAmountParams = {payer: string; amount: number | string};
 
+type ApprovedAmountParams = {amount: number | string};
+
 type ManagerApprovedParams = {manager: string};
+
+type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 
 type PayerPaidParams = {payer: string};
 
@@ -205,6 +209,8 @@ type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
+type TaskCreatedActionParams = {title: string};
+
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
@@ -281,7 +287,9 @@ export type {
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
+    ApprovedAmountParams,
     ManagerApprovedParams,
+    ManagerApprovedAmountParams,
     PayerSettledParams,
     WaitingOnBankAccountParams,
     CanceledRequestParams,
@@ -324,4 +332,5 @@ export type {
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
     WalletProgramParams,
+    TaskCreatedActionParams,
 };
