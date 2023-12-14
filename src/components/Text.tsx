@@ -1,8 +1,9 @@
 import React, {ForwardedRef} from 'react';
 import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import fontFamily from '@styles/utils/fontFamily';
+import {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -21,17 +22,18 @@ type TextProps = RNTextProps &
         children: React.ReactNode;
 
         /** The family of the font to use */
-        family?: keyof typeof fontFamily;
+        family?: keyof StyleUtilsType['fontFamily']['platform'];
     };
 
 function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     const componentStyle: TextStyle = {
         color: color ?? theme.text,
         fontSize,
         textAlign,
-        fontFamily: fontFamily[family],
+        fontFamily: StyleUtils.fontFamily.platform[family],
         ...StyleSheet.flatten(style),
     };
 

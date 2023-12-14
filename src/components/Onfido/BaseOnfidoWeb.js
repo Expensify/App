@@ -5,24 +5,22 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Log from '@libs/Log';
-import fontFamily from '@styles/utils/fontFamily';
-import fontWeightBold from '@styles/utils/fontWeight/bold';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import './index.css';
 import onfidoPropTypes from './onfidoPropTypes';
 
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}) {
+function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme, StyleUtils}) {
     OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
         useMemoryHistory: true,
         customUI: {
-            fontFamilyTitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
-            fontFamilySubtitle: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
-            fontFamilyBody: `${fontFamily.EXP_NEUE}, -apple-system, serif`,
+            fontFamilyTitle: `${StyleUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            fontFamilySubtitle: `${StyleUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            fontFamilyBody: `${StyleUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
             fontSizeTitle: `${variables.fontSizeLarge}px`,
-            fontWeightTitle: fontWeightBold,
+            fontWeightTitle: StyleUtils.fontWeight.bold,
             fontWeightSubtitle: 400,
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
             colorContentTitle: theme.text,

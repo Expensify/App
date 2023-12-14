@@ -1,7 +1,9 @@
 import React, {useMemo} from 'react';
 import useTheme from '@hooks/useTheme';
+// eslint-disable-next-line no-restricted-imports
 import stylesGenerator from '@styles/index';
 import ThemeStylesContext from '@styles/theme/context/ThemeStylesContext';
+// eslint-disable-next-line no-restricted-imports
 import createStyleUtils from '@styles/utils';
 
 type ThemeStylesProviderProps = React.PropsWithChildren;

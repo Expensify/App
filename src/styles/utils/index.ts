@@ -4,6 +4,7 @@ import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
+// eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
 import {ThemeColors} from '@styles/theme/types';
@@ -11,12 +12,17 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {Transaction} from '@src/types/onyx';
 import {defaultStyles, type ThemeStyles} from '..';
+import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
 import fontFamily from './fontFamily';
+import multiFontFamily from './fontFamily/multiFontFamily';
+import singleFontFamily from './fontFamily/singleFontFamily';
+import fontWeightBold from './fontWeight/bold';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
+import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import spacing from './spacing';
@@ -1012,6 +1018,16 @@ function getTransparentColor(color: string) {
 }
 
 const staticStyleUtils = {
+    fontFamily: {
+        platform: fontFamily,
+        singleFontFamily,
+        multiFontFamily,
+    },
+    fontWeight: {
+        bold: fontWeightBold,
+    },
+    positioning,
+
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
@@ -1072,6 +1088,8 @@ const staticStyleUtils = {
     parseStyleFromFunction,
     getEReceiptColorStyles,
     getEReceiptColorCode,
+    getNavigationModalCardStyle,
+    getCardStyles,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1437,5 +1455,5 @@ type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
 
 export default createStyleUtils;
-export {DefaultStyleUtils};
+export {DefaultStyleUtils, staticStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};
