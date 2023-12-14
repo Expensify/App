@@ -214,13 +214,17 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.TAX_AMOUNT]: {
+    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
         iouType: string;
+        transactionID: string;
         reportID: string;
+        backTo: string;
     };
-    [SCREENS.MONEY_REQUEST.TAX_RATE]: {
+    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
         iouType: string;
+        transactionID: string;
         reportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.MERCHANT]: {
         iouType: string;

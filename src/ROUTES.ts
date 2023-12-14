@@ -286,14 +286,6 @@ const ROUTES = {
         route: ':iouType/new/merchant/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
     },
-    MONEY_REQUEST_TAX_RATE: {
-        route: ':iouType/new/taxRate/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/taxRate/${reportID}` as const,
-    },
-    MONEY_REQUEST_TAX_AMOUNT: {
-        route: ':iouType/new/taxAmount/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/taxAmount/${reportID}` as const,
-    },
     MONEY_REQUEST_WAYPOINT: {
         route: ':iouType/new/waypoint/:waypointIndex',
         getRoute: (iouType: string, waypointIndex: number) => `${iouType}/new/waypoint/${waypointIndex}` as const,
@@ -329,6 +321,16 @@ const ROUTES = {
         route: 'create/:iouType/amount/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_TAX_RATE: {
+        route: 'create/:iouType/taxRate/:transactionID/:reportID?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_STEP_TAX_AMOUNT: {
+        route: 'create/:iouType/taxAmount/:transactionID/:reportID?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: 'create/:iouType/category/:transactionID/:reportID/',
