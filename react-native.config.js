@@ -5,12 +5,12 @@ module.exports = {
     },
     assets: ['./assets/fonts/native'],
     expo: {
-        userInterfaceStyle: "automatic",
+        userInterfaceStyle: 'automatic',
         ios: {
-          userInterfaceStyle: "automatic",
+            userInterfaceStyle: 'automatic',
         },
         android: {
-          userInterfaceStyle: "automatic",
+            userInterfaceStyle: 'automatic',
         },
     },
 };
