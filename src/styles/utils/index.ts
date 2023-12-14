@@ -1455,5 +1455,5 @@ type StyleUtilsType = ReturnType<typeof createStyleUtils>;
 const DefaultStyleUtils = createStyleUtils(defaultTheme, defaultStyles);
 
 export default createStyleUtils;
-export {DefaultStyleUtils, staticStyleUtils};
+export {DefaultStyleUtils};
 export type {StyleUtilsType, AvatarSizeName};
