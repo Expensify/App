@@ -1036,6 +1036,11 @@ const styles = (theme: ThemeColors) =>
             margin: 1,
         },
 
+        textInputLeftIconContainer: {
+            justifyContent: "center",
+            paddingRight: 8,
+        },
+
         secureInput: {
             borderTopRightRadius: 0,
             borderBottomRightRadius: 0,

@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
+import {Info, MagnifyingGlass} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ShowMoreButton from '@components/ShowMoreButton';
@@ -491,6 +491,7 @@ class BaseOptionsSelector extends Component {
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
+                iconLeft={MagnifyingGlass}
             />
         );
         const optionsList = (

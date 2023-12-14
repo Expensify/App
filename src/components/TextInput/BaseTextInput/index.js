@@ -291,6 +291,16 @@ function BaseTextInput(props) {
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                            {!props.secureTextEntry && Boolean(props.iconLeft) && (
+                                <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                    <Icon
+                                        src={props.iconLeft}
+                                        fill={theme.icon}
+                                        height={20}
+                                        widht={20}
+                                    />
+                                </View>
+                            )}
                             {Boolean(props.prefixCharacter) && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
