@@ -63,6 +63,9 @@ const propTypes = {
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
 
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -74,6 +77,7 @@ const defaultProps = {
     reports: {},
     betas: [],
     isSearchingForReports: false,
+    didScreenTransitionEnd: false,
 };
 
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
@@ -89,6 +93,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouType,
     iouRequestType,
     isSearchingForReports,
+    didScreenTransitionEnd,
 }) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
