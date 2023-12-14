@@ -17,9 +17,8 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
@@ -43,13 +42,12 @@ const propTypes = {
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
+    transactionAmount: PropTypes.string,
 };
 
 const defaultProps = {
-    iou: iouDefaultProps,
     amount: 0,
+    transactionAmount: 0,
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
@@ -70,18 +68,19 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
 };
 
 const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount, amount, isEditing) => isEditing && currentAmount > CurrencyUtils.convertToFrontendAmount(amount);
+const isTaxAmountInvalid = (currentAmount, amount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(amount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+function MoneyRequestAmountForm({amount, transactionAmount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
+    const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
@@ -97,7 +96,7 @@ function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef,
 
     const forwardDeletePressedRef = useRef(false);
 
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(iou.amount, iou.currency);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionAmount, currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -233,7 +232,7 @@ function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef,
             return;
         }
 
-        if (isTaxAmountInvalid(currentAmount, iou.amount, isEditing)) {
+        if (isTaxAmountInvalid(currentAmount, transactionAmount, isTaxAmountForm)) {
             setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
             return;
         }
@@ -244,7 +243,7 @@ function MoneyRequestAmountForm({iou, amount, currency, isEditing, forwardedRef,
         initializeAmount(backendAmount);
 
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, iou.amount, isEditing, formattedTaxAmount, translate, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -350,6 +349,4 @@ const MoneyRequestAmountFormWithRef = React.forwardRef((props, ref) => (
 
 MoneyRequestAmountFormWithRef.displayName = 'MoneyRequestAmountFormWithRef';
 
-export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
-})(MoneyRequestAmountFormWithRef);
+export default MoneyRequestAmountFormWithRef;
