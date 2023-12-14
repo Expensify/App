@@ -1,6 +1,5 @@
-import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +9,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,22 +48,6 @@ const defaultProps = {
     reports: {},
     isSearchingForReports: false,
 };
-
-// custom hook that handles debouncing the search value using lodash debounce
-function useDebouncedState(initialValue, delay) {
-    const [value, setValue] = useState(initialValue);
-    const [debouncedValue, setDebouncedValue] = useState(initialValue);
-    const debouncedSetDebouncedValue = useRef(_.debounce(setDebouncedValue, delay)).current;
-
-    useEffect(() => debouncedSetDebouncedValue.cancel, [debouncedSetDebouncedValue]);
-
-    const handleSetValue = (newValue) => {
-        setValue(newValue);
-        debouncedSetDebouncedValue(newValue);
-    };
-
-    return [value, debouncedValue, handleSetValue];
-}
 
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
