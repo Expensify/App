@@ -15,6 +15,8 @@ let isReadyPromise = new Promise<void>((resolve) => {
 });
 
 let isFirstTimeNewExpensifyUser: boolean | undefined;
+let hasDismissedModal: boolean | undefined;
+let hasSelectedChoice: boolean | undefined;
 let isLoadingReportData = true;
 let currentUserAccountID: number | undefined;
 
@@ -59,12 +61,11 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
-    initWithStoredValues: false,
+    initWithStoredValues: true,
     callback: (value) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
-
-        isFirstTimeNewExpensifyUser = value ?? undefined;
+        hasSelectedChoice = !!value;
 
         checkOnReady();
     },
@@ -72,12 +73,11 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-    initWithStoredValues: false,
+    initWithStoredValues: true,
     callback: (value) => {
         // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
-
-        isFirstTimeNewExpensifyUser = value ?? undefined;
+        hasDismissedModal = value ?? false;
 
         checkOnReady();
     },

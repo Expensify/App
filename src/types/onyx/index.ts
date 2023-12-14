@@ -12,6 +12,7 @@ import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import Fund, {FundList} from './Fund';
+import IntroSelected from './IntroSelected';
 import IOU from './IOU';
 import Locale from './Locale';
 import Login, {LoginList} from './Login';
@@ -75,6 +76,7 @@ export type {
     FrequentlyUsedEmoji,
     Fund,
     FundList,
+    IntroSelected,
     IOU,
     Locale,
     Login,
