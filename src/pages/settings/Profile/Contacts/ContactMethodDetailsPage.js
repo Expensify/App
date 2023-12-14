@@ -126,14 +126,13 @@ class ContactMethodDetailsPage extends Component {
 
         const loginData = lodashGet(this.props.loginList, contactMethod, {});
         const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
-        const shouldSignOut = isDefaultContactMethod;
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         if (!prevValidatedDate && validatedDate) {
             // If the selected contactMethod is the current session['login'] and the account is unvalidated,
             // the current authToken is invalid after the successful magic code verification.
             // So we need to sign out the user and redirect to the sign in page.
-            if (shouldSignOut) {
+            if (isDefaultContactMethod) {
                 Session.signOutAndRedirectToSignIn();
                 return;
             }
