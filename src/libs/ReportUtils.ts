@@ -3479,7 +3479,6 @@ function transactionHasViolation(transactionID: string, transactionViolations: T
 
 /**
  *  Checks to see if a report's parentAction is a money request that contains a violation
- *  This only applies to report submitter and for reports in the open and processing states
  */
 
 function transactionThreadHasViolations(
