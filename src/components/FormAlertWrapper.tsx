@@ -1,7 +1,7 @@
 import React, {ReactNode} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Network from '@src/types/onyx/Network';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
