@@ -5,8 +5,8 @@ import _ from 'underscore';
 import Text from '@components/Text';
 import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /**
