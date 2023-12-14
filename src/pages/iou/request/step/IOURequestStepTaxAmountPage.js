@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
@@ -14,34 +13,19 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
-    /** React Navigation route */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
-
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-
-            /** Selected currency from IOUCurrencySelection */
-            currency: PropTypes.string,
-        }),
-    }).isRequired,
-
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 
     transactionsDraft: PropTypes.shape({
         taxAmount: PropTypes.number,
@@ -56,7 +40,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iou: iouDefaultProps,
     transactionsDraft: {
         taxAmount: null,
     },
@@ -68,7 +51,6 @@ function IOURequestStepTaxAmountPage({
     route: {
         params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
-    iou,
     transactionsDraft,
     transaction,
     transaction: {currency: originalCurrency},
@@ -110,7 +92,7 @@ function IOURequestStepTaxAmountPage({
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
 
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
-        
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;

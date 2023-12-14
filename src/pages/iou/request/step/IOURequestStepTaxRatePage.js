@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,16 +35,11 @@ const propTypes = {
         taxRate: PropTypes.string,
     }),
 
-    /* Onyx Props */
-    /** The report that the transaction belongs to */
-    report: reportPropTypes,
-
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
-    report: {},
     policyTaxRates: {},
     transactionsDraft: {
         taxRate: null,

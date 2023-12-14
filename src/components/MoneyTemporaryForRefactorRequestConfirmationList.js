@@ -250,7 +250,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     transactionsDraft,
     policyTaxRates,
 }) {
-    console.log('transactions ', transaction);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
