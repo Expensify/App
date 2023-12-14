@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Svg, {G, Path, Polygon} from 'react-native-svg';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@hooks/useTheme';
 
 type LoungeAccessIconProps = {
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */

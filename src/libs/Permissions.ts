@@ -18,6 +18,10 @@ function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.BETA_COMMENT_LINKING) || canUseAllBetas(betas);
 }
 
+function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
+}
+
 /**
  * We're requiring you to be added to the policy rooms beta on dev,
  * since contributors have been reporting a number of false issues related to the feature being under development.
@@ -45,4 +49,5 @@ export default {
     canUsePolicyRooms,
     canUseLinkPreviews,
     canUseViolations,
+    canUseReportFields,
 };

@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {PopoverContext} from '@components/PopoverProvider';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 import PopoverWithoutOverlayProps from './types';
 
