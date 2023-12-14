@@ -1,7 +1,7 @@
 import React from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
