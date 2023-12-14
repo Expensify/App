@@ -61,8 +61,14 @@ type AvatarProps = {
     icon: AvatarSource;
 };
 
+type NoIcon = {
+    iconType?: undefined;
+
+    icon?: undefined;
+};
+
 type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
-    (IconProps | AvatarProps) & {
+    (IconProps | AvatarProps | NoIcon) & {
         /** Text to be shown as badge near the right end. */
         badgeText?: string;
 
@@ -412,29 +418,23 @@ function MenuItem(
                                             ]}
                                         />
                                     )}
-                                    {Boolean(icon) && typeof icon === 'function' && (
+                                    {icon && !Array.isArray(icon) && (
                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
-                                            {iconType === CONST.ICON_TYPE_ICON && (
+                                            {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
                                                     hovered={isHovered}
-                                                    pressed={Boolean(pressed)}
+                                                    pressed={pressed}
                                                     src={icon}
                                                     width={iconWidth}
                                                     height={iconHeight}
-                                                    fill={
-                                                        iconFill ?? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive), true)
-                                                    }
+                                                    fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)}
                                                 />
                                             )}
-                                        </View>
-                                    )}
-                                    {Boolean(icon) && typeof icon !== 'function' && (
-                                        <View>
-                                            {iconType === CONST.ICON_TYPE_WORKSPACE && (
+                                            {icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
                                                 <Avatar
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     size={CONST.AVATAR_SIZE.DEFAULT}
-                                                    source={icon}
+                                                    source={icon as AvatarSource}
                                                     fallbackIcon={fallbackIcon}
                                                     name={title}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -443,7 +443,7 @@ function MenuItem(
                                             {iconType === CONST.ICON_TYPE_AVATAR && (
                                                 <Avatar
                                                     imageStyles={[styles.alignSelfCenter]}
-                                                    source={icon}
+                                                    source={icon as AvatarSource}
                                                     fallbackIcon={fallbackIcon}
                                                     size={avatarSize}
                                                 />
