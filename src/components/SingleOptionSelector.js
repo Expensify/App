@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SelectCircle from './SelectCircle';
@@ -44,7 +44,7 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
                     <PressableWithoutFeedback
                         style={styles.singleOptionSelectorRow}
                         onPress={() => onSelectOption(option)}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityState={{checked: selectedOptionKey === option.key}}
                         aria-checked={selectedOptionKey === option.key}
                         accessibilityLabel={option.label}
