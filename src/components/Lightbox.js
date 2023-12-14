@@ -2,7 +2,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
-import useStyleUtils from '@styles/useStyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
