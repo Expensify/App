@@ -14,6 +14,7 @@ import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
