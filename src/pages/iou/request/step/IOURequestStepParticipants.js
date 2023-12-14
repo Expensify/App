@@ -87,14 +87,17 @@ function IOURequestStepParticipants({
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             includeSafeAreaPaddingBottom
         >
-            <MoneyRequestParticipantsSelector
-                ref={(el) => (optionsSelectorRef.current = el)}
-                participants={participants}
-                onParticipantsAdded={addParticipant}
-                onFinish={goToNextStep}
-                iouType={iouType}
-                iouRequestType={iouRequestType}
-            />
+            {({didScreenTransitionEnd}) => (
+                <MoneyRequestParticipantsSelector
+                    ref={(el) => (optionsSelectorRef.current = el)}
+                    participants={participants}
+                    onParticipantsAdded={addParticipant}
+                    onFinish={goToNextStep}
+                    iouType={iouType}
+                    iouRequestType={iouRequestType}
+                    didScreenTransitionEnd={didScreenTransitionEnd}
+                />
+            )}
         </StepScreenWrapper>
     );
 }
