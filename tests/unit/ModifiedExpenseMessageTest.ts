@@ -1,20 +1,6 @@
-import {randAmount} from '@ngneat/falso';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import CONST from '@src/CONST';
-import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Transaction} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-
-function generateTransaction(values: Partial<Transaction> = {}): Transaction {
-    const reportID = '1';
-    const amount = 100;
-    const currency = 'USD';
-    const comment = '';
-    const created = '2023-10-01';
-    const baseValues = TransactionUtils.buildOptimisticTransaction(amount, currency, reportID, comment, created);
-
-    return {...baseValues, ...values};
-}
 
 describe('ModifiedExpenseMessage', () => {
     describe('getForAction', () => {
@@ -54,7 +40,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).' + '\nremoved the description (previously "this is for the shuttle").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nremoved the description (previously "this is for the shuttle").';
 
                 const result = ModifiedExpenseMessage.getForReportAction(reportAction);
 
@@ -79,7 +65,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).' + '\nset the category to "Benefits".' + '\nremoved the description (previously "this is for the shuttle").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nset the category to "Benefits".\nremoved the description (previously "this is for the shuttle").';
 
                 const result = ModifiedExpenseMessage.getForReportAction(reportAction);
 
@@ -129,7 +115,8 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly").' + '\nset the category to "Benefits".' + '\nremoved the description (previously "this is for the shuttle").';
+                const expectedResult =
+                    'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly").\nset the category to "Benefits".\nremoved the description (previously "this is for the shuttle").';
 
                 const result = ModifiedExpenseMessage.getForReportAction(reportAction);
 
@@ -154,7 +141,8 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly").';
+                const expectedResult =
+                    'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly").';
 
                 const result = ModifiedExpenseMessage.getForReportAction(reportAction);
 
