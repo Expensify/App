@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import PDFViewConstants from './constants';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
-import PageRenderer from './ReactPDFPageRenderer';
+import PageRenderer from './WebPDFPageRenderer';
 
 class PDFView extends Component {
     constructor(props) {

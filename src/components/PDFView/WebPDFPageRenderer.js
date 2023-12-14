@@ -5,8 +5,7 @@ import {Page} from 'react-pdf';
 import stylePropTypes from '@styles/stylePropTypes';
 import PDFViewConstants from './constants';
 
-const ReactPDFPageRenderer = memo(({index, data, style}) => {
-    const pageIndex = index;
+const WebPDFPageRenderer = memo(({index: pageIndex, data, style}) => {
     const {pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize} = data;
 
     const pageHeight = calculatePageHeight(pageIndex);
@@ -28,8 +27,8 @@ const ReactPDFPageRenderer = memo(({index, data, style}) => {
     );
 });
 
-ReactPDFPageRenderer.displayName = 'ReactPDFPageRenderer';
-ReactPDFPageRenderer.propTypes = {
+WebPDFPageRenderer.displayName = 'WebPDFPageRenderer';
+WebPDFPageRenderer.propTypes = {
     /** Index of the PDF page to be displayed passed by VariableSizeList */
     index: PropTypes.string.isRequired,
 
@@ -49,4 +48,4 @@ ReactPDFPageRenderer.propTypes = {
     style: stylePropTypes.isRequired,
 };
 
-export default ReactPDFPageRenderer;
+export default WebPDFPageRenderer;
