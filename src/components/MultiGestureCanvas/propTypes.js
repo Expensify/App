@@ -11,7 +11,7 @@ const zoomRangePropTypes = {
 
 const zoomRangeDefaultProps = {
     zoomRange: {
-        min: Constants.DEFAULT_MIN_ZOOM_SCALE,
+        min: defaultZoomRange.min,
         max: Constants.DEFAULT_MAX_ZOOM_SCALE,
     },
 };
