@@ -8,7 +8,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-// Be sure to include the mocked permissions library or else the beta tests won't work
+// Be sure to include the mocked permissions library as well as the usePermissions hook or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
 jest.mock('../../src/hooks/usePermissions.ts');
 
