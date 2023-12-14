@@ -1,6 +1,6 @@
 import React from 'react';
 import type {TText} from 'react-native-render-html';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type InlineCodeBlockProps from './types';
 import WrappedText from './WrappedText';
 
