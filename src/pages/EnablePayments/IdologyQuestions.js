@@ -9,7 +9,7 @@ import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -134,6 +134,7 @@ function IdologyQuestions({questions, idNumber}) {
             <FormProvider
                 formID={ONYXKEYS.WALLET_ADDITIONAL_DETAILS}
                 onSubmit={submitAnswers}
+                key={currentQuestionIndex}
                 validate={validate}
                 scrollContextEnabled
                 style={[styles.flexGrow1, styles.ph5]}

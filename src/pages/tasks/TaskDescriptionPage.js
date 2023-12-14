@@ -11,14 +11,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import StringUtils from '@libs/StringUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,9 +43,14 @@ function TaskDescriptionPage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call Task.editTaskReport
-            // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.report, {description: values.description});
+            // props.report.description might contain CRLF from the server
+            if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(props.report.description)) {
+                // Set the description of the report in the store and then call EditTask API
+                // to update the description of the report on the server
+                Task.editTask(props.report, {description: values.description});
+            }
+
+            Navigation.dismissModal(props.report.reportID);
         },
         [props],
     );
@@ -96,7 +102,7 @@ function TaskDescriptionPage(props) {
                     <View style={[styles.mb4]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             inputID="description"
                             name="description"
                             label={props.translate('newTaskPage.descriptionOptional')}
@@ -112,7 +118,6 @@ function TaskDescriptionPage(props) {
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputStyle={[styles.verticalAlignTop]}
                         />
                     </View>
                 </FormProvider>
