@@ -365,12 +365,11 @@ type RightModalNavigatorParamList = {
 type PublicScreensParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
-        shouldForceLogin: string;
-        email: string;
-        error: string;
-        shortLivedAuthToken: string;
-        shortLivedToken: string;
-        exitTo: Routes;
+        email?: string;
+        error?: string;
+        shortLivedAuthToken?: string;
+        shortLivedToken?: string;
+        exitTo?: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;

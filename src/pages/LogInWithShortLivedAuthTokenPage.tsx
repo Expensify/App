@@ -10,13 +10,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {PublicScreensParamList} from '@libs/Navigation/types';
+import type {PublicScreensParamList} from '@libs/Navigation/types';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import {Account} from '@src/types/onyx';
+import type {Account} from '@src/types/onyx';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -35,10 +35,10 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
-        const token = shortLivedAuthToken || shortLivedToken;
+        const token = shortLivedAuthToken ?? shortLivedToken;
 
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
-        if (token && !account?.isLoading) {
+        if (email && token && !account?.isLoading) {
             Session.signInWithShortLivedAuthToken(email, token);
             return;
         }
@@ -73,7 +73,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={styles.mt2}>
-                    <Text style={[styles.textAlignCenter]}>
+                    <Text style={styles.textAlignCenter}>
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
