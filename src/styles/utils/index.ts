@@ -118,7 +118,7 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
 
 const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: 3,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SMALL]: 2,

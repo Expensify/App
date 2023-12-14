@@ -65,7 +65,6 @@ function AvatarWithDisplayName({
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
-    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : size;
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
@@ -118,7 +117,7 @@ function AvatarWithDisplayName({
                                 backgroundColor={avatarBorderColor}
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
-                                size={defaultSubscriptSize}
+                                size={size}
                             />
                         ) : (
                             <MultipleAvatars
