@@ -16,12 +16,12 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -143,7 +143,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             inputID="name"
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
