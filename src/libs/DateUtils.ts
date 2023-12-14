@@ -1,16 +1,22 @@
 import {
     addDays,
+    addHours,
+    addMinutes,
     eachDayOfInterval,
     eachMonthOfInterval,
     endOfDay,
     endOfWeek,
     format,
     formatDistanceToNow,
+    getDayOfYear,
     isAfter,
     isBefore,
     isSameDay,
+    isSameSecond,
     isSameYear,
     isValid,
+    parse,
+    set,
     setDefaultOptions,
     startOfWeek,
     subDays,
@@ -28,6 +34,8 @@ import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 
+type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
+type TimePeriod = 'AM' | 'PM';
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
 let currentUserAccountID: number | undefined;
@@ -342,6 +350,115 @@ function getDateStringFromISOTimestamp(isoTimestamp: string): string {
 }
 
 /**
+ * returns {string} example: 2023-05-16 05:34:14
+ */
+function getThirtyMinutesFromNow(): string {
+    const date = addMinutes(new Date(), 30);
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+
+/**
+ * returns {string} example: 2023-05-16 05:34:14
+ */
+function getOneHourFromNow(): string {
+    const date = addHours(new Date(), 1);
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+
+/**
+ * returns {string} example: 2023-05-16 05:34:14
+ */
+function getEndOfToday(): string {
+    const date = endOfDay(new Date());
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+
+/**
+ * returns {string} example: 2023-05-16 05:34:14
+ */
+function getOneWeekFromNow(): string {
+    const date = addDays(new Date(), 7);
+    return format(date, 'yyyy-MM-dd HH:mm:ss');
+}
+
+/**
+ * param {string} dateTimeString
+ * returns {string} example: 2023-05-16
+ */
+function extractDate(dateTimeString: string): string {
+    if (!dateTimeString) {
+        return '';
+    }
+    if (dateTimeString === 'never') {
+        return '';
+    }
+    const date = new Date(dateTimeString);
+    return format(date, 'yyyy-MM-dd');
+}
+
+/**
+ * param {string} dateTimeString
+ * returns {string} example: 11:10 PM
+ */
+function extractTime12Hour(dateTimeString: string): string {
+    if (!dateTimeString || dateTimeString === 'never') {
+        return '';
+    }
+    const date = new Date(dateTimeString);
+    return format(date, 'hh:mm a');
+}
+
+/**
+ * param {string} dateTimeString
+ * returns {string} example: 2023-05-16 11:10 PM
+ */
+function formatDateTimeTo12Hour(dateTimeString: string): string {
+    if (!dateTimeString) {
+        return '';
+    }
+    const date = new Date(dateTimeString);
+    return format(date, 'yyyy-MM-dd hh:mm a');
+}
+
+/**
+ * param {string} type - one of the values from CONST.CUSTOM_STATUS_TYPES
+ * returns {string} example: 2023-05-16 11:10:00 or ''
+ */
+function getDateFromStatusType(type: CustomStatusTypes): string {
+    switch (type) {
+        case CONST.CUSTOM_STATUS_TYPES.THIRTY_MINUTES:
+            return getThirtyMinutesFromNow();
+        case CONST.CUSTOM_STATUS_TYPES.ONE_HOUR:
+            return getOneHourFromNow();
+        case CONST.CUSTOM_STATUS_TYPES.AFTER_TODAY:
+            return getEndOfToday();
+        case CONST.CUSTOM_STATUS_TYPES.AFTER_WEEK:
+            return getOneWeekFromNow();
+        case CONST.CUSTOM_STATUS_TYPES.NEVER:
+            return CONST.CUSTOM_STATUS_TYPES.NEVER;
+        default:
+            return '';
+    }
+}
+
+/**
+ * param {string} data - either a value from CONST.CUSTOM_STATUS_TYPES or a dateTime string in the format YYYY-MM-DD HH:mm
+ * returns {string} example: 2023-05-16 11:10 PM or 'Today'
+ */
+function getLocalizedTimePeriodDescription(data: string): string {
+    const {translateLocal} = Localize;
+    switch (data) {
+        case getEndOfToday():
+            return translateLocal('statusPage.timePeriods.afterToday');
+        case CONST.CUSTOM_STATUS_TYPES.NEVER:
+        case '':
+            return translateLocal('statusPage.timePeriods.never');
+        default:
+            return formatDateTimeTo12Hour(data);
+    }
+}
+
+/**
  * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
  */
 function getStatusUntilDate(inputDate: string): string {
@@ -374,10 +491,172 @@ function getStatusUntilDate(inputDate: string): string {
 }
 
 /**
+ * Update the time for a given date.
+ *
+ * param {string} updatedTime - Time in "hh:mm A" or "HH:mm:ss" or "yyyy-MM-dd HH:mm:ss" format.
+ * param {string} inputDateTime - Date in "YYYY-MM-DD HH:mm:ss" or "YYYY-MM-DD" format.
+ * returns {string} - Date with updated time in "YYYY-MM-DD HH:mm:ss" format.
+ */
+const combineDateAndTime = (updatedTime: string, inputDateTime: string): string => {
+    if (!updatedTime || !inputDateTime) {
+        return '';
+    }
+
+    let parsedTime: Date | null = null;
+    if (updatedTime.includes('-')) {
+        // it's in "yyyy-MM-dd HH:mm:ss" format
+        const tempTime = parse(updatedTime, 'yyyy-MM-dd HH:mm:ss', new Date());
+        if (isValid(tempTime)) {
+            parsedTime = tempTime;
+        }
+    } else if (updatedTime.includes(':')) {
+        // it's in "hh:mm a" format
+        const tempTime = parse(updatedTime, 'hh:mm a', new Date());
+        if (isValid(tempTime)) {
+            parsedTime = tempTime;
+        }
+    }
+
+    if (!parsedTime) {
+        return '';
+    }
+
+    let parsedDateTime: Date | null = null;
+    if (inputDateTime.includes(':')) {
+        // Check if it includes time
+        const tempDateTime = parse(inputDateTime, 'yyyy-MM-dd HH:mm:ss', new Date());
+        if (isValid(tempDateTime)) {
+            parsedDateTime = tempDateTime;
+        }
+    } else {
+        const tempDateTime = parse(inputDateTime, 'yyyy-MM-dd', new Date());
+        if (isValid(tempDateTime)) {
+            parsedDateTime = tempDateTime;
+        }
+    }
+
+    if (!parsedDateTime) {
+        return '';
+    }
+
+    const updatedDateTime = set(parsedDateTime, {
+        hours: parsedTime.getHours(),
+        minutes: parsedTime.getMinutes(),
+        seconds: parsedTime.getSeconds(),
+    });
+
+    return format(updatedDateTime, 'yyyy-MM-dd HH:mm:ss');
+};
+
+/**
+ * param {String} dateTime in 'HH:mm:ss' format
+ * returns {Object}
+ * example {hour: '11', minute: '10', period: 'AM'}
+ */
+function get12HourTimeObjectFromDate(dateTime: string): {hour: string; minute: string; period: string} {
+    if (!dateTime) {
+        return {
+            hour: '12',
+            minute: '00',
+            period: 'PM',
+        };
+    }
+    const parsedTime = parse(dateTime, 'hh:mm a', new Date());
+    return {
+        hour: format(parsedTime, 'hh'),
+        minute: format(parsedTime, 'mm'),
+        period: format(parsedTime, 'a').toUpperCase(),
+    };
+}
+
+/**
+ * param {String} timeString
+ * returns {String}
+ * example getTimePeriod('11:10 PM') // 'PM'
+ */
+function getTimePeriod(timeString: string): TimePeriod {
+    const parts = timeString.split(' ');
+    return parts[1] as TimePeriod;
+}
+
+/**
+ * param {String} dateTimeStringFirst // YYYY-MM-DD HH:mm:ss
+ * param {String} dateTimeStringSecond // YYYY-MM-DD HH:mm:ss
+ * returns {Boolean}
+ */
+function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: string): boolean {
+    const date1 = parse(dateTimeStringFirst, 'yyyy-MM-dd HH:mm:ss', new Date());
+    const date2 = parse(dateTimeStringSecond, 'yyyy-MM-dd HH:mm:ss', new Date());
+
+    return isSameSecond(date1, date2);
+}
+
+/**
+ * Checks if the time input is at least one minute in the future.
+ * param {String} timeString: '04:24 AM'
+ * param {String} dateTimeString: '2023-11-14 14:24:00'
+ * returns {Boolean}
+ */
+const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeString?: string; dateTimeString: string}): boolean => {
+    let dateToCheck = dateTimeString;
+    if (timeString) {
+        //  return false;
+        // Parse the hour and minute from the time input
+        const [hourStr] = timeString.split(/[:\s]+/);
+        const hour = parseInt(hourStr, 10);
+
+        if (hour === 0) {
+            return false;
+        }
+
+        dateToCheck = combineDateAndTime(timeString, dateTimeString);
+    }
+
+    // Get current date and time
+    const now = new Date();
+
+    // Check if the combinedDate is at least one minute later than the current date and time
+    return isAfter(new Date(dateToCheck), addMinutes(now, 1));
+};
+
+/**
+ * Checks if the input date is in the future compared to the reference date.
+ * param {Date} inputDate - The date to validate.
+ * param {Date} referenceDate - The date to compare against.
+ * returns {string} - Returns an error key if validation fails, otherwise an empty string.
+ */
+const getDayValidationErrorKey = (inputDate: Date): string => {
+    if (!inputDate) {
+        return '';
+    }
+    const currentYear = getDayOfYear(new Date());
+    const inputYear = getDayOfYear(inputDate);
+    if (inputYear < currentYear) {
+        return 'common.error.invalidDateShouldBeFuture';
+    }
+    return '';
+};
+
+/**
+ * Checks if the input time is at least one minute in the future compared to the reference time.
+ * param {Date} inputTime - The time to validate.
+ * param {Date} referenceTime - The time to compare against.
+ * returns {string} - Returns an error key if validation fails, otherwise an empty string.
+ */
+const getTimeValidationErrorKey = (inputTime: Date): string => {
+    const timeNowPlusOneMinute = addMinutes(new Date(), 1);
+    if (isBefore(inputTime, timeNowPlusOneMinute)) {
+        return 'common.error.invalidTimeShouldBeFuture';
+    }
+    return '';
+};
+
+/**
+ *
  * Get a date and format this date using the UTC timezone.
- * @param datetime
- * @param dateFormat
- * @returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
+ * param datetime
+ * param dateFormat
+ * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
     const date = new Date(datetime);
@@ -406,13 +685,29 @@ const DateUtils = {
     setLocale,
     subtractMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
+    getThirtyMinutesFromNow,
+    getEndOfToday,
+    getOneWeekFromNow,
+    getDateFromStatusType,
+    getOneHourFromNow,
+    extractDate,
+    formatDateTimeTo12Hour,
     getStatusUntilDate,
+    extractTime12Hour,
+    get12HourTimeObjectFromDate,
+    areDatesIdentical,
+    getTimePeriod,
+    getLocalizedTimePeriodDescription,
+    combineDateAndTime,
+    getDayValidationErrorKey,
+    getTimeValidationErrorKey,
     isToday,
     isTomorrow,
     isYesterday,
     getMonthNames,
     getDaysOfWeek,
     formatWithUTCTimeZone,
+    isTimeAtLeastOneMinuteInFuture,
 };
 
 export default DateUtils;
