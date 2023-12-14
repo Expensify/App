@@ -6,8 +6,8 @@ import useStyleUtils from '@styles/useStyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
-import getCanvasFitScale from './MultiGestureCanvas/getCanvasFitScale';
 import {zoomRangeDefaultProps, zoomRangePropTypes} from './MultiGestureCanvas/propTypes';
+import getCanvasFitScale from './MultiGestureCanvas/utils';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
 // The more concurrent lighboxes, the worse performance gets (especially on low-end devices)
