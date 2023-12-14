@@ -1,11 +1,11 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, InteractionManager, ScrollView, View} from 'react-native';
+import {ActivityIndicator, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
-import ConfirmContent from '@components/ConfirmContent';
+import ConfirmModal from '@components/ConfirmModal';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -62,7 +62,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         anchorPositionTop: 0,
         anchorPositionRight: 0,
     });
-    const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
+    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
     const hasWallet = !_.isEmpty(userWallet);
@@ -215,10 +215,8 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
      */
     const hideDefaultDeleteMenu = useCallback(() => {
         setShouldShowDefaultDeleteMenu(false);
-        InteractionManager.runAfterInteractions(() => {
-            setShowConfirmDeleteContent(false);
-        });
-    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteContent]);
+        setShowConfirmDeleteModal(false);
+    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList || {};
@@ -487,11 +485,9 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                             top: anchorPosition.anchorPositionTop,
                             right: anchorPosition.anchorPositionRight,
                         }}
-                        withoutOverlay
                         anchorRef={paymentMethodButtonRef}
-                        onModalHide={resetSelectedPaymentMethodData}
                     >
-                        {!showConfirmDeleteContent ? (
+                        {!showConfirmDeleteModal && (
                             <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
@@ -512,34 +508,28 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                                     />
                                 )}
                                 <Button
-                                    onPress={() => {
-                                        setShowConfirmDeleteContent(true);
-                                    }}
+                                    onPress={() => setShowConfirmDeleteModal(true)}
                                     style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                                     text={translate('common.delete')}
                                     danger
                                 />
                             </View>
-                        ) : (
-                            <ConfirmContent
-                                onConfirm={() => {
-                                    deletePaymentMethod();
-                                    hideDefaultDeleteMenu();
-                                }}
-                                onCancel={hideDefaultDeleteMenu}
-                                contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
-                                title={translate('walletPage.deleteAccount')}
-                                prompt={translate('walletPage.deleteConfirmation')}
-                                confirmText={translate('common.delete')}
-                                cancelText={translate('common.cancel')}
-                                anchorPosition={{
-                                    top: anchorPosition.anchorPositionTop,
-                                    right: anchorPosition.anchorPositionRight,
-                                }}
-                                shouldShowCancelButton
-                                danger
-                            />
                         )}
+                        <ConfirmModal
+                            isVisible={showConfirmDeleteModal}
+                            onConfirm={() => {
+                                deletePaymentMethod();
+                                hideDefaultDeleteMenu();
+                            }}
+                            onCancel={hideDefaultDeleteMenu}
+                            title={translate('walletPage.deleteAccount')}
+                            prompt={translate('walletPage.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            shouldShowCancelButton
+                            danger
+                            onModalHide={resetSelectedPaymentMethodData}
+                        />
                     </Popover>
                 </ScreenWrapper>
             )}
