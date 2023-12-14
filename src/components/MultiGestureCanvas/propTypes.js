@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import * as Constants from './Constants';
 
 const zoomRangePropTypes = {
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
