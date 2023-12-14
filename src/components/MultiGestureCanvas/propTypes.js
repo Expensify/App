@@ -70,4 +70,4 @@ const multiGestureCanvasDefaultProps = {
     zoomRange: undefined,
 };
 
-export {zoomRangePropTypes, zoomRangeDefaultProps, multiGestureCanvasPropTypes, multiGestureCanvasDefaultProps};
+export {defaultZoomRange, zoomRangePropTypes, zoomRangeDefaultProps, multiGestureCanvasPropTypes, multiGestureCanvasDefaultProps};
