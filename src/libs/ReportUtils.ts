@@ -314,7 +314,6 @@ type OptimisticIOUReport = Pick<
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
 type OptionData = {
-    text?: string;
     alternateText?: string | null;
     allReportErrors?: Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
@@ -326,7 +325,6 @@ type OptionData = {
         color?: string;
     };
     descriptiveText?: string;
-    type?: string;
     subtitle?: string | null;
     login?: string | null;
     accountID?: number | null;

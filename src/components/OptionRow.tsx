@@ -132,9 +132,9 @@ function OptionRow({
         (option.alternateTextMaxLines ?? 1) === 1 ? styles.pre : styles.preWrap,
     ];
     const contentContainerStyles = [styles.flex1];
-    const flattenHoverStyle = StyleSheet.flatten(hoverStyle);
     const sidebarInnerRowStyle = StyleSheet.flatten([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]);
-    const hoveredStyle = flattenHoverStyle ?? styles.sidebarLinkHover;
+    const flattenHoverStyle = StyleSheet.flatten(hoverStyle);
+    const hoveredStyle = hoverStyle ? flattenHoverStyle : styles.sidebarLinkHover;
     const hoveredBackgroundColor = hoveredStyle?.backgroundColor ? (hoveredStyle.backgroundColor as string) : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = (option.participantsList?.length ?? 0) > 1;
@@ -193,7 +193,7 @@ function OptionRow({
                         hoverDimmingValue={1}
                         hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
                         needsOffscreenAlphaCompositing={(option.icons?.length ?? 0) >= 2}
-                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                        onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (event) => event.preventDefault() : undefined}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
