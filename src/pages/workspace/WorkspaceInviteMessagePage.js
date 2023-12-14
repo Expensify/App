@@ -1,7 +1,7 @@
 import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -17,10 +17,12 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -72,33 +74,11 @@ const defaultProps = {
 };
 
 function WorkspaceInviteMessagePage(props) {
-    const focusTimeoutRef = useRef();
-    const welcomeMessageInputRef = useRef(null);
+    const {inputCallbackRef} = useAutoFocusInput();
 
-    useEffect(
-        () => () => {
-            clearTimeout(focusTimeoutRef.current);
-        },
-        [],
-    );
-
-    const focusWelcomeMessageInput = () => {
-        focusTimeoutRef.current = setTimeout(() => {
-            welcomeMessageInputRef.current.focus();
-            // Below condition is needed for web, desktop and mweb only, for native cursor is set at end by default.
-            if (welcomeMessageInputRef.current.value && welcomeMessageInputRef.current.setSelectionRange) {
-                const length = welcomeMessageInputRef.current.value.length;
-                welcomeMessageInputRef.current.setSelectionRange(length, length);
-            }
-        }, CONST.ANIMATED_TRANSITION);
-    };
-
-    useEffect(() => {
-        if (_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
-            Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID), true);
-        }
-        focusWelcomeMessageInput();
-    }, [props.invitedEmailsToAccountIDsDraft, props.route.params.policyID]);
+    if (_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
+        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID), true);
+    }
 
     const saveDraft = (newDraft) => {
         Policy.setWorkspaceInviteMessageDraft(props.route.params.policyID, newDraft);
@@ -209,7 +189,10 @@ function WorkspaceInviteMessagePage(props) {
                             onChangeText={(text) => {
                                 saveDraft(text);
                             }}
-                            ref={(el) => (welcomeMessageInputRef.current = el)}
+                            ref={(el) => {
+                                updateMultilineInputRange(el);
+                                inputCallbackRef(el);
+                            }}
                         />
                     </View>
                 </FormProvider>
