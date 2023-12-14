@@ -3,7 +3,7 @@ import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {Document, Page, pdfjs} from 'react-pdf/dist/esm/entry.webpack';
+import {Document, pdfjs} from 'react-pdf';
 import {VariableSizeList as List} from 'react-window';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -18,19 +18,10 @@ import variables from '@styles/variables';
 import * as CanvasSize from '@userActions/CanvasSize';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import PDFViewConstants from './constants';
 import PDFPasswordForm from './PDFPasswordForm';
 import * as pdfViewPropTypes from './pdfViewPropTypes';
-
-/**
- * Each page has a default border. The app should take this size into account
- * when calculates the page width and height.
- */
-const PAGE_BORDER = 9;
-/**
- * Pages should be more narrow than the container on large screens. The app should take this size into account
- * when calculates the page width.
- */
-const LARGE_SCREEN_SIDE_SPACING = 40;
+import PageRenderer from './ReactPDFPageRenderer';
 
 class PDFView extends Component {
     constructor(props) {
@@ -50,13 +41,18 @@ class PDFView extends Component {
         this.toggleKeyboardOnSmallScreens = this.toggleKeyboardOnSmallScreens.bind(this);
         this.calculatePageHeight = this.calculatePageHeight.bind(this);
         this.calculatePageWidth = this.calculatePageWidth.bind(this);
-        this.renderPage = this.renderPage.bind(this);
-        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio);
+        this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio.bind(this));
         this.setListAttributes = this.setListAttributes.bind(this);
 
-        const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
-        pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        if (pdfjs.GlobalWorkerOptions.workerSrc === '') {
+            const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
+            pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        }
         this.retrieveCanvasLimits();
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(this.state, nextState) || !_.isEqual(this.props, nextProps);
     }
 
     componentDidUpdate(prevProps) {
@@ -133,6 +129,7 @@ class PDFView extends Component {
         const ratioWidth = this.props.maxCanvasWidth / width;
         const ratioArea = Math.sqrt(this.props.maxCanvasArea / nbPixels);
         const ratio = Math.min(ratioHeight, ratioArea, ratioWidth);
+
         return ratio > window.devicePixelRatio ? undefined : ratio;
     }
 
@@ -144,7 +141,7 @@ class PDFView extends Component {
      * @returns {Number}
      */
     calculatePageHeight(pageIndex) {
-        if (this.state.pageViewports.length === 0) {
+        if (this.state.pageViewports.length === 0 || this.state.pageViewports.some((viewport) => !viewport)) {
             Log.warn('Dev error: calculatePageHeight() in PDFView called too early');
 
             return 0;
@@ -153,7 +150,7 @@ class PDFView extends Component {
         const pageViewport = this.state.pageViewports[pageIndex];
         const pageWidth = this.calculatePageWidth();
         const scale = pageWidth / pageViewport.width;
-        const actualHeight = pageViewport.height * scale + PAGE_BORDER * 2;
+        const actualHeight = pageViewport.height * scale + PDFViewConstants.PAGE_BORDER * 2;
 
         return actualHeight;
     }
@@ -165,10 +162,10 @@ class PDFView extends Component {
      */
     calculatePageWidth() {
         const pdfContainerWidth = this.state.containerWidth;
-        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
+        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - PDFViewConstants.LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
         const pageWidth = this.props.isSmallScreenWidth ? this.state.containerWidth : pageWidthOnLargeScreen;
 
-        return pageWidth + PAGE_BORDER * 2;
+        return pageWidth + PDFViewConstants.PAGE_BORDER * 2;
     }
 
     /**
@@ -233,34 +230,6 @@ class PDFView extends Component {
         }
     }
 
-    /**
-     * Render a specific page based on its index.
-     * The method includes a wrapper to apply virtualized styles.
-     * @param {Object} page item object of the List
-     * @param {Number} page.index index of the page
-     * @param {Object} page.style virtualized styles
-     * @returns {JSX.Element}
-     */
-    renderPage({index, style}) {
-        const pageWidth = this.calculatePageWidth();
-        const pageHeight = this.calculatePageHeight(index);
-        const devicePixelRatio = this.getDevicePixelRatio(pageWidth, pageHeight);
-
-        return (
-            <View style={style}>
-                <Page
-                    key={`page_${index}`}
-                    width={pageWidth}
-                    pageIndex={index}
-                    // This needs to be empty to avoid multiple loading texts which show per page and look ugly
-                    // See https://github.com/Expensify/App/issues/14358 for more details
-                    loading=""
-                    devicePixelRatio={devicePixelRatio}
-                />
-            </View>
-        );
-    }
-
     renderPDFView() {
         const styles = this.props.themeStyles;
         const pageWidth = this.calculatePageWidth();
@@ -271,6 +240,8 @@ class PDFView extends Component {
         const pdfContainerStyle = this.state.shouldRequestPassword
             ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
             : [styles.PDFView, styles.noSelect, this.props.style];
+
+        const estimatedItemSize = this.calculatePageHeight(0);
 
         return (
             <View style={outerContainerStyle}>
@@ -284,8 +255,8 @@ class PDFView extends Component {
                     }) => this.setState({containerWidth: width, containerHeight: height})}
                 >
                     <Document
-                        error={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         loading={<FullScreenLoadingIndicator />}
+                        error={<Text style={this.props.errorLabelStyles}>{this.props.translate('attachmentView.failedToLoadPDF')}</Text>}
                         file={this.props.sourceURL}
                         options={{
                             cMapUrl: 'cmaps/',
@@ -301,11 +272,12 @@ class PDFView extends Component {
                                 style={styles.PDFViewList}
                                 width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
                                 height={this.state.containerHeight}
-                                estimatedItemSize={this.calculatePageHeight(0)}
+                                estimatedItemSize={estimatedItemSize}
                                 itemCount={this.state.numPages}
                                 itemSize={this.calculatePageHeight}
+                                itemData={{pageWidth, calculatePageHeight: this.calculatePageHeight, getDevicePixelRatio: this.getDevicePixelRatio, estimatedItemSize}}
                             >
-                                {this.renderPage}
+                                {PageRenderer}
                             </List>
                         )}
                     </Document>
