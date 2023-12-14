@@ -8,10 +8,10 @@ import SignInPageForm from '@components/SignInPageForm';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import SignInHeroImage from '@pages/signin/SignInHeroImage';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 
 const propTypes = {

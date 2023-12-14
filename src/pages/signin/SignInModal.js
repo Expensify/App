@@ -1,8 +1,8 @@
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import SignInPage from './SignInPage';
 

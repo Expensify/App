@@ -10,7 +10,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps as createMenuDefaultProps, propTypes as createMenuPropTypes} from './popoverMenuPropTypes';
 

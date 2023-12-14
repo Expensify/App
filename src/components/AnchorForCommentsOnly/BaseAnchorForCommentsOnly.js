@@ -8,11 +8,11 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {propTypes as anchorForCommentsOnlyPropTypes} from './anchorForCommentsOnlyPropTypes';
 
@@ -77,14 +77,14 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
-            role={CONST.ACCESSIBILITY_ROLE.LINK}
+            role={CONST.ROLE.LINK}
             accessibilityLabel={href}
         >
             <Tooltip text={href}>
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([style, defaultTextStyle])}
-                    role={CONST.ACCESSIBILITY_ROLE.LINK}
+                    role={CONST.ROLE.LINK}
                     hrefAttrs={{
                         rel,
                         target: isEmail || !linkProps.href ? '_self' : target,

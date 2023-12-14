@@ -3,7 +3,7 @@ import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';

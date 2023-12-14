@@ -8,8 +8,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
     /** Where the arrows should be visible */

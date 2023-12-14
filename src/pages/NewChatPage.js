@@ -12,12 +12,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';

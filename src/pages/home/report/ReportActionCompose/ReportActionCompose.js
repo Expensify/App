@@ -13,8 +13,10 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
@@ -29,7 +31,6 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
@@ -146,7 +147,7 @@ function ReportActionCompose({
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      */
-    const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
+    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
 
     const suggestionsRef = useRef(null);
     const composerRef = useRef(null);
@@ -410,6 +411,7 @@ function ReportActionCompose({
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
+                                        onValueChange={validateCommentMaxLength}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {
@@ -446,10 +448,7 @@ function ReportActionCompose({
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
-                        <ExceededCommentLength
-                            reportID={reportID}
-                            onExceededMaxCommentLength={setExceededMaxCommentLength}
-                        />
+                        <ExceededCommentLength shouldShowError={hasExceededMaxCommentLength} />
                     </View>
                 </OfflineWithFeedback>
             </View>

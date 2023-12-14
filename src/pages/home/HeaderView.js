@@ -21,6 +21,8 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
@@ -29,8 +31,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -208,7 +208,7 @@ function HeaderView(props) {
                                 style={[styles.LHNToggle]}
                                 accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                 accessibilityLabel={translate('common.back')}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                             >
                                 <Tooltip
                                     text={translate('common.back')}
@@ -226,7 +226,7 @@ function HeaderView(props) {
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                 disabled={shouldDisableDetailPage}
                                 accessibilityLabel={title}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                             >
                                 {shouldShowSubscript ? (
                                     <SubscriptAvatar

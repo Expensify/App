@@ -7,9 +7,9 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PDFInfoMessage from './PDFInfoMessage';
 
@@ -123,7 +123,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid, shouldShowLoadingIndicat
                 ref={textInputRef}
                 label={translate('common.password')}
                 accessibilityLabel={translate('common.password')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 /**
                  * This is a workaround to bypass Safari's autofill odd behaviour.
                  * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
