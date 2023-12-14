@@ -112,13 +112,6 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedTags = val),
 });
 
-let networkStatus = {};
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    waitForCollectionCallback: true,
-    callback: (val) => (networkStatus = val),
-});
-
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -957,7 +950,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            ...(!networkStatus.isOffline && {lastModified}),
+            lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },
@@ -1074,8 +1067,10 @@ function generateCustomUnitID() {
  * @returns {Object}
  */
 function buildOptimisticCustomUnits() {
+    const currency = lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD);
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
+
     const customUnits = {
         [customUnitID]: {
             customUnitID,
@@ -1088,6 +1083,7 @@ function buildOptimisticCustomUnits() {
                     customUnitRateID,
                     name: CONST.CUSTOM_UNITS.DEFAULT_RATE,
                     rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+                    currency,
                 },
             },
         },
@@ -1097,6 +1093,7 @@ function buildOptimisticCustomUnits() {
         customUnits,
         customUnitID,
         customUnitRateID,
+        outputCurrency: currency,
     };
 }
 
@@ -1110,7 +1107,7 @@ function buildOptimisticCustomUnits() {
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const {customUnits} = buildOptimisticCustomUnits();
+    const {customUnits, outputCurrency} = buildOptimisticCustomUnits();
 
     const optimisticData = [
         {
@@ -1123,7 +1120,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
                 isPolicyExpenseChatEnabled: true,
-                outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
@@ -1156,7 +1153,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -1202,7 +1199,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
                         isPolicyExpenseChatEnabled: true,
-                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                        outputCurrency,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         customUnits,
                     },
