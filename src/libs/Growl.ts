@@ -1,6 +1,9 @@
 import React from 'react';
-import {GrowlRef} from '@components/GrowlNotification/types';
 import CONST from '@src/CONST';
+
+type GrowlRef = {
+    show?: (bodyText: string, type: string, duration: number) => void;
+};
 
 const growlRef = React.createRef<GrowlRef>();
 let resolveIsReadyPromise: undefined | ((value?: unknown) => void);
@@ -46,5 +49,7 @@ export default {
     error,
     success,
 };
+
+export type {GrowlRef};
 
 export {growlRef, setIsReady};

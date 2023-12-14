@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Animated, View} from 'react-native';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import {SvgProps} from 'react-native-svg';
@@ -9,17 +9,17 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Growl from '@libs/Growl';
+import type {GrowlRef} from '@libs/Growl';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
-import {GrowlNotificationProps} from './types';
 
 const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
-function GrowlNotification({_, ref}: GrowlNotificationProps) {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
