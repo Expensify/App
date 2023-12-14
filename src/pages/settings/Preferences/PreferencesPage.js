@@ -24,9 +24,6 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    /** The app's color theme */
-    preferredTheme: PropTypes.string,
-
     /** The details about the user that is signed in */
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
@@ -36,7 +33,6 @@ const propTypes = {
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    preferredTheme: CONST.DEFAULT_THEME,
     user: {},
 };
 
@@ -84,12 +80,6 @@ function PreferencesPage(props) {
                     description={translate('languagePage.language')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                 />
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={translate(`themePage.themes.${props.preferredTheme || CONST.THEME.DEFAULT}.label`)}
-                    description={translate('themePage.theme')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
-                />
                 {/* Enable additional test features in non-production environments */}
                 {!isProduction && (
                     <View style={[styles.ml5, styles.mr8, styles.mt6]}>
@@ -111,8 +101,5 @@ export default withOnyx({
     },
     user: {
         key: ONYXKEYS.USER,
-    },
-    preferredTheme: {
-        key: ONYXKEYS.PREFERRED_THEME,
     },
 })(PreferencesPage);

@@ -9,7 +9,7 @@ const Illustrations = {
     [CONST.THEME.DARK]: darkIllustrations,
 } satisfies Record<ThemePreferenceWithoutSystem, IllustrationsType>;
 
-const DefaultIllustrations = Illustrations[CONST.THEME.FALLBACK];
+const DefaultIllustrations = Illustrations[CONST.THEME.DEFAULT];
 
 export default Illustrations;
 export {DefaultIllustrations};

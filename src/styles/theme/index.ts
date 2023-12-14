@@ -8,7 +8,7 @@ const themes = {
     [CONST.THEME.DARK]: darkTheme,
 } satisfies Record<ThemePreferenceWithoutSystem, ThemeColors>;
 
-const defaultTheme = themes[CONST.THEME.FALLBACK];
+const defaultTheme = themes[CONST.THEME.DEFAULT];
 
 export default themes;
 export {defaultTheme};
