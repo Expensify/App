@@ -43,6 +43,4 @@ type DisplayNamesProps = {
 
 export default DisplayNamesProps;
 
-export type {
-    DisplayNameWithTooltip
-}
+export type {DisplayNameWithTooltip};
