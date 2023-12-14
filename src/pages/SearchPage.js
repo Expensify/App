@@ -37,19 +37,15 @@ const propTypes = {
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
     personalDetails: {},
     reports: {},
-    isSearchingForReports: false,
 };
 
-function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
+function SearchPage({betas, personalDetails, reports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -206,24 +202,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
                             footerContent={footerRender}
                         />
-                        {/* <OptionsSelector */}
-                        {/*     sections={sections} */}
-                        {/*     value={searchValue} */}
-                        {/*     onSelectRow={selectReport} */}
-                        {/*     onChangeText={onChangeText} */}
-                        {/*     headerMessage={headerMessage} */}
-                        {/*     hideSectionHeaders */}
-                        {/*     showTitleTooltip */}
-                        {/*     shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady} */}
-                        {/*     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')} */}
-                        {/*     textInputAlert={network.isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''} */}
-                        {/*     shouldShowReferralCTA */}
-                        {/*     referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND} */}
-                        {/*     onLayout={searchRendered} */}
-                        {/*     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle} */}
-                        {/*     autoFocus */}
-                        {/*     isLoadingNewOptions={isSearchingForReports} */}
-                        {/* /> */}
                     </View>
                 </>
             )}
