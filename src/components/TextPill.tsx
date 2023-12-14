@@ -1,7 +1,7 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import useThemeStyles from "@hooks/useThemeStyles";
-import colors from "@styles/theme/colors";
+import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import Text from './Text';
 
 type TextPillProps = {

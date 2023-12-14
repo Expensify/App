@@ -4318,7 +4318,7 @@ function navigateToPrivateNotes(report: Report, session: Session) {
  */
 function hasHeldExpenses(iouReportID: string): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return transactions.some(transaction => TransactionUtils.isOnHold(transaction));
+    return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
 }
 
 /**

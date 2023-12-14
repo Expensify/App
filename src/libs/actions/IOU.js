@@ -3327,7 +3327,7 @@ function putOnHold(transactionID, comment, reportID) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             // key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${createdReportAction.reportID}`,
             value: {
-                [createdReportAction.reportActionID]: createdReportAction
+                [createdReportAction.reportActionID]: createdReportAction,
             },
         },
         {
@@ -3387,11 +3387,10 @@ function unholdRequest(transactionID, reportID) {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 comment: {
-                    hold: null
+                    hold: null,
                 },
             },
         },
-
     ];
 
     const successData = [
@@ -3468,5 +3467,5 @@ export {
     getIOUReportID,
     editMoneyRequest,
     putOnHold,
-    unholdRequest
+    unholdRequest,
 };
