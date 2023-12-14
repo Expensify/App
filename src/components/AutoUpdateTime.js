@@ -5,8 +5,8 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
