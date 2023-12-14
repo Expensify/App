@@ -18,13 +18,13 @@ import MessagesRow from './MessagesRow';
 
 type OfflineWithFeedbackProps = ChildrenProps & {
     /** The type of action that's pending  */
-    pendingAction: OnyxCommon.PendingAction;
+    pendingAction?: OnyxCommon.PendingAction;
 
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | null;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
@@ -56,7 +56,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
 
-function omitBy<T>(obj: Record<string, T> | undefined, predicate: (value: T) => boolean) {
+function omitBy<T>(obj: Record<string, T> | undefined | null, predicate: (value: T) => boolean) {
     // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
     return Object.fromEntries(Object.entries(obj ?? {}).filter(([_, value]) => !predicate(value)));
 }

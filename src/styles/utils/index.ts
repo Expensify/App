@@ -383,7 +383,11 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
-function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
+function getBackgroundAndBorderStyle(backgroundColor: string | undefined): ViewStyle {
+    if (!backgroundColor) {
+        return {};
+    }
+
     return {
         backgroundColor,
         borderColor: backgroundColor,
