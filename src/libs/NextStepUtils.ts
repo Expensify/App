@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import EmailUtils from './EmailUtils';
 
 type Message = {
     text: string;
@@ -11,9 +12,15 @@ function parseMessage(messages: Message[] | undefined) {
     messages?.forEach((part) => {
         const isEmail = Str.isValidEmail(part.text);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const tagType = isEmail ? 'next-steps-email' : part.type || 'span';
+        let tagType = part.type || 'span';
+        let content = Str.safeEscape(part.text);
 
-        nextStepHTML += `<${tagType}>${Str.safeEscape(part.text)}</${tagType}>`;
+        if (isEmail) {
+            tagType = 'next-steps-email';
+            content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
+        }
+
+        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
     });
 
     const formattedHtml = nextStepHTML

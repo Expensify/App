@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import Text from '@components/Text';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
     tnode: PropTypes.shape({
@@ -12,7 +12,7 @@ const propTypes = {
 function NextStepsEmailRenderer({tnode}) {
     const styles = useThemeStyles();
 
-    return <Text style={[styles.breakAll, styles.textLabelSupporting, styles.textStrong]}>{tnode.data}</Text>;
+    return <Text style={[styles.breakWord, styles.textLabelSupporting, styles.textStrong]}>{tnode.data}</Text>;
 }
 
 NextStepsEmailRenderer.propTypes = propTypes;
