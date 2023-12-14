@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -15,7 +15,6 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -60,17 +59,28 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyName = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'companyName', '');
-    const values = useMemo(() => getSubstepValues(BENEFICIAL_OWNER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const defaultBeneficialOwnerKeys = lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_KEYS_KEY, []);
+    const defaultValues = {
+        [BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT]: lodashGet(
+            reimbursementAccount,
+            BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT,
+            lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT, false),
+        ),
+        [BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS]: lodashGet(
+            reimbursementAccount,
+            BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS,
+            lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS, false),
+        ),
+        [BENEFICIAL_OWNER_KEYS_KEY]: lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_KEYS_KEY, []),
+    };
 
     // We're only reading beneficialOwnerKeys from draft values because there is not option to remove UBO
     // if we were to set them based on values saved in BE then there would be no option to enter different UBOs
     // user would always see the same UBOs that was saved in BE when returning to this step and trying to change something
-    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState(defaultBeneficialOwnerKeys);
+    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState(defaultValues[BENEFICIAL_OWNER_KEYS_KEY]);
     const [beneficialOwnerBeingModifiedID, setBeneficialOwnerBeingModifiedID] = useState('');
     const [isEditingCreatedBeneficialOwner, setIsEditingCreatedBeneficialOwner] = useState(false);
-    const [isUserUBO, setIsUserUBO] = useState(values[BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT]);
-    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(values[BENEFICIAL_OWNER_INFO_STEP_KEYS.BENEFICIAL_OWNERS].length > 0);
+    const [isUserUBO, setIsUserUBO] = useState(defaultValues[BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT]);
+    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(defaultValues[BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS]);
     const [currentUBOSubstep, setCurrentUBOSubstep] = useState(1);
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 

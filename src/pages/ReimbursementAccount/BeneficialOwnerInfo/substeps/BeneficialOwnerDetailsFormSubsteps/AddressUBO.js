@@ -80,7 +80,7 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
                 shouldSaveDraft
                 translate={translate}
                 defaultValues={defaultValues}
-                streetTranslationKey="common.companyAddress"
+                streetTranslationKey="common.streetAddress"
             />
         </FormProvider>
     );
