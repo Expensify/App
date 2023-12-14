@@ -44,10 +44,11 @@ class PDFView extends Component {
         this.getDevicePixelRatio = _.memoize(this.getDevicePixelRatio.bind(this));
         this.setListAttributes = this.setListAttributes.bind(this);
 
-        if (pdfjs.GlobalWorkerOptions.workerSrc === '') {
-            const workerBlob = new Blob([pdfWorkerSource], {type: 'text/javascript'});
-            pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+        const workerURL = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+        if (pdfjs.GlobalWorkerOptions.workerSrc !== workerURL) {
+            pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
         }
+
         this.retrieveCanvasLimits();
     }
 
