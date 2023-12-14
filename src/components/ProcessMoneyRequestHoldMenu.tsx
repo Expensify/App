@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
 import HoldMenuSectionList, {HoldMenuSection} from './HoldMenuSectionList';
 import {PopoverAnchorPosition} from './Modal/types';

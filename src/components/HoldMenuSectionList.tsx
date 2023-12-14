@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {TranslationPaths} from '@src/languages/types';
 import Icon from './Icon';
