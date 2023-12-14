@@ -144,7 +144,7 @@ PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default compose(
     withLocalize,
-    withReportAndPrivateNotesOrNotFound,
+    withReportAndPrivateNotesOrNotFound('privateNotes.title'),
     withOnyx({
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
