@@ -119,6 +119,18 @@ Onyx.connect({
     },
 });
 
+const nextSteps = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.NEXT_STEP,
+    callback: (val, key) => {
+        if (!key || !val) {
+            return;
+        }
+
+        nextSteps[key] = val;
+    },
+});
+
 /**
  * Initialize money request info
  * @param {String} reportID to attach the transaction to
@@ -2751,6 +2763,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
     }
 
+    const currentNextStep = lodashGet(nextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`, null);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2819,6 +2833,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: currentNextStep,
         },
     ];
 
@@ -2892,6 +2911,8 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
 }
 
 function approveMoneyRequest(expenseReport) {
+    const currentNextStep = lodashGet(nextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
     const optimisticReportActionsData = {
@@ -2944,6 +2965,11 @@ function approveMoneyRequest(expenseReport) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        },
     ];
 
     API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
@@ -2953,6 +2979,8 @@ function approveMoneyRequest(expenseReport) {
  * @param {Object} expenseReport
  */
 function submitReport(expenseReport) {
+    const currentNextStep = lodashGet(nextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
 
@@ -3028,6 +3056,11 @@ function submitReport(expenseReport) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
         },
         ...(parentReport.reportID
             ? [
