@@ -21,6 +21,8 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
@@ -34,8 +36,6 @@ import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActi
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -344,7 +344,7 @@ function InitialSettingsPage(props) {
                             disabled={isExecuting}
                             onPress={singleExecution(openProfileSettings)}
                             accessibilityLabel={translate('common.profile')}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <Avatar
@@ -361,7 +361,7 @@ function InitialSettingsPage(props) {
                         disabled={isExecuting}
                         onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
-                        role={CONST.ACCESSIBILITY_ROLE.LINK}
+                        role={CONST.ROLE.LINK}
                     >
                         <Tooltip text={translate('common.profile')}>
                             <Text

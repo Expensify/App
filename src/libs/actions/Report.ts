@@ -19,6 +19,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import LocalNotification from '@libs/Notification/LocalNotification';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -2057,29 +2058,22 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
     const optimisticData: OnyxUpdate[] = [
-        isWorkspaceMemberLeavingWorkspaceRoom
-            ? {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                  value: {
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: isWorkspaceMemberLeavingWorkspaceRoom
+                ? {
                       notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                  },
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                  value: {
-                      reportID,
+                  }
+                : {
+                      reportID: null,
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS.CLOSED,
-                      chatType: report.chatType,
-                      parentReportID: report.parentReportID,
-                      parentReportActionID: report.parentReportActionID,
-                      policyID: report.policyID,
-                      type: report.type,
+                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                   },
-              },
+        },
     ];
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2130,10 +2124,18 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
-
     const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
         (accountID): accountID is number => typeof accountID === 'number',
     );
+
+    type PersonalDetailsOnyxData = {
+        optimisticData: OnyxUpdate[];
+        successData: OnyxUpdate[];
+        failureData: OnyxUpdate[];
+    };
+
+    const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs) as PersonalDetailsOnyxData;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2143,7 +2145,10 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 participantAccountIDs: participantAccountIDsAfterInvitation,
             },
         },
+        ...newPersonalDetailsOnyxData.optimisticData,
     ];
+
+    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.successData;
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2153,6 +2158,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 participantAccountIDs: report.participantAccountIDs,
             },
         },
+        ...newPersonalDetailsOnyxData.failureData,
     ];
 
     type InviteToRoomParameters = {
@@ -2165,7 +2171,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         inviteeEmails,
     };
 
-    API.write('InviteToRoom', parameters, {optimisticData, failureData});
+    API.write('InviteToRoom', parameters, {optimisticData, successData, failureData});
 }
 
 /** Removes people from a room */

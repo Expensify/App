@@ -41,11 +41,7 @@ function canUseBrowserNotifications(): Promise<boolean> {
  * @param icon Path to icon
  * @param data extra data to attach to the notification
  */
-function push(title: string, body?: string, icon: string | ImageSourcePropType = '', data: LocalNotificationData = {}, onClick: LocalNotificationClickHandler = () => {}) {
-    if (!title || !body) {
-        throw new Error('BrowserNotification must include title and body parameter.');
-    }
-
+function push(title: string, body = '', icon: string | ImageSourcePropType = '', data: LocalNotificationData = {}, onClick: LocalNotificationClickHandler = () => {}) {
     canUseBrowserNotifications().then((canUseNotifications) => {
         if (!canUseNotifications) {
             return;

@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
 function RadioListItem({item, showTooltip, textStyles, alternateTextStyles}) {

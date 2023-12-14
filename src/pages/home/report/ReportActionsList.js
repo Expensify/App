@@ -12,12 +12,13 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import Visibility from '@libs/Visibility';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -189,12 +190,10 @@ function ReportActionsList({
             return;
         }
 
-        if (ReportUtils.isUnread(report)) {
-            if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
-                Report.readNewestAction(report.reportID);
-            } else {
-                readActionSkipped.current = true;
-            }
+        if (Visibility.isVisible() && ReportUtils.isUnread(report) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            Report.readNewestAction(report.reportID);
+        } else {
+            readActionSkipped.current = true;
         }
 
         if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
