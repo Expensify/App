@@ -4,28 +4,10 @@ import {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import {AvatarType} from '@src/types/onyx/OnyxCommon';
+import {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import UserDetailsTooltip from './UserDetailsTooltip';
-
-type SubAvatar = {
-    /** Avatar source to display */
-    source?: AvatarSource;
-
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: AvatarType;
-
-    /** Owner of the avatar. If user, displayName. If workspace, policy name */
-    name?: string;
-
-    /** Avatar id */
-    id?: number | string;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
-};
 
 type SubscriptAvatarProps = {
     /** Avatar URL or icon */

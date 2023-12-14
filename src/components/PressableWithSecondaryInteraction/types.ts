@@ -1,4 +1,4 @@
-import {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 

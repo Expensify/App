@@ -1,5 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback} from 'react';
+import React, {ReactElement, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHNData from './OptionRowLHNData';
-import {LHNOptionsListOnyxProps, LHNOptionsListProps} from './types';
+import {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: string) => `report_${item}`;
 
@@ -36,7 +36,7 @@ function LHNOptionsList({
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item: reportID}: {item: string}) => {
+        ({item: reportID}: RenderItemProps): ReactElement => {
             const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? null;
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;

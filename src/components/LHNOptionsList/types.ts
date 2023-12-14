@@ -92,4 +92,6 @@ type OptionRowLHNProps = {
     optionItem?: OptionData | null;
 };
 
-export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps};
+type RenderItemProps = {item: string};
+
+export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps};
