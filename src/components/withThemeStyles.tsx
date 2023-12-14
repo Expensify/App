@@ -1,18 +1,18 @@
 import PropTypes from 'prop-types';
 import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {type ThemeStyles} from '@styles/styles';
-import useThemeStyles from '@styles/useThemeStyles';
+import {type ThemeStyles} from '@styles/index';
 
 const withThemeStylesPropTypes = {
     themeStyles: PropTypes.object.isRequired,
 };
-type ThemeStylesProps = {themeStyles: ThemeStyles};
+type WithThemeStylesProps = {themeStyles: ThemeStyles};
 
-export default function withThemeStyles<TProps extends ThemeStylesProps, TRef>(
+export default function withThemeStyles<TProps extends WithThemeStylesProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof ThemeStylesProps> & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithThemeStyles(props: Omit<TProps, keyof ThemeStylesProps>, ref: ForwardedRef<TRef>): ReactElement {
+): (props: Omit<TProps, keyof WithThemeStylesProps> & React.RefAttributes<TRef>) => ReactElement | null {
+    function WithThemeStyles(props: Omit<TProps, keyof WithThemeStylesProps>, ref: ForwardedRef<TRef>): ReactElement {
         const themeStyles = useThemeStyles();
         return (
             <WrappedComponent
@@ -29,4 +29,5 @@ export default function withThemeStyles<TProps extends ThemeStylesProps, TRef>(
     return forwardRef(WithThemeStyles);
 }
 
-export {withThemeStylesPropTypes, type ThemeStylesProps};
+export {withThemeStylesPropTypes};
+export type {WithThemeStylesProps};

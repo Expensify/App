@@ -108,7 +108,7 @@ function DatePicker({
                     icon={Expensicons.Calendar}
                     label={label}
                     accessibilityLabel={label}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     value={value || selectedDate || ''}
                     placeholder={placeholder || translate('common.dateFormat')}
                     errorText={errorText}

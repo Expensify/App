@@ -15,13 +15,15 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -188,7 +190,16 @@ function BankAccountStep(props) {
                                 fill={theme.danger}
                             />
 
-                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
+                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                {props.translate('bankAccount.validateAccountError.phrase1')}
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={Session.signOutAndRedirectToSignIn}
+                                >
+                                    {props.translate('bankAccount.validateAccountError.phrase2')}
+                                </TextLink>
+                                .
+                            </Text>
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
