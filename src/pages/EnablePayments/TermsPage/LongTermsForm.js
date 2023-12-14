@@ -6,8 +6,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Localize from '@libs/Localize';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const termsData = [

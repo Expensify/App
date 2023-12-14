@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
@@ -104,6 +104,7 @@ const defaultProps = {
 function OptionRow(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const pressableRef = useRef(null);
     const [isDisabled, setIsDisabled] = useState(props.isDisabled);
 
@@ -193,9 +194,9 @@ function OptionRow(props) {
                             !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
                         ]}
                         accessibilityLabel={props.option.text}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
-                        hoverStyle={props.hoverStyle || styles.sidebarLinkHover}
+                        hoverStyle={!props.optionIsFocused ? props.hoverStyle || styles.sidebarLinkHover : undefined}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
                         onMouseDown={props.shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                     >
@@ -263,12 +264,13 @@ function OptionRow(props) {
                                                 text={props.selectedStateButtonText}
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 small
+                                                shouldUseDefaultHover={false}
                                             />
                                         ) : (
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                role={CONST.ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
                                                 <SelectCircle isChecked={props.isSelected} />
