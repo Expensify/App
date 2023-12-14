@@ -214,9 +214,14 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.STATUS_SET]: {
-                                path: ROUTES.SETTINGS_STATUS_SET,
-                                exact: true,
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                             },
                             [SCREENS.WORKSPACE.INITIAL]: {
                                 path: ROUTES.WORKSPACE_INITIAL.route,

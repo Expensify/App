@@ -10,6 +10,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import refPropTypes from '@components/refPropTypes';
 import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -17,7 +18,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
