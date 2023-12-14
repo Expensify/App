@@ -62,7 +62,7 @@ const propTypes = {
     reportMetadata: reportMetadataPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -190,6 +190,7 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const [hasTransitioned, setHasTransitioned] = useState(false);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
@@ -388,6 +389,10 @@ function ReportScreen({
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
+    const onEntryTransitionEnd = useCallback(() => {
+        setHasTransitioned(true);
+    }, []);
+
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     return (
@@ -397,6 +402,7 @@ function ReportScreen({
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}
+                    onEntryTransitionEnd={onEntryTransitionEnd}
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
@@ -438,7 +444,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
+                                {isReportReadyForDisplay && hasTransitioned && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
                                         reportActions={filteredReportActions}
                                         report={report}
@@ -453,9 +459,9 @@ function ReportScreen({
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                      If we prevent rendering the report while they are loading then
                      we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
+                                {(!isReportReadyForDisplay || !hasTransitioned || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
-                                {isReportReadyForDisplay ? (
+                                {isReportReadyForDisplay && hasTransitioned ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         report={report}
@@ -465,9 +471,7 @@ function ReportScreen({
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                     />
-                                ) : (
-                                    <ReportFooter isReportReadyForDisplay={false} />
-                                )}
+                                ) : null}
                             </View>
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
