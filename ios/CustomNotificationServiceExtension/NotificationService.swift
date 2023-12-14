@@ -74,13 +74,26 @@ class NotificationService: UANotificationServiceExtension {
       throw ExpError.runtimeError("reportAction.actorAccountID missing. reportActionID: " + reportActionID)
     }
     
+    guard let person = reportAction["person"] as? NSArray else {
+      throw ExpError.runtimeError("reportAction.person missing. reportActionID: " + reportActionID)
+    }
+    
+    guard let personObject = person[0] as? NSDictionary else {
+      throw ExpError.runtimeError("reportAction.person[0] missing. reportActionID: " + reportActionID)
+    }
+    
+    guard let userName = personObject["text"] as? String else {
+      throw ExpError.runtimeError("reportAction.person[0].text missing. reportActionID: " + reportActionID)
+    }
+    
     return NotificationData(
       reportID: reportID,
       reportActionID: reportActionID,
       onyxData: onyxData,
       reportOnyxUpdate: reportActionOnyxUpdate,
       avatarURL: avatarURL,
-      accountID: accountID
+      accountID: accountID,
+      userName: userName
     )
   }
   
@@ -101,13 +114,15 @@ class NotificationData {
   public var reportOnyxUpdate: NSDictionary
   public var avatarURL: String
   public var accountID: Int
+  public var userName: String
   
-  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int) {
+  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String) {
     self.reportID = reportID
     self.reportActionID = reportActionID
     self.onyxData = onyxData
     self.reportOnyxUpdate = reportOnyxUpdate
     self.avatarURL = avatarURL
     self.accountID = accountID
+    self.userName = userName
   }
 }
