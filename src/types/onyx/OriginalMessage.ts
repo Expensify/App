@@ -1,6 +1,7 @@
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
+import {getReimbursementDeQueuedActionMessage} from "@libs/ReportUtils";
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
@@ -45,6 +46,10 @@ type IOUMessage = {
     cancellationReason?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
 };
 
 type OriginalMessageIOU = {
@@ -236,4 +241,4 @@ type OriginalMessage =
     | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog, OriginalMessageIOU, OriginalMessageCreated};
+export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, ReimbursementDeQueuedMessage, Closed, OriginalMessageActionName, ChangeLog, OriginalMessageIOU, OriginalMessageCreated};
