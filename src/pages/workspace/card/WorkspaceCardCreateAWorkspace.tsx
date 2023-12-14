@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type WorkspaceCardCreateAWorkspaceProps = WithLocalizeProps;
 
