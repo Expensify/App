@@ -4,19 +4,25 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OptionsSelector from '@components/OptionsSelector';
+import Icon from '@components/Icon';
+import {Info} from '@components/Icon/Expensicons';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
+import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
@@ -62,8 +68,11 @@ function useDebouncedState(initialValue, delay) {
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
-    const network = useNetwork();
+    const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
+    const theme = useTheme();
+
+    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('', 75);
 
@@ -83,7 +92,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         userToInvite,
         headerMessage,
     } = useMemo(() => {
-        console.log('updateOptions', isScreenTransitionEnd);
         if (!isScreenTransitionEnd) {
             return {
                 recentReports: {},
@@ -98,7 +106,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     }, [debouncedSearchValue, reports, personalDetails, betas, isScreenTransitionEnd]);
 
     const sections = useMemo(() => {
-        console.log('updateSections');
         const newSections = [];
         let indexOffset = 0;
 
@@ -150,21 +157,47 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     };
 
     const handleScreenTransitionEnd = () => {
-        console.log('handleScreenTransitionEnd');
         setIsScreenTransitionEnd(true);
     };
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
 
-    console.log('render', {
-        isScreenTransitionEnd,
-        isOptionsDataReady,
-        sections: sections.length,
-        recentReports,
-        localPersonalDetails,
-        userToInvite,
-        headerMessage,
-    });
+    const footerRender = (
+        <View style={[themeStyles.pb5, themeStyles.flexShrink0]}>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND));
+                }}
+                style={[
+                    themeStyles.p5,
+                    themeStyles.w100,
+                    themeStyles.br2,
+                    themeStyles.highlightBG,
+                    themeStyles.flexRow,
+                    themeStyles.justifyContentBetween,
+                    themeStyles.alignItemsCenter,
+                    {gap: 10},
+                ]}
+                accessibilityLabel="referral"
+                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            >
+                <Text>
+                    {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.buttonText1`)}
+                    <Text
+                        color={theme.success}
+                        style={themeStyles.textStrong}
+                    >
+                        {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.buttonText2`)}
+                    </Text>
+                </Text>
+                <Icon
+                    src={Info}
+                    height={20}
+                    width={20}
+                />
+            </PressableWithoutFeedback>
+        </View>
+    );
 
     return (
         <ScreenWrapper
@@ -175,25 +208,38 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton title={translate('common.search')} />
-                    <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
-                        <OptionsSelector
-                            sections={sections}
-                            value={searchValue}
-                            onSelectRow={selectReport}
+                    <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
+                        <SelectionList
+                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : []}
+                            textInputValue={searchValue}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputHint={offlineMessage}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
-                            hideSectionHeaders
-                            showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputAlert={network.isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                            shouldShowReferralCTA
-                            referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
                             onLayout={searchRendered}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             autoFocus
-                            isLoadingNewOptions={isSearchingForReports}
+                            onSelectRow={selectReport}
+                            showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
+                            footerContent={footerRender}
                         />
+                        {/* <OptionsSelector */}
+                        {/*     sections={sections} */}
+                        {/*     value={searchValue} */}
+                        {/*     onSelectRow={selectReport} */}
+                        {/*     onChangeText={onChangeText} */}
+                        {/*     headerMessage={headerMessage} */}
+                        {/*     hideSectionHeaders */}
+                        {/*     showTitleTooltip */}
+                        {/*     shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady} */}
+                        {/*     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')} */}
+                        {/*     textInputAlert={network.isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''} */}
+                        {/*     shouldShowReferralCTA */}
+                        {/*     referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND} */}
+                        {/*     onLayout={searchRendered} */}
+                        {/*     safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle} */}
+                        {/*     autoFocus */}
+                        {/*     isLoadingNewOptions={isSearchingForReports} */}
+                        {/* /> */}
                     </View>
                 </>
             )}
