@@ -10,7 +10,7 @@ import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} fro
 import useLocalize from '@hooks/useLocalize';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {Policy} from '@src/types/onyx';
 
