@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
@@ -68,29 +69,7 @@ const propTypes = {
     draftComments: PropTypes.objectOf(PropTypes.string),
 
     /** The list of transaction violations */
-    transactionViolations: PropTypes.shape({
-        violations: PropTypes.arrayOf(
-            PropTypes.shape({
-                /** The transaction ID */
-                transactionID: PropTypes.number,
-
-                /** The transaction violation type */
-                type: PropTypes.string,
-
-                /** The transaction violation message */
-                message: PropTypes.string,
-
-                /** The transaction violation data */
-                data: PropTypes.shape({
-                    /** The transaction violation data field */
-                    field: PropTypes.string,
-
-                    /** The transaction violation data value */
-                    value: PropTypes.string,
-                }),
-            }),
-        ),
-    }),
+    transactionViolations: transactionViolationsPropType,
     ...withCurrentReportIDPropTypes,
 };
 
