@@ -68,6 +68,9 @@ type ComposerProps = {
     onKeyPress?: (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void;
 
     onFocus?: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+
+    /** Should make the input only scroll inside the element avoid scroll out to parent */
+    shouldContainScroll?: boolean;
 };
 
 export type {TextSelection, ComposerProps};

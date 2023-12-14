@@ -1,9 +1,9 @@
 import React, {ForwardedRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, TextInput} from 'react-native';
 import RNTextInput from '@components/RNTextInput';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import {ComposerProps} from './types';
 
 function Composer(

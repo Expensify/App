@@ -2,31 +2,20 @@ import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {BaseSyntheticEvent, ForwardedRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
-import {
-    DimensionValue,
-    NativeSyntheticEvent,
-    Text as RNText,
-    StyleProp,
-    StyleSheet,
-    TextInput,
-    TextInputKeyPressEventData,
-    TextInputProps,
-    TextInputSelectionChangeEventData,
-    TextStyle,
-    View,
-} from 'react-native';
+import {DimensionValue, NativeSyntheticEvent, Text as RNText, StyleSheet, TextInput, TextInputKeyPressEventData, TextInputProps, TextInputSelectionChangeEventData, View} from 'react-native';
 import {AnimatedProps} from 'react-native-reanimated';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
+import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {ComposerProps} from './types';
 
@@ -80,6 +69,7 @@ function Composer(
         },
         isReportActionCompose = false,
         isComposerFullSize = false,
+        shouldContainScroll = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>,
@@ -107,6 +97,7 @@ function Composer(
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
+    const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
 
     useEffect(() => {
         if (!shouldClear) {
@@ -339,18 +330,26 @@ function Composer(
         </View>
     );
 
-    const inputStyleMemo: StyleProp<TextStyle> = useMemo(
-        () => [
+    const scrollStyleMemo = useMemo(() => {
+        if (shouldContainScroll) {
+            return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
+        }
+        return [
             // We are hiding the scrollbar to prevent it from reducing the text input width,
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
+        ];
+    }, [shouldContainScroll, isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
 
+    const inputStyleMemo = useMemo(
+        () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
+            scrollStyleMemo,
         ],
 
-        [numberOfLines, maxLines, styles.overflowHidden, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
+        [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
     );
 
     return (

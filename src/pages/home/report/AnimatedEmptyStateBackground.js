@@ -1,9 +1,9 @@
 import React from 'react';
 import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as NumberUtils from '@libs/NumberUtils';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
-import useStyleUtils from '@styles/useStyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 

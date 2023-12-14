@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
@@ -23,7 +23,7 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
             <PressableWithoutFeedback
                 onPress={onCurrencyButtonPress}
                 accessibilityLabel={translate('common.selectCurrency')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
             >
                 <Text style={styles.iouAmountText}>{currencySymbol}</Text>
             </PressableWithoutFeedback>

@@ -1,8 +1,8 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Localize from '@libs/Localize';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -48,7 +48,7 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
                     <PressableWithoutFeedback
                         onPress={onClose}
                         style={[styles.touchableButtonImage]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
                         <Icon src={Expensicons.Close} />

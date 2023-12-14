@@ -2,13 +2,13 @@ import lodashEscape from 'lodash/escape';
 import React from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import Banner from './Banner';
 
 type ArchivedReportFooterOnyxProps = {
@@ -16,7 +16,7 @@ type ArchivedReportFooterOnyxProps = {
     reportClosedAction: OnyxEntry<ReportAction>;
 
     /** Personal details of all users */
-    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {
