@@ -14,9 +14,11 @@ import refPropTypes from '@components/refPropTypes';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -28,12 +30,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -63,23 +65,11 @@ const propTypes = {
 
     /* Onyx Props */
 
-    /** Active IOU Report for current report */
-    iouReport: PropTypes.shape({
-        /** Account ID of the manager in this iou report */
-        managerID: PropTypes.number,
+    /** chatReport associated with iouReport */
+    chatReport: reportPropTypes,
 
-        /** Account ID of the creator of this iou report */
-        ownerAccountID: PropTypes.number,
-
-        /** Outstanding amount in cents of this transaction */
-        total: PropTypes.number,
-
-        /** Currency of outstanding amount of this transaction */
-        currency: PropTypes.string,
-
-        /** Does the iouReport have an outstanding IOU? */
-        hasOutstandingIOU: PropTypes.bool,
-    }),
+    /** IOU report data object */
+    iouReport: iouReportPropTypes,
 
     /** True if this is this IOU is a split instead of a 1:1 request */
     isBillSplit: PropTypes.bool.isRequired,
@@ -114,8 +104,6 @@ const propTypes = {
 
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -126,6 +114,7 @@ const defaultProps = {
     checkIfContextMenuActive: () => {},
     containerStyles: [],
     walletTerms: {},
+    chatReport: {},
     isHovered: false,
     personalDetails: {},
     session: {
@@ -139,6 +128,8 @@ const defaultProps = {
 function MoneyRequestPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
@@ -152,8 +143,9 @@ function MoneyRequestPreview(props) {
 
     const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
     const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+    const sortedParticipantAvatars = _.sortBy(participantAvatars, (avatar) => avatar.id);
     if (isPolicyExpenseChat && props.isBillSplit) {
-        participantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
+        sortedParticipantAvatars.push(ReportUtils.getWorkspaceIcon(props.chatReport));
     }
 
     // Pay button should only be visible to the manager of the report.
@@ -179,14 +171,9 @@ function MoneyRequestPreview(props) {
 
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction) {
-            return props.translate('common.done');
+            return translate('common.done');
         }
-        switch (lodashGet(props.action, 'originalMessage.paymentType', '')) {
-            case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
-                return props.translate('iou.settledExpensify');
-            default:
-                return props.translate('iou.settledElsewhere');
-        }
+        return translate('iou.settledExpensify');
     };
 
     const showContextMenu = (event) => {
@@ -195,43 +182,47 @@ function MoneyRequestPreview(props) {
 
     const getPreviewHeaderText = () => {
         if (isDistanceRequest) {
-            return props.translate('common.distance');
+            return translate('common.distance');
         }
 
         if (isScanning) {
-            return props.translate('common.receipt');
+            return translate('common.receipt');
         }
 
         if (props.isBillSplit) {
-            return props.translate('iou.split');
+            return translate('iou.split');
         }
 
         if (isExpensifyCardTransaction) {
-            let message = props.translate('iou.card');
+            let message = translate('iou.card');
             if (TransactionUtils.isPending(props.transaction)) {
-                message += ` • ${props.translate('iou.pending')}`;
+                message += ` • ${translate('iou.pending')}`;
             }
             return message;
         }
 
-        let message = props.translate('iou.cash');
-        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
-            message += ` • ${props.translate('iou.approved')}`;
+        let message = translate('iou.cash');
+        if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
+            message += ` • ${translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
-            message += ` • ${props.translate('iou.pending')}`;
+            message += ` • ${translate('iou.pending')}`;
         } else if (props.iouReport.isCancelledIOU) {
-            message += ` • ${props.translate('iou.canceled')}`;
+            message += ` • ${translate('iou.canceled')}`;
         }
         return message;
     };
 
     const getDisplayAmountText = () => {
         if (isDistanceRequest) {
-            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : props.translate('common.tbd');
+            return requestAmount && !hasPendingWaypoints ? CurrencyUtils.convertToDisplayString(requestAmount, props.transaction.currency) : translate('common.tbd');
         }
 
         if (isScanning) {
-            return props.translate('iou.receiptScanning');
+            return translate('iou.receiptScanning');
+        }
+
+        if (TransactionUtils.hasMissingSmartscanFields(props.transaction)) {
+            return Localize.translateLocal('iou.receiptMissingDetails');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
@@ -295,7 +286,8 @@ function MoneyRequestPreview(props) {
                                     <Text
                                         style={[
                                             styles.textHeadline,
-                                            props.isBillSplit && StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, participantAvatars.length),
+                                            props.isBillSplit &&
+                                                StyleUtils.getAmountFontSizeAndLineHeight(isSmallScreenWidth, windowWidth, displayAmount.length, sortedParticipantAvatars.length),
                                             isDeleted && styles.lineThrough,
                                         ]}
                                         numberOfLines={1}
@@ -314,7 +306,7 @@ function MoneyRequestPreview(props) {
                                 {props.isBillSplit && (
                                     <View style={styles.moneyRequestPreviewBoxAvatar}>
                                         <MultipleAvatars
-                                            icons={participantAvatars}
+                                            icons={sortedParticipantAvatars}
                                             shouldStackHorizontally
                                             size="small"
                                             isHovered={props.isHovered}
@@ -326,14 +318,14 @@ function MoneyRequestPreview(props) {
                             {shouldShowMerchant && !props.isBillSplit && (
                                 <View style={[styles.flexRow]}>
                                     <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
-                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd')) : requestMerchant}
+                                        {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : requestMerchant}
                                     </Text>
                                 </View>
                             )}
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                        <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
                                     {(shouldShowDescription || (shouldShowMerchant && props.isBillSplit)) && (
                                         <Text style={[styles.colorMuted]}>{shouldShowDescription ? description : requestMerchant}</Text>
@@ -341,7 +333,7 @@ function MoneyRequestPreview(props) {
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                        {props.translate('iou.amountEach', {
+                                        {translate('iou.amountEach', {
                                             amount: CurrencyUtils.convertToDisplayString(
                                                 IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency),
                                                 requestCurrency,
@@ -369,7 +361,7 @@ function MoneyRequestPreview(props) {
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
-            accessibilityLabel={props.isBillSplit ? props.translate('iou.split') : props.translate('iou.cash')}
+            accessibilityLabel={props.isBillSplit ? translate('iou.split') : translate('iou.cash')}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
             style={[styles.moneyRequestPreviewBox, ...props.containerStyles, shouldDisableOnPress && styles.cursorDefault]}
         >
@@ -382,26 +374,23 @@ MoneyRequestPreview.propTypes = propTypes;
 MoneyRequestPreview.defaultProps = defaultProps;
 MoneyRequestPreview.displayName = 'MoneyRequestPreview';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        chatReport: {
-            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-        },
-        iouReport: {
-            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        transaction: {
-            key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
-        },
-        walletTerms: {
-            key: ONYXKEYS.WALLET_TERMS,
-        },
-    }),
-)(MoneyRequestPreview);
+export default withOnyx({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+    },
+    iouReport: {
+        key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    transaction: {
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action && action.originalMessage && action.originalMessage.IOUTransactionID) || 0}`,
+    },
+    walletTerms: {
+        key: ONYXKEYS.WALLET_TERMS,
+    },
+})(MoneyRequestPreview);

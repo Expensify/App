@@ -5,7 +5,7 @@ import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
 import StatePicker from '@components/StatePicker';
 import TextInput from '@components/TextInput';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -118,7 +118,7 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
                 accessibilityLabel={props.translate('common.city')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
@@ -143,7 +143,7 @@ function AddressForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}
