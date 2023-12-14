@@ -8,8 +8,8 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 
@@ -111,7 +111,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                         }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon
