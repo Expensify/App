@@ -17,7 +17,7 @@ import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCa
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getCanvasFitScale from './getCanvasFitScale';
-import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
+import {defaultZoomRange, multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
 
 const DOUBLE_TAP_SCALE = 3;
 
