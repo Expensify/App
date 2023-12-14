@@ -47,12 +47,10 @@ test('[ModifiedExpenseMessage] getForReportAction on 5k reports and policies', a
         ...createRandomReportAction(1),
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
         originalMessage: {
-            originalMessage: {
-                amount: randAmount(),
-                currency: CONST.CURRENCY.USD,
-                oldAmount: randAmount(),
-                oldCurrency: CONST.CURRENCY.USD,
-            },
+            amount: randAmount(),
+            currency: CONST.CURRENCY.USD,
+            oldAmount: randAmount(),
+            oldCurrency: CONST.CURRENCY.USD,
         },
     };
 
