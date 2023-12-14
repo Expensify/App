@@ -24,6 +24,8 @@
   - [1.17 `.tsx`](#tsx)
   - [1.18 No inline prop types](#no-inline-prop-types)
   - [1.19 Satisfies operator](#satisfies-operator)
+  - [1.20 Hooks instead of HOCs](#hooks-instead-of-hocs)
+  - [1.21 `compose` usage](#compose-usage)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -509,6 +511,91 @@ type Foo = {
   } satisfies Record<string, ViewStyle>;
   ```
 
+  <a name="hooks-instead-of-hocs"></a><a name="1.20"></a>
+
+- [1.20](#hooks-instead-of-hocs) **Hooks instead of HOCs**: Replace HOCs usage with Hooks whenever possible.
+  
+  > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
+
+  ```tsx
+  // BAD
+  type ComponentOnyxProps = {
+      session: OnyxEntry<Session>;
+  };
+
+  type ComponentProps = WindowDimensionsProps &
+      WithLocalizeProps &
+      ComponentOnyxProps & {
+          someProp: string;
+      };
+
+  function Component({windowWidth, windowHeight, translate, session, someProp}: ComponentProps) {
+      // component's code
+  }
+
+  export default compose(
+      withWindowDimensions,
+      withLocalize,
+      withOnyx<ComponentProps, ComponentOnyxProps>({
+          session: {
+              key: ONYXKEYS.SESSION,
+          },
+      }),
+  )(Component);
+
+  // GOOD
+  type ComponentOnyxProps = {
+      session: OnyxEntry<Session>;
+  };
+
+  type ComponentProps = ComponentOnyxProps & {
+      someProp: string;
+  };
+
+  function Component({session, someProp}: ComponentProps) {
+      const {windowWidth, windowHeight} = useWindowDimensions();
+      const {translate} = useLocalize();
+      // component's code
+  }
+
+  // There is no hook alternative for withOnyx yet.
+  export default withOnyx<ComponentProps, ComponentOnyxProps>({
+      session: {
+          key: ONYXKEYS.SESSION,
+      },
+  })(Component);
+  ```
+
+  <a name="compose-usage"></a><a name="1.21"></a>
+
+- [1.21](#compose-usage) **`compose` usage**: Avoid the usage of `compose` function to compose HOCs in TypeScript files. Use nesting instead.
+  
+  > Why? `compose` function doesn't work well with TypeScript when dealing with several HOCs being used in a component, many times resulting in wrong types and errors. Instead, nesting can be used to allow a seamless use of multiple HOCs and result in a correct return type of the compoment. Also, you can use [hooks instead of HOCs](#hooks-instead-of-hocs) whenever possible to minimize or even remove the need of HOCs in the component.
+
+  ```ts
+  // BAD
+  export default compose(
+      withWindowDimensions,
+      withLocalize,
+      withOnyx<ComponentProps, ComponentOnyxProps>({
+          session: {
+              key: ONYXKEYS.SESSION,
+          },
+      }),
+  )(Component);
+
+  // GOOD
+  export default withWindowDimensions(
+      withLocalize(
+          withOnyx<ComponentProps, ComponentOnyxProps>({
+              session: {
+                  key: ONYXKEYS.SESSION,
+              },
+          })(Component),
+      ),
+  );
+  ```
+
 ## Exception to Rules
 
 Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. The internal engineer assigned to the PR should be the one that approves each exception, however all discussion regarding granting exceptions should happen in the public channel instead of the GitHub PR page so that the TS migration team can access them easily.
@@ -583,7 +670,7 @@ object?.foo ?? 'bar';
 
   In order to proceed with the migration faster, we are now allowing the use of `@ts-expect-error` annotation to temporally suppress those errors and help you unblock your issues. The only requirements is that you MUST add the annotation with a comment explaining that it must be removed when the blocking issue is migrated, e.g.:
 
-  ```ts
+  ```tsx
   return (
       <MenuItem
           // @ts-expect-error TODO: Remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TypeScript.
