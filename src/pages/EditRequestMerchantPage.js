@@ -32,7 +32,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat
     const validate = useCallback(
         (value) => {
             const errors = {};
-            if (_.isEmpty(value.merchant) && isPolicyExpenseChat) {
+            if (_.isEmpty(value.merchant) && value.merchant.trim() === '' && isPolicyExpenseChat) {
                 errors.merchant = 'common.error.fieldRequired';
             }
             return errors;

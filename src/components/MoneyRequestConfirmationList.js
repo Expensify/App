@@ -267,7 +267,7 @@ function MoneyRequestConfirmationList(props) {
         return (props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
     }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
 
-    const isMerchantEmpty = !props.iouMerchant || props.iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || props.iouMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const isMerchantEmpty = !props.iouMerchant || props.iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
 
     useEffect(() => {

@@ -53,7 +53,7 @@ function MoneyRequestMerchantPage({iou, route}) {
     const {inputCallbackRef} = useAutoFocusInput();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
-    const isEmptyMerchant = iou.merchant === '' || iou.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || iou.merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const isEmptyMerchant = iou.merchant === '' || iou.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
     useEffect(() => {
         const moneyRequestId = `${iouType}${reportID}`;

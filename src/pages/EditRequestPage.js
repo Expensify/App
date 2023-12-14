@@ -193,6 +193,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                         Navigation.dismissModal();
                         return;
                     }
+                    // This is possible only in case of IOU requests.
                     if (transactionChanges.merchant.trim() === '') {
                         editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
                         return;
