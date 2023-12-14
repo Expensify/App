@@ -1,8 +1,8 @@
 import React from 'react';
 import {Animated} from 'react-native';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import growlNotificationContainerPropTypes from './growlNotificationContainerPropTypes';
 
 const propTypes = {
