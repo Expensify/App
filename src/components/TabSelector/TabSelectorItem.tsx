@@ -1,48 +1,35 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated, StyleSheet} from 'react-native';
+import {SrcProps} from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
-const propTypes = {
+type TabSelectorItemProps = {
     /** Function to call when onPress */
-    onPress: PropTypes.func,
+    onPress?: () => void;
 
     /** Icon to display on tab */
-    icon: PropTypes.func,
+    icon?: (props: SrcProps) => React.ReactNode;
 
     /** Title of the tab */
-    title: PropTypes.string,
+    title?: string;
 
     /** Animated background color value for the tab button */
-    // eslint-disable-next-line
-    backgroundColor: PropTypes.any,
+    backgroundColor?: string | Animated.AnimatedInterpolation<string>;
 
     /** Animated opacity value while the label is inactive state */
-    // eslint-disable-next-line
-    inactiveOpacity: PropTypes.any,
+    inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
 
     /** Animated opacity value while the label is in active state */
-    // eslint-disable-next-line
-    activeOpacity: PropTypes.any,
+    activeOpacity?: number | Animated.AnimatedInterpolation<number>;
 
     /** Whether this tab is active */
-    isFocused: PropTypes.bool,
+    isFocused?: boolean;
 };
 
-const defaultProps = {
-    onPress: () => {},
-    icon: () => {},
-    title: '',
-    backgroundColor: '',
-    inactiveOpacity: 1,
-    activeOpacity: 0,
-    isFocused: false,
-};
-
-function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, inactiveOpacity, isFocused}) {
+function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isFocused = false}: TabSelectorItemProps) {
     const styles = useThemeStyles();
     return (
         <PressableWithFeedback
@@ -69,8 +56,6 @@ function TabSelectorItem({icon, title, onPress, backgroundColor, activeOpacity, 
     );
 }
 
-TabSelectorItem.propTypes = propTypes;
-TabSelectorItem.defaultProps = defaultProps;
 TabSelectorItem.displayName = 'TabSelectorItem';
 
 export default TabSelectorItem;
