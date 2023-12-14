@@ -3,8 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TaskUtils from '@libs/TaskUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Name of the reportAction action */
