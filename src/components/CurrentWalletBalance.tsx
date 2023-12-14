@@ -1,8 +1,8 @@
 import React from 'react';
 import {StyleProp, TextStyle} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import UserWallet from '@src/types/onyx/UserWallet';
 import Text from './Text';
