@@ -255,6 +255,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
+        REPORT_FIELDS: 'reportFields',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -706,9 +707,10 @@ const CONST = {
         DEFAULT: 'default',
     },
     THEME: {
-        DEFAULT: 'dark',
-        LIGHT: 'light',
+        DEFAULT: 'system',
+        FALLBACK: 'dark',
         DARK: 'dark',
+        LIGHT: 'light',
         SYSTEM: 'system',
     },
     COLOR_SCHEME: {
