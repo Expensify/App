@@ -272,7 +272,7 @@ export default {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':iouType/edit/reason/:transactionID?',
-        getRoute: (iouType: string, transactionID: string) => `${iouType}/edit/reason/${transactionID}`,
+        getRoute: (iouType: string, transactionID: string, reportID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?reportID=${reportID}&backTo=${backTo}`,
     },
     MONEY_REQUEST_TAG: {
         route: ':iouType/new/tag/:reportID?',

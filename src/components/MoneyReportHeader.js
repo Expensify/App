@@ -1,9 +1,10 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import ProcessMoneyRequestHoldMenu from '@components/ProcessMoneyRequestHoldMenu';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -74,6 +75,9 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [paymentType, setPaymentType] = useState();
+    const [confirmationType, setConfirmationType] = useState();
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
@@ -93,7 +97,27 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
+    const [heldAmount, allAmount] = ReportUtils.getHeldAmount(moneyRequestReport.reportID);
     const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
+
+    const confirmApproval = () => {
+        setConfirmationType('approve');
+        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && (isPolicyAdmin || isManager || isPayer)) {
+            setIsHoldMenuVisible(true);
+        } else {
+            IOU.approveMoneyRequest(moneyRequestReport);
+        }
+    };
+
+    const confirmPayment = (type) => {
+        setPaymentType(type);
+        setConfirmationType('pay');
+        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && (isPolicyAdmin || isManager || isPayer)) {
+            setIsHoldMenuVisible(true);
+        } else {
+            IOU.payMoneyRequest(type, chatReport, moneyRequestReport);
+        }
+    };
 
     return (
         <View style={[styles.pt0]}>
@@ -116,7 +140,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport.reportID}
                             iouReport={moneyRequestReport}
-                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            onPress={confirmPayment}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldShowPaymentOptions
@@ -132,7 +156,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             medium
                             text={translate('iou.approve')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
-                            onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
+                            onPress={confirmApproval}
                         />
                     </View>
                 )}
@@ -161,7 +185,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             policyID={moneyRequestReport.policyID}
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
-                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            onPress={confirmPayment}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldShowPaymentOptions
@@ -176,7 +200,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             medium
                             text={translate('iou.approve')}
                             style={[styles.w100, styles.pr0]}
-                            onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
+                            onPress={confirmApproval}
                         />
                     </View>
                 )}
@@ -192,6 +216,19 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
             </View>
+            {isHoldMenuVisible && (
+                <ProcessMoneyRequestHoldMenu
+                    nonHeldAmount={heldAmount}
+                    type={confirmationType}
+                    fullAmount={allAmount}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onClose={() => setIsHoldMenuVisible(false)}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    chatReport={chatReport}
+                    moneyRequestReport={moneyRequestReport}
+                />
+            )}
         </View>
     );
 }

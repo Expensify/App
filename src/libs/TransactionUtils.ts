@@ -454,7 +454,10 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction is on hold
  */
 function isOnHold(transaction: Transaction): boolean {
-    return true;
+    const isTrue = Math.random() > 0.5;
+    // console.log(`is ${isTrue} and costs ${transaction.amount}`)
+    // return isTrue;
+    return !!transaction.comment?.hold;
 }
 
 export {

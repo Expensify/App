@@ -4316,20 +4316,33 @@ function shouldDisableWelcomeMessage(report, policy) {
 }
 
 /**
- * Put money request on HOLD
- * @param {string} transactionID
- * @param {string} comment
+ * Check if Report has any held expenses
+ * @param {String} iouReportID
+ * @return {Boolean}
  */
-function putOnHold(transactionID, comment) {
-    return;
+function hasHeldExpenses(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return allTransactions.some(transaction => TransactionUtils.isOnHold(transaction));
 }
 
 /**
  * Check if Report has any held expenses
- * @param {Object} report
+ * @param {String} iouReportID
+ * @return {Number}
  */
-function hasHeldExpenses(report) {
-    return true;
+function getHeldAmount(iouReportID) {
+    const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    let allSum = 0;
+    const sum = allTransactions.reduce((previousValue, transaction) => {
+        allSum += transaction.amount * -1;
+        if (TransactionUtils.isOnHold(transaction)) {
+            return previousValue + transaction.amount * -1;
+        }
+        return previousValue;
+    }, 0);
+    console.log('allTransactions: ', allTransactions);
+    console.log('allTransactionsSum: ', sum);
+    return [CurrencyUtils.convertToDisplayString(sum, allTransactions[0].currency), CurrencyUtils.convertToDisplayString(allSum, allTransactions[0].currency)];
 }
 
 export {
@@ -4498,5 +4511,5 @@ export {
     shouldDisableWelcomeMessage,
     canEditWriteCapability,
     hasHeldExpenses,
-    putOnHold
+    getHeldAmount,
 };

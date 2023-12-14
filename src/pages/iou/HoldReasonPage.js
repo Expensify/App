@@ -1,4 +1,4 @@
-// import lodashGet from 'lodash/get';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
@@ -37,17 +37,17 @@ function HoldReasonPage({route}) {
     const {translate} = useLocalize();
     const reasonRef = useRef();
 
-    // const transactionID = lodashGet(route, 'params.transactionID', '');
-    // const iouType = lodashGet(route, 'params.iouType', '');
+    const transactionID = lodashGet(route, 'params.transactionID', '');
+    const reportID = lodashGet(route, 'params.reportID', '');
+    const backTo = lodashGet(route, 'params.backTo', '');
 
     const navigateBack = () => {
-        Navigation.goBack();
+        Navigation.navigate(backTo);
     };
 
     const onSubmit = (values) => {
-        // TODO - add a helper function for API call
-        // eslint-disable-next-line rulesdir/no-api-in-views
-        console.log(values);
+        IOU.putOnHold(transactionID, values.comment, reportID);
+        navigateBack();
     };
 
     const validate = useCallback((value) => {
@@ -76,6 +76,7 @@ function HoldReasonPage({route}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
+                enabledWhenOffline
             >
                 <Text style={[styles.textHeadline, styles.mb6]}>{translate('iou.explainHold')}</Text>
                 <View>

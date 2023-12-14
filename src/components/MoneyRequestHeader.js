@@ -74,11 +74,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-    const isHold = true;
+    const isOnHold = TransactionUtils.isOnHold(transaction);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
+    const isPolicyAdmin = lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), parentReportAction, true);
@@ -90,10 +91,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
 
-    // console.log('MYTRANSACTION', transaction);
-
     const holdMoneyRequest = () => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transaction.type, lodashGet(parentReportAction, 'originalMessage.IOUTransactionID')));
+        if (!isOnHold) {
+            const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(lodashGet(policy, 'type'), lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), lodashGet(report, 'reportID'), activeRoute));
+        } else {
+            IOU.unholdRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), lodashGet(report, 'reportID'));
+        }
     };
 
     useEffect(() => {
@@ -104,12 +108,14 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         setIsDeleteModalVisible(false);
     }, [canModifyRequest]);
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
-    if (canModifyRequest) {
+    if ((isPolicyAdmin || isActionOwner) && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction)) {
         threeDotsMenuItems.push({
             icon: Expensicons.Stopwatch,
-            text: !isHold ? translate('iou.holdRequest') : translate('iou.unholdRequest'),
+            text: !isOnHold ? translate('iou.holdRequest') : translate('iou.unholdRequest'),
             onSelected: () => holdMoneyRequest(),
         });
+    }
+    if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Receipt,
@@ -128,7 +134,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!isScanning && !isPending && !isHold}
+                    shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
@@ -157,10 +163,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         shouldShowBorderBottom
                     />
                 )}
-                <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.pb3, styles.ph5, styles.borderBottom]}>
-                    <TextPill>{translate('iou.hold')}</TextPill>
-                    <Text style={[styles.textLabel, styles.pl3]}>{translate('iou.requestOnHold')}</Text>
-                </View>
+                {isOnHold && (
+                    <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.pb3, styles.ph5, styles.borderBottom]}>
+                        <TextPill>{translate('iou.hold')}</TextPill>
+                        <Text style={[styles.textLabel, styles.pl3]}>{translate('iou.requestOnHold')}</Text>
+                    </View>
+                )}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
