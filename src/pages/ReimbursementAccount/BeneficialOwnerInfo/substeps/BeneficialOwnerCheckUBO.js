@@ -5,7 +5,7 @@ import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -21,6 +21,7 @@ const propTypes = {
 
 function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);
 
     const handleSelectUBOValue = () => {

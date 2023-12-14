@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
@@ -17,7 +18,6 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -50,6 +50,7 @@ const validate = (values) => {
 
 function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const values = useMemo(() => getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 

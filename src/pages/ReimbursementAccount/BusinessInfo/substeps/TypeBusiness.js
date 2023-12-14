@@ -5,11 +5,11 @@ import Form from '@components/Form';
 import Picker from '@components/Picker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -30,6 +30,7 @@ const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [com
 
 function TypeBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultIncorporationType = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationTypeKey, '');
 

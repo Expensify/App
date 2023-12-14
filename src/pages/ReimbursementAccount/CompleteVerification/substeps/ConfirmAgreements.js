@@ -6,8 +6,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const validate = (values) => {
@@ -30,6 +30,7 @@ const validate = (values) => {
 
 function ConfirmAgreements() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     return (
         <ScreenWrapper

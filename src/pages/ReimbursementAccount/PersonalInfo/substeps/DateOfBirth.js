@@ -6,6 +6,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
@@ -13,7 +14,6 @@ import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbur
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -50,6 +50,7 @@ const validate = (values) => {
 
 function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const dobDefaultValue = getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoDobKey, '') || lodashGet(reimbursementAccountDraft, personalInfoDobKey, '');
 

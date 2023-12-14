@@ -7,10 +7,10 @@ import Form from '@components/Form';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -33,6 +33,7 @@ const defaultProps = {
 
 function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const ssnLast4InputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}`;
     const defaultSsnLast4 = lodashGet(reimbursementAccountDraft, ssnLast4InputID, '');

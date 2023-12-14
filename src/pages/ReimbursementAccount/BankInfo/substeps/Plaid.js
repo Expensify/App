@@ -6,13 +6,13 @@ import _ from 'underscore';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import Form from '@components/Form';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -41,6 +41,7 @@ const defaultProps = {
 
 function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const isFocused = useIsFocused();
 
     const validate = useCallback((values) => {

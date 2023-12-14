@@ -5,13 +5,13 @@ import Form from '@components/Form';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -34,6 +34,7 @@ const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, REQU
 
 function FullName({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultValues = {
         firstName: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.FIRST_NAME, ''),

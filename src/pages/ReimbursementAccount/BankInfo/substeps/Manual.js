@@ -1,17 +1,17 @@
 import React, {useCallback} from 'react';
-import {Image, Text} from 'react-native';
+import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import exampleCheckImage from '@pages/ReimbursementAccount/exampleCheckImage';
+import ExampleCheckImage from '@pages/ReimbursementAccount/ExampleCheck';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -29,7 +29,8 @@ const defaultProps = {
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
 function Manual({reimbursementAccount, onNext}) {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultValues = {
         [bankInfoStepKeys.ROUTING_NUMBER]: getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.ROUTING_NUMBER),
@@ -76,11 +77,7 @@ function Manual({reimbursementAccount, onNext}) {
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('bankAccount.manuallyAdd')}</Text>
             <Text style={[styles.mb5, styles.textLabel]}>{translate('bankAccount.checkHelpLine')}</Text>
-            <Image
-                resizeMode="contain"
-                style={[styles.exampleCheckImage, styles.mb5]}
-                source={exampleCheckImage(preferredLocale)}
-            />
+            <ExampleCheckImage />
             <TextInput
                 autoFocus
                 shouldDelayFocus={shouldDelayFocus}

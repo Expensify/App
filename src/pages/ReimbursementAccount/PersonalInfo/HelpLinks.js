@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -22,6 +22,8 @@ const defaultProps = {
 };
 
 function HelpLinks({containerStyles, translate}) {
+    const styles = useThemeStyles();
+
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <Icon src={Expensicons.QuestionMark} />
