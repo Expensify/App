@@ -24,64 +24,62 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const uniqueLinks = linkMetadata.filter((link, index, self) => self.findIndex((t) => t.url === link.url) === index);
+    const uniqueLinks = linkMetadata.filter((link, index) => linkMetadata.findIndex(({url}) => url === link.url) === index);
     const maxAmmountOfLinks = maxAmountOfPreviews >= 0 ? Math.min(maxAmountOfPreviews, linkMetadata.length) : linkMetadata.length;
     const linksToShow = uniqueLinks.slice(0, maxAmmountOfLinks);
     return linksToShow.map((linkData) => {
-        if (Array.isArray(linkData)) {
+        if (!linkData && Array.isArray(linkData)) {
             return;
         }
         const {description, image, title, logo, publisher, url} = linkData;
         return (
-            linkData && (
-                <View
-                    style={styles.linkPreviewWrapper}
-                    key={url}
-                >
-                    <View style={styles.flexRow}>
-                        {logo && (
-                            <Image
-                                style={styles.linkPreviewLogoImage}
-                                source={{uri: logo.url}}
-                            />
-                        )}
-                        {publisher && (
-                            <Text
-                                fontSize={variables.fontSizeLabel}
-                                style={styles.pl2}
-                            >
-                                {publisher}
-                            </Text>
-                        )}
-                    </View>
-                    {title && url && (
-                        <TextLink
-                            fontSize={variables.fontSizeNormal}
-                            style={[styles.mv2, StyleUtils.getTextColorStyle(theme.link), styles.alignSelfStart]}
-                            href={url}
-                        >
-                            {title}
-                        </TextLink>
-                    )}
-                    {description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
-                    {image?.type && IMAGE_TYPES.includes(image.type) && image.width && image.height && (
+            <View
+                style={styles.linkPreviewWrapper}
+                key={url}
+            >
+                <View style={styles.flexRow}>
+                    {logo && (
                         <Image
-                            style={[
-                                styles.linkPreviewImage,
-                                {
-                                    aspectRatio: image.width / image.height,
-                                    maxHeight: Math.min(image.height, MAX_IMAGE_HEIGHT),
-
-                                    // Calculate maximum width when image is too tall, so it doesn't move away from left
-                                    maxWidth: Math.min((Math.min(image.height, MAX_IMAGE_HEIGHT) / image.height) * image.width, MAX_IMAGE_WIDTH),
-                                },
-                            ]}
-                            resizeMode="contain"
-                            source={{uri: image.url}}
+                            style={styles.linkPreviewLogoImage}
+                            source={{uri: logo.url}}
                         />
                     )}
+                    {publisher && (
+                        <Text
+                            fontSize={variables.fontSizeLabel}
+                            style={styles.pl2}
+                        >
+                            {publisher}
+                        </Text>
+                    )}
                 </View>
-            )
+                {title && url && (
+                    <TextLink
+                        fontSize={variables.fontSizeNormal}
+                        style={[styles.mv2, StyleUtils.getTextColorStyle(theme.link), styles.alignSelfStart]}
+                        href={url}
+                    >
+                        {title}
+                    </TextLink>
+                )}
+                {description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
+                {image?.type && IMAGE_TYPES.includes(image.type) && image.width && image.height && (
+                    <Image
+                        style={[
+                            styles.linkPreviewImage,
+                            {
+                                aspectRatio: image.width / image.height,
+                                maxHeight: Math.min(image.height, MAX_IMAGE_HEIGHT),
+
+                                // Calculate maximum width when image is too tall, so it doesn't move away from left
+                                maxWidth: Math.min((Math.min(image.height, MAX_IMAGE_HEIGHT) / image.height) * image.width, MAX_IMAGE_WIDTH),
+                            },
+                        ]}
+                        resizeMode="contain"
+                        source={{uri: image.url}}
+                    />
+                )}
+            </View>
         );
     });
 }
