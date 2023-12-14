@@ -161,5 +161,68 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when the merchant is removed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    merchant: '',
+                    oldMerchant: 'Big Belly',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `removed the merchant (previously "Big Belly").`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the merchant and the description are removed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    merchant: '',
+                    oldMerchant: 'Big Belly',
+                    newComment: '',
+                    oldComment: 'minishore',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `removed the description (previously "minishore") and the merchant (previously "Big Belly").`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the merchant, the category and the description are removed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    merchant: '',
+                    oldMerchant: 'Big Belly',
+                    newComment: '',
+                    oldComment: 'minishore',
+                    category: '',
+                    oldCategory: 'Benefits',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `removed the description (previously "minishore"), the merchant (previously "Big Belly"), and the category (previously "Benefits").`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 });
