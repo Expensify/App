@@ -120,7 +120,7 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.PROFILE.STATUS]: {
-            backgroundColor: colors.green700,
+            backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
