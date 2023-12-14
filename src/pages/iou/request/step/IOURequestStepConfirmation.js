@@ -11,6 +11,7 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -22,7 +23,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -107,6 +107,11 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         if (!transaction.participantsAutoAssigned) {
+            // When going back to the participants step, if the iou is a "request" (not a split), then the participants need to be cleared from the
+            // transaction so that the participant can be selected again.
+            if (iouType === CONST.IOU.TYPE.REQUEST) {
+                IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, []);
+            }
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
             return;
         }
@@ -330,7 +335,7 @@ function IOURequestStepConfirmation({
                         // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
                         // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                         // the floating-action-button (since it is something that exists outside the context of a report).
-                        canModifyParticipants={!_.isEmpty(report.reportID)}
+                        canModifyParticipants={!transaction.isFromGlobalCreate}
                         policyID={report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction.merchant}
