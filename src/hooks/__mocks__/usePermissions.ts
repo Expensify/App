@@ -1,9 +1,7 @@
-import UsePermissions from '@hooks/usePermissions';
-
 /**
- * @returns {UsePermissions} A mock of the usePermissions hook.
+ * @returns A mock of the usePermissions hook.
  */
-const usePermissions = (): typeof UsePermissions => () => ({
+const usePermissions = () => ({
     canUseViolations: true,
 });
 export default usePermissions;

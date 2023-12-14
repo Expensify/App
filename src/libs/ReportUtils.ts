@@ -3594,7 +3594,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && transactionThreadHasViolations(report, transactionViolations || {}, allReportActions)) {
+    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && transactionThreadHasViolations(report, transactionViolations ?? {}, allReportActions)) {
         return true;
     }
 
