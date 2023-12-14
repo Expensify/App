@@ -235,7 +235,7 @@ function WorkspaceNewRoomPage(props) {
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}
             />
-            {isSmallScreenWidth && <OfflineIndicator />}
+            {shouldUseNarrowLayout && <OfflineIndicator />}
         </>
     );
 
