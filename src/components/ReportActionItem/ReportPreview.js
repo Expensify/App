@@ -149,9 +149,7 @@ function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
     const {canUseViolations} = usePermissions();
-
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
