@@ -529,7 +529,7 @@ function ReportActionItem(props) {
                 {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemThread
-                            childReportID={`${props.action.childReportID || ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}`}
+                            childReportID={`${props.action.childReportID}`}
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
