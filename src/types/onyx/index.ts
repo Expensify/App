@@ -1,25 +1,26 @@
 import Account from './Account';
 import AccountData from './AccountData';
-import BankAccount from './BankAccount';
+import BankAccount, {BankAccountList} from './BankAccount';
 import Beta from './Beta';
 import BlockedFromConcierge from './BlockedFromConcierge';
 import Card from './Card';
 import Credentials from './Credentials';
 import Currency from './Currency';
 import CustomStatusDraft from './CustomStatusDraft';
+import DemoInfo from './DemoInfo';
 import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
-import Fund from './Fund';
+import Fund, {FundList} from './Fund';
 import IOU from './IOU';
 import Locale from './Locale';
-import Login from './Login';
+import Login, {LoginList} from './Login';
 import MapboxAccessToken from './MapboxAccessToken';
 import Modal from './Modal';
 import Network from './Network';
 import {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import PersonalBankAccount from './PersonalBankAccount';
-import PersonalDetails from './PersonalDetails';
+import PersonalDetails, {PersonalDetailsList} from './PersonalDetails';
 import PlaidData from './PlaidData';
 import Policy from './Policy';
 import PolicyCategory, {PolicyCategories} from './PolicyCategory';
@@ -36,6 +37,7 @@ import ReportAction, {ReportActions} from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
+import ReportUserIsTyping from './ReportUserIsTyping';
 import Request from './Request';
 import Response from './Response';
 import ScreenShareRequest from './ScreenShareRequest';
@@ -59,6 +61,7 @@ export type {
     AccountData,
     AddDebitCardForm,
     BankAccount,
+    BankAccountList,
     Beta,
     BlockedFromConcierge,
     Card,
@@ -66,13 +69,16 @@ export type {
     Currency,
     CustomStatusDraft,
     DateOfBirthForm,
+    DemoInfo,
     Download,
     Form,
     FrequentlyUsedEmoji,
     Fund,
+    FundList,
     IOU,
     Locale,
     Login,
+    LoginList,
     MapboxAccessToken,
     Modal,
     Network,
@@ -80,6 +86,7 @@ export type {
     OnyxUpdatesFromServer,
     PersonalBankAccount,
     PersonalDetails,
+    PersonalDetailsList,
     PlaidData,
     Policy,
     PolicyCategory,
@@ -116,4 +123,5 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    ReportUserIsTyping,
 };

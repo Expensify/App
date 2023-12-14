@@ -12,12 +12,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -131,7 +131,6 @@ function ReportActionsList({
     isSmallScreenWidth,
     personalDetailsList,
     currentUserPersonalDetails,
-    hasOutstandingIOU,
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -156,7 +155,7 @@ function ReportActionsList({
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
-    const reportActionSize = useRef(sortedReportActions.length);
+    const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
 
     const linkedReportActionID = lodashGet(route, 'params.reportActionID', '');
@@ -198,15 +197,15 @@ function ReportActionsList({
             }
         }
 
-        if (currentUnreadMarker || reportActionSize.current === sortedReportActions.length) {
+        if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
             return;
         }
 
         cacheUnreadMarkers.delete(report.reportID);
-        reportActionSize.current = sortedReportActions.length;
+        lastVisibleActionCreatedRef.current = report.lastVisibleActionCreated;
         setCurrentUnreadMarker(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID]);
+    }, [report.lastVisibleActionCreated, report.reportID]);
 
     useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
@@ -339,7 +338,10 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current));
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
-                    shouldDisplay = reportAction.actorAccountID !== Report.getCurrentUserAccountID() && isWithinVisibleThreshold;
+                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    shouldDisplay =
+                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
+                        isWithinVisibleThreshold;
                 }
                 if (shouldDisplay) {
                     cacheUnreadMarkers.set(report.reportID, reportAction.reportActionID);
@@ -380,14 +382,13 @@ function ReportActionsList({
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
-                hasOutstandingIOU={hasOutstandingIOU}
                 sortedReportActions={sortedReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

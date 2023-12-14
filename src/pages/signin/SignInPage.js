@@ -6,18 +6,18 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBar from '@components/CustomStatusBar';
+import ThemeProvider from '@components/ThemeProvider';
+import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as StyleUtils from '@styles/StyleUtils';
-import ThemeProvider from '@styles/themes/ThemeProvider';
-import ThemeStylesProvider from '@styles/ThemeStylesProvider';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -134,6 +134,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 
 function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;

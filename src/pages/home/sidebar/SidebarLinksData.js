@@ -5,14 +5,15 @@ import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import networkPropTypes from '@components/networkPropTypes';
+import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import * as SessionUtils from '@libs/SessionUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
@@ -41,13 +42,15 @@ const propTypes = {
     ),
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
-    isLoadingReportData: PropTypes.bool,
+    isLoadingApp: PropTypes.bool,
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    network: networkPropTypes.isRequired,
 
     /** The policies which the user has access to */
     // eslint-disable-next-line react/forbid-prop-types
@@ -57,30 +60,32 @@ const propTypes = {
 const defaultProps = {
     chatReports: {},
     allReportActions: {},
-    isLoadingReportData: true,
+    isLoadingApp: true,
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: {},
 };
 
-function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingReportData, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isLoadingApp, onLinkClick, policies, priorityMode, network}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const reportIDsRef = useRef(null);
-    const isLoading = SessionUtils.didUserLogInDuringSession() && isLoadingReportData;
+    const isLoading = isLoadingApp;
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(null, chatReports, betas, policies, priorityMode, allReportActions);
+
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
 
         // We need to update existing reports only once while loading because they are updated several times during loading and causes this regression: https://github.com/Expensify/App/issues/24596#issuecomment-1681679531
-        if (!isLoading || !reportIDsRef.current) {
+        // However, if the user is offline, we need to update the reports unconditionally, since the loading of report data might be stuck in this case.
+        if (!isLoading || !reportIDsRef.current || network.isOffline) {
             reportIDsRef.current = reportIDs;
         }
         return reportIDsRef.current || [];
-    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading]);
+    }, [allReportActions, betas, chatReports, policies, priorityMode, isLoading, network.isOffline]);
 
     // We need to make sure the current report is in the list of reports, but we do not want
     // to have to re-generate the list every time the currentReportID changes. To do that
@@ -143,7 +148,6 @@ const chatReportSelector = (report) =>
         iouReportID: report.iouReportID,
         total: report.total,
         nonReimbursableTotal: report.nonReimbursableTotal,
-        hasOutstandingIOU: report.hasOutstandingIOU,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
@@ -195,14 +199,15 @@ const policySelector = (policy) =>
 export default compose(
     withCurrentReportID,
     withNavigationFocus,
+    withNetwork(),
     withOnyx({
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
             initialValue: {},
         },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
