@@ -1,22 +1,22 @@
-import {ContentStyle} from '@shopify/flash-list';
-import {RefObject} from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import {CurrentReportIDContextValue} from '@components/withCurrentReportID';
-import {OptionData} from '@libs/SidebarUtils';
+import type {ContentStyle} from '@shopify/flash-list';
+import type {RefObject} from 'react';
+import {type StyleProp, View, type ViewStyle} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import CONST from '@src/CONST';
-import {Beta, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {OptionData} from '@src/libs/ReportUtils';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 type LHNOptionsListOnyxProps = {
     /** The policy which the user has access to and which the report could be tied to */
-    policy: OnyxEntry<Record<string, Policy>>;
+    policy: OnyxCollection<Policy>;
 
     /** All reports shared with the user */
-    reports: OnyxEntry<Record<string, Report>>;
+    reports: OnyxCollection<Report>;
 
     /** Array of report actions for this report */
-    reportActions: OnyxEntry<Record<string, ReportActions>>;
+    reportActions: OnyxCollection<ReportActions>;
 
     /** Indicates which locale the user currently has selected */
     preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
@@ -25,10 +25,10 @@ type LHNOptionsListOnyxProps = {
     personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
 
     /** The transaction from the parent report action */
-    transactions: OnyxEntry<Record<string, Transaction>>;
+    transactions: OnyxCollection<Transaction>;
 
     /** List of draft comments */
-    draftComments: OnyxEntry<Record<string, string>>;
+    draftComments: OnyxCollection<string>;
 };
 type CustomLHNOptionsListProps = {
     /** Wrapper style for the section list */
@@ -76,7 +76,7 @@ type OptionRowLHNDataProps = {
 
     comment: string;
 
-    receiptTransactions: OnyxEntry<Record<string, Transaction>>;
+    receiptTransactions: OnyxCollection<Transaction>;
 
     reportID: string;
 
@@ -87,7 +87,7 @@ type OptionRowLHNProps = {
     hoverStyle?: StyleProp<ViewStyle>;
     reportID: string;
     isFocused?: boolean;
-    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<Element>) => void;
+    onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
     style?: ViewStyle | ViewStyle[];
     optionItem?: OptionData | null;

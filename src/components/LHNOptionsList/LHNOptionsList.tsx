@@ -3,10 +3,10 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import withCurrentReportID from '@components/withCurrentReportID';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +32,6 @@ function LHNOptionsList({
     draftComments = {},
 }: LHNOptionsListProps) {
     const styles = useThemeStyles();
-
     /**
      * Function which renders a row in the list
      */
@@ -62,7 +61,7 @@ function LHNOptionsList({
                     viewMode={optionMode}
                     isFocused={!shouldDisableFocusOptions && reportID === currentReportID}
                     onSelectRow={onSelectRow}
-                    preferredLocale={preferredLocale}
+                    preferredLocale={preferredLocale ?? CONST.LOCALES.DEFAULT}
                     comment={itemComment}
                 />
             );

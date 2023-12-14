@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -230,12 +230,12 @@ type ActorDetails = {
  * Gets all the data necessary for rendering an OptionRowLHN component
  */
 function getOptionData(
-    report: Report,
-    reportActions: Record<string, ReportAction>,
+    report: OnyxEntry<Report>,
+    reportActions: OnyxEntry<ReportActions>,
     personalDetails: Record<number, PersonalDetails>,
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
-    policy: Policy,
-    parentReportAction: ReportAction,
+    policy: OnyxEntry<Policy>,
+    parentReportAction: OnyxEntry<ReportAction>,
 ): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -278,7 +278,7 @@ function getOptionData(
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
-    result.parentReportAction = parentReportAction;
+    result.parentReportAction = parentReportAction ?? undefined;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);

@@ -1,10 +1,11 @@
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useMemo, useRef} from 'react';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import SidebarUtils, {OptionData} from '@libs/SidebarUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as ReportLib from '@userActions/Report';
 import CONST from '@src/CONST';
+import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import {OptionRowLHNDataProps} from './types';
 
@@ -39,7 +40,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale ?? CONST.LOCALES.DEFAULT, policy, parentReportAction);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }

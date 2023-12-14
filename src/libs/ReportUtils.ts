@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Beta, CustomStatusDraft, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
@@ -320,7 +320,7 @@ type OptionData = {
     subtitle?: string | null;
     login?: string | null;
     accountID?: number | null;
-    status?: string | null;
+    status?: CustomStatusDraft | string | null;
     phoneNumber?: string | null;
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
@@ -338,6 +338,7 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: ReportAction;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    descriptiveText?: string;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {

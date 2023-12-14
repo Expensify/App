@@ -42,7 +42,7 @@ type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps &
         activeOpacity?: number;
 
         /** Used to apply styles to the Pressable */
-        style?: StyleProp<ViewStyle & TextStyle>;
+        style?: StyleProp<ViewStyle>;
 
         /** Whether the long press with hover behavior is enabled */
         enableLongPressWithHover?: boolean;

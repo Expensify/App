@@ -13,8 +13,8 @@ Onyx.connect({
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(report: Report): string | undefined {
-    const participants = report.participantAccountIDs ?? [];
+function getGroupChatName(report: OnyxEntry<Report>): string | undefined {
+    const participants = report?.participantAccountIDs ?? [];
     const isMultipleParticipantReport = participants.length > 1;
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, allPersonalDetails ?? {});
     // @ts-expect-error Error will gone when OptionsListUtils will be migrated to Typescript
