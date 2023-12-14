@@ -3483,12 +3483,11 @@ function transactionHasViolation(transactionID: string, transactionViolations: T
 
 function transactionThreadHasViolations(
     report: Report,
-    canUseViolations: boolean,
     transactionViolations: TransactionViolations,
     reportActions?: OnyxCollection<ReportActions> | null,
     parentReportAction?: ReportAction | null,
 ): boolean {
-    if (!canUseViolations || !reportActions) {
+    if (!reportActions) {
         return false;
     }
     const resolvedParentReportAction = parentReportAction ?? reportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
@@ -3595,7 +3594,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && transactionThreadHasViolations(report, betas.includes(CONST.BETAS.VIOLATIONS), transactionViolations, allReportActions)) {
+    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && transactionThreadHasViolations(report, transactionViolations, allReportActions)) {
         return true;
     }
 
