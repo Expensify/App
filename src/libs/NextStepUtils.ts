@@ -15,9 +15,9 @@ function parseMessage(messages: Message[] | undefined) {
     });
 
     const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'this expense')
-        .replace(/%Expenses/g, 'This expense')
-        .replace(/%tobe/g, 'is');
+        .replace(/%expenses/g, 'these expenses')
+        .replace(/%Expenses/g, 'These expenses')
+        .replace(/%tobe/g, 'are');
 
     return `<next-steps>${formattedHtml}</next-steps>`;
 }

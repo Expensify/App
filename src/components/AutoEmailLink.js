@@ -2,7 +2,7 @@ import {CONST} from 'expensify-common/lib/CONST';
 import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
 import TextLink from './TextLink';
 
