@@ -2,12 +2,13 @@ import {createStackNavigator, StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
-import useThemeStyles from '@styles/useThemeStyles';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
@@ -25,7 +26,7 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
             <View style={styles.LHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
-                        name="Search"
+                        name={SCREENS.LEFT_MODAL.SEARCH}
                         component={ModalStackNavigators.SearchModalStackNavigator}
                     />
                 </Stack.Navigator>
