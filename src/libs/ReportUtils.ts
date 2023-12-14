@@ -3483,7 +3483,7 @@ function transactionHasViolation(transactionID: string, transactionViolations: T
 }
 
 /**
- *  Checks to see if a report's parentAction is a money request that contains a violation
+ * Checks to see if a report's parentAction is a money request that contains a violation
  */
 function transactionThreadHasViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions> | null = {}): boolean {
     if (!reportActions) {
@@ -3510,7 +3510,7 @@ function transactionThreadHasViolations(report: Report, transactionViolations: T
 }
 
 /**
- *  Checks to see if a report contains a violation
+ * Checks to see if a report contains a violation
  */
 function reportHasViolations(reportID: string, transactionViolations: TransactionViolations): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
