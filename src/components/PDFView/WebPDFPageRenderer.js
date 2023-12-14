@@ -30,7 +30,7 @@ const WebPDFPageRenderer = memo(({index: pageIndex, data, style}) => {
 WebPDFPageRenderer.displayName = 'WebPDFPageRenderer';
 WebPDFPageRenderer.propTypes = {
     /** Index of the PDF page to be displayed passed by VariableSizeList */
-    index: PropTypes.string.isRequired,
+    index: PropTypes.number.isRequired,
 
     /** Page extra data passed by VariableSizeList's data prop */
     data: PropTypes.shape({
