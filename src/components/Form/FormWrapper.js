@@ -8,9 +8,9 @@ import FormSubmit from '@components/FormSubmit';
 import refPropTypes from '@components/refPropTypes';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import errorsPropType from './errorsPropType';
 
 const propTypes = {
