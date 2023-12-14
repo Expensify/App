@@ -1,5 +1,10 @@
 import PropTypes from 'prop-types';
 
+const defaultZoomRange = {
+    min: 1,
+    max: 20,
+};
+
 const zoomRangePropTypes = {
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange: PropTypes.shape({
