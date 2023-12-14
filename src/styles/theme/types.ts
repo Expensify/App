@@ -38,7 +38,6 @@ type ThemeColors = {
     transparent: Color;
     signInPage: Color;
     darkSupportingText: Color;
-    rowHover: Color;
 
     // Additional keys
     overlay: Color;
