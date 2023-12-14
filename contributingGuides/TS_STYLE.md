@@ -579,6 +579,25 @@ object?.foo ?? 'bar';
   const y: number = 123; // TS error: Unused '@ts-expect-error' directive.
   ```
 
+- The TS issue I'm working on is blocked by another TS issue because of type errors. What should I do?
+
+  In order to proceed with the migration faster, we are now allowing the use of `@ts-expect-error` annotation to temporally suppress those errors and help you unblock your issues. The only requirements is that you MUST add the annotation with a comment explaining that it must be removed when the blocking issue is migrated, e.g.:
+
+  ```ts
+  return (
+      <MenuItem
+          // @ts-expect-error TODO: Remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TypeScript.
+          wrapperStyle={styles.mr3}
+          key={text}
+          icon={icon}
+          title={text}
+          onPress={onPress}
+      />
+  );
+  ```
+
+  **You will also need to reference the blocking issue in your PR.** You can find all the TS issues [here](https://github.com/orgs/Expensify/projects/46).
+
 ## Learning Resources
 
 ### Quickest way to learn TypeScript
