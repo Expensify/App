@@ -2,9 +2,9 @@ import React from 'react';
 import {Image, View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {LinkMetadata} from '@src/types/onyx/ReportAction';
 
