@@ -7,18 +7,22 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import useThemeStyles from '@styles/useThemeStyles';
+import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import MoneyRequestAmountForm from './MoneyRequestAmountForm';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** React Navigation route */
@@ -42,6 +46,13 @@ const propTypes = {
     transactionsDraft: PropTypes.shape({
         taxAmount: PropTypes.number,
     }),
+
+    /* Onyx Props */
+    /** The report that the transaction belongs to */
+    report: reportPropTypes,
+
+    /** The transaction object being modified in Onyx */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
@@ -49,18 +60,26 @@ const defaultProps = {
     transactionsDraft: {
         taxAmount: null,
     },
+    report: {},
+    transaction: {},
 };
 
-function IOURequestStepTaxAmountPage({route, iou, transactionsDraft}) {
+function IOURequestStepTaxAmountPage({
+    route: {
+        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
+    },
+    iou,
+    transactionsDraft,
+    transaction,
+    transaction: {currency: originalCurrency},
+    report,
+}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
 
-    const iouType = lodashGet(route, 'params.iouType', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
-    const currentCurrency = lodashGet(route, 'params.currency', '');
-    const currency = CurrencyUtils.isValidCurrencyCode(currentCurrency) ? currentCurrency : iou.currency;
+    const currency = selectedCurrency || originalCurrency;
 
     const focusTimeoutRef = useRef(null);
     useFocusEffect(
@@ -83,21 +102,39 @@ function IOURequestStepTaxAmountPage({route, iou, transactionsDraft}) {
         // If the money request being created is a distance request, don't allow the user to choose the currency.
         // Only USD is allowed for distance requests.
         // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
 
     const updateTaxAmount = (currentAmount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-        IOU.setMoneyRequestTaxAmount(iou.transactionID, amountInSmallestCurrencyUnits);
-        IOU.setMoneyRequestCurrency(currency);
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
+
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+        // to the confirm step.
+        if (report.reportID) {
+            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
+            return;
+        }
+
+        // If there was no reportID, then that means the user started this flow from the global + menu
+        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
     const content = (
         <MoneyRequestAmountForm
             isEditing={isEditing}
             currency={currency}
+            transactionAmount={transaction.amount}
             amount={transactionsDraft.taxAmount}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
@@ -130,12 +167,11 @@ IOURequestStepTaxAmountPage.propTypes = propTypes;
 IOURequestStepTaxAmountPage.defaultProps = defaultProps;
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 export default compose(
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-    }),
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
     withOnyx({
         transactionsDraft: {
-            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${iou.transactionID}`,
+            key: ({transaction}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
         },
     }),
 )(IOURequestStepTaxAmountPage);

@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -7,14 +6,17 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import taxPropTypes from '@components/taxPropTypes';
+import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 const propTypes = {
     /** Route from navigation */
@@ -30,20 +32,25 @@ const propTypes = {
     }).isRequired,
     policyTaxRates: taxPropTypes,
 
-    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-    iou: iouPropTypes,
-
     transactionsDraft: PropTypes.shape({
         taxRate: PropTypes.string,
     }),
+
+    /* Onyx Props */
+    /** The report that the transaction belongs to */
+    report: reportPropTypes,
+
+    /** The transaction object being modified in Onyx */
+    transaction: transactionPropTypes,
 };
 
 const defaultProps = {
+    report: {},
     policyTaxRates: {},
-    iou: iouDefaultProps,
     transactionsDraft: {
         taxRate: null,
     },
+    transaction: {},
 };
 
 // this is the formulae to calculate tax
@@ -53,20 +60,25 @@ const calculateAmount = (taxRates, selectedTaxRate, amount) => {
     return parseInt(Math.round(amount - amount / divisor), 10) / 100; // returns The expense amount of transaction
 };
 
-function IOURequestStepTaxRatePage({route, iou, policyTaxRates, transactionsDraft}) {
+function IOURequestStepTaxRatePage({
+    route: {
+        params: {iouType, reportID},
+    },
+    policyTaxRates,
+    transactionsDraft,
+    transaction,
+}) {
     const {translate} = useLocalize();
-    const iouType = lodashGet(route, 'params.iouType', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
 
     function navigateBack() {
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
     const updateTaxRates = (taxes) => {
-        const taxAmount = calculateAmount(policyTaxRates.taxes, taxes.text, iou.amount);
+        const taxAmount = calculateAmount(policyTaxRates.taxes, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-        IOU.setMoneyRequestTaxRate(iou.transactionID, taxes.text);
-        IOU.setMoneyRequestTaxAmount(iou.transactionID, amountInSmallestCurrencyUnits);
+        IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes.text);
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
 
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     };
@@ -100,21 +112,8 @@ IOURequestStepTaxRatePage.defaultProps = defaultProps;
 IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
 
 export default compose(
-    withOnyx({
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        report: {
-            key: ({route, iou}) => {
-                const reportID = IOU.getIOUReportID(iou, route);
-
-                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-            },
-        },
-    }),
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
     withOnyx({
         policyTaxRates: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
@@ -122,7 +121,7 @@ export default compose(
     }),
     withOnyx({
         transactionsDraft: {
-            key: ({iou}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${iou.transactionID}`,
+            key: ({transaction}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
         },
     }),
 )(IOURequestStepTaxRatePage);
