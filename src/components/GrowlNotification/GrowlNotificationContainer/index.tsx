@@ -1,7 +1,7 @@
 import React from 'react';
 import {Animated} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useThemeStyles from '@styles/useThemeStyles';
 import GrowlNotificationContainerProps from './types';
 
 function GrowlNotificationContainer({children, translateY}: GrowlNotificationContainerProps) {
