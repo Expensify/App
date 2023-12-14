@@ -228,38 +228,40 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
-        const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
-            betas,
-            searchTerm,
-            participants,
-            CONST.EXPENSIFY_EMAILS,
+        if (didScreenTransitionEnd) {
+            const chatOptions = OptionsListUtils.getFilteredOptions(
+                reports,
+                personalDetails,
+                betas,
+                searchTerm,
+                participants,
+                CONST.EXPENSIFY_EMAILS,
 
-            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST,
+                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+                // sees the option to request money from their admin on their own Workspace Chat.
+                iouType === CONST.IOU.TYPE.REQUEST,
 
-            // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
-            false,
-            {},
-            [],
-            false,
-            {},
-            [],
+                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
+                iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+                false,
+                {},
+                [],
+                false,
+                {},
+                [],
 
-            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
-            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
-            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
-            true,
-        );
-        setNewChatOptions({
-            recentReports: chatOptions.recentReports,
-            personalDetails: chatOptions.personalDetails,
-            userToInvite: chatOptions.userToInvite,
-        });
-    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, iouRequestType]);
+                // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
+                // This functionality is being built here: https://github.com/Expensify/App/issues/23291
+                iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+                true,
+            );
+            setNewChatOptions({
+                recentReports: chatOptions.recentReports,
+                personalDetails: chatOptions.personalDetails,
+                userToInvite: chatOptions.userToInvite,
+            });
+        }
+    }, [betas, reports, participants, personalDetails, translate, searchTerm, setNewChatOptions, iouType, iouRequestType, didScreenTransitionEnd]);
 
     // When search term updates we will fetch any reports
     const setSearchTermAndSearchInServer = useCallback((text = '') => {
@@ -324,7 +326,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                shouldShowOptions={isOptionsDataReady}
+                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                 shouldShowReferralCTA
                 referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
