@@ -35,13 +35,14 @@ const darkTheme = {
     transparent: colors.transparent,
     signInPage: colors.green800,
     darkSupportingText: colors.productDark800,
+    rowHover: colors.productDark300,
 
     // Additional keys
     overlay: colors.productDark400,
     inverse: colors.productDark900,
     shadow: colors.black,
     componentBG: colors.productDark100,
-    hoverComponentBG: colors.productDark200,
+    hoverComponentBG: colors.productDark300,
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
     sidebar: colors.productDark200,
