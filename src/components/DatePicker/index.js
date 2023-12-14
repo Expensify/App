@@ -1,17 +1,21 @@
 import {setYear} from 'date-fns';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import refPropTypes from '@components/refPropTypes';
 import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 
 const propTypes = {
+    /** React ref being forwarded to the DatePicker input */
+    forwardedRef: refPropTypes,
+
     /**
      * The datepicker supports any value that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
@@ -38,7 +42,6 @@ const propTypes = {
     /** A function that is passed by FormWrapper */
     onTouched: PropTypes.func.isRequired,
 
-    ...withLocalizePropTypes,
     ...baseTextInputPropTypes,
 };
 
@@ -49,8 +52,9 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function DatePicker({forwardedRef, containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, value}) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
     const onSelected = (newValue) => {
@@ -67,6 +71,7 @@ function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID
         <View style={styles.datePickerRoot}>
             <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
                 <TextInput
+                    ref={forwardedRef}
                     inputID={inputID}
                     forceActiveLabel
                     icon={Expensicons.Calendar}
@@ -99,4 +104,14 @@ DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = datePickerDefaultProps;
 DatePicker.displayName = 'DatePicker';
 
-export default withLocalize(DatePicker);
+const DatePickerWithRef = forwardRef((props, ref) => (
+    <DatePickerWithRef
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+DatePickerWithRef.displayName = 'DatePickerWithRef';
+
+export default DatePickerWithRef;
