@@ -170,7 +170,7 @@ function MoneyRequestPreview(props) {
     if (!shouldShowMerchant) {
         merchantOrDescription = description || '';
     } else if (hasPendingWaypoints) {
-        merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, props.translate('common.tbd'));
+        merchantOrDescription = requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd'));
     }
 
     const receiptImages = hasReceipt ? [ReceiptUtils.getThumbnailAndImageURIs(props.transaction)] : [];
