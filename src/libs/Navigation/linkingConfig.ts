@@ -266,6 +266,13 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                         },
                     },
+                    [SCREENS.RIGHT_MODAL.WORKSPACE_SELECTOR]: {
+                        screens: {
+                            [SCREENS.WORKSPACE_SELECTOR.ROOT]: {
+                                path: ROUTES.WORKSPACE_SELECTOR,
+                            },
+                        },
+                    },
                     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
                         screens: {
                             [SCREENS.PRIVATE_NOTES.VIEW]: ROUTES.PRIVATE_NOTES_VIEW.route,

@@ -27,6 +27,7 @@ import type {
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
+    WorkspaceSelectorNavigatorParamList,
 } from '@navigation/types';
 import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
@@ -177,6 +178,10 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
 
+const WorkspaceSelectorModalStackNavigator = createModalStackNavigator<WorkspaceSelectorNavigatorParamList>({
+    [SCREENS.WORKSPACE_SELECTOR.ROOT]: () => require('../../../pages/WorkspaceSelectorPage').default as React.ComponentType,
+});
+
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
     [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
@@ -304,4 +309,5 @@ export {
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
     ReferralModalStackNavigator,
+    WorkspaceSelectorModalStackNavigator,
 };

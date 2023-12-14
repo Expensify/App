@@ -1,8 +1,10 @@
 import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import * as Environment from '@libs/Environment/Environment';
+import Navigation from '@libs/Navigation/Navigation';
 import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import pkg from '../../package.json';
 import Badge from './Badge';
 
@@ -32,6 +34,10 @@ function EnvironmentBadge() {
             badgeStyles={[styles.alignSelfEnd, styles.headerEnvBadge]}
             textStyles={[styles.headerEnvBadgeText]}
             environment={environment}
+            pressable
+            onPress={() => {
+                Navigation.navigate(ROUTES.WORKSPACE_SELECTOR);
+            }}
         />
     );
 }

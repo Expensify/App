@@ -30,6 +30,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.SettingsModalStackNavigator}
                     />
                     <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.WORKSPACE_SELECTOR}
+                        component={ModalStackNavigators.WorkspaceSelectorModalStackNavigator}
+                    />
+                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.NEW_CHAT}
                         component={ModalStackNavigators.NewChatModalStackNavigator}
                     />

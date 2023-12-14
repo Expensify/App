@@ -185,7 +185,7 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
                     )}
                 </PressableWithFeedback>}
             </View>
-                    <View>
+                    <View style={{marginBottom: 12}}>
                         {_.map(workspaces, (item, index) => getMenuItem(item, index))}
                     </View>
                 </View>

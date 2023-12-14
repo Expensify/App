@@ -79,6 +79,9 @@ const SCREENS = {
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
+    WORKSPACE_SELECTOR: {
+        ROOT: 'WorkspaceSelector_Root',
+    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         NEW_CHAT: 'NewChat',
@@ -104,6 +107,7 @@ const SCREENS = {
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
+        WORKSPACE_SELECTOR: 'WorkspaceSelector',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
