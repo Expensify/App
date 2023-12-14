@@ -6,7 +6,7 @@ import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 
-function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus, ...restProps}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
 
     const [selection, setSelection] = useState();
@@ -44,8 +44,6 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
 
     return (
         <TextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...restProps}
             ref={forwardedRef}
             disabled={disabled}
             label={translate('newRoomPage.roomName')}
@@ -57,6 +55,7 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
             value={value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
             selection={selection}
             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+            errorText={errorText}
             autoCapitalize="none"
             onBlur={(event) => isFocused && onBlur(event)}
             shouldDelayFocus={shouldDelayFocus}

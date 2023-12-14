@@ -7,7 +7,7 @@ import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 
-function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus, ...restProps}) {
+function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
     const {translate} = useLocalize();
 
     /**
@@ -29,8 +29,6 @@ function RoomNameInput({isFocused, autoFocus, disabled, errorText, forwardedRef,
 
     return (
         <TextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...restProps}
             ref={forwardedRef}
             disabled={disabled}
             label={translate('newRoomPage.roomName')}
