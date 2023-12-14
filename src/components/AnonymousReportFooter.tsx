@@ -2,7 +2,7 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import {PersonalDetailsList, Report} from '@src/types/onyx';
 import AvatarWithDisplayName from './AvatarWithDisplayName';

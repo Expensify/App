@@ -460,10 +460,10 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => {
-        const yes = Object.keys(errors ?? {}).length > 0 ? prevReportErrors : Object.assign(prevReportErrors, errors);
-        return yes;
-    }, {});
+    const allReportErrors = Object.values(errorSources)?.reduce(
+        (prevReportErrors, errors) => (Object.keys(errors ?? {}).length > 0 ? prevReportErrors : Object.assign(prevReportErrors, errors)),
+        {},
+    );
 
     return allReportErrors;
 }
