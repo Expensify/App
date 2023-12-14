@@ -2377,7 +2377,6 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 
 /**
  * Navigate to the details page of a given report
- *
  */
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
@@ -4327,15 +4326,15 @@ function hasHeldExpenses(iouReportID: string): boolean {
  */
 function getHeldAmount(iouReportID: string): string[] {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    let allSum = 0;
-    const sum = transactions.reduce((previousValue, transaction) => {
-        allSum += transaction.amount * -1;
+    let fullAmount = 0;
+    const heldAmount = transactions.reduce((previousValue, transaction) => {
+        fullAmount += transaction.amount * -1;
         if (TransactionUtils.isOnHold(transaction)) {
             return previousValue + transaction.amount * -1;
         }
         return previousValue;
     }, 0);
-    return [CurrencyUtils.convertToDisplayString(sum, transactions[0].currency), CurrencyUtils.convertToDisplayString(allSum, transactions[0].currency)];
+    return [CurrencyUtils.convertToDisplayString(heldAmount, transactions[0].currency), CurrencyUtils.convertToDisplayString(fullAmount, transactions[0].currency)];
 }
 
 export {

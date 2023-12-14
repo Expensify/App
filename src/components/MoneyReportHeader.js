@@ -103,17 +103,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
-    const [heldAmount, allAmount] = ReportUtils.getHeldAmount(moneyRequestReport.reportID);
+    const [heldAmount, fullAmount] = ReportUtils.getHeldAmount(moneyRequestReport.reportID);
     const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
-
-    const confirmApproval = () => {
-        setConfirmationType('approve');
-        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && (isPolicyAdmin || isManager || isPayer)) {
-            setIsHoldMenuVisible(true);
-        } else {
-            IOU.approveMoneyRequest(moneyRequestReport);
-        }
-    };
 
     const confirmPayment = (type) => {
         setPaymentType(type);
@@ -206,7 +197,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 <ProcessMoneyRequestHoldMenu
                     nonHeldAmount={heldAmount}
                     type={confirmationType}
-                    fullAmount={allAmount}
+                    fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}

@@ -3407,7 +3407,7 @@ function unholdRequest(transactionID, reportID) {
     ];
 
     API.write(
-        'HoldRequest',
+        'UnholdRequest',
         {
             ...transactionDetails,
             transactionID,
