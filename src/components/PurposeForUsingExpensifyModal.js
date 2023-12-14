@@ -45,7 +45,7 @@ function PurposeForUsingExpensifyModal(props) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [isModalOpen, setIsModalOpen] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const theme = useTheme();
 
     useEffect(() => {
@@ -58,9 +58,10 @@ function PurposeForUsingExpensifyModal(props) {
         if (lodashGet(props.demoInfo, 'money2020.isBeginningDemo', false)) {
             return;
         }
+        debugger;
         Welcome.show({routes, showEngagementModal: () => setIsModalOpen(true)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isLoading]);
+    }, []);
 
     // This is not translated because it is a message coming from concierge, which only supports english
     const messageCopy = {
