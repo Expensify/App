@@ -316,6 +316,7 @@ function ReportScreen({
         const onyxReportID = report.reportID;
         const prevOnyxReportID = prevReport.reportID;
         const routeReportID = getReportID(route);
+
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
@@ -326,7 +327,7 @@ function ReportScreen({
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
                 (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
-            ((ReportUtils.isMoneyRequest(prevReport.reportID) || ReportUtils.isMoneyRequestReport(prevReport.reportID)) && _.isEqual(report, defaultProps.report))
+            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && _.isEqual(report, defaultProps.report))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -351,7 +352,19 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID, prevReport.chatType]);
+    }, [
+        route,
+        report,
+        errors,
+        fetchReportIfNeeded,
+        prevReport.reportID,
+        prevUserLeavingStatus,
+        userLeavingStatus,
+        prevReport.statusNum,
+        prevReport.parentReportID,
+        prevReport.chatType,
+        prevReport,
+    ]);
 
     useEffect(() => {
         if (!ReportUtils.isValidReportIDFromPath(reportID)) {
