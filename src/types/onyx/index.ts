@@ -54,6 +54,8 @@ import WalletOnfido from './WalletOnfido';
 import WalletStatement from './WalletStatement';
 import WalletTerms from './WalletTerms';
 import WalletTransfer from './WalletTransfer';
+import PolicyReportField from './PolicyReportField';
+import RecentlyUsedReportFields from './RecentlyUsedReportFields';
 
 export type {
     Account,
@@ -124,4 +126,6 @@ export type {
     WalletTerms,
     WalletTransfer,
     ReportUserIsTyping,
+    PolicyReportField,
+    RecentlyUsedReportFields,
 };
