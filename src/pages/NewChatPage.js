@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -116,7 +116,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    function toggleOption(option) {
+    const toggleOption = (option) => {
         const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
         let newSelectedOptions;
@@ -154,7 +154,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(newChatPersonalDetails);
         setFilteredUserToInvite(userToInvite);
-    }
+    };
 
     /**
      * Creates a new 1:1 chat with the option and the current user,
@@ -162,9 +162,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
      *
      * @param {Object} option
      */
-    function createChat(option) {
+    const createChat = (option) => {
         Report.navigateToAndOpenReport([option.login]);
-    }
+    };
 
     /**
      * Creates a new group chat with all the selected options and the current user,
@@ -178,7 +178,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
         Report.navigateToAndOpenReport(logins);
     };
 
-    useEffect(() => {
+    const updateOptions = useCallback(() => {
         const {
             recentReports,
             personalDetails: newChatPersonalDetails,
@@ -224,8 +224,9 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
             includePaddingTop={false}
             shouldEnableMaxHeight
             testID={NewChatPage.displayName}
+            onEntryTransitionEnd={updateOptions}
         >
-            {({safeAreaPaddingBottomStyle, insets}) => (
+            {({safeAreaPaddingBottomStyle, didScreenTransitionEnd, insets}) => (
                 <KeyboardAvoidingView
                     style={{height: '100%'}}
                     behavior="padding"
@@ -241,16 +242,16 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             canSelectMultipleOptions
                             shouldShowMultipleOptionSelectorAsButton
                             multipleOptionSelectorButtonText={translate('newChatPage.addToGroup')}
-                            onAddToSelection={(option) => toggleOption(option)}
+                            onAddToSelection={toggleOption}
                             sections={sections}
                             selectedOptions={selectedOptions}
                             value={searchTerm}
-                            onSelectRow={(option) => createChat(option)}
+                            onSelectRow={createChat}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
                             shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                            shouldShowOptions={isOptionsDataReady}
+                            shouldShowOptions={isOptionsDataReady && didScreenTransitionEnd}
                             shouldShowConfirmButton
                             shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}

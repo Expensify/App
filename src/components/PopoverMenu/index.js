@@ -74,6 +74,14 @@ function PopoverMenu(props) {
         {isActive: props.isVisible},
     );
 
+    const onModalHide = () => {
+        setFocusedIndex(-1);
+        if (selectedItemIndex.current !== null) {
+            props.menuItems[selectedItemIndex.current].onSelected();
+            selectedItemIndex.current = null;
+        }
+    };
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={props.anchorPosition}
@@ -81,13 +89,7 @@ function PopoverMenu(props) {
             anchorAlignment={props.anchorAlignment}
             onClose={props.onClose}
             isVisible={props.isVisible}
-            onModalHide={() => {
-                setFocusedIndex(-1);
-                if (selectedItemIndex.current !== null) {
-                    props.menuItems[selectedItemIndex.current].onSelected();
-                    selectedItemIndex.current = null;
-                }
-            }}
+            onModalHide={onModalHide}
             animationIn={props.animationIn}
             animationOut={props.animationOut}
             animationInTiming={props.animationInTiming}
