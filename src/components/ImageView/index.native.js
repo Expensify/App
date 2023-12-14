@@ -1,4 +1,3 @@
-/* eslint-disable es/no-optional-chaining */
 import PropTypes from 'prop-types';
 import React from 'react';
 import Lightbox from '@components/Lightbox';

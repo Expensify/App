@@ -5,7 +5,8 @@ import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import useStyleUtils from '@styles/useStyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
-import MultiGestureCanvas, {getCanvasFitScale} from './MultiGestureCanvas';
+import MultiGestureCanvas from './MultiGestureCanvas';
+import getCanvasFitScale from './MultiGestureCanvas/getCanvasFitScale';
 import {zoomRangeDefaultProps, zoomRangePropTypes} from './MultiGestureCanvas/propTypes';
 
 // Increase/decrease this number to change the number of concurrent lightboxes

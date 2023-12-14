@@ -16,24 +16,24 @@ import Animated, {
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Constants from './Constants';
+import getCanvasFitScale from './getCanvasFitScale';
 import {multiGestureCanvasDefaultProps, multiGestureCanvasPropTypes} from './propTypes';
+
+const defaultZoomRange = {
+    min: 1,
+    max: 20,
+};
+
+const zoomScaleBounceFactors = {
+    min: 0.7,
+    max: 1.5,
+};
 
 const SPRING_CONFIG = {
     mass: 1,
     stiffness: 1000,
     damping: 500,
 };
-
-function getCanvasFitScale({canvasSize, contentSize}) {
-    const scaleX = canvasSize.width / contentSize.width;
-    const scaleY = canvasSize.height / contentSize.height;
-
-    const minScale = Math.min(scaleX, scaleY);
-    const maxScale = Math.max(scaleX, scaleY);
-
-    return {scaleX, scaleY, minScale, maxScale};
-}
 
 function clamp(value, lowerBound, upperBound) {
     'worklet';
@@ -48,8 +48,8 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoom
     };
 
     const zoomRange = {
-        min: zoomRangeProp.min == null ? Constants.defaultZoomRange.min : zoomRangeProp.min,
-        max: zoomRangeProp.max == null ? Constants.defaultZoomRange.max : zoomRangeProp.max,
+        min: zoomRangeProp.min == null ? defaultZoomRange.min : zoomRangeProp.min,
+        max: zoomRangeProp.max == null ? defaultZoomRange.max : zoomRangeProp.max,
     };
 
     return {contentSize, zoomRange};
@@ -471,7 +471,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         .onChange((evt) => {
             const newZoomScale = pinchScaleOffset.value * evt.scale;
 
-            if (zoomScale.value >= zoomRange.min * Constants.zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * Constants.zoomScaleBounceFactors.max) {
+            if (zoomScale.value >= zoomRange.min * zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * zoomScaleBounceFactors.max) {
                 zoomScale.value = newZoomScale;
                 pinchGestureScale.value = evt.scale;
             }
@@ -602,4 +602,4 @@ MultiGestureCanvas.defaultProps = multiGestureCanvasDefaultProps;
 MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
-export {getCanvasFitScale};
+export {defaultZoomRange, zoomScaleBounceFactors};
