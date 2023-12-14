@@ -45,10 +45,10 @@ function isPlaceMatchForSearch(search, place) {
     }
     let result = false;
     if (place.name) {
-        result = some(search.split(' '), (searchTerm) => place.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+        result = some(search.split(' '), (searchTerm) => searchTerm && place.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
     }
     if (place.description) {
-        result = result || some(search.split(' '), (searchTerm) => place.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+        result = result || some(search.split(' '), (searchTerm) => searchTerm && place.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
     }
     return result;
 }
