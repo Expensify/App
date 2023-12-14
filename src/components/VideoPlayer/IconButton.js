@@ -3,7 +3,7 @@ import React from 'react';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -34,6 +34,7 @@ const defaultProps = {
 };
 
 function IconButton({src, fill, onPress, style, tooltipText, small, forceRenderingTooltipBelow}) {
+    const styles = useThemeStyles();
     return (
         <Tooltip
             text={tooltipText}

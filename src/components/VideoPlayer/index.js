@@ -5,10 +5,10 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import VideoPlayerControls from './VideoPlayerControls';
 
 const propTypes = {
@@ -38,14 +38,15 @@ const defaultProps = {
     onVideoLoaded: () => {},
     resizeMode: ResizeMode.CONTAIN,
     isLooping: false,
-    style: [styles.w100, styles.h100],
-    videoStyle: [styles.w100, styles.h100],
+    style: undefined,
+    videoStyle: undefined,
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
     isHovered: true,
 };
 
 function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls, isHovered}) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
     const [duration, setDuration] = useState(0);
@@ -131,8 +132,8 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
                     <View style={styles.flex1}>
                         <Video
                             ref={videoPlayerRef}
-                            style={style}
-                            videoStyle={videoStyle}
+                            style={style || [styles.w100, styles.h100]}
+                            videoStyle={videoStyle || [styles.w100, styles.h100]}
                             source={{
                                 uri: sourceURLWithAuth, // testing video url: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                             }}

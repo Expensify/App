@@ -4,8 +4,7 @@ import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import styles from '@styles/styles';
-import spacing from '@styles/utilities/spacing';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -21,6 +20,7 @@ const propTypes = {
 const defaultProps = {};
 
 function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition}) {
+    const styles = useThemeStyles();
     const {pauseVideo} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const progressWidth = useSharedValue(0);
@@ -49,7 +49,7 @@ function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition})
 
     return (
         <GestureDetector gesture={pan}>
-            <View style={[styles.w100, styles.h100, spacing.pv2]}>
+            <View style={[styles.w100, styles.h100, styles.pv2]}>
                 <View
                     style={[styles.progressBarOutline]}
                     onLayout={onSliderLayout}

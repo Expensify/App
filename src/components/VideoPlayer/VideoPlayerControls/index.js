@@ -10,8 +10,7 @@ import convertMillisecondsToTime from '@components/VideoPlayer/utils';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import spacing from '@styles/utilities/spacing';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
@@ -36,13 +35,14 @@ const defaultProps = {
 };
 
 function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {pauseVideo, playVideo, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {showPopover} = useVideoPopoverMenuContext();
     const [durationFormatted, setDurationFormatted] = useState('0:00');
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const isCurrentlyURLSet = currentlyPlayingURL === url;
-    const iconSpacing = small ? spacing.mr3 : spacing.mr4;
+    const iconSpacing = small ? styles.mr3 : styles.mr4;
 
     const togglePlayCurrentVideo = useCallback(() => {
         if (!isCurrentlyURLSet) {
@@ -80,16 +80,16 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
 
     return (
         <Animated.View
-            style={[styles.videoPlayerControlsContainer, small ? [spacing.p2, spacing.pb0] : [spacing.p3, spacing.pb1]]}
+            style={[styles.videoPlayerControlsContainer, small ? [styles.p2, styles.pb0] : [styles.p3, styles.pb1]]}
             onLayout={onLayout}
         >
-            <View style={[styles.videoPlayerControlsButtonContainer, !small && spacing.mb4]}>
+            <View style={[styles.videoPlayerControlsButtonContainer, !small && styles.mb4]}>
                 <View style={[styles.videoPlayerControlsRow]}>
                     <IconButton
                         src={isPlaying ? Expensicons.Pause : Expensicons.Play}
                         tooltipText={isPlaying ? translate('videoPlayer.pause') : translate('videoPlayer.play')}
                         onPress={togglePlayCurrentVideo}
-                        style={spacing.mr2}
+                        style={styles.mr2}
                         small={small}
                     />
                     {shouldShowTime && (

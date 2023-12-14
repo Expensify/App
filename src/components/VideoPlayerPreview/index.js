@@ -6,9 +6,9 @@ import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import styles from '@styles/styles';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 const propTypes = {
@@ -30,6 +30,7 @@ const defaultProps = {
 };
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, showModal}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();

@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
-import useThemeStyles from '@styles/useThemeStyles';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 type ThumbnailImageProps = {

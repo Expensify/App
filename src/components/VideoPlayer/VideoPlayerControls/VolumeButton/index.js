@@ -8,10 +8,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import useLocalize from '@hooks/useLocalize';
-import colors from '@styles/colors';
+import useThemeStyles from '@hooks/useThemeStyles';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
-import spacing from '@styles/utilities/spacing';
 
 const propTypes = {
     style: stylePropTypes.isRequired,
@@ -33,6 +31,7 @@ const getVolumeIcon = (volume) => {
 };
 
 function VolumeButton({style, small}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {updateVolume, volume} = useVolumeContext();
     const [sliderHeight, setSliderHeight] = useState(1);
@@ -68,7 +67,7 @@ function VolumeButton({style, small}) {
                     {(isSliderBeingUsed || isHovered) && (
                         <View style={[styles.volumeSliderContainer]}>
                             <GestureDetector gesture={pan}>
-                                <View style={spacing.ph2}>
+                                <View style={styles.ph2}>
                                     <View
                                         style={[styles.volumeSliderOverlay]}
                                         onLayout={onSliderLayout}
@@ -85,7 +84,7 @@ function VolumeButton({style, small}) {
                         tooltipText={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
                         onPress={() => updateVolume(volume.value === 0 ? 1 : 0)}
                         src={volumeIcon.icon}
-                        fill={colors.white}
+                        fill={styles.white}
                         small={small}
                         forceRenderingTooltipBelow
                     />

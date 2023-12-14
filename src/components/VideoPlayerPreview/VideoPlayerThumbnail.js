@@ -5,8 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageWithSizeCalculation from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import styles from '@styles/styles';
-import spacing from '@styles/utilities/spacing';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -22,6 +21,7 @@ const defaultProps = {
 };
 
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
+    const styles = useThemeStyles();
     const updateImageSize = () => {};
 
     return (
@@ -48,7 +48,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel}) {
                         fill="white"
                         width={28}
                         height={28}
-                        additionalStyles={[spacing.ml1]}
+                        additionalStyles={[styles.ml1]}
                     />
                 </View>
             </PressableWithoutFeedback>
