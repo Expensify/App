@@ -139,7 +139,6 @@ function WorkspaceInviteMessagePage(props) {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID))}
                 />
-
                 <FormProvider
                     style={[props.themeStyles.flexGrow1, props.themeStyles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
@@ -150,7 +149,7 @@ function WorkspaceInviteMessagePage(props) {
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}
-                            role={CONST.ACCESSIBILITY_ROLE.LINK}
+                            role={CONST.ROLE.LINK}
                             accessibilityLabel={props.translate('common.privacy')}
                             href={CONST.PRIVACY_URL}
                             style={[props.themeStyles.mv2, props.themeStyles.alignSelfStart]}
@@ -176,7 +175,7 @@ function WorkspaceInviteMessagePage(props) {
                     <View style={[props.themeStyles.mb3]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             inputID="welcomeMessage"
                             label={props.translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={props.translate('workspace.inviteMessage.personalMessagePrompt')}
