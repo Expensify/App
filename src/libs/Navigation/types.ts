@@ -3,6 +3,7 @@ import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, Nav
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route as Routes} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -366,8 +367,10 @@ type PublicScreensParamList = {
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
         shouldForceLogin: string;
         email: string;
+        error: string;
         shortLivedAuthToken: string;
-        exitTo: string;
+        shortLivedToken: string;
+        exitTo: Routes;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
