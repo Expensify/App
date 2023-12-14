@@ -22,16 +22,19 @@ const clearReportNotifications: ClearReportNotifications = (reportID: string) =>
     Airship.push
         .getActiveNotifications()
         .then((pushPayloads) => {
-            const reportNotificationIDs = pushPayloads
-                .map(parseNotificationAndReportIDs)
-                .filter((notification) => notification.reportID === reportID)
-                .map((notification) => notification.notificationID);
+            const reportNotificationIDs = pushPayloads.reduce<string[]>((notificationIDs, pushPayload) => {
+                const notification = parseNotificationAndReportIDs(pushPayload);
+                if (notification.notificationID && notification.reportID === reportID) {
+                    notificationIDs.push(notification.notificationID);
+                }
+                return notificationIDs;
+            }, []);
 
             Log.info(`[PushNotification] found ${reportNotificationIDs.length} notifications to clear`, false, {reportID});
-            reportNotificationIDs.forEach((notificationID) => notificationID && Airship.push.clearNotification(notificationID));
+            reportNotificationIDs.forEach((notificationID) => Airship.push.clearNotification(notificationID));
         })
         .catch((error) => {
-            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
+            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
         });
 };
 
