@@ -1,4 +1,3 @@
-import IconType from '@types/Icon';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {FC, ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
@@ -15,7 +14,7 @@ import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import AvatarType from '@src/types/onyx/Avatar';
+import {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
@@ -64,7 +63,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     descriptionTextStyle?: StyleProp<ViewStyle>;
 
     /** Icon to display on the left side of component */
-    icon?: ReactNode | string | AvatarType;
+    icon?: ReactNode | IconType | string;
 
     /** The fill color to pass into the icon. */
     iconFill?: string;
@@ -157,7 +156,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
 
     /** Avatars to show on the right of the menu item */
-    floatRightAvatars?: AvatarType[];
+    floatRightAvatars?: IconType[];
 
     /** Prop to represent the size of the float right avatar images to be shown */
     floatRightAvatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
