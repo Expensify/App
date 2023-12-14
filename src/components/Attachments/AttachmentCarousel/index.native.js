@@ -5,9 +5,9 @@ import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
@@ -68,6 +68,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
 
             setPage(newPageIndex);
             setActiveSource(item.source);
+
             onNavigate(item);
         },
         [setShouldShowArrows, attachments, onNavigate],
@@ -160,7 +161,6 @@ AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,

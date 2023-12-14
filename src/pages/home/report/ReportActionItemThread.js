@@ -6,8 +6,8 @@ import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 
@@ -47,7 +47,7 @@ function ReportActionItemThread(props) {
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
                 onSecondaryInteraction={props.onSecondaryInteraction}
             >

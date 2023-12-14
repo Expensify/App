@@ -1,43 +1,53 @@
-import React, {Component} from 'react';
-import {withNetwork} from '@components/OnyxProvider';
+import React, {forwardRef, useImperativeHandle, useRef} from 'react';
 import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
 import {qrShareDefaultProps, qrSharePropTypes} from '@components/QRShare/propTypes';
+import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
 
-class QRShareWithDownload extends Component {
-    qrShareRef = React.createRef();
+function QRShareWithDownload({innerRef, ...props}) {
+    const {isOffline} = useNetwork();
+    const qrShareRef = useRef(null);
 
-    constructor(props) {
-        super(props);
+    useImperativeHandle(
+        innerRef,
+        () => ({
+            download: () =>
+                new Promise((resolve, reject) => {
+                    // eslint-disable-next-line es/no-optional-chaining
+                    const svg = qrShareRef.current?.getSvg();
+                    if (svg == null) {
+                        return reject();
+                    }
 
-        this.download = this.download.bind(this);
-    }
+                    svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(props.title))));
+                }),
+        }),
+        [props.title],
+    );
 
-    download() {
-        return new Promise((resolve, reject) => {
-            // eslint-disable-next-line es/no-optional-chaining
-            const svg = this.qrShareRef.current?.getSvg();
-            if (svg == null) {
-                return reject();
-            }
-
-            svg.toDataURL((dataURL) => resolve(fileDownload(dataURL, getQrCodeFileName(this.props.title))));
-        });
-    }
-
-    render() {
-        return (
-            <QRShare
-                ref={this.qrShareRef}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                logo={this.props.network.isOffline ? null : this.props.logo}
-            />
-        );
-    }
+    return (
+        <QRShare
+            ref={qrShareRef}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            logo={isOffline ? null : props.logo}
+        />
+    );
 }
+
 QRShareWithDownload.propTypes = qrSharePropTypes;
 QRShareWithDownload.defaultProps = qrShareDefaultProps;
+QRShareWithDownload.displayName = 'QRShareWithDownload';
 
-export default withNetwork()(QRShareWithDownload);
+const QRShareWithDownloadWithRef = forwardRef((props, ref) => (
+    <QRShareWithDownload
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+QRShareWithDownloadWithRef.displayName = 'QRShareWithDownloadWithRef';
+
+export default QRShareWithDownloadWithRef;

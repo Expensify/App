@@ -2,12 +2,15 @@ import Str from 'expensify-common/lib/str';
 import lodashExtend from 'lodash/extend';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
@@ -19,9 +22,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +46,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 
 const propTypes = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
-    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    source: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.number]),
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
@@ -116,7 +116,7 @@ const defaultProps = {
 function AttachmentModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const onModalHideCallbackRef = useRef(null);
+    const StyleUtils = useStyleUtils();
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -373,8 +373,8 @@ function AttachmentModal(props) {
                 icon: Expensicons.Camera,
                 text: props.translate('common.replace'),
                 onSelected: () => {
-                    onModalHideCallbackRef.current = () => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
                     closeModal();
+                    Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT));
                 },
             });
         }
@@ -401,7 +401,7 @@ function AttachmentModal(props) {
     let headerTitle = props.headerTitle;
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
-    if (!_.isNull(props.isReceiptAttachment)) {
+    if (!_.isEmpty(props.report)) {
         headerTitle = translate(props.isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = props.allowDownload && isDownloadButtonReadyToBeShown && !props.isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = props.isReceiptAttachment && isModalOpen;
@@ -421,10 +421,6 @@ function AttachmentModal(props) {
                 }}
                 onModalHide={(e) => {
                     props.onModalHide(e);
-                    if (onModalHideCallbackRef.current) {
-                        onModalHideCallbackRef.current();
-                    }
-
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
@@ -466,6 +462,7 @@ function AttachmentModal(props) {
                                 isWorkspaceAvatar={props.isWorkspaceAvatar}
                                 fallbackSource={props.fallbackSource}
                                 isUsedInAttachmentModal
+                                transactionID={props.transaction.transactionID}
                             />
                         )
                     )}
