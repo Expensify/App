@@ -117,6 +117,7 @@ import Youtube from '@assets/images/social-youtube.svg';
 import Sync from '@assets/images/sync.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
+import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -242,6 +243,7 @@ export {
     Shield,
     Sync,
     Task,
+    ThumbsUp,
     ThreeDots,
     Transfer,
     Trashcan,

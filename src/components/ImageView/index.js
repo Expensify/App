@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -264,7 +264,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                 }}
                 onPressIn={onContainerPressIn}
                 onPress={onContainerPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGE}
+                role={CONST.ROLE.IMG}
                 accessibilityLabel={fileName}
             >
                 <Image
