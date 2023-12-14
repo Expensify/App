@@ -9,20 +9,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Grab the Share title of the Task */
     task: PropTypes.shape({
         /** Title of the Task */
@@ -33,7 +29,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {
         title: '',
     },
@@ -65,10 +60,6 @@ function NewTaskTitlePage(props) {
         Navigation.goBack(ROUTES.NEW_TASK);
     }
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -92,7 +83,7 @@ function NewTaskTitlePage(props) {
                 <View style={styles.mb5}>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={props.task.title}
                         ref={inputCallbackRef}
                         inputID="taskTitle"
@@ -111,9 +102,6 @@ NewTaskTitlePage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },

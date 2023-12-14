@@ -12,8 +12,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -163,7 +163,7 @@ function ACHContractStep(props) {
                 validate={validate}
                 onSubmit={submit}
                 submitButtonText={props.translate('common.saveAndContinue')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
             >
                 {({inputValues}) => (
                     <>

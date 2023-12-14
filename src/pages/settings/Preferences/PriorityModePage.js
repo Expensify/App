@@ -7,8 +7,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,7 +55,7 @@ function PriorityModePage(props) {
                 title={props.translate('priorityModePage.priorityMode')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
-            <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
+            <Text style={[styles.mh5, styles.mv3]}>{props.translate('priorityModePage.explainerText')}</Text>
             <SelectionList
                 sections={[{data: priorityModes}]}
                 onSelectRow={updateMode}

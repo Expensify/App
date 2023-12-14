@@ -1,7 +1,7 @@
 import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Environment from '@libs/Environment/Environment';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import pkg from '../../package.json';
 import Badge from './Badge';
@@ -15,10 +15,10 @@ const ENVIRONMENT_SHORT_FORM = {
 
 function EnvironmentBadge() {
     const styles = useThemeStyles();
-    const {environment} = useEnvironment();
+    const {environment, isProduction} = useEnvironment();
 
     // If we are on production, don't show any badge
-    if (environment === CONST.ENVIRONMENT.PRODUCTION || environment === undefined) {
+    if (isProduction) {
         return null;
     }
 

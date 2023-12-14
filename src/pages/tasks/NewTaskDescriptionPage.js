@@ -10,21 +10,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import useThemeStyles from '@styles/useThemeStyles';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Grab the Share description of the Task */
     task: PropTypes.shape({
         /** Description of the Task */
@@ -35,7 +31,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     task: {
         description: '',
     },
@@ -52,10 +47,6 @@ function NewTaskDescriptionPage(props) {
         Navigation.goBack(ROUTES.NEW_TASK);
     };
 
-    if (!Permissions.canUseTasks(props.betas)) {
-        Navigation.dismissModal();
-        return null;
-    }
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -82,7 +73,7 @@ function NewTaskDescriptionPage(props) {
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
                                 inputCallbackRef(el);
                                 updateMultilineInputRange(el);
@@ -90,7 +81,6 @@ function NewTaskDescriptionPage(props) {
                             autoGrowHeight
                             submitOnEnter={!Browser.isMobile()}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            inputStyle={[styles.verticalAlignTop]}
                         />
                     </View>
                 </FormProvider>
@@ -105,9 +95,6 @@ NewTaskDescriptionPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         task: {
             key: ONYXKEYS.TASK,
         },
