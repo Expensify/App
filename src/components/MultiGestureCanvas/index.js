@@ -21,11 +21,6 @@ import {defaultZoomRange, multiGestureCanvasDefaultProps, multiGestureCanvasProp
 
 const DOUBLE_TAP_SCALE = 3;
 
-const defaultZoomRange = {
-    min: 1,
-    max: 20,
-};
-
 const zoomScaleBounceFactors = {
     min: 0.7,
     max: 1.5,
