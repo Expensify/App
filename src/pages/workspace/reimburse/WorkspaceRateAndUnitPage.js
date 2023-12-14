@@ -180,7 +180,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
                             }
                         >
                             <TextInput
-                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ROLE.PRESENTATION}
                                 inputID="rate"
                                 containerStyles={[this.props.themeStyles.mt4]}
                                 defaultValue={PolicyUtils.getUnitRateValue(distanceCustomRate, this.props.toLocaleDigit)}

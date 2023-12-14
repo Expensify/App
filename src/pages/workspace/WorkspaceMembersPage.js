@@ -19,6 +19,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
@@ -28,7 +29,6 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -90,9 +90,6 @@ function WorkspaceMembersPage(props) {
     const isFocusedScreen = useIsFocused();
 
     useEffect(() => {
-        if (!SearchInputManager.searchInput) {
-            return;
-        }
         setSearchValue(SearchInputManager.searchInput);
     }, [isFocusedScreen]);
 
