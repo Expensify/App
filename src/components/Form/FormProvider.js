@@ -126,7 +126,7 @@ const FormProvider = forwardRef(
                 }
                 FormActions.setErrorFields(formID, null);
 
-            const validateErrors = validate(trimmedStringValues) || {};
+                const validateErrors = validate(trimmedStringValues) || {};
 
                 // Validate the input for html tags. It should supercede any other error
                 _.each(trimmedStringValues, (inputValue, inputID) => {
@@ -142,27 +142,27 @@ const FormProvider = forwardRef(
                         return;
                     }
 
-                const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
-                // Check for any matches that the original regex (foundHtmlTagIndex) matched
-                if (matchedHtmlTags) {
-                    // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
-                    for (let i = 0; i < matchedHtmlTags.length; i++) {
-                        const htmlTag = matchedHtmlTags[i];
-                        isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(htmlTag));
-                        if (!isMatch) {
-                            break;
+                    const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    let isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(inputValue));
+                    // Check for any matches that the original regex (foundHtmlTagIndex) matched
+                    if (matchedHtmlTags) {
+                        // Check if any matched inputs does not match in WHITELISTED_TAGS list and return early if needed.
+                        for (let i = 0; i < matchedHtmlTags.length; i++) {
+                            const htmlTag = matchedHtmlTags[i];
+                            isMatch = _.some(CONST.WHITELISTED_TAGS, (r) => r.test(htmlTag));
+                            if (!isMatch) {
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (isMatch && leadingSpaceIndex === -1) {
-                    return;
-                }
+                    if (isMatch && leadingSpaceIndex === -1) {
+                        return;
+                    }
 
-                // Add a validation error here because it is a string value that contains HTML characters
-                validateErrors[inputID] = 'common.error.invalidCharacter';
-            });
+                    // Add a validation error here because it is a string value that contains HTML characters
+                    validateErrors[inputID] = 'common.error.invalidCharacter';
+                });
 
                 if (!_.isObject(validateErrors)) {
                     throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
