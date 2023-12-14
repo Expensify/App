@@ -4,4 +4,13 @@ module.exports = {
         android: {},
     },
     assets: ['./assets/fonts/native'],
+    expo: {
+        userInterfaceStyle: "automatic",
+        ios: {
+          userInterfaceStyle: "automatic",
+        },
+        android: {
+          userInterfaceStyle: "automatic",
+        },
+    },
 };
