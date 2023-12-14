@@ -7,7 +7,7 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
@@ -54,7 +54,7 @@ function BaseOptionsList({
     contentContainerStyles,
     sectionHeaderStyle,
     showScrollIndicator,
-    listContainerStyles,
+    listContainerStyles: listContainerStylesProp,
     shouldDisableRowInnerPadding,
     shouldPreventDefaultFocusOnSelectRow,
     disableFocusOptions,
@@ -77,6 +77,8 @@ function BaseOptionsList({
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
     const didLayout = useRef(false);
+
+    const listContainerStyles = listContainerStylesProp || [styles.flex1];
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.

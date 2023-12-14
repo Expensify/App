@@ -4,7 +4,6 @@ import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -15,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
 import {Icon} from '@src/types/onyx/OnyxCommon';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'participantAccountIDs' | 'notificationPreference' | 'pendingFields'>;
@@ -693,7 +693,10 @@ function getShareDestination(reportID: string, reports: Record<string, OnyxTypes
 
     const participantAccountIDs = report.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs?.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails) as OnyxTypes.PersonalDetails[],
+        isMultipleParticipant,
+    );
 
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
@@ -722,7 +725,7 @@ function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: n
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const taskReport = ReportUtils.getReport(taskReportID);
-    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(isNotEmptyObject(taskReport) ? taskReport : null);
     const parentReport = ReportUtils.getParentReport(taskReport);
     const optimisticReportAction = {
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -752,7 +755,6 @@ function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: n
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
-                updateReportInLHN: true,
                 isDeletedParentAction: true,
             },
         },
@@ -910,29 +912,6 @@ function clearTaskErrors(reportID: string) {
     });
 }
 
-function getTaskReportActionMessage(actionName: string, reportID: string, isCreateTaskAction: boolean): string {
-    const report = ReportUtils.getReport(reportID);
-    if (isCreateTaskAction) {
-        return `task for ${report?.reportName}`;
-    }
-    let taskStatusText = '';
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            taskStatusText = Localize.translateLocal('task.messages.completed');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
-            taskStatusText = Localize.translateLocal('task.messages.canceled');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
-            taskStatusText = Localize.translateLocal('task.messages.reopened');
-            break;
-        default:
-            taskStatusText = Localize.translateLocal('task.task');
-    }
-
-    return `${taskStatusText}`;
-}
-
 export {
     createTaskAndNavigate,
     editTask,
@@ -954,5 +933,4 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    getTaskReportActionMessage,
 };
