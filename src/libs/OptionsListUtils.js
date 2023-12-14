@@ -389,9 +389,10 @@ function getLastMessageTextForReport(report) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction);
+        const iouReport = ReportUtils.getReport(iouReportID);
         const lastIOUMoneyReport = _.find(
-            allSortedReportActions[iouReport.reportID],
+            allSortedReportActions[iouReportID],
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
