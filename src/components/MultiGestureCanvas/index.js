@@ -274,7 +274,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
             pinchScaleOffset.value = doubleTapScale;
         },
-        [scaledWidth, scaledHeight, canvasSize.width, canvasSize.height],
+        [scaledWidth, scaledHeight, canvasSize, doubleTapScale],
     );
 
     const reset = useWorkletCallback((animated) => {
