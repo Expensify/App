@@ -36,7 +36,7 @@ function PressableWithSecondaryInteraction(
                 suppressHighlighting={suppressHighlighting}
                 onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             >
-                {children as ReactNode | string}
+                {children as ReactNode}
             </Text>
         );
     }
