@@ -1,6 +1,5 @@
 import {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
     /** The function that should be called when this pressable is pressed */
