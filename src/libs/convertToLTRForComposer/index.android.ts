@@ -3,13 +3,15 @@ import ConvertToLTRForComposer from './types';
 
 /**
  * Android only - The composer can be converted to LTR if its content is the LTR character followed by an @ or space
+ * because to mention sugggestion works the @ character must not have any character at the beginning e.g.: \u2066@ doesn't work
+ * also to avoid sending empty messages the unicode character with space could enable the send button.
  */
 function canComposerBeConvertedToLTR(text: string): boolean {
-    // this handle cases when user type only spaces
+    // This regex handles the case when a user only types spaces into the composer
     const containOnlySpaces = /^\s*$/;
-    // this handle the case where someone has RTL enabled and they began typing an @mention for someone.
+    // This regex handles the case where someone has RTL enabled and they began typing an @mention for someone.
     const startsWithLTRAndAt = new RegExp(`^${CONST.UNICODE.LTR}@$`);
-    // this handle cases could send empty messages when composer is multiline
+    // This regex handles the case to avoid sending empty messages when composer is multiline
     const startsWithLTRAndSpace = new RegExp(`${CONST.UNICODE.LTR}\\s*$`);
     const emptyExpressions = [containOnlySpaces, startsWithLTRAndAt, startsWithLTRAndSpace];
     return emptyExpressions.some((exp) => exp.test(text));
