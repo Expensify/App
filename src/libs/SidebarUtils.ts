@@ -108,12 +108,7 @@ function setWithLimit<TKey, TValue>(map: Map<TKey, TValue>, key: TKey, value: TV
 // Variable to verify if ONYX actions are loaded
 let hasInitialReportActions = false;
 
-type ReportActionsCount = Record<
-    string,
-    {
-        reportActionsCount: number;
-    }
->;
+type ReportActionsCount = Record<string, number>;
 
 /**
  * @returns An array of reportIDs sorted in the proper order
@@ -131,7 +126,7 @@ function getOrderedReportIDs(
         allReportActions &&
         Object.entries(allReportActions).reduce<ReportActionsCount>((acc, [reportID, reportActions]) => {
             if (reportActions) {
-                acc[reportID] = {reportActionsCount: Object.keys(reportActions as Record<string, ReportAction>).length};
+                acc[reportID] = Object.keys(reportActions as Record<string, ReportAction>).length;
             }
             return acc;
         }, {});
@@ -139,7 +134,7 @@ function getOrderedReportIDs(
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [currentReportId, allReports, betas, policies, priorityMode, reportActionsCount?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.reportActionsCount || 1],
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionsCount?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`] || 1],
         (key, value: unknown) => {
             /**
              *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,

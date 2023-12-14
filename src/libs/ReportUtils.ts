@@ -3472,8 +3472,8 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
-function transactionHasViolation(transactionID: string, transactionViolations?: TransactionViolations): boolean {
-    const violations: TransactionViolation[] = transactionViolations ? transactionViolations[transactionID] || [] : [];
+function transactionHasViolation(transactionID: string, transactionViolations: TransactionViolations): boolean {
+    const violations: TransactionViolation[] = transactionViolations[transactionID];
     if (!violations) {
         return false;
     }
@@ -3488,7 +3488,7 @@ function transactionHasViolation(transactionID: string, transactionViolations?: 
 function transactionThreadHasViolations(
     report: Report,
     canUseViolations: boolean,
-    transactionViolations?: TransactionViolations,
+    transactionViolations: TransactionViolations,
     reportActions?: OnyxCollection<ReportActions> | null,
     parentReportAction?: ReportAction | null,
 ): boolean {
