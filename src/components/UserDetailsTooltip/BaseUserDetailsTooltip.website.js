@@ -7,10 +7,10 @@ import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
