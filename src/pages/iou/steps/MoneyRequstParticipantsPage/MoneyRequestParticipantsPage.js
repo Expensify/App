@@ -133,7 +133,7 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={MoneyRequestParticipantsPage.displayName}
         >
-            {({safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
+            {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
@@ -149,7 +149,6 @@ function MoneyRequestParticipantsPage({iou, selectedTab, route, transaction}) {
                         iouType={iouType}
                         isDistanceRequest={isDistanceRequest}
                         isScanRequest={isScanRequest}
-                        didScreenTransitionEnd={didScreenTransitionEnd}
                     />
                 </View>
             )}
