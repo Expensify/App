@@ -14,7 +14,7 @@ function AttachmentViewPdf(props) {
     const scaleRef = useSharedValue(1);
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
- 
+
     // Reanimated freezes all objects captured in the closure of a worklet.
     // Since Reanimated 3, entire objects are captured instead of just the relevant properties.
     // See https://github.com/software-mansion/react-native-reanimated/pull/4060
