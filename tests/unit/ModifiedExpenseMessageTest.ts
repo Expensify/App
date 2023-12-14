@@ -136,5 +136,30 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when the amount, comment and merchant are changed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    merchant: 'Taco Bell',
+                    oldMerchant: 'Big Belly',
+                    amount: 1800,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 1255,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    newComment: 'I bought it on the way',
+                    oldComment: 'from the business trip',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly").';
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 });
