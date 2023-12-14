@@ -1,7 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -42,39 +43,42 @@ function FullName({reimbursementAccount, onNext, isEditing}) {
     };
 
     return (
-        <Form
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
             onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
+            shouldSaveDraft
         >
             <View>
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
                 <View style={[styles.flex2, styles.mb5]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={personalInfoStepKey.FIRST_NAME}
                         label={translate('personalInfoStep.legalFirstName')}
                         aria-label={translate('personalInfoStep.legalFirstName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={defaultValues.firstName}
                         shouldSaveDraft
                     />
                 </View>
                 <View style={[styles.flex2, styles.mb3]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={personalInfoStepKey.LAST_NAME}
                         label={translate('personalInfoStep.legalLastName')}
                         aria-label={translate('personalInfoStep.legalLastName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={defaultValues.lastName}
                         shouldSaveDraft
                     />
                 </View>
                 <HelpLinks translate={translate} />
             </View>
-        </Form>
+        </FormProvider>
     );
 }
 

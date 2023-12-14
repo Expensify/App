@@ -82,7 +82,7 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
                 inputID={companyWebsiteKey}
                 label={translate('businessInfoStep.companyWebsite')}
                 aria-label={translate('businessInfoStep.companyWebsite')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultCompanyWebsite}
                 shouldSaveDraft

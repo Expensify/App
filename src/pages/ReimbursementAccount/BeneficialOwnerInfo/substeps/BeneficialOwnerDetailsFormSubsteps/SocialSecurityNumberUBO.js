@@ -63,7 +63,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
                         inputID={ssnLast4InputID}
                         label={translate('beneficialOwnerInfoStep.last4SSN')}
                         aria-label={translate('beneficialOwnerInfoStep.last4SSN')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt4]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}

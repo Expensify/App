@@ -59,7 +59,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
                 inputID={companyTaxIdKey}
                 label={translate('businessInfoStep.taxIDNumber')}
                 aria-label={translate('businessInfoStep.taxIDNumber')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableCompanyTaxID}

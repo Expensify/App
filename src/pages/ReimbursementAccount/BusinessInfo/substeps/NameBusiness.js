@@ -50,7 +50,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}) {
             <TextInput
                 label={translate('businessInfoStep.businessName')}
                 aria-label={translate('businessInfoStep.businessName')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 inputID={companyNameKey}
                 containerStyles={[styles.mt4]}
                 disabled={shouldDisableCompanyName}

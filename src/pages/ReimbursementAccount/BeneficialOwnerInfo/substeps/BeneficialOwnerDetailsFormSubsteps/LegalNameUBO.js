@@ -55,7 +55,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
             <TextInput
                 label={translate('beneficialOwnerInfoStep.legalFirstName')}
                 aria-label={translate('beneficialOwnerInfoStep.legalFirstName')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 inputID={firstNameInputID}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultFirstName}
@@ -64,7 +64,7 @@ function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialO
             <TextInput
                 label={translate('beneficialOwnerInfoStep.legalLastName')}
                 aria-label={translate('beneficialOwnerInfoStep.legalLastName')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 inputID={lastNameInputID}
                 containerStyles={[styles.mt4]}
                 defaultValue={defaultLastName}

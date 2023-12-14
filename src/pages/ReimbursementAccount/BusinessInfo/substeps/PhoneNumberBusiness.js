@@ -55,7 +55,7 @@ function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}) {
                 inputID={companyPhoneNumberKey}
                 label={translate('common.phoneNumber')}
                 aria-label={translate('common.phoneNumber')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.TEL}
                 placeholder={translate('common.phoneNumberPlaceholder')}

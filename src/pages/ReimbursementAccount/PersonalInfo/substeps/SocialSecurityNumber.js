@@ -1,7 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -43,23 +44,25 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
     const defaultSsnLast4 = getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKey.SSN_LAST_4, '');
 
     return (
-        <Form
+        <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
             validate={validate}
             onSubmit={onNext}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
+            shouldSaveDraft
         >
             <View>
                 <Text style={[styles.textHeadline]}>{translate('personalInfoStep.enterTheLast4')}</Text>
                 <Text style={[styles.mb3]}>{translate('personalInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
-                    <TextInput
+                    <InputWrapper
+                        InputComponent={TextInput}
                         inputID={personalInfoStepKey.SSN_LAST_4}
                         label={translate('personalInfoStep.last4SSN')}
                         aria-label={translate('personalInfoStep.last4SSN')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt4]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         defaultValue={defaultSsnLast4}
@@ -72,7 +75,7 @@ function SocialSecurityNumber({reimbursementAccount, onNext, isEditing}) {
                     containerStyles={[styles.mt5]}
                 />
             </View>
-        </Form>
+        </FormProvider>
     );
 }
 
