@@ -2938,6 +2938,8 @@ function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentRepo
         ],
         originalMessage: {
             cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            text: ''
         },
         person: [
             {
