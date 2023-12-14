@@ -478,5 +478,7 @@ function ReportActionsList({
 }
 
 ReportActionsList.propTypes = propTypes;
+ReportActionsList.defaultProps = defaultProps;
+ReportActionsList.displayName = 'ReportActionsList';
 
 export default compose(withWindowDimensions, withPersonalDetails(), withCurrentUserPersonalDetails)(ReportActionsList);
