@@ -65,6 +65,7 @@ const propTypes = {
 
     /** The transaction from the parent report action */
     transactions: PropTypes.objectOf(transactionPropTypes),
+
     /** List of draft comments */
     draftComments: PropTypes.objectOf(PropTypes.string),
 
@@ -214,7 +215,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
         transactionViolations: {
-            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+            key: ({currentReportId}) => `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${currentReportId}`,
         },
     }),
 )(LHNOptionsList);

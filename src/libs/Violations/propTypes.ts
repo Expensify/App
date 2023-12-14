@@ -27,6 +27,6 @@ const transactionViolationPropType = PropTypes.shape({
     }),
 });
 
-const transactionViolationsPropType = PropTypes.arrayOf(transactionViolationPropType);
+const transactionViolationsPropType = PropTypes.objectOf(transactionViolationPropType);
 
 export {transactionViolationsPropType, transactionViolationPropType};

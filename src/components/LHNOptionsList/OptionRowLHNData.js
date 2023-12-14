@@ -7,6 +7,7 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -41,6 +42,9 @@ const propTypes = {
 
     /** The transaction from the parent report action */
     transaction: transactionPropTypes,
+
+    /** Any violations associated with the report */
+    transactionViolations: transactionViolationsPropType,
 
     ...basePropTypes,
 };
