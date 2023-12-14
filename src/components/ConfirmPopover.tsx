@@ -4,59 +4,8 @@ import {StyleProp, View, ViewStyle} from 'react-native';
 import ConfirmContent from './ConfirmContent';
 import {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions from './withWindowDimensions';
 import {WindowDimensionsContextData} from './withWindowDimensions/types';
-
-const propTypes = {
-    /** Title of the modal */
-    title: PropTypes.string.isRequired,
-
-    /** A callback to call when the form has been submitted */
-    onConfirm: PropTypes.func.isRequired,
-
-    /** A callback to call when the form has been closed */
-    onCancel: PropTypes.func,
-
-    /** Modal visibility */
-    isVisible: PropTypes.bool.isRequired,
-
-    /** Confirm button text */
-    confirmText: PropTypes.string,
-
-    /** Cancel button text */
-    cancelText: PropTypes.string,
-
-    /** Is the action destructive */
-    danger: PropTypes.bool,
-
-    /** Whether we should show the cancel button */
-    shouldShowCancelButton: PropTypes.bool,
-
-    /** Modal content text/element */
-    prompt: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
-
-    /** Where the popover should be positioned */
-    anchorPosition: PropTypes.shape({
-        top: PropTypes.number,
-        left: PropTypes.number,
-    }).isRequired,
-
-    /** Styles for view */
-    // eslint-disable-next-line react/forbid-prop-types
-    contentStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    confirmText: '',
-    cancelText: '',
-    danger: false,
-    onCancel: () => {},
-    shouldShowCancelButton: true,
-    prompt: '',
-    contentStyles: [],
-};
 
 type ConfirmPopoverProps = {
     /** Title of the modal */
