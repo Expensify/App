@@ -6,10 +6,10 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -139,10 +139,11 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
+                isSingleItem={attachments.length === 1}
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
             />
         ),
-        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (

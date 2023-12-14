@@ -3,7 +3,6 @@ package com.expensify.chat;
 import android.content.Context;
 import android.database.CursorWindow;
 
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDexApplication;
 
 import com.expensify.chat.bootsplash.BootSplashPackage;
@@ -66,9 +65,6 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   @Override
   public void onCreate() {
       super.onCreate();
-
-      // Use night (dark) mode so native UI defaults to dark theme.
-      AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
       SoLoader.init(this, /* native exopackage */ false);
       if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
