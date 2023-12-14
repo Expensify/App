@@ -17,6 +17,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -25,7 +26,6 @@ import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -261,7 +261,7 @@ function WorkspaceNewRoomPage(props) {
                                     inputID="welcomeMessage"
                                     label={translate('welcomeMessagePage.welcomeMessageOptional')}
                                     accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    role={CONST.ROLE.PRESENTATION}
                                     autoGrowHeight
                                     maxLength={CONST.MAX_COMMENT_LENGTH}
                                     autoCapitalize="none"
