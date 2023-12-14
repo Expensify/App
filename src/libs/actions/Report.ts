@@ -2438,22 +2438,20 @@ function getReportPrivateNote(reportID: string) {
  * - Adding one comment
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
- *
- * @param {String} text
- * @param {String} choice
  */
-function completeEngagementModal( text , choice) {
+function completeEngagementModal(text: string, choice: string) {
     const commandName = 'CompleteEngagementModal';
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
-    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, null, conciergeAccountID);
-    const reportCommentAction = reportComment.reportAction;
+    const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
+    const reportCommentAction: Partial<ReportAction> = reportComment.reportAction;
+    const lastComment = reportCommentAction?.message?.[0];
+    const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
     const reportCommentText = reportComment.commentText;
     const currentTime = DateUtils.getDBTime();
-    const lastCommentText = ReportUtils.formatReportLastMessageText(reportCommentAction.message[0].text);
 
-    const optimisticReport = {
+    const optimisticReport: Partial<Report> = {
         lastVisibleActionCreated: currentTime,
-        lastMessageTranslationKey: lodashGet(reportCommentAction, 'message[0].translationKey', ''),
+        lastMessageTranslationKey: lastComment?.translationKey ?? '',
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
@@ -2461,27 +2459,38 @@ function completeEngagementModal( text , choice) {
     };
 
     const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID]);
-    conciergeChatReportID = conciergeChatReport.reportID;
-    debugger;
+    conciergeChatReportID = conciergeChatReport?.reportID;
 
-    if (ReportUtils.getReportNotificationPreference(ReportUtils.getReport(conciergeChatReportID)) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    const report = ReportUtils.getReport(conciergeChatReportID);
+
+    if (isNotEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     }
 
     // Optimistically add the new actions to the store before waiting to save them to the server
-    const optimisticReportActions = {};
-    optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
+    const optimisticReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
+    if (reportCommentAction?.reportActionID) {
+        optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
+    }
 
+    type CompleteEngagementParameters = {
+        reportID: string;
+        reportActionID?: string;
+        commentReportActionID?: string | null;
+        reportComment?: string;
+        engagementChoice: string,
+        timezone?: string;
+    };
 
-    const parameters = {
-        reportID: conciergeChatReportID,
+    const parameters: CompleteEngagementParameters = {
+        reportID: conciergeChatReportID ?? '',
         reportActionID: reportCommentAction.reportActionID,
         reportComment: reportCommentText,
         engagementChoice: choice,
 
     };
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
@@ -2499,11 +2508,11 @@ function completeEngagementModal( text , choice) {
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
-            value: _.mapObject(optimisticReportActions, () => ({pendingAction: null})),
+            value:  {[reportCommentAction.reportActionID]: {pendingAction: null}},
         }
     ];
 
@@ -2523,7 +2532,7 @@ function completeEngagementModal( text , choice) {
         optimisticData,
         successData,
     });
-    notifyNewAction(conciergeChatReportID, reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
+    notifyNewAction(conciergeChatReportID ?? '', reportCommentAction.actorAccountID, reportCommentAction.reportActionID);
 }
 
 function dismissEngagementModal() {
@@ -2533,10 +2542,10 @@ function dismissEngagementModal() {
         value: true,
     };
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: 'ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL',
+            key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
             value: true,
         },
     ];
