@@ -1,4 +1,3 @@
-import {filter, get as lodashGet, some} from 'lodash';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
@@ -45,10 +44,10 @@ function isPlaceMatchForSearch(search, place) {
     }
     let result = false;
     if (place.name) {
-        result = some(search.split(' '), (searchTerm) => searchTerm && place.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+        result = _.some(search.split(' '), (searchTerm) => searchTerm && place.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
     }
     if (place.description) {
-        result = result || some(search.split(' '), (searchTerm) => searchTerm && place.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+        result = result || _.some(search.split(' '), (searchTerm) => searchTerm && place.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
     }
     return result;
 }
@@ -224,10 +223,10 @@ function AddressSearch({
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 onPress({
-                    address: lodashGet(details, 'description'),
-                    lat: lodashGet(details, 'geometry.location.lat', 0),
-                    lng: lodashGet(details, 'geometry.location.lng', 0),
-                    name: lodashGet(details, 'name'),
+                    address: _.get(details, 'description'),
+                    lat: _.get(details, 'geometry.location.lat', 0),
+                    lng: _.get(details, 'geometry.location.lng', 0),
+                    name: _.get(details, 'name'),
                 });
             }
             return;
@@ -277,7 +276,7 @@ function AddressSearch({
         const country = countryPrimary || countryFallback;
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
-            name: lodashGet(details, 'name', ''),
+            name: _.get(details, 'name', ''),
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
             // Make sure country is updated first, since city and state will be reset if the country changes
@@ -290,9 +289,9 @@ function AddressSearch({
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
-            lat: lodashGet(details, 'geometry.location.lat', 0),
-            lng: lodashGet(details, 'geometry.location.lng', 0),
-            address: lodashGet(details, 'formatted_address', ''),
+            lat: _.get(details, 'geometry.location.lat', 0),
+            lng: _.get(details, 'geometry.location.lng', 0),
+            address: _.get(details, 'formatted_address', ''),
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -312,7 +311,7 @@ function AddressSearch({
         if (!values.street && details.adr_address) {
             const streetAddressRegex = /<span class="street-address">([^<]*)<\/span>/;
             const adr_address = details.adr_address.match(streetAddressRegex);
-            const streetAddressFallback = lodashGet(adr_address, [1], null);
+            const streetAddressFallback = _.get(adr_address, [1], null);
             if (streetAddressFallback) {
                 values.street = streetAddressFallback;
             }
@@ -324,14 +323,14 @@ function AddressSearch({
             values.street += `, ${subpremise}`;
         }
 
-        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
+        const isValidCountryCode = _.get(CONST.ALL_COUNTRIES, country);
         if (isValidCountryCode) {
             values.country = country;
         }
 
         if (inputID) {
             _.each(values, (inputValue, key) => {
-                const inputKey = lodashGet(renamedInputKeys, key, key);
+                const inputKey = _.get(renamedInputKeys, key, key);
                 if (!inputKey) {
                     return;
                 }
@@ -414,7 +413,7 @@ function AddressSearch({
         if (!network.isOffline || !searchValue) {
             return predefinedPlaces;
         }
-        return filter(predefinedPlaces, (predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace));
+        return _.filter(predefinedPlaces, (predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace));
     }, [network.isOffline, predefinedPlaces, searchValue]);
 
     const listEmptyComponent = useCallback(
