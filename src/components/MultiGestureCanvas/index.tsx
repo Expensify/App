@@ -17,19 +17,11 @@ import Animated, {
 import AttachmentCarouselPagerContext, {AttachmentCarouselPagerContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {zoomScaleBounceFactors} from './constants';
+import {ContentSizeProp, ZoomRangeProp} from './types';
 import {clamp, getCanvasFitScale, getDeepDefaultProps} from './utils';
 
 const DOUBLE_TAP_SCALE = 3;
-
-const defaultZoomRange = {
-    min: 1,
-    max: 20,
-};
-
-const zoomScaleBounceFactors = {
-    min: 0.7,
-    max: 1.5,
-};
 
 const SPRING_CONFIG = {
     mass: 1,
@@ -58,22 +50,16 @@ type MultiGestureCanvasProps = React.PropsWithChildren<{
     /** The width and height of the content.
      * This is needed in order to properly scale the content in the canvas
      */
-    contentSize: {
-        width: number;
-        height: number;
-    };
+    contentSize: ContentSizeProp;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
-    zoomRange: {
-        min?: number;
-        max?: number;
-    };
+    zoomRange?: ZoomRangeProp;
 }>;
 
 function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, children, ...props}: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {contentSize, zoomRange} = getDeepDefaultProps(props);
+    const {contentSize, zoomRange} = getDeepDefaultProps({contentSize: props.contentSize, zoomRange: props.zoomRange});
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
@@ -620,4 +606,4 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
 MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
-export {defaultZoomRange, zoomScaleBounceFactors};
+export type {MultiGestureCanvasProps};

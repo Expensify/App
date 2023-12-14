@@ -1,3 +1,6 @@
+import {defaultZoomRange} from './constants';
+import {ContentSizeProp, ZoomRangeProp} from './types';
+
 type GetCanvasFitScale = (props: {
     canvasSize: {
         width: number;
@@ -19,24 +22,32 @@ const getCanvasFitScale: GetCanvasFitScale = ({canvasSize, contentSize}) => {
     return {scaleX, scaleY, minScale, maxScale};
 };
 
-function clamp(value, lowerBound, upperBound) {
+function clamp(value: number, lowerBound: number, upperBound: number) {
     'worklet';
 
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoomRangeProp = {}}) {
+type Props = {
+    contentSize?: ContentSizeProp;
+    zoomRange?: ZoomRangeProp;
+};
+type PropsWithDefault = {
+    contentSize: ContentSizeProp;
+    zoomRange: Required<ZoomRangeProp>;
+};
+const getDeepDefaultProps = ({contentSize: contentSizeProp, zoomRange: zoomRangeProp}: Props): PropsWithDefault => {
     const contentSize = {
-        width: contentSizeProp.width == null ? 1 : contentSizeProp.width,
-        height: contentSizeProp.height == null ? 1 : contentSizeProp.height,
+        width: contentSizeProp?.width ?? 1,
+        height: contentSizeProp?.height ?? 1,
     };
 
     const zoomRange = {
-        min: zoomRangeProp.min == null ? defaultZoomRange.min : zoomRangeProp.min,
-        max: zoomRangeProp.max == null ? defaultZoomRange.max : zoomRangeProp.max,
+        min: zoomRangeProp?.min ?? defaultZoomRange.min,
+        max: zoomRangeProp?.max ?? defaultZoomRange.max,
     };
 
     return {contentSize, zoomRange};
-}
+};
 
 export {getCanvasFitScale, clamp, getDeepDefaultProps};
