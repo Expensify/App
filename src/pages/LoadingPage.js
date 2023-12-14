@@ -15,7 +15,6 @@ const defaultProps = {
     onBackButtonPress: undefined,
 };
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 function LoadingPage(props) {
     const styles = useThemeStyles();
     return (
@@ -30,7 +29,7 @@ function LoadingPage(props) {
     );
 }
 
-LoadingPage.displayName = 'NotFoundPage';
+LoadingPage.displayName = 'LoadingPage';
 LoadingPage.propTypes = propTypes;
 LoadingPage.defaultProps = defaultProps;
 
