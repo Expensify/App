@@ -63,11 +63,15 @@ class NotificationService: UANotificationServiceExtension {
     }
     
     guard let reportAction = reportActionCollection[reportActionID] as? NSDictionary else {
-      throw ExpError.runtimeError("payload.onyxData[1].value['\(reportActionID)'] (report action) is missing" + reportActionID)
+      throw ExpError.runtimeError("payload.onyxData[1].value['\(reportActionID)'] (report action) missing" + reportActionID)
     }
     
     guard let avatarURL = reportAction["avatar"] as? String else {
-      throw ExpError.runtimeError("reportAction.avatar is missing" + reportActionID)
+      throw ExpError.runtimeError("reportAction.avatar missing. reportActionID: " + reportActionID)
+    }
+    
+    guard let accountID = reportAction["actorAccountID"] as? Int else {
+      throw ExpError.runtimeError("reportAction.actorAccountID missing. reportActionID: " + reportActionID)
     }
     
     return NotificationData(
@@ -75,7 +79,8 @@ class NotificationService: UANotificationServiceExtension {
       reportActionID: reportActionID,
       onyxData: onyxData,
       reportOnyxUpdate: reportActionOnyxUpdate,
-      avatarURL: avatarURL
+      avatarURL: avatarURL,
+      accountID: accountID
     )
   }
   
@@ -95,12 +100,14 @@ class NotificationData {
   public var onyxData: NSArray
   public var reportOnyxUpdate: NSDictionary
   public var avatarURL: String
+  public var accountID: Int
   
-  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String) {
+  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int) {
     self.reportID = reportID
     self.reportActionID = reportActionID
     self.onyxData = onyxData
     self.reportOnyxUpdate = reportOnyxUpdate
     self.avatarURL = avatarURL
+    self.accountID = accountID
   }
 }
