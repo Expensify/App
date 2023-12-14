@@ -1,4 +1,4 @@
-import {EmitterSubscription,DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, EmitterSubscription} from 'react-native';
 
 export default class DeviceEventListenerRef {
     private typePrefix: string;

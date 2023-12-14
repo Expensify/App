@@ -16,14 +16,14 @@ import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import reportPropTypes from '@pages/reportPropTypes';
-import variables from '@styles/variables';
-import * as Report from '@userActions/Report';
-import CONST from '@src/CONST';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ListBoundaryLoader from '@pages/home/report/ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
+import reportPropTypes from '@pages/reportPropTypes';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
 import DeviceEventListenerRef from './DeviceEventListenerRef';
 
 const propTypes = {
