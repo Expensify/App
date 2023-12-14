@@ -1,6 +1,6 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {HeaderGapProps, HeaderGapReturnType} from './types';
 
 function HeaderGap({styles}: HeaderGapProps): HeaderGapReturnType {
