@@ -126,7 +126,7 @@ type Foo = {
 
 <a name="d-ts-extension"></a><a name="1.2"></a>
 
-- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
+- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and internal JavaScript modules can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
 
   > Why? Type errors in `d.ts` files are not checked by TypeScript [^1].
 
@@ -608,7 +608,7 @@ This rule will apply until the migration is done. After the migration, discussio
 
 > Comment in the `#expensify-open-source` Slack channel if any of the following situations are encountered. Each comment should be prefixed with `TS ATTENTION:`. Internal engineers will access each situation and prescribe solutions to each case. Internal engineers should refer to general solutions to each situation that follows each list item.
 
-- I think types definitions in a third party library is incomplete or incorrect
+- I think types definitions in a third party library or internal JavaScript module are incomplete or incorrect
 
 When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/types/modules/*.d.ts`, each library as a separate file.
 
