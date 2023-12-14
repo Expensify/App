@@ -141,7 +141,7 @@ class PDFView extends Component {
      * @returns {Number}
      */
     calculatePageHeight(pageIndex) {
-        if (this.state.pageViewports.length === 0 || this.state.pageViewports.some((viewport) => !viewport)) {
+        if (this.state.pageViewports.length === 0 || _.some(this.state.pageViewports, (viewport) => !viewport)) {
             Log.warn('Dev error: calculatePageHeight() in PDFView called too early');
 
             return 0;

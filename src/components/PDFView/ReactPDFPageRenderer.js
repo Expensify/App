@@ -1,35 +1,34 @@
 import PropTypes from 'prop-types';
-import React, {Component} from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Page} from 'react-pdf';
-import _ from 'underscore';
+import stylePropTypes from '@styles/stylePropTypes';
 import PDFViewConstants from './constants';
 
-class ReactPDFPageRenderer extends Component {
-    render() {
-        const pageIndex = this.props.index;
-        const {pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize} = this.props.data;
+const ReactPDFPageRenderer = memo(({index, data, style}) => {
+    const pageIndex = index;
+    const {pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize} = data;
 
-        const pageHeight = calculatePageHeight(pageIndex);
-        const devicePixelRatio = getDevicePixelRatio(pageWidth, pageHeight);
+    const pageHeight = calculatePageHeight(pageIndex);
+    const devicePixelRatio = getDevicePixelRatio(pageWidth, pageHeight);
 
-        return (
-            <View style={{...this.props.style, top: `${parseFloat(this.props.style.top) + PDFViewConstants.PAGE_BORDER}px`}}>
-                <Page
-                    key={`page_${pageIndex}`}
-                    width={pageWidth}
-                    height={pageHeight ? pageHeight : estimatedItemSize}
-                    pageIndex={pageIndex}
-                    // This needs to be empty to avoid multiple loading texts which show per page and look ugly
-                    // See https://github.com/Expensify/App/issues/14358 for more details
-                    loading=""
-                    devicePixelRatio={devicePixelRatio}
-                />
-            </View>
-        );
-    }
-}
+    return (
+        <View style={{...style, top: `${parseFloat(style.top) + PDFViewConstants.PAGE_BORDER}px`}}>
+            <Page
+                key={`page_${pageIndex}`}
+                width={pageWidth}
+                height={pageHeight || estimatedItemSize}
+                pageIndex={pageIndex}
+                // This needs to be empty to avoid multiple loading texts which show per page and look ugly
+                // See https://github.com/Expensify/App/issues/14358 for more details
+                loading=""
+                devicePixelRatio={devicePixelRatio}
+            />
+        </View>
+    );
+});
 
+ReactPDFPageRenderer.displayName = 'ReactPDFPageRenderer';
 ReactPDFPageRenderer.propTypes = {
     /** Index of the PDF page to be displayed passed by VariableSizeList */
     index: PropTypes.string.isRequired,
