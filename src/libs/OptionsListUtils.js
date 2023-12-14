@@ -390,7 +390,7 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReportID = ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction);
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        const iouReport = ReportUtils.getReport(iouReportID);
         const lastIOUMoneyReportAction = _.find(
             allSortedReportActions[iouReportID],
             (reportAction, key) =>
