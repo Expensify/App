@@ -120,30 +120,17 @@ function getOrderedReportIDs(
     allReportActions: OnyxCollection<ReportActions>,
     transactionViolations: TransactionViolations,
 ): string[] {
-    const countActions = (actions: ReportActions | null): number => (actions ? Object.keys(actions).length : 0);
-
-    const getReportActionCount = (reportIDKey: string): number | null => {
-        if (!allReportActions?.[reportIDKey]) {
-            return null;
-        }
-        return countActions(allReportActions[reportIDKey]);
-    };
+    const reportIDKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`;
+    const reportActionCount = allReportActions?.[reportIDKey]?.length ?? 1;
 
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [currentReportId, allReports, betas, policies, priorityMode, getReportActionCount(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`) || 1],
-        (key, value: unknown) => {
-            /**
-             *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
-             *  which we don't need to store in a cacheKey
-             */
-            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
-                return undefined;
-            }
-
-            return value;
-        },
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+        /**
+         * Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' keys from the stringified
+         * objects to keep the size of the resulting key manageable.
+         */
+        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText'].includes(key) ? undefined : value),
     );
 
     // Check if the result is already in the cache
@@ -286,8 +273,11 @@ function getOptionData(
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
     };
+
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
+    const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
+    const hasViolations = canUseViolations && ReportUtils.transactionThreadHasViolations(report, transactionViolations, null);
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -300,10 +290,7 @@ function getOptionData(
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
-    result.brickRoadIndicator =
-        Object.keys(result.allReportErrors ?? {}).length !== 0 || (canUseViolations && ReportUtils.transactionThreadHasViolations(report, transactionViolations, null, parentReportAction))
-            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-            : '';
+    result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
