@@ -1,13 +1,15 @@
-import {RouteProp} from '@react-navigation/native';
+import {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {Linking} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {AuthScreensParamList} from '@libs/Navigation/types';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as SessionUserAction from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Account, Session} from '@src/types/onyx';
 
 type LogOutPreviousUserPageOnyxProps = {
@@ -18,11 +20,9 @@ type LogOutPreviousUserPageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & {
-    route: RouteProp<{params: {shouldForceLogin?: string; email?: string; shortLivedAuthToken?: string; exitTo?: Route}}>;
-};
+type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
-function LogOutPreviousUserPage({account = {isLoading: false}, session, route}: LogOutPreviousUserPageProps) {
+function LogOutPreviousUserPage({account = {isLoading: false}, session, route: {params}}: LogOutPreviousUserPageProps) {
     useEffect(() => {
         Linking.getInitialURL().then((transitionURL) => {
             const sessionEmail = session?.email;
@@ -36,15 +36,15 @@ function LogOutPreviousUserPage({account = {isLoading: false}, session, route}: 
             // and their authToken stored in Onyx becomes invalid.
             // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
             // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
-            const shouldForceLogin = route.params?.shouldForceLogin === 'true';
+            const shouldForceLogin = params.shouldForceLogin === 'true';
 
             if (shouldForceLogin) {
-                const email = route.params?.email ?? '';
-                const shortLivedAuthToken = route.params?.shortLivedAuthToken ?? '';
+                const email = params.email;
+                const shortLivedAuthToken = params.shortLivedAuthToken;
                 SessionUserAction.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
 
-            const exitTo = route.params?.exitTo ?? '';
+            const exitTo = params.exitTo;
             // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
             // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
             // which is already called when AuthScreens mounts.
@@ -54,7 +54,7 @@ function LogOutPreviousUserPage({account = {isLoading: false}, session, route}: 
                 });
             }
         });
-    }, [account?.isLoading, route.params?.email, route.params?.exitTo, route.params?.shortLivedAuthToken, route.params?.shouldForceLogin, session?.email]);
+    }, [account?.isLoading, params.email, params.exitTo, params.shortLivedAuthToken, params.shouldForceLogin, session?.email]);
 
     return <FullScreenLoadingIndicator />;
 }

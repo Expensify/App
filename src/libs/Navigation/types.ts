@@ -3,6 +3,7 @@ import {CommonActions, NavigationContainerRefWithCurrent, NavigationHelpers, Nav
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import {Route as SupportedRoute} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
@@ -391,7 +392,7 @@ type AuthScreensParamList = {
         shouldForceLogin: string;
         email: string;
         shortLivedAuthToken: string;
-        exitTo: string;
+        exitTo: SupportedRoute;
     };
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.REPORT_ATTACHMENTS]: {
