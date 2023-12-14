@@ -52,6 +52,9 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** Reason pf payment cancellation */
+    cancellationReason?: string;
 };
 
 type ImageMetadata = {
