@@ -3473,10 +3473,6 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
     return parentReport?.reportID !== report?.reportID && !isChildReportHasComment;
 }
 
-/**
- *  Checks if there are any violations belonging to the transaction in the transactionsViolations Onyx object
- *  then checks that the violation is of the proper type
- */
 function transactionHasViolation(transactionID: string, transactionViolations?: TransactionViolations): boolean {
     const violations: TransactionViolation[] = transactionViolations ? transactionViolations[transactionID] || [] : [];
     if (!violations) {
