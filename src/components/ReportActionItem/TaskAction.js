@@ -3,8 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
-import * as Task from '@userActions/Task';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as TaskUtils from '@libs/TaskUtils';
 
 const propTypes = {
     /** Name of the reportAction action */
@@ -22,7 +22,7 @@ function TaskAction(props) {
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Task.getTaskReportActionMessage(props.actionName, props.taskReportID, false)}</Text>
+                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{TaskUtils.getTaskReportActionMessage(props.actionName)}</Text>
             </View>
         </>
     );

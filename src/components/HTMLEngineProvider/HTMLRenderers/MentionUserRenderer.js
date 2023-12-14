@@ -8,14 +8,13 @@ import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
@@ -28,8 +27,8 @@ const propTypes = {
 };
 
 function MentionUserRenderer(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
     const htmlAttribAccountID = lodashGet(props.tnode.attributes, 'accountid');
@@ -67,7 +66,7 @@ function MentionUserRenderer(props) {
                         event.preventDefault();
                         Navigation.navigate(navigationRoute);
                     }}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                    role={CONST.ROLE.LINK}
                     accessibilityLabel={`/${navigationRoute}`}
                 >
                     <UserDetailsTooltip
@@ -77,8 +76,8 @@ function MentionUserRenderer(props) {
                         }}
                     >
                         <Text
-                            style={[styles.link, _.omit(props.style, 'color'), StyleUtils.getMentionStyle(theme, isOurMention), {color: StyleUtils.getMentionTextColor(theme, isOurMention)}]}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                            style={[styles.link, _.omit(props.style, 'color'), StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                            role={CONST.ROLE.LINK}
                             testID="span"
                             href={`/${navigationRoute}`}
                             // eslint-disable-next-line react/jsx-props-no-spreading
