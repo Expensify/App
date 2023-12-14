@@ -64,7 +64,7 @@ const INDICATOR_STYLES = {
     },
 };
 
-function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
+function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -185,7 +185,7 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
                     )}
                 </PressableWithFeedback>}
             </View>
-                    <View>
+                    <View style={{marginBottom: 12}}>
                         {_.map(workspaces, (item, index) => getMenuItem(item, index))}
                     </View>
                 </View>
@@ -208,9 +208,9 @@ function WorkspacesSelectorPage({policies, activeWorkspaceID}) {
     );
 }
 
-WorkspacesSelectorPage.propTypes = propTypes;
-WorkspacesSelectorPage.defaultProps = defaultProps;
-WorkspacesSelectorPage.displayName = 'WorkspacesSelectorPage';
+WorkspaceSwitcherPage.propTypes = propTypes;
+WorkspaceSwitcherPage.defaultProps = defaultProps;
+WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
 
 export default withOnyx({
     policies: {
@@ -219,4 +219,4 @@ export default withOnyx({
     activeWorkspaceID: {
         key: ONYXKEYS.ACTIVE_WORKSPACE_ID,
     },
-})(WorkspacesSelectorPage);
+})(WorkspaceSwitcherPage);

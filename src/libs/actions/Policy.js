@@ -1511,6 +1511,14 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {
 }
 
 /**
+ * This function saves the selected workspace to onyx to filter data depending on this ID
+ * @param {String | undefined} policyID
+ */
+function selectWorkspace(policyID) {
+    Onyx.set(ONYXKEYS.ACTIVE_WORKSPACE_ID, policyID);
+}
+
+/**
  * This flow is used for bottom up flow converting IOU report to an expense report. When user takes this action,
  * we create a Collect type workspace when the person taking the action becomes an owner and an admin, while we
  * add a new member to the workspace as an employee and convert the IOU report passed as a param into an expense report.
@@ -1942,4 +1950,5 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
+    selectWorkspace,
 };

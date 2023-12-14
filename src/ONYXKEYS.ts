@@ -21,6 +21,9 @@ const ONYXKEYS = {
      * which tab is the leader, and which ones are the followers */
     ACTIVE_CLIENTS: 'activeClients',
 
+    /** Holds active policyID (if any is active) */
+    ACTIVE_WORKSPACE_ID: 'activeWorkspaceID',
+
     /** A unique ID for the device */
     DEVICE_ID: 'deviceID',
 
@@ -363,6 +366,7 @@ type OnyxValues = {
     [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
+    [ONYXKEYS.ACTIVE_WORKSPACE_ID]: string | undefined;
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     [ONYXKEYS.PERSISTED_REQUESTS]: OnyxTypes.Request[];

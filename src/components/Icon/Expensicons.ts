@@ -220,6 +220,7 @@ export {
     Location,
     Lock,
     LoungeAccess,
+    ExpensifyAppIcon,
     Luggage,
     MagnifyingGlass,
     Mail,

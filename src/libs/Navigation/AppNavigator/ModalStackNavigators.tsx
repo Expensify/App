@@ -28,6 +28,7 @@ import type {
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
+    WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
 import {ThemeStyles} from '@styles/index';
 import SCREENS from '@src/SCREENS';
@@ -191,6 +192,9 @@ const AccountSettingsModalStackNavigator = createModalStackNavigator(
     },
     (styles) => ({cardStyle: styles.navigationScreenCardStyle, headerShown: false}),
 );
+const WorkspaceSwitcherModalStackNavigator = createModalStackNavigator<WorkspaceSwitcherNavigatorParamList>({
+    [SCREENS.WORKSPACE_SWITCHER.ROOT]: () => require('../../../pages/WorkspaceSwitcherPage').default as React.ComponentType,
+});
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
     [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
@@ -315,4 +319,5 @@ export {
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
     ReferralModalStackNavigator,
+    WorkspaceSwitcherModalStackNavigator,
 };
