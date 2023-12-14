@@ -1,18 +1,19 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import _ from 'lodash';
 import React, {FC, ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {AnimatedStyle} from 'react-native-reanimated';
 import {SvgProps} from 'react-native-svg';
+// eslint-disable-next-line no-restricted-imports
+import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import {AvatarSource} from '@libs/UserUtils';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -284,6 +285,8 @@ function MenuItem(
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
 
+    // eslint-disable-next-line you-dont-need-lodash-underscore/contains
+    const isDeleted = style ? _.contains(style, styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const combinedTitleTextStyle = StyleUtils.combineStyles(
@@ -296,7 +299,7 @@ function MenuItem(
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
-            styles.offlineFeedback.deleted,
+            isDeleted ? styles.offlineFeedback.deleted : {},
         ],
         titleStyle ?? {},
     );
@@ -305,7 +308,7 @@ function MenuItem(
         icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         (descriptionTextStyle as ViewStyle) || styles.breakWord,
-        styles.offlineFeedback.deleted,
+        isDeleted ? styles.offlineFeedback.deleted : {},
     ]) as StyleProp<TextStyle>;
 
     useEffect(() => {
@@ -352,7 +355,7 @@ function MenuItem(
             return;
         }
 
-        if (event && event.type === 'click' && event.currentTarget instanceof EventTarget) {
+        if (event && event.type === 'click') {
             (event.currentTarget as HTMLElement).blur();
         }
 
@@ -365,7 +368,7 @@ function MenuItem(
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(() => onPressAction, isAnonymousAction) : () => onPressAction}
+                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
@@ -592,4 +595,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
+export type {MenuItemProps};
 export default forwardRef(MenuItem);
