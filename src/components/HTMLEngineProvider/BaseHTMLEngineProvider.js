@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import _ from 'underscore';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
+import FontUtils from '@libs/FontUtils';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
@@ -31,7 +31,6 @@ const defaultProps = {
 // costly invalidations and commits.
 function BaseHTMLEngineProvider(props) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     // Declare nonstandard tags and their content model here
     const customHTMLElementModels = useMemo(
@@ -79,7 +78,7 @@ function BaseHTMLEngineProvider(props) {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={_.values(StyleUtils.fontFamily.singleFontFamily)}
+            systemFonts={_.values(FontUtils.singleFontFamily)}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),

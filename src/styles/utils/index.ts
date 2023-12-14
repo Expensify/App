@@ -3,6 +3,7 @@ import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, TextSty
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
+import FontUtils from '@libs/FontUtils';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
@@ -14,10 +15,6 @@ import {Transaction} from '@src/types/onyx';
 import {defaultStyles, type ThemeStyles} from '..';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
-import fontFamily from './fontFamily';
-import multiFontFamily from './fontFamily/multiFontFamily';
-import singleFontFamily from './fontFamily/singleFontFamily';
-import fontWeightBold from './fontWeight/bold';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
@@ -530,11 +527,11 @@ function getModalPaddingStyles({
  * Takes fontStyle and fontWeight and returns the correct fontFamily
  */
 function getFontFamilyMonospace({fontStyle, fontWeight}: TextStyle): string {
-    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
-    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
-    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
+    const italic = fontStyle === 'italic' && FontUtils.fontFamily.platform.MONOSPACE_ITALIC;
+    const bold = fontWeight === 'bold' && FontUtils.fontFamily.platform.MONOSPACE_BOLD;
+    const italicBold = italic && bold && FontUtils.fontFamily.platform.MONOSPACE_BOLD_ITALIC;
 
-    return italicBold || bold || italic || fontFamily.MONOSPACE;
+    return italicBold || bold || italic || FontUtils.fontFamily.platform.MONOSPACE;
 }
 /**
  * Returns the font size for the HTML code tag renderer.
@@ -1018,14 +1015,6 @@ function getTransparentColor(color: string) {
 }
 
 const staticStyleUtils = {
-    fontFamily: {
-        platform: fontFamily,
-        singleFontFamily,
-        multiFontFamily,
-    },
-    fontWeight: {
-        bold: fontWeightBold,
-    },
     positioning,
 
     combineStyles,

@@ -4,23 +4,24 @@ import React, {forwardRef, useEffect} from 'react';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import FontUtils from '@libs/FontUtils';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import './index.css';
 import onfidoPropTypes from './onfidoPropTypes';
 
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme, StyleUtils}) {
+function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}) {
     OnfidoSDK.init({
         token: sdkToken,
         containerId: CONST.ONFIDO.CONTAINER_ID,
         useMemoryHistory: true,
         customUI: {
-            fontFamilyTitle: `${StyleUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
-            fontFamilySubtitle: `${StyleUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
-            fontFamilyBody: `${StyleUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            fontFamilyTitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            fontFamilySubtitle: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
+            fontFamilyBody: `${FontUtils.fontFamily.platform.EXP_NEUE}, -apple-system, serif`,
             fontSizeTitle: `${variables.fontSizeLarge}px`,
-            fontWeightTitle: StyleUtils.fontWeight.bold,
+            fontWeightTitle: FontUtils.fontWeight.bold,
             fontWeightSubtitle: 400,
             fontSizeSubtitle: `${variables.fontSizeNormal}px`,
             colorContentTitle: theme.text,
