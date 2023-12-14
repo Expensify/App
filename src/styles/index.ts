@@ -1385,8 +1385,8 @@ const styles = (theme: ThemeColors) =>
                 position: 'absolute',
                 left: 0,
                 height: '100%',
-                borderTopRightRadius: 24,
-                borderBottomRightRadius: 24,
+                borderTopRightRadius: isSmallScreenWidth ? 0 : 24,
+                borderBottomRightRadius: isSmallScreenWidth ? 0 : 24,
                 overflow: 'hidden',
             } satisfies ViewStyle),
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
