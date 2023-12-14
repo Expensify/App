@@ -1,4 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import _ from 'lodash';
 import React, {FC, ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {AnimatedStyle} from 'react-native-reanimated';
@@ -8,6 +9,7 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import {AvatarSource} from '@libs/UserUtils';
 import useTheme from '@styles/themes/useTheme';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
@@ -49,7 +51,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     badgeText?: string;
 
     /** Used to apply offline styles to child text components */
-    style?: StyleProp<ViewStyle>;
+    style?: ViewStyle;
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -66,7 +68,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     descriptionTextStyle?: StyleProp<ViewStyle>;
 
     /** Icon to display on the left side of component */
-    icon?: ReactNode | IconType | string;
+    icon?: ((props: SrcProps) => ReactNode) | AvatarSource;
 
     /** The fill color to pass into the icon. */
     iconFill?: string;
@@ -93,19 +95,19 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) & {
     fallbackIcon?: FC<SvgProps>;
 
     /** An icon to display under the main item */
-    furtherDetailsIcon?: IconType;
+    furtherDetailsIcon?: (props: SrcProps) => ReactNode;
 
     /** Boolean whether to display the title right icon */
     shouldShowTitleIcon?: boolean;
 
     /** Icon to display at right side of title */
-    titleIcon?: IconType;
+    titleIcon?: (props: SrcProps) => ReactNode;
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
 
     /** Overrides the icon for shouldShowRightIcon */
-    iconRight?: IconType;
+    iconRight?: (props: SrcProps) => ReactNode;
 
     /** Should render component on the right */
     shouldShowRightComponent?: boolean;
@@ -268,7 +270,7 @@ function MenuItem(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const style = StyleUtils.combineStyles(style, styles.popoverMenuItem);
+    const combinedStyle = StyleUtils.combineStyles(style ?? {}, styles.popoverMenuItem);
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
@@ -293,9 +295,9 @@ function MenuItem(
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
-        descriptionTextStyle as ViewStyle || styles.breakWord,
+        (descriptionTextStyle as ViewStyle) || styles.breakWord,
         styles.offlineFeedback.deleted,
-    ]);
+    ]) as StyleProp<TextStyle>;
 
     useEffect(() => {
         if (!title || (titleRef.current.length && titleRef.current === title) || !shouldParseTitle) {
@@ -354,24 +356,27 @@ function MenuItem(
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(() => onPressAction, isAnonymousAction) : () => onPressAction}
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
-                    style={({pressed}: PressableStateCallbackType) => [
-                        containerStyle,
-                        errorText ? styles.pb5 : {},
-                        style,
-                        !interactive && styles.cursorDefault,
-                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive), true),
-                        (isHovered || pressed) && hoverAndPressStyle,
-                        ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
-                        shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                    ] as StyleProp<ViewStyle>}
+                    style={({pressed}: PressableStateCallbackType) =>
+                        [
+                            containerStyle,
+                            errorText ? styles.pb5 : {},
+                            combinedStyle,
+                            !interactive && styles.cursorDefault,
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive), true),
+                            (isHovered || pressed) && hoverAndPressStyle,
+                            ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                            shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
+                        ] as StyleProp<ViewStyle>
+                    }
                     disabled={disabled}
                     ref={ref}
                     role={CONST.ROLE.MENUITEM}
                     accessibilityLabel={title ? title.toString() : ''}
+                    accessible
                 >
                     {({pressed}) => (
                         <>
@@ -390,12 +395,12 @@ function MenuItem(
                                             size={avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
-                                                isHovered && !pressed && props.interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
+                                                pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.buttonPressedBG) : undefined,
+                                                isHovered && !pressed && interactive ? StyleUtils.getBackgroundAndBorderStyle(theme.border) : undefined,
                                             ]}
                                         />
                                     )}
-                                    {Boolean(icon) && !Array.isArray(icon) && (
+                                    {Boolean(icon) && typeof icon === 'function' && (
                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
                                             {iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
@@ -445,7 +450,7 @@ function MenuItem(
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
                                         {Boolean(description) && shouldShowDescriptionOnTop && (
                                             <Text
-                                                style={descriptionTextStyles}
+                                                style={descriptionTextStyles as TextStyle}
                                                 numberOfLines={2}
                                             >
                                                 {description}
@@ -466,7 +471,7 @@ function MenuItem(
                                                     {renderTitleContent()}
                                                 </Text>
                                             )}
-                                            {Boolean(shouldShowTitleIcon) && Boolean(titleIcon) && (
+                                            {Boolean(shouldShowTitleIcon) && titleIcon && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
                                                         src={titleIcon}
@@ -488,7 +493,7 @@ function MenuItem(
                                                 <Text style={[styles.textLabelError]}>{error}</Text>
                                             </View>
                                         )}
-                                        {Boolean(furtherDetails) && (
+                                        {furtherDetailsIcon && Boolean(furtherDetails) && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
                                                     src={furtherDetailsIcon}
@@ -517,7 +522,7 @@ function MenuItem(
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
                                 {(subtitle ?? subtitle === 0) && (
                                     <View style={[styles.justifyContentCenter, styles.mr1]}>
-                                        <Text style={[styles.textLabelSupporting, style]}>{subtitle}</Text>
+                                        <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                     </View>
                                 )}
                                 {!_.isEmpty(floatRightAvatars) && (
@@ -536,7 +541,7 @@ function MenuItem(
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={props.brickRoadIndicator === 'error' ? theme.danger : theme.success}
+                                            fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
                                         />
                                     </View>
                                 )}
@@ -556,11 +561,11 @@ function MenuItem(
                                 {shouldShowRightComponent && rightComponent}
                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                             </View>
-                            {Boolean(props.errorText) && (
+                            {Boolean(errorText) && (
                                 <FormHelpMessage
                                     isError
                                     shouldShowRedDotIndicator={false}
-                                    message={props.errorText}
+                                    message={errorText}
                                     style={styles.menuItemError}
                                 />
                             )}
