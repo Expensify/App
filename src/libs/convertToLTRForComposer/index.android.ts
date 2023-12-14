@@ -7,11 +7,11 @@ import ConvertToLTRForComposer from './types';
  * also to avoid sending empty messages the unicode character with space could enable the send button.
  */
 function canComposerBeConvertedToLTR(text: string): boolean {
-    // This regex handles the case when a user only types spaces into the composer
+    // This regex handles the case when a user only types spaces into the composer.
     const containOnlySpaces = /^\s*$/;
     // This regex handles the case where someone has RTL enabled and they began typing an @mention for someone.
     const startsWithLTRAndAt = new RegExp(`^${CONST.UNICODE.LTR}@$`);
-    // This regex handles the case to avoid sending empty messages when composer is multiline
+    // This regex handles the case where the composer can contain multiple lines of whitespace
     const startsWithLTRAndSpace = new RegExp(`${CONST.UNICODE.LTR}\\s*$`);
     const emptyExpressions = [containOnlySpaces, startsWithLTRAndAt, startsWithLTRAndSpace];
     return emptyExpressions.some((exp) => exp.test(text));
@@ -22,7 +22,9 @@ function canComposerBeConvertedToLTR(text: string): boolean {
  *  Sending an empty message;
  *  Mention suggestions not works if @ or \s (at or space) is the first character;
  *  Placeholder is not displayed if the unicode character is the only character remaining;
- * force: always remove the LTR unicode, going to be used when composer is consider as empty */
+ *
+ * @newComment: the comment written by the user
+ * @force: always remove the LTR unicode, going to be used when composer is consider as empty */
 const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
     const result = newComment.length <= 1 || force ? newComment.replaceAll(CONST.UNICODE.LTR, '') : newComment;
     return result;
