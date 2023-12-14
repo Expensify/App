@@ -224,5 +224,68 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
         });
+
+        describe('when the merchant is set', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    oldMerchant: '',
+                    merchant: 'Big Belly',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the merchant to "Big Belly".`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the merchant and the description are set', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    oldMerchant: '',
+                    merchant: 'Big Belly',
+                    oldComment: '',
+                    newComment: 'minishore',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the description to "minishore" and the merchant to "Big Belly".`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the merchant, the category and the description are set', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                originalMessage: {
+                    oldMerchant: '',
+                    merchant: 'Big Belly',
+                    oldComment: '',
+                    newComment: 'minishore',
+                    oldCategory: '',
+                    category: 'Benefits',
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const expectedResult = `set the description to "minishore", the merchant to "Big Belly", and the category to "Benefits".`;
+
+                const result = ModifiedExpenseMessage.getForReportAction(reportAction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
     });
 });
