@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = () => {}, optionItem = null, viewMode = 'default', style}: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem = null, viewMode = 'default', style}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -73,14 +73,12 @@ function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = ()
             ? ([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter] as StyleProp<ViewStyle>)
             : ([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter] as StyleProp<ViewStyle>),
     );
-    const hoveredBackgroundColor =
-        (!!hoverStyle || !!styles.sidebarLinkHover) && 'backgroundColor' in (hoverStyle ?? styles.sidebarLinkHover) ? (hoverStyle ?? styles.sidebarLinkHover).backgroundColor : theme.sidebar;
+    const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
-
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -165,7 +163,7 @@ function OptionRowLHN({hoverStyle, reportID, isFocused = false, onSelectRow = ()
                             styles.sidebarLinkInnerLHN,
                             StyleUtils.getBackgroundColorStyle(theme.sidebar),
                             isFocused ? styles.sidebarLinkActive : null,
-                            (hovered || isContextMenuActive) && !isFocused ? hoverStyle ?? styles.sidebarLinkHover : styles.sidebarLinkHover,
+                            (hovered || isContextMenuActive) && !isFocused ? styles.sidebarLinkHover : null,
                         ]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}

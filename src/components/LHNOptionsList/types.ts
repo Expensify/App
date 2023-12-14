@@ -84,7 +84,6 @@ type OptionRowLHNDataProps = {
 };
 
 type OptionRowLHNProps = {
-    hoverStyle?: StyleProp<ViewStyle>;
     reportID: string;
     isFocused?: boolean;
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
