@@ -54,6 +54,15 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
         const hasAskedForLocationPermission = useRef(false);
 
+        const getUserLocationFromCache = useCallback(() => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (cachedUserLocation || !initialState) {
+                return;
+            }
+
+            setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+        }, [cachedUserLocation, initialState]);
+
         useFocusEffect(
             useCallback(() => {
                 if (isOffline) {
@@ -61,25 +70,17 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 }
 
                 if (hasAskedForLocationPermission.current) {
+                    getUserLocationFromCache();
                     return;
                 }
 
                 hasAskedForLocationPermission.current = true;
-                getCurrentPosition(
-                    (params) => {
-                        const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                        setCurrentPosition(currentCoords);
-                        setUserLocation(currentCoords);
-                    },
-                    () => {
-                        if (cachedUserLocation) {
-                            return;
-                        }
-
-                        setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
-                    },
-                );
-            }, [cachedUserLocation, isOffline, initialState.location]),
+                getCurrentPosition((params) => {
+                    const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
+                    setCurrentPosition(currentCoords);
+                    setUserLocation(currentCoords);
+                }, getUserLocationFromCache);
+            }, [getUserLocationFromCache, isOffline]),
         );
 
         // Determines if map can be panned to user's detected
