@@ -83,11 +83,11 @@ function OptionRow({
     onSelectRow,
     style,
     hoverStyle,
+    selectedStateButtonText,
     isDisabled: isOptionDisabled = false,
     isMultilineSupported = false,
     shouldShowSelectedStateAsButton = false,
     highlightSelected = false,
-    selectedStateButtonText = 'Select',
     shouldHaveOptionSeparator = false,
     showTitleTooltip = false,
     optionIsFocused = false,
@@ -252,7 +252,7 @@ function OptionRow({
                                         {shouldShowSelectedStateAsButton && !isSelected ? (
                                             <Button
                                                 style={[styles.pl2]}
-                                                text={selectedStateButtonText}
+                                                text={selectedStateButtonText ?? translate('common.select')}
                                                 onPress={() => onSelectedStatePressed(option)}
                                                 small
                                                 shouldUseDefaultHover={false}

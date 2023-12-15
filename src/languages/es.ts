@@ -95,6 +95,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        select: 'Seleccionar',
         next: 'Siguiente',
         previous: 'Anterior',
         goBack: 'Volver',
