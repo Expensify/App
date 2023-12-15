@@ -9,9 +9,9 @@ import Text from '@components/Text';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {BasePickerHandle, BasePickerProps} from './types';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST'
+import type {BasePickerHandle, BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
 
@@ -138,6 +138,15 @@ function BasePicker<TPickerValue>(
         },
     }));
 
+    const getItemColor = useMemo(() => {
+        if (getOperatingSystem() == CONST.OS.WINDOWS) {
+            return theme.pickerOptionsTextColor;
+        }
+
+        return theme.textLight;
+    }, [theme]);
+
+
     const hasError = !!errorText;
 
     if (isDisabled) {
@@ -155,14 +164,6 @@ function BasePicker<TPickerValue>(
                 {!!hintText && <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>{hintText}</Text>}
             </View>
         );
-    }
-
-    const getItemColor = () => {
-        if (getOperatingSystem() == CONST.OS.WINDOWS) {
-            return theme.pickerOptionsTextColor;
-        }
-
-        return theme.textLight;
     }
     
     return (
