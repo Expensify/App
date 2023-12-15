@@ -10,7 +10,7 @@ import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import CONST from '@src/CONST'
+import CONST from '@src/CONST';
 import type {BasePickerHandle, BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
@@ -146,7 +146,6 @@ function BasePicker<TPickerValue>(
         return theme.textLight;
     }, [theme]);
 
-
     const hasError = !!errorText;
 
     if (isDisabled) {
@@ -165,7 +164,7 @@ function BasePicker<TPickerValue>(
             </View>
         );
     }
-    
+
     return (
         <>
             <View
