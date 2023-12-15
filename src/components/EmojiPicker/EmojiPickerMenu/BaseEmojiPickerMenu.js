@@ -53,12 +53,6 @@ const propTypes = {
     /** Array of indices for the sticky headers */
     stickyHeaderIndices: PropTypes.arrayOf(PropTypes.number),
 
-    /** Current preferred skin tone for emojis */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** Function to update the preferred skin tone */
-    onUpdatePreferredSkinTone: PropTypes.func.isRequired,
-
     /** Whether the list should always bounce vertically */
     alwaysBounceVertical: PropTypes.bool,
 };
@@ -68,7 +62,6 @@ const defaultProps = {
     forwardedRef: () => {},
     extraData: [],
     stickyHeaderIndices: [],
-    preferredSkinTone: null,
     alwaysBounceVertical: false,
 };
 
@@ -102,20 +95,7 @@ const getItemType = (item) => {
  */
 const keyExtractor = (item, index) => `emoji_picker_${item.code}_${index}`;
 
-function BaseEmojiPickerMenu({
-    headerEmojis,
-    scrollToHeader,
-    isFiltered,
-    listWrapperStyle,
-    forwardedRef,
-    data,
-    renderItem,
-    stickyHeaderIndices,
-    onUpdatePreferredSkinTone,
-    preferredSkinTone,
-    extraData,
-    alwaysBounceVertical,
-}) {
+function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, forwardedRef, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -144,10 +124,7 @@ function BaseEmojiPickerMenu({
                     getItemType={getItemType}
                 />
             </View>
-            <EmojiSkinToneList
-                updatePreferredSkinTone={onUpdatePreferredSkinTone}
-                preferredSkinTone={preferredSkinTone}
-            />
+            <EmojiSkinToneList />
         </>
     );
 }
