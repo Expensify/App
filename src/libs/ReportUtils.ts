@@ -483,7 +483,9 @@ function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, retu
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return finalPolicy?.name || report?.policyName || report?.oldPolicyName || noPolicyFound;
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || noPolicyFound;
+
+    return policyName;
 }
 
 /**
@@ -534,7 +536,11 @@ function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, pare
         return true;
     }
 
-    return Boolean(isNotEmptyObject(report) && report?.isDeletedParentAction);
+    if (isNotEmptyObject(report) && report?.isDeletedParentAction) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -1170,7 +1176,8 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
     }
 
     const reportParticipants = finalParticipantAccountIDs?.filter((accountID) => accountID !== currentLoginAccountID) ?? [];
-    return reportParticipants.filter((participant) => !CONST.EXPENSIFY_ACCOUNT_IDS.includes(participant ?? 0));
+    const participantsWithoutExpensifyAccountIDs = reportParticipants.filter((participant) => !CONST.EXPENSIFY_ACCOUNT_IDS.includes(participant ?? 0));
+    return participantsWithoutExpensifyAccountIDs;
 }
 
 /**
@@ -1274,12 +1281,13 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
         ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
         : getDefaultWorkspaceAvatar(workspaceName);
 
-    return {
+    const workspaceIcon: Icon = {
         source: policyExpenseChatAvatarSource ?? '',
         type: CONST.ICON_TYPE_WORKSPACE,
         name: workspaceName,
         id: -1,
-    } as Icon;
+    };
+    return workspaceIcon;
 }
 
 /**
@@ -1617,8 +1625,12 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
         return true;
     }
 
-    // has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    return Boolean(optionOrReport.hasOutstandingChildRequest);
+    // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
+    if (optionOrReport.hasOutstandingChildRequest) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -3448,7 +3460,11 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
     }
 
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-    return !isDefaultRoom(report) || canSeeDefaultRoom(report, policies, betas);
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
+        return false;
+    }
+
+    return true;
 }
 /**
  * Check if the report is the parent report of the currently viewed report or at least one child report has report action
@@ -3974,7 +3990,19 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    return isExpenseRequest(report) || isWorkspaceTaskReport(report) || isWorkspaceThread(report);
+    if (isExpenseRequest(report)) {
+        return true;
+    }
+
+    if (isWorkspaceTaskReport(report)) {
+        return true;
+    }
+
+    if (isWorkspaceThread(report)) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -4210,8 +4238,8 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
     // Build participants list for IOU/expense reports
     if (isMoneyRequestReport(report)) {
         const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...participants].filter(Boolean) as number[];
-        // return only unique values
-        return [...new Set([...onlyTruthyValues])];
+        const onlyUnique = [...new Set([...onlyTruthyValues])];
+        return onlyUnique;
     }
     return participants;
 }
@@ -4301,7 +4329,8 @@ function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
 }
 
 function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string): OnyxEntry<Report> | undefined {
-    return Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === type && !isThread(report));
+    const room = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === type && !isThread(report));
+    return room;
 }
 
 /**
@@ -4337,7 +4366,11 @@ function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
         return false;
     }
 
-    return event.code !== 'Space';
+    if (event.code === 'Space') {
+        return false;
+    }
+
+    return true;
 }
 
 /**
