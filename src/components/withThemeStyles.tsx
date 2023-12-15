@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React, {ComponentType, ForwardedRef, forwardRef, ReactElement, RefAttributes} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import {type ThemeStyles} from '@styles/styles';
-import useThemeStyles from '@styles/useThemeStyles';
+import {type ThemeStyles} from '@styles/index';
 
 const withThemeStylesPropTypes = {
     themeStyles: PropTypes.object.isRequired,
