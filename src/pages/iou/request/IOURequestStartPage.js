@@ -52,6 +52,7 @@ const defaultProps = {
 
 function IOURequestStartPage({
     report,
+    policy,
     route,
     route: {
         params: {iouType, reportID},
@@ -92,7 +93,7 @@ function IOURequestStartPage({
     const shouldDisplayDistanceRequest = isExpenseChat || isExpenseReport || isFromGlobalCreate;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(report.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
 
     const navigateBack = () => {
         Navigation.dismissModal();
@@ -165,6 +166,9 @@ IOURequestStartPage.defaultProps = defaultProps;
 export default withOnyx({
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
     },
     selectedTab: {
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,

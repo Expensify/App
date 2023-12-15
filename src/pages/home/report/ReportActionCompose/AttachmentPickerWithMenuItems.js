@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -18,6 +19,7 @@ import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
@@ -94,6 +96,7 @@ const defaultProps = {
  */
 function AttachmentPickerWithMenuItems({
     report,
+    policy,
     reportParticipantIDs,
     displayFileInModal,
     isFullComposerAvailable,
@@ -138,10 +141,10 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs), (option) => ({
             ...options[option],
         }));
-    }, [report, reportParticipantIDs, translate]);
+    }, [report, policy, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option
@@ -283,4 +286,8 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default AttachmentPickerWithMenuItems;
+export default withOnyx({
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+    },
+})(AttachmentPickerWithMenuItems);

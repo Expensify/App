@@ -70,7 +70,7 @@ function ReportWelcomeText(props) {
     );
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, props.policy, participantAccountIDs);
 
     return (
         <>
