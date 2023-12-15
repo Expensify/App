@@ -23,6 +23,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import { FlashList } from '@shopify/flash-list';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -140,18 +141,6 @@ function EmojiPickerMenu(props) {
         }
         setArePointerEventsDisabled(false);
     }, [arePointerEventsDisabled]);
-
-    /**
-     * This function will be used with FlatList getItemLayout property for optimization purpose that allows skipping
-     * the measurement of dynamic content if we know the size (height or width) of items ahead of time.
-     * Generate and return an object with properties length(height of each individual row),
-     * offset(distance of the current row from the top of the FlatList), index(current row index)
-     *
-     * @param {*} data FlatList item
-     * @param {Number} index row index
-     * @returns {Object}
-     */
-    const getItemLayout = useCallback((data, index) => ({length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index}), []);
 
     /**
      * Focuses the search Input and has the text selected
@@ -507,13 +496,8 @@ function EmojiPickerMenu(props) {
                     onPress={scrollToHeader}
                 />
             )}
-            <FlatList
-                ref={emojiListRef}
-                data={filteredEmojis}
-                renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                numColumns={CONST.EMOJI_NUM_PER_ROW}
-                style={[
+            <View 
+            style={[
                     listStyle,
                     // This prevents elastic scrolling when scroll reaches the start or end
                     {overscrollBehaviorY: 'contain'},
@@ -522,12 +506,19 @@ function EmojiPickerMenu(props) {
                     // Set scrollPaddingTop to consider sticky headers while scrolling
                     {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                 ]}
+                >
+            <FlashList
+                ref={emojiListRef}
+                data={filteredEmojis}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                numColumns={CONST.EMOJI_NUM_PER_ROW}
                 extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
-                getItemLayout={getItemLayout}
-                contentContainerStyle={styles.flexGrow1}
                 ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
             />
+            </View>
             <EmojiSkinToneList
                 updatePreferredSkinTone={updatePreferredSkinTone}
                 preferredSkinTone={preferredSkinTone}
