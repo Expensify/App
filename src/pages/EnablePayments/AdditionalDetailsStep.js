@@ -132,15 +132,15 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
      */
     const activateWallet = (values) => {
         const personalDetails = {
-            phoneNumber: parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number.significant,
-            legalFirstName: values.legalFirstName,
-            legalLastName: values.legalLastName,
-            addressStreet: values.addressStreet,
-            addressCity: values.addressCity,
-            addressState: values.addressState,
-            addressZip: values.addressZipCode,
-            dob: values.dob,
-            ssn: values.ssn,
+            phoneNumber: parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number.significant || '',
+            legalFirstName: values.legalFirstName || '',
+            legalLastName: values.legalLastName || '',
+            addressStreet: values.addressStreet || '',
+            addressCity: values.addressCity || '',
+            addressState: values.addressState || '',
+            addressZip: values.addressZipCode || '',
+            dob: values.dob || '',
+            ssn: values.ssn || '',
         };
         // Attempt to set the personal details
         Wallet.updatePersonalDetails(personalDetails);

@@ -4,15 +4,15 @@ import * as API from '@libs/API';
 import {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {WalletAdditionalQuestionsDetails} from '@src/types/onyx';
+import {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-type WalletTerms = {
+type  WalletTerms = {
     hasAcceptedTerms: boolean;
-    chatReportID: number;
+    reportID: number;
 };
 
-type WalletQuestion = {
+type WalletQuestionAnswer = {
     question: string;
     answer: string;
 };
@@ -22,15 +22,15 @@ type IdentityVerification = {
 };
 
 type PersonalDetails = {
-    phoneNumber?: string;
-    legalFirstName?: string;
-    legalLastName?: string;
-    addressStreet?: string;
-    addressCity?: string;
-    addressState?: string;
-    addressZip?: string;
-    dob?: string;
-    ssn?: string;
+    phoneNumber: string;
+    legalFirstName: string;
+    legalLastName: string;
+    addressStreet: string;
+    addressCity: string;
+    addressState: string;
+    addressZip: string;
+    dob: string;
+    ssn: string;
 };
 
 /**
@@ -82,7 +82,7 @@ function openOnfidoFlow() {
     );
 }
 
-function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionsDetails, idNumber: string) {
+function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[], idNumber: string) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {questions, idNumber});
 }
 
@@ -106,15 +106,6 @@ function setKYCWallSource(source: string, chatReportID = '') {
  * Validates a user's provided details against a series of checks
  */
 function updatePersonalDetails(personalDetails: PersonalDetails) {
-    const firstName = personalDetails.legalFirstName ?? '';
-    const lastName = personalDetails.legalLastName ?? '';
-    const dob = personalDetails.dob ?? '';
-    const addressStreet = personalDetails.addressStreet ?? '';
-    const addressCity = personalDetails.addressCity ?? '';
-    const addressState = personalDetails.addressState ?? '';
-    const addressZip = personalDetails.addressZip ?? '';
-    const ssn = personalDetails.ssn ?? '';
-    const phoneNumber = personalDetails.phoneNumber ?? '';
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -148,19 +139,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         },
     ];
 
-    const requestParams: Required<PersonalDetails> = {
-        legalFirstName: firstName,
-        legalLastName: lastName,
-        dob,
-        addressStreet,
-        addressCity,
-        addressState,
-        addressZip,
-        ssn,
-        phoneNumber,
-    };
-
-    API.write('UpdatePersonalDetailsForWallet', requestParams, {
+    API.write('UpdatePersonalDetailsForWallet', personalDetails, {
         optimisticData,
         successData,
         failureData,
@@ -273,12 +252,7 @@ function acceptWalletTerms(parameters: WalletTerms) {
         },
     ];
 
-    type AcceptWalletTermsParams = {
-        hasAcceptedTerms: boolean;
-        reportID: number;
-    };
-
-    const requestParams: AcceptWalletTermsParams = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.chatReportID};
+    const requestParams: WalletTerms = {hasAcceptedTerms: parameters.hasAcceptedTerms, reportID: parameters.reportID};
 
     API.write('AcceptWalletTerms', requestParams, {optimisticData, successData, failureData});
 }
@@ -301,7 +275,7 @@ function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
-function answerQuestionsForWallet(answers: WalletQuestion[], idNumber: string) {
+function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: string) {
     const idologyAnswers = JSON.stringify(answers);
 
     const optimisticData: OnyxUpdate[] = [

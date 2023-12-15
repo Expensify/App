@@ -1,6 +1,6 @@
 import * as OnyxCommon from './OnyxCommon';
 
-type WalletAdditionalQuestionsDetails = {
+type WalletAdditionalQuestionDetails = {
     prompt: string;
     type: string;
     answer: string[];
@@ -8,7 +8,7 @@ type WalletAdditionalQuestionsDetails = {
 
 type WalletAdditionalDetails = {
     /** Questions returned by Idology */
-    questions?: WalletAdditionalQuestionsDetails;
+    questions?: WalletAdditionalQuestionDetails[];
 
     /** ExpectID ID number related to those questions */
     idNumber?: string;
@@ -24,4 +24,4 @@ type WalletAdditionalDetails = {
 };
 
 export default WalletAdditionalDetails;
-export type {WalletAdditionalQuestionsDetails};
+export type {WalletAdditionalQuestionDetails};

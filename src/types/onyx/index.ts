@@ -48,7 +48,7 @@ import {TransactionViolation, ViolationName} from './TransactionViolation';
 import User from './User';
 import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
-import WalletAdditionalDetails, {WalletAdditionalQuestionsDetails} from './WalletAdditionalDetails';
+import WalletAdditionalDetails, {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import WalletOnfido from './WalletOnfido';
 import WalletStatement from './WalletStatement';
 import WalletTerms from './WalletTerms';
@@ -114,7 +114,7 @@ export type {
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
-    WalletAdditionalQuestionsDetails,
+    WalletAdditionalQuestionDetails,
     WalletOnfido,
     WalletStatement,
     WalletTerms,
