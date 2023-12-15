@@ -39,7 +39,9 @@ type ShowParams = {
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    debugger;
+    if (allPolicies) {
+        debugger;
+    }
     if (isFirstTimeNewExpensifyUser === undefined || isLoadingReportData || hasSelectedChoice === undefined || hasDismissedModal === undefined) {
         return;
     }
@@ -182,9 +184,8 @@ function show({routes, showEngagementModal = () => {}, showPopoverMenu = () => f
             return;
         }
 
-        debugger;
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
-        // we will show the create menu.
+        // we will show the engagement modal.
         if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isDisplayingWorkspaceRoute && !hasSelectedChoice && !hasDismissedModal) {
             showEngagementModal();
         }

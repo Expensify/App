@@ -58,7 +58,6 @@ function PurposeForUsingExpensifyModal(props) {
         if (lodashGet(props.demoInfo, 'money2020.isBeginningDemo', false)) {
             return;
         }
-        debugger;
         Welcome.show({routes, showEngagementModal: () => setIsModalOpen(true)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
