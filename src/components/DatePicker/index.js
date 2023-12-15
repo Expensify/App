@@ -105,7 +105,7 @@ DatePicker.defaultProps = datePickerDefaultProps;
 DatePicker.displayName = 'DatePicker';
 
 const DatePickerWithRef = forwardRef((props, ref) => (
-    <DatePickerWithRef
+    <DatePicker
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
