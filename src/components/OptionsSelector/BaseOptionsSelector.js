@@ -112,7 +112,7 @@ function BaseOptionsSelector(props) {
      *
      * @returns {Array<Object>}
      */
-    const flattenSections = () => {
+    const flattenSections = useCallback(() => {
         const calcAllOptions = [];
         const calcDisabledOptionsIndexes = [];
         let index = 0;
@@ -132,7 +132,7 @@ function BaseOptionsSelector(props) {
 
         setDisabledOptionsIndexes(calcDisabledOptionsIndexes);
         return calcAllOptions;
-    };
+    }, [props.sections]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const initialAllOptions = useMemo(() => flattenSections(), []);
@@ -144,7 +144,7 @@ function BaseOptionsSelector(props) {
      *
      * @returns {Objects[]}
      */
-    const sliceSections = () =>
+    const sliceSections = useCallback(() =>
         _.map(props.sections, (section) => {
             if (_.isEmpty(section.data)) {
                 return section;
@@ -156,7 +156,7 @@ function BaseOptionsSelector(props) {
                 ...section,
                 data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * pagination),
             };
-        });
+        }), [paginationPage, props.sections]);
     /**
      * @param {Array<Object>} allOptions
      * @returns {Number}
@@ -352,7 +352,7 @@ function BaseOptionsSelector(props) {
      *
      * @returns {Number}
      */
-    const calculateAllVisibleOptionsCount = () => {
+    const calculateAllVisibleOptionsCount = useCallback(() => {
         let count = 0;
 
         _.forEach(sections, (section) => {
@@ -360,7 +360,7 @@ function BaseOptionsSelector(props) {
         });
 
         return count;
-    };
+    }, [sections]);
 
     /**
      * @param {Number} index
