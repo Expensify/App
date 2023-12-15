@@ -39,8 +39,8 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
-                    maxDate={CONST.MAX_DATE}
-                    minDate={CONST.MIN_DATE}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
             </FormProvider>
         </ScreenWrapper>

@@ -70,8 +70,8 @@ function IOURequestStepDate({
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
                     defaultValue={transaction.created}
-                    maxDate={CONST.MAX_DATE}
-                    minDate={CONST.MIN_DATE}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
             </FormProvider>
         </StepScreenWrapper>

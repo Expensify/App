@@ -101,6 +101,8 @@ const CONST = {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
         MAX_YEAR: CURRENT_YEAR + 100,
+        MAX_DATE,
+        MIN_DATE,
     },
 
     DATE_BIRTH: {
@@ -108,9 +110,6 @@ const CONST = {
         MIN_AGE_FOR_PAYMENT: 18,
         MAX_AGE: 150,
     },
-
-    MAX_DATE,
-    MIN_DATE,
 
     DESKTOP_SHORTCUT_ACCELERATOR: {
         PASTE_AND_MATCH_STYLE: 'Option+Shift+CmdOrCtrl+V',
