@@ -73,11 +73,7 @@ type PersonalDetails = {
     status?: string;
 };
 
-<<<<<<< HEAD
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
-=======
-type PersonalDetailsList = Record<string, PersonalDetails>;
->>>>>>> origin/main
 
 export default PersonalDetails;
 
