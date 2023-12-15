@@ -49,7 +49,7 @@ function BasePicker<TPickerValue>(
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.
-    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.pickerOptionsTextColor} : {};
+    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.text} : {};
 
     useEffect(() => {
         if (!!value || !items || items.length !== 1 || !onInputChange) {
@@ -146,7 +146,7 @@ function BasePicker<TPickerValue>(
             return theme.textLight;
         }
 
-        return theme.pickerOptionsTextColor;
+        return theme.text;
     }, [theme]);
 
     const hasError = !!errorText;
