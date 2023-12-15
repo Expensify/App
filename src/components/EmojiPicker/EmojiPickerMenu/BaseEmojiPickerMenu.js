@@ -6,8 +6,8 @@ import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import refPropTypes from '@components/refPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import stylePropTypes from '@styles/stylePropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const emojiPropTypes = {
@@ -95,9 +95,19 @@ const getItemType = (item) => {
  */
 const keyExtractor = (item, index) => `emoji_picker_${item.code}_${index}`;
 
-function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, forwardedRef, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}) {
+/**
+ * Renders the list empty component
+ * @returns {React.Component}
+ */
+function ListEmptyComponent() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    return <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>;
+}
+
+function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrapperStyle, forwardedRef, data, renderItem, stickyHeaderIndices, extraData, alwaysBounceVertical}) {
+    const styles = useThemeStyles();
 
     return (
         <>
@@ -116,7 +126,7 @@ function BaseEmojiPickerMenu({headerEmojis, scrollToHeader, isFiltered, listWrap
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={stickyHeaderIndices}
-                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                    ListEmptyComponent={ListEmptyComponent}
                     alwaysBounceVertical={alwaysBounceVertical}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
                     contentContainerStyle={styles.ph4}

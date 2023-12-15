@@ -19,7 +19,6 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import spacing from './spacing';
 import {
     AllStyles,
     AvatarSize,
