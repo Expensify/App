@@ -38,7 +38,6 @@ const BODY_CONTENT = [ConfirmAgreements];
 const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
 const BENEFICIAL_OWNER_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
 
-// This is a mocked step to showcase full transition between steps - will be removed with next PR
 const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}, ref) => {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
