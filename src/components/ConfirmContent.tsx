@@ -2,7 +2,7 @@ import React, {ReactNode} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Button from './Button';
 import Header from './Header';
