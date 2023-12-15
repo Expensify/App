@@ -410,7 +410,7 @@ function EmojiPickerMenu(props) {
      * @returns {*}
      */
     const renderItem = useCallback(
-        ({item, index}) => {
+        ({item, index, target}) => {
             const {code, header, types} = item;
             if (item.spacer) {
                 return null;
@@ -418,7 +418,7 @@ function EmojiPickerMenu(props) {
 
             if (header) {
                 return (
-                    <View style={styles.emojiHeaderContainer}>
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {}]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                     </View>
                 );
@@ -515,6 +515,7 @@ function EmojiPickerMenu(props) {
                         stickyHeaderIndices={headerIndices}
                         ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
                         estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
+                        contentContainerStyle={styles.ph4}
                         getItemType={(item) => {
                             if (item.header) {
                                 return 'header';

@@ -124,7 +124,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
      * @param {Object} item
      * @returns {*}
      */
-    const renderItem = ({item}) => {
+    const renderItem = ({item, target}) => {
         const {code, types} = item;
         if (item.spacer) {
             return null;
@@ -132,7 +132,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
 
         if (item.header) {
             return (
-                <View style={[styles.emojiHeaderContainer, {width: windowWidth}]}>
+                <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}>
                     <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                 </View>
             );
@@ -187,6 +187,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     ListEmptyComponent={<Text style={[styles.disabledText]}>{translate('common.noResultsFound')}</Text>}
                     alwaysBounceVertical={filteredEmojis.length !== 0}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
+                    contentContainerStyle={styles.ph4}
                     extraData={[preferredSkinTone]}
                     getItemType={(item) => {
                         if (!item) {

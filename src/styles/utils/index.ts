@@ -849,7 +849,6 @@ function displayIfTrue(condition: boolean): ViewStyle {
  */
 function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: number): ViewStyle {
     const style = {
-        ...spacing.ph4,
         height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
     };
 
