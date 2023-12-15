@@ -7,6 +7,9 @@ type ReportMetadata = {
 
     /** Flag to check if the report actions data are loading */
     isLoadingInitialReportActions?: boolean;
+
+    /** The time of the last visit of the report */
+    lastVisitTime?: string;
 };
 
 export default ReportMetadata;

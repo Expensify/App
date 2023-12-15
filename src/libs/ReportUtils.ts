@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
@@ -570,12 +570,14 @@ function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
 /**
  * Given a collection of reports returns them sorted by last read
  */
-function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(reports: OnyxCollection<Report>, reportsMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return Object.values(reports ?? {})
-        .filter((report) => !!report?.reportID && (!!report?.lastVisitTime || !!report?.lastReadTime))
+        .filter(
+            (report) => !!report?.reportID && ((reportsMetadata && !!reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime) || !!report?.lastReadTime),
+        )
         .sort((a, b) => {
-            const aTime = new Date(a?.lastVisitTime ?? a?.lastReadTime ?? '');
-            const bTime = new Date(b?.lastVisitTime ?? b?.lastReadTime ?? '');
+            const aTime = new Date((reportsMetadata && a && reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a.reportID}`]?.lastVisitTime) ?? a?.lastReadTime ?? '');
+            const bTime = new Date((reportsMetadata && b && reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b.reportID}`]?.lastVisitTime) ?? b?.lastReadTime ?? '');
 
             return aTime.valueOf() - bTime.valueOf();
         });
@@ -839,13 +841,14 @@ function findLastAccessedReport(
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: boolean,
     openOnAdminRoom = false,
+    reportsMetadata: OnyxCollection<ReportMetadata>,
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-    let sortedReports = sortReportsByLastRead(reports);
+    let sortedReports = sortReportsByLastRead(reports, reportsMetadata);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {

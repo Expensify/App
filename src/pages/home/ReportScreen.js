@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -237,6 +238,15 @@ function ReportScreen({
         const isTransitioning = report && report.reportID !== reportIDFromPath;
         return reportIDFromPath !== '' && report.reportID && !isTransitioning;
     }, [route, report]);
+
+    const isFocused = useIsFocused();
+    useEffect(() => {
+        if (!report.reportID || !isFocused) {
+            return;
+        }
+        console.log("////////", report.reportID)
+        Report.updateLastVisitTime(report.reportID);
+    }, [report.reportID, isFocused]);
 
     const fetchReportIfNeeded = useCallback(() => {
         const reportIDFromPath = getReportID(route);

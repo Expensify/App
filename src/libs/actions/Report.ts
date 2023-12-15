@@ -497,12 +497,6 @@ function openReport(
                 isLoadingInitialReportActions: true,
                 isLoadingOlderReportActions: false,
                 isLoadingNewerReportActions: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
                 lastVisitTime: DateUtils.getDBTime(),
             },
         },
@@ -2524,14 +2518,11 @@ function searchInServer(searchInput: string) {
     debouncedSearchInServer(searchInput);
 }
 
-/**
- * @param {String} reportID
- */
-function updateLastVisitTime(reportID) {
+function updateLastVisitTime(reportID: string) {
     if (!ReportUtils.isValidReportIDFromPath(reportID)) {
         return;
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
 }
 
 function clearNewRoomFormError() {
