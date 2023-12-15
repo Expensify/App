@@ -1,6 +1,6 @@
 import React, {ReactNode} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type FixedFooterProps = {
     /** Children to wrap in FixedFooter. */
