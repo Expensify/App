@@ -5,7 +5,7 @@ import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@hooks/useTheme';
 
 const propTypes = {
     /** The waypoints for the distance request */

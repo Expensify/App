@@ -9,9 +9,9 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState
 import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -45,6 +45,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const theme = useTheme();
         const styles = useThemeStyles();
+        const StyleUtils = useStyleUtils();
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);

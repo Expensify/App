@@ -1,6 +1,7 @@
 import {ParamListBase} from '@react-navigation/routers';
 import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -28,7 +29,6 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
 
@@ -73,6 +73,19 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
+    [SCREENS.MONEY_REQUEST.CREATE]: () => require('../../../pages/iou/request/IOURequestStartPage').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require('../../../pages/iou/request/step/IOURequestStepConfirmation').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: () => require('../../../pages/iou/request/step/IOURequestStepAmount').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require('../../../pages/iou/request/step/IOURequestStepCategory').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require('../../../pages/iou/request/step/IOURequestStepDate').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: () => require('../../../pages/iou/request/step/IOURequestStepDescription').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: () => require('../../../pages/iou/request/step/IOURequestStepDistance').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: () => require('../../../pages/iou/request/step/IOURequestStepMerchant').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: () => require('../../../pages/iou/request/step/IOURequestStepParticipants').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require('../../../pages/iou/request/step/IOURequestStepScan').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require('../../../pages/iou/request/step/IOURequestStepTag').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require('../../../pages/iou/request/step/IOURequestStepWaypoint').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.ROOT]: () => require('../../../pages/iou/MoneyRequestSelectorPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.AMOUNT]: () => require('../../../pages/iou/steps/NewRequestAmountPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
@@ -145,7 +158,7 @@ const SearchModalStackNavigator = createModalStackNavigator<SearchNavigatorParam
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
-    [SCREENS.NEW_CHAT_ROOT]: () => require('../../../pages/NewChatSelectorPage').default as React.ComponentType,
+    [SCREENS.NEW_CHAT.ROOT]: () => require('../../../pages/NewChatSelectorPage').default as React.ComponentType,
 });
 
 const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorParamList>({
@@ -168,45 +181,46 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
     [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.TIMEZONE_SELECT]: () => require('../../../pages/settings/Profile/TimezoneSelectPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_INITIAL]: () => require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_LEGAL_NAME]: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PERSONAL_DETAILS_ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES_PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES_LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
-    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
-    // [SCREENS.SETTINGS.PREFERENCES_THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require('../../../pages/settings/Profile/DisplayNamePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require('../../../pages/settings/Profile/TimezoneInitialPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: () => require('../../../pages/settings/Profile/TimezoneSelectPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.INITIAL]: () => require('../../../pages/settings/Profile/PersonalDetails/PersonalDetailsInitialPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.LEGAL_NAME]: () => require('../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH]: () => require('../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS_COUNTRY]: () => require('../../../pages/settings/Profile/PersonalDetails/CountrySelectionPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
     [SCREENS.SETTINGS.LOUNGE_ACCESS]: () => require('../../../pages/settings/Profile/LoungeAccessPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_CARD_ACTIVATE]: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.NAME]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardName').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.PHONE]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardPhone').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.ADDRESS]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardAddress').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_CARD_GET_PHYSICAL.CONFIRM]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardConfirm').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_TRANSFER_BALANCE]: () => require('../../../pages/settings/Wallet/TransferBalancePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_CHOOSE_TRANSFER_ACCOUNT]: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET_ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: () => require('../../../pages/settings/Wallet/ExpensifyCardPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: () => require('../../../pages/settings/Wallet/ReportVirtualCardFraudPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: () => require('../../../pages/settings/Wallet/ActivatePhysicalCardPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardName').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardPhone').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardAddress').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: () => require('../../../pages/settings/Wallet/Card/GetPhysicalCardConfirm').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require('../../../pages/settings/Wallet/TransferBalancePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require('../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.STATUS]: () => require('../../../pages/settings/Profile/CustomStatus/StatusPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.STATUS_SET]: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS]: () => require('../../../pages/settings/Profile/CustomStatus/StatusPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.SETTINGS]: () => require('../../../pages/workspace/WorkspaceSettingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceSettingsCurrencyPage').default as React.ComponentType,

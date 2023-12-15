@@ -5,7 +5,7 @@ import {LiteralUnion, ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {OnyxUpdateEvent, OnyxUpdatesFromServer} from '@src/types/onyx';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer, ReportUserIsTyping} from '@src/types/onyx';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import TYPE from './EventType';
 import Pusher from './library';
@@ -24,11 +24,24 @@ type Args = {
 
 type PushJSON = OnyxUpdateEvent[] | OnyxUpdatesFromServer;
 
+type UserIsTypingEvent = ReportUserIsTyping & {
+    userLogin?: string;
+};
+
+type UserIsLeavingRoomEvent = Record<string, boolean> & {
+    userLogin?: string;
+};
+
+type PusherEventMap = {
+    [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
+    [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
+};
+
+type EventData<EventName extends string> = EventName extends keyof PusherEventMap ? PusherEventMap[EventName] : PushJSON;
+
 type EventCallbackError = {type: ValueOf<typeof CONST.ERROR>; data: {code: number}};
 
 type ChunkedDataEvents = {chunks: unknown[]; receivedFinal: boolean};
-
-type EventData = {id?: string; chunk?: unknown; final?: boolean; index: number};
 
 type SocketEventCallback = (eventName: SocketEventName, data?: States | EventCallbackError) => void;
 
@@ -139,13 +152,13 @@ function getChannel(channelName: string): Channel | undefined {
 /**
  * Binds an event callback to a channel + eventName
  */
-function bindEventToChannel(channel: Channel | undefined, eventName: PusherEventName, eventCallback: (data: PushJSON) => void = () => {}) {
+function bindEventToChannel<EventName extends PusherEventName>(channel: Channel | undefined, eventName: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}) {
     if (!eventName) {
         return;
     }
 
     const chunkedDataEvents: Record<string, ChunkedDataEvents> = {};
-    const callback = (eventData: string | Record<string, unknown> | EventData) => {
+    const callback = (eventData: EventData<EventName>) => {
         if (shouldForceOffline) {
             Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
             return;
@@ -207,7 +220,12 @@ function bindEventToChannel(channel: Channel | undefined, eventName: PusherEvent
  * Subscribe to a channel and an event
  * @param [onResubscribe] Callback to be called when reconnection happen
  */
-function subscribe(channelName: string, eventName: PusherEventName, eventCallback: (data: PushJSON) => void = () => {}, onResubscribe = () => {}): Promise<void> {
+function subscribe<EventName extends PusherEventName>(
+    channelName: string,
+    eventName: EventName,
+    eventCallback: (data: EventData<EventName>) => void = () => {},
+    onResubscribe = () => {},
+): Promise<void> {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -307,7 +325,7 @@ function isSubscribed(channelName: string): boolean {
 /**
  * Sends an event over a specific event/channel in pusher.
  */
-function sendEvent(channelName: string, eventName: PusherEventName, payload: Record<string, unknown>) {
+function sendEvent<EventName extends PusherEventName>(channelName: string, eventName: EventName, payload: EventData<EventName>) {
     // Check to see if we are subscribed to this channel before sending the event. Sending client events over channels
     // we are not subscribed too will throw errors and cause reconnection attempts. Subscriptions are not instant and
     // can happen later than we expect.
@@ -394,4 +412,4 @@ export {
     getPusherSocketID,
 };
 
-export type {EventCallbackError, States, PushJSON};
+export type {EventCallbackError, States, PushJSON, UserIsTypingEvent, UserIsLeavingRoomEvent};
