@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {runOnUI, scrollTo, useAnimatedRef} from 'react-native-reanimated';
@@ -42,6 +42,15 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     frequentlyUsedEmojis: [],
 };
+
+/**
+ * Return a unique key for each emoji item
+ *
+ * @param {Object} item
+ * @param {Number} index
+ * @returns {String}
+ */
+const keyExtractor = (item, index) => `${index}${item.code}`;
 
 function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis}) {
     const styles = useThemeStyles();
@@ -109,15 +118,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
     };
 
     /**
-     * Return a unique key for each emoji item
-     *
-     * @param {Object} item
-     * @param {Number} index
-     * @returns {String}
-     */
-    const keyExtractor = (item, index) => `${index}${item.code}`;
-
-    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly
@@ -125,29 +125,32 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
      * @param {Object} item
      * @returns {*}
      */
-    const renderItem = ({item, target}) => {
-        const {code, types} = item;
-        if (item.spacer) {
-            return null;
-        }
+    const renderItem = useCallback(
+        ({item, target}) => {
+            const {code, types} = item;
+            if (item.spacer) {
+                return null;
+            }
 
-        if (item.header) {
+            if (item.header) {
+                return (
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
+                    </View>
+                );
+            }
+
+            const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
+
             return (
-                <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}>
-                    <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
-                </View>
+                <EmojiPickerMenuItem
+                    onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
+                    emoji={emojiCode}
+                />
             );
-        }
-
-        const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
-
-        return (
-            <EmojiPickerMenuItem
-                onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
-                emoji={emojiCode}
-            />
-        );
-    };
+        },
+        [styles, windowWidth, preferredSkinTone, singleExecution, onEmojiSelected, translate],
+    );
 
     const isFiltered = allEmojis.length !== filteredEmojis.length;
 

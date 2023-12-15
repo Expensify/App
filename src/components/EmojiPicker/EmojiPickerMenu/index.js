@@ -50,6 +50,15 @@ const defaultProps = {
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
+/**
+ * Return a unique key for each emoji item
+ *
+ * @param {Object} item
+ * @param {Number} index
+ * @returns {String}
+ */
+const keyExtractor = (item, index) => `emoji_picker_${item.code}_${index}`;
+
 function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
 
@@ -69,7 +78,6 @@ function EmojiPickerMenu(props) {
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
     const firstNonHeaderIndex = useRef(0);
-
     /**
      * Calculate the filtered + header emojis and header row indices
      * @returns {Object}
@@ -393,15 +401,6 @@ function EmojiPickerMenu(props) {
     );
 
     /**
-     * Return a unique key for each emoji item
-     *
-     * @param {Object} item
-     * @param {Number} index
-     * @returns {String}
-     */
-    const keyExtractor = useCallback((item, index) => `emoji_picker_${item.code}_${index}`, []);
-
-    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
@@ -511,7 +510,7 @@ function EmojiPickerMenu(props) {
                     data={filteredEmojis}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
-                    extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
+                    extraData={[highlightedIndex, preferredSkinTone]}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={headerIndices}
                     ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}

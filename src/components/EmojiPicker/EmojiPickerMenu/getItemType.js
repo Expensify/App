@@ -1,3 +1,5 @@
+import CONST from '@src/CONST';
+
 /**
  * Improves FlashList's recycling when there are different types of items
  * @param {Object} item
@@ -9,12 +11,12 @@ function getItemType(item) {
         return;
     }
     if (item.header) {
-        return 'header';
+        return CONST.EMOJI_PICKER_ITEM_TYPES.HEADER;
     }
     if (item.spacer) {
-        return 'spacer';
+        return CONST.EMOJI_PICKER_ITEM_TYPES.SPACER;
     }
-    return 'emoji';
+    return CONST.EMOJI_PICKER_ITEM_TYPES.EMOJI;
 }
 
 export default getItemType;
