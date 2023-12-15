@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useRef, useState, useLayoutEffect} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -145,8 +145,7 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        console.log(nativeEvent.currentTarget)
-        paymentMethodButtonRef.current = nativeEvent.currentTarget
+        paymentMethodButtonRef.current = nativeEvent.currentTarget;
 
         // The delete/default menu
         if (accountType) {
