@@ -374,7 +374,6 @@ function EmojiPickerMenu(props) {
         }
 
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        emojiListRef.current.flashScrollIndicators();
         emojiListRef.current.scrollToOffset({offset: calculatedOffset, animated: true});
     }, []);
 
