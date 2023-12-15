@@ -1,6 +1,5 @@
 import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
-import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
@@ -215,10 +214,8 @@ export default compose(
         draftComments: {
             key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
-    }),
-    withOnyx({
         transactionViolations: {
-            key: ({transactions}) => lodashMap(transactions, (t) => `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${t.transactionID}`),
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
     }),
 )(LHNOptionsList);
