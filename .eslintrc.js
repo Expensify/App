@@ -47,15 +47,15 @@ const restrictedImportPatterns = [
         message: "Do not import animations directly. Please use the 'src/components/LottieAnimations' import instead.",
     },
     {
-        group: ['@styles/theme/themes/**/*'],
+        group: ['@styles/theme/themes/**'],
         message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
     },
     {
-        group: ['@styles/utils/**/*'],
+        group: ['@styles/utils/**', '!@src/styles/utils/FontUtils/**'],
         message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
     },
     {
-        group: ['@styles/theme/illustrations/themes/**/*'],
+        group: ['@styles/theme/illustrations/themes/**'],
         message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
 ];
