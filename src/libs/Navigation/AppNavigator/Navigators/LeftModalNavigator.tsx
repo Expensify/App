@@ -22,7 +22,12 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
 
     return (
         <NoDropZone>
-            {!isSmallScreenWidth && <Overlay onPress={navigation.goBack} />}
+            {!isSmallScreenWidth && (
+                <Overlay
+                    isModalOnTheLeft
+                    onPress={navigation.goBack}
+                />
+            )}
             <View style={styles.LHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={screenOptions}>
                     <Stack.Screen
