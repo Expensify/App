@@ -126,7 +126,7 @@ const FormProvider = forwardRef(
                 }
                 FormActions.setErrorFields(formID, null);
 
-                const validateErrors = validate(values) || {};
+                const validateErrors = validate(trimmedStringValues) || {};
 
                 // Validate the input for html tags. It should supercede any other error
                 _.each(trimmedStringValues, (inputValue, inputID) => {
@@ -155,6 +155,11 @@ const FormProvider = forwardRef(
                             }
                         }
                     }
+
+                    if (isMatch && leadingSpaceIndex === -1) {
+                        return;
+                    }
+
                     // Add a validation error here because it is a string value that contains HTML characters
                     validateErrors[inputID] = 'common.error.invalidCharacter';
                 });

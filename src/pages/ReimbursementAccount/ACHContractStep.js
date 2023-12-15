@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
-import withLocalize from '@components/withLocalize';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 
@@ -30,4 +29,4 @@ function ACHContractStep({onBackButtonPress, onCloseButtonPress}) {
 
 ACHContractStep.propTypes = propTypes;
 ACHContractStep.displayName = 'ACHContractStep';
-export default withLocalize(ACHContractStep);
+export default ACHContractStep;
