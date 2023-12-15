@@ -75,7 +75,9 @@ function closeAccount(message: string) {
 
     type CloseAccountParams = {message: string};
 
-    API.write('CloseAccount', {message} as CloseAccountParams, {
+    const parameters: CloseAccountParams = {message};
+
+    API.write('CloseAccount', parameters, {
         optimisticData,
         failureData,
     });
@@ -175,7 +177,9 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
 
     type UpdateNewsletterSubscriptionParams = {isSubscribed: boolean};
 
-    API.write('UpdateNewsletterSubscription', {isSubscribed} as UpdateNewsletterSubscriptionParams, {
+    const parameters: UpdateNewsletterSubscriptionParams = {isSubscribed};
+
+    API.write('UpdateNewsletterSubscription', parameters, {
         optimisticData,
         failureData,
     });
@@ -674,7 +678,9 @@ function generateStatementPDF(period: string) {
 
     type GetStatementPDFParams = {period: string};
 
-    API.read('GetStatementPDF', {period} as GetStatementPDFParams, {
+    const parameters: GetStatementPDFParams = {period};
+
+    API.read('GetStatementPDF', parameters, {
         optimisticData,
         successData,
         failureData,
