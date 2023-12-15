@@ -14,6 +14,7 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
 let currentUserEmail;
@@ -178,6 +179,12 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
         },
     );
+
+    // If needed, update optimistic data for parent report action of the parent report.
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (isNotEmptyObject(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({
