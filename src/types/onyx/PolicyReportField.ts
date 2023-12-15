@@ -1,4 +1,4 @@
-type PolicyReportFieldType = "text" | "date" | "dropdown";
+type PolicyReportFieldType = 'text' | 'date' | 'dropdown' | 'formula';
 
 type PolicyReportField = {
     /** Name of the field */
@@ -8,13 +8,19 @@ type PolicyReportField = {
     defaultValue: string;
 
     /** Unique id of the field */
-    fieldId: string;
+    fieldID: string;
 
     /** Position at which the field should show up relative to the other fields */
     orderWeight: number;
 
     /** Type of report field */
     type: PolicyReportFieldType;
+
+    /** Tells if the field is required or not */
+    required: boolean;
+
+    /** Options to select from if field is of type dropdown */
+    options: string[];
 };
 
 type PolicyReportFields = Record<string, PolicyReportField>;

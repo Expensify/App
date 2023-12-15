@@ -25,9 +25,11 @@ import PlaidData from './PlaidData';
 import Policy from './Policy';
 import PolicyCategory, {PolicyCategories} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
+import PolicyReportField from './PolicyReportField';
 import PolicyTag, {PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
+import RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import RecentWaypoint from './RecentWaypoint';
 import ReimbursementAccount from './ReimbursementAccount';
@@ -54,8 +56,6 @@ import WalletOnfido from './WalletOnfido';
 import WalletStatement from './WalletStatement';
 import WalletTerms from './WalletTerms';
 import WalletTransfer from './WalletTransfer';
-import PolicyReportField from './PolicyReportField';
-import RecentlyUsedReportFields from './RecentlyUsedReportFields';
 
 export type {
     Account,
