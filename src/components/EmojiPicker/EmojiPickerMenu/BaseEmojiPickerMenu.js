@@ -19,7 +19,7 @@ const emojiPropTypes = {
 
     /** Whether the item is a spacer or not */
     spacer: PropTypes.bool,
-    
+
     /** Types of an emoji - e.g. different skin types */
     types: PropTypes.arrayOf(PropTypes.string),
 };
@@ -136,7 +136,7 @@ function BaseEmojiPickerMenu({
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={stickyHeaderIndices}
-                    ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
                     alwaysBounceVertical={alwaysBounceVertical}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
                     contentContainerStyle={styles.ph4}

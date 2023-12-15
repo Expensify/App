@@ -1,10 +1,10 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {emojisForOperatingSystem} from '@assets/emojis';
+import emojis from '@assets/emojis';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -44,22 +44,6 @@ const defaultProps = {
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
-/**
- * Calculate the filtered + header emojis and header row indices
- * @returns {Object}
- */
-function getEmojisAndHeaderRowIndices() {
-    const filteredEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojisForOperatingSystem);
-    // Get the header emojis along with the code, index and icon.
-    // index is the actual header index starting at the first emoji and counting each one
-    const headerEmojis = EmojiUtils.getHeaderEmojis(filteredEmojis);
-
-    // FlashList renders items defined as null, so we have to store each header's row index to set their style properly
-    const headerRowIndices = _.map(headerEmojis, (headerEmoji) => headerEmoji.index);
-
-    return {filteredEmojis, headerEmojis, headerRowIndices};
-}
-
 function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -78,31 +62,28 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    const firstNonHeaderIndex = useRef(0);
-
-    const [emojis, setEmojis] = useState([]);
-    const [initialHeaderRowIndices, setInitialHeaderRowIndices] = useState([]);
-    const [headerEmojis, setHeaderEmojis] = useState([]);
-
-    const [filteredEmojis, setFilteredEmojis] = useState([]);
-    const [headerIndices, setHeaderIndices] = useState([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
+    const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
+    const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => headerEmoji.index), [headerEmojis]);
+    const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
+    const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
     const [highlightFirstEmoji, setHighlightFirstEmoji] = useState(false);
+    const firstNonHeaderIndex = useMemo(() => _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header), [filteredEmojis]);
+
 
     useEffect(() => {
-        const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
-        if (emojis.length === 0 || initialHeaderRowIndices.length === 0) {
-            setEmojis(emojisAndHeaderRowIndices.filteredEmojis);
-            setInitialHeaderRowIndices(emojisAndHeaderRowIndices.headerRowIndices);
-        }
-        setHeaderEmojis(emojisAndHeaderRowIndices.headerEmojis);
-        setFilteredEmojis(emojisAndHeaderRowIndices.filteredEmojis);
-        setHeaderIndices(emojisAndHeaderRowIndices.headerRowIndices);
-    }, [emojis.length, frequentlyUsedEmojis, initialHeaderRowIndices.length]);
+        setFilteredEmojis(allEmojis);
+    }, [allEmojis]);
+
+    useEffect(() => {
+        setHeaderIndices(headerRowIndices);
+    }, [headerRowIndices]);
 
     /**
      * On text input selection change
@@ -112,14 +93,6 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
     const onSelectionChange = useCallback((event) => {
         setSelection(event.nativeEvent.selection);
     }, []);
-
-    /**
-     * Find and store index of the first emoji item
-     * @param {Array} filteredEmojisArr
-     */
-    function updateFirstNonHeaderIndex(filteredEmojisArr) {
-        firstNonHeaderIndex.current = _.findIndex(filteredEmojisArr, (item) => !item.spacer && !item.header);
-    }
 
     const mouseMoveHandler = useCallback(() => {
         if (!arePointerEventsDisabled) {
@@ -145,10 +118,9 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
         }
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
-            setFilteredEmojis(emojis);
-            setHeaderIndices(initialHeaderRowIndices);
+            setFilteredEmojis(allEmojis);
+            setHeaderIndices(headerRowIndices);
             setHighlightedIndex(-1);
-            updateFirstNonHeaderIndex(emojis);
             setHighlightFirstEmoji(false);
             return;
         }
@@ -158,7 +130,6 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
         setFilteredEmojis(newFilteredEmojiList);
         setHeaderIndices([]);
         setHighlightedIndex(0);
-        updateFirstNonHeaderIndex(newFilteredEmojiList);
         setHighlightFirstEmoji(true);
     }, throttleTime);
 
@@ -194,11 +165,11 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                     return;
                 }
             }
-
+            
             // If nothing is highlighted and an arrow key is pressed
             // select the first emoji, apply keyboard movement styles, and disable pointer events
             if (highlightedIndex === -1) {
-                setHighlightedIndex(firstNonHeaderIndex.current);
+                setHighlightedIndex(firstNonHeaderIndex);
                 setArePointerEventsDisabled(true);
                 setIsUsingKeyboardMovement(true);
                 return;
@@ -228,7 +199,7 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                 case 'ArrowLeft':
                     move(
                         -1,
-                        () => highlightedIndex - 1 < firstNonHeaderIndex.current,
+                        () => highlightedIndex - 1 < firstNonHeaderIndex,
                         () => {
                             // Reaching start of the list, arrow left set the focus to searchInput.
                             focusInputWithTextSelect();
@@ -242,7 +213,7 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                 case 'ArrowUp':
                     move(
                         -CONST.EMOJI_NUM_PER_ROW,
-                        () => highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex.current,
+                        () => highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex,
                         () => {
                             // Reaching start of the list, arrow up set the focus to searchInput.
                             focusInputWithTextSelect();
@@ -351,11 +322,6 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
         };
     }, [forwardedRef, shouldFocusInputOnScreenFocus, cleanupEventHandlers, setupEventHandlers]);
 
-    useEffect(() => {
-        // Find and store index of the first emoji item on mount
-        updateFirstNonHeaderIndex(emojis);
-    }, [emojis]);
-
     const scrollToHeader = useCallback((headerIndex) => {
         if (!emojiListRef.current) {
             return;
@@ -419,7 +385,7 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
         [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
     );
 
-    const isFiltered = emojis.length !== filteredEmojis.length;
+    const isFiltered = allEmojis.length !== filteredEmojis.length;
     const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
     const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
     const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
