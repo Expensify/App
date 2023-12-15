@@ -145,7 +145,7 @@ class NotificationService: UANotificationServiceExtension {
   func createMessageIntent(notificationData: NotificationData) -> INSendMessageIntent {
     // Initialize only the sender for a one-to-one message intent.
     let handle = INPersonHandle(value: String(notificationData.accountID), type: .unknown)
-    let avatar = INImage(named: "profilepicture.png")
+    let avatar = fetchINImage(imageURL: notificationData.avatarURL, reportActionID: notificationData.reportActionID)
     let sender = INPerson(personHandle: handle,
                           nameComponents: nil,
                           displayName: notificationData.userName,
@@ -176,6 +176,19 @@ class NotificationService: UANotificationServiceExtension {
     }
   }
   
+  func fetchINImage(imageURL: String, reportActionID: String) -> INImage? {
+    guard let url = URL(string: imageURL) else {
+      return nil
+    }
+    
+    do {
+      let data = try Data(contentsOf: url)
+      return INImage(imageData: data)
+    } catch {
+      os_log("[NotificationService] fetchINImage() - failed to fetch avatar. reportActionID: %@", log: self.log, type: .error, reportActionID)
+      return nil
+    }
+  }
 }
 
 class NotificationData {
