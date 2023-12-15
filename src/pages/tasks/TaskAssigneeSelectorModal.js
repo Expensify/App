@@ -187,8 +187,6 @@ function TaskAssigneeSelectorModal(props) {
         // Check to see if we're creating a new task
         // If there's no route params, we're creating a new task
         if (!props.route.params && option.accountID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
             Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             return Navigation.goBack(ROUTES.NEW_TASK);
         }
