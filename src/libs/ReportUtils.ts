@@ -313,6 +313,11 @@ type OptimisticIOUReport = Pick<
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
+type CustomIcon = {
+    src: (props: SrcProps) => React.ReactNode;
+    color?: string;
+};
+
 type OptionData = {
     alternateText?: string | null;
     allReportErrors?: Errors | null;
@@ -320,10 +325,7 @@ type OptionData = {
     tooltipText?: string | null;
     alternateTextMaxLines?: number;
     boldStyle?: boolean;
-    customIcon?: {
-        src: (props: SrcProps) => React.ReactNode;
-        color?: string;
-    };
+    customIcon?: CustomIcon;
     descriptiveText?: string;
     subtitle?: string | null;
     login?: string | null;
