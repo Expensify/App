@@ -1,30 +1,38 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {Linking} from 'react-native';
-import {ValueOf} from 'type-fest';
 import throttle from 'lodash/throttle';
-import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
+import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import {Linking} from 'react-native';
+import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
+import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import * as API from '@libs/API';
+import * as Authentication from '@libs/Authentication';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import HttpUtils from '@libs/HttpUtils';
+import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import * as MainQueue from '@libs/Network/MainQueue';
+import * as NetworkStore from '@libs/Network/NetworkStore';
+import NetworkConnection from '@libs/NetworkConnection';
+import * as Pusher from '@libs/Pusher/pusher';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as SessionUtils from '@libs/SessionUtils';
+import Timers from '@libs/Timers';
+import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as Device from '@userActions/Device';
+import * as PriorityMode from '@userActions/PriorityMode';
+import redirectToSignIn from '@userActions/SignInRedirect';
+import Timing from '@userActions/Timing';
+import * as Welcome from '@userActions/Welcome';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import Credentials from '@src/types/onyx/Credentials';
+import {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
-import ONYXKEYS from '../../../ONYXKEYS';
-import redirectToSignIn from '../SignInRedirect';
-import CONFIG from '../../../CONFIG';
-import Log from '../../Log';
-import Timing from '../Timing';
-import CONST from '../../../CONST';
-import Timers from '../../Timers';
-import * as Pusher from '../../Pusher/pusher';
-import * as Authentication from '../../Authentication';
-import * as Welcome from '../Welcome';
-import * as API from '../../API';
-import * as NetworkStore from '../../Network/NetworkStore';
-import Navigation from '../../Navigation/Navigation';
-import * as Device from '../Device';
-import ROUTES from '../../../ROUTES';
-import * as ErrorUtils from '../../ErrorUtils';
-import * as ReportUtils from '../../ReportUtils';
-import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import Credentials from '../../../types/onyx/Credentials';
-import {AutoAuthState} from '../../../types/onyx/Session';
 
 let sessionAuthTokenType: string | null = '';
 let sessionAuthToken: string | null = null;
@@ -99,6 +107,9 @@ function signOutAndRedirectToSignIn() {
         signOut();
         redirectToSignIn();
     } else {
+        if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
+            return;
+        }
         Navigation.navigate(ROUTES.SIGN_IN_MODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
@@ -328,9 +339,19 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: true,
             },
         },
+        // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: true,
+            },
+        },
     ];
 
-    const successData: OnyxUpdate[] = [
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
+    // We are combining both success and failure data params into one const as they are identical
+    const resolutionData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -338,17 +359,17 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: false,
             },
         },
-    ];
-
-    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
+            key: ONYXKEYS.SESSION,
             value: {
-                isLoading: false,
+                signedInWithShortLivedAuthToken: null,
             },
         },
     ];
+
+    const successData = resolutionData;
+    const failureData = resolutionData;
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
@@ -575,17 +596,44 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
 function clearSignInData() {
     Onyx.multiSet({
         [ONYXKEYS.ACCOUNT]: null,
-        [ONYXKEYS.CREDENTIALS]: {},
+        [ONYXKEYS.CREDENTIALS]: null,
+    });
+}
+
+/**
+ * Reset all current params of the Home route
+ */
+function resetHomeRouteParams() {
+    Navigation.isNavigationReady().then(() => {
+        const routes = navigationRef.current?.getState().routes;
+        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
+
+        const emptyParams: Record<string, undefined> = {};
+        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
+            emptyParams[paramKey] = undefined;
+        });
+
+        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     });
 }
 
 /**
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
+ * - Cancels pending network calls - any lingering requests are discarded to prevent unwanted storage writes
+ * - Clears all current params of the Home route - the login page URL should not contain any parameter
  */
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
+    PriorityMode.resetHasReadRequiredDataFromStorage();
+    MainQueue.clear();
+    HttpUtils.cancelPendingRequests();
+    PersistedRequests.clear();
+    NetworkConnection.clearReconnectionCallbacks();
+    SessionUtils.resetDidUserLogInDuringSession();
+    resetHomeRouteParams();
 }
 
 function clearAccountMessages() {
@@ -868,6 +916,33 @@ function waitForUserSignIn(): Promise<boolean> {
     });
 }
 
+/**
+ * check if the route can be accessed by anonymous user
+ *
+ * @param {string} route
+ */
+
+const canAccessRouteByAnonymousUser = (route: string) => {
+    const reportID = ReportUtils.getReportIDFromLink(route);
+    if (reportID) {
+        return true;
+    }
+    const parsedReportRouteParams = ReportUtils.parseReportRouteParams(route);
+    let routeRemovedReportId = route;
+    if ((parsedReportRouteParams as {reportID: string})?.reportID) {
+        routeRemovedReportId = route.replace((parsedReportRouteParams as {reportID: string})?.reportID, ':reportID');
+    }
+    if (route.startsWith('/')) {
+        routeRemovedReportId = routeRemovedReportId.slice(1);
+    }
+    const routesCanAccessByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route];
+
+    if ((routesCanAccessByAnonymousUser as string[]).includes(routeRemovedReportId)) {
+        return true;
+    }
+    return false;
+};
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -897,4 +972,5 @@ export {
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
     waitForUserSignIn,
+    canAccessRouteByAnonymousUser,
 };

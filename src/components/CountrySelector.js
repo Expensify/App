@@ -1,12 +1,13 @@
-import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import useLocalize from '../hooks/useLocalize';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import refPropTypes from './refPropTypes';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
@@ -23,7 +24,7 @@ const propTypes = {
     inputID: PropTypes.string.isRequired,
 
     /** React ref being forwarded to the MenuItemWithTopDescription */
-    forwardedRef: PropTypes.func,
+    forwardedRef: refPropTypes,
 };
 
 const defaultProps = {
@@ -33,6 +34,7 @@ const defaultProps = {
 };
 
 function CountrySelector({errorText, value: countryCode, onInputChange, forwardedRef}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
@@ -53,7 +55,7 @@ function CountrySelector({errorText, value: countryCode, onInputChange, forwarde
                 descriptionTextStyle={countryTitleDescStyle}
                 description={translate('common.country')}
                 onPress={() => {
-                    const activeRoute = Navigation.getActiveRoute().replace(/\?.*/, '');
+                    const activeRoute = Navigation.getActiveRouteWithoutParams();
                     Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY.getRoute(countryCode, activeRoute));
                 }}
             />
@@ -68,10 +70,14 @@ CountrySelector.propTypes = propTypes;
 CountrySelector.defaultProps = defaultProps;
 CountrySelector.displayName = 'CountrySelector';
 
-export default React.forwardRef((props, ref) => (
+const CountrySelectorWithRef = React.forwardRef((props, ref) => (
     <CountrySelector
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+CountrySelectorWithRef.displayName = 'CountrySelectorWithRef';
+
+export default CountrySelectorWithRef;

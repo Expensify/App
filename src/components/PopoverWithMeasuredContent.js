@@ -1,14 +1,14 @@
-import _ from 'underscore';
-import React, {useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
+import CONST from '@src/CONST';
 import Popover from './Popover';
-import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import {defaultProps as defaultPopoverProps, propTypes as popoverPropTypes} from './Popover/popoverPropTypes';
 import {windowDimensionsPropTypes} from './withWindowDimensions';
-import CONST from '../CONST';
-import styles from '../styles/styles';
-import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
 
 const propTypes = {
     // All popover props except:
@@ -61,6 +61,7 @@ const defaultProps = {
  */
 
 function PopoverWithMeasuredContent(props) {
+    const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [popoverWidth, setPopoverWidth] = useState(props.popoverDimensions.width);
     const [popoverHeight, setPopoverHeight] = useState(props.popoverDimensions.height);
@@ -127,8 +128,8 @@ function PopoverWithMeasuredContent(props) {
         };
     }, [props.anchorPosition, props.anchorAlignment, popoverWidth, popoverHeight]);
 
-    const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
-    const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
+    const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
+    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
     const shiftedAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
         bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
@@ -143,11 +144,11 @@ function PopoverWithMeasuredContent(props) {
         </Popover>
     ) : (
         /*
-            This is an invisible view used to measure the size of the popover,
-            before it ever needs to be displayed.
-            We do this because we need to know its dimensions in order to correctly animate the popover,
-            but we can't measure its dimensions without first rendering it.
-        */
+      This is an invisible view used to measure the size of the popover,
+      before it ever needs to be displayed.
+      We do this because we need to know its dimensions in order to correctly animate the popover,
+      but we can't measure its dimensions without first rendering it.
+  */
         <View
             style={styles.invisiblePopover}
             onLayout={measurePopover}

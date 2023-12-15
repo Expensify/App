@@ -1,17 +1,17 @@
-import React, {memo} from 'react';
 import PropTypes from 'prop-types';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
-import Text from './Text';
-import CONST from '../CONST';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';
-import themeColors from '../styles/themes/default';
-import * as StyleUtils from '../styles/StyleUtils';
 import avatarPropTypes from './avatarPropTypes';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
-import * as UserUtils from '../libs/UserUtils';
-import AttachmentModal from './AttachmentModal';
+import Text from './Text';
 
 const propTypes = {
     icons: PropTypes.arrayOf(avatarPropTypes),
@@ -22,6 +22,9 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     if (!props.icons.length) {
         return null;
     }
@@ -45,7 +48,7 @@ function RoomHeaderAvatars(props) {
                         <Avatar
                             source={props.icons[0].source}
                             imageStyles={[styles.avatarLarge]}
-                            fill={themeColors.iconSuccessFill}
+                            fill={theme.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
                             name={props.icons[0].name}
                             type={props.icons[0].type}
@@ -66,7 +69,7 @@ function RoomHeaderAvatars(props) {
         StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.LARGE_BORDERED),
     ];
     return (
-        <View pointerEvents="box-none">
+        <View style={styles.pointerEventsBoxNone}>
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {_.map(iconsToDisplay, (icon, index) => (
                     <View
@@ -89,7 +92,7 @@ function RoomHeaderAvatars(props) {
                                 >
                                     <Avatar
                                         source={icon.source}
-                                        fill={themeColors.iconSuccessFill}
+                                        fill={theme.iconSuccessFill}
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                         name={icon.name}

@@ -1,28 +1,28 @@
-import React, {useMemo} from 'react';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import useLocalize from '../hooks/useLocalize';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import iouReportPropTypes from '../pages/iouReportPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
-import participantPropTypes from './participantPropTypes';
-import styles from '../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
-import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import SettlementButton from './SettlementButton';
+import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import nextStepPropTypes from '@pages/nextStepPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import reportPropTypes from '../pages/reportPropTypes';
-import nextStepPropTypes from '../pages/nextStepPropTypes';
+import HeaderWithBackButton from './HeaderWithBackButton';
+import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
+import participantPropTypes from './participantPropTypes';
+import SettlementButton from './SettlementButton';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -68,27 +68,34 @@ const defaultProps = {
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const isGroupPolicy = _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
-    const isPayer = policyType === CONST.POLICY.TYPE.CORPORATE ? isPolicyAdmin && isApproved : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
-    const isDraft = ReportUtils.isReportDraft(moneyRequestReport);
-    const shouldShowSettlementButton = useMemo(
+    const isPayer = isGroupPolicy
+        ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
+          isPolicyAdmin && (isApproved || isManager)
+        : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
+    const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
     );
     const shouldShowApproveButton = useMemo(() => {
-        if (policyType !== CONST.POLICY.TYPE.CORPORATE) {
+        if (!isGroupPolicy) {
             return false;
         }
         return isManager && !isDraft && !isApproved && !isSettled;
-    }, [policyType, isManager, isDraft, isApproved, isSettled]);
+    }, [isGroupPolicy, isManager, isDraft, isApproved, isSettled]);
+    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
-    const shouldShowNextSteps = isDraft && nextStep && (!_.isEmpty(nextStep.message) || !_.isEmpty(nextStep.expenseMessage));
+    const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+    const shouldShowNextSteps = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
@@ -118,20 +125,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions
+                            shouldHidePaymentOptions={!shouldShowPayButton}
+                            shouldShowApproveButton={shouldShowApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={formattedAmount}
-                        />
-                    </View>
-                )}
-                {shouldShowApproveButton && !isSmallScreenWidth && (
-                    <View style={styles.pv2}>
-                        <Button
-                            success
-                            medium
-                            text={translate('iou.approve')}
-                            style={[styles.mnw120, styles.pv2, styles.pr0]}
-                            onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
                         />
                     </View>
                 )}
@@ -148,11 +145,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 )}
             </HeaderWithBackButton>
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
-                {shouldShowNextSteps && (
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <MoneyReportHeaderStatusBar nextStep={nextStep} />
-                    </View>
-                )}
                 {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
@@ -163,19 +155,9 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
-                            shouldShowPaymentOptions
+                            shouldHidePaymentOptions={!shouldShowPayButton}
+                            shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={formattedAmount}
-                        />
-                    </View>
-                )}
-                {shouldShowApproveButton && isSmallScreenWidth && (
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <Button
-                            success
-                            medium
-                            text={translate('iou.approve')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={() => IOU.approveMoneyRequest(moneyRequestReport)}
                         />
                     </View>
                 )}
@@ -188,6 +170,11 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             style={[styles.w100, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
                         />
+                    </View>
+                )}
+                {shouldShowNextSteps && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
                 )}
             </View>

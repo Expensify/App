@@ -1,24 +1,25 @@
-import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
-import RNTextInput from '../RNTextInput';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import themeColors from '../../styles/themes/default';
-import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as ComposerUtils from '../../libs/ComposerUtils';
-import * as Browser from '../../libs/Browser';
-import * as StyleUtils from '../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import compose from '../../libs/compose';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
-import CONST from '../../CONST';
-import withNavigation from '../withNavigation';
-import ReportActionComposeFocusManager from '../../libs/ReportActionComposeFocusManager';
+import {StyleSheet, View} from 'react-native';
+import _ from 'underscore';
+import RNTextInput from '@components/RNTextInput';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withNavigation from '@components/withNavigation';
+import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import compose from '@libs/compose';
+import * as ComposerUtils from '@libs/ComposerUtils';
+import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -56,7 +57,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Set focus to this component the first time it renders.
-    Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
+  Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
     /** Update selection position on change */
@@ -86,15 +87,16 @@ const propTypes = {
     /** Whether the sull composer is open */
     isComposerFullSize: PropTypes.bool,
 
-    ...withLocalizePropTypes,
+    /** Should make the input only scroll inside the element avoid scroll out to parent */
+    shouldContainScroll: PropTypes.bool,
 
-    ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     defaultValue: undefined,
     value: undefined,
-    numberOfLines: undefined,
+    numberOfLines: 0,
     onNumberOfLinesChange: () => {},
     maxLines: -1,
     onPasteFile: () => {},
@@ -115,6 +117,7 @@ const defaultProps = {
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
     isComposerFullSize: false,
+    shouldContainScroll: false,
 };
 
 /**
@@ -166,19 +169,24 @@ function Composer({
     selection: selectionProp,
     isReportActionCompose,
     isComposerFullSize,
+    shouldContainScroll,
     ...props
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
-    const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState({
-        start: initialValue.length,
-        end: initialValue.length,
+        start: selectionProp.start,
+        end: selectionProp.end,
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
+    const isScrollBarVisible = useIsScrollBarVisible(textInput, value);
 
     useEffect(() => {
         if (!shouldClear) {
@@ -330,20 +338,6 @@ function Composer({
     );
 
     /**
-     * Manually scrolls the text input, then prevents the event from being passed up to the parent.
-     * @param {Object} event native Event
-     */
-    const handleWheel = useCallback((event) => {
-        if (event.target !== document.activeElement) {
-            return;
-        }
-
-        textInput.current.scrollTop += event.deltaY;
-        event.preventDefault();
-        event.stopPropagation();
-    }, []);
-
-    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -366,7 +360,7 @@ function Composer({
         setNumberOfLines(generalNumberOfLines);
         textInput.current.style.height = 'auto';
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
+    }, [value, maxLines, numberOfLinesProp, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
 
     useEffect(() => {
         updateNumberOfLines();
@@ -384,7 +378,6 @@ function Composer({
 
         if (textInput.current) {
             document.addEventListener('paste', handlePaste);
-            textInput.current.addEventListener('wheel', handleWheel);
         }
 
         return () => {
@@ -394,11 +387,6 @@ function Composer({
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
-            // eslint-disable-next-line es/no-optional-chaining
-            if (!textInput.current) {
-                return;
-            }
-            textInput.current.removeEventListener('wheel', handleWheel);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -437,16 +425,26 @@ function Composer({
         </View>
     );
 
-    const inputStyleMemo = useMemo(
-        () => [
+    const scrollStyleMemo = useMemo(() => {
+        if (shouldContainScroll) {
+            return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
+        }
+        return [
             // We are hiding the scrollbar to prevent it from reducing the text input width,
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
+        ];
+    }, [shouldContainScroll, isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
 
+    const inputStyleMemo = useMemo(
+        () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
+            Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
+            scrollStyleMemo,
         ],
-        [style, maxLines, numberOfLines, isComposerFullSize],
+
+        [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
     );
 
     return (
@@ -454,7 +452,7 @@ function Composer({
             <RNTextInput
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
-                placeholderTextColor={themeColors.placeholderText}
+                placeholderTextColor={theme.placeholderText}
                 ref={(el) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
@@ -465,7 +463,7 @@ function Composer({
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                numberOfLines={numberOfLines}
+                rows={numberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
@@ -488,17 +486,16 @@ function Composer({
 
 Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
+Composer.displayName = 'Composer';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withNavigation,
-)(
-    React.forwardRef((props, ref) => (
-        <Composer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const ComposerWithRef = React.forwardRef((props, ref) => (
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+ComposerWithRef.displayName = 'ComposerWithRef';
+
+export default compose(withLocalize, withNavigation)(ComposerWithRef);

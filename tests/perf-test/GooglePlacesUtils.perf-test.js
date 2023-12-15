@@ -1,8 +1,6 @@
 import {measureFunction} from 'reassure';
 import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
 
-jest.setTimeout(60000);
-
 const addressComponents = [
     {
         long_name: 'Bushwick',
@@ -153,7 +151,7 @@ const bigObjectToFind = {
  * More on the measureFunction API:
  * @see https://callstack.github.io/reassure/docs/api#measurefunction-function
  */
-test('getAddressComponents on a big dataset', async () => {
+test('[GooglePlacesUtils] getAddressComponents on a big dataset', async () => {
     await measureFunction(
         () => {
             GooglePlacesUtils.getAddressComponents(addressComponents, bigObjectToFind);

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import BankAccount from '../../libs/models/BankAccount';
+import BankAccount from '@libs/models/BankAccount';
 
 const reimbursementAccountPropTypes = PropTypes.shape({
     /** Whether we are loading the data via the API */

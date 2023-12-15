@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
@@ -50,6 +50,12 @@ const propTypes = {
     /** Styles for the button */
     // eslint-disable-next-line react/forbid-prop-types
     buttonStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Whether to use a smaller submit button size */
+    useSmallerSubmitButtonSize: PropTypes.bool,
+
+    /** Style for the error message for submit button */
+    errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
@@ -62,11 +68,14 @@ const defaultProps = {
     enabledWhenOffline: false,
     disablePressOnEnter: false,
     isSubmitActionDangerous: false,
+    useSmallerSubmitButtonSize: false,
     footerContent: null,
     buttonStyles: [],
+    errorMessageStyle: [],
 };
 
 function FormAlertWithSubmitButton(props) {
+    const styles = useThemeStyles();
     const buttonStyles = [_.isEmpty(props.footerContent) ? {} : styles.mb3, ...props.buttonStyles];
 
     return (
@@ -76,6 +85,7 @@ function FormAlertWithSubmitButton(props) {
             isMessageHtml={props.isMessageHtml}
             message={props.message}
             onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
+            errorMessageStyle={props.errorMessageStyle}
         >
             {(isOffline) => (
                 <View>
@@ -86,6 +96,7 @@ function FormAlertWithSubmitButton(props) {
                             text={props.buttonText}
                             style={buttonStyles}
                             danger={props.isSubmitActionDangerous}
+                            medium={props.useSmallerSubmitButtonSize}
                         />
                     ) : (
                         <Button
@@ -97,6 +108,7 @@ function FormAlertWithSubmitButton(props) {
                             isDisabled={props.isDisabled}
                             isLoading={props.isLoading}
                             danger={props.isSubmitActionDangerous}
+                            medium={props.useSmallerSubmitButtonSize}
                         />
                     )}
                     {props.footerContent}

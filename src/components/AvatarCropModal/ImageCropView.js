@@ -3,12 +3,12 @@ import React from 'react';
 import {View} from 'react-native';
 import {PanGestureHandler} from 'react-native-gesture-handler';
 import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import * as StyleUtils from '../../styles/StyleUtils';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import ControlSelection from '@libs/ControlSelection';
 import gestureHandlerPropTypes from './gestureHandlerPropTypes';
-import ControlSelection from '../../libs/ControlSelection';
 
 const propTypes = {
     /** Link to image for cropping   */
@@ -50,6 +50,8 @@ const defaultProps = {
 };
 
 function ImageCropView(props) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const containerStyle = StyleUtils.getWidthAndHeightStyle(props.containerSize, props.containerSize);
 
     const originalImageHeight = props.originalImageHeight;

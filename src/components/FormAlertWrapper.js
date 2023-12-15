@@ -1,16 +1,16 @@
-import _ from 'underscore';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import FormHelpMessage from './FormHelpMessage';
+import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextLink from './TextLink';
-import compose from '../libs/compose';
-import networkPropTypes from './networkPropTypes';
-import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import FormHelpMessage from './FormHelpMessage';
 
 const propTypes = {
     /** Wrapped child components */
@@ -35,11 +35,15 @@ const propTypes = {
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed: PropTypes.func,
 
+    /** Style for the error message for submit button */
+    errorMessageStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     containerStyles: [],
+    errorMessageStyle: [],
     isAlertVisible: false,
     isMessageHtml: false,
     message: '',
@@ -51,6 +55,7 @@ const defaultProps = {
 // This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
 function FormAlertWrapper(props) {
+    const styles = useThemeStyles();
     let children;
     if (_.isEmpty(props.message)) {
         children = (
@@ -73,7 +78,7 @@ function FormAlertWrapper(props) {
             {props.isAlertVisible && (
                 <FormHelpMessage
                     message={props.message}
-                    style={[styles.mb3]}
+                    style={[styles.mb3, props.errorMessageStyle]}
                 >
                     {children}
                 </FormHelpMessage>

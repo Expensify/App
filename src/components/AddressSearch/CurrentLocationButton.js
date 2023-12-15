@@ -1,14 +1,14 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {Text} from 'react-native';
-import colors from '../../styles/colors';
-import styles from '../../styles/styles';
-import Icon from '../Icon';
-import * as Expensicons from '../Icon/Expensicons';
-import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import getButtonState from '../../libs/getButtonState';
-import * as StyleUtils from '../../styles/StyleUtils';
-import useLocalize from '../../hooks/useLocalize';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import getButtonState from '@libs/getButtonState';
+import colors from '@styles/theme/colors';
 
 const propTypes = {
     /** Callback that runs when location button is clicked */
@@ -24,6 +24,8 @@ const defaultProps = {
 };
 
 function CurrentLocationButton({onPress, isDisabled}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     return (

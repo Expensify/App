@@ -1,12 +1,12 @@
 import React, {memo} from 'react';
-import styles from '../../../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../../withLocalize';
-import ImageView from '../../../ImageView';
-import compose from '../../../../libs/compose';
-import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
-import CONST from '../../../../CONST';
-import AttachmentCarouselPage from '../../AttachmentCarousel/Pager/AttachmentCarouselPage';
-import {attachmentViewImagePropTypes, attachmentViewImageDefaultProps} from './propTypes';
+import AttachmentCarouselPage from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPage';
+import ImageView from '@components/ImageView';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import CONST from '@src/CONST';
+import {attachmentViewImageDefaultProps, attachmentViewImagePropTypes} from './propTypes';
 
 const propTypes = {
     ...attachmentViewImagePropTypes,
@@ -14,6 +14,7 @@ const propTypes = {
 };
 
 function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUsedInCarousel, loadComplete, onPress, isImage, onScaleChanged, translate}) {
+    const styles = useThemeStyles();
     const children = isUsedInCarousel ? (
         <AttachmentCarouselPage
             source={source}
@@ -47,5 +48,6 @@ function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUs
 
 AttachmentViewImage.propTypes = propTypes;
 AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
+AttachmentViewImage.displayName = 'AttachmentViewImage';
 
 export default compose(memo, withLocalize)(AttachmentViewImage);

@@ -1,5 +1,5 @@
-import CONFIG from '../../CONFIG';
-import getPlatform from '../getPlatform';
+import getPlatform from '@libs/getPlatform';
+import CONFIG from '@src/CONFIG';
 import * as NetworkStore from './NetworkStore';
 
 /**
@@ -36,6 +36,9 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     // Include current user's email in every request and the server logs
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
+
+    // idempotencyKey declared in JS is front-end-only. We delete it here so it doesn't interfere with idempotency in other layers.
+    delete finalParameters.idempotencyKey;
 
     return finalParameters;
 }

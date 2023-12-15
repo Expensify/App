@@ -1,24 +1,24 @@
-import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import CONST from '../../src/CONST';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as IOU from '../../src/libs/actions/IOU';
-import * as TestHelper from '../utils/TestHelper';
-import DateUtils from '../../src/libs/DateUtils';
-import * as NumberUtils from '../../src/libs/NumberUtils';
-import * as ReportActions from '../../src/libs/actions/ReportActions';
-import * as ReportUtils from '../../src/libs/ReportUtils';
-import * as Report from '../../src/libs/actions/Report';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-import waitForNetworkPromises from '../utils/waitForNetworkPromises';
-import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import * as PolicyActions from '../../src/libs/actions/Policy';
-import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
+import * as Report from '../../src/libs/actions/Report';
+import * as ReportActions from '../../src/libs/actions/ReportActions';
 import * as User from '../../src/libs/actions/User';
-import PusherHelper from '../utils/PusherHelper';
+import DateUtils from '../../src/libs/DateUtils';
 import Navigation from '../../src/libs/Navigation/Navigation';
+import * as NumberUtils from '../../src/libs/NumberUtils';
+import * as PersonalDetailsUtils from '../../src/libs/PersonalDetailsUtils';
+import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
+import * as ReportUtils from '../../src/libs/ReportUtils';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import ROUTES from '../../src/ROUTES';
+import PusherHelper from '../utils/PusherHelper';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -78,10 +78,11 @@ describe('actions/IOU', () => {
                                     const iouReport = iouReports[0];
                                     iouReportID = iouReport.reportID;
 
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
                                     // They should be linked together
                                     expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
                                     expect(chatReport.iouReportID).toBe(iouReport.reportID);
-                                    expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                     resolve();
                                 },
@@ -107,7 +108,7 @@ describe('actions/IOU', () => {
                                     iouAction = iouActions[0];
 
                                     // The CREATED action should not be created after the IOU action
-                                    expect(Date.parse(createdAction.created)).toBeLessThanOrEqual(Date.parse(iouAction.created));
+                                    expect(Date.parse(createdAction.created)).toBeLessThan(Date.parse(iouAction.created));
 
                                     // The IOUReportID should be correct
                                     expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
@@ -204,7 +205,6 @@ describe('actions/IOU', () => {
             let chatReport = {
                 reportID: 1234,
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: false,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
             const createdAction = {
@@ -214,6 +214,7 @@ describe('actions/IOU', () => {
             };
             let iouReportID;
             let iouAction;
+            let iouCreatedAction;
             let transactionID;
             fetch.pause();
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport)
@@ -242,9 +243,10 @@ describe('actions/IOU', () => {
                                     const iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
                                     iouReportID = iouReport.reportID;
 
+                                    expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
                                     // They should be linked together
                                     expect(chatReport.iouReportID).toBe(iouReportID);
-                                    expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                     resolve();
                                 },
@@ -262,10 +264,11 @@ describe('actions/IOU', () => {
 
                                     // The chat report should have a CREATED and an IOU action
                                     expect(_.size(allIOUReportActions)).toBe(2);
+                                    iouCreatedAction = _.find(allIOUReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
                                     iouAction = _.find(allIOUReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
 
                                     // The CREATED action should not be created after the IOU action
-                                    expect(Date.parse(createdAction.created)).toBeLessThanOrEqual(Date.parse(iouAction.created));
+                                    expect(Date.parse(iouCreatedAction.created)).toBeLessThan(Date.parse(iouAction.created));
 
                                     // The IOUReportID should be correct
                                     expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
@@ -364,7 +367,6 @@ describe('actions/IOU', () => {
             let chatReport = {
                 reportID: chatReportID,
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: true,
                 iouReportID,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
@@ -570,10 +572,11 @@ describe('actions/IOU', () => {
                                         const iouReport = iouReports[0];
                                         iouReportID = iouReport.reportID;
 
+                                        expect(iouReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
                                         // They should be linked together
                                         expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
                                         expect(chatReport.iouReportID).toBe(iouReport.reportID);
-                                        expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                         resolve();
                                     },
@@ -599,7 +602,7 @@ describe('actions/IOU', () => {
                                         iouAction = iouActions[0];
 
                                         // The CREATED action should not be created after the IOU action
-                                        expect(Date.parse(createdAction.created)).toBeLessThanOrEqual(Date.parse(iouAction.created));
+                                        expect(Date.parse(createdAction.created)).toBeLessThan(Date.parse(iouAction.created));
 
                                         // The IOUReportID should be correct
                                         expect(iouAction.originalMessage.IOUReportID).toBe(iouReportID);
@@ -678,7 +681,7 @@ describe('actions/IOU', () => {
                                     waitForCollectionCallback: true,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
-                                        expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                                        expect(transaction.pendingAction).toBeFalsy();
                                         expect(transaction.errors).toBeTruthy();
                                         expect(_.values(transaction.errors)[0]).toBe('iou.error.genericCreateFailureMessage');
                                         resolve();
@@ -807,7 +810,6 @@ describe('actions/IOU', () => {
             let carlosChatReport = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: false,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
             const carlosCreatedAction = {
@@ -819,7 +821,6 @@ describe('actions/IOU', () => {
             let julesChatReport = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: true,
                 iouReportID: julesIOUReportID,
                 participantAccountIDs: [JULES_ACCOUNT_ID],
             };
@@ -866,9 +867,11 @@ describe('actions/IOU', () => {
 
             let carlosIOUReport;
             let carlosIOUAction;
+            let carlosIOUCreatedAction;
             let carlosTransaction;
 
             let julesIOUAction;
+            let julesIOUCreatedAction;
             let julesTransaction;
 
             let vitChatReport;
@@ -975,17 +978,16 @@ describe('actions/IOU', () => {
                                     expect(groupChat.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
 
                                     // The 1:1 chat reports and the IOU reports should be linked together
-                                    expect(carlosChatReport.hasOutstandingIOU).toBe(true);
                                     expect(carlosChatReport.iouReportID).toBe(carlosIOUReport.reportID);
                                     expect(carlosIOUReport.chatReportID).toBe(carlosChatReport.reportID);
+                                    expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
-                                    expect(julesChatReport.hasOutstandingIOU).toBe(true);
                                     expect(julesChatReport.iouReportID).toBe(julesIOUReport.reportID);
                                     expect(julesIOUReport.chatReportID).toBe(julesChatReport.reportID);
 
-                                    expect(vitChatReport.hasOutstandingIOU).toBe(true);
                                     expect(vitChatReport.iouReportID).toBe(vitIOUReport.reportID);
                                     expect(vitIOUReport.chatReportID).toBe(vitChatReport.reportID);
+                                    expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                     resolve();
                                 },
@@ -1011,17 +1013,19 @@ describe('actions/IOU', () => {
 
                                     // Carlos DM should have two reportActions – the existing CREATED action and a pending IOU action
                                     expect(_.size(carlosReportActions)).toBe(2);
+                                    carlosIOUCreatedAction = _.find(carlosReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
                                     carlosIOUAction = _.find(carlosReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
                                     expect(carlosIOUAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(carlosIOUAction.originalMessage.IOUReportID).toBe(carlosIOUReport.reportID);
                                     expect(carlosIOUAction.originalMessage.amount).toBe(amount / 4);
                                     expect(carlosIOUAction.originalMessage.comment).toBe(comment);
                                     expect(carlosIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
-                                    expect(Date.parse(carlosCreatedAction.created)).toBeLessThanOrEqual(Date.parse(carlosIOUAction.created));
+                                    expect(Date.parse(carlosIOUCreatedAction.created)).toBeLessThan(Date.parse(carlosIOUAction.created));
 
                                     // Jules DM should have three reportActions, the existing CREATED action, the existing IOU action, and a new pending IOU action
                                     expect(_.size(julesReportActions)).toBe(3);
                                     expect(julesReportActions[julesCreatedAction.reportActionID]).toStrictEqual(julesCreatedAction);
+                                    julesIOUCreatedAction = _.find(julesReportActions, (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
                                     julesIOUAction = _.find(
                                         julesReportActions,
                                         (reportAction) =>
@@ -1032,7 +1036,7 @@ describe('actions/IOU', () => {
                                     expect(julesIOUAction.originalMessage.amount).toBe(amount / 4);
                                     expect(julesIOUAction.originalMessage.comment).toBe(comment);
                                     expect(julesIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
-                                    expect(Date.parse(julesCreatedAction.created)).toBeLessThanOrEqual(Date.parse(julesIOUAction.created));
+                                    expect(Date.parse(julesIOUCreatedAction.created)).toBeLessThan(Date.parse(julesIOUAction.created));
 
                                     // Vit DM should have two reportActions – a pending CREATED action and a pending IOU action
                                     expect(_.size(vitReportActions)).toBe(2);
@@ -1044,7 +1048,7 @@ describe('actions/IOU', () => {
                                     expect(vitIOUAction.originalMessage.amount).toBe(amount / 4);
                                     expect(vitIOUAction.originalMessage.comment).toBe(comment);
                                     expect(vitIOUAction.originalMessage.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.CREATE);
-                                    expect(Date.parse(vitCreatedAction.created)).toBeLessThanOrEqual(Date.parse(vitIOUAction.created));
+                                    expect(Date.parse(vitCreatedAction.created)).toBeLessThan(Date.parse(vitIOUAction.created));
 
                                     // Group chat should have two reportActions – a pending CREATED action and a pending IOU action w/ type SPLIT
                                     expect(_.size(groupReportActions)).toBe(2);
@@ -1101,9 +1105,7 @@ describe('actions/IOU', () => {
                                     expect(carlosTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(julesTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(vitTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(groupTransaction.merchant).toBe(
-                                        `Split bill with ${RORY_EMAIL}, ${CARLOS_EMAIL}, ${JULES_EMAIL}, and ${VIT_EMAIL} [${DateUtils.getDBTime().slice(0, 10)}]`,
-                                    );
+                                    expect(groupTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
 
                                     expect(carlosTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
                                     expect(julesTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
@@ -1221,7 +1223,6 @@ describe('actions/IOU', () => {
                                     expect(chatReport).toBeTruthy();
                                     expect(chatReport).toHaveProperty('reportID');
                                     expect(chatReport).toHaveProperty('iouReportID');
-                                    expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                     iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
                                     expect(iouReport).toBeTruthy();
@@ -1301,7 +1302,6 @@ describe('actions/IOU', () => {
                                     chatReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.CHAT);
                                     iouReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.IOU);
 
-                                    expect(chatReport.hasOutstandingIOU).toBe(false);
                                     expect(chatReport.iouReportID).toBeFalsy();
 
                                     // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
@@ -1352,7 +1352,6 @@ describe('actions/IOU', () => {
                                     chatReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.CHAT);
                                     iouReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.IOU);
 
-                                    expect(chatReport.hasOutstandingIOU).toBe(false);
                                     expect(chatReport.iouReportID).toBeFalsy();
 
                                     // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
@@ -1464,7 +1463,7 @@ describe('actions/IOU', () => {
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1522,8 +1521,8 @@ describe('actions/IOU', () => {
                                     );
                                     expect(updatedChatReport).toEqual(
                                         expect.objectContaining({
-                                            lastMessageHtml: 'undefined owes $200.00',
-                                            lastMessageText: 'undefined owes $200.00',
+                                            lastMessageHtml: `${CARLOS_EMAIL} owes $200.00`,
+                                            lastMessageText: `${CARLOS_EMAIL} owes $200.00`,
                                         }),
                                     );
                                     resolve();
@@ -1599,7 +1598,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     fetch.fail();
-                    IOU.editMoneyRequest(transaction.transactionID, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
+                    IOU.editMoneyRequest(transaction, thread.reportID, {amount: 20000, comment: 'Double the amount!'});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -1743,7 +1742,7 @@ describe('actions/IOU', () => {
                                                     }),
                                                 ]),
                                                 originalMessage: expect.objectContaining({
-                                                    amount,
+                                                    amount: -amount,
                                                     paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
                                                     type: 'pay',
                                                 }),
@@ -1913,7 +1912,6 @@ describe('actions/IOU', () => {
             expect(chatReport).toBeTruthy();
             expect(chatReport).toHaveProperty('reportID');
             expect(chatReport).toHaveProperty('iouReportID');
-            expect(chatReport.hasOutstandingIOU).toBe(true);
 
             // Then one of them should be an IOU report with relevant properties
             iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
@@ -2165,6 +2163,8 @@ describe('actions/IOU', () => {
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
 
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
                 callback: (val) => (reportActions = val),
@@ -2242,6 +2242,9 @@ describe('actions/IOU', () => {
 
             // Given a transaction thread
             thread = ReportUtils.buildTransactionThread(createIOUAction);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
             const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
             jest.advanceTimersByTime(10);
             Report.openReport(thread.reportID, userLogins, thread, createIOUAction.reportActionID);
@@ -2325,6 +2328,8 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2473,7 +2478,6 @@ describe('actions/IOU', () => {
             expect(iouReport).toBeTruthy();
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
-            expect(iouReport.hasOutstandingIOU).toBeTruthy();
             expect(iouReport.total).toBe(30000);
 
             const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -2491,7 +2495,6 @@ describe('actions/IOU', () => {
             expect(iouReport).toBeTruthy();
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
-            expect(iouReport.hasOutstandingIOU).toBeTruthy();
             expect(iouReport.total).toBe(20000);
 
             // When we resume fetch
@@ -2501,7 +2504,6 @@ describe('actions/IOU', () => {
             expect(iouReport).toBeTruthy();
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
-            expect(iouReport.hasOutstandingIOU).toBeTruthy();
             expect(iouReport.total).toBe(20000);
         });
 
@@ -2538,6 +2540,8 @@ describe('actions/IOU', () => {
 
             jest.advanceTimersByTime(10);
             thread = ReportUtils.buildTransactionThread(createIOUAction, IOU_REPORT_ID);
+
+            expect(thread.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -2612,14 +2616,14 @@ describe('actions/IOU', () => {
 
             // Then we expect to navigate to the iou report
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
         });
 
         it('navigate the user correctly to the chat Report when appropriate', () => {
             // When we delete the money request and we should delete the IOU report
             IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             // Then we expect to navigate to the chat report
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
+            expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID));
         });
     });
 

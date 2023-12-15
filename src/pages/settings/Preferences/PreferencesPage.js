@@ -1,28 +1,31 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import Text from '../../../components/Text';
-import CONST from '../../../CONST';
-import * as User from '../../../libs/actions/User';
-import Switch from '../../../components/Switch';
-import TestToolMenu from '../../../components/TestToolMenu';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import SCREENS from '../../../SCREENS';
-import useEnvironment from '../../../hooks/useEnvironment';
-import useLocalize from '../../../hooks/useLocalize';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Switch from '@components/Switch';
+import TestToolMenu from '@components/TestToolMenu';
+import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
+
+    /** The app's color theme */
+    preferredTheme: PropTypes.string,
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
@@ -33,10 +36,13 @@ const propTypes = {
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    preferredTheme: CONST.DEFAULT_THEME,
     user: {},
 };
 
 function PreferencesPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
 
@@ -44,7 +50,7 @@ function PreferencesPage(props) {
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.PreferencesDJ}
         >
             <View style={styles.mb6}>
@@ -78,6 +84,12 @@ function PreferencesPage(props) {
                     description={translate('languagePage.language')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                 />
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={translate(`themePage.themes.${props.preferredTheme || CONST.THEME.DEFAULT}.label`)}
+                    description={translate('themePage.theme')}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                />
                 {/* Enable additional test features in non-production environments */}
                 {!isProduction && (
                     <View style={[styles.ml5, styles.mr8, styles.mt6]}>
@@ -99,5 +111,8 @@ export default withOnyx({
     },
     user: {
         key: ONYXKEYS.USER,
+    },
+    preferredTheme: {
+        key: ONYXKEYS.PREFERRED_THEME,
     },
 })(PreferencesPage);

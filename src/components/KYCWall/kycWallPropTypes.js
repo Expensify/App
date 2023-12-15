@@ -1,12 +1,12 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import userWalletPropTypes from '../../pages/EnablePayments/userWalletPropTypes';
-import bankAccountPropTypes from '../bankAccountPropTypes';
-import cardPropTypes from '../cardPropTypes';
-import iouReportPropTypes from '../../pages/iouReportPropTypes';
-import reimbursementAccountPropTypes from '../../pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import walletTermsPropTypes from '../../pages/EnablePayments/walletTermsPropTypes';
-import CONST from '../../CONST';
+import _ from 'underscore';
+import bankAccountPropTypes from '@components/bankAccountPropTypes';
+import cardPropTypes from '@components/cardPropTypes';
+import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
+import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
+import iouReportPropTypes from '@pages/iouReportPropTypes';
+import reimbursementAccountPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -62,6 +62,9 @@ const propTypes = {
 
     /** Callback for when a payment method has been selected */
     onSelectPaymentMethod: PropTypes.func,
+
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -82,6 +85,7 @@ const defaultProps = {
     },
     shouldIncludeDebitCard: true,
     onSelectPaymentMethod: () => {},
+    shouldShowPersonalBankAccountOption: false,
 };
 
 export {propTypes, defaultProps};
