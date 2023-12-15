@@ -1601,7 +1601,7 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams) =>
+        overlayStyles: (current: OverlayStylesParams | undefined) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
@@ -1610,7 +1610,7 @@ const styles = (theme: ThemeColors) =>
                 bottom: 0,
                 right: 0,
                 backgroundColor: theme.overlay,
-                opacity: current.progress.interpolate({
+                opacity: !current ? variables.overlayOpacity : current.progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
