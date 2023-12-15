@@ -48,7 +48,6 @@ export default (isSmallScreenWidth: boolean, themeStyles: ThemeStyles): ScreenOp
             width: isSmallScreenWidth ? '100%' : '200%',
 
             transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
-            ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
         },
     },
     homeScreen: {

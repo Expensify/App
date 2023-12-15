@@ -35,6 +35,6 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
     );
 }
 
-LeftModalNavigator.displayName = 'RightModalNavigator';
+LeftModalNavigator.displayName = 'LeftModalNavigator';
 
 export default LeftModalNavigator;

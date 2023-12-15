@@ -46,7 +46,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.NOT_FOUND]: '*',
             [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
                 screens: {
-                    Search: {
+                    [SCREENS.LEFT_MODAL.SEARCH]: {
                         screens: {
                             [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
                         },
