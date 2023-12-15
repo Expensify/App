@@ -56,7 +56,7 @@ const defaultProps = {
     ...policyDefaultProps,
 };
 
-function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
+function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -90,15 +90,15 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
         return errors;
     }, []);
 
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS_CURRENCY.getRoute(policy.id)), [policy.id]);
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id)), [policy.id]);
 
     const policyName = lodashGet(policy, 'name', '');
 
     return (
         <WorkspacePageWithSections
-            headerText={translate('workspace.common.settings')}
+            headerText={translate('workspace.common.overview')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_SETTINGS}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
         >
             {(hasVBA) => (
                 <FormProvider
@@ -171,9 +171,9 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
     );
 }
 
-WorkspaceSettingsPage.propTypes = propTypes;
-WorkspaceSettingsPage.defaultProps = defaultProps;
-WorkspaceSettingsPage.displayName = 'WorkspaceSettingsPage';
+WorkspaceOverviewPage.propTypes = propTypes;
+WorkspaceOverviewPage.defaultProps = defaultProps;
+WorkspaceOverviewPage.displayName = 'WorkspaceOverviewPage';
 
 export default compose(
     withPolicy,
@@ -182,4 +182,4 @@ export default compose(
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withNetwork(),
-)(WorkspaceSettingsPage);
+)(WorkspaceOverviewPage);

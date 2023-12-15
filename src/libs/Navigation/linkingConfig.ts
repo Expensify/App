@@ -88,7 +88,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
 
                     [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-                    [SCREENS.WORKSPACE.SETTINGS]: ROUTES.WORKSPACE_SETTINGS.route,
+                    [SCREENS.WORKSPACE.OVERVIEW]: ROUTES.WORKSPACE_OVERVIEW.route,
                     [SCREENS.WORKSPACE.CARD]: {
                         path: ROUTES.WORKSPACE_CARD.route,
                     },
@@ -281,7 +281,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 exact: true,
                             },
                             [SCREENS.WORKSPACE.CURRENCY]: {
-                                path: ROUTES.WORKSPACE_SETTINGS_CURRENCY.route,
+                                path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                             },
                             [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                                 path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,

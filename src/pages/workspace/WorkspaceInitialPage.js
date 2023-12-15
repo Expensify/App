@@ -56,7 +56,7 @@ const defaultProps = {
  * @param {string} policyID
  */
 function openEditor(policyID) {
-    Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policyID));
+    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
 }
 
 /**
@@ -150,9 +150,9 @@ function WorkspaceInitialPage(props) {
     const hasCustomUnitsError = PolicyUtils.hasCustomUnitsError(policy);
     const menuItems = [
         {
-            translationKey: 'workspace.common.settings',
+            translationKey: 'workspace.common.overview',
             icon: Expensicons.Gear,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_SETTINGS.getRoute(policy.id)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
         {

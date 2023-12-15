@@ -1478,6 +1478,7 @@ export default {
             invoices: 'Enviar facturas',
             travel: 'Viajes',
             members: 'Miembros',
+            overview: 'Descripción',
             bankAccount: 'Cuenta bancaria',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',

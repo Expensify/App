@@ -422,13 +422,13 @@ const ROUTES = {
         route: 'workspace/:policyID/invite-message',
         getRoute: (policyID: string) => `workspace/${policyID}/invite-message` as const,
     },
-    WORKSPACE_SETTINGS: {
-        route: 'workspace/:policyID/settings',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings` as const,
+    WORKSPACE_OVERVIEW: {
+        route: 'workspace/:policyID/overview',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview` as const,
     },
-    WORKSPACE_SETTINGS_CURRENCY: {
-        route: 'workspace/:policyID/settings/currency',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
+    WORKSPACE_OVERVIEW_CURRENCY: {
+        route: 'workspace/:policyID/overview/currency',
+        getRoute: (policyID: string) => `workspace/${policyID}/overview/currency` as const,
     },
     WORKSPACE_CARD: {
         route: 'workspace/:policyID/card',

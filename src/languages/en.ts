@@ -1455,6 +1455,7 @@ export default {
             invoices: 'Invoices',
             travel: 'Travel',
             members: 'Members',
+            overview: 'Overview',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
