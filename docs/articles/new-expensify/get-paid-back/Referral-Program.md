@@ -19,9 +19,10 @@ The sky's the limit for this referral program! Your referral can be anyone - a f
    - Request money
    - Send money
    - Split a bill
+   - Assign them a task
    - @ mention them
-   - Add them to a workspace
    - Invite them to a room
+   - Add them to a workspace
      
 2. You'll get $250 for each referral as long as:
    - You're the first to refer them to Expensify
