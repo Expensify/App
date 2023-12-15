@@ -7,6 +7,7 @@
 
 import AirshipServiceExtension
 import os.log
+import Intents
 
 class NotificationService: UANotificationServiceExtension {
   
@@ -22,18 +23,60 @@ class NotificationService: UANotificationServiceExtension {
       contentHandler(request.content)
       return
     }
-    defer {
-      bestAttemptContent.title = "\(bestAttemptContent.title) [modified]"
+    
+    if #available(iOSApplicationExtension 15.0, *) {
+      configureCommunicationNotification(notificationContent: bestAttemptContent, contentHandler: contentHandler)
+    } else {
       contentHandler(bestAttemptContent)
     }
-    
+  }
+  
+  @available(iOSApplicationExtension 15.0, *)
+  func configureCommunicationNotification(notificationContent: UNMutableNotificationContent, contentHandler: @escaping (UNNotificationContent) -> Void) {
     var notificationData: NotificationData
     do {
-      notificationData = try parsePayload(notificationContent: bestAttemptContent)
+      notificationData = try parsePayload(notificationContent: notificationContent)
     } catch ExpError.runtimeError(let errorMessage) {
-      os_log("[NotificationService] didReceive() - couldn't parse the payload '%@'", log: log, type: .error, errorMessage)
+      os_log("[NotificationService] configureCommunicationNotification() - couldn't parse the payload '%@'", log: log, type: .error, errorMessage)
+      contentHandler(notificationContent)
+      return
     } catch {
-      os_log("[NotificationService] didReceive() - unexpected error while parsing payload", log: log, type: .error)
+      os_log("[NotificationService] configureCommunicationNotification() - unexpected error while parsing payload", log: log, type: .error)
+      contentHandler(notificationContent)
+      return
+    }
+    
+    // Create an intent for the incoming message
+    let intent: INSendMessageIntent = createMessageIntent(notificationData: notificationData)
+
+    // Use the intent to initialize the interaction.
+    let interaction = INInteraction(intent: intent, response: nil)
+
+
+    // Interaction direction is incoming because the user is
+    // receiving this message.
+    interaction.direction = .incoming
+
+
+    // Donate the interaction before updating notification content.
+    interaction.donate { error in
+        if let error = error {
+            // Handle errors that may occur during donation.
+            return
+        }
+        
+        // After donation, update the notification content.
+        do {
+          // Update notification content before displaying the
+          // communication notification.
+          let updatedContent = try notificationContent.updating(from: intent)
+          
+          // Call the content handler with the updated content
+          // to display the communication notification.
+          contentHandler(updatedContent)
+        } catch {
+          os_log("[NotificationService] configureCommunicationNotification() - failed to update the notification with send message intent", log: self.log, type: .error)
+        }
     }
   }
   
@@ -95,6 +138,30 @@ class NotificationService: UANotificationServiceExtension {
       accountID: accountID,
       userName: userName
     )
+  }
+  
+  func createMessageIntent(notificationData: NotificationData) -> INSendMessageIntent {
+    // Initialize only the sender for a one-to-one message intent.
+    let handle = INPersonHandle(value: String(notificationData.accountID), type: .unknown)
+    let avatar = INImage(named: "profilepicture.png")
+    let sender = INPerson(personHandle: handle,
+                          nameComponents: nil,
+                          displayName: notificationData.userName,
+                          image: avatar,
+                          contactIdentifier: nil,
+                          customIdentifier: nil)
+
+
+    // Because this communication is incoming, you can infer that the current user is
+    // a recipient. Don't include the current user when initializing the intent.
+    let intent = INSendMessageIntent(recipients: nil,
+                                     content: "Message content",
+                                     speakableGroupName: nil,
+                                     conversationIdentifier: String(notificationData.reportID),
+                                     serviceName: nil,
+                                     sender: sender)
+    
+    return intent
   }
   
   override func serviceExtensionTimeWillExpire() {
