@@ -155,6 +155,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                         },
                     },
                 });
+            } else {
+                // // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
+                root.dispatch({
+                    type: 'POP_TO_TOP',
+                    target: rootState.key,
+                });
             }
             return;
         }
