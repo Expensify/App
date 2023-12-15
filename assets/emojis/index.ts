@@ -34,10 +34,13 @@ const localeEmojis = {
 } as const;
 
 const flagHeaderIndex = emojis.findIndex((emoji) => {
-    if ('header' in emoji) {
-        return emoji.header && emoji.code === 'flags';
+    if (!('header' in emoji)) {
+        return;
     }
+
+    return emoji.header && emoji.code === 'flags';
 });
+
 const emojisForOperatingSystem = getOperatingSystem() === CONST.OS.WINDOWS ? emojis.slice(0, flagHeaderIndex) : emojis;
 
 export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, emojisForOperatingSystem};

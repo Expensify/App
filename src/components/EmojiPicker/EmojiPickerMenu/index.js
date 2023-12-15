@@ -21,7 +21,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
-import getItemType from './getItemType';
 import updatePreferredSkinTone from './updatePreferredSkinTone';
 
 const propTypes = {
@@ -115,7 +114,7 @@ function EmojiPickerMenu(props) {
         setHeaderEmojis(emojisAndHeaderRowIndices.headerEmojis);
         setFilteredEmojis(emojisAndHeaderRowIndices.filteredEmojis);
         setHeaderIndices(emojisAndHeaderRowIndices.headerRowIndices);
-    }, [frequentlyUsedEmojis]);
+    }, [emojis.length, frequentlyUsedEmojis, initialHeaderRowIndices.length]);
 
     /**
      * On text input selection change
@@ -367,7 +366,7 @@ function EmojiPickerMenu(props) {
     useEffect(() => {
         // Find and store index of the first emoji item on mount
         updateFirstNonHeaderIndex(emojis);
-    }, []);
+    }, [emojis]);
 
     const scrollToHeader = useCallback((headerIndex) => {
         if (!emojiListRef.current) {
@@ -484,12 +483,7 @@ function EmojiPickerMenu(props) {
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 extraData={[highlightedIndex, preferredSkinTone]}
-                numColumns={CONST.EMOJI_NUM_PER_ROW}
                 stickyHeaderIndices={headerIndices}
-                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
-                estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                contentContainerStyle={styles.ph4}
-                getItemType={getItemType}
                 preferredSkinTone={preferredSkinTone}
                 onUpdatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
             />

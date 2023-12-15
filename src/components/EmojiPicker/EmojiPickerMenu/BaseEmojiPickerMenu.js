@@ -1,11 +1,13 @@
 import {FlashList} from '@shopify/flash-list';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
+import {Text, View} from 'react-native';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import refPropTypes from '@components/refPropTypes';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import stylePropTypes from '@styles/stylePropTypes';
+import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import getItemType from './getItemType';
 
@@ -42,39 +44,31 @@ const propTypes = {
     keyExtractor: PropTypes.func.isRequired,
 
     /** Extra data to be passed to the list for re-rendering */
-    extraData: PropTypes.array,
+    // eslint-disable-next-line react/forbid-prop-types
+    extraData: PropTypes.any,
 
     /** Array of indices for the sticky headers */
     stickyHeaderIndices: PropTypes.arrayOf(PropTypes.number),
-
-    /** Component to render when the list is empty */
-    ListEmptyComponent: PropTypes.func,
-
-    /** Style to be applied to the content container */
-    contentContainerStyle: stylePropTypes,
 
     /** Current preferred skin tone for emojis */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** Function to update the preferred skin tone */
     onUpdatePreferredSkinTone: PropTypes.func.isRequired,
+
+    /** Whether the list should always bounce vertically */
+    alwaysBounceVertical: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    isFiltered: false,
-    headerEmojis: [],
-    scrollToHeader: () => {},
     listWrapperStyle: [],
     forwardedRef: () => {},
-    data: [],
-    renderItem: () => {},
-    keyExtractor: () => {},
     extraData: [],
     stickyHeaderIndices: [],
-    ListEmptyComponent: () => {},
-    contentContainerStyle: [],
     preferredSkinTone: null,
-    onUpdatePreferredSkinTone: () => {},
+    alwaysBounceVertical: false,
 };
 
 function BaseEmojiPickerMenu({
@@ -87,13 +81,14 @@ function BaseEmojiPickerMenu({
     renderItem,
     keyExtractor,
     stickyHeaderIndices,
-    ListEmptyComponent,
-    contentContainerStyle,
     onUpdatePreferredSkinTone,
     preferredSkinTone,
     extraData,
     alwaysBounceVertical,
+    translate,
 }) {
+    const styles = useThemeStyles();
+
     return (
         <>
             {!isFiltered && (
@@ -111,10 +106,10 @@ function BaseEmojiPickerMenu({
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={stickyHeaderIndices}
-                    ListEmptyComponent={ListEmptyComponent}
+                    ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
                     alwaysBounceVertical={alwaysBounceVertical}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    contentContainerStyle={contentContainerStyle}
+                    contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
                 />
@@ -141,4 +136,4 @@ const BaseEmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
 
 BaseEmojiPickerMenuWithRef.displayName = 'BaseEmojiPickerMenuWithRef';
 
-export default BaseEmojiPickerMenuWithRef;
+export default withLocalize(BaseEmojiPickerMenuWithRef);

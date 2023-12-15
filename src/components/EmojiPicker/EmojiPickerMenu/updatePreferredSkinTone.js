@@ -1,6 +1,7 @@
 import * as User from '@userActions/User';
 
 /**
+ * @param {Number} preferredSkinTone
  * @param {Number} skinTone
  */
 const updatePreferredSkinTone = (preferredSkinTone, skinTone) => {

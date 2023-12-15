@@ -167,10 +167,9 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                 keyExtractor={keyExtractor}
                 extraData={[filteredEmojis, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
-                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
-                contentContainerStyle={styles.ph4}
                 preferredSkinTone={preferredSkinTone}
                 onUpdatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
+                alwaysBounceVertical={filteredEmojis.length !== 0}
             />
         </View>
     );
