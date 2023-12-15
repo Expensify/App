@@ -2372,7 +2372,7 @@ const styles = (theme: ThemeColors) =>
         anonymousRoomFooterLogoTaglineText: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeMedium,
-            color: theme.textLight,
+            color: theme.text,
         },
         signInButtonAvatar: {
             width: 80,
