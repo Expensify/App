@@ -1406,7 +1406,7 @@ const styles = (theme: ThemeColors) =>
         createAccountMenuPositionProfile: () =>
             ({
                 horizontal: 18,
-                ...getPopOverVerticalOffset(162),
+                ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
         createMenuPositionProfile: (windowWidth: number) =>
