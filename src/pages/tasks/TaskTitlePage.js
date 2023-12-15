@@ -10,12 +10,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,7 +94,7 @@ function TaskTitlePage(props) {
                         <View style={[styles.mb4]}>
                             <InputWrapper
                                 InputComponent={TextInput}
-                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ROLE.PRESENTATION}
                                 inputID="title"
                                 name="title"
                                 label={props.translate('task.title')}

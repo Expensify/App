@@ -12,13 +12,12 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
-import cursor from '@styles/utilities/cursor';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
@@ -80,6 +79,7 @@ function AttachmentView({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
 
@@ -140,7 +140,7 @@ function AttachmentView({
                     onScaleChanged={onScaleChanged}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
-                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
+                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                 />
             </View>

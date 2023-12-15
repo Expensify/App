@@ -1,6 +1,6 @@
 import React from 'react';
 import {Circle} from 'react-native-svg';
-import useTheme from '@styles/themes/useTheme';
+import useTheme from '@hooks/useTheme';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 function AvatarSkeleton() {
