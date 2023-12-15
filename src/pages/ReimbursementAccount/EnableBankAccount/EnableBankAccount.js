@@ -44,7 +44,7 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}) {
     const {translate} = useLocalize();
 
     const achData = lodashGet(reimbursementAccount, 'achData') || {};
-    const {icon, iconSize} = getBankIcon(achData.bankName);
+    const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
     const isUsingExpensifyCard = user.isUsingExpensifyCard;
     const formattedBankAccountNumber = achData.accountNumber ? `${translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankName = achData.addressName;
