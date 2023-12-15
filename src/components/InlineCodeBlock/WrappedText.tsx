@@ -3,9 +3,9 @@ import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@styles/useStyleUtils';
 import useThemeStyles from '@styles/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import variables from '@styles/variables';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
@@ -40,7 +40,7 @@ function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJIS.test(text);
 }
 
-function WrappedText({children, wordStyles, textStyles, fontSize = variables.fontSizeNormal}: WrappedTextProps) {
+function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -56,7 +56,7 @@ function WrappedText({children, wordStyles, textStyles, fontSize = variables.fon
             key={`${rowText[0]}-${rowIndex}`}
         >
             {rowText.map((colText, colIndex) => {
-                const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), fontSize);
+                const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), textStyles?.fontSize);
                 return (
                     // Outer View is important to vertically center the Text
                     <View
