@@ -139,8 +139,7 @@ function BasePicker<TPickerValue>(
     }));
 
     /**
-     * Windows will reuse the text color of the select for each one of the options
-     * so we need to color accordingly so it doesn't blend with the background.
+     * We pass light text on Android, since Android Native alerts have a dark background in all themes for now.
      */
     const itemColor = useMemo(() => {
         if (getOperatingSystem() === CONST.OS.ANDROID) {
