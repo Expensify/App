@@ -122,6 +122,7 @@ Onyx.connect({
 const nextSteps = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
+    waitForCollectionCallback: true,
     callback: (val, key) => {
         if (!key || !val) {
             return;
