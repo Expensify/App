@@ -8,11 +8,11 @@ import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -44,20 +44,19 @@ const defaultProps = {
 };
 
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
-    // Data for initialization (runs only on the first render)
-    const {
-        recentReports: initialRecentReports,
-        personalDetails: initialPersonalDetails,
-        userToInvite: initialUserToInvite,
-        // Ignoring the rule because in this case we need the data only initially
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    } = useMemo(() => OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas), []);
-
     const [searchValue, setSearchValue] = useState('');
-    const [searchOptions, setSearchOptions] = useState({
-        recentReports: initialRecentReports,
-        personalDetails: initialPersonalDetails,
-        userToInvite: initialUserToInvite,
+    const [searchOptions, setSearchOptions] = useState(() => {
+        const {
+            recentReports: localRecentReports,
+            personalDetails: localPersonalDetails,
+            userToInvite: localUserToInvite,
+        } = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas);
+
+        return {
+            recentReports: localRecentReports,
+            personalDetails: localPersonalDetails,
+            userToInvite: localUserToInvite,
+        };
     });
 
     const {isOffline} = useNetwork();
