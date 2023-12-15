@@ -136,7 +136,8 @@ class NotificationService: UANotificationServiceExtension {
       reportOnyxUpdate: reportActionOnyxUpdate,
       avatarURL: avatarURL,
       accountID: accountID,
-      userName: userName
+      userName: userName,
+      messageText: notificationContent.body
     )
   }
   
@@ -155,7 +156,7 @@ class NotificationService: UANotificationServiceExtension {
     // Because this communication is incoming, you can infer that the current user is
     // a recipient. Don't include the current user when initializing the intent.
     let intent = INSendMessageIntent(recipients: nil,
-                                     content: "Message content",
+                                     content: notificationData.messageText,
                                      speakableGroupName: nil,
                                      conversationIdentifier: String(notificationData.reportID),
                                      serviceName: nil,
@@ -182,8 +183,9 @@ class NotificationData {
   public var avatarURL: String
   public var accountID: Int
   public var userName: String
+  public var messageText: String
   
-  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String) {
+  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String, messageText: String) {
     self.reportID = reportID
     self.reportActionID = reportActionID
     self.onyxData = onyxData
@@ -191,5 +193,6 @@ class NotificationData {
     self.avatarURL = avatarURL
     self.accountID = accountID
     self.userName = userName
+    self.messageText = messageText
   }
 }
