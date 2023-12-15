@@ -1,4 +1,5 @@
-import {getActionFromState, NavigationContainerRef, StackActions} from '@react-navigation/native';
+import {getActionFromState} from '@react-navigation/core';
+import {NavigationContainerRef, StackActions} from '@react-navigation/native';
 import {findLastIndex} from 'lodash';
 import Log from '@libs/Log';
 import NAVIGATORS from '@src/NAVIGATORS';

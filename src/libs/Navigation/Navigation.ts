@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/core';
-import {CommonActions, EventMapCore, getPathFromState, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -210,7 +210,7 @@ function getActiveRouteWithoutParams(): string {
 }
 
 /** Returns the active route name from a state event from the navigationRef  */
-function getRouteNameFromStateEvent(event: EventMapCore<NavigationState>['state']): string | undefined {
+function getRouteNameFromStateEvent(event: EventArg<'state', false, NavigationContainerEventMap['state']['data']>): string | undefined {
     if (!event.data.state) {
         return;
     }
