@@ -139,7 +139,8 @@ class NotificationService: UANotificationServiceExtension {
       avatarURL: avatarURL,
       accountID: accountID,
       userName: userName,
-      messageText: notificationContent.body
+      messageText: notificationContent.body,
+      roomName: payload["roomName"] as? String
     )
   }
   
@@ -158,10 +159,11 @@ class NotificationService: UANotificationServiceExtension {
 
     // Because this communication is incoming, you can infer that the current user is
     // a recipient. Don't include the current user when initializing the intent.
+    let roomName = INSpeakableString(spokenPhrase: notificationData.roomName ?? "")
     let intent = INSendMessageIntent(recipients: nil,
                                      outgoingMessageType: .outgoingMessageText,
                                      content: notificationData.messageText,
-                                     speakableGroupName: nil,
+                                     speakableGroupName: roomName,
                                      conversationIdentifier: String(notificationData.reportID),
                                      serviceName: nil,
                                      sender: sender,
@@ -202,8 +204,9 @@ class NotificationData {
   public var accountID: Int
   public var userName: String
   public var messageText: String
+  public var roomName: String?
   
-  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String, messageText: String) {
+  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String, messageText: String, roomName: String?) {
     self.reportID = reportID
     self.reportActionID = reportActionID
     self.onyxData = onyxData
@@ -212,5 +215,6 @@ class NotificationData {
     self.accountID = accountID
     self.userName = userName
     self.messageText = messageText
+    self.roomName = roomName
   }
 }
