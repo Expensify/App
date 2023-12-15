@@ -1071,13 +1071,22 @@ function getTaxRatesOptions(taxRates) {
         searchText: taxRate.name,
         tooltipText: taxRate.name,
         isDisabled: taxRate.isDisabled,
+        data: taxRate,
     }));
 }
 
 function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     const policyRatesSections = [];
 
-    const sortedTaxRates = sortTaxRates(policyTaxRates.taxes);
+    // transform tax rates so we could have key as 'code' in tax rate
+    const taxes = Object.fromEntries(
+        Object.entries(policyTaxRates.taxes).map(([code, data]) => [
+          code,
+          { ...data, code }
+        ])
+      );
+
+    const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = _.filter(sortedTaxRates, (taxRate) => !taxRate.isDisabled);
     const numberOfTaxRates = _.size(enabledTaxRates);
 
@@ -1132,7 +1141,8 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
 
     if (!_.isEmpty(selectedOptions)) {
         const selectedTaxRatesOptions = _.map(selectedOptions, (option) => {
-            const taxRateObject = _.find(policyTaxRates.taxes, (taxRate) => taxRate.name === option.name);
+            const taxRateObject = _.find(taxes, (taxRate) => taxRate.name === option.name);
+
             return {
                 name: option.name,
                 enabled: Boolean(taxRateObject && !taxRateObject.isDisabled),
