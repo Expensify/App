@@ -10,10 +10,10 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
+import EnableBankAccount from '@pages/ReimbursementAccount/EnableBankAccount/EnableBankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import EnableBankAccount from "@pages/ReimbursementAccount/EnableBankAccount/EnableBankAccount";
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
@@ -44,7 +44,12 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) 
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
     if (bankAccountState === BankAccount.STATE.OPEN) {
-        return <EnableBankAccount reimbursementAccount={reimbursementAccount} onBackButtonPress={onBackButtonPress} />;
+        return (
+            <EnableBankAccount
+                reimbursementAccount={reimbursementAccount}
+                onBackButtonPress={onBackButtonPress}
+            />
+        );
     }
 
     const maxAttemptsReached = lodashGet(reimbursementAccount, 'maxAttemptsReached');
