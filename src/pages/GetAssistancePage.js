@@ -51,7 +51,6 @@ function GetAssistancePage(props) {
             title: props.translate('getAssistancePage.chatWithConcierge'),
             onPress: () => Report.navigateToConciergeChat(),
             icon: Expensicons.ChatBubble,
-            name: 'Chatbubble',
             shouldShowRightIcon: true,
             wrapperStyle: [styles.cardMenuItem],
         },
