@@ -190,10 +190,12 @@ function ReportActionsList({
             return;
         }
 
-        if (Visibility.isVisible() && ReportUtils.isUnread(report) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
-            Report.readNewestAction(report.reportID);
-        } else {
-            readActionSkipped.current = true;
+        if (ReportUtils.isUnread(report)) {
+            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+                Report.readNewestAction(report.reportID);
+            } else {
+                readActionSkipped.current = true;
+            }
         }
 
         if (currentUnreadMarker || lastVisibleActionCreatedRef.current === report.lastVisibleActionCreated) {
