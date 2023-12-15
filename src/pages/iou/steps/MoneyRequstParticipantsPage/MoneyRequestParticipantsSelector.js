@@ -320,7 +320,6 @@ function MoneyRequestParticipantsSelector({
                 onAddToSelection={addParticipantToSelection}
                 sections={sections}
                 selectedOptions={participants}
-                value={searchTerm}
                 onSelectRow={addSingleParticipant}
                 onChangeText={setSearchTermAndSearchInServer}
                 ref={forwardedRef}

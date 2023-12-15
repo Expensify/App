@@ -163,7 +163,7 @@ class BaseOptionsSelector extends Component {
             },
             () => {
                 // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevProps.value && !this.state.value)) {
+                if (this.props.selectedOptions.length !== prevProps.selectedOptions.length || (!!prevState.value && !this.state.value)) {
                     this.scrollToIndex(0);
                     return;
                 }
