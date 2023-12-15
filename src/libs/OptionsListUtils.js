@@ -1079,12 +1079,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     const policyRatesSections = [];
 
     // transform tax rates so we could have key as 'code' in tax rate
-    const taxes = Object.fromEntries(
-        Object.entries(policyTaxRates.taxes).map(([code, data]) => [
-          code,
-          { ...data, code }
-        ])
-      );
+    const taxes = Object.fromEntries(Object.entries(policyTaxRates.taxes).map(([code, data]) => [code, {...data, code}]));
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = _.filter(sortedTaxRates, (taxRate) => !taxRate.isDisabled);
