@@ -751,6 +751,7 @@ export default {
                 label: 'macOS',
             },
         },
+        goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
         signOut: 'Sign out',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",
@@ -1492,6 +1493,8 @@ export default {
                 companyCards: 'Company credit cards',
                 reimbursements: 'Easy reimbursements',
             },
+            notFound: 'No workspace found',
+            description: 'Rooms are a great place to discuss and work with multiple people. To begin collaborating, create or join a workspace',
         },
         new: {
             newWorkspace: 'New workspace',

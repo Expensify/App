@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
 import {Text, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import RenderHTML from './RenderHTML';
 
