@@ -14,10 +14,10 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigationFocus from '@components/withNavigationFocus';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -63,8 +63,6 @@ const propTypes = {
     }).isRequired,
 
     ...policyPropTypes,
-    ...withLocalizePropTypes,
-    ...withThemeStylesPropTypes,
 };
 
 const defaultProps = {
@@ -74,6 +72,9 @@ const defaultProps = {
 };
 
 function WorkspaceInviteMessagePage(props) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
     const {inputCallbackRef} = useAutoFocusInput();
 
     if (_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
@@ -85,7 +86,7 @@ function WorkspaceInviteMessagePage(props) {
     };
 
     const getDefaultWelcomeNote = () =>
-        props.translate('workspace.inviteMessage.welcomeNote', {
+        translate('workspace.inviteMessage.welcomeNote', {
             workspaceName: props.policy.name,
         });
 
@@ -131,7 +132,7 @@ function WorkspaceInviteMessagePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
                 <HeaderWithBackButton
-                    title={props.translate('workspace.inviteMessage.inviteMessageTitle')}
+                    title={translate('workspace.inviteMessage.inviteMessageTitle')}
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
@@ -140,50 +141,50 @@ function WorkspaceInviteMessagePage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID))}
                 />
                 <FormProvider
-                    style={[props.themeStyles.flexGrow1, props.themeStyles.ph5]}
+                    style={[styles.themeStyles.flexGrow1, styles.themeStyles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                     validate={validate}
                     onSubmit={sendInvitation}
-                    submitButtonText={props.translate('common.invite')}
+                    submitButtonText={translate('common.invite')}
                     enabledWhenOffline
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
-                            accessibilityLabel={props.translate('common.privacy')}
+                            accessibilityLabel={translate('common.privacy')}
                             href={CONST.PRIVACY_URL}
-                            style={[props.themeStyles.mv2, props.themeStyles.alignSelfStart]}
+                            style={[styles.themeStyles.mv2, styles.themeStyles.alignSelfStart]}
                         >
-                            <View style={[props.themeStyles.flexRow]}>
-                                <Text style={[props.themeStyles.mr1, props.themeStyles.label, props.themeStyles.link]}>{props.translate('common.privacy')}</Text>
+                            <View style={[styles.themeStyles.flexRow]}>
+                                <Text style={[styles.themeStyles.mr1, styles.themeStyles.label, styles.themeStyles.link]}>{translate('common.privacy')}</Text>
                             </View>
                         </PressableWithoutFeedback>
                     }
                 >
-                    <View style={[props.themeStyles.mv4, props.themeStyles.justifyContentCenter, props.themeStyles.alignItemsCenter]}>
+                    <View style={[styles.themeStyles.mv4, styles.themeStyles.justifyContentCenter, styles.themeStyles.alignItemsCenter]}>
                         <MultipleAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
                             icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(props.invitedEmailsToAccountIDsDraft), props.allPersonalDetails, props.invitedEmailsToAccountIDsDraft)}
                             shouldStackHorizontally
                             shouldDisplayAvatarsInRows
-                            secondAvatarStyle={[props.themeStyles.secondAvatarInline]}
+                            secondAvatarStyle={[styles.themeStyles.secondAvatarInline]}
                         />
                     </View>
-                    <View style={[props.themeStyles.mb5]}>
-                        <Text>{props.translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
+                    <View style={[styles.themeStyles.mb5]}>
+                        <Text>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                     </View>
-                    <View style={[props.themeStyles.mb3]}>
+                    <View style={[styles.themeStyles.mb3]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
                             inputID="welcomeMessage"
-                            label={props.translate('workspace.inviteMessage.personalMessagePrompt')}
-                            accessibilityLabel={props.translate('workspace.inviteMessage.personalMessagePrompt')}
+                            label={translate('workspace.inviteMessage.personalMessagePrompt')}
+                            accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"
                             autoCorrect={false}
                             autoGrowHeight
-                            inputStyle={[props.themeStyles.verticalAlignTop]}
-                            containerStyles={[props.themeStyles.autoGrowHeightMultilineInput]}
+                            inputStyle={[styles.themeStyles.verticalAlignTop]}
+                            containerStyles={[styles.themeStyles.autoGrowHeightMultilineInput]}
                             value={welcomeMessage}
                             onChangeText={(text) => {
                                 saveDraft(text);
@@ -205,7 +206,6 @@ WorkspaceInviteMessagePage.defaultProps = defaultProps;
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
 export default compose(
-    withLocalize,
     withPolicyAndFullscreenLoading,
     withOnyx({
         allPersonalDetails: {
@@ -220,5 +220,4 @@ export default compose(
         },
     }),
     withNavigationFocus,
-    withThemeStyles,
 )(WorkspaceInviteMessagePage);
