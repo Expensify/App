@@ -37,6 +37,12 @@ const propTypes = {
     /** The report that holds the transaction */
     report: reportPropTypes,
 
+    /** The policy tied to the report */
+    policy: PropTypes.shape({
+        /** Type of the policy */
+        type: PropTypes.string,
+    }),
+
     /** The tab to select by default (whatever the user visited last) */
     selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)),
 
@@ -46,6 +52,7 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
+    policy: {},
     selectedTab: CONST.TAB_REQUEST.SCAN,
     transaction: {},
 };

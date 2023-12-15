@@ -32,6 +32,12 @@ const propTypes = {
         loading: PropTypes.bool,
     }).isRequired,
 
+    /** The policy tied to the report */
+    policy: PropTypes.shape({
+        /** Type of the policy */
+        type: PropTypes.string,
+    }),
+
     /** The personal details of everyone in the report */
     reportParticipantIDs: PropTypes.arrayOf(PropTypes.number),
 
@@ -86,6 +92,7 @@ const propTypes = {
 
 const defaultProps = {
     reportParticipantIDs: [],
+    policy: {},
 };
 
 /**
