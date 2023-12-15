@@ -2,6 +2,7 @@ import Str from 'expensify-common/lib/str';
 import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import DateUtils from '@libs/DateUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -296,7 +297,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
     };
 
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(timezone),
+        timezone: JSON.stringify(DateUtils.parseTimezone(timezone)),
     };
 
     API.write('UpdateAutomaticTimezone', parameters, {

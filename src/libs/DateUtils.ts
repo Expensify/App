@@ -30,6 +30,7 @@ import Onyx from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {timezoneBackwardMap} from '@src/TIMEZONES';
 import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
@@ -668,6 +669,22 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
     return '';
 }
 
+/**
+ *
+ * @param timezone
+ * function parse timezone to supported timezone
+ * @returns Timezone
+ */
+function parseTimezone(timezoneInput: Timezone): Timezone {
+    if (!timezoneInput?.selected) {
+        return timezoneInput;
+    }
+    return {
+        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        automatic: timezoneInput.automatic,
+    };
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -708,6 +725,7 @@ const DateUtils = {
     getDaysOfWeek,
     formatWithUTCTimeZone,
     isTimeAtLeastOneMinuteInFuture,
+    parseTimezone,
 };
 
 export default DateUtils;
