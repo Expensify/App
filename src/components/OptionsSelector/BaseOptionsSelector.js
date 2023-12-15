@@ -197,9 +197,8 @@ function BaseOptionsSelector(props) {
 
                 // Focus the first unselected item from the list (i.e: the best result according to the current search term)
                 setFocusedIndex(props.selectedOptions.length);
-
-                // eslint-disable-next-line react-hooks/exhaustive-deps
             }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, props.value.length, props.canSelectMultipleOptions, props.selectedOptions.length],
     );
 
@@ -358,10 +357,17 @@ function BaseOptionsSelector(props) {
 
     const updateSearchValue = useCallback(
         (value) => {
-            setErrorMessage(value.length > props.maxLength ? translate('common.error.characterLimitExceedCounter', {length: value.length, limit: props.maxLength}) : '');
+            setErrorMessage(
+                value.length > props.maxLength
+                    ? translate('common.error.characterLimitExceedCounter', {
+                          length: value.length,
+                          limit: props.maxLength,
+                      })
+                    : '',
+            );
             props.onChangeText(value);
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.onChangeText, props.maxLength, translate],
     );
 
@@ -401,8 +407,8 @@ function BaseOptionsSelector(props) {
                 }
             }
             props.onAddToSelection(option);
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.onAddToSelection, props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, props.value.length],
     );
 
