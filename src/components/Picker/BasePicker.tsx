@@ -144,7 +144,7 @@ function BasePicker<TPickerValue>(
      */
     const getItemColor = useMemo(() => {
         if (getOperatingSystem() === CONST.OS.WINDOWS) {
-            return theme.pickerOptionsTextColor;
+            return theme.text;
         }
 
         return theme.textLight;
