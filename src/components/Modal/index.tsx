@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import FocusTrapView from '@components/FocusTrapView';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import StatusBar from '@libs/StatusBar';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseModal from './BaseModal';
 import BaseModalProps from './types';
