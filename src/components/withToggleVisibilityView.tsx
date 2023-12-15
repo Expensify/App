@@ -1,8 +1,8 @@
 import React, {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
 import {View} from 'react-native';
 import {SetOptional} from 'type-fest';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import useThemeStyles from '@styles/useThemeStyles';
 
 type ToggleVisibilityViewProps = {
     /** Whether the content is visible. */
