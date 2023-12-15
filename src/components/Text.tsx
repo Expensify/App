@@ -2,7 +2,7 @@ import React, {ForwardedRef} from 'react';
 import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
-import FontUtils, {FontUtilsType} from '@styles/FontUtils';
+import FontUtils, {FontUtilsType} from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 

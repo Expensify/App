@@ -4,7 +4,7 @@ import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvide
 import _ from 'underscore';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import FontUtils from '@styles/FontUtils';
+import FontUtils from '@styles/utils/FontUtils';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 

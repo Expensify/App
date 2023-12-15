@@ -5,7 +5,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import Log from '@libs/Log';
-import FontUtils from '@styles/FontUtils';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import './index.css';
