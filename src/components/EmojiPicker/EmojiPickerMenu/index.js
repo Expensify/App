@@ -460,66 +460,65 @@ function EmojiPickerMenu(props) {
     const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
     const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
     return (
-        <View>
+        <View
+            style={[
+                styles.emojiPickerContainer,
+                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
+                arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
+            ]}
+        >
+            <View style={[styles.ph4, styles.pb3, styles.pt2]}>
+                <TextInput
+                    label={translate('common.search')}
+                    accessibilityLabel={translate('common.search')}
+                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    onChangeText={filterEmojis}
+                    defaultValue=""
+                    ref={searchInputRef}
+                    autoFocus={shouldFocusInputOnScreenFocus}
+                    onSelectionChange={onSelectionChange}
+                    onFocus={() => {
+                        setHighlightedIndex(-1);
+                        setIsFocused(true);
+                        setIsUsingKeyboardMovement(false);
+                    }}
+                    onBlur={() => setIsFocused(false)}
+                    autoCorrect={false}
+                    blurOnSubmit={filteredEmojis.length > 0}
+                />
+            </View>
+            {!isFiltered && (
+                <CategoryShortcutBar
+                    headerEmojis={headerEmojis}
+                    onPress={scrollToHeader}
+                />
+            )}
             <View
                 style={[
-                    styles.emojiPickerContainer,
-                    StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
-                    // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
-                    arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
+                    listStyle,
+                    // This prevents elastic scrolling when scroll reaches the start or end
+                    {overscrollBehaviorY: 'contain'},
+                    // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlashList
+                    {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
+                    // Set scrollPaddingTop to consider sticky headers while scrolling
+                    {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
+                    styles.flexShrink1,
                 ]}
             >
-                <View style={[styles.ph4, styles.pb3, styles.pt2]}>
-                    <TextInput
-                        label={translate('common.search')}
-                        accessibilityLabel={translate('common.search')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        onChangeText={filterEmojis}
-                        defaultValue=""
-                        ref={searchInputRef}
-                        autoFocus={shouldFocusInputOnScreenFocus}
-                        onSelectionChange={onSelectionChange}
-                        onFocus={() => {
-                            setHighlightedIndex(-1);
-                            setIsFocused(true);
-                            setIsUsingKeyboardMovement(false);
-                        }}
-                        onBlur={() => setIsFocused(false)}
-                        autoCorrect={false}
-                        blurOnSubmit={filteredEmojis.length > 0}
-                    />
-                </View>
-                {!isFiltered && (
-                    <CategoryShortcutBar
-                        headerEmojis={headerEmojis}
-                        onPress={scrollToHeader}
-                    />
-                )}
-                <View
-                    style={[
-                        listStyle,
-                        // This prevents elastic scrolling when scroll reaches the start or end
-                        {overscrollBehaviorY: 'contain'},
-                        // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlashList
-                        {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
-                        // Set scrollPaddingTop to consider sticky headers while scrolling
-                        {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
-                    ]}
-                >
-                    <FlashList
-                        ref={emojiListRef}
-                        data={filteredEmojis}
-                        renderItem={renderItem}
-                        keyExtractor={keyExtractor}
-                        extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
-                        numColumns={CONST.EMOJI_NUM_PER_ROW}
-                        stickyHeaderIndices={headerIndices}
-                        ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
-                        estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                        contentContainerStyle={styles.ph4}
-                        getItemType={getItemType}
-                    />
-                </View>
+                <FlashList
+                    ref={emojiListRef}
+                    data={filteredEmojis}
+                    renderItem={renderItem}
+                    keyExtractor={keyExtractor}
+                    extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
+                    numColumns={CONST.EMOJI_NUM_PER_ROW}
+                    stickyHeaderIndices={headerIndices}
+                    ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                    estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
+                    contentContainerStyle={styles.ph4}
+                    getItemType={getItemType}
+                />
             </View>
             <EmojiSkinToneList
                 updatePreferredSkinTone={updatePreferredSkinTone}

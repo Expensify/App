@@ -4,6 +4,10 @@
  * @returns {String}
  */
 function getItemType(item) {
+    // item is undefined only when list is empty
+    if (!item) {
+        return;
+    }
     if (item.header) {
         return 'header';
     }
