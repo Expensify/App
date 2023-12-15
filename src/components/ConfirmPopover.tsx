@@ -1,11 +1,8 @@
-import PropTypes from 'prop-types';
-import React, {RefObject} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import React from 'react';
+import {StyleProp, ViewStyle} from 'react-native';
 import ConfirmContent from './ConfirmContent';
 import {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
-import withWindowDimensions from './withWindowDimensions';
-import {WindowDimensionsContextData} from './withWindowDimensions/types';
 
 type ConfirmPopoverProps = {
     /** Title of the modal */
@@ -40,7 +37,7 @@ type ConfirmPopoverProps = {
 
     /** Styles for view */
     contentStyles?: StyleProp<ViewStyle>;
-} & WindowDimensionsContextData;
+};
 
 function ConfirmPopover({
     onConfirm,
@@ -79,4 +76,5 @@ function ConfirmPopover({
 }
 
 ConfirmPopover.displayName = 'ConfirmPopover';
-export default withWindowDimensions(ConfirmPopover);
+
+export default ConfirmPopover;
