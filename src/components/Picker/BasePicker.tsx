@@ -143,7 +143,7 @@ function BasePicker<TPickerValue>(
      * so we need to color accordingly so it doesn't blend with the background.
      */
     const itemColor = useMemo(() => {
-        if (getOperatingSystem() === CONST.OS.WINDOWS) {
+        if (getOperatingSystem() === CONST.OS.WINDOWS || getOperatingSystem() === CONST.OS.IOS) {
             return theme.text;
         }
 
