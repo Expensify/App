@@ -40,6 +40,7 @@ import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
+import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from './transactionsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -162,10 +163,7 @@ const propTypes = {
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
 
-    transactionsDraft: PropTypes.shape({
-        taxRate: PropTypes.string,
-        taxAmount: PropTypes.number,
-    }),
+    transactionsDraft: transactionsDraftPropTypes,
 };
 
 const defaultProps = {
@@ -199,10 +197,7 @@ const defaultProps = {
     isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
-    transactionsDraft: {
-        taxRate: null,
-        taxAmount: null,
-    },
+    transactionsDraft: transactionsDraftDefaultProps,
     policyTaxRates: {
         defaultExternalID: '',
     },
@@ -761,7 +756,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={transactionsDraft.taxRate || defaultTaxName}
+                            title={(transactionsDraft.taxRate && transactionsDraft.taxRate.text) || defaultTaxName}
                             description={translate('iou.taxRate')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

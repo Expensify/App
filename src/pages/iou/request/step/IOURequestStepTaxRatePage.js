@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
+import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from '@components/transactionsDraftPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -31,9 +32,7 @@ const propTypes = {
     }).isRequired,
     policyTaxRates: taxPropTypes,
 
-    transactionsDraft: PropTypes.shape({
-        taxRate: PropTypes.string,
-    }),
+    transactionsDraft: transactionsDraftPropTypes,
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
@@ -41,9 +40,7 @@ const propTypes = {
 
 const defaultProps = {
     policyTaxRates: {},
-    transactionsDraft: {
-        taxRate: null,
-    },
+    transactionsDraft: transactionsDraftDefaultProps,
     transaction: {},
 };
 
@@ -71,7 +68,7 @@ function IOURequestStepTaxRatePage({
     const updateTaxRates = (taxes) => {
         const taxAmount = calculateAmount(policyTaxRates.taxes, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-        IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes.text);
+        IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
 
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
@@ -90,7 +87,7 @@ function IOURequestStepTaxRatePage({
                         onBackButtonPress={() => navigateBack()}
                     />
                     <TaxPicker
-                        selectedTaxRate={transactionsDraft.taxRate}
+                        selectedTaxRate={transactionsDraft.taxRate && transactionsDraft.taxRate.text}
                         policyTaxRates={policyTaxRates}
                         insets={insets}
                         onSubmit={updateTaxRates}

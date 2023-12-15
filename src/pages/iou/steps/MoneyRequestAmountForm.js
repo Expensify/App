@@ -41,7 +41,7 @@ const propTypes = {
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
 
-    transactionAmount: PropTypes.string,
+    transactionAmount: PropTypes.number,
 };
 
 const defaultProps = {
@@ -242,7 +242,7 @@ function MoneyRequestAmountForm({amount, transactionAmount, currency, isEditing,
         initializeAmount(backendAmount);
 
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, transactionAmount, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
