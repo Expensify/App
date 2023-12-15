@@ -141,6 +141,7 @@ class NotificationService: UANotificationServiceExtension {
     )
   }
   
+  @available(iOSApplicationExtension 14.0, *)
   func createMessageIntent(notificationData: NotificationData) -> INSendMessageIntent {
     // Initialize only the sender for a one-to-one message intent.
     let handle = INPersonHandle(value: String(notificationData.accountID), type: .unknown)
@@ -156,11 +157,13 @@ class NotificationService: UANotificationServiceExtension {
     // Because this communication is incoming, you can infer that the current user is
     // a recipient. Don't include the current user when initializing the intent.
     let intent = INSendMessageIntent(recipients: nil,
+                                     outgoingMessageType: .outgoingMessageText,
                                      content: notificationData.messageText,
                                      speakableGroupName: nil,
                                      conversationIdentifier: String(notificationData.reportID),
                                      serviceName: nil,
-                                     sender: sender)
+                                     sender: sender,
+                                     attachments: nil)
     
     return intent
   }
