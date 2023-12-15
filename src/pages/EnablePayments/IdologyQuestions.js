@@ -9,7 +9,7 @@ import SingleChoiceQuestion from '@components/SingleChoiceQuestion';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 
