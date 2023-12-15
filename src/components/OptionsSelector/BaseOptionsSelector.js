@@ -144,19 +144,22 @@ function BaseOptionsSelector(props) {
      *
      * @returns {Objects[]}
      */
-    const sliceSections = useCallback(() =>
-        _.map(props.sections, (section) => {
-            if (_.isEmpty(section.data)) {
-                return section;
-            }
+    const sliceSections = useCallback(
+        () =>
+            _.map(props.sections, (section) => {
+                if (_.isEmpty(section.data)) {
+                    return section;
+                }
 
-            const pagination = paginationPage || 1;
+                const pagination = paginationPage || 1;
 
-            return {
-                ...section,
-                data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * pagination),
-            };
-        }), [paginationPage, props.sections]);
+                return {
+                    ...section,
+                    data: section.data.slice(0, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * pagination),
+                };
+            }),
+        [paginationPage, props.sections],
+    );
     /**
      * @param {Array<Object>} allOptions
      * @returns {Number}
