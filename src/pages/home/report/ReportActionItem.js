@@ -32,6 +32,9 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -46,9 +49,6 @@ import SelectionScraper from '@libs/SelectionScraper';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as store from '@userActions/ReimbursementAccount/store';
@@ -358,18 +358,14 @@ function ReportActionItem(props) {
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
         ) {
-            children = (
-                <TaskAction
-                    taskReportID={props.action.originalMessage.taskReportID.toString()}
-                    actionName={props.action.actionName}
-                />
-            );
+            children = <TaskAction actionName={props.action.actionName} />;
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
                         taskReportID={props.action.originalMessage.taskReportID.toString()}
                         chatReportID={props.report.reportID}
+                        policyID={ReportUtils.getRootParentReport(props.report).policyID}
                         action={props.action}
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef}

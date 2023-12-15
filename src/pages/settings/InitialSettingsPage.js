@@ -21,6 +21,8 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
@@ -34,8 +36,6 @@ import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActi
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -263,6 +263,16 @@ function InitialSettingsPage(props) {
                 action: waitForNavigate(() => {
                     Navigation.navigate(ROUTES.SETTINGS_ABOUT);
                 }),
+            },
+            {
+                translationKey: 'initialSettingsPage.goToExpensifyClassic',
+                icon: Expensicons.NewExpensify,
+                action: () => {
+                    Link.openExternalLink(CONST.EXPENSIFY_INBOX_URL);
+                },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                link: CONST.EXPENSIFY_INBOX_URL,
             },
             {
                 translationKey: 'initialSettingsPage.signOut',

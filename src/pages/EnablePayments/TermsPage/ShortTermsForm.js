@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Localize from '@libs/Localize';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {

@@ -4,14 +4,20 @@ import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {Linking} from 'react-native';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
+import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SessionUtils from '@libs/SessionUtils';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Device from '@userActions/Device';
@@ -23,6 +29,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import Credentials from '@src/types/onyx/Credentials';
 import {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
@@ -332,9 +339,19 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: true,
             },
         },
+        // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: true,
+            },
+        },
     ];
 
-    const successData: OnyxUpdate[] = [
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
+    // We are combining both success and failure data params into one const as they are identical
+    const resolutionData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -342,17 +359,17 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: false,
             },
         },
-    ];
-
-    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
+            key: ONYXKEYS.SESSION,
             value: {
-                isLoading: false,
+                signedInWithShortLivedAuthToken: null,
             },
         },
     ];
+
+    const successData = resolutionData;
+    const failureData = resolutionData;
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
@@ -584,13 +601,39 @@ function clearSignInData() {
 }
 
 /**
+ * Reset all current params of the Home route
+ */
+function resetHomeRouteParams() {
+    Navigation.isNavigationReady().then(() => {
+        const routes = navigationRef.current?.getState().routes;
+        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
+
+        const emptyParams: Record<string, undefined> = {};
+        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
+            emptyParams[paramKey] = undefined;
+        });
+
+        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
+        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
+    });
+}
+
+/**
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
+ * - Cancels pending network calls - any lingering requests are discarded to prevent unwanted storage writes
+ * - Clears all current params of the Home route - the login page URL should not contain any parameter
  */
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetReadyCheck();
     PriorityMode.resetHasReadRequiredDataFromStorage();
+    MainQueue.clear();
+    HttpUtils.cancelPendingRequests();
+    PersistedRequests.clear();
+    NetworkConnection.clearReconnectionCallbacks();
+    SessionUtils.resetDidUserLogInDuringSession();
+    resetHomeRouteParams();
 }
 
 function clearAccountMessages() {
