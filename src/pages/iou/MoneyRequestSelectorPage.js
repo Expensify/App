@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -19,7 +20,6 @@ import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,7 +48,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    selectedTab: CONST.TAB.SCAN,
+    selectedTab: CONST.TAB_REQUEST.SCAN,
     report: {},
 };
 
@@ -100,7 +100,7 @@ function MoneyRequestSelectorPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType) || !isAllowedToCreateRequest}>
                     <DragAndDropProvider
-                        isDisabled={props.selectedTab !== CONST.TAB.SCAN}
+                        isDisabled={props.selectedTab !== CONST.TAB_REQUEST.SCAN}
                         setIsDraggingOver={setIsDraggingOver}
                     >
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -121,18 +121,18 @@ function MoneyRequestSelectorPage(props) {
                                     )}
                                 >
                                     <TopTab.Screen
-                                        name={CONST.TAB.MANUAL}
+                                        name={CONST.TAB_REQUEST.MANUAL}
                                         component={NewRequestAmountPage}
                                         initialParams={{reportID, iouType}}
                                     />
                                     <TopTab.Screen
-                                        name={CONST.TAB.SCAN}
+                                        name={CONST.TAB_REQUEST.SCAN}
                                         component={ReceiptSelector}
                                         initialParams={{reportID, iouType, pageIndex: 1}}
                                     />
                                     {shouldDisplayDistanceRequest && (
                                         <TopTab.Screen
-                                            name={CONST.TAB.DISTANCE}
+                                            name={CONST.TAB_REQUEST.DISTANCE}
                                             component={NewDistanceRequestPage}
                                             initialParams={{reportID, iouType}}
                                         />
