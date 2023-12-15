@@ -138,6 +138,10 @@ function BasePicker<TPickerValue>(
         },
     }));
 
+    /**
+     * Windows will reuse the text color of the select for each one of the options
+     * so we need to color accordingly so it doesn't blend with the background.
+     */
     const getItemColor = useMemo(() => {
         if (getOperatingSystem() == CONST.OS.WINDOWS) {
             return theme.pickerOptionsTextColor;
