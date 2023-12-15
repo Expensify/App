@@ -2054,29 +2054,22 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     // If a workspace member is leaving a workspace room, they don't actually lose the room from Onyx.
     // Instead, their notification preference just gets set to "hidden".
     const optimisticData: OnyxUpdate[] = [
-        isWorkspaceMemberLeavingWorkspaceRoom
-            ? {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                  value: {
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: isWorkspaceMemberLeavingWorkspaceRoom
+                ? {
                       notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-                  },
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-                  value: {
-                      reportID,
+                  }
+                : {
+                      reportID: null,
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS.CLOSED,
-                      chatType: report.chatType,
-                      parentReportID: report.parentReportID,
-                      parentReportActionID: report.parentReportActionID,
-                      policyID: report.policyID,
-                      type: report.type,
+                      notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                   },
-              },
+        },
     ];
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

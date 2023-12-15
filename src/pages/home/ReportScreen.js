@@ -20,10 +20,12 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Timing from '@libs/actions/Timing';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
@@ -167,6 +169,11 @@ function ReportScreen({
     const [scrollPosition, setScrollPosition] = useState({});
     const [parentReportAction, setParentReportAction] = useState({});
 
+    if (firstRenderRef.current) {
+        Timing.start(CONST.TIMING.CHAT_RENDER);
+        Performance.markStart(CONST.TIMING.CHAT_RENDER);
+    }
+
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -308,6 +315,9 @@ function ReportScreen({
     );
 
     useEffect(() => {
+        Timing.end(CONST.TIMING.CHAT_RENDER);
+        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
+
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
