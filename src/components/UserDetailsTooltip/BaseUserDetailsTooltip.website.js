@@ -7,10 +7,10 @@ import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './userDetailsTooltipPropTypes';
 
@@ -20,7 +20,7 @@ function BaseUserDetailsTooltip(props) {
     const personalDetails = usePersonalDetails();
 
     const userDetails = lodashGet(personalDetails, props.accountID, props.fallbackUserDetails);
-    let userDisplayName = ReportUtils.getDisplayNameForParticipant(props.accountID);
+    let userDisplayName = ReportUtils.getDisplayNameForParticipant(props.accountID) || (userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
     let userAccountID = props.accountID;
