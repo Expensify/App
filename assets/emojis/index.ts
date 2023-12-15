@@ -1,3 +1,5 @@
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import emojis from './common';
 import enEmojis from './en';
 import esEmojis from './es';
@@ -31,5 +33,12 @@ const localeEmojis = {
     es: esEmojis,
 } as const;
 
-export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis};
+const flagHeaderIndex = emojis.findIndex((emoji) => {
+    if ('header' in emoji) {
+        return emoji.header && emoji.code === 'flags';
+    }
+});
+const emojisForOperatingSystem = getOperatingSystem() === CONST.OS.WINDOWS ? emojis.slice(0, flagHeaderIndex) : emojis;
+
+export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, emojisForOperatingSystem};
 export {skinTones, categoryFrequentlyUsed, default} from './common';
