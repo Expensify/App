@@ -155,14 +155,7 @@ class SearchPage extends Component {
         }
 
         if (option.reportID) {
-            this.setState(
-                {
-                    searchValue: '',
-                },
-                () => {
-                    Navigation.dismissModal(option.reportID);
-                },
-            );
+            Navigation.dismissModal(option.reportID);
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }

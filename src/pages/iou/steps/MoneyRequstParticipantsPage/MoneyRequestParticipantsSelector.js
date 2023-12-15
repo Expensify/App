@@ -308,7 +308,8 @@ function MoneyRequestParticipantsSelector({
                 />
             </View>
         ),
-        [handleConfirmSelection, shouldShowSplitBillErrorMessage, styles.mb2, styles.ph1, translate],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [handleConfirmSelection, shouldShowSplitBillErrorMessage, translate],
     );
 
     return (
