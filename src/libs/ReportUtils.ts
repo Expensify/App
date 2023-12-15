@@ -1211,7 +1211,8 @@ function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
 
 function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar ?? getDefaultWorkspaceAvatar(workspaceName);
+    const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar ?? '';
+    return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
 }
 
 /**
@@ -1810,6 +1811,10 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
     // If the report action is not IOU type, return true early
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return true;
+    }
+
+    if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+        return false;
     }
 
     const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
