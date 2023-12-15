@@ -6,23 +6,24 @@ const taxPropTypes = PropTypes.shape({
 
     /** value of a tax */
     value: PropTypes.string.isRequired,
+
+    /** if tax is disabled */
+    isDisabled: PropTypes.bool,
 });
 
-export default PropTypes.objectOf(
-    PropTypes.shape({
-        /** Defualt name of taxes */
-        name: PropTypes.string.isRequired,
+export default PropTypes.shape({
+    /** Defualt name of taxes */
+    name: PropTypes.string.isRequired,
 
-        /** Defualt external ID of taxes */
-        defaultExternalID: PropTypes.string.isRequired,
+    /** Defualt external ID of taxes */
+    defaultExternalID: PropTypes.string,
 
-        /** Default value of taxes */
-        defaultValue: PropTypes.string.isRequired,
+    /** Default value of taxes */
+    defaultValue: PropTypes.string,
 
-        /** Default Foreign Tax ID */
-        foreignTaxDefault: PropTypes.string.isRequired,
+    /** Default Foreign Tax ID */
+    foreignTaxDefault: PropTypes.string,
 
-        /** List of Taxes names and values */
-        taxes: PropTypes.objectOf(taxPropTypes),
-    }),
-);
+    /** List of Taxes names and values */
+    taxes: PropTypes.objectOf(taxPropTypes),
+});
