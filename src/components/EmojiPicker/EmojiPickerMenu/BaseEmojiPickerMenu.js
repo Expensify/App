@@ -13,10 +13,13 @@ import CONST from '@src/CONST';
 const emojiPropTypes = {
     /** The code of the item */
     code: PropTypes.string.isRequired,
+
     /** Whether the item is a header or not */
     header: PropTypes.bool,
+
     /** Whether the item is a spacer or not */
     spacer: PropTypes.bool,
+    
     /** Types of an emoji - e.g. different skin types */
     types: PropTypes.arrayOf(PropTypes.string),
 };

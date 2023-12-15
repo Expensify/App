@@ -8,13 +8,12 @@ import {emojisForOperatingSystem} from '@assets/emojis';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -35,8 +34,6 @@ const propTypes = {
     /** Stores user's frequently used emojis */
     // eslint-disable-next-line react/forbid-prop-types
     frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -63,13 +60,13 @@ function getEmojisAndHeaderRowIndices() {
     return {filteredEmojis, headerEmojis, headerRowIndices};
 }
 
-function EmojiPickerMenu(props) {
-    const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
-
+function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+
+    const {translate, preferredLocale} = useLocalize();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
@@ -494,14 +491,11 @@ const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
 
 EmojiPickerMenuWithRef.displayName = 'EmojiPickerMenuWithRef';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        preferredSkinTone: {
-            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
-        },
-        frequentlyUsedEmojis: {
-            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-        },
-    }),
-)(EmojiPickerMenuWithRef);
+export default withOnyx({
+    preferredSkinTone: {
+        key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    },
+    frequentlyUsedEmojis: {
+        key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
+    },
+})(EmojiPickerMenuWithRef);

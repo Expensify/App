@@ -33,15 +33,21 @@ const localeEmojis = {
     es: esEmojis,
 } as const;
 
-const flagHeaderIndex = emojis.findIndex((emoji) => {
-    if (!('header' in emoji)) {
-        return;
-    }
+// On windows, flag emojis are not supported
+const emojisForOperatingSystem =
+    getOperatingSystem() === CONST.OS.WINDOWS
+        ? emojis.slice(
+              0,
+              emojis.findIndex((emoji) => {
+                  if (!('header' in emoji)) {
+                      return;
+                  }
 
-    return emoji.header && emoji.code === 'flags';
-});
+                  return emoji.header && emoji.code === 'flags';
+              }),
+          )
+        : emojis;
 
-const emojisForOperatingSystem = getOperatingSystem() === CONST.OS.WINDOWS ? emojis.slice(0, flagHeaderIndex) : emojis;
-
+export default emojisForOperatingSystem;
 export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, emojisForOperatingSystem};
-export {skinTones, categoryFrequentlyUsed, default} from './common';
+export {skinTones, categoryFrequentlyUsed} from './common';
