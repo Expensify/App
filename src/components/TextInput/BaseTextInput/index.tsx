@@ -399,7 +399,7 @@ function BaseTextInput(
                                     onMouseDown={(e) => {
                                         e.preventDefault();
                                     }}
-                                    accessibilityLabel={translate?.('common.visible') ?? ''}
+                                    accessibilityLabel={translate('common.visible')}
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}

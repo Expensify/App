@@ -301,7 +301,7 @@ function BaseTextInput(
                             </>
                         ) : null}
                         <View style={[styles.textInputAndIconContainer, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
-                            {Boolean(prefixCharacter) && (
+                            {!!prefixCharacter && (
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
                                         tabIndex={-1}
@@ -372,14 +372,14 @@ function BaseTextInput(
                                     style={[styles.mt4, styles.ml1]}
                                 />
                             )}
-                            {Boolean(inputProps.secureTextEntry) && (
+                            {!!inputProps.secureTextEntry && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {
                                         event.preventDefault();
                                     }}
-                                    accessibilityLabel={translate?.('common.visible') ?? ''}
+                                    accessibilityLabel={translate('common.visible')}
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
