@@ -8,6 +8,7 @@ import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +36,12 @@ const propTypes = {
 
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: PropTypes.string.isRequired,
+
+    /** Should we show the approve button? */
+    shouldHidePaymentOptions: PropTypes.bool,
+
+    /** Should we show the payment options? */
+    shouldShowApproveButton: PropTypes.bool,
 
     /** The last payment method used per policy */
     nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
@@ -74,6 +81,9 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -89,6 +99,8 @@ const defaultProps = {
     // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
     iouReport: CONST.EMPTY_OBJECT,
     nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
+    shouldHidePaymentOptions: false,
+    shouldShowApproveButton: false,
     style: [],
     policyID: '',
     formattedAmount: '',
@@ -101,6 +113,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    shouldShowPersonalBankAccountOption: false,
 };
 
 function SettlementButton({
@@ -120,7 +133,10 @@ function SettlementButton({
     onPress,
     pressOnEnter,
     policyID,
+    shouldHidePaymentOptions,
+    shouldShowApproveButton,
     style,
+    shouldShowPersonalBankAccountOption,
 }) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -149,7 +165,17 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
+        const approveButtonOption = {
+            text: translate('iou.approve'),
+            icon: Expensicons.ThumbsUp,
+            value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+        };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
+
+        // Only show the Approve button if the user cannot pay the request
+        if (shouldHidePaymentOptions && shouldShowApproveButton) {
+            return [approveButtonOption];
+        }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
@@ -162,17 +188,26 @@ function SettlementButton({
         }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
 
+        if (shouldShowApproveButton) {
+            buttonOptions.push(approveButtonOption);
+        }
+
         // Put the preferred payment method to the front of the array so its shown as default
         if (paymentMethod) {
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate]);
+    }, [currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
     const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+            return;
+        }
+
+        if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+            IOU.approveMoneyRequest(iouReport);
             return;
         }
 
@@ -190,6 +225,7 @@ function SettlementButton({
             chatReportID={chatReportID}
             iouReport={iouReport}
             anchorAlignment={kycWallAnchorAlignment}
+            shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu
