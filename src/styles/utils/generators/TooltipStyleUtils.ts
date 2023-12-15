@@ -1,6 +1,6 @@
 import {Animated, TextStyle, View, ViewStyle} from 'react-native';
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
-import fontFamily from '@styles/utils/FontUtils/fontFamily';
+import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
 // eslint-disable-next-line no-restricted-imports
@@ -273,7 +273,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             },
             textStyle: {
                 color: theme.textReversed,
-                fontFamily: fontFamily.EXP_NEUE,
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
                 fontSize: variables.fontSizeSmall,
                 overflow: 'hidden',
                 lineHeight: variables.lineHeightSmall,
