@@ -23,7 +23,6 @@ import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as Session from './Session';
-import redirectToSignIn from './SignInRedirect';
 
 type BlockedFromConciergeNVP = {expiresAt: number};
 
@@ -81,8 +80,6 @@ function closeAccount(message: string) {
         optimisticData,
         failureData,
     });
-    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
-    redirectToSignIn();
 }
 
 /**
