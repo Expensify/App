@@ -1852,7 +1852,6 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
             justifyContent: 'center',
-            width: '100%',
         },
 
         emojiSkinToneTitle: {
