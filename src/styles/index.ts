@@ -1878,6 +1878,7 @@ const styles = (theme: ThemeColors) =>
             paddingTop: 2,
             paddingBottom: 2,
             height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+            flexShrink: 1,
             ...userSelect.userSelectNone,
         },
 
