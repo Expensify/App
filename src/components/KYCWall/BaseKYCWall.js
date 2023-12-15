@@ -42,6 +42,7 @@ function KYCWall({
     source,
     userWallet,
     walletTerms,
+    shouldShowPersonalBankAccountOption,
 }) {
     const anchorRef = useRef(null);
     const transferBalanceButtonRef = useRef(null);
@@ -213,6 +214,7 @@ function KYCWall({
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(item);
                 }}
+                shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />
             {children(continueAction, anchorRef)}
         </>
