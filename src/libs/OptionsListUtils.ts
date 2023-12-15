@@ -2,17 +2,17 @@
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashOrderBy from 'lodash/orderBy';
-import lodashSet from 'lodash/set';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Beta, Login, PersonalDetails, Policy, PolicyCategory, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import get from '@src/utils/get';
+import set from '@src/utils/set';
 import sortBy from '@src/utils/sortBy';
 import times from '@src/utils/times';
 import * as CollectionUtils from './CollectionUtils';
@@ -88,7 +88,7 @@ type GetOptionsConfig = {
     excludeUnknownUsers?: boolean;
     includeP2P?: boolean;
     includeCategories?: boolean;
-    categories?: Record<string, PolicyCategory>;
+    categories?: PolicyCategories;
     recentlyUsedCategories?: string[];
     includeTags?: boolean;
     tags?: Record<string, Tag>;
@@ -124,6 +124,8 @@ type GetOptions = {
     tagOptions: CategorySection[];
 };
 
+type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -142,7 +144,7 @@ Onyx.connect({
 let loginList: OnyxEntry<Login>;
 Onyx.connect({
     key: ONYXKEYS.LOGIN_LIST,
-    callback: (value) => (loginList = Object.keys(value ?? {}).length === 0 ? {} : value),
+    callback: (value) => (loginList = isEmptyObject(value) ? {} : value),
 });
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -313,7 +315,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData, personalDeta
         alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: UserUtils.getAvatar(detail.avatar ?? '', detail.accountID ?? 0),
+                source: UserUtils.getAvatar(detail.avatar ?? '', detail.accountID ?? -1),
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail.accountID,
@@ -460,10 +462,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         reportActionErrors,
     };
     // Combine all error messages keyed by microtime into one object
-    const allReportErrors = Object.values(errorSources)?.reduce(
-        (prevReportErrors, errors) => (Object.keys(errors ?? {}).length > 0 ? prevReportErrors : Object.assign(prevReportErrors, errors)),
-        {},
-    );
+    const allReportErrors = Object.values(errorSources)?.reduce((prevReportErrors, errors) => (isNotEmptyObject(errors) ? prevReportErrors : Object.assign(prevReportErrors, errors)), {});
 
     return allReportErrors;
 }
@@ -521,7 +520,7 @@ function createOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     report: OnyxEntry<Report>,
     reportActions: ReportActions,
-    {showChatPreviewLine = false, forcePolicyNamePreview = false}: {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean},
+    {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
 ): ReportUtils.OptionData {
     const result: ReportUtils.OptionData = {
         text: undefined,
@@ -634,6 +633,7 @@ function createOption(
     }
 
     result.text = reportName;
+    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     result.searchText = getSearchText(report, reportName, personalDetailList, !!(result.isChatRoom || result.isPolicyExpenseChat), !!result.isThread);
     result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar ?? '', personalDetail.accountID), personalDetail.login, personalDetail.accountID);
@@ -708,14 +708,14 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
 /**
  * Calculates count of all enabled options
  */
-function getEnabledCategoriesCount(options: Record<string, PolicyCategory>): number {
+function getEnabledCategoriesCount(options: PolicyCategories): number {
     return Object.values(options).filter((option) => option.enabled).length;
 }
 
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: Record<string, PolicyCategory>): boolean {
+function hasEnabledOptions(options: PolicyCategories): boolean {
     return Object.values(options).some((option) => option.enabled);
 }
 
@@ -749,7 +749,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
     sortedCategories.forEach((category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
         const existedValue = get(hierarchy, path, {});
-        lodashSet(hierarchy, path, {
+        set(hierarchy, path, {
             ...existedValue,
             name: category.name,
         });
@@ -764,7 +764,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
         Object.values(initialHierarchy).reduce((acc: Category[], category) => {
             const {name, ...subcategories} = category;
             if (name) {
-                const categoryObject = {
+                const categoryObject: Category = {
                     name,
                     enabled: categories[name].enabled ?? false,
                 };
@@ -854,7 +854,7 @@ function getIndentedOptionTree(options: Category[] | Record<string, Category>, i
  * Builds the section list for categories
  */
 function getCategoryListSections(
-    categories: Record<string, PolicyCategory>,
+    categories: PolicyCategories,
     recentlyUsedCategories: string[],
     selectedOptions: Category[],
     searchInputValue: string,
@@ -1071,7 +1071,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
  * Build the options
  */
 function getOptions(
-    reports: Record<string, Report>,
+    reports: OnyxCollection<Report>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     {
         reportActions = {},
@@ -1225,11 +1225,11 @@ function getOptions(
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
     const filteredDetails: OnyxEntry<PersonalDetailsList> = Object.keys(personalDetails ?? {})
-        .filter((key) => 'login' in (personalDetails?.[+key] ?? {}))
+        .filter((key) => 'login' in (personalDetails?.[Number(key)] ?? {}))
         .reduce((obj: OnyxEntry<PersonalDetailsList>, key) => {
-            if (obj && personalDetails?.[+key]) {
+            if (obj && personalDetails?.[Number(key)]) {
                 // eslint-disable-next-line no-param-reassign
-                obj[+key] = personalDetails?.[+key];
+                obj[Number(key)] = personalDetails?.[Number(key)];
             }
 
             return obj;
@@ -1461,7 +1461,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 /**
  * Build the IOUConfirmationOptions for showing participants
  */
-function getIOUConfirmationOptionsFromParticipants(participants: Participant[], amountText: string) {
+function getIOUConfirmationOptionsFromParticipants(participants: Participant[], amountText: string): Participant[] {
     return participants.map((participant) => ({
         ...participant,
         descriptiveText: amountText,
