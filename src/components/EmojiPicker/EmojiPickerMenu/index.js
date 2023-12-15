@@ -506,7 +506,6 @@ function EmojiPickerMenu(props) {
                         {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                     ]}
                 >
-                    <View style={styles.flexGrow1}>
                         <FlashList
                             ref={emojiListRef}
                             data={filteredEmojis}
@@ -527,7 +526,6 @@ function EmojiPickerMenu(props) {
                                 return 'emoji';
                             }}
                         />
-                    </View>
                 </View>
             </View>
             <EmojiSkinToneList
