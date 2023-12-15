@@ -139,7 +139,6 @@ function TaskShareDestinationSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}

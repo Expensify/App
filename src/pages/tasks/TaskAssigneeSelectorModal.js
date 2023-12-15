@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -119,12 +118,8 @@ function TaskAssigneeSelectorModal(props) {
     }, [props, searchValue, allPersonalDetails, isLoading]);
 
     useEffect(() => {
-        const debouncedSearch = _.debounce(updateOptions, 200);
-        debouncedSearch();
-        return () => {
-            debouncedSearch.cancel();
-        };
-    }, [updateOptions]);
+        updateOptions();
+    }, [searchValue, updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -228,7 +223,6 @@ function TaskAssigneeSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
