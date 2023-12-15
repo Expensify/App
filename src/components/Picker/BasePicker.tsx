@@ -179,7 +179,7 @@ function BasePicker<TPickerValue>(
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={items.map((item) => ({...item, color: getItemColor()}))}
+                    items={items.map((item) => ({...item, color: getItemColor}))}
                     style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
