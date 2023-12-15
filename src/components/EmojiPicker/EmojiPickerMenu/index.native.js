@@ -1,4 +1,3 @@
-import {FlashList} from '@shopify/flash-list';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -6,9 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import {runOnUI, scrollTo, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
 import emojis from '@assets/emojis';
-import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
-import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -20,7 +17,7 @@ import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import getItemType from './getItemType';
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import updatePreferredSkinTone from './updatePreferredSkinTone';
 
 const propTypes = {
@@ -94,7 +91,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
         const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
 
         setFilteredEmojis(newFilteredEmojiList);
-        setHeaderIndices(undefined);
+        setHeaderIndices([]);
     }, 300);
 
     const scrollToHeader = (headerIndex) => {
@@ -154,39 +151,26 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
-            {!isFiltered && (
-                <CategoryShortcutBar
-                    headerEmojis={headerEmojis}
-                    onPress={scrollToHeader}
-                />
-            )}
-            <View
-                style={[
+            <BaseEmojiPickerMenu
+                isFiltered={isFiltered}
+                headerEmojis={headerEmojis}
+                scrollToHeader={scrollToHeader}
+                listWrapperStyle={[
                     StyleUtils.getEmojiPickerListHeight(isFiltered),
                     {
                         width: windowWidth,
                     },
                 ]}
-            >
-                <FlashList
-                    ref={emojiList}
-                    keyboardShouldPersistTaps="handled"
-                    data={filteredEmojis}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    stickyHeaderIndices={headerIndices}
-                    ListEmptyComponent={<Text style={[styles.disabledText]}>{translate('common.noResultsFound')}</Text>}
-                    alwaysBounceVertical={filteredEmojis.length !== 0}
-                    estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    contentContainerStyle={styles.ph4}
-                    extraData={[filteredEmojis, preferredSkinTone]}
-                    getItemType={getItemType}
-                />
-            </View>
-            <EmojiSkinToneList
-                updatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
+                ref={emojiList}
+                data={filteredEmojis}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                extraData={[filteredEmojis, preferredSkinTone]}
+                stickyHeaderIndices={headerIndices}
+                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                contentContainerStyle={styles.ph4}
                 preferredSkinTone={preferredSkinTone}
+                onUpdatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
             />
         </View>
     );

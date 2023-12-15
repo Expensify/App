@@ -1,4 +1,3 @@
-import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -6,9 +5,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import {emojisForOperatingSystem} from '@assets/emojis';
-import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
-import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -23,6 +20,7 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import getItemType from './getItemType';
 import updatePreferredSkinTone from './updatePreferredSkinTone';
 
@@ -467,14 +465,11 @@ function EmojiPickerMenu(props) {
                     blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
-            {!isFiltered && (
-                <CategoryShortcutBar
-                    headerEmojis={headerEmojis}
-                    onPress={scrollToHeader}
-                />
-            )}
-            <View
-                style={[
+            <BaseEmojiPickerMenu
+                isFiltered={isFiltered}
+                headerEmojis={headerEmojis}
+                scrollToHeader={scrollToHeader}
+                listWrapperStyle={[
                     listStyle,
                     // This prevents elastic scrolling when scroll reaches the start or end
                     {overscrollBehaviorY: 'contain'},
@@ -484,24 +479,19 @@ function EmojiPickerMenu(props) {
                     {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                     styles.flexShrink1,
                 ]}
-            >
-                <FlashList
-                    ref={emojiListRef}
-                    data={filteredEmojis}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    extraData={[highlightedIndex, preferredSkinTone]}
-                    numColumns={CONST.EMOJI_NUM_PER_ROW}
-                    stickyHeaderIndices={headerIndices}
-                    ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
-                    estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    contentContainerStyle={styles.ph4}
-                    getItemType={getItemType}
-                />
-            </View>
-            <EmojiSkinToneList
-                updatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
+                ref={emojiListRef}
+                data={filteredEmojis}
+                renderItem={renderItem}
+                keyExtractor={keyExtractor}
+                extraData={[highlightedIndex, preferredSkinTone]}
+                numColumns={CONST.EMOJI_NUM_PER_ROW}
+                stickyHeaderIndices={headerIndices}
+                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
+                contentContainerStyle={styles.ph4}
+                getItemType={getItemType}
                 preferredSkinTone={preferredSkinTone}
+                onUpdatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
             />
         </View>
     );
