@@ -119,16 +119,12 @@ Onyx.connect({
     },
 });
 
-const nextSteps = {};
+let nextSteps = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
-    callback: (val, key) => {
-        if (!key || !val) {
-            return;
-        }
-
-        nextSteps[key] = val;
+    callback: (val) => {
+        nextSteps = val || {};
     },
 });
 
@@ -2835,12 +2831,15 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 },
             },
         },
-        {
+    ];
+
+    if (currentNextStep !== null) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
             value: currentNextStep,
-        },
-    ];
+        });
+    }
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
@@ -2966,12 +2965,15 @@ function approveMoneyRequest(expenseReport) {
                 },
             },
         },
-        {
+    ];
+
+    if (currentNextStep !== null) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
-        },
-    ];
+        });
+    }
 
     API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
@@ -3058,11 +3060,6 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: currentNextStep,
-        },
         ...(parentReport.reportID
             ? [
                   {
@@ -3076,6 +3073,14 @@ function submitReport(expenseReport) {
               ]
             : []),
     ];
+
+    if (currentNextStep !== null) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        });
+    }
 
     API.write(
         'SubmitReport',
