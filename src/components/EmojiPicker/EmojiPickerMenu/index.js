@@ -21,10 +21,10 @@ import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import getItemType from './getItemType';
+import updatePreferredSkinTone from './updatePreferredSkinTone';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -110,8 +110,10 @@ function EmojiPickerMenu(props) {
 
     useEffect(() => {
         const emojisAndHeaderRowIndices = getEmojisAndHeaderRowIndices();
-        setEmojis(emojisAndHeaderRowIndices.filteredEmojis);
-        setInitialHeaderRowIndices(emojisAndHeaderRowIndices.headerRowIndices);
+        if (emojis.length === 0 || initialHeaderRowIndices.length === 0) {
+            setEmojis(emojisAndHeaderRowIndices.filteredEmojis);
+            setInitialHeaderRowIndices(emojisAndHeaderRowIndices.headerRowIndices);
+        }
         setHeaderEmojis(emojisAndHeaderRowIndices.headerEmojis);
         setFilteredEmojis(emojisAndHeaderRowIndices.filteredEmojis);
         setHeaderIndices(emojisAndHeaderRowIndices.headerRowIndices);
@@ -379,20 +381,6 @@ function EmojiPickerMenu(props) {
     }, []);
 
     /**
-     * @param {Number} skinTone
-     */
-    const updatePreferredSkinTone = useCallback(
-        (skinTone) => {
-            if (Number(preferredSkinTone) === Number(skinTone)) {
-                return;
-            }
-
-            User.updatePreferredSkinTone(skinTone);
-        },
-        [preferredSkinTone],
-    );
-
-    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
@@ -512,7 +500,7 @@ function EmojiPickerMenu(props) {
                 />
             </View>
             <EmojiSkinToneList
-                updatePreferredSkinTone={updatePreferredSkinTone}
+                updatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
                 preferredSkinTone={preferredSkinTone}
             />
         </View>

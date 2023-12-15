@@ -18,10 +18,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import getItemType from './getItemType';
+import updatePreferredSkinTone from './updatePreferredSkinTone';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -96,17 +96,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
         setFilteredEmojis(newFilteredEmojiList);
         setHeaderIndices(undefined);
     }, 300);
-
-    /**
-     * @param {Number} skinTone
-     */
-    const updatePreferredSkinTone = (skinTone) => {
-        if (preferredSkinTone === skinTone) {
-            return;
-        }
-
-        User.updatePreferredSkinTone(skinTone);
-    };
 
     const scrollToHeader = (headerIndex) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
@@ -196,7 +185,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                 />
             </View>
             <EmojiSkinToneList
-                updatePreferredSkinTone={updatePreferredSkinTone}
+                updatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
                 preferredSkinTone={preferredSkinTone}
             />
         </View>
