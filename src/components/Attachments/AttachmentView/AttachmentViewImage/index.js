@@ -12,17 +12,38 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({source, file, isAuthTokenRequired, loadComplete, onPress, isImage, onScaleChanged, translate, onError}) {
+function AttachmentViewImage({
+    source,
+    file,
+    isAuthTokenRequired,
+    isUsedInCarousel,
+    isSingleCarouselItem,
+    carouselItemIndex,
+    carouselActiveItemIndex,
+    isFocused,
+    loadComplete,
+    onPress,
+    onError,
+    isImage,
+    onScaleChanged,
+    translate,
+}) {
     const styles = useThemeStyles();
     const children = (
         <ImageView
             onScaleChanged={onScaleChanged}
+            onError={onError}
             url={source}
             fileName={file.name}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
-            onError={onError}
+            isFocused={isFocused}
+            isUsedInCarousel={isUsedInCarousel}
+            isSingleCarouselItem={isSingleCarouselItem}
+            carouselItemIndex={carouselItemIndex}
+            carouselActiveItemIndex={carouselActiveItemIndex}
         />
     );
+
     return onPress ? (
         <PressableWithoutFeedback
             onPress={onPress}
