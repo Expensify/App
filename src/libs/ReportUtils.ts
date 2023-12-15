@@ -573,7 +573,7 @@ function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
 function sortReportsByLastRead(reports: OnyxCollection<Report>, reportsMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return Object.values(reports ?? {})
         .filter(
-            (report) => !!report?.reportID && ((reportsMetadata && !!reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime) || !!report?.lastReadTime),
+            (report) => !!report?.reportID && ((reportsMetadata && !!reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime) ?? !!report?.lastReadTime),
         )
         .sort((a, b) => {
             const aTime = new Date((reportsMetadata && a && reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a.reportID}`]?.lastVisitTime) ?? a?.lastReadTime ?? '');
@@ -841,7 +841,7 @@ function findLastAccessedReport(
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: boolean,
     openOnAdminRoom = false,
-    reportsMetadata: OnyxCollection<ReportMetadata>,
+    reportsMetadata: OnyxCollection<ReportMetadata> = {},
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that

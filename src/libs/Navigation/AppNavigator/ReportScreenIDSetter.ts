@@ -57,7 +57,7 @@ function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTime
         } else {
             App.confirmReadyToOpenApp();
         }
-    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser]);
+    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reportsMetadata]);
 
     // The ReportScreen without the reportID set will display a skeleton
     // until the reportID is loaded and set in the route param
