@@ -2802,11 +2802,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {[iouReport.policyID]: paymentMethodType},
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: null,
-        },
     ];
 
     const successData = [
@@ -2833,7 +2828,12 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
     ];
 
-    if (currentNextStep !== null) {
+    if (!_.isNull(currentNextStep)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: null,
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
@@ -2941,7 +2941,7 @@ function approveMoneyRequest(expenseReport) {
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: null,
     };
-    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepsData];
+    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
 
     const successData = [
         {
@@ -2967,7 +2967,8 @@ function approveMoneyRequest(expenseReport) {
         },
     ];
 
-    if (currentNextStep !== null) {
+    if (!_.isNull(currentNextStep)) {
+        optimisticData.push(optimisticNextStepsData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
@@ -3009,11 +3010,6 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
                 statusNum: CONST.REPORT.STATUS.SUBMITTED,
             },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: null,
         },
         ...(parentReport.reportID
             ? [
@@ -3074,7 +3070,12 @@ function submitReport(expenseReport) {
             : []),
     ];
 
-    if (currentNextStep !== null) {
+    if (!_.isNull(currentNextStep)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
