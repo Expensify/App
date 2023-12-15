@@ -61,7 +61,8 @@ class NotificationService: UANotificationServiceExtension {
     // Donate the interaction before updating notification content.
     interaction.donate { error in
         if let error = error {
-            // Handle errors that may occur during donation.
+            os_log("[NotificationService] configureCommunicationNotification() - failed to donate the message intent", log: self.log, type: .error)
+            contentHandler(notificationContent)
             return
         }
         
@@ -76,6 +77,7 @@ class NotificationService: UANotificationServiceExtension {
           contentHandler(updatedContent)
         } catch {
           os_log("[NotificationService] configureCommunicationNotification() - failed to update the notification with send message intent", log: self.log, type: .error)
+          contentHandler(notificationContent)
         }
     }
   }
