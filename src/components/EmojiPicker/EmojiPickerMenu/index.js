@@ -2,11 +2,13 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {scrollTo} from 'react-native-reanimated';
 import _ from 'underscore';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -35,16 +37,26 @@ const throttleTime = Browser.isMobile() ? 200 : 50;
 function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {allEmojis, headerEmojis, headerRowIndices, filteredEmojis, headerIndices, setFilteredEmojis, setHeaderIndices, isListFiltered, suggestEmojis, preferredSkinTone} =
-        useEmojiPickerMenu();
+    const {singleExecution} = useSingleExecution();
+    const {
+        allEmojis,
+        headerEmojis,
+        headerRowIndices,
+        filteredEmojis,
+        headerIndices,
+        setFilteredEmojis,
+        setHeaderIndices,
+        isListFiltered,
+        suggestEmojis,
+        preferredSkinTone,
+        listStyle,
+        emojiListRef,
+    } = useEmojiPickerMenu();
 
     // Ref for the emoji search input
     const searchInputRef = useRef(null);
-
-    // Ref for emoji FlatList
-    const emojiListRef = useRef(null);
 
     // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
     // prevent auto focus when open picker for mobile device
@@ -88,7 +100,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         if (emojiListRef.current) {
-            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
+            scrollTo(emojiListRef, 0, 0, false);
         }
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
@@ -294,14 +306,17 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
         };
     }, [forwardedRef, shouldFocusInputOnScreenFocus, cleanupEventHandlers, setupEventHandlers]);
 
-    const scrollToHeader = useCallback((headerIndex) => {
-        if (!emojiListRef.current) {
-            return;
-        }
+    const scrollToHeader = useCallback(
+        (headerIndex) => {
+            if (!emojiListRef.current) {
+                return;
+            }
 
-        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        emojiListRef.current.scrollToOffset({offset: calculatedOffset, animated: true});
-    }, []);
+            const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            scrollTo(emojiListRef, 0, calculatedOffset, true);
+        },
+        [emojiListRef],
+    );
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -314,12 +329,12 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
      */
     const renderItem = useCallback(
         ({item, index, target}) => {
-            const {code, header, types} = item;
+            const {code, types} = item;
             if (item.spacer) {
                 return null;
             }
 
-            if (header) {
+            if (item.header) {
                 return (
                     <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
@@ -334,7 +349,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
 
             return (
                 <EmojiPickerMenuItem
-                    onPress={(emoji) => onEmojiSelected(emoji, item)}
+                    onPress={singleExecution((emoji) => onEmojiSelected(emoji, item))}
                     onHoverIn={() => {
                         setHighlightFirstEmoji(false);
                         if (!isUsingKeyboardMovement) {
@@ -354,12 +369,20 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 />
             );
         },
-        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
+        [
+            preferredSkinTone,
+            highlightedIndex,
+            isUsingKeyboardMovement,
+            highlightFirstEmoji,
+            singleExecution,
+            styles.emojiHeaderContainer,
+            styles.mh4,
+            styles.textLabelSupporting,
+            translate,
+            onEmojiSelected,
+        ],
     );
 
-    const listStyle = StyleUtils.getEmojiPickerListHeight(isListFiltered, windowHeight);
-    const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
-    const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
     return (
         <View
             style={[
@@ -395,10 +418,6 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 scrollToHeader={scrollToHeader}
                 listWrapperStyle={[
                     listStyle,
-                    // This prevents elastic scrolling when scroll reaches the start or end
-                    {overscrollBehaviorY: 'contain'},
-                    // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlashList
-                    {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
                     // Set scrollPaddingTop to consider sticky headers while scrolling
                     {scrollPaddingTop: isListFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                     styles.flexShrink1,

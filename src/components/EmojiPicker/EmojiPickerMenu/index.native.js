@@ -1,13 +1,12 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {runOnUI, scrollTo, useAnimatedRef} from 'react-native-reanimated';
+import {runOnUI, scrollTo} from 'react-native-reanimated';
 import _ from 'underscore';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
@@ -21,13 +20,23 @@ const defaultProps = emojiPickerMenuDefaultProps;
 
 function EmojiPickerMenu({onEmojiSelected}) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {allEmojis, headerEmojis, headerRowIndices, filteredEmojis, headerIndices, setFilteredEmojis, setHeaderIndices, isListFiltered, suggestEmojis, preferredSkinTone} =
-        useEmojiPickerMenu();
+    const {
+        allEmojis,
+        headerEmojis,
+        headerRowIndices,
+        filteredEmojis,
+        headerIndices,
+        setFilteredEmojis,
+        setHeaderIndices,
+        isListFiltered,
+        suggestEmojis,
+        preferredSkinTone,
+        listStyle,
+        emojiListRef,
+    } = useEmojiPickerMenu();
     const {singleExecution} = useSingleExecution();
-    const emojiList = useAnimatedRef();
 
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
@@ -37,8 +46,8 @@ function EmojiPickerMenu({onEmojiSelected}) {
     const filterEmojis = _.debounce((searchTerm) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
-        if (emojiList.current) {
-            emojiList.current.scrollToOffset({offset: 0, animated: false});
+        if (emojiListRef.current) {
+            emojiListRef.current.scrollToOffset({offset: 0, animated: false});
         }
 
         if (normalizedSearchTerm === '') {
@@ -57,7 +66,7 @@ function EmojiPickerMenu({onEmojiSelected}) {
         runOnUI(() => {
             'worklet';
 
-            scrollTo(emojiList, 0, calculatedOffset, true);
+            scrollTo(emojiListRef, 0, calculatedOffset, true);
         })();
     };
 
@@ -112,12 +121,12 @@ function EmojiPickerMenu({onEmojiSelected}) {
                 headerEmojis={headerEmojis}
                 scrollToHeader={scrollToHeader}
                 listWrapperStyle={[
-                    StyleUtils.getEmojiPickerListHeight(isListFiltered),
+                    listStyle,
                     {
                         width: windowWidth,
                     },
                 ]}
-                ref={emojiList}
+                ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}
                 extraData={[filteredEmojis, preferredSkinTone]}
