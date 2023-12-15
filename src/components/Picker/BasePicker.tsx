@@ -10,6 +10,8 @@ import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BasePickerHandle, BasePickerProps} from './types';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST'
 
 type IconToRender = () => ReactElement;
 
@@ -155,6 +157,14 @@ function BasePicker<TPickerValue>(
         );
     }
 
+    const getItemColor = () => {
+        if (getOperatingSystem() == CONST.OS.WINDOWS) {
+            return theme.pickerOptionsTextColor;
+        }
+
+        return theme.textLight;
+    }
+    
     return (
         <>
             <View
@@ -165,7 +175,7 @@ function BasePicker<TPickerValue>(
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={items.map((item) => ({...item, color: theme.pickerOptionsTextColor}))}
+                    items={items.map((item) => ({...item, color: getItemColor()}))}
                     style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
