@@ -1,8 +1,8 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import withStyleUtils, {WithStyleUtilsProps} from '@components/withStyleUtils';
-import withTheme, {WithThemeProps} from '@components/withTheme';
-import withThemeStyles, {type WithThemeStylesProps} from '@components/withThemeStyles';
+import useTheme from '@styles/themes/useTheme';
+import useStyleUtils from '@styles/useStyleUtils';
+import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import IconWrapperStyles from './IconWrapperStyles';
 
@@ -41,25 +41,25 @@ type IconProps = {
 
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
-} & WithThemeStylesProps &
-    WithThemeProps &
-    WithStyleUtilsProps;
-
-const defaultProps = {
-    width: variables.iconSizeNormal,
-    height: variables.iconSizeNormal,
-    fill: undefined,
-    small: false,
-    inline: false,
-    additionalStyles: [],
-    hovered: false,
-    pressed: false,
 };
 
-function Icon({src, width, height, fill, small, inline, hovered, pressed, theme, themeStyles, StyleUtils, additionalStyles}: IconProps) {
+function Icon({
+    src,
+    width = variables.iconSizeNormal,
+    height = variables.iconSizeNormal,
+    fill = undefined,
+    small = false,
+    inline = false,
+    hovered = false,
+    pressed = false,
+    additionalStyles = [],
+}: IconProps) {
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
+    const styles = useThemeStyles();
     const iconWidth = small ? variables.iconSizeSmall : width;
     const iconHeight = small ? variables.iconSizeSmall : height;
-    const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, themeStyles.pAbsolute, additionalStyles];
+    const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
     const iconFill = fill ?? theme.icon;
     const IconComponent = src;
 
@@ -67,7 +67,7 @@ function Icon({src, width, height, fill, small, inline, hovered, pressed, theme,
         return (
             <View
                 testID={`${src.name} Icon`}
-                style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), themeStyles.bgTransparent, themeStyles.overflowVisible]}
+                style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
             >
                 <View style={iconStyles}>
                     <IconComponent
@@ -98,7 +98,6 @@ function Icon({src, width, height, fill, small, inline, hovered, pressed, theme,
     );
 }
 
-Icon.defaultProps = defaultProps;
 Icon.displayName = 'Icon';
 
-export default withTheme(withThemeStyles(withStyleUtils(Icon)));
+export default Icon;
