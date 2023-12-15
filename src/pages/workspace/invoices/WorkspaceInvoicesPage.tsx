@@ -12,6 +12,7 @@ type WorkspaceInvoicesPageProps = StackScreenProps<SettingsNavigatorParamList, t
 
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
+
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
