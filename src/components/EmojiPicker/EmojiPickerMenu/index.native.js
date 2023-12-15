@@ -39,6 +39,9 @@ const defaultProps = {
 function EmojiPickerMenu({onEmojiSelected, preferredSkinTone, frequentlyUsedEmojis}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {windowWidth} = useWindowDimensions();
+    const {singleExecution} = useSingleExecution();
+    const {translate, preferredLocale} = useLocalize();
     const emojiList = useAnimatedRef();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
@@ -46,9 +49,6 @@ function EmojiPickerMenu({onEmojiSelected, preferredSkinTone, frequentlyUsedEmoj
     const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => headerEmoji.index), [headerEmojis]);
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
-    const {windowWidth} = useWindowDimensions();
-    const {singleExecution} = useSingleExecution();
-    const {translate, preferredLocale} = useLocalize();
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
