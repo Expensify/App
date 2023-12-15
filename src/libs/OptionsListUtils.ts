@@ -475,11 +475,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
     let lastMessageTextFromReport = '';
     const lastActionName = lastReportAction?.actionName ?? '';
 
-    if (ReportActionUtils.isMoneyRequestAction(lastReportAction ?? null)) {
+    if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
-    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction ?? null)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction ?? null));
+    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
+        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReport = allSortedReportActions[iouReport?.reportID ?? '']?.find(
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
@@ -487,16 +487,16 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(isNotEmptyObject(iouReport) ? iouReport : null, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
-    } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction ?? null)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction ?? null, report);
-    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction ?? null)) {
+    } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
+    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
-    } else if (ReportActionUtils.isDeletedParentAction(lastReportAction ?? null) && ReportUtils.isChatReport(report)) {
-        lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction ?? null);
+    } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
+        lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey ?? 'common.attachment') as TranslationPaths)}]`;
-    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction ?? null)) {
-        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction ?? null);
+    } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
+        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage ?? '', true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
