@@ -1,40 +1,34 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as OnyxTypes from '@src/types/onyx';
 
-const propTypes = {
-    openLinkInBrowser: PropTypes.func.isRequired,
-
-    session: PropTypes.shape({
-        /** Currently logged-in user email */
-        email: PropTypes.string,
-    }),
-
-    ...withLocalizePropTypes,
+type DeeplinkRedirectLoadingIndicatorOnyxProps = {
+    /** Current user session */
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
-const defaultProps = {
-    session: {
-        email: '',
-    },
+type DeeplinkRedirectLoadingIndicatorProps = DeeplinkRedirectLoadingIndicatorOnyxProps & {
+    /** Opens the link in the browser */
+    openLinkInBrowser: (value: boolean) => void;
 };
 
-function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session}) {
+function DeeplinkRedirectLoadingIndicator({openLinkInBrowser, session}: DeeplinkRedirectLoadingIndicatorProps) {
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -46,8 +40,8 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
-                <View style={[styles.mt2, styles.fontSizeNormal, styles.textAlignCenter]}>
-                    <Text>{translate('deeplinkWrapper.loggedInAs', {email: session.email})}</Text>
+                <View style={[styles.mt2, styles.textAlignCenter]}>
+                    <Text>{translate('deeplinkWrapper.loggedInAs', {email: session?.email ?? ''})}</Text>
                     <Text style={[styles.textAlignCenter]}>
                         {translate('deeplinkWrapper.doNotSeePrompt')} <TextLink onPress={() => openLinkInBrowser(true)}>{translate('deeplinkWrapper.tryAgain')}</TextLink>
                         {translate('deeplinkWrapper.or')} <TextLink onPress={() => Navigation.navigate(ROUTES.HOME)}>{translate('deeplinkWrapper.continueInWeb')}</TextLink>.
@@ -66,15 +60,10 @@ function DeeplinkRedirectLoadingIndicator({translate, openLinkInBrowser, session
     );
 }
 
-DeeplinkRedirectLoadingIndicator.propTypes = propTypes;
-DeeplinkRedirectLoadingIndicator.defaultProps = defaultProps;
 DeeplinkRedirectLoadingIndicator.displayName = 'DeeplinkRedirectLoadingIndicator';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(DeeplinkRedirectLoadingIndicator);
+export default withOnyx<DeeplinkRedirectLoadingIndicatorProps, DeeplinkRedirectLoadingIndicatorOnyxProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(DeeplinkRedirectLoadingIndicator);
