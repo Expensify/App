@@ -18,11 +18,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -164,7 +164,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -173,7 +173,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                         <InputWrapper
                             InputComponent={TextInput}
@@ -182,7 +182,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
                             inputMode={CONST.INPUT_MODE.DECIMAL}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (
