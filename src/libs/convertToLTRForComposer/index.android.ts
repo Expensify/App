@@ -23,8 +23,11 @@ function canComposerBeConvertedToLTR(text: string): boolean {
  *  Mention suggestions not works if @ or \s (at or space) is the first character;
  *  Placeholder is not displayed if the unicode character is the only character remaining;
  *
- * @newComment: the comment written by the user
- * @force: always remove the LTR unicode, going to be used when composer is consider as empty */
+ * @param {String} newComment - the comment written by the user
+ * @param {Boolean} force - always remove the LTR unicode, going to be used when composer is consider as empty
+ * @return {String}
+ */
+
 const resetLTRWhenEmpty = (newComment: string, force?: boolean) => {
     const result = newComment.length <= 1 || force ? newComment.replaceAll(CONST.UNICODE.LTR, '') : newComment;
     return result;
