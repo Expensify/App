@@ -40,15 +40,6 @@ const defaultProps = {
     frequentlyUsedEmojis: [],
 };
 
-/**
- * Return a unique key for each emoji item
- *
- * @param {Object} item
- * @param {Number} index
- * @returns {String}
- */
-const keyExtractor = (item, index) => `${index}${item.code}`;
-
 function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate, frequentlyUsedEmojis}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -164,7 +155,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                 ref={emojiList}
                 data={filteredEmojis}
                 renderItem={renderItem}
-                keyExtractor={keyExtractor}
                 extraData={[filteredEmojis, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 preferredSkinTone={preferredSkinTone}

@@ -48,15 +48,6 @@ const defaultProps = {
 const throttleTime = Browser.isMobile() ? 200 : 50;
 
 /**
- * Return a unique key for each emoji item
- *
- * @param {Object} item
- * @param {Number} index
- * @returns {String}
- */
-const keyExtractor = (item, index) => `emoji_picker_${item.code}_${index}`;
-
-/**
  * Calculate the filtered + header emojis and header row indices
  * @returns {Object}
  */
@@ -481,7 +472,6 @@ function EmojiPickerMenu(props) {
                 ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}
-                keyExtractor={keyExtractor}
                 extraData={[highlightedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 preferredSkinTone={preferredSkinTone}
