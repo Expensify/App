@@ -21,6 +21,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getItemType from './getItemType';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -148,24 +149,6 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
         );
     };
 
-    /**
-     * Improves FlashList's recycling when there are different types of items
-     * @param {Object} item
-     * @returns {String}
-     */
-    const getItemType = (item) => {
-        if (!item) {
-            return;
-        }
-        if (item.header) {
-            return 'header';
-        }
-        if (item.spacer) {
-            return 'spacer';
-        }
-        return 'emoji';
-    };
-
     const isFiltered = allEmojis.length !== filteredEmojis.length;
 
     return (
@@ -205,7 +188,7 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     alwaysBounceVertical={filteredEmojis.length !== 0}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
                     contentContainerStyle={styles.ph4}
-                    extraData={[preferredSkinTone]}
+                    extraData={[filteredEmojis, preferredSkinTone]}
                     getItemType={getItemType}
                 />
             </View>

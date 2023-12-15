@@ -24,6 +24,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import getItemType from './getItemType';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -418,7 +419,7 @@ function EmojiPickerMenu(props) {
 
             if (header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {}]}>
+                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : undefined]}>
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}`)}</Text>
                     </View>
                 );
@@ -453,21 +454,6 @@ function EmojiPickerMenu(props) {
         },
         [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
     );
-
-    /**
-     * Improves FlashList's recycling when there are different types of items
-     * @param {Object} item
-     * @returns {String}
-     */
-    const getItemType = (item) => {
-        if (item.header) {
-            return 'header';
-        }
-        if (item.spacer) {
-            return 'spacer';
-        }
-        return 'emoji';
-    };
 
     const isFiltered = emojis.current.length !== filteredEmojis.length;
     const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
