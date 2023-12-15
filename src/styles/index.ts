@@ -8,7 +8,7 @@ import {PickerStyle} from 'react-native-picker-select';
 import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
-import FontUtils from '@libs/FontUtils';
+import FontUtils from '@styles/FontUtils';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';

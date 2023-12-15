@@ -1,6 +1,6 @@
 import {Animated, TextStyle, View, ViewStyle} from 'react-native';
-import fontFamily from '@libs/FontUtils/fontFamily';
 import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
+import fontFamily from '@styles/FontUtils/fontFamily';
 // eslint-disable-next-line no-restricted-imports
 import positioning from '@styles/utils/positioning';
 // eslint-disable-next-line no-restricted-imports

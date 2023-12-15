@@ -3,8 +3,8 @@ import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, TextSty
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
-import FontUtils from '@libs/FontUtils';
 import * as UserUtils from '@libs/UserUtils';
+import FontUtils from '@styles/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';

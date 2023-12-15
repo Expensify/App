@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import FontUtils from '@libs/FontUtils';
+import FontUtils from '@styles/FontUtils';
 import App from '../../src/App';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
