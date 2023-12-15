@@ -90,7 +90,7 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) 
 
 ConnectBankAccount.propTypes = propTypes;
 ConnectBankAccount.defaultProps = defaultProps;
-ConnectBankAccount.displayName = 'ConectBankAccount';
+ConnectBankAccount.displayName = 'ConnectBankAccount';
 
 export default withOnyx({
     account: {
