@@ -506,26 +506,26 @@ function EmojiPickerMenu(props) {
                         {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
                     ]}
                 >
-                        <FlashList
-                            ref={emojiListRef}
-                            data={filteredEmojis}
-                            renderItem={renderItem}
-                            keyExtractor={keyExtractor}
-                            extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
-                            numColumns={CONST.EMOJI_NUM_PER_ROW}
-                            stickyHeaderIndices={headerIndices}
-                            ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
-                            estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                            getItemType={(item) => {
-                                if (item.header) {
-                                    return 'header';
-                                }
-                                if (item.spacer) {
-                                    return 'spacer';
-                                }
-                                return 'emoji';
-                            }}
-                        />
+                    <FlashList
+                        ref={emojiListRef}
+                        data={filteredEmojis}
+                        renderItem={renderItem}
+                        keyExtractor={keyExtractor}
+                        extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
+                        numColumns={CONST.EMOJI_NUM_PER_ROW}
+                        stickyHeaderIndices={headerIndices}
+                        ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                        estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
+                        getItemType={(item) => {
+                            if (item.header) {
+                                return 'header';
+                            }
+                            if (item.spacer) {
+                                return 'spacer';
+                            }
+                            return 'emoji';
+                        }}
+                    />
                 </View>
             </View>
             <EmojiSkinToneList
