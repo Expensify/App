@@ -32,7 +32,7 @@ function Search({onPress, placeholder, tooltip, style}: SearchProps) {
         <Tooltip text={tooltip ?? translate('common.search')}>
             <PressableWithFeedback
                 accessibilityLabel={tooltip ?? translate('common.search')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 onPress={onPress}
                 style={styles.searchPressable}
             >
