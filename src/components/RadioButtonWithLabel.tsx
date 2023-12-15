@@ -1,6 +1,6 @@
 import React, {ComponentType} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
 import RadioButton from './RadioButton';
