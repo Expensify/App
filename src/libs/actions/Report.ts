@@ -19,6 +19,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {ReportCommentParams} from '@libs/Notification/LocalNotification/types';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -2133,10 +2134,18 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
-
     const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
         (accountID): accountID is number => typeof accountID === 'number',
     );
+
+    type PersonalDetailsOnyxData = {
+        optimisticData: OnyxUpdate[];
+        successData: OnyxUpdate[];
+        failureData: OnyxUpdate[];
+    };
+
+    const logins = inviteeEmails.map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs) as PersonalDetailsOnyxData;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2146,7 +2155,10 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 participantAccountIDs: participantAccountIDsAfterInvitation,
             },
         },
+        ...newPersonalDetailsOnyxData.optimisticData,
     ];
+
+    const successData: OnyxUpdate[] = newPersonalDetailsOnyxData.successData;
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2156,6 +2168,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
                 participantAccountIDs: report.participantAccountIDs,
             },
         },
+        ...newPersonalDetailsOnyxData.failureData,
     ];
 
     type InviteToRoomParameters = {
@@ -2168,7 +2181,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         inviteeEmails,
     };
 
-    API.write('InviteToRoom', parameters, {optimisticData, failureData});
+    API.write('InviteToRoom', parameters, {optimisticData, successData, failureData});
 }
 
 /** Removes people from a room */
