@@ -423,10 +423,10 @@ describe('ReportUtils', () => {
                         statusNum: CONST.REPORT.STATUS.SUBMITTED,
                         parentReportID: '101',
                     }
-                    const policy = {
+                    const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
                     };
-                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, [currentUserAccountID, participantsAccountIDs[0]]);
+                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]]);
                     expect(moneyRequestOptions.length).toBe(0);
                 });
             });
@@ -511,10 +511,10 @@ describe('ReportUtils', () => {
                         statusNum: CONST.REPORT.STATUS.OPEN,
                         parentReportID: '103',
                     }
-                    const policy = {
+                    const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
                     };
-                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, [currentUserAccountID, participantsAccountIDs[0]], true);
+                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]], true);
                     expect(moneyRequestOptions.length).toBe(1); 
                 });
             });
