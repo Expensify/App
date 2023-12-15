@@ -244,7 +244,6 @@ function ReportScreen({
         if (!report.reportID || !isFocused) {
             return;
         }
-        console.log("////////", report.reportID)
         Report.updateLastVisitTime(report.reportID);
     }, [report.reportID, isFocused]);
 
