@@ -1,5 +1,5 @@
-import lodashGet from 'lodash/get';
-import React, {useMemo} from 'react';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -15,7 +15,7 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
+import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,6 +26,9 @@ const propTypes = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
+    /** ID of the beneficial owner that is being modified */
+    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
+
     ...subStepPropTypes,
 };
 
@@ -34,27 +37,24 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
-
-function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
+function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
-    const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     return (
         <ScreenWrapper
-            testID={Confirmation.displayName}
+            testID={ConfirmationUBO.displayName}
             style={[styles.pt0]}
             scrollEnabled
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('personalInfoStep.letsDoubleCheck')}</Text>
+                <Text style={[styles.textHeadline, styles.ph5, styles.mb8]}>{translate('beneficialOwnerInfoStep.letsDoubleCheck')}</Text>
                 <MenuItemWithTopDescription
-                    description={translate('personalInfoStep.legalName')}
-                    title={`${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.FIRST_NAME]} ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.LAST_NAME]}`}
+                    description={translate('beneficialOwnerInfoStep.legalName')}
+                    title={`${values.firstName} ${values.lastName}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(0);
@@ -62,25 +62,23 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('common.dob')}
-                    title={values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.DOB]}
+                    title={values.dob}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(1);
                     }}
                 />
                 <MenuItemWithTopDescription
-                    description={translate('personalInfoStep.last4SSN')}
-                    title={values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.SSN_LAST_4]}
+                    description={translate('beneficialOwnerInfoStep.last4SSN')}
+                    title={values.ssnLast4}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(2);
                     }}
                 />
                 <MenuItemWithTopDescription
-                    description={translate('personalInfoStep.address')}
-                    title={`${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]}, ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]}, ${
-                        values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]
-                    } ${values[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]}`}
+                    description={translate('beneficialOwnerInfoStep.address')}
+                    title={`${values.street}, ${values.city}, ${values.state} ${values.zipCode}`}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(3);
@@ -88,7 +86,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                 />
 
                 <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>
-                    {`${translate('personalInfoStep.byAddingThisBankAccount')} `}
+                    {`${translate('beneficialOwnerInfoStep.byAddingThisBankAccount')} `}
                     <TextLink
                         href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}
                         style={[styles.textMicro]}
@@ -120,7 +118,6 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
                     )}
                     <Button
                         success
-                        isLoading={isLoading}
                         style={[styles.w100, styles.mt2, styles.pb5]}
                         onPress={onNext}
                         text={translate('common.confirm')}
@@ -131,9 +128,9 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, 
     );
 }
 
-Confirmation.propTypes = propTypes;
-Confirmation.defaultProps = defaultProps;
-Confirmation.displayName = 'Confirmation';
+ConfirmationUBO.propTypes = propTypes;
+ConfirmationUBO.defaultProps = defaultProps;
+ConfirmationUBO.displayName = 'ConfirmationUBO';
 
 export default withOnyx({
     reimbursementAccount: {
@@ -142,4 +139,4 @@ export default withOnyx({
     reimbursementAccountDraft: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
-})(Confirmation);
+})(ConfirmationUBO);

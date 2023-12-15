@@ -12,16 +12,11 @@ import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/Reim
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import getInitialSubstepForPersonalInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Address from './substeps/Address';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import FullName from './substeps/FullName';
-import SocialSecurityNumber from './substeps/SocialSecurityNumber';
+import ConfirmAgreements from './substeps/ConfirmAgreements';
 
 const propTypes = {
     /** Reimbursement account from ONYX */
@@ -30,11 +25,8 @@ const propTypes = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
-    /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
-
-    /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: PropTypes.func.isRequired,
+    /** Changes variable responsible for displaying step 4 or 5 */
+    setIsBeneficialOwnerInfoSet: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -42,30 +34,30 @@ const defaultProps = {
     reimbursementAccountDraft: {},
 };
 
-const bodyContent = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
-const personalInfoStepKeys = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const BODY_CONTENT = [ConfirmAgreements];
+const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}, ref) => {
+// This is a mocked step to showcase full transition between steps - will be removed with next PR
+const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, setIsBeneficialOwnerInfoSet}, ref) => {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const values = useMemo(() => getSubstepValues(personalInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, personalInfoStepKeys.BANK_ACCOUNT_ID, 0),
+            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, PERSONAL_INFO_STEP_KEYS.BANK_ACCOUNT_ID, 0),
             ...values,
         };
 
         BankAccounts.updatePersonalInformationForBankAccount(payload);
     }, [reimbursementAccount, values]);
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent, startFrom, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            onBackButtonPress();
+            setIsBeneficialOwnerInfoSet(false);
         } else {
             prevScreen();
         }
@@ -74,20 +66,18 @@ const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraf
     return (
         <ScreenWrapper
             ref={ref}
-            testID={PersonalInfo.displayName}
+            testID={CompleteVerification.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('personalInfoStep.personalInfo')}
                 onBackButtonPress={handleBackButtonPress}
-                onCloseButtonPress={onCloseButtonPress}
-                shouldShowCloseButton
+                title={translate('completeVerificationStep.completeVerification')}
             />
-            <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStep={2}
+                    startStep={5}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
@@ -100,9 +90,9 @@ const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraf
     );
 });
 
-PersonalInfo.propTypes = propTypes;
-PersonalInfo.defaultProps = defaultProps;
-PersonalInfo.displayName = 'PersonalInfo';
+CompleteVerification.propTypes = propTypes;
+CompleteVerification.defaultProps = defaultProps;
+CompleteVerification.displayName = 'CompleteVerification';
 
 export default withOnyx({
     reimbursementAccount: {
@@ -111,4 +101,4 @@ export default withOnyx({
     reimbursementAccountDraft: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
-})(PersonalInfo);
+})(CompleteVerification);

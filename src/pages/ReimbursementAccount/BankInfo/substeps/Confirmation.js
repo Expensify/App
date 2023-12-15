@@ -9,6 +9,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
@@ -16,8 +18,6 @@ import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimburs
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -42,6 +42,8 @@ const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const theme = useTheme();
 
     const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
     const setupType = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'subStep');
@@ -77,7 +79,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
                             <Icon
                                 src={Expensicons.Bank}
                                 additionalStyles={[styles.confirmBankInfoCompanyIcon, styles.mb5]}
-                                fill={themeColors.iconHovered}
+                                fill={theme.iconHovered}
                             />
                             <View style={[styles.mb3]}>
                                 <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.routingNumber')}</Text>
@@ -94,7 +96,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
                             interactive={false}
                             icon={Expensicons.Bank}
                             iconStyles={[styles.confirmBankInfoCompanyIcon]}
-                            iconFill={themeColors.iconHovered}
+                            iconFill={theme.iconHovered}
                             wrapperStyle={[styles.pl0, styles.mb6]}
                             title={values[bankInfoStepKeys.BANK_NAME]}
                             description={`${translate('bankAccount.accountEnding')} ${values[bankInfoStepKeys.ACCOUNT_NUMBER].slice(-4)}`}

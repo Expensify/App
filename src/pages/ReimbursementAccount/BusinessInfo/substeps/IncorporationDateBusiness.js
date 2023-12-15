@@ -1,17 +1,17 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import NewDatePicker from '@components/NewDatePicker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
 import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -46,6 +46,7 @@ const validate = (values) => {
 
 function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultCompanyIncorporationDate =
         getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationDateKey, '') || lodashGet(reimbursementAccountDraft, companyIncorporationDateKey, '');
@@ -60,7 +61,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
-            <NewDatePicker
+            <DatePicker
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={companyIncorporationDateKey}
                 label={translate('businessInfoStep.incorporationDate')}

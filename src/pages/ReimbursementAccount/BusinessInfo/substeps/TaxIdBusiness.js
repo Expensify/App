@@ -4,11 +4,11 @@ import Form from '@components/Form';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -37,6 +37,7 @@ const validate = (values) => {
 
 function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultCompanyTaxId = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyTaxIdKey, '');
 
@@ -58,7 +59,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
                 inputID={companyTaxIdKey}
                 label={translate('businessInfoStep.taxIDNumber')}
                 aria-label={translate('businessInfoStep.taxIDNumber')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableCompanyTaxID}

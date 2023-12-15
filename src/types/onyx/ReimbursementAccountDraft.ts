@@ -37,12 +37,20 @@ type RequestorStepProps = {
     onfidoData?: OnfidoData;
 };
 
+type BeneficialOwnersStepDraftProps = {
+    ownsMoreThan25Percent?: boolean;
+    hasOtherBeneficialOwners?: boolean;
+    beneficialOwners?: string;
+    beneficialOwnerKeys?: string[];
+};
+
 type ACHContractStepProps = {
     ownsMoreThan25Percent?: boolean;
     hasOtherBeneficialOwners?: boolean;
     acceptTermsAndConditions?: boolean;
     certifyTrueInformation?: boolean;
-    beneficialOwners?: string[];
+    beneficialOwners?: string;
+    beneficialOwnerKeys?: string[];
 };
 
 type ReimbursementAccountProps = {
@@ -58,4 +66,4 @@ type ReimbursementAccountProps = {
 type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps;
 
 export default ReimbursementAccountDraft;
-export type {ACHContractStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps};
+export type {ACHContractStepProps, BeneficialOwnersStepDraftProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps};

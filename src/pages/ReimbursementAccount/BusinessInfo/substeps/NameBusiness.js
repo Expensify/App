@@ -4,11 +4,11 @@ import Form from '@components/Form';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -29,6 +29,7 @@ const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [com
 
 function NameBusiness({reimbursementAccount, onNext, isEditing}) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultCompanyName = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyNameKey, '');
 
@@ -49,7 +50,7 @@ function NameBusiness({reimbursementAccount, onNext, isEditing}) {
             <TextInput
                 label={translate('businessInfoStep.businessName')}
                 aria-label={translate('businessInfoStep.businessName')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 inputID={companyNameKey}
                 containerStyles={[styles.mt4]}
                 disabled={shouldDisableCompanyName}

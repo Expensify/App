@@ -2,8 +2,8 @@ import map from 'lodash/map';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
-import colors from '@styles/colors';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
@@ -16,7 +16,7 @@ const propTypes = {
     stepNames: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** Function to call when a step is selected */
-    onStepSelected: PropTypes.func.isRequired,
+    onStepSelected: PropTypes.func,
 
     /** The index of the step to start with */
     startStep: PropTypes.number,
@@ -24,12 +24,15 @@ const propTypes = {
 
 const defaultProps = {
     startStep: 0,
+    onStepSelected: null,
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
 const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelected}, ref) => {
+    const styles = useThemeStyles();
+
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
         throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);
     }
@@ -56,7 +59,7 @@ const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelect
                 const hasUnion = index < amountOfUnions;
 
                 const moveToStep = () => {
-                    if (isLockedStep) {
+                    if (isLockedStep || !onStepSelected) {
                         return;
                     }
                     setCurrentStep(index);

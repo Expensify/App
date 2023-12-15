@@ -48,7 +48,7 @@ const propTypes = {
     }),
 
     /** Contains draft values for each input in the form */
-    draftValues: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number, PropTypes.objectOf(Date)])),
+    draftValues: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.bool, PropTypes.number, PropTypes.objectOf(Date), PropTypes.arrayOf(PropTypes.string)])),
 
     /** Should the button be enabled when offline */
     enabledWhenOffline: PropTypes.bool,

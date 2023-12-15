@@ -347,6 +347,10 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
      */
     const getDefaultStateForField = (fieldName, defaultValue = '') => lodashGet(reimbursementAccount, ['achData', fieldName], defaultValue);
 
+    const goBackToWorkspace = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    };
+
     const goBack = () => {
         const subStep = achData.subStep;
         const shouldShowOnfido = onfidoToken && !achData.isOnfidoSetupComplete;
@@ -474,6 +478,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
                 reimbursementAccount={reimbursementAccount}
                 reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
+                onCloseButtonPress={goBackToWorkspace}
                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                 plaidLinkOAuthToken={plaidLinkToken}
                 getDefaultStateForField={getDefaultStateForField}
@@ -486,10 +491,8 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     if (currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY) {
         return (
             <CompanyStep
-                reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
-                getDefaultStateForField={getDefaultStateForField}
+                onCloseButtonPress={goBackToWorkspace}
                 policyID={policyID}
             />
         );
@@ -500,10 +503,9 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         return (
             <RequestorStep
                 ref={requestorStepRef}
-                reimbursementAccount={reimbursementAccount}
-                onBackButtonPress={goBack}
                 shouldShowOnfido={Boolean(shouldShowOnfido)}
-                getDefaultStateForField={getDefaultStateForField}
+                onBackButtonPress={goBack}
+                onCloseButtonPress={goBackToWorkspace}
             />
         );
     }
@@ -511,11 +513,8 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
     if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
         return (
             <ACHContractStep
-                reimbursementAccount={reimbursementAccount}
-                reimbursementAccountDraft={reimbursementAccountDraft}
                 onBackButtonPress={goBack}
-                companyName={achData.companyName}
-                getDefaultStateForField={getDefaultStateForField}
+                onCloseButtonPress={goBackToWorkspace}
             />
         );
     }

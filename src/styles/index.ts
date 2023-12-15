@@ -4122,7 +4122,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.MONOSPACE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
-            color: colors.darkPrimaryText,
+            color: colors.productDark900,
             textAlignVertical: 'center',
         },
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),

@@ -7,19 +7,28 @@ const propTypes = {
     /** Goes to the previous step */
     onBackButtonPress: PropTypes.func.isRequired,
 
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
+
     /** If we should show Onfido flow */
     shouldShowOnfido: PropTypes.bool.isRequired,
 };
 
-const RequestorStep = React.forwardRef(({shouldShowOnfido, onBackButtonPress}, ref) => {
+const RequestorStep = React.forwardRef(({shouldShowOnfido, onBackButtonPress, onCloseButtonPress}, ref) => {
     if (shouldShowOnfido) {
-        return <VerifyIdentity onBackButtonPress={onBackButtonPress} />;
+        return (
+            <VerifyIdentity
+                onBackButtonPress={onBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+            />
+        );
     }
 
     return (
         <PersonalInfo
             ref={ref}
             onBackButtonPress={onBackButtonPress}
+            onCloseButtonPress={onCloseButtonPress}
         />
     );
 });
