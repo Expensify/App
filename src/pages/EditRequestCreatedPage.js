@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
@@ -38,7 +39,8 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
-                    maxDate={new Date()}
+                    maxDate={CONST.MAX_DATE}
+                    minDate={CONST.MIN_DATE}
                 />
             </FormProvider>
         </ScreenWrapper>
