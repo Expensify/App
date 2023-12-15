@@ -4,10 +4,9 @@ import {View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import withTheme, {withThemePropTypes} from '@components/withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeStyles';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
+import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from '@styles/useThemeStyles';
 import FabPlusIcon from './FabPlusIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
@@ -25,12 +24,11 @@ const propTypes = {
 
     /* An accessibility role for the button */
     role: PropTypes.string.isRequired,
-
-    ...withThemeStylesPropTypes,
-    ...withThemePropTypes,
 };
 
-const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role, theme, themeStyles}, ref) => {
+const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const fabPressable = useRef(null);
     const animatedValue = useSharedValue(isActive ? 1 : 0);
@@ -49,13 +47,13 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
         return {
             transform: [{rotate: `${animatedValue.value * 135}deg`}],
             backgroundColor,
-            borderRadius: themeStyles.floatingActionButton.borderRadius,
+            borderRadius: styles.floatingActionButton.borderRadius,
         };
     });
 
     return (
         <Tooltip text={translate('common.new')}>
-            <View style={themeStyles.floatingActionButtonContainer}>
+            <View style={styles.floatingActionButtonContainer}>
                 <AnimatedPressable
                     ref={(el) => {
                         fabPressable.current = el;
@@ -72,7 +70,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                         onPress(e);
                     }}
                     onLongPress={() => {}}
-                    style={[themeStyles.floatingActionButton, animatedStyle]}
+                    style={[styles.floatingActionButton, animatedStyle]}
                 >
                     <FabPlusIcon isActive={isActive} />
                 </AnimatedPressable>
@@ -84,4 +82,4 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
 FloatingActionButton.propTypes = propTypes;
 FloatingActionButton.displayName = 'FloatingActionButton';
 
-export default compose(withThemeStyles, withTheme)(FloatingActionButton);
+export default FloatingActionButton;
