@@ -380,6 +380,16 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 }
 
 /**
+ * Checks if the new marker should be shown for the report action.
+ */
+function shouldShowNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
+    if (!reportAction) {
+        return false;
+    }
+    return !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+}
+
+/**
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
@@ -816,6 +826,7 @@ export {
     isWhisperAction,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
+    shouldShowNewMarker,
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
