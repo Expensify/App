@@ -2,6 +2,8 @@ import React, {useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
+import CONST from '@src/CONST';
+import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
 import {BaseErrorBoundaryProps, LogError} from './types';
 
 /**
@@ -19,9 +21,11 @@ function BaseErrorBoundary({logError = () => {}, errorMessage, children}: BaseEr
         setErrorContent(errorObject.message);
     };
 
+    const updateRequired = errorContent === CONST.ERROR.UPDATE_REQUIRED;
+
     return (
         <ErrorBoundary
-            fallback={<GenericErrorPage errorContent={errorContent} />}
+            fallback={updateRequired ? <UpdateRequiredView/> : <GenericErrorPage />}
             onError={catchError}
         >
             {children}

@@ -1,9 +1,11 @@
 import Header from '@components/Header';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Button from '@components/Button';
 import Text from '@components/Text';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 
 function UpdateRequiredView() {
     const styles = useThemeStyles();
@@ -15,26 +17,41 @@ function UpdateRequiredView() {
     const updateApp = useCallback(() => {
 
     }, []);
+
     return (
-        <>
-            <Header
-                title="Update required"
-            />
-            <View style={styles.mb5}>
-                <Text>To get the latest changes, please download and install the latest version.</Text>
+        <View style={[styles.h100]}>
+            <View style={[styles.pt10, styles.ph5, {marginBottom: 100}]}>
+                <Header
+                    title="Update required"
+                />
             </View>
-            <View style={[styles.flexRow]}>
-                <View style={[styles.flex1, styles.flexRow]}>
-                    <Button
-                        success
-                        medium
-                        onPress={updateApp}
-                        text="Update"
-                        style={styles.mr3}
-                    />
+            <View style={[styles.flex1]}>
+                <Icon
+                    src={Expensicons.EmptyStateUpdateRocket}
+                    width="100%"
+                    height="100%"
+                    fill="transparent"
+                    additionalStyles={[styles.mb10]}
+                />
+                <View style={[styles.ph5, styles.alignItemsCenter]}>
+                    <View style={[{maxWidth: 300}]}>
+                        <View style={[styles.mb3]}>
+                            <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>Please install the latest version of New Expensify</Text>
+                        </View>
+                        <View style={styles.mb5}>
+                            <Text style={[styles.textAlignCenter]}>To get the latest changes, please download and install the latest version.</Text>
+                        </View>
+                    </View>
                 </View>
+                <Button
+                    success
+                    large
+                    onPress={updateApp}
+                    text="Update"
+                    style={[styles.ph10]}
+                />
             </View>
-        </>
+        </View>
     )
 }
 
