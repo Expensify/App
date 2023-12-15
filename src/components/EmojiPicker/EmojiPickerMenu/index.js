@@ -454,6 +454,21 @@ function EmojiPickerMenu(props) {
         [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
     );
 
+    /**
+     * Improves FlashList's recycling when there are different types of items
+     * @param {Object} item
+     * @returns {String}
+     */
+    const getItemType = (item) => {
+        if (item.header) {
+            return 'header';
+        }
+        if (item.spacer) {
+            return 'spacer';
+        }
+        return 'emoji';
+    };
+
     const isFiltered = emojis.current.length !== filteredEmojis.length;
     const listStyle = StyleUtils.getEmojiPickerListHeight(isFiltered, windowHeight);
     const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
@@ -499,7 +514,7 @@ function EmojiPickerMenu(props) {
                         listStyle,
                         // This prevents elastic scrolling when scroll reaches the start or end
                         {overscrollBehaviorY: 'contain'},
-                        // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
+                        // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlashList
                         {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
                         // Set scrollPaddingTop to consider sticky headers while scrolling
                         {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
@@ -516,15 +531,7 @@ function EmojiPickerMenu(props) {
                         ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
                         estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
                         contentContainerStyle={styles.ph4}
-                        getItemType={(item) => {
-                            if (item.header) {
-                                return 'header';
-                            }
-                            if (item.spacer) {
-                                return 'spacer';
-                            }
-                            return 'emoji';
-                        }}
+                        getItemType={getItemType}
                     />
                 </View>
             </View>

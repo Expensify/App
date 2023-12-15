@@ -148,6 +148,24 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
         );
     };
 
+    /**
+     * Improves FlashList's recycling when there are different types of items
+     * @param {Object} item
+     * @returns {String}
+     */
+    const getItemType = (item) => {
+        if (!item) {
+            return;
+        }
+        if (item.header) {
+            return 'header';
+        }
+        if (item.spacer) {
+            return 'spacer';
+        }
+        return 'emoji';
+    };
+
     const isFiltered = allEmojis.length !== filteredEmojis.length;
 
     return (
@@ -183,24 +201,12 @@ function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, t
                     keyExtractor={keyExtractor}
                     numColumns={CONST.EMOJI_NUM_PER_ROW}
                     stickyHeaderIndices={headerIndices}
-                    showsVerticalScrollIndicator
                     ListEmptyComponent={<Text style={[styles.disabledText]}>{translate('common.noResultsFound')}</Text>}
                     alwaysBounceVertical={filteredEmojis.length !== 0}
                     estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
                     contentContainerStyle={styles.ph4}
                     extraData={[preferredSkinTone]}
-                    getItemType={(item) => {
-                        if (!item) {
-                            return;
-                        }
-                        if (item.header) {
-                            return 'header';
-                        }
-                        if (item.spacer) {
-                            return 'spacer';
-                        }
-                        return 'emoji';
-                    }}
+                    getItemType={getItemType}
                 />
             </View>
             <EmojiSkinToneList
