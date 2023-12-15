@@ -64,27 +64,31 @@ function BaseOptionsSelector(props) {
     const themeStyles = useThemeStyles();
     const theme = useTheme();
 
-    const getInitiallyFocusedIndex = (allOptions) => {
-        if (_.isNumber(props.initialFocusedIndex)) {
-            return props.initialFocusedIndex;
-        }
+    const getInitiallyFocusedIndex = useCallback(
+        (allOptions) => {
+            if (_.isNumber(props.initialFocusedIndex)) {
+                return props.initialFocusedIndex;
+            }
 
-        if (props.selectedOptions.length > 0) {
-            return props.selectedOptions.length;
-        }
-        const defaultIndex = props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
-        if (_.isUndefined(props.initiallyFocusedOptionKey)) {
+            if (props.selectedOptions.length > 0) {
+                return props.selectedOptions.length;
+            }
+            const defaultIndex = props.shouldTextInputAppearBelowOptions ? allOptions.length : 0;
+            if (_.isUndefined(props.initiallyFocusedOptionKey)) {
+                return defaultIndex;
+            }
+
+            const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
+
+            if (indexOfInitiallyFocusedOption >= 0) {
+                return indexOfInitiallyFocusedOption;
+            }
+
             return defaultIndex;
-        }
-
-        const indexOfInitiallyFocusedOption = _.findIndex(allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
-
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
-    };
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        [props.initialFocusedIndex, props.shouldTextInputAppearBelowOptions, props.initiallyFocusedOptionKey, props.selectedOptions.length],
+    );
 
     const [disabledOptionsIndexes, setDisabledOptionsIndexes] = useState([]);
 
@@ -172,29 +176,34 @@ function BaseOptionsSelector(props) {
      * @param {Object} ref
      * @returns {Promise}
      */
-    const selectRow = (option, ref) =>
-        new Promise((resolve) => {
-            if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
-                if (relatedTarget.current && ref === relatedTarget.current) {
-                    textInputRef.current.focus();
-                    relatedTarget.current = null;
+    const selectRow = useCallback(
+        (option, ref) =>
+            new Promise((resolve) => {
+                if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
+                    if (relatedTarget.current && ref === relatedTarget.current) {
+                        textInputRef.current.focus();
+                        relatedTarget.current = null;
+                    }
+                    if (textInputRef.current.isFocused()) {
+                        setSelection(textInputRef.current, 0, props.value.length);
+                    }
                 }
-                if (textInputRef.current.isFocused()) {
-                    setSelection(textInputRef.current, 0, props.value.length);
+                const selectedOption = props.onSelectRow(option);
+                resolve(selectedOption);
+
+                if (!props.canSelectMultipleOptions) {
+                    return;
                 }
-            }
-            const selectedOption = props.onSelectRow(option);
-            resolve(selectedOption);
 
-            if (!props.canSelectMultipleOptions) {
-                return;
-            }
+                // Focus the first unselected item from the list (i.e: the best result according to the current search term)
+                setFocusedIndex(props.selectedOptions.length);
 
-            // Focus the first unselected item from the list (i.e: the best result according to the current search term)
-            setFocusedIndex(props.selectedOptions.length);
-        });
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+            }),
+        [props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, props.value.length, props.canSelectMultipleOptions, props.selectedOptions.length],
+    );
 
-    const selectFocusedOption = () => {
+    const selectFocusedOption = useCallback(() => {
         const focusedOption = allOptions[focusedIndex];
 
         if (!focusedOption || !isFocused) {
@@ -217,7 +226,7 @@ function BaseOptionsSelector(props) {
                 });
             }, 500);
         }
-    };
+    }, [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow, shouldDisableRowSelection]);
 
     const selectOptions = useCallback(() => {
         if (props.canSelectMultipleOptions) {
@@ -247,31 +256,34 @@ function BaseOptionsSelector(props) {
      * @param {Number} index
      * @param {Boolean} animated
      */
-    const scrollToIndex = (index, animated = true) => {
-        const option = allOptions[index];
-        if (!listRef.current || !option) {
-            return;
-        }
-
-        const itemIndex = option.index;
-        const sectionIndex = option.sectionIndex;
-
-        if (!lodashGet(sections, `[${sectionIndex}].data[${itemIndex}]`, null)) {
-            return;
-        }
-
-        // Note: react-native's SectionList automatically strips out any empty sections.
-        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-        let adjustedSectionIndex = sectionIndex;
-        for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
-                adjustedSectionIndex--;
+    const scrollToIndex = useCallback(
+        (index, animated = true) => {
+            const option = allOptions[index];
+            if (!listRef.current || !option) {
+                return;
             }
-        }
 
-        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
-    };
+            const itemIndex = option.index;
+            const sectionIndex = option.sectionIndex;
+
+            if (!lodashGet(sections, `[${sectionIndex}].data[${itemIndex}]`, null)) {
+                return;
+            }
+
+            // Note: react-native's SectionList automatically strips out any empty sections.
+            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+            let adjustedSectionIndex = sectionIndex;
+            for (let i = 0; i < sectionIndex; i++) {
+                if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
+                    adjustedSectionIndex--;
+                }
+            }
+
+            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+        },
+        [allOptions, sections],
+    );
 
     useEffect(() => {
         if (isFocused && props.autoFocus && textInputRef.current) {
@@ -344,10 +356,14 @@ function BaseOptionsSelector(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [allOptions.length, focusedIndex, props.focusedIndex, props.selectedOptions, props.value]);
 
-    const updateSearchValue = (value) => {
-        setErrorMessage(value.length > props.maxLength ? translate('common.error.characterLimitExceedCounter', {length: value.length, limit: props.maxLength}) : '');
-        props.onChangeText(value);
-    };
+    const updateSearchValue = useCallback(
+        (value) => {
+            setErrorMessage(value.length > props.maxLength ? translate('common.error.characterLimitExceedCounter', {length: value.length, limit: props.maxLength}) : '');
+            props.onChangeText(value);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        [props.onChangeText, props.maxLength, translate],
+    );
 
     /**
      * Calculates all currently visible options based on the sections that are currently being shown
@@ -368,30 +384,34 @@ function BaseOptionsSelector(props) {
     /**
      * @param {Number} index
      */
-    const updateFocusedIndex = (index) => {
+    const updateFocusedIndex = useCallback((index) => {
         setFocusedIndex(index);
-    };
+    }, []);
 
     /**
      * Completes the follow-up action after clicking on multiple select button
      * @param {Object} option
      */
-    const addToSelection = (option) => {
-        if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
-            textInputRef.current.focus();
-            if (textInputRef.current.isFocused()) {
-                setSelection(textInputRef.current, 0, props.value.length);
+    const addToSelection = useCallback(
+        (option) => {
+            if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
+                textInputRef.current.focus();
+                if (textInputRef.current.isFocused()) {
+                    setSelection(textInputRef.current, 0, props.value.length);
+                }
             }
-        }
-        props.onAddToSelection(option);
-    };
+            props.onAddToSelection(option);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        [props.onAddToSelection, props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, props.value.length],
+    );
 
     /**
      * Increments a pagination page to show more items
      */
-    const incrementPage = () => {
+    const incrementPage = useCallback(() => {
         setPaginationPage((prev) => prev + 1);
-    };
+    }, []);
 
     const shouldShowShowMoreButton = allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * paginationPage;
     const shouldShowFooter = !props.isReadOnly && (props.shouldShowConfirmButton || props.footerContent) && !(props.canSelectMultipleOptions && _.isEmpty(props.selectedOptions));
