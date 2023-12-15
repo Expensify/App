@@ -2936,11 +2936,6 @@ function approveMoneyRequest(expenseReport) {
             statusNum: CONST.REPORT.STATUS.APPROVED,
         },
     };
-    const optimisticNextStepsData = {
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-        value: null,
-    };
     const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
 
     const successData = [
@@ -2968,7 +2963,11 @@ function approveMoneyRequest(expenseReport) {
     ];
 
     if (!_.isNull(currentNextStep)) {
-        optimisticData.push(optimisticNextStepsData);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
