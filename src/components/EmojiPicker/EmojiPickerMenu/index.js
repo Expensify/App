@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
@@ -68,14 +69,18 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
     const headerRowIndices = useMemo(() => _.map(headerEmojis, (headerEmoji) => headerEmoji.index), [headerEmojis]);
     const [filteredEmojis, setFilteredEmojis] = useState(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
     const [highlightFirstEmoji, setHighlightFirstEmoji] = useState(false);
     const firstNonHeaderIndex = useMemo(() => _.findIndex(filteredEmojis, (item) => !item.spacer && !item.header), [filteredEmojis]);
-
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        disabledIndexes: headerRowIndices,
+        maxIndex: filteredEmojis.length - 1,
+        isActive: false,
+    });
 
     useEffect(() => {
         setFilteredEmojis(allEmojis);
@@ -120,7 +125,7 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             setFilteredEmojis(allEmojis);
             setHeaderIndices(headerRowIndices);
-            setHighlightedIndex(-1);
+            setFocusedIndex(-1);
             setHighlightFirstEmoji(false);
             return;
         }
@@ -129,7 +134,7 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         setFilteredEmojis(newFilteredEmojiList);
         setHeaderIndices([]);
-        setHighlightedIndex(0);
+        setFocusedIndex(0);
         setHighlightFirstEmoji(true);
     }, throttleTime);
 
@@ -161,21 +166,21 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
 
                 // We only want to hightlight the Emoji if none was highlighted already
                 // If we already have a highlighted Emoji, lets just skip the first navigation
-                if (highlightedIndex !== -1) {
+                if (focusedIndex !== -1) {
                     return;
                 }
             }
-            
+
             // If nothing is highlighted and an arrow key is pressed
             // select the first emoji, apply keyboard movement styles, and disable pointer events
-            if (highlightedIndex === -1) {
-                setHighlightedIndex(firstNonHeaderIndex);
+            if (focusedIndex === -1) {
+                setFocusedIndex(firstNonHeaderIndex);
                 setArePointerEventsDisabled(true);
                 setIsUsingKeyboardMovement(true);
                 return;
             }
 
-            let newIndex = highlightedIndex;
+            let newIndex = focusedIndex;
             const move = (steps, boundsCheck, onBoundReached = () => {}) => {
                 if (boundsCheck()) {
                     onBoundReached();
@@ -194,12 +199,12 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
 
             switch (arrowKey) {
                 case 'ArrowDown':
-                    move(CONST.EMOJI_NUM_PER_ROW, () => highlightedIndex + CONST.EMOJI_NUM_PER_ROW > filteredEmojis.length - 1);
+                    move(CONST.EMOJI_NUM_PER_ROW, () => focusedIndex + CONST.EMOJI_NUM_PER_ROW > filteredEmojis.length - 1);
                     break;
                 case 'ArrowLeft':
                     move(
                         -1,
-                        () => highlightedIndex - 1 < firstNonHeaderIndex,
+                        () => focusedIndex - 1 < firstNonHeaderIndex,
                         () => {
                             // Reaching start of the list, arrow left set the focus to searchInput.
                             focusInputWithTextSelect();
@@ -208,12 +213,12 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                     );
                     break;
                 case 'ArrowRight':
-                    move(1, () => highlightedIndex + 1 > filteredEmojis.length - 1);
+                    move(1, () => focusedIndex + 1 > filteredEmojis.length - 1);
                     break;
                 case 'ArrowUp':
                     move(
                         -CONST.EMOJI_NUM_PER_ROW,
-                        () => highlightedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex,
+                        () => focusedIndex - CONST.EMOJI_NUM_PER_ROW < firstNonHeaderIndex,
                         () => {
                             // Reaching start of the list, arrow up set the focus to searchInput.
                             focusInputWithTextSelect();
@@ -226,13 +231,14 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
             }
 
             // Actually highlight the new emoji, apply keyboard movement styles, and disable pointer events
-            if (newIndex !== highlightedIndex) {
-                setHighlightedIndex(newIndex);
+            if (newIndex !== focusedIndex) {
+                setFocusedIndex(newIndex);
                 setArePointerEventsDisabled(true);
                 setIsUsingKeyboardMovement(true);
             }
         },
-        [filteredEmojis, highlightedIndex, selection.end, selection.start],
+
+        [filteredEmojis, firstNonHeaderIndex, focusedIndex, selection.end, selection.start, setFocusedIndex],
     );
 
     const keyDownHandler = useCallback(
@@ -248,8 +254,8 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
             }
 
             // Select the currently highlighted emoji if enter is pressed
-            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && highlightedIndex !== -1) {
-                const item = filteredEmojis[highlightedIndex];
+            if (!isEnterWhileComposition(keyBoardEvent) && keyBoardEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && focusedIndex !== -1) {
+                const item = filteredEmojis[focusedIndex];
                 if (!item) {
                     return;
                 }
@@ -275,7 +281,7 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                 searchInputRef.current.focus();
             }
         },
-        [filteredEmojis, highlightAdjacentEmoji, highlightedIndex, isFocused, onEmojiSelected, preferredSkinTone],
+        [filteredEmojis, highlightAdjacentEmoji, focusedIndex, isFocused, onEmojiSelected, preferredSkinTone],
     );
 
     /**
@@ -357,8 +363,8 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
 
             const emojiCode = types && types[preferredSkinTone] ? types[preferredSkinTone] : code;
 
-            const isEmojiFocused = index === highlightedIndex && isUsingKeyboardMovement;
-            const shouldEmojiBeHighlighted = index === highlightedIndex && highlightFirstEmoji;
+            const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
+            const shouldEmojiBeHighlighted = index === focusedIndex && highlightFirstEmoji;
 
             return (
                 <EmojiPickerMenuItem
@@ -371,18 +377,29 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                         setIsUsingKeyboardMovement(false);
                     }}
                     emoji={emojiCode}
-                    onFocus={() => setHighlightedIndex(index)}
+                    onFocus={() => setFocusedIndex(index)}
                     onBlur={() =>
                         // Only clear the highlighted index if the highlighted index is the same,
                         // meaning that the focus changed to an element that is not an emoji item.
-                        setHighlightedIndex((prevState) => (prevState === index ? -1 : prevState))
+                        setFocusedIndex((prevState) => (prevState === index ? -1 : prevState))
                     }
                     isFocused={isEmojiFocused}
                     isHighlighted={shouldEmojiBeHighlighted}
                 />
             );
         },
-        [preferredSkinTone, highlightedIndex, isUsingKeyboardMovement, highlightFirstEmoji, styles, translate, onEmojiSelected],
+        [
+            preferredSkinTone,
+            focusedIndex,
+            isUsingKeyboardMovement,
+            highlightFirstEmoji,
+            styles.emojiHeaderContainer,
+            styles.mh4,
+            styles.textLabelSupporting,
+            translate,
+            onEmojiSelected,
+            setFocusedIndex,
+        ],
     );
 
     const isFiltered = allEmojis.length !== filteredEmojis.length;
@@ -409,8 +426,8 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                     autoFocus={shouldFocusInputOnScreenFocus}
                     onSelectionChange={onSelectionChange}
                     onFocus={() => {
-                        setHighlightedIndex(-1);
                         setIsFocused(true);
+                        setFocusedIndex(-1);
                         setIsUsingKeyboardMovement(false);
                     }}
                     onBlur={() => setIsFocused(false)}
@@ -435,7 +452,7 @@ function EmojiPickerMenu({forwardedRef, frequentlyUsedEmojis, preferredSkinTone,
                 ref={emojiListRef}
                 data={filteredEmojis}
                 renderItem={renderItem}
-                extraData={[highlightedIndex, preferredSkinTone]}
+                extraData={[focusedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
                 preferredSkinTone={preferredSkinTone}
                 onUpdatePreferredSkinTone={(skinTone) => updatePreferredSkinTone(preferredSkinTone, skinTone)}
