@@ -142,7 +142,7 @@ function BasePicker<TPickerValue>(
      * Windows will reuse the text color of the select for each one of the options
      * so we need to color accordingly so it doesn't blend with the background.
      */
-    const getItemColor = useMemo(() => {
+    const itemColor = useMemo(() => {
         if (getOperatingSystem() === CONST.OS.WINDOWS) {
             return theme.text;
         }
@@ -179,7 +179,7 @@ function BasePicker<TPickerValue>(
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={items.map((item) => ({...item, color: getItemColor}))}
+                    items={items.map((item) => ({...item, color: itemColor}))}
                     style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
