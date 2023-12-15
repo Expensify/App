@@ -1,7 +1,8 @@
+import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import emojiAssets from '@assets/emojis';
@@ -23,7 +24,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { FlashList } from '@shopify/flash-list';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -82,10 +82,8 @@ function EmojiPickerMenu(props) {
         // index is the actual header index starting at the first emoji and counting each one
         const headerEmojis = EmojiUtils.getHeaderEmojis(filteredEmojis);
 
-        // This is the indices of each header's Row
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+        // FlashList renders items defined as null, so we have to store each header's row index to set their style properly
+        const headerRowIndices = _.map(headerEmojis, (headerEmoji) => headerEmoji.index);
 
         return {filteredEmojis, headerEmojis, headerRowIndices};
     }
@@ -462,62 +460,75 @@ function EmojiPickerMenu(props) {
     const height = !listStyle.maxHeight || listStyle.height < listStyle.maxHeight ? listStyle.height : listStyle.maxHeight;
     const overflowLimit = Math.floor(height / CONST.EMOJI_PICKER_ITEM_HEIGHT) * 8;
     return (
-        <View
-            style={[
-                styles.emojiPickerContainer,
-                StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
-                // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
-                arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
-            ]}
-        >
-            <View style={[styles.ph4, styles.pb3, styles.pt2]}>
-                <TextInput
-                    label={translate('common.search')}
-                    accessibilityLabel={translate('common.search')}
-                    role={CONST.ROLE.PRESENTATION}
-                    onChangeText={filterEmojis}
-                    defaultValue=""
-                    ref={searchInputRef}
-                    autoFocus={shouldFocusInputOnScreenFocus}
-                    onSelectionChange={onSelectionChange}
-                    onFocus={() => {
-                        setHighlightedIndex(-1);
-                        setIsFocused(true);
-                        setIsUsingKeyboardMovement(false);
-                    }}
-                    onBlur={() => setIsFocused(false)}
-                    autoCorrect={false}
-                    blurOnSubmit={filteredEmojis.length > 0}
-                />
-            </View>
-            {!isFiltered && (
-                <CategoryShortcutBar
-                    headerEmojis={headerEmojis}
-                    onPress={scrollToHeader}
-                />
-            )}
-            <View 
-            style={[
-                    listStyle,
-                    // This prevents elastic scrolling when scroll reaches the start or end
-                    {overscrollBehaviorY: 'contain'},
-                    // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
-                    {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
-                    // Set scrollPaddingTop to consider sticky headers while scrolling
-                    {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
+        <View>
+            <View
+                style={[
+                    styles.emojiPickerContainer,
+                    StyleUtils.getEmojiPickerStyle(isSmallScreenWidth),
+                    // Disable pointer events so that onHover doesn't get triggered when the items move while we're scrolling
+                    arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
                 ]}
+            >
+                <View style={[styles.ph4, styles.pb3, styles.pt2]}>
+                    <TextInput
+                        label={translate('common.search')}
+                        accessibilityLabel={translate('common.search')}
+                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        onChangeText={filterEmojis}
+                        defaultValue=""
+                        ref={searchInputRef}
+                        autoFocus={shouldFocusInputOnScreenFocus}
+                        onSelectionChange={onSelectionChange}
+                        onFocus={() => {
+                            setHighlightedIndex(-1);
+                            setIsFocused(true);
+                            setIsUsingKeyboardMovement(false);
+                        }}
+                        onBlur={() => setIsFocused(false)}
+                        autoCorrect={false}
+                        blurOnSubmit={filteredEmojis.length > 0}
+                    />
+                </View>
+                {!isFiltered && (
+                    <CategoryShortcutBar
+                        headerEmojis={headerEmojis}
+                        onPress={scrollToHeader}
+                    />
+                )}
+                <View
+                    style={[
+                        listStyle,
+                        // This prevents elastic scrolling when scroll reaches the start or end
+                        {overscrollBehaviorY: 'contain'},
+                        // Set overflow to hidden to prevent elastic scrolling when there are not enough contents to scroll in FlatList
+                        {overflowY: filteredEmojis.length > overflowLimit ? 'auto' : 'hidden'},
+                        // Set scrollPaddingTop to consider sticky headers while scrolling
+                        {scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT},
+                    ]}
                 >
-            <FlashList
-                ref={emojiListRef}
-                data={filteredEmojis}
-                renderItem={renderItem}
-                keyExtractor={keyExtractor}
-                numColumns={CONST.EMOJI_NUM_PER_ROW}
-                extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
-                stickyHeaderIndices={headerIndices}
-                ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
-                estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-            />
+                    <View style={styles.flexGrow1}>
+                        <FlashList
+                            ref={emojiListRef}
+                            data={filteredEmojis}
+                            renderItem={renderItem}
+                            keyExtractor={keyExtractor}
+                            extraData={[filteredEmojis, highlightedIndex, preferredSkinTone]}
+                            numColumns={CONST.EMOJI_NUM_PER_ROW}
+                            stickyHeaderIndices={headerIndices}
+                            ListEmptyComponent={() => <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>}
+                            estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
+                            getItemType={(item) => {
+                                if (item.header) {
+                                    return 'header';
+                                }
+                                if (item.spacer) {
+                                    return 'spacer';
+                                }
+                                return 'emoji';
+                            }}
+                        />
+                    </View>
+                </View>
             </View>
             <EmojiSkinToneList
                 updatePreferredSkinTone={updatePreferredSkinTone}
