@@ -96,6 +96,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                                 hidePopoverMenu();
                                 return;
                             }
+                            buttonRef.current.blur();
                             showPopoverMenu();
                             if (onIconPress) {
                                 onIconPress();

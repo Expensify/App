@@ -30,13 +30,15 @@ function close(onModalCloseCallback: () => void, isNavigating = true) {
         return;
     }
     onModalClose = onModalCloseCallback;
-    [...closeModals].reverse().forEach((onClose) => {
-        onClose(isNavigating);
-    });
+    closeTop();
 }
 
 function onModalDidClose() {
     if (!onModalClose) {
+        return;
+    }
+    if (closeModals.length) {
+        closeTop();
         return;
     }
     onModalClose();
@@ -51,6 +53,16 @@ function setModalVisibility(isVisible: boolean) {
 }
 
 /**
+ * Close topmost modal
+ */
+function closeTop() {
+    if (closeModals.length === 0) {
+        return;
+    }
+    closeModals[closeModals.length - 1]();
+}
+
+/**
  * Allows other parts of app to know that an alert modal is about to open.
  * This will trigger as soon as a modal is opened but not yet visible while animation is running.
  */
@@ -58,4 +70,4 @@ function willAlertModalBecomeVisible(isVisible: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible});
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, closeTop};
