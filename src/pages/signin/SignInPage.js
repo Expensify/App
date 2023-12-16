@@ -5,19 +5,19 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import CustomStatusBar from '@components/CustomStatusBar';
+import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import ThemeProvider from '@components/ThemeProvider';
+import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import useLocalize from '@hooks/useLocalize';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import ThemeProvider from '@styles/themes/ThemeProvider';
-import ThemeStylesProvider from '@styles/ThemeStylesProvider';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -288,7 +288,7 @@ function SignInPage(props) {
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
-                    <CustomStatusBar isNested />
+                    <CustomStatusBarAndBackground isNested />
                     <SignInPageInner
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
