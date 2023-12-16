@@ -279,6 +279,7 @@ export default {
         required: 'Required',
         showing: 'Showing',
         of: 'of',
+        default: 'Default',
     },
     location: {
         useCurrent: 'Use current location',
