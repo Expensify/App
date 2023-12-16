@@ -10,10 +10,10 @@ import {withNetwork} from '@components/OnyxProvider';
 import withCurrentReportID from '@components/withCurrentReportID';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import SidebarUtils from '@libs/SidebarUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
@@ -148,7 +148,6 @@ const chatReportSelector = (report) =>
         iouReportID: report.iouReportID,
         total: report.total,
         nonReimbursableTotal: report.nonReimbursableTotal,
-        hasOutstandingIOU: report.hasOutstandingIOU,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
