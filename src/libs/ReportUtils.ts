@@ -2470,6 +2470,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: File): Opti
             attachmentInfo,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             shouldShow: true,
+            isOptimisticAction: true,
         },
     };
 }
@@ -4143,7 +4144,7 @@ function getTaskAssigneeChatOnyxData(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-            value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: {pendingAction: null}},
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: {pendingAction: null, isOptimisticAction: null}},
         });
     }
 
