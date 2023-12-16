@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import Animated, {Easing, interpolateColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-import themeColors from '@styles/themes/default';
+import useTheme from '@hooks/useTheme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -12,6 +12,7 @@ const propTypes = {
 };
 
 function FabPlusIcon({isActive}) {
+    const theme = useTheme();
     const animatedValue = useSharedValue(isActive ? 1 : 0);
 
     useEffect(() => {
@@ -22,7 +23,7 @@ function FabPlusIcon({isActive}) {
     }, [isActive, animatedValue]);
 
     const animatedProps = useAnimatedProps(() => {
-        const fill = interpolateColor(animatedValue.value, [0, 1], [themeColors.textLight, themeColors.textDark]);
+        const fill = interpolateColor(animatedValue.value, [0, 1], [theme.textLight, theme.textDark]);
 
         return {
             fill,
