@@ -1055,6 +1055,13 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
     return tagSections;
 }
 
+function transformedTaxRates(policyTaxRates) {
+    const defaulTaxKey = policyTaxRates.defaultExternalID;
+    const getName = (data, code) => `${data.name} (${data.value})${defaulTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, name: getName(data, code), actualName: data.name}]));
+    return taxes;
+}
+
 function sortTaxRates(taxRates) {
     const sortedtaxRates = _.chain(taxRates)
         .values()
@@ -1067,7 +1074,7 @@ function sortTaxRates(taxRates) {
 function getTaxRatesOptions(taxRates) {
     return _.map(taxRates, (taxRate) => ({
         text: taxRate.name,
-        keyForList: taxRate.name,
+        keyForList: taxRate.code,
         searchText: taxRate.name,
         tooltipText: taxRate.name,
         isDisabled: taxRate.isDisabled,
@@ -1078,8 +1085,7 @@ function getTaxRatesOptions(taxRates) {
 function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     const policyRatesSections = [];
 
-    // transform tax rates so we could have key as 'code' in tax rate
-    const taxes = Object.fromEntries(Object.entries(policyTaxRates.taxes).map(([code, data]) => [code, {...data, code}]));
+    const taxes = transformedTaxRates(policyTaxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = _.filter(sortedTaxRates, (taxRate) => !taxRate.isDisabled);
@@ -1911,4 +1917,5 @@ export {
     getIndentedOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
+    transformedTaxRates,
 };
