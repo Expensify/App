@@ -385,7 +385,7 @@ function ReportActionsList({
                 sortedReportActions={sortedReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index) && !ReportActionsUtils.shouldHideNewMarker(reportAction)}
             />
         ),
         [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],

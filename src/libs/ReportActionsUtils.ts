@@ -382,7 +382,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 /**
  * Checks if the new marker should be shown for the report action.
  */
-function shouldShowNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
+function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -826,7 +826,7 @@ export {
     isWhisperAction,
     isReimbursementQueuedAction,
     shouldReportActionBeVisible,
-    shouldShowNewMarker,
+    shouldHideNewMarker,
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
