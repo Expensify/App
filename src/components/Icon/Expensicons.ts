@@ -86,6 +86,7 @@ import Menu from '@assets/images/menu.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import Monitor from '@assets/images/monitor.svg';
+import NewExpensify from '@assets/images/new-expensify.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -117,6 +118,7 @@ import Youtube from '@assets/images/social-youtube.svg';
 import Sync from '@assets/images/sync.svg';
 import Task from '@assets/images/task.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
+import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import Unlock from '@assets/images/unlock.svg';
@@ -220,6 +222,7 @@ export {
     MoneyBag,
     MoneyCircle,
     Monitor,
+    NewExpensify,
     NewWindow,
     NewWorkspace,
     Offline,
@@ -242,6 +245,7 @@ export {
     Shield,
     Sync,
     Task,
+    ThumbsUp,
     ThreeDots,
     Transfer,
     Trashcan,

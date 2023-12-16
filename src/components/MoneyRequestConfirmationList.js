@@ -9,6 +9,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -22,8 +24,6 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -448,7 +448,10 @@ function MoneyRequestConfirmationList(props) {
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
-
+            if (props.iouCategory && props.iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+                setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
             if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
@@ -483,6 +486,7 @@ function MoneyRequestConfirmationList(props) {
             props.isEditingSplitBill,
             props.iouType,
             props.isDistanceRequest,
+            props.iouCategory,
             isDistanceRequestWithoutRoute,
             props.iouCurrencyCode,
             props.iouAmount,
@@ -517,6 +521,7 @@ function MoneyRequestConfirmationList(props) {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
+                shouldShowPersonalBankAccountOption
             />
         ) : (
             <ButtonWithDropdownMenu
