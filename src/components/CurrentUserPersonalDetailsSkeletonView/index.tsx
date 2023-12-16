@@ -23,7 +23,12 @@ type CurrentUserPersonalDetailsSkeletonViewProps = {
     foregroundColor?: string;
 };
 
-function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE, backgroundColor, foregroundColor}: CurrentUserPersonalDetailsSkeletonViewProps) {
+function CurrentUserPersonalDetailsSkeletonView({
+    shouldAnimate = true,
+    avatarSize = CONST.AVATAR_SIZE.LARGE,
+    backgroundColor = undefined,
+    foregroundColor = undefined,
+}: CurrentUserPersonalDetailsSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

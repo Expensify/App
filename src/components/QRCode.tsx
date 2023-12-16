@@ -40,7 +40,16 @@ type QRCodeProps = {
     getRef?: (ref: Ref<SVGElement>) => Ref<SVGElement>;
 };
 
-function QRCode({url, logo, getRef, size = 120, color, backgroundColor, logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO, logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}: QRCodeProps) {
+function QRCode({
+    url,
+    logo = undefined,
+    getRef = undefined,
+    size = 120,
+    color = undefined,
+    backgroundColor = undefined,
+    logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO,
+    logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO,
+}: QRCodeProps) {
     const theme = useTheme();
     return (
         <QRCodeLibrary

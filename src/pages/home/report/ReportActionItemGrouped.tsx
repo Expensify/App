@@ -8,7 +8,7 @@ type ReportActionItemGroupedProps = ChildrenProps & {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function ReportActionItemGrouped({wrapperStyle, children}: ReportActionItemGroupedProps) {
+function ReportActionItemGrouped({wrapperStyle = {}, children}: ReportActionItemGroupedProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.chatItem, wrapperStyle]}>

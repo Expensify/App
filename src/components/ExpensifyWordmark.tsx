@@ -25,7 +25,7 @@ const logoComponents = {
     [CONST.ENVIRONMENT.ADHOC]: AdHocLogo,
 };
 
-function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) {
+function ExpensifyWordmark({isSmallScreenWidth, style = {}}: ExpensifyWordmarkProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

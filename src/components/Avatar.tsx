@@ -48,12 +48,12 @@ type AvatarProps = {
 };
 
 function Avatar({
-    source,
-    imageStyles,
-    iconAdditionalStyles,
-    containerStyles,
+    source = undefined,
+    imageStyles = undefined,
+    iconAdditionalStyles = undefined,
+    containerStyles = undefined,
     size = CONST.AVATAR_SIZE.DEFAULT,
-    fill,
+    fill = undefined,
     fallbackIcon = Expensicons.FallbackAvatar,
     type = CONST.ICON_TYPE_AVATAR,
     name = '',

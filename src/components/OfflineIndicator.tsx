@@ -17,7 +17,7 @@ type OfflineIndicatorProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function OfflineIndicator({style, containerStyles}: OfflineIndicatorProps) {
+function OfflineIndicator({style = {}, containerStyles = {}}: OfflineIndicatorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

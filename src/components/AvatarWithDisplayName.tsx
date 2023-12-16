@@ -46,7 +46,7 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
 
 function AvatarWithDisplayName({
     personalDetails,
-    policy,
+    policy = undefined,
     report,
     parentReportActions,
     isAnonymous = false,

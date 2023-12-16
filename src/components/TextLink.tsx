@@ -29,7 +29,7 @@ type TextLinkProps = (LinkProps | PressProps) &
         onMouseDown?: MouseEventHandler;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...rest}: TextLinkProps, ref: ForwardedRef<RNText>) {
+function TextLink({href, onPress, children, style = {}, onMouseDown = (event) => event.preventDefault(), ...rest}: TextLinkProps, ref: ForwardedRef<RNText>) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 

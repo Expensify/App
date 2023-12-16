@@ -64,10 +64,10 @@ type AvatarSizeToStyles = typeof CONST.AVATAR_SIZE.SMALL | typeof CONST.AVATAR_S
 type AvatarSizeToStylesMap = Record<AvatarSizeToStyles, AvatarStyles>;
 
 function MultipleAvatars({
-    fallbackIcon,
+    fallbackIcon = undefined,
     icons = [],
     size = CONST.AVATAR_SIZE.DEFAULT,
-    secondAvatarStyle: secondAvatarStyleProp,
+    secondAvatarStyle: secondAvatarStyleProp = {},
     shouldStackHorizontally = false,
     shouldDisplayAvatarsInRows = false,
     isHovered = false,

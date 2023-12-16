@@ -39,7 +39,16 @@ type BannerProps = {
     textStyles?: StyleProp<TextStyle>;
 };
 
-function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
+function Banner({
+    text,
+    onClose = undefined,
+    onPress = undefined,
+    containerStyles = {},
+    textStyles = {},
+    shouldRenderHTML = false,
+    shouldShowIcon = false,
+    shouldShowCloseButton = false,
+}: BannerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();

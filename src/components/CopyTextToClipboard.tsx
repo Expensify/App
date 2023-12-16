@@ -17,7 +17,7 @@ type CopyTextToClipboardProps = {
     accessibilityRole?: AccessibilityRole;
 };
 
-function CopyTextToClipboard({text, textStyles, urlToCopy, accessibilityRole}: CopyTextToClipboardProps) {
+function CopyTextToClipboard({text, textStyles = {}, urlToCopy = undefined, accessibilityRole = undefined}: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
 
     const copyToClipboard = useCallback(() => {

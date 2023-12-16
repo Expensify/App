@@ -26,7 +26,7 @@ type ScrollViewWithContextProps = {
  * Using this wrapper will automatically handle scrolling to the picker's <TextInput />
  * when the picker modal is opened
  */
-function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children, ...restProps}: ScrollViewWithContextProps, ref: ForwardedRef<ScrollView>) {
+function ScrollViewWithContextWithRef({onScroll, scrollEventThrottle, children = undefined, ...restProps}: ScrollViewWithContextProps, ref: ForwardedRef<ScrollView>) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
     const defaultScrollViewRef = useRef<ScrollView>(null);
     const scrollViewRef = ref ?? defaultScrollViewRef;

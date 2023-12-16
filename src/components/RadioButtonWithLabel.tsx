@@ -31,7 +31,7 @@ type RadioButtonWithLabelProps = {
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-function RadioButtonWithLabel({LabelComponent, style, label = '', hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
+function RadioButtonWithLabel({LabelComponent = undefined, style = {}, label = '', hasError = false, errorText = '', isChecked, onPress}: RadioButtonWithLabelProps) {
     const styles = useThemeStyles();
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
 

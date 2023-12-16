@@ -28,7 +28,7 @@ type MessagesRowProps = {
     canDismiss?: boolean;
 };
 
-function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles = {}, canDismiss = true}: MessagesRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

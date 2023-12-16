@@ -15,7 +15,7 @@ type ThemeProviderProps = React.PropsWithChildren & {
     theme?: ThemePreferenceWithoutSystem;
 };
 
-function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderProps) {
+function ThemeProvider({children, theme: staticThemePreference = undefined}: ThemeProviderProps) {
     const themePreference = useThemePreferenceWithStaticOverride(staticThemePreference);
 
     const theme = useMemo(() => themes[themePreference], [themePreference]);

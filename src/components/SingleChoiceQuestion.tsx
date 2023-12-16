@@ -14,7 +14,7 @@ type SingleChoiceQuestionProps = {
     onInputChange: (value: string) => void;
 };
 
-function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange}: SingleChoiceQuestionProps, ref: ForwardedRef<RNText>) {
+function SingleChoiceQuestion({prompt, errorText = '', possibleAnswers, currentQuestionIndex, onInputChange}: SingleChoiceQuestionProps, ref: ForwardedRef<RNText>) {
     const styles = useThemeStyles();
 
     return (

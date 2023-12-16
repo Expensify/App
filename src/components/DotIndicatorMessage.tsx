@@ -42,7 +42,7 @@ function isReceiptError(message: string | ReceiptError): message is ReceiptError
     return (message?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
 }
 
-function DotIndicatorMessage({messages = {}, style, type, textStyles}: DotIndicatorMessageProps) {
+function DotIndicatorMessage({messages = {}, style = {}, type, textStyles = {}}: DotIndicatorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

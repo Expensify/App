@@ -64,16 +64,16 @@ function omitBy<T>(obj: Record<string, T> | undefined, predicate: (value: T) => 
 function OfflineWithFeedback({
     pendingAction,
     canDismissError = true,
-    contentContainerStyle,
-    errorRowStyles,
-    errors,
+    contentContainerStyle = {},
+    errorRowStyles = {},
+    errors = {},
     needsOffscreenAlphaCompositing = false,
     onClose = () => {},
     shouldDisableOpacity = false,
     shouldDisableStrikeThrough = false,
     shouldHideOnDelete = true,
     shouldShowErrorMessages = true,
-    style,
+    style = {},
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();

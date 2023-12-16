@@ -41,8 +41,8 @@ type FormAlertWrapperProps = {
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
 function FormAlertWrapper({
     children,
-    containerStyles,
-    errorMessageStyle,
+    containerStyles = {},
+    errorMessageStyle = {},
     isAlertVisible = false,
     isMessageHtml = false,
     message = '',

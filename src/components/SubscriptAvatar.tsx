@@ -47,7 +47,7 @@ type SubscriptAvatarProps = {
     showTooltip?: boolean;
 };
 
-function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor = undefined, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();

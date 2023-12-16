@@ -13,7 +13,7 @@ type SelectCircleProps = {
     selectCircleStyles?: StyleProp<ViewStyle>;
 };
 
-function SelectCircle({isChecked = false, selectCircleStyles}: SelectCircleProps) {
+function SelectCircle({isChecked = false, selectCircleStyles = {}}: SelectCircleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 

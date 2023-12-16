@@ -16,7 +16,7 @@ type CurrentWalletBalanceProps = CurrentWalletBalanceOnyxProps & {
     balanceStyles?: StyleProp<TextStyle>;
 };
 
-function CurrentWalletBalance({userWallet, balanceStyles}: CurrentWalletBalanceProps) {
+function CurrentWalletBalance({userWallet, balanceStyles = {}}: CurrentWalletBalanceProps) {
     const styles = useThemeStyles();
     const formattedBalance = CurrencyUtils.convertToDisplayString(userWallet?.currentBalance ?? 0);
     return <Text style={[styles.pv5, styles.alignSelfCenter, styles.textHeadline, styles.textXXXLarge, balanceStyles]}>{formattedBalance}</Text>;

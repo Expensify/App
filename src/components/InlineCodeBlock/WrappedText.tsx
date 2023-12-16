@@ -31,7 +31,7 @@ function getTextMatrix(text: string): string[][] {
     return text.split('\n').map((row) => row.split(CONST.REGEX.SPACE_OR_EMOJI).filter((value) => value !== ''));
 }
 
-function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
+function WrappedText({children, wordStyles = {}, textStyles = {}}: WrappedTextProps) {
     const styles = useThemeStyles();
 
     if (typeof children !== 'string') {

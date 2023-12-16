@@ -19,7 +19,7 @@ type LoungeAccessIconProps = {
     height?: number;
 };
 
-function LoungeAccessIcon({fill, hovered = 'false', pressed = 'false', width, height}: LoungeAccessIconProps) {
+function LoungeAccessIcon({fill = undefined, hovered = 'false', pressed = 'false', width = undefined, height = undefined}: LoungeAccessIconProps) {
     const theme = useTheme();
     return (
         <Svg

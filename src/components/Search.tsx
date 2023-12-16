@@ -24,7 +24,7 @@ type SearchProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function Search({onPress, placeholder, tooltip, style}: SearchProps) {
+function Search({onPress, placeholder = undefined, tooltip = undefined, style = {}}: SearchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

@@ -24,7 +24,7 @@ type TextProps = RNTextProps &
         family?: keyof typeof fontFamily;
     };
 
-function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
+function Text({color = undefined, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
     const theme = useTheme();
 
     const componentStyle: TextStyle = {

@@ -19,7 +19,7 @@ type ParentNavigationSubtitleProps = {
     pressableStyles?: StyleProp<ViewStyle>;
 };
 
-function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID = '', pressableStyles}: ParentNavigationSubtitleProps) {
+function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportID = '', pressableStyles = {}}: ParentNavigationSubtitleProps) {
     const styles = useThemeStyles();
     const {workspaceName, rootReportName} = parentNavigationSubtitleData;
 

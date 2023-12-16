@@ -7,7 +7,7 @@ type FullScreenLoadingIndicatorProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-function FullScreenLoadingIndicator({style}: FullScreenLoadingIndicatorProps) {
+function FullScreenLoadingIndicator({style = {}}: FullScreenLoadingIndicatorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     return (

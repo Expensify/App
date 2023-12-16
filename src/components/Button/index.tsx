@@ -121,7 +121,7 @@ function Button(
         allowBubble = false,
 
         iconRight = Expensicons.ArrowRight,
-        iconFill,
+        iconFill = undefined,
         iconStyles = [],
         iconRightStyles = [],
 

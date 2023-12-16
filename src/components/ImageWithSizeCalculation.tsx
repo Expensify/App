@@ -30,7 +30,7 @@ type ImageWithSizeCalculationProps = {
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
  */
-function ImageWithSizeCalculation({url, style, onMeasure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
+function ImageWithSizeCalculation({url, style = {}, onMeasure, isAuthTokenRequired}: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);

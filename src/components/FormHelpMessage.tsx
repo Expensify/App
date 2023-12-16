@@ -25,7 +25,7 @@ type FormHelpMessageProps = {
     shouldShowRedDotIndicator?: boolean;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true}: FormHelpMessageProps) {
+function FormHelpMessage({message = '', children = undefined, isError = true, style = {}, shouldShowRedDotIndicator = true}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     if (isEmpty(message) && isEmpty(children)) {

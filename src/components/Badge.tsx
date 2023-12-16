@@ -32,7 +32,7 @@ type BadgeProps = {
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
-function Badge({success = false, error = false, pressable = false, text, environment = CONST.ENVIRONMENT.DEV, badgeStyles, textStyles, onPress = () => {}}: BadgeProps) {
+function Badge({success = false, error = false, pressable = false, text, environment = CONST.ENVIRONMENT.DEV, badgeStyles = {}, textStyles = {}, onPress = () => {}}: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const textColorStyles = success || error ? styles.textWhite : undefined;

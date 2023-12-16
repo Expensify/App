@@ -173,7 +173,7 @@ module.exports = {
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',
-                'react/require-default-props': 'off',
+                'react/require-default-props': ['error', {functions: 'defaultArguments'}],
                 'react/prop-types': 'off',
                 'no-restricted-syntax': [
                     'error',
