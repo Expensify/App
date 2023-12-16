@@ -378,8 +378,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
     const shouldDisablePaidBySection = userCanModifyParticipants.current;
 
-    const defaulTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = policyTaxRates.taxes[defaulTaxKey].name;
+    const defaultTaxName = `${policyTaxRates.name} • ${translate('common.default')}`;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];

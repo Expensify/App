@@ -349,8 +349,7 @@ function MoneyRequestConfirmationList(props) {
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
-    const defaulTaxKey = props.policyTaxRates.defaultExternalID;
-    const defaultTaxName = props.policyTaxRates.taxes[defaulTaxKey].name;
+    const defaultTaxName = `${props.policyTaxRates.name} • ${translate('common.default')}`;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
