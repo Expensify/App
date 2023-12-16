@@ -2655,6 +2655,8 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
+        moneyRequestAmountContainer: {minHeight: 92},
+
         requestPreviewBox: {
             marginTop: 12,
             maxWidth: variables.reportPreviewMaxWidth,
