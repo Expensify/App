@@ -384,9 +384,9 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
  */
 function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
-        return false;
+        return true;
     }
-    return !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return !isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
