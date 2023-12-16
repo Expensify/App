@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -7,6 +6,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
+import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from '@components/transactionsDraftPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -27,9 +27,8 @@ const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
 
-    transactionsDraft: PropTypes.shape({
-        taxAmount: PropTypes.number,
-    }),
+    /** holds data for selected tax rates and tax amount */
+    transactionsDraft: transactionsDraftPropTypes,
 
     /* Onyx Props */
     /** The report that the transaction belongs to */
@@ -40,9 +39,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    transactionsDraft: {
-        taxAmount: null,
-    },
+    transactionsDraft: transactionsDraftDefaultProps,
     report: {},
     transaction: {},
 };

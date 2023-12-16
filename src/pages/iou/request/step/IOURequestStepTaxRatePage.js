@@ -31,8 +31,12 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
 
+    /** holds data for selected tax rates and tax amount */
     transactionsDraft: transactionsDraftPropTypes,
 
     /** The transaction object being modified in Onyx */

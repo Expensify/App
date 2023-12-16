@@ -3209,10 +3209,18 @@ function resetMoneyRequestTag() {
     Onyx.merge(ONYXKEYS.IOU, {tag: ''});
 }
 
+/**
+ * @param {String} transactionID
+ * @param {Object} taxRate
+ */
 function setMoneyRequestTaxRate(transactionID, taxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 
+/**
+ * @param {String} transactionID
+ * @param {Number} taxAmount
+ */
 function setMoneyRequestTaxAmount(transactionID, taxAmount) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
 }

@@ -38,6 +38,7 @@ import OptionsSelector from './OptionsSelector';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
+import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from './transactionsDraftPropTypes';
@@ -160,9 +161,14 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
+
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
 
+    /** holds data for selected tax rates and tax amount */
     transactionsDraft: transactionsDraftPropTypes,
 };
 
@@ -198,9 +204,7 @@ const defaultProps = {
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
     transactionsDraft: transactionsDraftDefaultProps,
-    policyTaxRates: {
-        defaultExternalID: '',
-    },
+    policyTaxRates: {},
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({

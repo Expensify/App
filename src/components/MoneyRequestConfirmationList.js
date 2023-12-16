@@ -40,8 +40,10 @@ import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
+import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
+import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from './transactionsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -164,13 +166,15 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
+
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: iouPropTypes,
 
-    transactionsDraft: PropTypes.shape({
-        taxRate: PropTypes.string,
-        taxAmount: PropTypes.number,
-    }),
+    /** holds data for selected tax rates and tax amount */
+    transactionsDraft: transactionsDraftPropTypes,
 };
 
 const defaultProps = {
@@ -205,10 +209,8 @@ const defaultProps = {
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
     iou: iouDefaultProps,
-    transactionsDraft: {
-        taxRate: null,
-        taxAmount: null,
-    },
+    transactionsDraft: transactionsDraftDefaultProps,
+    policyTaxRates: {},
 };
 
 function MoneyRequestConfirmationList(props) {

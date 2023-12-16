@@ -647,7 +647,6 @@ function getEnabledCategoriesCount(options) {
  *
  * @param {Object[]} options - an initial strings array
  * @param {Boolean} options[].isDisabled - a flag to enable/disable option in a list
- * @param {String} options[].name - a name of an option
  * @returns {Number}
  */
 function getEnabledTaxRateCount(options) {
@@ -1055,6 +1054,12 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
     return tagSections;
 }
 
+/**
+ * transforms tax rates to a new object - to add codes and new name with concatenated name and value.
+ *
+ * @param {Object} policyTaxRates
+ * @returns {Array<Object>}
+ */
 function transformedTaxRates(policyTaxRates) {
     const defaulTaxKey = policyTaxRates.defaultExternalID;
     const getName = (data, code) => `${data.name} (${data.value})${defaulTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
@@ -1062,6 +1067,12 @@ function transformedTaxRates(policyTaxRates) {
     return taxes;
 }
 
+/**
+ * Sorts tax rates alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} taxRates
+ * @returns {Array<Object>}
+ */
 function sortTaxRates(taxRates) {
     const sortedtaxRates = _.chain(taxRates)
         .values()
@@ -1071,6 +1082,12 @@ function sortTaxRates(taxRates) {
     return sortedtaxRates;
 }
 
+/**
+ * Builds the options for taxRates
+ *
+ * @param {Object[]} taxRates - an initial object array
+ * @returns {Array<Object>}
+ */
 function getTaxRatesOptions(taxRates) {
     return _.map(taxRates, (taxRate) => ({
         text: taxRate.name,
@@ -1082,6 +1099,14 @@ function getTaxRatesOptions(taxRates) {
     }));
 }
 
+/**
+ * Build the section list for tax rates
+ *
+ * @param {Object} policyTaxRates
+ * @param {Object[]} selectedOptions
+ * @param {String} searchInputValue
+ * @returns {Array<Object>}
+ */
 function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     const policyRatesSections = [];
 
@@ -1246,7 +1271,7 @@ function getOptions(
     }
 
     if (includePolicyTaxRates) {
-        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue, maxRecentReportsToShow);
+        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue);
 
         return {
             recentReports: [],
