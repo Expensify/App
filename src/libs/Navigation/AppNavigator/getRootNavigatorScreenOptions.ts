@@ -15,7 +15,9 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType): ScreenOptions => {
+type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
+
+const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, styles, StyleUtils) => {
     const modalCardStyleInterpolator = createModalCardStyleInterpolator(StyleUtils);
 
     return {
@@ -75,3 +77,5 @@ export default (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: St
         },
     };
 };
+
+export default getRootNavigatorScreenOptions;

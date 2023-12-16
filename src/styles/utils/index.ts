@@ -1016,7 +1016,6 @@ function getTransparentColor(color: string) {
 
 const staticStyleUtils = {
     positioning,
-
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
