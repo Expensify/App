@@ -40,13 +40,10 @@ const propTypes = {
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
     selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
-
-    transactionAmount: PropTypes.number,
 };
 
 const defaultProps = {
     amount: 0,
-    transactionAmount: 0,
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
@@ -73,7 +70,7 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, transactionAmount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
@@ -95,7 +92,7 @@ function MoneyRequestAmountForm({amount, transactionAmount, currency, isEditing,
 
     const forwardDeletePressedRef = useRef(false);
 
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionAmount, currency);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(amount, currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -231,7 +228,7 @@ function MoneyRequestAmountForm({amount, transactionAmount, currency, isEditing,
             return;
         }
 
-        if (isTaxAmountInvalid(currentAmount, transactionAmount, isTaxAmountForm)) {
+        if (isTaxAmountInvalid(currentAmount, amount, isTaxAmountForm)) {
             setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
             return;
         }
@@ -242,7 +239,7 @@ function MoneyRequestAmountForm({amount, transactionAmount, currency, isEditing,
         initializeAmount(backendAmount);
 
         onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, transactionAmount, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, amount, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.

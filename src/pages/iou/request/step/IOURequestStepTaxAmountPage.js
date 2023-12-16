@@ -52,7 +52,6 @@ function IOURequestStepTaxAmountPage({
         params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
     transactionsDraft,
-    transaction,
     transaction: {currency: originalCurrency},
     report,
 }) {
@@ -91,7 +90,7 @@ function IOURequestStepTaxAmountPage({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -116,7 +115,6 @@ function IOURequestStepTaxAmountPage({
         <MoneyRequestAmountForm
             isEditing={isEditing}
             currency={currency}
-            transactionAmount={transaction.amount}
             amount={transactionsDraft.taxAmount}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
