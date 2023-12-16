@@ -422,7 +422,7 @@ describe('ReportUtils', () => {
                         stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
                         statusNum: CONST.REPORT.STATUS.SUBMITTED,
                         parentReportID: '101',
-                    }
+                    };
                     const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
                     };
@@ -441,7 +441,7 @@ describe('ReportUtils', () => {
                             ...LHNTestUtils.getFakeReport(),
                             chatType,
                         };
-                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {},[currentUserAccountID, participantsAccountIDs[0]]);
+                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, {}, [currentUserAccountID, participantsAccountIDs[0]]);
                         return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
                     },
                 );
@@ -510,12 +510,12 @@ describe('ReportUtils', () => {
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
                         statusNum: CONST.REPORT.STATUS.OPEN,
                         parentReportID: '103',
-                    }
+                    };
                     const paidPolicy = {
                         type: CONST.POLICY.TYPE.TEAM,
                     };
                     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs[0]], true);
-                    expect(moneyRequestOptions.length).toBe(1); 
+                    expect(moneyRequestOptions.length).toBe(1);
                 });
             });
 
