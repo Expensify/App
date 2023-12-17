@@ -8,6 +8,7 @@ import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
+import useIsInputFocus from '@hooks/useIsInputFocus';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -79,6 +80,9 @@ type ScreenWrapperProps = {
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
 
+    /** Whether to avoid scroll on virtual viewport */
+    shouldAwareViewportScroll?: boolean;
+
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
      * when the screen transition ends.
@@ -106,6 +110,7 @@ function ScreenWrapper(
         onEntryTransitionEnd,
         testID,
         navigation: navigationProp,
+        shouldAwareViewportScroll = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -188,6 +193,9 @@ function ScreenWrapper(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const isInputFocus = useIsInputFocus(shouldAwareViewportScroll);
+    const isAwareViewportScroll = shouldAwareViewportScroll && isInputFocus && Browser.isMobile() && !!maxHeight;
+
     return (
         <SafeAreaConsumer>
             {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
@@ -216,12 +224,12 @@ function ScreenWrapper(
                             {...keyboardDissmissPanResponder.panHandlers}
                         >
                             <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
+                                style={[styles.w100, styles.h100, {maxHeight}, isAwareViewportScroll && [styles.overflowAuto, styles.overscrollBehaviorContain]]}
                                 behavior={keyboardAvoidingViewBehavior}
                                 enabled={shouldEnableKeyboardAvoidingView}
                             >
                                 <PickerAvoidingView
-                                    style={styles.flex1}
+                                    style={isAwareViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap styles={headerGapStyles} />
