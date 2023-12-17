@@ -139,6 +139,7 @@ class NotificationService: UANotificationServiceExtension {
       avatarURL: avatarURL,
       accountID: accountID,
       userName: userName,
+      title: notificationContent.title,
       messageText: notificationContent.body,
       roomName: payload["roomName"] as? String
     )
@@ -151,7 +152,7 @@ class NotificationService: UANotificationServiceExtension {
     let avatar = fetchINImage(imageURL: notificationData.avatarURL, reportActionID: notificationData.reportActionID)
     let sender = INPerson(personHandle: handle,
                           nameComponents: nil,
-                          displayName: notificationData.userName,
+                          displayName: notificationData.title,
                           image: avatar,
                           contactIdentifier: nil,
                           customIdentifier: nil)
@@ -203,10 +204,11 @@ class NotificationData {
   public var avatarURL: String
   public var accountID: Int
   public var userName: String
+  public var title: String
   public var messageText: String
   public var roomName: String?
   
-  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String, messageText: String, roomName: String?) {
+  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String, title: String, messageText: String, roomName: String?) {
     self.reportID = reportID
     self.reportActionID = reportActionID
     self.onyxData = onyxData
@@ -214,6 +216,7 @@ class NotificationData {
     self.avatarURL = avatarURL
     self.accountID = accountID
     self.userName = userName
+    self.title = title
     self.messageText = messageText
     self.roomName = roomName
   }
