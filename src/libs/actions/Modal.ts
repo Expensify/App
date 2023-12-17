@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const closeModals: Array<(isNavigating: boolean) => void> = [];
+const closeModals: Array<() => void> = [];
 
 let onModalClose: null | (() => void);
 
@@ -22,9 +22,19 @@ function setCloseModal(onClose: () => void) {
 }
 
 /**
+ * Close topmost modal
+ */
+function closeTop() {
+    if (closeModals.length === 0) {
+        return;
+    }
+    closeModals[closeModals.length - 1]();
+}
+
+/**
  * Close modal in other parts of the app
  */
-function close(onModalCloseCallback: () => void, isNavigating = true) {
+function close(onModalCloseCallback: () => void) {
     if (closeModals.length === 0) {
         onModalCloseCallback();
         return;
@@ -50,16 +60,6 @@ function onModalDidClose() {
  */
 function setModalVisibility(isVisible: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {isVisible});
-}
-
-/**
- * Close topmost modal
- */
-function closeTop() {
-    if (closeModals.length === 0) {
-        return;
-    }
-    closeModals[closeModals.length - 1]();
 }
 
 /**
