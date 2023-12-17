@@ -1,13 +1,12 @@
 import {createContext} from 'react';
+import {RegisterInput} from './types';
 
-type FormContextType = {
-    registerInput: (key: string, ref: any) => object;
+type FormContext = {
+    registerInput: RegisterInput;
 };
 
-const FormContext = createContext<FormContextType>({
+export default createContext<FormContext>({
     registerInput: () => {
         throw new Error('Registered input should be wrapped with FormWrapper');
     },
 });
-
-export default FormContext;

@@ -238,19 +238,6 @@ function FloatingActionButtonAndPopover(props) {
                 withoutOverlay
                 anchorRef={anchorRef}
             />
-            <FloatingActionButton
-                accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ROLE.BUTTON}
-                isActive={isCreateMenuActive}
-                ref={anchorRef}
-                onPress={() => {
-                    if (isCreateMenuActive) {
-                        hideCreateMenu();
-                    } else {
-                        showCreateMenu();
-                    }
-                }}
-            />
         </View>
     );
 }

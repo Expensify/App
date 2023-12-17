@@ -12,11 +12,11 @@ function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading} satisfies Form);
 }
 
-function setErrors(formID: OnyxFormKey, errors: OnyxCommon.Errors) {
+function setErrors(formID: OnyxFormKey, errors: OnyxCommon.Errors | null) {
     Onyx.merge(formID, {errors} satisfies Form);
 }
 
-function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields) {
+function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields | null) {
     Onyx.merge(formID, {errorFields} satisfies Form);
 }
 

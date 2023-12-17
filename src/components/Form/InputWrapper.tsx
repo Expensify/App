@@ -1,9 +1,9 @@
-import React, {ForwardedRef, forwardRef, useContext} from 'react';
+import React, {forwardRef, useContext} from 'react';
 import TextInput from '@components/TextInput';
 import FormContext from './FormContext';
-import {InputWrapperProps} from './types';
+import {InputProps, InputRef, InputWrapperProps} from './types';
 
-function InputWrapper<TInput extends React.ElementType>({InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInput>, ref: ForwardedRef<HTMLInputElement>) {
+function InputWrapper<TInputProps extends InputProps>({InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInputProps>, ref: InputRef) {
     const {registerInput} = useContext(FormContext);
 
     // There are inputs that don't have onBlur methods, to simulate the behavior of onBlur in e.g. checkbox, we had to
@@ -13,7 +13,7 @@ function InputWrapper<TInput extends React.ElementType>({InputComponent, inputID
     const shouldSetTouchedOnBlurOnly = InputComponent === TextInput;
 
     // eslint-disable-next-line react/jsx-props-no-spreading
-    return <InputComponent {...registerInput(inputID, {ref, shouldSetTouchedOnBlurOnly, valueType, ...rest})} />;
+    return <InputComponent {...(registerInput(inputID, {ref, shouldSetTouchedOnBlurOnly, valueType, ...rest}) as TInputProps)} />;
 }
 
 InputWrapper.displayName = 'InputWrapper';

@@ -26,58 +26,7 @@ const propTypes = {
     role: PropTypes.string.isRequired,
 };
 
-const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const fabPressable = useRef(null);
-    const animatedValue = useSharedValue(isActive ? 1 : 0);
-    const buttonRef = ref;
-
-    useEffect(() => {
-        animatedValue.value = withTiming(isActive ? 1 : 0, {
-            duration: 340,
-            easing: Easing.inOut(Easing.ease),
-        });
-    }, [isActive, animatedValue]);
-
-    const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(animatedValue.value, [0, 1], [theme.success, theme.buttonDefaultBG]);
-
-        return {
-            transform: [{rotate: `${animatedValue.value * 135}deg`}],
-            backgroundColor,
-            borderRadius: styles.floatingActionButton.borderRadius,
-        };
-    });
-
-    return (
-        <Tooltip text={translate('common.new')}>
-            <View style={styles.floatingActionButtonContainer}>
-                <AnimatedPressable
-                    ref={(el) => {
-                        fabPressable.current = el;
-                        if (buttonRef) {
-                            buttonRef.current = el;
-                        }
-                    }}
-                    accessibilityLabel={accessibilityLabel}
-                    role={role}
-                    pressDimmingValue={1}
-                    onPress={(e) => {
-                        // Drop focus to avoid blue focus ring.
-                        fabPressable.current.blur();
-                        onPress(e);
-                    }}
-                    onLongPress={() => {}}
-                    style={[styles.floatingActionButton, animatedStyle]}
-                >
-                    <FabPlusIcon isActive={isActive} />
-                </AnimatedPressable>
-            </View>
-        </Tooltip>
-    );
-});
+const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => null);
 
 FloatingActionButton.propTypes = propTypes;
 FloatingActionButton.displayName = 'FloatingActionButton';

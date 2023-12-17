@@ -1,6 +1,6 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {Keyboard, ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import React, {MutableRefObject, useCallback, useMemo, useRef} from 'react';
+import {Keyboard, ScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormSubmit from '@components/FormSubmit';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
@@ -9,8 +9,29 @@ import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {Form} from '@src/types/onyx';
+import {Errors} from '@src/types/onyx/OnyxCommon';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {FormWrapperOnyxProps, FormWrapperProps} from './types';
+import {FormProps, InputRefs} from './types';
+
+type FormWrapperOnyxProps = {
+    /** Contains the form state that must be accessed outside of the component */
+    formState: OnyxEntry<Form>;
+};
+
+type FormWrapperProps = ChildrenProps &
+    FormWrapperOnyxProps &
+    FormProps & {
+        /** Submit button styles */
+        submitButtonStyles?: StyleProp<ViewStyle>;
+
+        /** Server side errors keyed by microtime */
+        errors: Errors;
+
+        // Assuming refs are React refs
+        inputRefs: MutableRefObject<InputRefs>;
+    };
 
 function FormWrapper({
     onSubmit,
@@ -19,14 +40,14 @@ function FormWrapper({
     errors,
     inputRefs,
     submitButtonText,
-    footerContent,
-    isSubmitButtonVisible,
+    footerContent = null,
+    isSubmitButtonVisible = true,
     style,
     submitButtonStyles,
     enabledWhenOffline,
-    isSubmitActionDangerous,
+    isSubmitActionDangerous = false,
     formID,
-    scrollContextEnabled,
+    scrollContextEnabled = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<ScrollView | null>(null);
@@ -58,7 +79,8 @@ function FormWrapper({
                                 return;
                             }
 
-                            const focusInput = inputRefs.current?.[focusKey].current;
+                            const inputRef = inputRefs.current?.[focusKey];
+                            const focusInput = inputRef && 'current' in inputRef ? inputRef.current : undefined;
 
                             // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
                             if (typeof focusInput?.isFocused !== 'function') {
