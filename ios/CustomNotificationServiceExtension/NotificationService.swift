@@ -60,7 +60,7 @@ class NotificationService: UANotificationServiceExtension {
 
     // Donate the interaction before updating notification content.
     interaction.donate { error in
-        if let error = error {
+        if error != nil {
             os_log("[NotificationService] configureCommunicationNotification() - failed to donate the message intent", log: self.log, type: .error)
             contentHandler(notificationContent)
             return
