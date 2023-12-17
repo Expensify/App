@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -70,7 +71,16 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
     }, [draftClearAfter, currentUserClearAfter]);
 
-    const navigateBackToPreviousScreen = useCallback(() => Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true), []);
+    const routesHistory = useNavigationState((state) => state.routes || []);
+    const navigateBackToPreviousScreen = useCallback(() => {
+        const topmostReportId = Navigation.getTopmostReportId();
+        if (topmostReportId && routesHistory.length === 1 && !routesHistory[0].path) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
+        } else {
+            Navigation.goBack(ROUTES.SETTINGS_PROFILE, false, true);
+        }
+    }, [routesHistory]);
+
     const updateStatus = useCallback(
         ({emojiCode, statusText}) => {
             const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
