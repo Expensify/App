@@ -36,24 +36,24 @@ function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
 
     const sections = useMemo(() => {
         const {policyTaxRatesOptions} = OptionsListUtils.getFilteredOptions(
-            {}, // reports {}
-            {}, // personalDetails {}
-            [], // betas []
-            searchValue, // searchValue string
-            selectedOptions, // selectedOptions any[]
-            [], // excludedLogins any[]
-            false, // includeOwnedWorkspaceChats boolean
-            false, // includeP2P boolean
-            false, // includeCategories boolean
-            {}, // categories {}
-            [], // recentlyUsedCategories string[]
-            false, // includeTags boolean
-            {}, // tags {}
-            [], // recentlyUsedTags string[]
-            false, // canInviteUser boolean
-            false, // includeSelectedOptions
-            true, // includePolicyTaxRates boolean
-            policyTaxRates, // policyTaxRates {}
+            {},
+            {},
+            [],
+            searchValue,
+            selectedOptions,
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            false,
+            false,
+            true,
+            policyTaxRates,
         );
         return policyTaxRatesOptions;
     }, [policyTaxRates, searchValue, selectedOptions]);
