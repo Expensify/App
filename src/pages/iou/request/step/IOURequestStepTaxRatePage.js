@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
-import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from '@components/transactionsDraftPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -36,16 +35,12 @@ const propTypes = {
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
 
-    /** holds data for selected tax rates and tax amount */
-    transactionsDraft: transactionsDraftPropTypes,
-
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
 };
 
 const defaultProps = {
     policyTaxRates: {},
-    transactionsDraft: transactionsDraftDefaultProps,
     transaction: {},
 };
 
@@ -61,7 +56,6 @@ function IOURequestStepTaxRatePage({
         params: {iouType, reportID},
     },
     policyTaxRates,
-    transactionsDraft,
     transaction,
 }) {
     const {translate} = useLocalize();
@@ -92,7 +86,7 @@ function IOURequestStepTaxRatePage({
                         onBackButtonPress={() => navigateBack()}
                     />
                     <TaxPicker
-                        selectedTaxRate={transactionsDraft.taxRate && transactionsDraft.taxRate.text}
+                        selectedTaxRate={transaction.taxRate && transaction.taxRate.text}
                         policyTaxRates={policyTaxRates}
                         insets={insets}
                         onSubmit={updateTaxRates}
@@ -113,11 +107,6 @@ export default compose(
     withOnyx({
         policyTaxRates: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
-        },
-    }),
-    withOnyx({
-        transactionsDraft: {
-            key: ({transaction}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
         },
     }),
 )(IOURequestStepTaxRatePage);

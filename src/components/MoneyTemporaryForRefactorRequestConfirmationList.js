@@ -41,7 +41,6 @@ import tagPropTypes from './tagPropTypes';
 import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
-import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from './transactionsDraftPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -167,9 +166,6 @@ const propTypes = {
 
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
-
-    /** holds data for selected tax rates and tax amount */
-    transactionsDraft: transactionsDraftPropTypes,
 };
 
 const defaultProps = {
@@ -203,7 +199,6 @@ const defaultProps = {
     isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
-    transactionsDraft: transactionsDraftDefaultProps,
     policyTaxRates: {},
 };
 
@@ -246,7 +241,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
-    transactionsDraft,
     policyTaxRates,
 }) {
     const theme = useTheme();
@@ -298,7 +292,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
           );
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionsDraft.taxAmount, iouCurrencyCode);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
 
@@ -759,7 +753,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={(transactionsDraft.taxRate && transactionsDraft.taxRate.text) || defaultTaxName}
+                            title={(transaction.taxRate && transaction.taxRate.text) || defaultTaxName}
                             description={translate('iou.taxRate')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -820,9 +814,6 @@ export default compose(
         mileageRate: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             selector: DistanceRequestUtils.getDefaultMileageRate,
-        },
-        transactionsDraft: {
-            key: ({transaction}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

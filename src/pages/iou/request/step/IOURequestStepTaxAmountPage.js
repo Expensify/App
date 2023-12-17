@@ -1,12 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
-import {transactionsDraftDefaultProps, transactionsDraftPropTypes} from '@components/transactionsDraftPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -17,7 +15,6 @@ import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -26,9 +23,6 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: IOURequestStepRoutePropTypes.isRequired,
-
-    /** holds data for selected tax rates and tax amount */
-    transactionsDraft: transactionsDraftPropTypes,
 
     /* Onyx Props */
     /** The report that the transaction belongs to */
@@ -39,7 +33,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    transactionsDraft: transactionsDraftDefaultProps,
     report: {},
     transaction: {},
 };
@@ -48,7 +41,7 @@ function IOURequestStepTaxAmountPage({
     route: {
         params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
-    transactionsDraft,
+    transaction,
     transaction: {currency: originalCurrency},
     report,
 }) {
@@ -112,7 +105,7 @@ function IOURequestStepTaxAmountPage({
         <MoneyRequestAmountForm
             isEditing={isEditing}
             currency={currency}
-            amount={transactionsDraft.taxAmount}
+            amount={transaction.taxAmount}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={updateTaxAmount}
@@ -143,12 +136,4 @@ function IOURequestStepTaxAmountPage({
 IOURequestStepTaxAmountPage.propTypes = propTypes;
 IOURequestStepTaxAmountPage.defaultProps = defaultProps;
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
-export default compose(
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-    withOnyx({
-        transactionsDraft: {
-            key: ({transaction}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
-        },
-    }),
-)(IOURequestStepTaxAmountPage);
+export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepTaxAmountPage);
