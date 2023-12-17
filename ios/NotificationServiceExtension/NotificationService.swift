@@ -150,23 +150,42 @@ class NotificationService: UANotificationServiceExtension {
     let avatar = fetchINImage(imageURL: notificationData.avatarURL, reportActionID: notificationData.reportActionID)
     let sender = INPerson(personHandle: handle,
                           nameComponents: nil,
-                          displayName: notificationData.title,
+                          displayName: notificationData.userName,
                           image: avatar,
                           contactIdentifier: nil,
                           customIdentifier: nil)
-
+    
+    // Configure the group/room name if there is one
+    var speakableGroupName: INSpeakableString? = nil
+    var recipients: [INPerson]? = nil
+    if (notificationData.roomName != nil) {
+      speakableGroupName = INSpeakableString(spokenPhrase: notificationData.roomName ?? "")
+      
+      // To add the group name subtitle there must be multiple recipients set. However, we do not have
+      // data on the participatns in the room/group chat so we just add a placeholder here. This shouldn't
+      // appear anywhere in the UI
+      let placeholderPerson = INPerson(personHandle: INPersonHandle(value: "placeholder", type: .unknown),
+                                       nameComponents: nil,
+                                       displayName: "placeholder",
+                                       image: nil,
+                                       contactIdentifier: nil,
+                                       customIdentifier: nil)
+      recipients = [sender, placeholderPerson]
+    }
 
     // Because this communication is incoming, you can infer that the current user is
     // a recipient. Don't include the current user when initializing the intent.
-    let roomName = INSpeakableString(spokenPhrase: notificationData.roomName ?? "")
-    let intent = INSendMessageIntent(recipients: nil,
+    let intent = INSendMessageIntent(recipients: recipients,
                                      outgoingMessageType: .outgoingMessageText,
                                      content: notificationData.messageText,
-                                     speakableGroupName: roomName,
+                                     speakableGroupName: speakableGroupName,
                                      conversationIdentifier: String(notificationData.reportID),
                                      serviceName: nil,
                                      sender: sender,
                                      attachments: nil)
+    
+    // When the group name is set, we force the avatar to just be the sender's avatar
+    intent.setImage(avatar, forParameterNamed: \.speakableGroupName)
     
     return intent
   }
