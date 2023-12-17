@@ -4134,7 +4134,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         interactiveStepHeaderLockedStepButton: {
-            borderColor: colors.darkBorders,
+            borderColor: colors.productDark400,
         },
 
         interactiveStepHeaderStepText: {
@@ -4154,7 +4154,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         interactiveStepHeaderLockedStepLine: {
-            backgroundColor: colors.darkBorders,
+            backgroundColor: colors.productDark400,
         },
         confirmBankInfoCard: {
             backgroundColor: colors.green800,
