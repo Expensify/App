@@ -134,8 +134,6 @@ class NotificationService: UANotificationServiceExtension {
     return NotificationData(
       reportID: reportID,
       reportActionID: reportActionID,
-      onyxData: onyxData,
-      reportOnyxUpdate: reportActionOnyxUpdate,
       avatarURL: avatarURL,
       accountID: accountID,
       userName: userName,
@@ -199,8 +197,6 @@ class NotificationService: UANotificationServiceExtension {
 class NotificationData {
   public var reportID: Int64
   public var reportActionID: String
-  public var onyxData: NSArray
-  public var reportOnyxUpdate: NSDictionary
   public var avatarURL: String
   public var accountID: Int
   public var userName: String
@@ -208,11 +204,9 @@ class NotificationData {
   public var messageText: String
   public var roomName: String?
   
-  public init (reportID: Int64, reportActionID: String, onyxData: NSArray, reportOnyxUpdate: NSDictionary, avatarURL: String, accountID: Int, userName: String, title: String, messageText: String, roomName: String?) {
+  public init (reportID: Int64, reportActionID: String, avatarURL: String, accountID: Int, userName: String, title: String, messageText: String, roomName: String?) {
     self.reportID = reportID
     self.reportActionID = reportActionID
-    self.onyxData = onyxData
-    self.reportOnyxUpdate = reportOnyxUpdate
     self.avatarURL = avatarURL
     self.accountID = accountID
     self.userName = userName
