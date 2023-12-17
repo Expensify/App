@@ -10,6 +10,7 @@ const TEST_NAMES = {
     AppStartTime: 'App start time',
     OpenSearchPage: 'Open search page TTI',
     ReportTyping: 'Report typing',
+    ChatOpening: 'Chat opening',
 };
 
 /**
@@ -77,6 +78,9 @@ module.exports = {
             reportScreen: {
                 autoFocus: true,
             },
+        },
+        [TEST_NAMES.ChatOpening]: {
+            name: TEST_NAMES.ChatOpening,
         },
     },
 };

@@ -9,6 +9,8 @@ import Text from '@components/Text';
 import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import CONST from '@src/CONST';
 import type {BasePickerHandle, BasePickerProps} from './types';
 
 type IconToRender = () => ReactElement;
@@ -47,7 +49,7 @@ function BasePicker<TPickerValue>(
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.
-    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.pickerOptionsTextColor} : {};
+    const pickerPlaceholder = Object.keys(placeholder).length > 0 ? {...placeholder, color: theme.text} : {};
 
     useEffect(() => {
         if (!!value || !items || items.length !== 1 || !onInputChange) {
@@ -136,6 +138,17 @@ function BasePicker<TPickerValue>(
         },
     }));
 
+    /**
+     * We pass light text on Android, since Android Native alerts have a dark background in all themes for now.
+     */
+    const itemColor = useMemo(() => {
+        if (getOperatingSystem() === CONST.OS.ANDROID) {
+            return theme.textLight;
+        }
+
+        return theme.text;
+    }, [theme]);
+
     const hasError = !!errorText;
 
     if (isDisabled) {
@@ -165,7 +178,7 @@ function BasePicker<TPickerValue>(
                 <RNPickerSelect
                     onValueChange={onValueChange}
                     // We add a text color to prevent white text on white background dropdown items on Windows
-                    items={items.map((item) => ({...item, color: theme.pickerOptionsTextColor}))}
+                    items={items.map((item) => ({...item, color: itemColor}))}
                     style={size === 'normal' ? styles.picker(isDisabled, backgroundColor) : styles.pickerSmall(backgroundColor)}
                     useNativeAndroidPickerStyle={false}
                     placeholder={pickerPlaceholder}
