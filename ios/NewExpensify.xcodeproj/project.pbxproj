@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		059DC4EFD39EF39437E6823D /* libPods-CustomNotificationServiceExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A997AA8204EA3D90907FA80 /* libPods-CustomNotificationServiceExtension.a */; };
+		059DC4EFD39EF39437E6823D /* libPods-NotificationServiceExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A997AA8204EA3D90907FA80 /* libPods-NotificationServiceExtension.a */; };
 		0C7C65547D7346EB923BE808 /* ExpensifyMono-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = E704648954784DDFBAADF568 /* ExpensifyMono-Regular.otf */; };
 		0CDA8E34287DD650004ECBEC /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0CDA8E33287DD650004ECBEC /* AppDelegate.mm */; };
 		0CDA8E35287DD650004ECBEC /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0CDA8E33287DD650004ECBEC /* AppDelegate.mm */; };
@@ -30,7 +30,7 @@
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		7F9DD8DA2B2A445B005E3AFA /* ExpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9DD8D92B2A445B005E3AFA /* ExpError.swift */; };
 		7FD73C9E2B23CE9500420AF3 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */; };
-		7FD73CA22B23CE9500420AF3 /* CustomNotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7FD73C9B2B23CE9500420AF3 /* CustomNotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7FD73CA22B23CE9500420AF3 /* NotificationServiceExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		BDB853621F354EBB84E619C2 /* ExpensifyNewKansas-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.m in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.m */; };
 		E51DC681C7DEE40AEBDDFBFE /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -53,7 +53,7 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 7FD73C9A2B23CE9500420AF3;
-			remoteInfo = CustomNotificationServiceExtension;
+			remoteInfo = NotificationServiceExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -64,7 +64,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				7FD73CA22B23CE9500420AF3 /* CustomNotificationServiceExtension.appex in Embed Foundation Extensions */,
+				7FD73CA22B23CE9500420AF3 /* NotificationServiceExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -89,7 +89,7 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = NewExpensify/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = NewExpensify/main.m; sourceTree = "<group>"; };
 		18D050DF262400AF000D658B /* BridgingFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgingFile.swift; sourceTree = "<group>"; };
-		1A997AA8204EA3D90907FA80 /* libPods-CustomNotificationServiceExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CustomNotificationServiceExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A997AA8204EA3D90907FA80 /* libPods-NotificationServiceExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NotificationServiceExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DDE5449979A136852B939B5 /* Pods-NewExpensify.release adhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release adhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release adhoc.xcconfig"; sourceTree = "<group>"; };
 		25A4587E168FD67CF890B448 /* Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugadhoc.xcconfig"; sourceTree = "<group>"; };
 		30FFBD291B71222A393D9CC9 /* Pods-NewExpensify.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
@@ -112,39 +112,39 @@
 		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
 		75CABB0D0ABB0082FE0EB600 /* Pods-NewExpensify.release staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release staging.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release staging.xcconfig"; sourceTree = "<group>"; };
 		7F9DD8D92B2A445B005E3AFA /* ExpError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpError.swift; sourceTree = "<group>"; };
-		7FD73C9B2B23CE9500420AF3 /* CustomNotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CustomNotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationServiceExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		7FD73C9F2B23CE9500420AF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8709DF3C8D91F0FC1581CDD7 /* Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugdevelopment.xcconfig"; sourceTree = "<group>"; };
 		8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-BoldItalic.otf"; path = "../assets/fonts/native/ExpensifyNeue-BoldItalic.otf"; sourceTree = "<group>"; };
 		8D3B36BF88E773E3C1A383FA /* Pods-NewExpensify.debug staging.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug staging.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug staging.xcconfig"; sourceTree = "<group>"; };
-		90E08F0C8C924EDA018C8866 /* Pods-CustomNotificationServiceExtension.releaseproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomNotificationServiceExtension.releaseproduction.xcconfig"; path = "Target Support Files/Pods-CustomNotificationServiceExtension/Pods-CustomNotificationServiceExtension.releaseproduction.xcconfig"; sourceTree = "<group>"; };
+		90E08F0C8C924EDA018C8866 /* Pods-NotificationServiceExtension.releaseproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.releaseproduction.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.releaseproduction.xcconfig"; sourceTree = "<group>"; };
 		96552D489D9F09B6A5ABD81B /* Pods-NewExpensify-NewExpensifyTests.release production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release production.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release production.xcconfig"; sourceTree = "<group>"; };
 		AEFE6CD54912D427D19133C7 /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD6E1BA27D6ABE0AC9D70586 /* Pods-NewExpensify-NewExpensifyTests.release development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release development.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release development.xcconfig"; sourceTree = "<group>"; };
 		BD8828A882E2D6B51362AAC3 /* Pods-NewExpensify.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
 		BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Italic.otf"; path = "../assets/fonts/native/ExpensifyNeue-Italic.otf"; sourceTree = "<group>"; };
-		C3FF914C045A138C061D306E /* Pods-CustomNotificationServiceExtension.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomNotificationServiceExtension.debugproduction.xcconfig"; path = "Target Support Files/Pods-CustomNotificationServiceExtension/Pods-CustomNotificationServiceExtension.debugproduction.xcconfig"; sourceTree = "<group>"; };
+		C3FF914C045A138C061D306E /* Pods-NotificationServiceExtension.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debugproduction.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debugproduction.xcconfig"; sourceTree = "<group>"; };
 		CE2F84BEE9A6DCC228AF7E42 /* Pods-NewExpensify.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debugproduction.xcconfig"; sourceTree = "<group>"; };
 		CECC4CBB97A55705A33BEA9E /* Pods-NewExpensify.debug development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug development.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug development.xcconfig"; sourceTree = "<group>"; };
 		D2AFB39EC1D44BF9B91D3227 /* ExpensifyNewKansas-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNewKansas-MediumItalic.otf"; path = "../assets/fonts/native/ExpensifyNewKansas-MediumItalic.otf"; sourceTree = "<group>"; };
-		D3F458C994019E6A571461B7 /* Pods-CustomNotificationServiceExtension.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomNotificationServiceExtension.debugadhoc.xcconfig"; path = "Target Support Files/Pods-CustomNotificationServiceExtension/Pods-CustomNotificationServiceExtension.debugadhoc.xcconfig"; sourceTree = "<group>"; };
+		D3F458C994019E6A571461B7 /* Pods-NotificationServiceExtension.debugadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debugadhoc.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debugadhoc.xcconfig"; sourceTree = "<group>"; };
 		DB76E0D5C670190A0997C71E /* Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug production.xcconfig"; sourceTree = "<group>"; };
 		DCF33E34FFEC48128CDD41D4 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/native/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; };
 		DD7904292792E76D004484B4 /* RCTBootSplash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTBootSplash.h; path = NewExpensify/RCTBootSplash.h; sourceTree = "<group>"; };
 		DD79042A2792E76D004484B4 /* RCTBootSplash.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RCTBootSplash.m; path = NewExpensify/RCTBootSplash.m; sourceTree = "<group>"; };
 		E2C8555C607612465A7473F8 /* Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
 		E2F1036F70CBFE39E9352674 /* Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug development.xcconfig"; sourceTree = "<group>"; };
-		E61AD6D2DE65B6FB14945CDF /* Pods-CustomNotificationServiceExtension.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomNotificationServiceExtension.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-CustomNotificationServiceExtension/Pods-CustomNotificationServiceExtension.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
+		E61AD6D2DE65B6FB14945CDF /* Pods-NotificationServiceExtension.releaseadhoc.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.releaseadhoc.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.releaseadhoc.xcconfig"; sourceTree = "<group>"; };
 		E704648954784DDFBAADF568 /* ExpensifyMono-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-Regular.otf"; path = "../assets/fonts/native/ExpensifyMono-Regular.otf"; sourceTree = "<group>"; };
 		E9DF872C2525201700607FDC /* AirshipConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = AirshipConfig.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
-		F082D95EE104912B48EA98BA /* Pods-CustomNotificationServiceExtension.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomNotificationServiceExtension.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-CustomNotificationServiceExtension/Pods-CustomNotificationServiceExtension.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
+		F082D95EE104912B48EA98BA /* Pods-NotificationServiceExtension.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
 		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
 		F15A36A3262EEC3B0CAB8EDF /* Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debugproduction.xcconfig"; sourceTree = "<group>"; };
 		F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
-		FBEBA6FBED49FB41D6F93896 /* Pods-CustomNotificationServiceExtension.debugdevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CustomNotificationServiceExtension.debugdevelopment.xcconfig"; path = "Target Support Files/Pods-CustomNotificationServiceExtension/Pods-CustomNotificationServiceExtension.debugdevelopment.xcconfig"; sourceTree = "<group>"; };
+		FBEBA6FBED49FB41D6F93896 /* Pods-NotificationServiceExtension.debugdevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationServiceExtension.debugdevelopment.xcconfig"; path = "Target Support Files/Pods-NotificationServiceExtension/Pods-NotificationServiceExtension.debugdevelopment.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,7 +169,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				059DC4EFD39EF39437E6823D /* libPods-CustomNotificationServiceExtension.a in Frameworks */,
+				059DC4EFD39EF39437E6823D /* libPods-NotificationServiceExtension.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,19 +217,19 @@
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
 				AEFE6CD54912D427D19133C7 /* libPods-NewExpensify.a */,
 				6FB387B20AE4E6E98858B6AA /* libPods-NewExpensify-NewExpensifyTests.a */,
-				1A997AA8204EA3D90907FA80 /* libPods-CustomNotificationServiceExtension.a */,
+				1A997AA8204EA3D90907FA80 /* libPods-NotificationServiceExtension.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		7FD73C9C2B23CE9500420AF3 /* CustomNotificationServiceExtension */ = {
+		7FD73C9C2B23CE9500420AF3 /* NotificationServiceExtension */ = {
 			isa = PBXGroup;
 			children = (
 				7FD73C9D2B23CE9500420AF3 /* NotificationService.swift */,
 				7FD73C9F2B23CE9500420AF3 /* Info.plist */,
 				7F9DD8D92B2A445B005E3AFA /* ExpError.swift */,
 			);
-			path = CustomNotificationServiceExtension;
+			path = NotificationServiceExtension;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -253,7 +253,7 @@
 				13B07FAE1A68108700A75B9A /* NewExpensify */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* NewExpensifyTests */,
-				7FD73C9C2B23CE9500420AF3 /* CustomNotificationServiceExtension */,
+				7FD73C9C2B23CE9500420AF3 /* NotificationServiceExtension */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				EC29677F0A49C2946A495A33 /* Pods */,
@@ -269,7 +269,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* New Expensify Dev.app */,
 				00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */,
-				7FD73C9B2B23CE9500420AF3 /* CustomNotificationServiceExtension.appex */,
+				7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -320,12 +320,12 @@
 				4E8BF7B08BA3181991BFCF4B /* Pods-NewExpensify-NewExpensifyTests.releasedevelopment.xcconfig */,
 				E2C8555C607612465A7473F8 /* Pods-NewExpensify-NewExpensifyTests.releaseadhoc.xcconfig */,
 				57DBBEDB9692E096D4BA0141 /* Pods-NewExpensify-NewExpensifyTests.releaseproduction.xcconfig */,
-				FBEBA6FBED49FB41D6F93896 /* Pods-CustomNotificationServiceExtension.debugdevelopment.xcconfig */,
-				D3F458C994019E6A571461B7 /* Pods-CustomNotificationServiceExtension.debugadhoc.xcconfig */,
-				C3FF914C045A138C061D306E /* Pods-CustomNotificationServiceExtension.debugproduction.xcconfig */,
-				F082D95EE104912B48EA98BA /* Pods-CustomNotificationServiceExtension.releasedevelopment.xcconfig */,
-				E61AD6D2DE65B6FB14945CDF /* Pods-CustomNotificationServiceExtension.releaseadhoc.xcconfig */,
-				90E08F0C8C924EDA018C8866 /* Pods-CustomNotificationServiceExtension.releaseproduction.xcconfig */,
+				FBEBA6FBED49FB41D6F93896 /* Pods-NotificationServiceExtension.debugdevelopment.xcconfig */,
+				D3F458C994019E6A571461B7 /* Pods-NotificationServiceExtension.debugadhoc.xcconfig */,
+				C3FF914C045A138C061D306E /* Pods-NotificationServiceExtension.debugproduction.xcconfig */,
+				F082D95EE104912B48EA98BA /* Pods-NotificationServiceExtension.releasedevelopment.xcconfig */,
+				E61AD6D2DE65B6FB14945CDF /* Pods-NotificationServiceExtension.releaseadhoc.xcconfig */,
+				90E08F0C8C924EDA018C8866 /* Pods-NotificationServiceExtension.releaseproduction.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -380,9 +380,9 @@
 			productReference = 13B07F961A680F5B00A75B9A /* New Expensify Dev.app */;
 			productType = "com.apple.product-type.application";
 		};
-		7FD73C9A2B23CE9500420AF3 /* CustomNotificationServiceExtension */ = {
+		7FD73C9A2B23CE9500420AF3 /* NotificationServiceExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7FD73CAA2B23CE9500420AF3 /* Build configuration list for PBXNativeTarget "CustomNotificationServiceExtension" */;
+			buildConfigurationList = 7FD73CAA2B23CE9500420AF3 /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */;
 			buildPhases = (
 				F3D35ED760B830954BD8A7BB /* [CP] Check Pods Manifest.lock */,
 				7FD73C972B23CE9500420AF3 /* Sources */,
@@ -393,9 +393,9 @@
 			);
 			dependencies = (
 			);
-			name = CustomNotificationServiceExtension;
-			productName = CustomNotificationServiceExtension;
-			productReference = 7FD73C9B2B23CE9500420AF3 /* CustomNotificationServiceExtension.appex */;
+			name = NotificationServiceExtension;
+			productName = NotificationServiceExtension;
+			productReference = 7FD73C9B2B23CE9500420AF3 /* NotificationServiceExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -440,7 +440,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* NewExpensify */,
 				00E356ED1AD99517003FC87E /* NewExpensifyTests */,
-				7FD73C9A2B23CE9500420AF3 /* CustomNotificationServiceExtension */,
+				7FD73C9A2B23CE9500420AF3 /* NotificationServiceExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -720,7 +720,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-CustomNotificationServiceExtension-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-NotificationServiceExtension-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -792,7 +792,7 @@
 		};
 		7FD73CA12B23CE9500420AF3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 7FD73C9A2B23CE9500420AF3 /* CustomNotificationServiceExtension */;
+			target = 7FD73C9A2B23CE9500420AF3 /* NotificationServiceExtension */;
 			targetProxy = 7FD73CA02B23CE9500420AF3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -912,7 +912,7 @@
 		};
 		7FD73CA42B23CE9500420AF3 /* DebugDevelopment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FBEBA6FBED49FB41D6F93896 /* Pods-CustomNotificationServiceExtension.debugdevelopment.xcconfig */;
+			baseConfigurationReference = FBEBA6FBED49FB41D6F93896 /* Pods-NotificationServiceExtension.debugdevelopment.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -968,8 +968,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CustomNotificationServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CustomNotificationServiceExtension;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -978,7 +978,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.CustomNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -993,7 +993,7 @@
 		};
 		7FD73CA52B23CE9500420AF3 /* DebugAdHoc */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D3F458C994019E6A571461B7 /* Pods-CustomNotificationServiceExtension.debugadhoc.xcconfig */;
+			baseConfigurationReference = D3F458C994019E6A571461B7 /* Pods-NotificationServiceExtension.debugadhoc.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1049,8 +1049,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CustomNotificationServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CustomNotificationServiceExtension;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -1059,7 +1059,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.CustomNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1073,7 +1073,7 @@
 		};
 		7FD73CA62B23CE9500420AF3 /* DebugProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C3FF914C045A138C061D306E /* Pods-CustomNotificationServiceExtension.debugproduction.xcconfig */;
+			baseConfigurationReference = C3FF914C045A138C061D306E /* Pods-NotificationServiceExtension.debugproduction.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1129,8 +1129,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CustomNotificationServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CustomNotificationServiceExtension;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -1139,7 +1139,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.CustomNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1153,7 +1153,7 @@
 		};
 		7FD73CA72B23CE9500420AF3 /* ReleaseDevelopment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F082D95EE104912B48EA98BA /* Pods-CustomNotificationServiceExtension.releasedevelopment.xcconfig */;
+			baseConfigurationReference = F082D95EE104912B48EA98BA /* Pods-NotificationServiceExtension.releasedevelopment.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1203,8 +1203,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CustomNotificationServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CustomNotificationServiceExtension;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -1212,7 +1212,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.CustomNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1226,7 +1226,7 @@
 		};
 		7FD73CA82B23CE9500420AF3 /* ReleaseAdHoc */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E61AD6D2DE65B6FB14945CDF /* Pods-CustomNotificationServiceExtension.releaseadhoc.xcconfig */;
+			baseConfigurationReference = E61AD6D2DE65B6FB14945CDF /* Pods-NotificationServiceExtension.releaseadhoc.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1276,8 +1276,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CustomNotificationServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CustomNotificationServiceExtension;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -1285,7 +1285,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.CustomNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1299,7 +1299,7 @@
 		};
 		7FD73CA92B23CE9500420AF3 /* ReleaseProduction */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 90E08F0C8C924EDA018C8866 /* Pods-CustomNotificationServiceExtension.releaseproduction.xcconfig */;
+			baseConfigurationReference = 90E08F0C8C924EDA018C8866 /* Pods-NotificationServiceExtension.releaseproduction.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -1349,8 +1349,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = CustomNotificationServiceExtension/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = CustomNotificationServiceExtension;
+				INFOPLIST_FILE = NotificationServiceExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationServiceExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
@@ -1358,7 +1358,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.CustomNotificationServiceExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev.NotificationServiceExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1995,7 +1995,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = DebugDevelopment;
 		};
-		7FD73CAA2B23CE9500420AF3 /* Build configuration list for PBXNativeTarget "CustomNotificationServiceExtension" */ = {
+		7FD73CAA2B23CE9500420AF3 /* Build configuration list for PBXNativeTarget "NotificationServiceExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7FD73CA42B23CE9500420AF3 /* DebugDevelopment */,

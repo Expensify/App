@@ -1,6 +1,6 @@
 //
 //  NotificationService.swift
-//  CustomNotificationServiceExtension
+//  NotificationServiceExtension
 //
 //  Created by Andrew Rosiclair on 12/8/23.
 //
@@ -13,7 +13,7 @@ class NotificationService: UANotificationServiceExtension {
   
   var contentHandler: ((UNNotificationContent) -> Void)?
   var bestAttemptContent: UNMutableNotificationContent?
-  let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.expensify.chat.dev.CustomNotificationServiceExtension", category: "NotificationService")
+  let log = OSLog(subsystem: Bundle.main.bundleIdentifier ?? "com.expensify.chat.dev.NotificationServiceExtension", category: "NotificationService")
   
   override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
     os_log("[NotificationService] didReceive() - received notification", log: log)

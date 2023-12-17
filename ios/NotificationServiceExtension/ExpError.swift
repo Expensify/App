@@ -1,6 +1,6 @@
 //
 //  ExpError.swift
-//  CustomNotificationServiceExtension
+//  NotificationServiceExtension
 //
 //  Created by Andrew Rosiclair on 12/13/23.
 //
