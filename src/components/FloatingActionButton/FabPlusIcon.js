@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -10,10 +9,10 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const adapter = createAnimatedPropAdapter(
     (props) => {
         const modifiedProps = {...props};
-        if (_.keys(modifiedProps).includes('fill')) {
+        if (Object.keys(modifiedProps).includes('fill')) {
             modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
         }
-        if (_.keys(modifiedProps).includes('stroke')) {
+        if (Object.keys(modifiedProps).includes('stroke')) {
             modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
         }
     },
