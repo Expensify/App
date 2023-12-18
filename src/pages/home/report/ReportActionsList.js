@@ -184,6 +184,7 @@ function ReportActionsList({
             reportScrollManager.scrollToBottom();
         }
         previousLastIndex.current = lastActionIndex;
+        reportActionSize.current = sortedVisibleReportActions.length;
     }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager]);
 
     useEffect(() => {
