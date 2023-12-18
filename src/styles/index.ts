@@ -2655,7 +2655,7 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        moneyRequestAmountContainer: {minHeight: 116},
+        moneyRequestAmountContainer: {minHeight: 114},
 
         requestPreviewBox: {
             marginTop: 12,
