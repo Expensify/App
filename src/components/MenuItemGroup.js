@@ -1,5 +1,4 @@
 import useSingleExecution from '@hooks/useSingleExecution';
-import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {Children, cloneElement} from 'react';
 
@@ -22,7 +21,8 @@ function MenuItemGroup(props){
     {Children.map(arrayChildren, (child, index) => {
         return cloneElement(child,{
             ...child.props,
-            onPress: props.shouldUseSingleExecution ? singleExecution(child.props.onPress) : child.props.onPress
+            onPress: props.shouldUseSingleExecution ? singleExecution(child.props.onPress) : child.props.onPress,
+            disabled: child.props.disabled || isExecuting
         })
     })}
     </>
