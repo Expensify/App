@@ -468,7 +468,7 @@ function MenuItem(
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
                                         {Boolean(description) && shouldShowDescriptionOnTop && (
                                             <Text
-                                                style={descriptionTextStyles as TextStyle}
+                                                style={descriptionTextStyles}
                                                 numberOfLines={2}
                                             >
                                                 {description}
