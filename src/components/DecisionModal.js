@@ -1,17 +1,17 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
-import Header from '@components/Header';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import Modal from '@components/Modal';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import Button from './Button';
+import Header from './Header';
+import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
+import Modal from './Modal';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import Text from './Text';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     /** Title describing purpose of modal */
