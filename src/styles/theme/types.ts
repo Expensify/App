@@ -4,7 +4,7 @@ import {type ColorScheme, type StatusBarStyle} from '..';
 type Color = string;
 
 type ThemePreference = (typeof CONST.THEME)[keyof typeof CONST.THEME];
-type ThemePreferenceWithoutSystem = Exclude<ThemePreference, 'system'>;
+type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM>;
 
 type ThemeColors = {
     // Figma keys
@@ -68,7 +68,6 @@ type ThemeColors = {
     dropUIBG: Color;
     receiptDropUIBG: Color;
     checkBox: Color;
-    pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;

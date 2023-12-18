@@ -1,26 +1,20 @@
 import {useContext, useEffect, useState} from 'react';
-import {Appearance, ColorSchemeName} from 'react-native';
+import {useColorScheme} from 'react-native';
 import {PreferredThemeContext} from '@components/OnyxProvider';
 import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 import CONST from '@src/CONST';
 
 function useThemePreference() {
-    const [themePreference, setThemePreference] = useState<ThemePreferenceWithoutSystem>(CONST.THEME.DEFAULT);
-    const [systemTheme, setSystemTheme] = useState<ColorSchemeName>();
+    const [themePreference, setThemePreference] = useState<ThemePreferenceWithoutSystem>(CONST.THEME.FALLBACK);
     const preferredThemeFromStorage = useContext(PreferredThemeContext);
-
-    useEffect(() => {
-        // This is used for getting the system theme, that can be set in the OS's theme settings. This will always return either "light" or "dark" and will update automatically if the OS theme changes.
-        const systemThemeSubscription = Appearance.addChangeListener(({colorScheme}) => setSystemTheme(colorScheme));
-        return () => systemThemeSubscription.remove();
-    }, []);
+    const systemTheme = useColorScheme();
 
     useEffect(() => {
         const theme = preferredThemeFromStorage ?? CONST.THEME.DEFAULT;
 
         // If the user chooses to use the device theme settings, we need to set the theme preference to the system theme
         if (theme === CONST.THEME.SYSTEM) {
-            setThemePreference(systemTheme ?? CONST.THEME.DEFAULT);
+            setThemePreference(systemTheme ?? CONST.THEME.FALLBACK);
         } else {
             setThemePreference(theme);
         }

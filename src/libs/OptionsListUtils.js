@@ -391,14 +391,14 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
+        const lastIOUMoneyReportAction = _.find(
             allSortedReportActions[iouReport.reportID],
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReportAction, true, ReportUtils.isChatReport(report));
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
@@ -751,7 +751,7 @@ function sortTags(tags) {
 }
 
 /**
- * Builds the options for the tree hierarchy via indents
+ * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -759,7 +759,7 @@ function sortTags(tags) {
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getIndentedOptionTree(options, isOneLine = false) {
+function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = new Map();
 
     _.each(options, (option) => {
@@ -827,7 +827,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         return categorySections;
@@ -841,7 +841,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(searchCategories, true),
+            data: getCategoryOptionTree(searchCategories, true),
         });
 
         return categorySections;
@@ -853,7 +853,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(enabledCategories),
+            data: getCategoryOptionTree(enabledCategories),
         });
 
         return categorySections;
@@ -865,7 +865,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
@@ -888,7 +888,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(cutRecentlyUsedCategories, true),
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
 
         indexOffset += filteredRecentlyUsedCategories.length;
@@ -901,7 +901,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getIndentedOptionTree(filteredCategories),
+        data: getCategoryOptionTree(filteredCategories),
     });
 
     return categorySections;
@@ -916,7 +916,13 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return getIndentedOptionTree(tags);
+    return _.map(tags, (tag) => ({
+        text: tag.name,
+        keyForList: tag.name,
+        searchText: tag.name,
+        tooltipText: tag.name,
+        isDisabled: !tag.enabled,
+    }));
 }
 
 /**
@@ -1294,7 +1300,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login))) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -1759,7 +1765,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    getIndentedOptionTree,
+    getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
 };
