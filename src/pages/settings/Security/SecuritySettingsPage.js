@@ -8,11 +8,11 @@ import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -44,7 +44,7 @@ function SecuritySettingsPage(props) {
             {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: Expensicons.Shield,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA)),
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
             },
             {
                 translationKey: 'closeAccountPage.closeAccount',
@@ -69,7 +69,7 @@ function SecuritySettingsPage(props) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             shouldShowBackButton
             illustration={LottieAnimations.Safe}
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.SECURITY]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.SECURITY].backgroundColor}
         >
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                 <View style={[styles.flex1]}>

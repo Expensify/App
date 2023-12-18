@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Checkbox from './Checkbox';
 import FormHelpMessage from './FormHelpMessage';
@@ -34,7 +34,7 @@ const propTypes = {
     isChecked: PropTypes.bool,
 
     /** Called when the checkbox or label is pressed */
-    onInputChange: PropTypes.func.isRequired,
+    onInputChange: PropTypes.func,
 
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -77,10 +77,11 @@ const defaultProps = {
     errorText: '',
     shouldSaveDraft: false,
     isChecked: false,
-    value: false,
+    value: undefined,
     defaultValue: false,
     forwardedRef: () => {},
     accessibilityLabel: undefined,
+    onInputChange: () => {},
 };
 
 function CheckboxWithLabel(props) {

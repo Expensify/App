@@ -1,32 +1,76 @@
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import {isFunction, isObject} from 'underscore';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import ModalContent from '@components/Modal/ModalContent';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
-import getModalStyles from '@styles/getModalStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
     const containerRef = useRef();
     const {onOpen, close} = React.useContext(PopoverContext);
-    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
-        'popover',
-        {
-            windowWidth: props.windowWidth,
-            windowHeight: props.windowHeight,
-            isSmallScreenWidth: false,
-        },
-        props.anchorPosition,
-        props.innerContainerStyle,
-        props.outerStyle,
+    const insets = useSafeAreaInsets();
+    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
+        StyleUtils.getModalStyles(
+            'popover',
+            {
+                windowWidth: props.windowWidth,
+                windowHeight: props.windowHeight,
+                isSmallScreenWidth: false,
+            },
+            props.anchorPosition,
+            props.innerContainerStyle,
+            props.outerStyle,
+        );
+
+    const {
+        paddingTop: safeAreaPaddingTop,
+        paddingBottom: safeAreaPaddingBottom,
+        paddingLeft: safeAreaPaddingLeft,
+        paddingRight: safeAreaPaddingRight,
+    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [StyleUtils, insets]);
+
+    const modalPaddingStyles = useMemo(
+        () =>
+            StyleUtils.getModalPaddingStyles({
+                safeAreaPaddingTop,
+                safeAreaPaddingBottom,
+                safeAreaPaddingLeft,
+                safeAreaPaddingRight,
+                shouldAddBottomSafeAreaMargin,
+                shouldAddTopSafeAreaMargin,
+                shouldAddBottomSafeAreaPadding,
+                shouldAddTopSafeAreaPadding,
+                modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+                modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+                modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+                modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                insets,
+            }),
+        [
+            StyleUtils,
+            insets,
+            modalContainerStyle.marginBottom,
+            modalContainerStyle.marginTop,
+            modalContainerStyle.paddingBottom,
+            modalContainerStyle.paddingTop,
+            safeAreaPaddingBottom,
+            safeAreaPaddingLeft,
+            safeAreaPaddingRight,
+            safeAreaPaddingTop,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
     );
 
     React.useEffect(() => {
@@ -84,46 +128,18 @@ function Popover(props) {
                 }
             }}
         >
-            <SafeAreaInsetsContext.Consumer>
-                {(insets) => {
-                    const {
-                        paddingTop: safeAreaPaddingTop,
-                        paddingBottom: safeAreaPaddingBottom,
-                        paddingLeft: safeAreaPaddingLeft,
-                        paddingRight: safeAreaPaddingRight,
-                    } = StyleUtils.getSafeAreaPadding(insets);
-
-                    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
-                        safeAreaPaddingTop,
-                        safeAreaPaddingBottom,
-                        safeAreaPaddingLeft,
-                        safeAreaPaddingRight,
-                        shouldAddBottomSafeAreaMargin,
-                        shouldAddTopSafeAreaMargin,
-                        shouldAddBottomSafeAreaPadding,
-                        shouldAddTopSafeAreaPadding,
-                        modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-                        modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-                        modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-                        modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-                        insets,
-                    });
-                    return (
-                        <ModalContent onDismiss={handleDismissContent}>
-                            <View
-                                style={{
-                                    ...styles.defaultModalContainer,
-                                    ...modalContainerStyle,
-                                    ...modalPaddingStyles,
-                                }}
-                                ref={props.forwardedRef}
-                            >
-                                {props.children}
-                            </View>
-                        </ModalContent>
-                    );
-                }}
-            </SafeAreaInsetsContext.Consumer>
+            <ModalContent onDismiss={handleDismissContent}>
+                <View
+                    style={{
+                        ...styles.defaultModalContainer,
+                        ...modalContainerStyle,
+                        ...modalPaddingStyles,
+                    }}
+                    ref={props.forwardedRef}
+                >
+                    <ColorSchemeWrapper>{props.children}</ColorSchemeWrapper>
+                </View>
+            </ModalContent>
         </View>
     );
 }

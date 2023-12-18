@@ -9,15 +9,17 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import Navigation from '@libs/Navigation/Navigation';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -112,20 +114,22 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
+                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.SPLIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID)),
             },
             [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID)),
             },
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report.reportID),
             },
         };
 
         return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
-            onSelected: () => IOU.startMoneyRequest(option, report.reportID),
         }));
     }, [report, reportParticipantIDs, translate]);
 
@@ -191,7 +195,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
                                         <Icon src={Expensicons.Collapse} />
@@ -210,7 +214,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
                                         <Icon src={Expensicons.Expand} />
@@ -229,7 +233,7 @@ function AttachmentPickerWithMenuItems({
                                     }}
                                     style={styles.composerSizeButton}
                                     disabled={isBlockedFromConcierge || disabled}
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
                                     <Icon src={Expensicons.Plus} />

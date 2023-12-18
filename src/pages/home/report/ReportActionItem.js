@@ -32,8 +32,12 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,9 +49,6 @@ import SelectionScraper from '@libs/SelectionScraper';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as store from '@userActions/ReimbursementAccount/store';
@@ -102,10 +103,6 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /* Whether the option has an outstanding IOU */
-    // eslint-disable-next-line react/no-unused-prop-types
-    hasOutstandingIOU: PropTypes.bool,
-
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -127,13 +124,15 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     emojiReactions: {},
     shouldShowSubscriptAvatar: false,
-    hasOutstandingIOU: false,
     iouReport: undefined,
     shouldHideThreadDividerLine: false,
     userWallet: {},
 };
 
 function ReportActionItem(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
     const [isHidden, setIsHidden] = useState(false);
@@ -148,8 +147,12 @@ function ReportActionItem(props) {
     const originalReport = props.report.reportID === originalReportID ? props.report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
 
-    const highlightedBackgroundColorIfNeeded = useMemo(() => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(themeColors.highlightBG) : {}), [isReportActionLinked]);
+    const highlightedBackgroundColorIfNeeded = useMemo(
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.highlightBG],
+    );
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
@@ -189,6 +192,15 @@ function ReportActionItem(props) {
         },
         [props.action.reportActionID, reactionListRef],
     );
+
+    useEffect(() => {
+        // We need to hide EmojiPicker when this is a deleted parent action
+        if (!isDeletedParentAction || !EmojiPickerAction.isActive(props.action.reportActionID)) {
+            return;
+        }
+
+        EmojiPickerAction.hideEmojiPicker(true);
+    }, [isDeletedParentAction, props.action.reportActionID]);
 
     useEffect(() => {
         if (prevDraftMessage || !props.draftMessage) {
@@ -346,18 +358,14 @@ function ReportActionItem(props) {
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
         ) {
-            children = (
-                <TaskAction
-                    taskReportID={props.action.originalMessage.taskReportID.toString()}
-                    actionName={props.action.actionName}
-                />
-            );
+            children = <TaskAction actionName={props.action.actionName} />;
         } else if (ReportActionsUtils.isCreatedTaskReportAction(props.action)) {
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
                         taskReportID={props.action.originalMessage.taskReportID.toString()}
                         chatReportID={props.report.reportID}
+                        policyID={ReportUtils.getRootParentReport(props.report).policyID}
                         action={props.action}
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef}
@@ -413,6 +421,11 @@ function ReportActionItem(props) {
                     </>
                 </ReportActionItemBasicMessage>
             );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
+            const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
+
+            children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
         } else {
@@ -544,7 +557,7 @@ function ReportActionItem(props) {
                 <ReportActionItemSingle
                     action={props.action}
                     showHeader={!props.draftMessage}
-                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    wrapperStyle={isWhisper ? styles.pt1 : {}}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
                     iouReport={props.iouReport}
@@ -556,19 +569,13 @@ function ReportActionItem(props) {
             );
         }
 
-        return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
+        return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        let content = (
-            <ReportActionItemCreated
-                reportID={props.report.reportID}
-                policyID={props.report.policyID}
-            />
-        );
         const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            content = (
+            return (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <MoneyRequestView
                         report={props.report}
@@ -579,14 +586,13 @@ function ReportActionItem(props) {
         }
         if (ReportUtils.isTaskReport(props.report)) {
             if (ReportUtils.isCanceledTaskReport(props.report, parentReportAction)) {
-                content = (
+                return (
                     <>
                         <AnimatedEmptyStateBackground />
                         <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
                             <ReportActionItemSingle
                                 action={parentReportAction}
                                 showHeader={!props.draftMessage}
-                                wrapperStyles={[styles.chatItem]}
                                 report={props.report}
                             >
                                 <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
@@ -595,22 +601,21 @@ function ReportActionItem(props) {
                         </View>
                     </>
                 );
-            } else {
-                content = (
-                    <>
-                        <AnimatedEmptyStateBackground />
-                        <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
-                            <TaskView
-                                report={props.report}
-                                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                            />
-                        </View>
-                    </>
-                );
             }
+            return (
+                <>
+                    <AnimatedEmptyStateBackground />
+                    <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}>
+                        <TaskView
+                            report={props.report}
+                            shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+                        />
+                    </View>
+                </>
+            );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
-            content = (
+            return (
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
@@ -620,12 +625,12 @@ function ReportActionItem(props) {
             );
         }
 
-        const isNormalCreatedAction =
-            !ReportActionsUtils.isTransactionThread(parentReportAction) &&
-            !ReportUtils.isTaskReport(props.report) &&
-            !ReportUtils.isExpenseReport(props.report) &&
-            !ReportUtils.isIOUReport(props.report);
-        return <View style={[props.shouldHideThreadDividerLine && !isNormalCreatedAction && styles.mb2]}>{content}</View>;
+        return (
+            <ReportActionItemCreated
+                reportID={props.report.reportID}
+                policyID={props.report.policyID}
+            />
+        );
     }
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={props.action} />;
@@ -774,7 +779,6 @@ export default compose(
             prevProps.displayAsGroup === nextProps.displayAsGroup &&
             prevProps.draftMessage === nextProps.draftMessage &&
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
-            prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
             _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&

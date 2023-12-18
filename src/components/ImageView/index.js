@@ -1,38 +1,17 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
-
-const propTypes = {
-    /** Whether source url requires authentication */
-    isAuthTokenRequired: PropTypes.bool,
-
-    /** Handles scale changed event in image zoom component. Used on native only */
-    // eslint-disable-next-line react/no-unused-prop-types
-    onScaleChanged: PropTypes.func.isRequired,
-
-    /** URL to full-sized image */
-    url: PropTypes.string.isRequired,
-
-    /** image file name */
-    fileName: PropTypes.string.isRequired,
-
-    onError: PropTypes.func,
-};
-
-const defaultProps = {
-    isAuthTokenRequired: false,
-    onError: () => {},
-};
+import {imageViewDefaultProps, imageViewPropTypes} from './propTypes';
 
 function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
     const [containerHeight, setContainerHeight] = useState(0);
     const [containerWidth, setContainerWidth] = useState(0);
@@ -263,7 +242,7 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
                 }}
                 onPressIn={onContainerPressIn}
                 onPress={onContainerPress}
-                role={CONST.ACCESSIBILITY_ROLE.IMAGE}
+                role={CONST.ROLE.IMG}
                 accessibilityLabel={fileName}
             >
                 <Image
@@ -282,8 +261,8 @@ function ImageView({isAuthTokenRequired, url, fileName, onError}) {
     );
 }
 
-ImageView.propTypes = propTypes;
-ImageView.defaultProps = defaultProps;
+ImageView.propTypes = imageViewPropTypes;
+ImageView.defaultProps = imageViewDefaultProps;
 ImageView.displayName = 'ImageView';
 
 export default ImageView;

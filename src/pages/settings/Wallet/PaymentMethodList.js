@@ -16,13 +16,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -207,6 +207,7 @@ function PaymentMethodList({
     style,
 }) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -222,7 +223,7 @@ function PaymentMethodList({
 
             return _.map(assignedCards, (card) => {
                 const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
-                const icon = getBankIcon(card.bank, true);
+                const icon = getBankIcon({bankName: card.bank, isCard: true, styles});
 
                 // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
                 const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
@@ -245,7 +246,7 @@ function PaymentMethodList({
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(paymentCardList, (card) => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList, styles);
 
         if (!_.isEmpty(filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterType);
@@ -271,7 +272,7 @@ function PaymentMethodList({
         });
 
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, onPress]);
+    }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
 
     /**
      * Render placeholder when there are no payments methods

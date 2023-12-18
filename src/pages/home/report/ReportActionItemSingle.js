@@ -13,15 +13,16 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
@@ -33,8 +34,7 @@ const propTypes = {
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Styles for the outermost View */
-    // eslint-disable-next-line react/forbid-prop-types
-    wrapperStyles: PropTypes.arrayOf(PropTypes.object),
+    wrapperStyle: stylePropTypes,
 
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
@@ -61,7 +61,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    wrapperStyles: [styles.chatItem],
+    wrapperStyle: undefined,
     showHeader: true,
     shouldShowSubscriptAvatar: false,
     hasBeenFlagged: false,
@@ -79,6 +79,9 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
@@ -154,7 +157,9 @@ function ReportActionItemSingle(props) {
     }, [isWorkspaceActor, reportID, actorAccountID, props.action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
-        () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),
+        () =>
+            actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
+            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)),
         [props.action, isWorkspaceActor, actorAccountID],
     );
 
@@ -165,10 +170,7 @@ function ReportActionItemSingle(props) {
                     icons={[icon, secondaryAvatar]}
                     isInReportAction
                     shouldShowTooltip
-                    secondAvatarStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
-                        props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG) : undefined,
-                    ]}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.highlightBG) : undefined]}
                 />
             );
         }
@@ -207,7 +209,7 @@ function ReportActionItemSingle(props) {
     const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
 
     return (
-        <View style={props.wrapperStyles}>
+        <View style={[styles.chatItem, props.wrapperStyle]}>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
@@ -215,7 +217,7 @@ function ReportActionItemSingle(props) {
                 onPress={showActorDetails}
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={actorHint}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
@@ -229,7 +231,7 @@ function ReportActionItemSingle(props) {
                             onPress={showActorDetails}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={actorHint}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment

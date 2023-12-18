@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import {BankName} from './Bank';
 import * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
@@ -21,7 +22,7 @@ type AccountData = {
     created?: string;
     currency?: string;
     fundID?: number;
-    bank?: string;
+    bank?: BankName;
 };
 
 type Fund = {
@@ -36,4 +37,7 @@ type Fund = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type FundList = Record<string, Fund>;
+
 export default Fund;
+export type {FundList};

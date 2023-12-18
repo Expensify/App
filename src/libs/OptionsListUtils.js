@@ -18,6 +18,7 @@ import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -152,7 +153,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
  * Returns the personal details for an array of accountIDs
  *
  * @param {Array} accountIDs
- * @param {Object} personalDetails
+ * @param {Object | null} personalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
 function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
@@ -350,13 +351,15 @@ function getAllReportErrors(report, reportActions) {
     if (parentReportAction.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
-        if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (TransactionUtils.hasMissingSmartscanFields(transaction) && !ReportUtils.isSettled(transaction.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report.reportID)) {
+        if (ReportUtils.hasMissingSmartscanFields(report.reportID) && !ReportUtils.isSettled(report.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
+    } else if (ReportUtils.hasSmartscanError(_.values(reportActions))) {
+        _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
     }
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
@@ -387,16 +390,18 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
+        const lastIOUMoneyReportAction = _.find(
             allSortedReportActions[iouReport.reportID],
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReportAction, true, ReportUtils.isChatReport(report));
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
+    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
@@ -410,6 +415,8 @@ function getLastMessageTextForReport(report) {
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
+    } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
+        lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
@@ -449,7 +456,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         searchText: null,
         isDefaultRoom: false,
         isPinned: false,
-        hasOutstandingIOU: false,
         isWaitingOnBankAccount: false,
         iouReportID: null,
         isIOUReportOwner: null,
@@ -496,7 +502,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
-        result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
 
@@ -1222,7 +1227,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude = [{login: currentUserLogin}];
+    const optionsToExclude = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1242,6 +1247,11 @@ function getOptions(
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
+            }
+
+            // Skip notifications@expensify.com
+            if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
+                continue;
             }
 
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
@@ -1289,7 +1299,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login))) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;

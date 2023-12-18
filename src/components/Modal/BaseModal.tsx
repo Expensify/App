@@ -1,15 +1,15 @@
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import usePrevious from '@hooks/usePrevious';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import useNativeDriver from '@libs/useNativeDriver';
-import getModalStyles from '@styles/getModalStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -45,6 +45,7 @@ function BaseModal(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -148,7 +149,7 @@ function BaseModal(
         hideBackdrop,
     } = useMemo(
         () =>
-            getModalStyles(
+            StyleUtils.getModalStyles(
                 type,
                 {
                     windowWidth,
@@ -159,7 +160,7 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
             ),
-        [innerContainerStyle, isSmallScreenWidth, outerStyle, popoverAnchorPosition, type, windowHeight, windowWidth],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
     );
 
     const {
@@ -218,7 +219,9 @@ function BaseModal(
             avoidKeyboard={avoidKeyboard}
         >
             <ModalContent onDismiss={handleDismissModal}>
-                <View style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}>{children}</View>
+                <View style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}>
+                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                </View>
             </ModalContent>
         </ReactNativeModal>
     );
