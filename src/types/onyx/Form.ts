@@ -5,10 +5,10 @@ type Form = {
     isLoading?: boolean;
 
     /** Server side errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: OnyxCommon.Errors | null;
 
     /** Field-specific server side errors keyed by microtime */
-    errorFields?: OnyxCommon.ErrorFields;
+    errorFields?: OnyxCommon.ErrorFields | null;
 };
 
 type AddDebitCardForm = Form & {

@@ -12,11 +12,11 @@ function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading} satisfies Form);
 }
 
-function setErrors(formID: OnyxFormKey, errors: OnyxCommon.Errors | null) {
+function setErrors(formID: OnyxFormKey, errors?: OnyxCommon.Errors | null) {
     Onyx.merge(formID, {errors} satisfies Form);
 }
 
-function setErrorFields(formID: OnyxFormKey, errorFields: OnyxCommon.ErrorFields | null) {
+function setErrorFields(formID: OnyxFormKey, errorFields?: OnyxCommon.ErrorFields | null) {
     Onyx.merge(formID, {errorFields} satisfies Form);
 }
 
@@ -28,7 +28,7 @@ function setDraftValues(formID: OnyxFormKeyWithoutDraft, draftValues: NullishDee
  * @param formID
  */
 function clearDraftValues(formID: OnyxFormKeyWithoutDraft) {
-    Onyx.merge(FormUtils.getDraftKey(formID), undefined);
+    Onyx.merge(FormUtils.getDraftKey(formID), {});
 }
 
 export {setDraftValues, setErrorFields, setErrors, setIsLoading, clearDraftValues};
