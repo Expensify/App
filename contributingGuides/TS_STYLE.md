@@ -126,7 +126,7 @@ type Foo = {
 
 <a name="d-ts-extension"></a><a name="1.2"></a>
 
-- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and internal JavaScript modules can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
+- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and JavaScript's built-in modules (e.g. `window` object) can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
 
   > Why? Type errors in `d.ts` files are not checked by TypeScript [^1].
 
@@ -517,6 +517,8 @@ type Foo = {
   
   > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
 
+  > Note: Because Onyx doesn't provide a hook yet, in a component that accesses Onyx data with `withOnyx` HOC, please make sure that you don't use other HOCs (if applicable) to avoid HOC nesting.
+
   ```tsx
   // BAD
   type ComponentOnyxProps = {
@@ -575,8 +577,8 @@ type Foo = {
   ```ts
   // BAD
   export default compose(
-      withWindowDimensions,
-      withLocalize,
+      withCurrentUserPersonalDetails,
+      withReportOrNotFound(),
       withOnyx<ComponentProps, ComponentOnyxProps>({
           session: {
               key: ONYXKEYS.SESSION,
@@ -585,8 +587,8 @@ type Foo = {
   )(Component);
 
   // GOOD
-  export default withWindowDimensions(
-      withLocalize(
+  export default withCurrentUserPersonalDetails(
+      withReportOrNotFound()(
           withOnyx<ComponentProps, ComponentOnyxProps>({
               session: {
                   key: ONYXKEYS.SESSION,
@@ -594,6 +596,15 @@ type Foo = {
           })(Component),
       ),
   );
+
+  // GOOD - alternative to HOC nesting
+  const ComponentWithOnyx = withOnyx<ComponentProps, ComponentOnyxProps>({
+	    session: {
+	        key: ONYXKEYS.SESSION,
+	    },
+	})(Component);
+	const ComponentWithReportOrNotFound = withReportOrNotFound()(ComponentWithOnyx);
+	export default withCurrentUserPersonalDetails(ComponentWithReportOrNotFound);
   ```
 
 ## Exception to Rules
@@ -608,7 +619,7 @@ This rule will apply until the migration is done. After the migration, discussio
 
 > Comment in the `#expensify-open-source` Slack channel if any of the following situations are encountered. Each comment should be prefixed with `TS ATTENTION:`. Internal engineers will access each situation and prescribe solutions to each case. Internal engineers should refer to general solutions to each situation that follows each list item.
 
-- I think types definitions in a third party library or internal JavaScript module are incomplete or incorrect
+- I think types definitions in a third party library or JavaScript's built-in module are incomplete or incorrect
 
 When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/types/modules/*.d.ts`, each library as a separate file.
 
