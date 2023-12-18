@@ -87,7 +87,7 @@ const PersonalInfo = forwardRef(({reimbursementAccount, reimbursementAccountDraf
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStep={2}
+                    startStepIndex={2}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>

@@ -77,7 +77,7 @@ const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAcc
             />
             <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStep={5}
+                    startStepIndex={5}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>

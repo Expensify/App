@@ -1,6 +1,4 @@
-import map from 'lodash/map';
-import PropTypes from 'prop-types';
-import React, {forwardRef, useImperativeHandle, useState} from 'react';
+import React, {ForwardedRef, forwardRef, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
@@ -11,33 +9,33 @@ import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
-const propTypes = {
+type InteractiveStepSubHeaderProps = {
     /** List of the Route Name to navigate when the step is selected */
-    stepNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+    stepNames: readonly string[];
 
     /** Function to call when a step is selected */
-    onStepSelected: PropTypes.func,
+    onStepSelected?: (stepName: string) => void;
 
     /** The index of the step to start with */
-    startStep: PropTypes.number,
+    startStepIndex?: number;
 };
 
-const defaultProps = {
-    startStep: 0,
-    onStepSelected: null,
+type InteractiveStepSubHeaderHandle = {
+    /** Move to the next step */
+    moveNext: () => void;
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelected}, ref) => {
+function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
     const styles = useThemeStyles();
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
         throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);
     }
 
-    const [currentStep, setCurrentStep] = useState(startStep);
+    const [currentStep, setCurrentStep] = useState(startStepIndex);
     useImperativeHandle(
         ref,
         () => ({
@@ -52,7 +50,7 @@ const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelect
 
     return (
         <View style={[styles.interactiveStepHeaderContainer, {minWidth: stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? '60%' : '100%'}]}>
-            {map(stepNames, (stepName, index) => {
+            {stepNames.map((stepName, index) => {
                 const isCompletedStep = currentStep > index;
                 const isLockedStep = currentStep < index;
                 const isLockedLine = currentStep < index + 1;
@@ -65,6 +63,7 @@ const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelect
                     setCurrentStep(index);
                     onStepSelected(stepNames[index]);
                 };
+
                 return (
                     <View
                         style={[styles.interactiveStepHeaderStepContainer, hasUnion && styles.flex1]}
@@ -78,7 +77,9 @@ const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelect
                             ]}
                             disabled={isLockedStep}
                             onPress={moveToStep}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessible
+                            accessibilityLabel={stepName[index]}
+                            role={CONST.ROLE.BUTTON}
                         >
                             {isCompletedStep ? (
                                 <Icon
@@ -97,10 +98,8 @@ const InteractiveStepSubHeader = forwardRef(({stepNames, startStep, onStepSelect
             })}
         </View>
     );
-});
+}
 
-InteractiveStepSubHeader.propTypes = propTypes;
-InteractiveStepSubHeader.defaultProps = defaultProps;
 InteractiveStepSubHeader.displayName = 'InteractiveStepSubHeader';
 
-export default InteractiveStepSubHeader;
+export default forwardRef(InteractiveStepSubHeader);
