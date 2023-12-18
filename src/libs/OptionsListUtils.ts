@@ -799,54 +799,53 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
     return sortedTags;
 }
 
-function indentOption(option: Category, optionCollection: Map<string, Option>, isOneLine: boolean) {
-    if (isOneLine) {
-        if (optionCollection.has(option.name)) {
-            return;
-        }
-
-        optionCollection.set(option.name, {
-            text: option.name,
-            keyForList: option.name,
-            searchText: option.name,
-            tooltipText: option.name,
-            isDisabled: !option.enabled,
-        });
-
-        return;
-    }
-
-    option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
-        const indents = times(index, () => CONST.INDENTS).join('');
-        const isChild = array.length - 1 === index;
-        const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
-
-        if (optionCollection.has(searchText)) {
-            return;
-        }
-
-        optionCollection.set(searchText, {
-            text: `${indents}${optionName}`,
-            keyForList: searchText,
-            searchText,
-            tooltipText: optionName,
-            isDisabled: isChild ? !option.enabled : true,
-        });
-    });
-}
 /**
- * Builds the options for the tree hierarchy via indents
+ * Builds the options for the category tree hierarchy via indents
  *
  * @param options - an initial object array
+ * @param options[].enabled - a flag to enable/disable option in a list
+ * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getIndentedOptionTree(options: Category[] | Record<string, Category>, isOneLine = false): Option[] {
+function getCategoryOptionTree(options: Category[], isOneLine = false): Option[] {
     const optionCollection = new Map<string, Option>();
-    if (Array.isArray(options)) {
-        options.forEach((option) => indentOption(option, optionCollection, isOneLine));
-    } else {
-        Object.values(options).forEach((option) => indentOption(option, optionCollection, isOneLine));
-    }
+
+    options.forEach((option) => {
+        if (isOneLine) {
+            if (optionCollection.has(option.name)) {
+                return;
+            }
+
+            optionCollection.set(option.name, {
+                text: option.name,
+                keyForList: option.name,
+                searchText: option.name,
+                tooltipText: option.name,
+                isDisabled: !option.enabled,
+            });
+
+            return;
+        }
+
+        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
+            const indents = times(index, () => CONST.INDENTS).join('');
+            const isChild = array.length - 1 === index;
+            const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
+
+            if (optionCollection.has(searchText)) {
+                return;
+            }
+
+            optionCollection.set(searchText, {
+                text: `${indents}${optionName}`,
+                keyForList: searchText,
+                searchText,
+                tooltipText: optionName,
+                isDisabled: isChild ? !option.enabled : true,
+            });
+        });
+    });
+
     return Array.from(optionCollection.values());
 }
 
@@ -874,7 +873,7 @@ function getCategoryListSections(
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         return categorySections;
@@ -888,7 +887,7 @@ function getCategoryListSections(
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(searchCategories, true),
+            data: getCategoryOptionTree(searchCategories, true),
         });
 
         return categorySections;
@@ -900,7 +899,7 @@ function getCategoryListSections(
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(enabledCategories),
+            data: getCategoryOptionTree(enabledCategories),
         });
 
         return categorySections;
@@ -912,7 +911,7 @@ function getCategoryListSections(
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
@@ -934,7 +933,7 @@ function getCategoryListSections(
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(cutRecentlyUsedCategories, true),
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
 
         indexOffset += filteredRecentlyUsedCategories.length;
@@ -947,10 +946,27 @@ function getCategoryListSections(
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getIndentedOptionTree(filteredCategories),
+        data: getCategoryOptionTree(filteredCategories),
     });
 
     return categorySections;
+}
+
+/**
+ * Transforms the provided tags into objects with a specific structure.
+ *
+ * @param tags - an initial tag array
+ * @param tags[].enabled - a flag to enable/disable option in a list
+ * @param tags[].name - a name of an option
+ */
+function getTagsOptions(tags: Category[]): Option[] {
+    return tags.map((tag) => ({
+        text: tag.name,
+        keyForList: tag.name,
+        searchText: tag.name,
+        tooltipText: tag.name,
+        isDisabled: !tag.enabled,
+    }));
 }
 
 /**
@@ -981,7 +997,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions),
         });
 
         return tagSections;
@@ -995,7 +1011,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(searchTags),
+            data: getTagsOptions(searchTags),
         });
 
         return tagSections;
@@ -1007,7 +1023,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(enabledTags),
+            data: getTagsOptions(enabledTags),
         });
 
         return tagSections;
@@ -1036,7 +1052,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(selectedTagOptions),
+            data: getTagsOptions(selectedTagOptions),
         });
 
         indexOffset += selectedOptions.length;
@@ -1050,7 +1066,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(cutRecentlyUsedTags),
+            data: getTagsOptions(cutRecentlyUsedTags),
         });
 
         indexOffset += filteredRecentlyUsedTags.length;
@@ -1061,7 +1077,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getIndentedOptionTree(filteredTags),
+        data: getTagsOptions(filteredTags),
     });
 
     return tagSections;
@@ -1315,7 +1331,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (optionsToExclude.some((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === personalDetailOption.login)) {
+            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login ?? ''))) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -1717,7 +1733,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    getIndentedOptionTree,
+    getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
 };

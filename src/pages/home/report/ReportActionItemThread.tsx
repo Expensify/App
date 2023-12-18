@@ -1,62 +1,59 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {Text, View} from 'react-native';
-import avatarPropTypes from '@components/avatarPropTypes';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
-const propTypes = {
+type ReportActionItemThreadProps = {
     /** List of participant icons for the thread */
-    icons: PropTypes.arrayOf(avatarPropTypes).isRequired,
+    icons: Icon[];
 
     /** Number of comments under the thread */
-    numberOfReplies: PropTypes.number.isRequired,
+    numberOfReplies: number;
 
     /** Time of the most recent reply */
-    mostRecentReply: PropTypes.string.isRequired,
+    mostRecentReply: string;
 
     /** ID of child thread report */
-    childReportID: PropTypes.string.isRequired,
+    childReportID: string;
 
     /** Whether the thread item / message is being hovered */
-    isHovered: PropTypes.bool.isRequired,
+    isHovered: boolean;
 
     /** The function that should be called when the thread is LongPressed or right-clicked */
-    onSecondaryInteraction: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
+    onSecondaryInteraction: () => void;
 };
 
-function ReportActionItemThread(props) {
+function ReportActionItemThread({numberOfReplies, icons, mostRecentReply, childReportID, isHovered, onSecondaryInteraction}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
-    const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
-    const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
-    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false);
+    const {translate, datetimeToCalendarTime} = useLocalize();
+
+    const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
+    const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
+
+    const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
 
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithSecondaryInteraction
                 onPress={() => {
-                    Report.navigateToAndOpenChildReport(props.childReportID);
+                    Report.navigateToAndOpenChildReport(childReportID);
                 }}
                 role={CONST.ROLE.BUTTON}
-                accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
-                onSecondaryInteraction={props.onSecondaryInteraction}
+                accessibilityLabel={`${numberOfReplies} ${replyText}`}
+                onSecondaryInteraction={onSecondaryInteraction}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                     <MultipleAvatars
                         size={CONST.AVATAR_SIZE.SMALL}
-                        icons={props.icons}
+                        icons={icons}
                         shouldStackHorizontally
-                        isHovered={props.isHovered}
+                        isHovered={isHovered}
                         isInReportAction
                     />
                     <View style={[styles.flex1, styles.flexRow, styles.lh140Percent, styles.alignItemsEnd]}>
@@ -80,7 +77,6 @@ function ReportActionItemThread(props) {
     );
 }
 
-ReportActionItemThread.propTypes = propTypes;
 ReportActionItemThread.displayName = 'ReportActionItemThread';
 
-export default compose(withLocalize, withWindowDimensions)(ReportActionItemThread);
+export default ReportActionItemThread;
