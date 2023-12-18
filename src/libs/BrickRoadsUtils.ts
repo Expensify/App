@@ -16,7 +16,7 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-const getBrickRoadForPolicy = (policyReport: Report): BrickRoad | undefined => {
+const getBrickRoadForPolicy = (policyReport: Report): BrickRoad => {
     const policyReportAction = ReportActionsUtils.getAllReportActions(policyReport.reportID);
     const reportErrors = OptionsListUtils.getAllReportErrors(policyReport, policyReportAction);
     const brickRoadIndicator = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
