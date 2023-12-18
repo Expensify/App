@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import MenuItemGroup from '@components/MenuItemGroup';
 
 const propTypes = {
     /* Onyx Props */
@@ -77,6 +78,7 @@ function PersonalDetailsInitialPage(props) {
                         <View style={[styles.ph5, styles.mb5]}>
                             <Text>{props.translate('privatePersonalDetails.privateDataMessage')}</Text>
                         </View>
+                        <MenuItemGroup>
                         <MenuItemWithTopDescription
                             title={legalName}
                             description={props.translate('privatePersonalDetails.legalName')}
@@ -96,6 +98,7 @@ function PersonalDetailsInitialPage(props) {
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS)}
                         />
+                        </MenuItemGroup>
                     </View>
                 </ScrollView>
             )}
