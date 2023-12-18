@@ -234,14 +234,18 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         InputComponent={Picker}
                         inputID="incorporationType"
                         label={translate('companyStep.companyType')}
-                        items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`companyStep.incorporationTypes.${key}`)}))}
+                        items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({
+                            value: key,
+                            label: translate(`companyStep.incorporationTypes.${key}`),
+                        }))}
                         placeholder={{value: '', label: '-'}}
                         defaultValue={getDefaultStateForField('incorporationType')}
                         shouldSaveDraft
                     />
                 </View>
                 <View style={styles.mt4}>
-                    <DatePicker
+                    <InputWrapper
+                        InputComponent={DatePicker}
                         inputID="incorporationDate"
                         label={translate('companyStep.incorporationDate')}
                         placeholder={translate('companyStep.incorporationDatePlaceholder')}
