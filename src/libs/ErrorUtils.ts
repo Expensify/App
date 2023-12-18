@@ -51,7 +51,7 @@ function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<nu
 }
 
 type OnyxDataWithErrors = {
-    errors?: Errors;
+    errors?: Errors | null;
 };
 
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
