@@ -148,8 +148,8 @@ function ReportActionItem(props) {
     const isReportActionLinked = props.linkedReportActionID === props.action.reportActionID;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.highlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.highlightBG],
+        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.hoverComponentBG],
     );
     const originalMessage = lodashGet(props.action, 'originalMessage', {});
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
