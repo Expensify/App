@@ -1,5 +1,6 @@
-import {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {GestureResponderEvent} from 'react-native';
 import {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+import {ParsableStyle} from '@styles/utils/types';
 
 type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
     /** The function that should be called when this pressable is pressed */
@@ -40,7 +41,7 @@ type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
     activeOpacity?: number;
 
     /** Used to apply styles to the Pressable */
-    style?: StyleProp<ViewStyle & TextStyle>;
+    style?: ParsableStyle;
 
     /** Whether the long press with hover behavior is enabled */
     enableLongPressWithHover?: boolean;
