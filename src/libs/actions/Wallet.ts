@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-type  WalletTerms = {
+type WalletTerms = {
     hasAcceptedTerms: boolean;
     reportID: number;
 };
@@ -106,7 +106,6 @@ function setKYCWallSource(source: string, chatReportID = '') {
  * Validates a user's provided details against a series of checks
  */
 function updatePersonalDetails(personalDetails: PersonalDetails) {
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
