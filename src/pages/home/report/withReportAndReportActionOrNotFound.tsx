@@ -13,7 +13,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type OnyxProps = {
     /** The report currently being looked at */
@@ -58,7 +58,7 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!props.isSmallScreenWidth || (isEmptyObject(props.report) && isEmptyObject(reportAction))) {
+            if (!props.isSmallScreenWidth || (isNotEmptyObject(props.report) && isNotEmptyObject(reportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
