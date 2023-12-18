@@ -53,6 +53,7 @@ function IOURequestStepTaxAmountPage({
     const currency = selectedCurrency || originalCurrency;
 
     const focusTimeoutRef = useRef(null);
+    
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
