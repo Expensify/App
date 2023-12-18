@@ -4,10 +4,10 @@ const taxPropTypes = PropTypes.shape({
     /** Name of a tax */
     name: PropTypes.string.isRequired,
 
-    /** value of a tax */
+    /** The value of a tax */
     value: PropTypes.string.isRequired,
 
-    /** if tax is disabled */
+    /** Whether the tax is disabled */
     isDisabled: PropTypes.bool,
 });
 
