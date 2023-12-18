@@ -192,4 +192,6 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
+
+    lhpBorderRadius: 24,
 } as const;

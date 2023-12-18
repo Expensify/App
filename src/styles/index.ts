@@ -1385,8 +1385,8 @@ const styles = (theme: ThemeColors) =>
                 position: 'absolute',
                 left: 0,
                 height: '100%',
-                borderTopRightRadius: isSmallScreenWidth ? 0 : 24,
-                borderBottomRightRadius: isSmallScreenWidth ? 0 : 24,
+                borderTopRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
+                borderBottomRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
                 overflow: 'hidden',
             } satisfies ViewStyle),
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
@@ -1614,7 +1614,8 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
+                // The overlay must also cover borderRadius of the LHP component
+                left: isModalOnTheLeft ? -variables.lhpBorderRadius : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
                 right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
