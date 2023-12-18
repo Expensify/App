@@ -91,14 +91,12 @@ function BaseListItem({
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             isUserItem || item.isSelected ? styles.sidebarLinkTextBold : null,
                             styles.pre,
-                            item.pendingAction === 'delete' ? styles.offlineFeedback.deleted : null,
                         ]}
                         alternateTextStyles={[
                             styles.optionAlternateText, 
                             styles.textLabelSupporting, 
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, 
                             styles.pre,
-                            item.pendingAction === 'delete' ? styles.offlineFeedback.deleted : null,
                         ]}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
