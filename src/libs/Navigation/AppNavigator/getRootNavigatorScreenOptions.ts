@@ -39,7 +39,7 @@ export default (isSmallScreenWidth: boolean, themeStyles: ThemeStyles): ScreenOp
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
         presentation: 'transparentModal',
 
-        // We want pop in RHP since there are some flows that would work weird otherwise
+        // We want pop in LHP since there are some flows that would work weird otherwise
         animationTypeForReplace: 'pop',
         cardStyle: {
             ...getNavigationModalCardStyle(),
