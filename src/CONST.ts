@@ -77,6 +77,12 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    BREADCRUMB_TYPE: {
+        ROOT: 'root',
+        STRONG: 'strong',
+        NORMAL: 'normal',
+    },
+
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
@@ -464,6 +470,7 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
+    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -533,11 +540,13 @@ const CONST = {
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
                     IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
                     INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
                     UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
@@ -688,6 +697,7 @@ const CONST = {
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
+        CHAT_RENDER: 'chat_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
@@ -700,7 +710,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
-        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
+        SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
