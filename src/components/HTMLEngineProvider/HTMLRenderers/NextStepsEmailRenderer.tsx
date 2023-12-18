@@ -17,4 +17,3 @@ function NextStepsEmailRenderer({tnode}: NextStepsEmailRendererProps) {
 NextStepsEmailRenderer.displayName = 'NextStepsEmailRenderer';
 
 export default NextStepsEmailRenderer;
-export type {NextStepsEmailRendererProps};
