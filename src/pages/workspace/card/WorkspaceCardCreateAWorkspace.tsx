@@ -2,13 +2,12 @@ import React from 'react';
 import Button from '@components/Button';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Section, {CARD_LAYOUT} from '@components/Section';
-import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type WorkspaceCardCreateAWorkspaceProps = WithLocalizeProps;
-
-function WorkspaceCardCreateAWorkspace({translate}: WorkspaceCardCreateAWorkspaceProps) {
+function WorkspaceCardCreateAWorkspace() {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     return (
         <Section
@@ -31,4 +30,4 @@ function WorkspaceCardCreateAWorkspace({translate}: WorkspaceCardCreateAWorkspac
 
 WorkspaceCardCreateAWorkspace.displayName = 'WorkspaceCardNoVBAView';
 
-export default withLocalize(WorkspaceCardCreateAWorkspace);
+export default WorkspaceCardCreateAWorkspace;
