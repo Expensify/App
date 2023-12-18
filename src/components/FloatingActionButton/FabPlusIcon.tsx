@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import Animated, {Easing, interpolateColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
@@ -6,12 +5,12 @@ import useTheme from '@hooks/useTheme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-const propTypes = {
+type FabPlusIconProps = {
     /* Current state (active or not active) of the component */
-    isActive: PropTypes.bool.isRequired,
+    isActive: boolean;
 };
 
-function FabPlusIcon({isActive}) {
+function FabPlusIcon({isActive}: FabPlusIconProps) {
     const theme = useTheme();
     const animatedValue = useSharedValue(isActive ? 1 : 0);
 
@@ -43,7 +42,6 @@ function FabPlusIcon({isActive}) {
     );
 }
 
-FabPlusIcon.propTypes = propTypes;
 FabPlusIcon.displayName = 'FabPlusIcon';
 
 export default FabPlusIcon;

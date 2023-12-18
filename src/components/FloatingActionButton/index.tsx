@@ -1,6 +1,5 @@
-import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, {ForwardedRef, useEffect, useRef} from 'react';
+import {GestureResponderEvent, Role, View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -12,25 +11,25 @@ import FabPlusIcon from './FabPlusIcon';
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
-const propTypes = {
+type FloatingActionButtonProps = {
     /* Callback to fire on request to toggle the FloatingActionButton */
-    onPress: PropTypes.func.isRequired,
+    onPress: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     /* Current state (active or not active) of the component */
-    isActive: PropTypes.bool.isRequired,
+    isActive: boolean;
 
     /* An accessibility label for the button */
-    accessibilityLabel: PropTypes.string.isRequired,
+    accessibilityLabel: string;
 
     /* An accessibility role for the button */
-    role: PropTypes.string.isRequired,
+    role: Role;
 };
 
-const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
+function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: FloatingActionButtonProps, ref: ForwardedRef<HTMLDivElement | View>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const fabPressable = useRef(null);
+    const fabPressable = useRef<HTMLDivElement | View | null>(null);
     const animatedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
@@ -57,7 +56,13 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                 <AnimatedPressable
                     ref={(el) => {
                         fabPressable.current = el;
-                        if (buttonRef) {
+                        if (!buttonRef) {
+                            return;
+                        }
+                        if (typeof buttonRef === 'function') {
+                            buttonRef(el);
+                        }
+                        if (typeof buttonRef === 'object') {
                             buttonRef.current = el;
                         }
                     }}
@@ -66,7 +71,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                     pressDimmingValue={1}
                     onPress={(e) => {
                         // Drop focus to avoid blue focus ring.
-                        fabPressable.current.blur();
+                        fabPressable.current?.blur();
                         onPress(e);
                     }}
                     onLongPress={() => {}}
@@ -77,9 +82,8 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
             </View>
         </Tooltip>
     );
-});
+}
 
-FloatingActionButton.propTypes = propTypes;
 FloatingActionButton.displayName = 'FloatingActionButton';
 
-export default FloatingActionButton;
+export default React.forwardRef(FloatingActionButton);
