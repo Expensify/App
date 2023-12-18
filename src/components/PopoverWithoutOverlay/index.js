@@ -1,5 +1,6 @@
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import {isFunction, isObject} from 'underscore';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import ModalContent from '@components/Modal/ModalContent';
 import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
