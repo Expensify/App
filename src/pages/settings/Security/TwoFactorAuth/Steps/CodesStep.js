@@ -11,20 +11,20 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import localFileDownload from '@libs/localFileDownload';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import {defaultAccount, TwoFactorAuthPropTypes} from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Session from '@userActions/Session';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function CodesStep({account = defaultAccount}) {
+function CodesStep({account = defaultAccount, backTo}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,6 +50,7 @@ function CodesStep({account = defaultAccount}) {
                 text: translate('twoFactorAuth.stepCodes'),
                 total: 3,
             }}
+            onBackButtonPress={() => TwoFactorAuthActions.quitAndNavigateBack(backTo)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Section

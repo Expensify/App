@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
 import Text from './Text';
@@ -42,6 +42,7 @@ function FeatureList({menuItems, headline, description}) {
                     iconHeight={60}
                     iconStyles={[styles.mr3, styles.ml3]}
                     interactive={false}
+                    wrapperStyle={[styles.cursorAuto]}
                 />
             ))}
         </>

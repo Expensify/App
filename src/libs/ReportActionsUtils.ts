@@ -5,19 +5,36 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName} from '@src/types/onyx/OriginalMessage';
+import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
-import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
+import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
+import * as Localize from './Localize';
 import Log from './Log';
+import {MessageElementBase, MessageTextElement} from './MessageElement';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
     lastMessageText: string;
     lastMessageHtml?: string;
 };
+
+type MemberChangeMessageUserMentionElement = {
+    readonly kind: 'userMention';
+    readonly accountID: number;
+} & MessageElementBase;
+
+type MemberChangeMessageRoomReferenceElement = {
+    readonly kind: 'roomReference';
+    readonly roomName: string;
+    readonly roomID: number;
+} & MessageElementBase;
+
+type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
 const allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -72,7 +89,10 @@ function isReversedTransaction(reportAction: OnyxEntry<ReportAction>) {
     return (reportAction?.message?.[0]?.isReversedTransaction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxEntry<ReportAction>): boolean {
+function isPendingRemove(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
+    if (isEmptyObject(reportAction)) {
+        return false;
+    }
     return reportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -88,6 +108,10 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
+function isSubmittedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
@@ -96,13 +120,21 @@ function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
 }
 
-function isChannelLogMemberAction(reportAction: OnyxEntry<ReportAction>) {
+function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
     return (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
     );
+}
+
+function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+}
+
+function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
 }
 
 /**
@@ -118,11 +150,11 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report>, allReportActionsParam?: OnyxCollection<ReportActions>): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report>): ReportAction | Record<string, never> {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return (allReportActionsParam ?? allReportActions)?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
 }
 
 /**
@@ -151,14 +183,14 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  */
-function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
+function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
-    return reportActions?.filter(Boolean).sort((first, second) => {
+    const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
         // First sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -178,6 +210,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         // will be consistent across all users and devices
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
+
+    // If shouldMarkTheFirstItemAsNewest is true, label the first reportAction as isNewestReportAction
+    if (shouldMarkTheFirstItemAsNewest && sortedActions?.length > 0) {
+        sortedActions[0] = {
+            ...sortedActions[0],
+            isNewestReportAction: true,
+        };
+    }
+
+    return sortedActions;
 }
 
 /**
@@ -333,7 +375,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !!reportAction.pendingAction;
+    const isPending = !!reportAction.pendingAction && !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
@@ -439,12 +481,12 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true);
+    return getSortedReportActions(baseURLAdjustedReportActions, true, shouldMarkTheFirstItemAsNewest);
 }
 
 /**
@@ -631,6 +673,89 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
     return actions.includes(reportAction.actionName);
 }
 
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
+    const isInviteAction = isInviteMemberAction(reportAction);
+
+    // Currently, we only render messages when members are invited
+    const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
+
+    const originalMessage = reportAction?.originalMessage as ChangeLog;
+    const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
+    const personalDetails = PersonalDetailsUtils.getPersonalDetailsByIDs(targetAccountIDs, 0);
+
+    const mentionElements = targetAccountIDs.map((accountID): MemberChangeMessageUserMentionElement => {
+        const personalDetail = personalDetails.find((personal) => personal.accountID === accountID);
+        const handleText = PersonalDetailsUtils.getEffectiveDisplayName(personalDetail) ?? Localize.translateLocal('common.hidden');
+
+        return {
+            kind: 'userMention',
+            content: `@${handleText}`,
+            accountID,
+        };
+    });
+
+    const buildRoomElements = (): readonly MemberChangeMessageElement[] => {
+        const roomName = originalMessage?.roomName;
+
+        if (roomName) {
+            const preposition = isInviteAction ? ` ${Localize.translateLocal('workspace.invite.to')} ` : ` ${Localize.translateLocal('workspace.invite.from')} `;
+
+            if (originalMessage.reportID) {
+                return [
+                    {
+                        kind: 'text',
+                        content: preposition,
+                    },
+                    {
+                        kind: 'roomReference',
+                        roomName,
+                        roomID: originalMessage.reportID,
+                        content: roomName,
+                    },
+                ];
+            }
+        }
+
+        return [];
+    };
+
+    return [
+        {
+            kind: 'text',
+            content: `${verb} `,
+        },
+        ...Localize.formatMessageElementList(mentionElements),
+        ...buildRoomElements(),
+    ];
+}
+
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
+    const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction);
+    const html = messageElements
+        .map((messageElement) => {
+            switch (messageElement.kind) {
+                case 'userMention':
+                    return `<mention-user accountID=${messageElement.accountID}></mention-user>`;
+                case 'roomReference':
+                    return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
+                default:
+                    return messageElement.content;
+            }
+        })
+        .join('');
+
+    return {
+        html: `<muted-text>${html}</muted-text>`,
+        text: reportAction?.message ? reportAction?.message[0].text : '',
+        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+    };
+}
+
+function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
+    const messageElements = getMemberChangeMessageElements(reportAction);
+    return messageElements.map((element) => element.content).join('');
+}
+
 /**
  * Helper method to determine if the provided accountID has made a request on the specified report.
  *
@@ -675,6 +800,7 @@ export {
     isDeletedParentAction,
     isMessageDeleted,
     isModifiedExpenseAction,
+    isSubmittedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isPendingRemove,
@@ -693,5 +819,10 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
-    isChannelLogMemberAction,
+    isMemberChangeAction,
+    getMemberChangeMessageFragment,
+    getMemberChangeMessagePlainText,
+    isReimbursementDeQueuedAction,
 };
+
+export type {LastVisibleMessage};

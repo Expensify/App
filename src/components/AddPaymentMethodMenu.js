@@ -48,6 +48,9 @@ const propTypes = {
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
     }),
+
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -59,10 +62,19 @@ const defaultProps = {
     },
     anchorRef: () => {},
     session: {},
+    shouldShowPersonalBankAccountOption: false,
 };
 
-function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session}) {
+function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignment, anchorRef, iouReport, onItemSelected, session, shouldShowPersonalBankAccountOption}) {
     const {translate} = useLocalize();
+
+    // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
+    // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
+    const canUseBusinessBankAccount =
+        ReportUtils.isExpenseReport(iouReport) ||
+        (ReportUtils.isIOUReport(iouReport) && !ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0)));
+
+    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || ReportUtils.isIOUReport(iouReport);
 
     return (
         <PopoverMenu
@@ -73,7 +85,7 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
             anchorRef={anchorRef}
             onItemSelected={onClose}
             menuItems={[
-                ...(ReportUtils.isIOUReport(iouReport)
+                ...(canUsePersonalBankAccount
                     ? [
                           {
                               text: translate('common.personalBankAccount'),
@@ -84,7 +96,7 @@ function AddPaymentMethodMenu({isVisible, onClose, anchorPosition, anchorAlignme
                           },
                       ]
                     : []),
-                ...(!ReportActionsUtils.hasRequestFromCurrentAccount(lodashGet(iouReport, 'reportID', 0), lodashGet(session, 'accountID', 0))
+                ...(canUseBusinessBankAccount
                     ? [
                           {
                               text: translate('common.businessBankAccount'),

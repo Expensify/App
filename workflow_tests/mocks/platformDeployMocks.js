@@ -21,26 +21,14 @@ const PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS = [PLATFORM_DEPLO
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS = [PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__OUTSIDER__STEP_MOCK];
 
 // deployChecklist
-const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'DEPLOY_CHECKLIST');
-const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setup Node', 'DEPLOY_CHECKLIST');
-const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SET_VERSION__STEP_MOCK = utils.createMockStep('Set version', 'Set version', 'DEPLOY_CHECKLIST', [], [], {VERSION: '1.2.3'});
-const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CREATE_OR_UPDATE_STAGING_DEPLOY__STEP_MOCK = utils.createMockStep(
-    'Create or update staging deploy',
-    'Create or update staging deploy',
-    'DEPLOY_CHECKLIST',
-    ['GITHUB_TOKEN', 'NPM_VERSION'],
-);
-const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS = [
-    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CHECKOUT__STEP_MOCK,
-    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SETUP_NODE__STEP_MOCK,
-    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__SET_VERSION__STEP_MOCK,
-    PLATFORM_DEPLOY__DEPLOY_CHECKLIST__CREATE_OR_UPDATE_STAGING_DEPLOY__STEP_MOCK,
-];
+const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCK = utils.createMockStep('deployChecklist', 'Run deployChecklist', 'DEPLOY_CHECKLIST');
+const PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCKS = [PLATFORM_DEPLOY__DEPLOY_CHECKLIST__STEP_MOCK];
 
 // android
 const PLATFORM_DEPLOY__ANDROID__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'ANDROID');
 const PLATFORM_DEPLOY__ANDROID__CONFIGURE_MAPBOX_SDK__STEP_MOCK = utils.createMockStep('Configure MapBox SDK', 'Configure MapBox SDK', 'ANDROID');
 const PLATFORM_DEPLOY__ANDROID__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'ANDROID');
+const PLATFORM_DEPLOY__ANDROID__SETUP_JAVA__STEP_MOCK = utils.createMockStep('Setup Java', 'Setup Java', 'ANDROID', ['distribution', 'java-version'], []);
 const PLATFORM_DEPLOY__ANDROID__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setting up Ruby', 'ANDROID', ['ruby-version', 'bundler-cache']);
 const PLATFORM_DEPLOY__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK = utils.createMockStep('Decrypt keystore', 'Decrypting keystore', 'ANDROID', null, ['LARGE_SECRET_PASSPHRASE']);
 const PLATFORM_DEPLOY__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK = utils.createMockStep('Decrypt json key', 'Decrypting JSON key', 'ANDROID', null, ['LARGE_SECRET_PASSPHRASE']);
@@ -51,6 +39,12 @@ const PLATFORM_DEPLOY__ANDROID__FASTLANE_BETA__STEP_MOCK = utils.createMockStep(
 ]);
 const PLATFORM_DEPLOY__ANDROID__FASTLANE_PRODUCTION__STEP_MOCK = utils.createMockStep('Run Fastlane production', 'Running Fastlane production', 'ANDROID', null, ['VERSION']);
 const PLATFORM_DEPLOY__ANDROID__ARCHIVE_SOURCEMAPS__STEP_MOCK = utils.createMockStep('Archive Android sourcemaps', 'Archiving Android sourcemaps', 'ANDROID', ['name', 'path']);
+const PLATFORM_DEPLOY__ANDROID__UPLOAD_ANDROID_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = utils.createMockStep(
+    'Upload Android version to GitHub artifacts',
+    'Upload Android version to GitHub artifacts',
+    'ANDROID',
+    ['name', 'path'],
+);
 const PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK = utils.createMockStep(
     'Upload Android version to Browser Stack',
     'Uploading Android version to Browser Stack',
@@ -69,6 +63,7 @@ const PLATFORM_DEPLOY__ANDROID__STEP_MOCKS = [
     PLATFORM_DEPLOY__ANDROID__CHECKOUT__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__CONFIGURE_MAPBOX_SDK__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__SETUP_NODE__STEP_MOCK,
+    PLATFORM_DEPLOY__ANDROID__SETUP_JAVA__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__SETUP_RUBY__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK,
@@ -76,6 +71,7 @@ const PLATFORM_DEPLOY__ANDROID__STEP_MOCKS = [
     PLATFORM_DEPLOY__ANDROID__FASTLANE_BETA__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__FASTLANE_PRODUCTION__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__ARCHIVE_SOURCEMAPS__STEP_MOCK,
+    PLATFORM_DEPLOY__ANDROID__UPLOAD_ANDROID_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__UPLOAD_TO_BROWSER_STACK__STEP_MOCK,
     PLATFORM_DEPLOY__ANDROID__WARN_DEPLOYERS__STEP_MOCK,
 ];
@@ -139,6 +135,12 @@ const PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK = utils.createMockStep('Run Fast
     'APPLE_DEMO_PASSWORD',
 ]);
 const PLATFORM_DEPLOY__IOS__ARCHIVE_SOURCEMAPS__STEP_MOCK = utils.createMockStep('Archive iOS sourcemaps', 'Archiving sourcemaps', 'IOS', ['name', 'path']);
+const PLATFORM_DEPLOY__IOS__UPLOAD_IOS_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK = utils.createMockStep(
+    'Upload iOS version to GitHub artifacts',
+    'Upload iOS version to GitHub artifacts',
+    'IOS',
+    ['name', 'path'],
+);
 const PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK = utils.createMockStep('Upload iOS version to Browser Stack', 'Uploading version to Browser Stack', 'IOS', null, ['BROWSERSTACK']);
 const PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK = utils.createMockStep('Set iOS version in ENV', 'Setting iOS version', 'IOS', null, null, null, {IOS_VERSION: '1.2.3'});
 const PLATFORM_DEPLOY__IOS__RELEASE_FASTLANE__STEP_MOCK = utils.createMockStep('Run Fastlane for App Store release', 'Running Fastlane for release', 'IOS', null, ['VERSION']);
@@ -162,6 +164,7 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
     PLATFORM_DEPLOY__IOS__DECRYPT_APP_STORE_API_KEY__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__FASTLANE__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__ARCHIVE_SOURCEMAPS__STEP_MOCK,
+    PLATFORM_DEPLOY__IOS__UPLOAD_IOS_VERSION_TO_GITHUB_ARTIFACTS__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__UPLOAD_BROWSERSTACK__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__SET_VERSION__STEP_MOCK,
     PLATFORM_DEPLOY__IOS__RELEASE_FASTLANE__STEP_MOCK,

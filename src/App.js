@@ -6,14 +6,19 @@ import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
+import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
-import CustomStatusBar from './components/CustomStatusBar';
+import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
+import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
+import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
+import ThemeProvider from './components/ThemeProvider';
+import ThemeStylesProvider from './components/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
@@ -24,8 +29,6 @@ import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
-import ThemeProvider from './styles/themes/ThemeProvider';
-import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -50,6 +53,9 @@ function App() {
             <ComposeProviders
                 components={[
                     OnyxProvider,
+                    ThemeProvider,
+                    ThemeStylesProvider,
+                    ThemeIllustrationsProvider,
                     SafeAreaProvider,
                     PortalProvider,
                     SafeArea,
@@ -62,13 +68,14 @@ function App() {
                     ReportAttachmentsProvider,
                     PickerStateProvider,
                     EnvironmentProvider,
-                    ThemeProvider,
-                    ThemeStylesProvider,
+                    CustomStatusBarAndBackgroundContextProvider,
                 ]}
             >
-                <CustomStatusBar />
+                <CustomStatusBarAndBackground />
                 <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                    <Expensify />
+                    <ColorSchemeWrapper>
+                        <Expensify />
+                    </ColorSchemeWrapper>
                 </ErrorBoundary>
             </ComposeProviders>
         </GestureHandlerRootView>

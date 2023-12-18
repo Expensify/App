@@ -1,0 +1,35 @@
+import Str from 'expensify-common/lib/str';
+import EmailUtils from './EmailUtils';
+
+type Message = {
+    text: string;
+    type?: string;
+};
+
+function parseMessage(messages: Message[] | undefined) {
+    let nextStepHTML = '';
+
+    messages?.forEach((part) => {
+        const isEmail = Str.isValidEmail(part.text);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        let tagType = part.type ?? 'span';
+        let content = Str.safeEscape(part.text);
+
+        if (isEmail) {
+            tagType = 'next-steps-email';
+            content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
+        }
+
+        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
+    });
+
+    const formattedHtml = nextStepHTML
+        .replace(/%expenses/g, 'these expenses')
+        .replace(/%Expenses/g, 'These expenses')
+        .replace(/%tobe/g, 'are');
+
+    return `<next-steps>${formattedHtml}</next-steps>`;
+}
+
+// eslint-disable-next-line import/prefer-default-export
+export {parseMessage};

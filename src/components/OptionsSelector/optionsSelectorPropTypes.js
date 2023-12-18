@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '@components/optionPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -27,9 +26,6 @@ const propTypes = {
             isDisabled: PropTypes.bool,
         }),
     ).isRequired,
-
-    /** Value in the search input field */
-    value: PropTypes.string.isRequired,
 
     /** Callback fired when text changes */
     onChangeText: PropTypes.func,
@@ -162,7 +158,7 @@ const defaultProps = {
     onConfirmSelection: () => {},
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
-    optionHoveredStyle: styles.hoveredComponentBG,
+    optionHoveredStyle: undefined,
     sectionHeaderStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
