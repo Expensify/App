@@ -20,13 +20,13 @@ type InteractiveStepSubHeaderProps = {
     startStepIndex?: number;
 };
 
-const MIN_AMOUNT_FOR_EXPANDING = 3;
-const MIN_AMOUNT_OF_STEPS = 2;
-
 type InteractiveStepSubHeaderHandle = {
     /** Move to the next step */
     moveNext: () => void;
 };
+
+const MIN_AMOUNT_FOR_EXPANDING = 3;
+const MIN_AMOUNT_OF_STEPS = 2;
 
 function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
     const styles = useThemeStyles();
@@ -63,6 +63,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                     setCurrentStep(index);
                     onStepSelected(stepNames[index]);
                 };
+
                 return (
                     <View
                         style={[styles.interactiveStepHeaderStepContainer, hasUnion && styles.flex1]}
