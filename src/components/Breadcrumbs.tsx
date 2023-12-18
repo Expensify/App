@@ -55,7 +55,7 @@ function Breadcrumbs({breadcrumbs}: BreadcrumbsProps) {
                 </Text>
             )}
 
-            {secondaryBreadcrumb && (
+            {!!secondaryBreadcrumb && (
                 <>
                     <Text style={[styles.breadcrumbSeparator]}>/</Text>
                     <Text
