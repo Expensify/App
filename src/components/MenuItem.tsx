@@ -4,8 +4,6 @@ import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle,
 import {AnimatedStyle} from 'react-native-reanimated';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
-// eslint-disable-next-line no-restricted-imports
-import _ from 'underscore';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -296,8 +294,7 @@ function MenuItem(
     const [html, setHtml] = useState('');
     const titleRef = useRef('');
 
-    // eslint-disable-next-line you-dont-need-lodash-underscore/contains
-    const isDeleted = style ? _.contains(style, styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const combinedTitleTextStyle = StyleUtils.combineStyles(
