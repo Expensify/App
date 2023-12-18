@@ -1,5 +1,4 @@
 import {RouteProp, useNavigation} from '@react-navigation/native';
-import {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useRef, useState} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
@@ -27,15 +26,19 @@ import * as OnyxTypes from '@src/types/onyx';
 import {Waypoint} from '@src/types/onyx/Transaction';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
+type Location = {
+    lat: number;
+    lng: number;
+};
+
+type Geometry = {
+    location: Location;
+};
+
 type MappedWaypoint = {
     name: string | undefined;
     description: string;
-    geometry: {
-        location: {
-            lat: number;
-            lng: number;
-        };
-    };
+    geometry: Geometry;
 };
 
 type WaypointEditorOnyxProps = {
