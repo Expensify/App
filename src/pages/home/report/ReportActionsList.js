@@ -157,11 +157,11 @@ function ReportActionsList({
     const hasHeaderRendered = useRef(false);
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
-    const reportActionSize = useRef(sortedReportActions.length);
     const lastReadTimeRef = useRef(report.lastReadTime);
 
     const sortedVisibleReportActions = _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors);
     const lastActionIndex = lodashGet(sortedVisibleReportActions, [0, 'reportActionID']);
+    const reportActionSize = useRef(sortedVisibleReportActions.length);
 
     const previousLastIndex = useRef(lastActionIndex);
 
