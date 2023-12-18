@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
-import Animated, {Easing, interpolateColor, processColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 
