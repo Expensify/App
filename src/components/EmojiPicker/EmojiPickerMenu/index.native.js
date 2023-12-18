@@ -7,20 +7,19 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
-import {emojiPickerMenuDefaultProps, emojiPickerMenuPropTypes} from './emojiPickerMenuPropTypes';
+import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const propTypes = emojiPickerMenuPropTypes;
 
-const defaultProps = emojiPickerMenuDefaultProps;
-
 function EmojiPickerMenu({onEmojiSelected}) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {
         allEmojis,
@@ -37,6 +36,7 @@ function EmojiPickerMenu({onEmojiSelected}) {
         emojiListRef,
     } = useEmojiPickerMenu();
     const {singleExecution} = useSingleExecution();
+    const StyleUtils = useStyleUtils();
 
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
@@ -106,7 +106,7 @@ function EmojiPickerMenu({onEmojiSelected}) {
     );
 
     return (
-        <View style={styles.emojiPickerContainer}>
+        <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(isSmallScreenWidth)]}>
             <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                 <TextInput
                     label={translate('common.search')}
@@ -139,7 +139,6 @@ function EmojiPickerMenu({onEmojiSelected}) {
 
 EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 EmojiPickerMenu.propTypes = propTypes;
-EmojiPickerMenu.defaultProps = defaultProps;
 
 const EmojiPickerMenuWithRef = React.forwardRef((props, ref) => (
     <EmojiPickerMenu

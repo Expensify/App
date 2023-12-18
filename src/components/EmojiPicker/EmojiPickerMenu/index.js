@@ -18,7 +18,7 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
-import {emojiPickerMenuDefaultProps, emojiPickerMenuPropTypes} from './emojiPickerMenuPropTypes';
+import emojiPickerMenuPropTypes from './emojiPickerMenuPropTypes';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const propTypes = {
@@ -29,7 +29,6 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    ...emojiPickerMenuDefaultProps,
 };
 
 const throttleTime = Browser.isMobile() ? 200 : 50;
@@ -396,7 +395,7 @@ function EmojiPickerMenu({forwardedRef, onEmojiSelected}) {
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}
