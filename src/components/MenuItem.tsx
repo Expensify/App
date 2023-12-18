@@ -311,13 +311,13 @@ function MenuItem(
         ],
         titleStyle ?? {},
     );
-    const descriptionTextStyles = StyleUtils.combineStyles([
+    const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
-        (descriptionTextStyle as ViewStyle) || styles.breakWord,
+        (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedback.deleted : {},
-    ]) as StyleProp<TextStyle>;
+    ]);
 
     useEffect(() => {
         if (!title || (titleRef.current.length && titleRef.current === title) || !shouldParseTitle) {
