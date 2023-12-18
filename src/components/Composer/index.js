@@ -8,6 +8,10 @@ import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withNavigation from '@components/withNavigation';
+import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
@@ -15,9 +19,6 @@ import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -86,6 +87,9 @@ const propTypes = {
     /** Whether the sull composer is open */
     isComposerFullSize: PropTypes.bool,
 
+    /** Should make the input only scroll inside the element avoid scroll out to parent */
+    shouldContainScroll: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -113,6 +117,7 @@ const defaultProps = {
     checkComposerVisibility: () => false,
     isReportActionCompose: false,
     isComposerFullSize: false,
+    shouldContainScroll: false,
 };
 
 /**
@@ -164,10 +169,12 @@ function Composer({
     selection: selectionProp,
     isReportActionCompose,
     isComposerFullSize,
+    shouldContainScroll,
     ...props
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef(null);
     const textInput = useRef(null);
@@ -179,6 +186,7 @@ function Composer({
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
+    const isScrollBarVisible = useIsScrollBarVisible(textInput, value);
 
     useEffect(() => {
         if (!shouldClear) {
@@ -417,18 +425,26 @@ function Composer({
         </View>
     );
 
-    const inputStyleMemo = useMemo(
-        () => [
+    const scrollStyleMemo = useMemo(() => {
+        if (shouldContainScroll) {
+            return isScrollBarVisible ? [styles.overflowScroll, styles.overscrollBehaviorContain] : styles.overflowHidden;
+        }
+        return [
             // We are hiding the scrollbar to prevent it from reducing the text input width,
             // so we can get the correct scroll height while calculating the number of lines.
             numberOfLines < maxLines ? styles.overflowHidden : {},
+        ];
+    }, [shouldContainScroll, isScrollBarVisible, maxLines, numberOfLines, styles.overflowHidden, styles.overflowScroll, styles.overscrollBehaviorContain]);
 
+    const inputStyleMemo = useMemo(
+        () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
             StyleUtils.getComposeTextAreaPadding(numberOfLines, isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
+            scrollStyleMemo,
         ],
 
-        [numberOfLines, maxLines, styles.overflowHidden, styles.rtlTextRenderForSafari, style, isComposerFullSize],
+        [numberOfLines, scrollStyleMemo, styles.rtlTextRenderForSafari, style, StyleUtils, isComposerFullSize],
     );
 
     return (

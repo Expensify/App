@@ -84,9 +84,6 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
-
-    // Take only the YYYY-MM-DD value
-    const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     // For now, it always defaults to the first tag of the policy
@@ -136,6 +133,19 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         [transaction.transactionID, report.reportID, transactionAmount, transactionCurrency, defaultCurrency],
     );
 
+    const saveCreated = useCallback(
+        ({created: newCreated}) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newCreated === TransactionUtils.getCreated(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
@@ -155,15 +165,8 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
-                defaultCreated={transactionCreated}
-                onSubmit={(transactionChanges) => {
-                    // In case the date hasn't been changed, do not make the API request.
-                    if (transactionChanges.created === transactionCreated) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest(transactionChanges);
-                }}
+                defaultCreated={TransactionUtils.getCreated(transaction)}
+                onSubmit={saveCreated}
             />
         );
     }
