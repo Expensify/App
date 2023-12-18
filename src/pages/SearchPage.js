@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Info} from '@components/Icon/Expensicons';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -23,7 +24,6 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
@@ -32,25 +32,22 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 };
 
 const defaultProps = {
     betas: [],
-    personalDetails: {},
     reports: {},
 };
 
-function SearchPage({betas, personalDetails, reports}) {
+function SearchPage({betas, reports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
     const theme = useTheme();
+    const personalDetails = usePersonalDetails();
 
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -216,9 +213,6 @@ SearchPage.displayName = 'SearchPage';
 export default withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     betas: {
         key: ONYXKEYS.BETAS,
