@@ -133,6 +133,19 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         [transaction, report],
     );
 
+    const saveMerchant = useCallback(
+        ({merchant: newMerchant}) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newMerchant === TransactionUtils.getMerchant(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestMerchant(transaction.transactionID, report.reportID, newMerchant);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
@@ -189,14 +202,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         return (
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
-                onSubmit={(transactionChanges) => {
-                    // In case the merchant hasn't been changed, do not make the API request.
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
-                }}
+                onSubmit={saveMerchant}
             />
         );
     }
