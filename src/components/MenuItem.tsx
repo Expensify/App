@@ -187,8 +187,10 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         /** Prop to represent the size of the float right avatar images to be shown */
         floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
+        /** Affects avatar size  */
         viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
+        /** Used to truncate the text with an ellipsis after computing the text layout */
         numberOfLinesTitle?: number;
 
         /**  Whether we should use small avatar subscript sizing the for menu item */
@@ -209,6 +211,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
         shouldBlockSelection?: boolean;
 
+        /** Whether should render title as HTML or as Text */
         shouldParseTitle?: false;
 
         /** Should check anonymous user in onPress function */
