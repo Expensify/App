@@ -25,7 +25,7 @@ const propTypes = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
-    /** Handle back button press */
+    /** Handles back button press */
     onBackButtonPress: PropTypes.func.isRequired,
 
     /** Exits flow and goes back to the workspace initial page */

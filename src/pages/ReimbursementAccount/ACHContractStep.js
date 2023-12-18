@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 
@@ -13,9 +13,7 @@ const propTypes = {
 
 function ACHContractStep({onBackButtonPress, onCloseButtonPress}) {
     const [isBeneficialOwnerInfoSet, setIsBeneficialOwnerInfoSet] = useState(false);
-    const handleCompleteVerificationBackButtonPress = useCallback(() => {
-        setIsBeneficialOwnerInfoSet(false);
-    }, []);
+    const handleCompleteVerificationBackButtonPress = () => setIsBeneficialOwnerInfoSet(false);
 
     if (isBeneficialOwnerInfoSet) {
         return (

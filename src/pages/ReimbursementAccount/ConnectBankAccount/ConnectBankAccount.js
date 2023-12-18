@@ -21,6 +21,7 @@ const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
+    /** Handles back button press */
     onBackButtonPress: PropTypes.func.isRequired,
 
     /** User's account who is setting up bank account */
@@ -40,7 +41,7 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const bankAccountState = lodashGet(reimbursementAccount, 'achData.state');
+    const bankAccountState = lodashGet(reimbursementAccount, 'achData.state', '');
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
     if (bankAccountState === BankAccount.STATE.OPEN) {
@@ -52,10 +53,10 @@ function ConnectBankAccount({reimbursementAccount, onBackButtonPress, account}) 
         );
     }
 
-    const maxAttemptsReached = lodashGet(reimbursementAccount, 'maxAttemptsReached');
+    const maxAttemptsReached = lodashGet(reimbursementAccount, 'maxAttemptsReached', false);
     const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === BankAccount.STATE.VERIFYING;
     const isBankAccountPending = bankAccountState === BankAccount.STATE.PENDING;
-    const requiresTwoFactorAuth = lodashGet(account, 'requiresTwoFactorAuth');
+    const requiresTwoFactorAuth = lodashGet(account, 'requiresTwoFactorAuth', false);
 
     return (
         <ScreenWrapper
