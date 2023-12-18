@@ -20,6 +20,7 @@ import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ListBoundaryLoader from '@pages/home/report/ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
+import Visibility from '@libs/Visibility';
 import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
@@ -190,7 +191,7 @@ function ReportActionsList({
         }
 
         if (ReportUtils.isUnread(report)) {
-            if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
             } else {
                 readActionSkipped.current = true;

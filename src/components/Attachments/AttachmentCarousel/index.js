@@ -139,10 +139,11 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
+                isSingleItem={attachments.length === 1}
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
             />
         ),
-        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
