@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -119,7 +120,9 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     }
 
     const saveAmountAndCurrency = useCallback(
-        ({amount: newAmount, currency: newCurrency}) => {
+        ({amount, currency: newCurrency}) => {
+            const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
             if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
                 Navigation.dismissModal();
