@@ -114,14 +114,30 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         [hours, minute, amPmValue, defaultValue],
     );
 
+    const resetHours = () => {
+        setHours('00');
+        setSelectionHour({start: 0, end: 0});
+    }
+
+    const resetMinutes = () => {
+        setMinute('00');
+        setSelectionMinute({start: 0, end: 0});
+    }
+
     // This function receive value from hour input and validate it
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text) => {
+        if (_.isEmpty(text)) {
+            resetHours();
+            return;
+        }
+
         const isOnlyNumericValue = /^\d+$/.test(text.trim());
         // Skip if the user is pasting the text or use non numeric characters.
         if (selectionHour.start !== selectionHour.end || !isOnlyNumericValue) {
             return;
         }
+
         // Remove non-numeric characters.
         const filteredText = text.replace(/[^0-9]/g, '');
 
@@ -186,6 +202,12 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     // This function receive value from minute input and validate it
     // The valid format is MM(from 00 to 59). If the user input 9, it will be 09. If user try to change 09 to 99 it would skip the character
     const handleMinutesChange = (text) => {
+        if (_.isEmpty(text)) {
+            resetMinutes();
+            focusHourInputOnLastCharacter();
+            return;
+        }
+
         const isOnlyNumericValue = /^\d+$/.test(text.trim());
         // Skip if the user is pasting the text or use non numeric characters.
         if (selectionMinute.start !== selectionMinute.end || !isOnlyNumericValue) {
@@ -262,14 +284,26 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             }
             if (key === '<' || key === 'Backspace') {
                 if (isHourFocused) {
+                    if (selectionHour.start === 0 && selectionHour.end === 2) {
+                        resetHours();
+                        return;
+                    }
+
                     const newHour = replaceWithZeroAtPosition(hours, selectionHour.start);
                     setHours(newHour);
                     setSelectionHour(decreaseBothSelectionByOne(selectionHour));
                 } else if (isMinuteFocused) {
-                    if (selectionMinute.start === 0) {
+                    if (selectionMinute.start === 0 && selectionMinute.end === 2) {
+                        resetMinutes();
                         focusHourInputOnLastCharacter();
                         return;
                     }
+
+                    if (selectionMinute.start === 0 && selectionMinute.end === 0) {
+                        focusHourInputOnLastCharacter();
+                        return;
+                    }
+
                     const newMinute = replaceWithZeroAtPosition(minute, selectionMinute.start);
                     setMinute(newMinute);
                     setSelectionMinute(decreaseBothSelectionByOne(selectionMinute));
@@ -322,13 +356,13 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
 
     const handleFocusOnBackspace = useCallback(
         (e) => {
-            if (selectionMinute.start !== 0 || e.key !== 'Backspace') {
+            if (selectionMinute.start !== 0 || selectionMinute.end !== 0 || e.key !== 'Backspace') {
                 return;
             }
             hourInputRef.current.focus();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectionMinute.start],
+        [selectionMinute.start, selectionMinute.end],
     );
 
     const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue);
