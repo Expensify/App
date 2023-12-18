@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
@@ -194,7 +194,7 @@ function OptionRow(props) {
                             !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
                         ]}
                         accessibilityLabel={props.option.text}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={!props.optionIsFocused ? props.hoverStyle || styles.sidebarLinkHover : undefined}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
@@ -270,7 +270,7 @@ function OptionRow(props) {
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                role={CONST.ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
                                                 <SelectCircle isChecked={props.isSelected} />

@@ -34,7 +34,7 @@ const ROUTES = {
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
-        getRoute: (taskID: string) => `get-assistance/${taskID}` as const,
+        getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
     },
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
     APPLE_SIGN_IN: 'sign-in-with-apple',
@@ -150,6 +150,9 @@ const ROUTES = {
         route: 'workspace/:policyID/avatar',
         getRoute: (policyID: string) => `workspace/${policyID}/avatar` as const,
     },
+    SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
+    SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
+    SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
