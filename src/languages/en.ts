@@ -105,6 +105,7 @@ export default {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
         goBack: 'Go back',
@@ -305,7 +306,7 @@ export default {
         attachmentTooSmall: 'Attachment too small',
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
-        notAllowedExtension: 'This filetype is not allowed',
+        notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
     },
     avatarCropModal: {
@@ -497,7 +498,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Search',
+        buttonSearch: 'Search for something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
@@ -751,6 +752,7 @@ export default {
                 label: 'macOS',
             },
         },
+        goToExpensifyClassic: 'Go to Expensify Classic',
         security: 'Security',
         signOut: 'Sign out',
         signOutConfirmationText: "You'll lose any offline changes if you sign-out.",

@@ -1386,7 +1386,16 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             textDecorationLine: 'none',
         },
-
+        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+            ({
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                position: 'absolute',
+                left: 0,
+                height: '100%',
+                borderTopRightRadius: isSmallScreenWidth ? 0 : 24,
+                borderBottomRightRadius: isSmallScreenWidth ? 0 : 24,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -1608,14 +1617,14 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams) =>
+        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: -2 * variables.sideBarWidth,
+                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: 0,
+                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -2379,7 +2388,7 @@ const styles = (theme: ThemeColors) =>
         anonymousRoomFooterLogoTaglineText: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeMedium,
-            color: theme.textLight,
+            color: theme.text,
         },
         signInButtonAvatar: {
             width: 80,
@@ -3041,6 +3050,31 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             fontFamily: fontFamily.EXP_NEUE,
             flex: 1,
+        },
+
+        searchPressable: {
+            height: 40,
+        },
+
+        searchContainer: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingHorizontal: 24,
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusRounded,
+        },
+
+        searchContainerHovered: {
+            backgroundColor: theme.border,
+        },
+
+        searchInputStyle: {
+            color: colors.productDark800,
+            fontSize: 13,
+            lineHeight: 16,
+            width: '100%',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
