@@ -18,13 +18,13 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import TextPill from './TextPill';
-import Text from './Text';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
+import Text from './Text';
+import TextPill from './TextPill';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {

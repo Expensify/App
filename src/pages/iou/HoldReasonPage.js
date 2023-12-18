@@ -23,11 +23,14 @@ const propTypes = {
     route: PropTypes.shape({
         /** Route specific parameters used on this screen via route :iouType/new/category/:reportID? */
         params: PropTypes.shape({
-            /** The type of IOU report, i.e. bill, request, send */
-            iouType: PropTypes.string,
+            /** ID of the transaction the page was opened for */
+            transactionID: PropTypes.string,
 
             /** The report ID of the IOU */
             reportID: PropTypes.string,
+
+            /** Link to previous page */
+            backTo: PropTypes.string,
         }),
     }).isRequired,
 };
