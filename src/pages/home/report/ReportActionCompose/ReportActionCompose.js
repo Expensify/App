@@ -446,7 +446,7 @@ function ReportActionCompose({
                     >
                         {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
-                        <ExceededCommentLength shouldShowError={hasExceededMaxCommentLength} />
+                        {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>
                 </OfflineWithFeedback>
             </View>
