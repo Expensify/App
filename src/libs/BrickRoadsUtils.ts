@@ -40,10 +40,6 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
 
     const brickRoadsMap: Record<string, BrickRoad> = {};
 
-    if (!allReports) {
-        return brickRoadsMap;
-    }
-
     Object.keys(allReports).forEach((report) => {
         const policyID = allReports?.[report]?.policyID;
         const policyReport = allReports ? allReports[report] : null;
