@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,15 +6,15 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
-const propTypes = {
+type CurrencySymbolButtonProps = {
     /** Currency symbol of selected currency */
-    currencySymbol: PropTypes.string.isRequired,
+    currencySymbol: string;
 
     /** Function to call when currency button is pressed */
-    onCurrencyButtonPress: PropTypes.func.isRequired,
+    onCurrencyButtonPress: () => void;
 };
 
-function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
+function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}: CurrencySymbolButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
@@ -31,7 +30,6 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol}) {
     );
 }
 
-CurrencySymbolButton.propTypes = propTypes;
 CurrencySymbolButton.displayName = 'CurrencySymbolButton';
 
 export default CurrencySymbolButton;
