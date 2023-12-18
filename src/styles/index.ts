@@ -2372,7 +2372,7 @@ const styles = (theme: ThemeColors) =>
         anonymousRoomFooterLogoTaglineText: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeMedium,
-            color: theme.textLight,
+            color: theme.text,
         },
         signInButtonAvatar: {
             width: 80,
@@ -3026,6 +3026,31 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             fontFamily: fontFamily.EXP_NEUE,
             flex: 1,
+        },
+
+        searchPressable: {
+            height: 40,
+        },
+
+        searchContainer: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingHorizontal: 24,
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusRounded,
+        },
+
+        searchContainerHovered: {
+            backgroundColor: theme.border,
+        },
+
+        searchInputStyle: {
+            color: colors.productDark800,
+            fontSize: 13,
+            lineHeight: 16,
+            width: '100%',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
