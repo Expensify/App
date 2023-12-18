@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-const FontPreloadPlugin = require('webpack-font-preload-plugin');
+const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
 const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 const includeModules = [
@@ -70,10 +70,17 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
             isProduction: envFile === '.env.production',
             isStaging: envFile === '.env.staging',
         }),
-        new FontPreloadPlugin({
-            // We add here 'lottie' as we want to prefetch lottie animations.
-            // To support it we patched the FontPreloadPlugin to support this extension.
-            extensions: ['woff2', 'lottie'],
+        new PreloadWebpackPlugin({
+            rel: 'preload',
+            as: 'font',
+            fileWhitelist: [/\.woff2$/],
+            include: 'allAssets',
+        }),
+        new PreloadWebpackPlugin({
+            rel: 'prefetch',
+            as: 'fetch',
+            fileWhitelist: [/\.lottie$/],
+            include: 'allAssets',
         }),
         new ProvidePlugin({
             process: 'process/browser',
