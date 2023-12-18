@@ -475,7 +475,7 @@ function ReportActionItemMessageEdit(props) {
                     </View>
                 </View>
             </View>
-            {hasExceededMaxCommentLength && <ExceededCommentLength/>}
+            {hasExceededMaxCommentLength && <ExceededCommentLength />}
         </>
     );
 }
