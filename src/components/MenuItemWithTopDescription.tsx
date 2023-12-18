@@ -1,6 +1,7 @@
 import React, {ForwardedRef, forwardRef} from 'react';
 import {View} from 'react-native';
-import MenuItem, {MenuItemProps} from './MenuItem';
+import MenuItem from './MenuItem';
+import type {MenuItemProps} from './MenuItem';
 
 function MenuItemWithTopDescription(props: MenuItemProps, ref: ForwardedRef<View>) {
     return (
