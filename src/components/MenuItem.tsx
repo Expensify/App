@@ -543,7 +543,7 @@ function MenuItem(
                                         <Text style={[styles.textLabelSupporting, ...(combinedStyle as TextStyle[])]}>{subtitle}</Text>
                                     </View>
                                 )}
-                                {!_.isEmpty(floatRightAvatars) && (
+                                {floatRightAvatars?.length > 0 && (
                                     <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined]}>
                                         <MultipleAvatars
                                             isHovered={isHovered}
