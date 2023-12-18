@@ -62,6 +62,9 @@ const propTypes = {
 
     /** Callback for when a payment method has been selected */
     onSelectPaymentMethod: PropTypes.func,
+
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -82,6 +85,7 @@ const defaultProps = {
     },
     shouldIncludeDebitCard: true,
     onSelectPaymentMethod: () => {},
+    shouldShowPersonalBankAccountOption: false,
 };
 
 export {propTypes, defaultProps};
