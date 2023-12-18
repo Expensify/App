@@ -5,8 +5,8 @@ import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {PersonalDetails, Report} from '@src/types/onyx';
 import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
-import Report from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
@@ -613,6 +613,10 @@ function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boole
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !!reportAction.originalMessage?.taskReportID;
 }
 
+function isAddCommentAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
+}
+
 /**
  * A helper method to identify if the message is deleted or not.
  */
@@ -776,6 +780,14 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
+function convertAccountIDBasedMentionsToDisplayNames(html: string, personalDetails: Record<number, PersonalDetails>) {
+    [...html.matchAll(CONST.REGEX.ACCOUNT_ID_BASED_MENTION)].forEach((match) => {
+        const [mention, accountID] = match;
+        html.replace(mention, PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [Number(accountID), 'displayName']));
+    });
+    return html;
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -823,6 +835,8 @@ export {
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
+    isAddCommentAction,
+    convertAccountIDBasedMentionsToDisplayNames,
 };
 
 export type {LastVisibleMessage};

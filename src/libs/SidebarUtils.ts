@@ -316,7 +316,7 @@ function getOptionData(
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
-    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report);
+    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report, personalDetails);
 
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
@@ -362,31 +362,6 @@ function getOptionData(
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = TaskUtils.getTaskReportActionMessage(lastAction.actionName);
-        } else if (
-            ReportUtils.isPublicRoom(report) && (
-                lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
-                lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
-                lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
-                lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
-        )) {
-            // For public rooms, we don't want to disclose the usernames/display names of people invited or removed.
-            // So instead of displaying something like "invited 1@test.com and 2@test.com", we just say "invited 2 users"
-            const targetAccountIDs = lastAction?.originalMessage?.targetAccountIDs ?? [];
-            const verb =
-                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                    ? Localize.translate(preferredLocale, 'workspace.invite.invited')
-                    : Localize.translate(preferredLocale, 'workspace.invite.removed');
-            const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
-            result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
-
-            const roomName = lastAction?.originalMessage?.roomName ?? '';
-            if (roomName) {
-                const preposition =
-                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                        ? ` ${Localize.translate(preferredLocale, 'workspace.invite.to')}`
-                        : ` ${Localize.translate(preferredLocale, 'workspace.invite.from')}`;
-                result.alternateText += `${preposition} ${roomName}`;
-            }
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {

@@ -378,9 +378,10 @@ function getAllReportErrors(report, reportActions) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  * @param {Object} report
+ * @param {Object} personalDetails
  * @returns {String}
  */
-function getLastMessageTextForReport(report) {
+function getLastMessageTextForReport(report, personalDetails) {
     const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
@@ -417,6 +418,8 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
+    } else if (ReportActionUtils.isMemberChangeAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportActionUtils.convertAccountIDBasedMentionsToDisplayNames(lodashGet(lastReportAction, 'message[0].html', ''), personalDetails);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }

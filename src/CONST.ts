@@ -1401,6 +1401,8 @@ const CONST = {
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
 
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
+
+        ACCOUNT_ID_BASED_MENTION: /<mention-user accountID=(\d+)><\/mention-user>/gm,
     },
 
     PRONOUNS: {
