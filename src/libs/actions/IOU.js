@@ -159,6 +159,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, io
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     });
 }
 
