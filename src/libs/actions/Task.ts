@@ -871,7 +871,7 @@ function getTaskAssigneeAccountID(taskReport: OnyxTypes.Report): number | null |
  * Returns Task owner accountID
  */
 function getTaskOwnerAccountID(taskReport: OnyxTypes.Report): number | null {
-    return taskReport.ownerAccountID ?? null;
+    return taskReport?.ownerAccountID ?? null;
 }
 
 /**
