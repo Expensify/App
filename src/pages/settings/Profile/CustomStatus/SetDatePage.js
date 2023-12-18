@@ -1,4 +1,5 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -16,10 +17,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected year */
+            year: PropTypes.string,
+        }),
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
-function SetDatePage({translate, customStatus}) {
+function SetDatePage({translate, customStatus, route}) {
     const styles = useThemeStyles();
     const customClearAfter = lodashGet(customStatus, 'clearAfter', '');
 
@@ -63,6 +73,8 @@ function SetDatePage({translate, customStatus}) {
                     label={translate('statusPage.date')}
                     defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={new Date()}
+                    yearPickerRoute={ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE_YEAR}
+                    route={route}
                 />
             </FormProvider>
         </ScreenWrapper>

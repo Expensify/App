@@ -33,6 +33,18 @@ const propTypes = {
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
 
+    /** Route for year picker */
+    yearPickerRoute: PropTypes.string.isRequired,
+
+    /** Route from navigation */
+    route: PropTypes.shape({
+        /** Params from the route */
+        params: PropTypes.shape({
+            /** Currently selected year */
+            year: PropTypes.string,
+        }),
+    }).isRequired,
+
     ...withLocalizePropTypes,
     ...baseTextInputPropTypes,
 };
@@ -44,7 +56,24 @@ const datePickerDefaultProps = {
     value: undefined,
 };
 
-function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID, isSmallScreenWidth, label, maxDate, minDate, onInputChange, onTouched, placeholder, translate, value}) {
+function DatePicker({
+    containerStyles,
+    defaultValue,
+    disabled,
+    errorText,
+    inputID,
+    isSmallScreenWidth,
+    label,
+    maxDate,
+    minDate,
+    onInputChange,
+    onTouched,
+    placeholder,
+    translate,
+    value,
+    yearPickerRoute,
+    route,
+}) {
     const styles = useThemeStyles();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
 
@@ -93,6 +122,8 @@ function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID
                     maxDate={maxDate}
                     value={selectedDate}
                     onSelected={setSelectedDate}
+                    yearPickerRoute={yearPickerRoute}
+                    route={route}
                 />
             </View>
         </View>

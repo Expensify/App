@@ -202,6 +202,10 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH,
                                 exact: true,
                             },
+                            [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.DATE_OF_BIRTH_YEAR]: {
+                                path: ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR,
+                                exact: true,
+                            },
                             [SCREENS.SETTINGS.PROFILE.PERSONAL_DETAILS.ADDRESS]: {
                                 path: ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS,
                                 exact: true,
@@ -227,6 +231,9 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                             [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: {
                                 path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE_YEAR]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE_YEAR,
                             },
                             [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                                 path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,

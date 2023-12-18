@@ -118,6 +118,7 @@ const ROUTES = {
     SETTINGS_PERSONAL_DETAILS: 'settings/profile/personal-details',
     SETTINGS_PERSONAL_DETAILS_LEGAL_NAME: 'settings/profile/personal-details/legal-name',
     SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH: 'settings/profile/personal-details/date-of-birth',
+    SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH_YEAR: 'settings/profile/personal-details/date-of-birth/year',
     SETTINGS_PERSONAL_DETAILS_ADDRESS: 'settings/profile/personal-details/address',
     SETTINGS_PERSONAL_DETAILS_ADDRESS_COUNTRY: {
         route: 'settings/profile/personal-details/address/country',
@@ -142,6 +143,7 @@ const ROUTES = {
     SETTINGS_STATUS: 'settings/profile/status',
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
+    SETTINGS_STATUS_CLEAR_AFTER_DATE_YEAR: 'settings/profile/status/clear-after/date/year',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
