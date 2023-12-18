@@ -29,7 +29,8 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Icon to be used when workspaceIcon is not present */
     fallbackWorkspaceIcon?: AvatarSource;
 
-    /** Renders the component using big screen layout or small screen layout */
+    /** Renders the component using big screen layout or small screen layout. When isWide is undefined, component
+     * will return nil to prevent layout from jumping on initial render and when parent width changes. */
     isWide: boolean;
 };
 
@@ -66,6 +67,8 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     }, [workspaceType, translate]);
 
     if (isWide === undefined) {
+        // To prevent layout from jumping or rendering for a split second, when
+        // isWide is undefined we don't assume anything and simply return null.
         return null;
     }
 
