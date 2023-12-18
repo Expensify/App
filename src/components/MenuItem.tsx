@@ -376,7 +376,7 @@ function MenuItem(
         <Hoverable>
             {(isHovered) => (
                 <PressableWithSecondaryInteraction
-                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed((args) => onPressAction(args as GestureResponderEvent), isAnonymousAction) : onPressAction}
+                    onPress={shouldCheckActionAllowedOnPress ? Session.checkIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
