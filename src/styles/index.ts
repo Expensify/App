@@ -3746,8 +3746,7 @@ const styles = (theme: ThemeColors) =>
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },

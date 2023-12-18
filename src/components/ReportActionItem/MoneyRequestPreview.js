@@ -317,7 +317,7 @@ function MoneyRequestPreview(props) {
                             </View>
                             {shouldShowMerchant && !props.isBillSplit && (
                                 <View style={[styles.flexRow]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20, styles.breakWord]}>
+                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20, styles.breakWord]}>
                                         {hasPendingWaypoints ? requestMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : requestMerchant}
                                     </Text>
                                 </View>
