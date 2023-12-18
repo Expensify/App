@@ -380,7 +380,7 @@ function MenuItem(
                     onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={onSecondaryInteraction}
-                    style={({pressed}: PressableStateCallbackType) =>
+                    style={({pressed}) =>
                         [
                             containerStyle,
                             errorText ? styles.pb5 : {},
