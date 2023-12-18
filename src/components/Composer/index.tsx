@@ -22,24 +22,24 @@ import {ComposerProps} from './types';
 /**
  * Retrieves the characters from the specified cursor position up to the next space or new line.
  *
- * @param str - The input string.
- * @param cursorPos - The position of the cursor within the input string.
+ * @param inputString - The input string.
+ * @param cursorPosition - The position of the cursor within the input string.
  * @returns - The substring from the cursor position up to the next space or new line.
  *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
  */
-const getNextChars = (str: string, cursorPos: number): string => {
+const getNextChars = (inputString: string, cursorPosition: number): string => {
     // Get the substring starting from the cursor position
-    const substr = str.substring(cursorPos);
+    const subString = inputString.substring(cursorPosition);
 
     // Find the index of the next space or new line character
-    const spaceIndex = substr.search(/[ \n]/);
+    const spaceIndex = subString.search(/[ \n]/);
 
     if (spaceIndex === -1) {
-        return substr;
+        return subString;
     }
 
     // If there is a space or new line, return the substring up to the space or new line
-    return substr.substring(0, spaceIndex);
+    return subString.substring(0, spaceIndex);
 };
 
 // Enable Markdown parsing.
@@ -89,8 +89,6 @@ function Composer(
           }
         | undefined
     >({
-        // start: initialValue.length,
-        // end: initialValue.length,
         start: selectionProp.start,
         end: selectionProp.end,
     });
