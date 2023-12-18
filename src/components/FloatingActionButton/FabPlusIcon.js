@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -25,15 +26,20 @@ function FabPlusIcon({isActive}) {
     // Adapting fill and stroke properties from react-native-svg to be able to animate them with Reanimated
     const adapter = createAnimatedPropAdapter(
         (props) => {
-            if (Object.keys(props).includes('fill')) {
-                props.fill = {type: 0, payload: processColor(props.fill)};
+            const modifiedProps = {...props};
+            if (_.keys(modifiedProps).includes('fill')) {
+                modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
             }
-            if (Object.keys(props).includes('stroke')) {
-                props.stroke = {type: 0, payload: processColor(props.stroke)};
+            if (_.keys(modifiedProps).includes('stroke')) {
+                modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
             }
         },
         ['fill', 'stroke'],
     );
+    adapter.propTypes = {
+        fill: PropTypes.any,
+        stroke: PropTypes.any,
+    };
 
     const animatedProps = useAnimatedProps(
         () => {
