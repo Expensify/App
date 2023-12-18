@@ -1,6 +1,7 @@
 import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Onyx, {OnyxEntry, withOnyx} from 'react-native-onyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -14,7 +15,6 @@ import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -36,6 +36,7 @@ import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
 type AuthScreensProps = {
@@ -147,7 +148,7 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
-        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession() || isLoggingInAsNewUser;
+        const shouldGetAllData = !!isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
         if (isLoggingInAsNewUser && isTransitioning) {
@@ -316,6 +317,12 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={screenOptions.rightModalNavigator}
                     component={RightModalNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    options={screenOptions.leftModalNavigator}
+                    component={LeftModalNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

@@ -11,6 +11,8 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -20,8 +22,6 @@ import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -214,14 +214,18 @@ function IOURequestStepScan({
                 </View>
             )}
             {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                <NavigationAwareCamera
-                    ref={camera}
-                    device={device}
-                    style={[styles.cameraView]}
-                    zoom={device.neutralZoom}
-                    photo
-                    cameraTabIndex={1}
-                />
+                <View style={[styles.cameraView]}>
+                    <View style={styles.flex1}>
+                        <NavigationAwareCamera
+                            ref={camera}
+                            device={device}
+                            style={[styles.flex1]}
+                            zoom={device.neutralZoom}
+                            photo
+                            cameraTabIndex={1}
+                        />
+                    </View>
+                </View>
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker shouldHideCameraOption>
@@ -238,6 +242,11 @@ function IOURequestStepScan({
                                         }
                                         const filePath = file.uri;
                                         IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, filePath, file.name);
+
+                                        if (backTo) {
+                                            Navigation.goBack(backTo);
+                                            return;
+                                        }
 
                                         // When a transaction is being edited (eg. not in the creation flow)
                                         if (transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
