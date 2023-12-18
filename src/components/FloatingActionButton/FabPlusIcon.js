@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
-import Animated, {Easing, interpolateColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, interpolateColor, processColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
 
@@ -12,23 +12,40 @@ const propTypes = {
 };
 
 function FabPlusIcon({isActive}) {
-    const theme = useTheme();
-    const animatedValue = useSharedValue(isActive ? 1 : 0);
+    const {textLight, textDark} = useTheme();
+    const sharedValue = useSharedValue(isActive ? 1 : 0);
 
     useEffect(() => {
-        animatedValue.value = withTiming(isActive ? 1 : 0, {
+        sharedValue.value = withTiming(isActive ? 1 : 0, {
             duration: 340,
             easing: Easing.inOut(Easing.ease),
         });
-    }, [isActive, animatedValue]);
+    }, [isActive, sharedValue]);
 
-    const animatedProps = useAnimatedProps(() => {
-        const fill = interpolateColor(animatedValue.value, [0, 1], [theme.textLight, theme.textDark]);
+    // Adapting fill and stroke properties from react-native-svg to be able to animate them with Reanimated
+    const adapter = createAnimatedPropAdapter(
+        (props) => {
+            if (Object.keys(props).includes('fill')) {
+                props.fill = {type: 0, payload: processColor(props.fill)};
+            }
+            if (Object.keys(props).includes('stroke')) {
+                props.stroke = {type: 0, payload: processColor(props.stroke)};
+            }
+        },
+        ['fill', 'stroke'],
+    );
 
-        return {
-            fill,
-        };
-    });
+    const animatedProps = useAnimatedProps(
+        () => {
+            const fill = interpolateColor(sharedValue.value, [0, 1], [textLight, textDark]);
+
+            return {
+                fill,
+            };
+        },
+        [],
+        adapter,
+    );
 
     return (
         <Svg

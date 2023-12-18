@@ -27,27 +27,28 @@ const propTypes = {
 };
 
 const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
-    const theme = useTheme();
+    const {success, buttonDefaultBG} = useTheme();
     const styles = useThemeStyles();
+    const borderRadius = styles.floatingActionButton.borderRadius;
     const {translate} = useLocalize();
     const fabPressable = useRef(null);
-    const animatedValue = useSharedValue(isActive ? 1 : 0);
+    const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
     useEffect(() => {
-        animatedValue.value = withTiming(isActive ? 1 : 0, {
+        sharedValue.value = withTiming(isActive ? 1 : 0, {
             duration: 340,
             easing: Easing.inOut(Easing.ease),
         });
-    }, [isActive, animatedValue]);
+    }, [isActive, sharedValue]);
 
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(animatedValue.value, [0, 1], [theme.success, theme.buttonDefaultBG]);
+        const backgroundColor = interpolateColor(sharedValue.value, [0, 1], [success, buttonDefaultBG]);
 
         return {
-            transform: [{rotate: `${animatedValue.value * 135}deg`}],
+            transform: [{rotate: `${sharedValue.value * 135}deg`}],
             backgroundColor,
-            borderRadius: styles.floatingActionButton.borderRadius,
+            borderRadius: borderRadius,
         };
     });
 
