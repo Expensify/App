@@ -599,12 +599,12 @@ type Foo = {
 
   // GOOD - alternative to HOC nesting
   const ComponentWithOnyx = withOnyx<ComponentProps, ComponentOnyxProps>({
-	    session: {
-	        key: ONYXKEYS.SESSION,
-	    },
-	})(Component);
-	const ComponentWithReportOrNotFound = withReportOrNotFound()(ComponentWithOnyx);
-	export default withCurrentUserPersonalDetails(ComponentWithReportOrNotFound);
+      session: {
+          key: ONYXKEYS.SESSION,
+      },
+  })(Component);
+  const ComponentWithReportOrNotFound = withReportOrNotFound()(ComponentWithOnyx);
+  export default withCurrentUserPersonalDetails(ComponentWithReportOrNotFound);
   ```
 
 ## Exception to Rules
