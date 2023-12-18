@@ -146,7 +146,8 @@ function getForReportAction(reportAction: ReportAction): string {
     const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        const formattedOldCreated = format(new Date(reportActionOriginalMessage?.oldCreated ?? ''), CONST.DATE.FNS_FORMAT_STRING);
+        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
+        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.created ?? '',
             formattedOldCreated,
