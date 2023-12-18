@@ -48,7 +48,7 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
         return {
             transform: [{rotate: `${sharedValue.value * 135}deg`}],
             backgroundColor,
-            borderRadius: borderRadius,
+            borderRadius,
         };
     });
 
