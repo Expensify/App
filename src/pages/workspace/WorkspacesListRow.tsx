@@ -24,13 +24,13 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     workspaceType: typeof CONST.POLICY.TYPE.FREE | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.TEAM;
 
     /** Icon to show next to the workspace name */
-    workspaceIcon?: AvatarSource | undefined;
+    workspaceIcon?: AvatarSource;
 
     /** Icon to be used when workspaceIcon is not present */
-    fallbackWorkspaceIcon: AvatarSource | undefined;
+    fallbackWorkspaceIcon: AvatarSource;
 
     /** Renders the component using big screen layout or small screen layout */
-    isWide: boolean | undefined;
+    isWide: boolean;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
