@@ -27,7 +27,12 @@ type TabSelectorProps = {
     position: Animated.AnimatedInterpolation<number | string>;
 };
 
-function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): {icon: FunctionComponent<SvgProps>; title: string} {
+type IconAndTitle = {
+    icon: FunctionComponent<SvgProps>;
+    title: string;
+};
+
+function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
     switch (route) {
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
