@@ -59,3 +59,4 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
 }
 
 export {getBrickRoadForPolicy, getWorkspacesBrickRoads};
+export type {BrickRoad};
