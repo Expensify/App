@@ -9,7 +9,7 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type WalletTerms = {
     hasAcceptedTerms: boolean;
-    reportID: number;
+    reportID: string;
 };
 
 type WalletQuestionAnswer = {
@@ -152,8 +152,6 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
  * API request to fetch the userWallet after we call VerifyIdentity
  */
 function verifyIdentity(parameters: IdentityVerification) {
-    const onfidoData = parameters.onfidoData;
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -194,12 +192,7 @@ function verifyIdentity(parameters: IdentityVerification) {
             },
         },
     ];
-
-    const requestParams: IdentityVerification = {
-        onfidoData,
-    };
-
-    API.write('VerifyIdentity', requestParams, {
+    API.write('VerifyIdentity', parameters, {
         optimisticData,
         successData,
         failureData,
