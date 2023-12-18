@@ -1463,7 +1463,7 @@ function getDisplayNamesWithTooltips(
             const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user?.pronouns ?? '';
+            let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
                 pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
