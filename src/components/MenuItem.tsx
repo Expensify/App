@@ -3,6 +3,7 @@ import React, {FC, ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useR
 import {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {AnimatedStyle} from 'react-native-reanimated';
 import {SvgProps} from 'react-native-svg';
+import {ValueOf} from 'type-fest';
 // eslint-disable-next-line no-restricted-imports
 import _ from 'underscore';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -184,9 +185,9 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         floatRightAvatars?: IconType[];
 
         /** Prop to represent the size of the float right avatar images to be shown */
-        floatRightAvatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+        floatRightAvatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-        viewMode?: (typeof CONST.OPTION_MODE)[keyof typeof CONST.OPTION_MODE];
+        viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
         numberOfLinesTitle?: number;
 
@@ -194,7 +195,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         isSmallAvatarSubscriptMenu?: boolean;
 
         /** The type of brick road indicator to show. */
-        brickRoadIndicator?: (typeof CONST.BRICK_ROAD_INDICATOR_STATUS)[keyof typeof CONST.BRICK_ROAD_INDICATOR_STATUS];
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
         /** Should render the content in HTML format */
         shouldRenderAsHTML?: boolean;
