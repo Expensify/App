@@ -27,7 +27,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     workspaceIcon?: AvatarSource;
 
     /** Icon to be used when workspaceIcon is not present */
-    fallbackWorkspaceIcon: AvatarSource;
+    fallbackWorkspaceIcon?: AvatarSource;
 
     /** Renders the component using big screen layout or small screen layout */
     isWide: boolean;
