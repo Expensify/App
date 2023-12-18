@@ -463,11 +463,6 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string) => `referral/${contentType}` as const,
     },
-
-    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
-    SAASTR: 'saastr',
-    SBE: 'sbe',
-    MONEY2020: 'money2020',
 } as const;
 
 export {getUrlWithBackToParam};
