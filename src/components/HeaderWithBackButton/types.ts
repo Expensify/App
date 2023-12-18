@@ -22,7 +22,7 @@ type ThreeDotsMenuItems = {
     text?: string;
 
     /** A callback triggered when the item is selected */
-    onPress?: () => void;
+    onSelected?: () => void;
 };
 
 type HeaderWithBackButtonProps = ChildrenProps & {
