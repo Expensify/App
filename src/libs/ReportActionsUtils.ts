@@ -781,11 +781,13 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
 }
 
 function convertAccountIDBasedMentionsToDisplayNames(html: string, personalDetails: Record<number, PersonalDetails>) {
+    let modifiedHtml = html.slice(0);
     [...html.matchAll(CONST.REGEX.ACCOUNT_ID_BASED_MENTION)].forEach((match) => {
         const [mention, accountID] = match;
-        html.replace(mention, PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [Number(accountID), 'displayName']));
+        const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [Number(accountID), 'displayName'], personalDetails?.[Number(accountID)]?.login ?? '');
+        modifiedHtml = modifiedHtml.replace(mention, displayName);
     });
-    return html;
+    return modifiedHtml;
 }
 
 export {

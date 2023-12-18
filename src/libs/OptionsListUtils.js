@@ -86,13 +86,18 @@ Onyx.connect({
 });
 
 const policyExpenseReports = {};
+const userCreatedRooms = {};
+const defaultRooms = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        if (!ReportUtils.isPolicyExpenseChat(report)) {
-            return;
+        if (ReportUtils.isPolicyExpenseChat(report)) {
+            policyExpenseReports[key] = report;
+        } else if (ReportUtils.isUserCreatedPolicyRoom(report)) {
+            userCreatedRooms[key] = report;
+        } else if (ReportUtils.isDefaultRoom(report)) {
+            defaultRooms[key] = report;
         }
-        policyExpenseReports[key] = report;
     },
 });
 
@@ -381,7 +386,7 @@ function getAllReportErrors(report, reportActions) {
  * @param {Object} personalDetails
  * @returns {String}
  */
-function getLastMessageTextForReport(report, personalDetails) {
+function getLastMessageTextForReport(report) {
     const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
@@ -419,7 +424,10 @@ function getLastMessageTextForReport(report, personalDetails) {
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else if (ReportActionUtils.isMemberChangeAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportActionUtils.convertAccountIDBasedMentionsToDisplayNames(lodashGet(lastReportAction, 'message[0].html', ''), personalDetails);
+        const htmlWithoutMutedTags = lodashGet(lastReportAction, 'message[0].html', '').replace(/<[/]?muted-text>/g, '');
+        const htmlWithoutAccountIDBasedMentions = ReportActionUtils.convertAccountIDBasedMentionsToDisplayNames(htmlWithoutMutedTags, allPersonalDetails);
+        lastMessageTextFromReport = htmlWithoutAccountIDBasedMentions.replace(/<a[^>]*>(.*?)<\/a>/gi, '$1');
+
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
