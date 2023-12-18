@@ -48,7 +48,7 @@ const propTypes = {
     subtitleStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether the subtitle should have a muted style */
-    subtitleMuted: PropTypes.boolean,
+    subtitleMuted: PropTypes.bool,
 
     /** Customize the Section container */
     // eslint-disable-next-line react/forbid-prop-types
