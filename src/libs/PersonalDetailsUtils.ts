@@ -190,7 +190,7 @@ function getFormattedAddress(privatePersonalDetails: OnyxTypes.PrivatePersonalDe
  * @param personalDetail - details object
  * @returns - The effective display name
  */
-function getEffectiveDisplayName(personalDetail: PersonalDetails): string | undefined {
+function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | undefined {
     if (personalDetail) {
         return LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || personalDetail.displayName;
     }
