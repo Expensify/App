@@ -23,6 +23,7 @@ const addCentralPaneNavigatorRoute = (state: State<RootStackParamList>) => {
 
     const bottomTabRoute = state.routes.filter((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR);
     const centralPaneRoutes = state.routes.filter((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+    const fullScreenRoutes = state.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
 
     // TODO-IDEAL Both RHP and LHP add condition for the LHP
     const modalRoutes = state.routes.filter((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
@@ -37,7 +38,7 @@ const addCentralPaneNavigatorRoute = (state: State<RootStackParamList>) => {
 
     // @ts-expect-error Updating read only property
     // noinspection JSConstantReassignment
-    state.routes = [...bottomTabRoute, ...centralPaneRoutes, centralPaneNavigatorRoute, ...modalRoutes]; // eslint-disable-line
+    state.routes = [...bottomTabRoute, ...centralPaneRoutes, centralPaneNavigatorRoute, ...fullScreenRoutes, ...modalRoutes]; // eslint-disable-line
 
     // @ts-expect-error Updating read only property
     // noinspection JSConstantReassignment
