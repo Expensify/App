@@ -9,9 +9,11 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 const adapter = createAnimatedPropAdapter(
     (props) => {
         const modifiedProps = {...props};
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
         if (Object.keys(modifiedProps).includes('fill')) {
             modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
         }
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
         if (Object.keys(modifiedProps).includes('stroke')) {
             modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
         }
