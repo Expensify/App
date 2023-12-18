@@ -1,6 +1,6 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import Str from 'expensify-common/lib/str';
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import _ from 'underscore';
 import Hoverable from '@components/Hoverable';
@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {getFirstValue} from '@libs/ValueUtils';
 import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
@@ -167,14 +168,16 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
         setIsVisible(false);
     }, []);
 
+    const child = useMemo(() => getFirstValue(children), [children]);
+
     const updateTargetPositionOnMouseEnter = useCallback(
         (e) => {
             updateTargetAndMousePosition(e);
-            if (children.props.onMouseEnter) {
-                children.props.onMouseEnter(e);
+            if (child.props.onMouseEnter) {
+                child.props.onMouseEnter(e);
             }
         },
-        [children.props, updateTargetAndMousePosition],
+        [child, updateTargetAndMousePosition],
     );
 
     // Skip the tooltip and return the children if the text is empty,
@@ -215,7 +218,7 @@ function Tooltip({children, numberOfLines, maxWidth, text, renderTooltipContent,
                     onHoverOut={hideTooltip}
                     shouldHandleScroll={shouldHandleScroll}
                 >
-                    {React.cloneElement(children, {
+                    {React.cloneElement(child, {
                         onMouseEnter: updateTargetPositionOnMouseEnter,
                     })}
                 </Hoverable>
