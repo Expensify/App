@@ -374,7 +374,7 @@ function ReportActionItem(props) {
                 </ShowContextMenuContext.Provider>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, [props.report.ownerAccountID, 'displayName']));
             const paymentType = lodashGet(props.action, 'originalMessage.paymentType', '');
 
             const isSubmitterOfUnsettledReport = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !ReportUtils.isSettled(props.report.reportID);
@@ -422,7 +422,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [props.report.ownerAccountID, 'displayName']);
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, [props.report.ownerAccountID, 'displayName']));
             const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
