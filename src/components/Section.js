@@ -116,7 +116,7 @@ function Section({children, childrenStyles, containerStyles, icon, IconComponent
                         iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
                     />
                 )}
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mh1, ...titleStyles]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1, ...titleStyles]}>
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{title}</Text>
                     </View>
