@@ -105,6 +105,7 @@ export default {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
         goBack: 'Go back',
@@ -497,7 +498,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Search',
+        buttonSearch: 'Search for something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
