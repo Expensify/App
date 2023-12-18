@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -120,17 +119,17 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     }
 
     const saveAmountAndCurrency = useCallback(
-        (transactionChanges) => {
-            const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-            // In case the amount hasn't been changed, do not make the API request.
-            if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
+        ({amount: newAmount, currency: newCurrency}) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
                 Navigation.dismissModal();
                 return;
             }
             // Temporarily disabling currency editing and it will be enabled as a quick follow up
-            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, defaultCurrency, transactionChanges.amount);
+            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount);
+            Navigation.dismissModal();
         },
-        [transaction.transactionID, report.reportID, transactionAmount, transactionCurrency, defaultCurrency],
+        [transaction, report],
     );
 
     const saveCreated = useCallback(

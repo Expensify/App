@@ -3420,9 +3420,9 @@ export {
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
+    updateMoneyRequestAmountAndCurrency,
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
-    updateMoneyRequestAmountAndCurrency,
 };
