@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
-import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -22,8 +22,6 @@ const propTypes = {
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
-
-    ...windowDimensionsPropTypes,
 };
 
 function MoneyReportView(props) {
@@ -31,6 +29,7 @@ function MoneyReportView(props) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const isSettled = ReportUtils.isSettled(props.report.reportID);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.report);
@@ -43,9 +42,9 @@ function MoneyReportView(props) {
     const subAmountTextStyles = [styles.taskTitleMenuItem, styles.alignSelfCenter, StyleUtils.getFontSizeStyle(variables.fontSizeh1), StyleUtils.getColorStyle(theme.textSupporting)];
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth, true)]}>
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text
@@ -124,4 +123,4 @@ function MoneyReportView(props) {
 MoneyReportView.propTypes = propTypes;
 MoneyReportView.displayName = 'MoneyReportView';
 
-export default withWindowDimensions(MoneyReportView);
+export default MoneyReportView;
