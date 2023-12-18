@@ -1,15 +1,16 @@
 import React from 'react';
 import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as NumberUtils from '@libs/NumberUtils';
-import useThemeIllustrations from '@styles/illustrations/useThemeIllustrations';
-import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const IMAGE_OFFSET_Y = 75;
 
 function AnimatedEmptyStateBackground() {
+    const StyleUtils = useStyleUtils();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
     const IMAGE_OFFSET_X = windowWidth / 2;
