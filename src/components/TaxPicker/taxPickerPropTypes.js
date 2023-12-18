@@ -7,7 +7,7 @@ const propTypes = {
 
     /** Callback to fire when a tax is pressed */
     onSubmit: PropTypes.func.isRequired,
-    
+
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
