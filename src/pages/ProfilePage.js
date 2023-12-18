@@ -125,7 +125,7 @@ function ProfilePage(props) {
 
     const isCurrentUser = props.session.accountID === accountID;
     const hasMinimumDetails = !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
+    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
