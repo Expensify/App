@@ -12,14 +12,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import {Policy} from '@src/types/onyx';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
-    title: Policy['name'];
+    title: string;
 
     /** Account ID of the workspace's owner */
-    ownerAccountID: Policy['ownerAccountID'];
+    ownerAccountID: number;
 
     /** Type of workspace. Type personal is not valid in this context so it's omitted */
     workspaceType: typeof CONST.POLICY.TYPE.FREE | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.TEAM;
