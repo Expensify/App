@@ -4,24 +4,23 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import type {Report} from '@src/types/onyx';
 import variables from '@styles/variables';
+import type {Report} from '@src/types/onyx';
 
 type MoneyReportViewProps = {
     /** The report currently being looked at */
-    report: Report,
+    report: Report;
 
     /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean,
-
+    shouldShowHorizontalRule: boolean;
 };
 
 function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProps) {
