@@ -252,7 +252,7 @@ function BaseTextInput(
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
-    const isMultiline = multiline ?? autoGrowHeight;
+    const isMultiline = multiline || autoGrowHeight;
 
     /* To prevent text jumping caused by virtual DOM calculations on Safari and mobile Chrome,
   make sure to include the `lineHeight`.
