@@ -12,13 +12,16 @@ As a thank you, every time you bring a new customer into New Expensify, you'll g
 
 # How to get paid to refer anyone to New Expensify
 
-The sky's the limit for this referral program! Your referral can be anyone - a friend, family member, boss, coworker, neighbor, or even social media follower. We're making it as easy as possible to get that cold hard referral $$$.
+The sky's the limit for this referral program! Your referral can be anyone - a friend, family member, boss, coworker, neighbor, or even social media follower. We're making it as easy as possible to get that cold hard $$$.
 
-1. There are a bunch of different ways to kick off a referral in New Expensify:
+1. There are a bunch of different ways to refer someone to New Expensify:
    - Start a chat
    - Request money
    - Send money
-   - @ mention someone
+   - Split a bill
+   - Assign them a task
+   - @ mention them
+   - Invite them to a room
    - Add them to a workspace
      
 2. You'll get $250 for each referral as long as:

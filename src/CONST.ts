@@ -77,6 +77,12 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    BREADCRUMB_TYPE: {
+        ROOT: 'root',
+        STRONG: 'strong',
+        NORMAL: 'normal',
+    },
+
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
@@ -464,6 +470,7 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
+    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -703,7 +710,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
-        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
+        SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
