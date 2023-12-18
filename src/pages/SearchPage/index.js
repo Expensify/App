@@ -3,28 +3,23 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import reportPropTypes from './reportPropTypes';
+import SearchPageFooter from './SearchPageFooter';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,7 +41,6 @@ function SearchPage({betas, reports}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const themeStyles = useThemeStyles();
-    const theme = useTheme();
     const personalDetails = usePersonalDetails();
 
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
@@ -139,43 +133,6 @@ function SearchPage({betas, reports}) {
 
     const isOptionsDataReady = useMemo(() => ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails), [personalDetails]);
 
-    const footerRender = (
-        <View style={[themeStyles.pb5, themeStyles.flexShrink0]}>
-            <PressableWithoutFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND));
-                }}
-                style={[
-                    themeStyles.p5,
-                    themeStyles.w100,
-                    themeStyles.br2,
-                    themeStyles.highlightBG,
-                    themeStyles.flexRow,
-                    themeStyles.justifyContentBetween,
-                    themeStyles.alignItemsCenter,
-                    {gap: 10},
-                ]}
-                accessibilityLabel="referral"
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-            >
-                <Text>
-                    {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.buttonText1`)}
-                    <Text
-                        color={theme.success}
-                        style={themeStyles.textStrong}
-                    >
-                        {translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}.buttonText2`)}
-                    </Text>
-                </Text>
-                <Icon
-                    src={Info}
-                    height={20}
-                    width={20}
-                />
-            </PressableWithoutFeedback>
-        </View>
-    );
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -197,7 +154,7 @@ function SearchPage({betas, reports}) {
                             autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
-                            footerContent={footerRender}
+                            footerContent={<SearchPageFooter />}
                         />
                     </View>
                 </>
