@@ -23,6 +23,7 @@ type Breadcrumb = {
 };
 
 type BreadcrumbsProps = {
+    /** An array of breadcrumbs consisting of the root/strong breadcrumb, followed by an optional second level breadcrumb  */
     breadcrumbs: [BreadcrumbHeader | BreadcrumbStrong, Breadcrumb | undefined];
 
     /** Styles to apply to the container */
