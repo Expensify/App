@@ -221,7 +221,7 @@ function Button(
                             <View style={[styles.mr1, iconStyles]}>
                                 <Icon
                                     src={icon}
-                                    fill={iconFill ?? theme.textLight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                     small={small}
                                 />
                             </View>
@@ -232,7 +232,7 @@ function Button(
                         <View style={[styles.justifyContentCenter, styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight}
-                                fill={iconFill ?? theme.textLight}
+                                fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
                                 small={small}
                             />
                         </View>
