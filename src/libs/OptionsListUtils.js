@@ -1100,7 +1100,7 @@ function getTaxRatesOptions(taxRates) {
 }
 
 /**
- * Build the section list for tax rates
+ * Builds the section list for tax rates
  *
  * @param {Object} policyTaxRates
  * @param {Object[]} selectedOptions
