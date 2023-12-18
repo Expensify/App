@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 function HoldBanner() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    //test
+
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pb3, styles.ph5, styles.borderBottom]}>
             <TextPill>{translate('iou.hold')}</TextPill>
