@@ -868,7 +868,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(filteredCategories),
+            data: getCategoryOptionTree(filteredCategories),
         });
 
         return categorySections;
