@@ -9,7 +9,7 @@ import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {Session} from '@src/types/onyx';
+import type {Session} from '@src/types/onyx';
 
 type ConciergePageOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -38,6 +38,7 @@ function ConciergePage({session}: ConciergePageProps) {
 
     return <FullScreenLoadingIndicator />;
 }
+
 ConciergePage.displayName = 'ConciergePage';
 
 export default withOnyx<ConciergePageProps, ConciergePageOnyxProps>({
