@@ -18,7 +18,12 @@ function ACHContractStep({onBackButtonPress, onCloseButtonPress}) {
     }, []);
 
     if (isBeneficialOwnerInfoSet) {
-        return <CompleteVerification onBackButtonPress={handleCompleteVerificationBackButtonPress} />;
+        return (
+            <CompleteVerification
+                onBackButtonPress={handleCompleteVerificationBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+            />
+        );
     }
 
     return (

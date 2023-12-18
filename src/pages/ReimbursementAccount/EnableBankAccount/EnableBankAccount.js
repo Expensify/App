@@ -43,14 +43,14 @@ function EnableBankAccount({reimbursementAccount, user, onBackButtonPress}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const achData = lodashGet(reimbursementAccount, 'achData') || {};
+    const achData = lodashGet(reimbursementAccount, 'achData', {});
     const {icon, iconSize} = getBankIcon({bankName: achData.bankName, styles});
     const isUsingExpensifyCard = user.isUsingExpensifyCard;
     const formattedBankAccountNumber = achData.accountNumber ? `${translate('paymentMethodList.accountLastFour')} ${achData.accountNumber.slice(-4)}` : '';
     const bankName = achData.addressName;
     const errors = lodashGet(reimbursementAccount, 'errors', {});
     const pendingAction = lodashGet(reimbursementAccount, 'pendingAction', null);
-    const shouldShowResetModal = lodashGet(reimbursementAccount, 'shouldShowResetModal');
+    const shouldShowResetModal = lodashGet(reimbursementAccount, 'shouldShowResetModal', false);
 
     return (
         <ScreenWrapper

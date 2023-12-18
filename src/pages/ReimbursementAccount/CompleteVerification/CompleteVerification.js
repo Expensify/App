@@ -27,6 +27,9 @@ const propTypes = {
 
     /** Handle back button press */
     onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -38,7 +41,7 @@ const BODY_CONTENT = [ConfirmAgreements];
 const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
 const BENEFICIAL_OWNER_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
 
-const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress}, ref) => {
+const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}, ref) => {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -78,6 +81,8 @@ const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAcc
             <HeaderWithBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('completeVerificationStep.completeVerification')}
+                shouldShowCloseButton
+                onCloseButtonPress={onCloseButtonPress}
             />
             <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

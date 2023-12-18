@@ -49,26 +49,19 @@ const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPU
 function ConfirmAgreements({onNext, reimbursementAccount}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const defaultValues = useMemo(
-        () => ({
-            [COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: getDefaultValueForReimbursementAccountField(
-                reimbursementAccount,
-                COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
-                false,
-            ),
-            [COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION]: getDefaultValueForReimbursementAccountField(
-                reimbursementAccount,
-                COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION,
-                false,
-            ),
-            [COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS]: getDefaultValueForReimbursementAccountField(
-                reimbursementAccount,
-                COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS,
-                false,
-            ),
-        }),
-        [reimbursementAccount],
-    );
+    const defaultValues = {
+        [COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: getDefaultValueForReimbursementAccountField(
+            reimbursementAccount,
+            COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
+            false,
+        ),
+        [COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION]: getDefaultValueForReimbursementAccountField(reimbursementAccount, COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION, false),
+        [COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS]: getDefaultValueForReimbursementAccountField(
+            reimbursementAccount,
+            COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS,
+            false,
+        ),
+    };
 
     return (
         <ScreenWrapper
