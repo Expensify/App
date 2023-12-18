@@ -2,8 +2,8 @@ import _ from 'lodash';
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -14,23 +14,22 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
-import withLocalize, {WithLocalizeProps} from './withLocalize';
 
 type ReportWelcomeTextOnyxProps = {
     /** All of the personal details for everyone */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
-type ReportWelcomeTextProps = WithLocalizeProps &
-    ReportWelcomeTextOnyxProps & {
-        /** The report currently being looked at */
-        report: Report;
+type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
+    /** The report currently being looked at */
+    report: Report;
 
-        /** The policy for the current route */
-        policy: Policy;
-    };
+    /** The policy for the current route */
+    policy: Policy;
+};
 
-function ReportWelcomeText({report = {} as Report, policy = {} as Policy, personalDetails = {}, translate}: ReportWelcomeTextProps) {
+function ReportWelcomeText({report = {} as Report, policy = {} as Policy, personalDetails = {}}: ReportWelcomeTextProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
@@ -38,6 +37,7 @@ function ReportWelcomeText({report = {} as Report, policy = {} as Policy, person
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+        // TODO: Remove type assertion (`as PersonalDetailsList`) after `src/libs/OptionsListUtils.js` is migrated into ts
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails) as PersonalDetailsList,
         isMultipleParticipant,
     );
@@ -111,11 +111,8 @@ function ReportWelcomeText({report = {} as Report, policy = {} as Policy, person
 
 ReportWelcomeText.displayName = 'ReportWelcomeText';
 
-export default compose(
-    withLocalize<ReportWelcomeTextProps, unknown>,
-    withOnyx<ReportWelcomeTextProps, ReportWelcomeTextOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-)(ReportWelcomeText);
+export default withOnyx<ReportWelcomeTextProps, ReportWelcomeTextOnyxProps>({
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+})(ReportWelcomeText);
