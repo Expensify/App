@@ -19,8 +19,8 @@ Onyx.connect({
 const getBrickRoadForPolicy = (policyReport: Report): BrickRoad => {
     const policyReportAction = ReportActionsUtils.getAllReportActions(policyReport.reportID);
     const reportErrors = OptionsListUtils.getAllReportErrors(policyReport, policyReportAction);
-    const brickRoadIndicator = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    if (brickRoadIndicator) {
+    const redBrickRoadIndicator = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+    if (redBrickRoadIndicator) {
         return 'RBR';
     }
     let itemParentReportAction = {};
