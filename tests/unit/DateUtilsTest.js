@@ -52,6 +52,11 @@ describe('DateUtils', () => {
         expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-06T16:00:00-08:00');
     });
 
+    it('should fallback to current date when getLocalDateFromDatetime is failing', () => {
+        const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, undefined, 'InvalidTimezone');
+        expect(localDate.getTime()).not.toBeNaN();
+    });
+
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32);
         expect(DateUtils.datetimeToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
