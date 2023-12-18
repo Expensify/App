@@ -1055,7 +1055,7 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
 }
 
 /**
- * transforms tax rates to a new object - to add codes and new name with concatenated name and value.
+ * Transforms tax rates to a new object - to add codes and new name with concatenated name and value.
  *
  * @param {Object} policyTaxRates
  * @returns {Array<Object>}
