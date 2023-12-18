@@ -1,5 +1,5 @@
 import React from 'react';
-import Breadcrumbs from '@components/Breadcrumbs';
+import Breadcrumbs, {BreadcrumbsProps} from '@components/Breadcrumbs';
 import CONST from '@src/CONST';
 
 /**
@@ -12,14 +12,16 @@ const story = {
     component: Breadcrumbs,
 };
 
-function Template(args) {
+type StoryType = typeof Template & {args?: Partial<BreadcrumbsProps>};
+
+function Template(args: BreadcrumbsProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <Breadcrumbs {...args} />;
 }
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-const Default = Template.bind({});
+const Default: StoryType = Template.bind({});
 Default.args = {
     breadcrumbs: [
         {
@@ -31,7 +33,7 @@ Default.args = {
     ],
 };
 
-const FirstBreadcrumbStrong = Template.bind({});
+const FirstBreadcrumbStrong: StoryType = Template.bind({});
 FirstBreadcrumbStrong.args = {
     breadcrumbs: [
         {
