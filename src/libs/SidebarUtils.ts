@@ -371,17 +371,17 @@ function getOptionData(
             const targetAccountIDs = lastAction?.originalMessage?.targetAccountIDs ?? [];
             const verb =
                 lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                    ? 'invited'
-                    : 'removed';
-            const users = targetAccountIDs.length > 1 ? 'users' : 'user';
+                    ? Localize.translate(preferredLocale, 'workspace.invite.invited')
+                    : Localize.translate(preferredLocale, 'workspace.invite.removed');
+            const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
             result.alternateText = `${verb} ${targetAccountIDs.length} ${users}`;
 
             const roomName = lastAction?.originalMessage?.roomName ?? '';
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                        ? ' to'
-                        : ' from';
+                        ? ` ${Localize.translate(preferredLocale, 'workspace.invite.to')}`
+                        : ` ${Localize.translate(preferredLocale, 'workspace.invite.from')}`;
                 result.alternateText += `${preposition} ${roomName}`;
             }
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
