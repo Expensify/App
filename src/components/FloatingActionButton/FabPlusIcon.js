@@ -7,7 +7,6 @@ import useTheme from '@hooks/useTheme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-// Adapting fill and stroke properties from react-native-svg to be able to animate them with Reanimated
 const adapter = createAnimatedPropAdapter(
     (props) => {
         const modifiedProps = {...props};
