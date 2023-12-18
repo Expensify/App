@@ -15,6 +15,24 @@ type Waypoint = {
 
     /** The longitude of the waypoint */
     lng?: number;
+
+    /** Address city */
+    city?: string;
+
+    /** Address state */
+    state?: string;
+
+    /** Address zip code */
+    zipCode?: string;
+
+    /** Address country */
+    country?: string;
+
+    /** Address street line 1 */
+    street?: string;
+
+    /** Address street line 2 */
+    street2?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
@@ -70,7 +88,7 @@ type Transaction = {
     modifiedWaypoints?: WaypointCollection;
     // Used during the creation flow before the transaction is saved to the server and helps dictate where the user is navigated to when pressing the back button on the confirmation step
     participantsAutoAssigned?: boolean;
-    pendingAction: OnyxCommon.PendingAction;
+    pendingAction: OnyxCommon.PendingAction | null;
     receipt?: Receipt;
     reportID: string;
     routes?: Routes;

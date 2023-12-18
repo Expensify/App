@@ -1,9 +1,7 @@
-import {useNavigation} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import {RouteProp, useNavigation} from '@react-navigation/native';
+import {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,71 +10,51 @@ import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import * as OnyxTypes from '@src/types/onyx';
+import {Waypoint} from '@src/types/onyx/Transaction';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
-const propTypes = {
-    /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** IOU type */
-            iouType: PropTypes.string,
+type MappedWaypoint = {
+    name: string | undefined;
+    description: string;
+    geometry: {
+        location: {
+            lat: number;
+            lng: number;
+        };
+    };
+};
 
-            /** Thread reportID */
-            threadReportID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-            /** ID of the transaction being edited */
-            transactionID: PropTypes.string,
-
-            /** Index of the waypoint being edited */
-            waypointIndex: PropTypes.string,
-        }),
-    }),
-
-    recentWaypoints: PropTypes.arrayOf(
-        PropTypes.shape({
-            /** The name of the location */
-            name: PropTypes.string,
-
-            /** A description of the location (usually the address) */
-            description: PropTypes.string,
-
-            /** Data required by the google auto complete plugin to know where to put the markers on the map */
-            geometry: PropTypes.shape({
-                /** Data about the location */
-                location: PropTypes.shape({
-                    /** Latitude of the location */
-                    lat: PropTypes.number,
-
-                    /** Longitude of the location */
-                    lng: PropTypes.number,
-                }),
-            }),
-        }),
-    ),
-
-    /* Onyx props */
+type WaypointEditorOnyxProps = {
     /** The optimistic transaction for this request */
-    transaction: transactionPropTypes,
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** List of recent waypoints */
+    recentWaypoints: OnyxEntry<MappedWaypoint[]>;
 };
 
-const defaultProps = {
-    route: {},
-    recentWaypoints: [],
-    transaction: {},
-};
+type WaypointEditorProps = {route: RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.EDIT_WAYPOINT>} & WaypointEditorOnyxProps;
 
-function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
+function WaypointEditor({
+    route: {
+        params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = ''},
+    },
+    transaction,
+    recentWaypoints = [],
+}: WaypointEditorProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
@@ -86,11 +64,11 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
-    const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const currentWaypoint = lodashGet(allWaypoints, `waypoint${waypointIndex}`, {});
+    const allWaypoints = transaction?.comment.waypoints ?? {};
+    const currentWaypoint = allWaypoints[`waypoint${waypointIndex}`] ?? {};
 
-    const waypointCount = _.size(allWaypoints);
-    const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
+    const waypointCount = Object.keys(allWaypoints).length;
+    const filledWaypointCount = Object.values(allWaypoints).filter((waypoint) => isNotEmptyObject(waypoint)).length;
 
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
@@ -103,15 +81,15 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         }
     }, [parsedWaypointIndex, waypointCount]);
 
-    const waypointAddress = lodashGet(currentWaypoint, 'address', '');
-    const isEditingWaypoint = Boolean(threadReportID);
+    const waypointAddress = currentWaypoint.address ?? '';
+    const isEditingWaypoint = !!threadReportID;
     // Hide the menu when there is only start and finish waypoint
     const shouldShowThreeDotsButton = waypointCount > 2;
     const shouldDisableEditor =
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
-    const validate = (values) => {
+    const validate = (values: Record<string, string>) => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
@@ -127,9 +105,9 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         return errors;
     };
 
-    const saveWaypoint = (waypoint) => Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
+    const saveWaypoint = (waypoint: OnyxTypes.RecentWaypoint) => Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
-    const submit = (values) => {
+    const submit = (values: Record<string, string>) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
@@ -141,10 +119,10 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                lat: null,
-                lng: null,
+                lat: -1,
+                lng: -1,
                 address: waypointValue,
-                name: null,
+                name: undefined,
             };
             saveWaypoint(waypoint);
         }
@@ -159,12 +137,13 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
 
-    const selectWaypoint = (values) => {
+    const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat,
-            lng: values.lng,
-            address: values.address,
-            name: values.name || null,
+            lat: values.lat ?? 0,
+            lng: values.lng ?? 0,
+            address: values.address ?? '',
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            name: values.name,
         };
         saveWaypoint(waypoint);
 
@@ -178,7 +157,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
+            onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
             testID={WaypointEditor.displayName}
         >
@@ -251,11 +230,10 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 }
 
 WaypointEditor.displayName = 'WaypointEditor';
-WaypointEditor.propTypes = propTypes;
-WaypointEditor.defaultProps = defaultProps;
-export default withOnyx({
+
+export default withOnyx<WaypointEditorProps, WaypointEditorOnyxProps>({
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`,
     },
     recentWaypoints: {
         key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
@@ -263,7 +241,7 @@ export default withOnyx({
         // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
         // that the google autocomplete component expects for it's "predefined places" feature.
         selector: (waypoints) =>
-            _.map(waypoints ? waypoints.slice(0, 5) : [], (waypoint) => ({
+            (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
                 name: waypoint.name,
                 description: waypoint.address,
                 geometry: {

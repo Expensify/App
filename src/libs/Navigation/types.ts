@@ -227,13 +227,13 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         transactionID: string;
         waypointIndex: string;
-        threadReportID: number;
+        threadReportID: string;
     };
     [SCREENS.MONEY_REQUEST.EDIT_WAYPOINT]: {
         iouType: string;
         transactionID: string;
         waypointIndex: string;
-        threadReportID: number;
+        threadReportID: string;
     };
     [SCREENS.MONEY_REQUEST.DISTANCE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
