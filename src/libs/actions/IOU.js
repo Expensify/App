@@ -2201,7 +2201,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
             value: {
                 ...transaction,
                 modifiedCreated: transaction.modifiedCreated ? transaction.modifiedCreated : null,
-                modifiedAmount: transaction.modifiedAmount ? transaction.modifiedCreated : null,
+                modifiedAmount: transaction.modifiedAmount ? transaction.modifiedAmount : null,
                 modifiedCurrency: transaction.modifiedCurrency ? transaction.modifiedCurrency : null,
                 modifiedMerchant: transaction.modifiedMerchant ? transaction.modifiedMerchant : null,
                 modifiedWaypoints: transaction.modifiedWaypoints ? transaction.modifiedWaypoints : null,
