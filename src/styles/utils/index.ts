@@ -1323,6 +1323,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         switch (buttonState) {
             case CONST.BUTTON_STATES.ACTIVE:
             case CONST.BUTTON_STATES.PRESSED:
+                if (isMenuIcon) {
+                    return theme.iconMenuHovered;
+                }
                 return theme.iconHovered;
             case CONST.BUTTON_STATES.COMPLETE:
                 return theme.iconSuccessFill;

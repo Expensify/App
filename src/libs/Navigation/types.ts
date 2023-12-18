@@ -373,6 +373,21 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
 };
 
+type SettingsCentralPaneNavigatorParamList = {
+    [SCREENS.SETTINGS.SHARE_CODE]: undefined;
+    [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: undefined;
+    [SCREENS.SETTINGS.SECURITY]: undefined;
+    [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.ABOUT]: undefined;
+};
+
+type FullScreenNavigatorParamList = {
+    [SCREENS.SETTINGS_HOME]: undefined;
+    [SCREENS.SETTINGS_CENTRAL_PANE]: NavigatorScreenParams<SettingsCentralPaneNavigatorParamList>;
+};
+
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [SCREENS.ALL_SETTINGS]: undefined;
@@ -426,6 +441,7 @@ type AuthScreensParamList = {
     };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+    [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [CONST.DEMO_PAGES.MONEY2020]: undefined;
 };

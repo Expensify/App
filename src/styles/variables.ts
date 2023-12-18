@@ -12,6 +12,7 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 }
 
 export default {
+    // do we need to change it?
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
@@ -30,7 +31,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
-    avatarSizeXLarge: 120,
+    avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
     avatarSizeMedium: 52,
     avatarSizeHeader: 40,

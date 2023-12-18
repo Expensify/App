@@ -45,9 +45,10 @@ function PreferencesPage(props) {
     return (
         <IllustratedHeaderPageLayout
             title={translate('common.preferences')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            // onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.PreferencesDJ}
+            shouldUseCentralPaneView
         >
             <View style={styles.mb6}>
                 <Text

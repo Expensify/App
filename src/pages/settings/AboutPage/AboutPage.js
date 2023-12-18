@@ -103,7 +103,9 @@ function AboutPage(props) {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
+                        shouldUseCentralPaneView
+                        shouldShowBorderBottom
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>

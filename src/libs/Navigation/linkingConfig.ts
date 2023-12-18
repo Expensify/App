@@ -115,13 +115,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 screens: {
                     [SCREENS.RIGHT_MODAL.SETTINGS]: {
                         screens: {
-                            [SCREENS.SETTINGS.ROOT]: {
-                                path: ROUTES.SETTINGS,
-                            },
-                            [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-                                path: ROUTES.SETTINGS_PREFERENCES,
-                                exact: true,
-                            },
                             [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: {
                                 path: ROUTES.SETTINGS_PRIORITY_MODE,
                                 exact: true,
@@ -136,14 +129,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                             [SCREENS.SETTINGS.CLOSE]: {
                                 path: ROUTES.SETTINGS_CLOSE,
-                                exact: true,
-                            },
-                            [SCREENS.SETTINGS.SECURITY]: {
-                                path: ROUTES.SETTINGS_SECURITY,
-                                exact: true,
-                            },
-                            [SCREENS.SETTINGS.WALLET.ROOT]: {
-                                path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
                             [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
@@ -202,10 +187,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                                path: ROUTES.SETTINGS_PROFILE,
-                                exact: true,
-                            },
                             [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
                                 path: ROUTES.SETTINGS_PRONOUNS,
                                 exact: true,
@@ -220,10 +201,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                             [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: {
                                 path: ROUTES.SETTINGS_TIMEZONE_SELECT,
-                                exact: true,
-                            },
-                            [SCREENS.SETTINGS.ABOUT]: {
-                                path: ROUTES.SETTINGS_ABOUT,
                                 exact: true,
                             },
                             [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
@@ -266,10 +243,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                             [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
                                 path: ROUTES.SETTINGS_2FA.route,
-                                exact: true,
-                            },
-                            [SCREENS.SETTINGS.SHARE_CODE]: {
-                                path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
                             [SCREENS.SETTINGS.PROFILE.STATUS]: {
@@ -520,6 +493,43 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     [SCREENS.RIGHT_MODAL.REFERRAL]: {
                         screens: {
                             [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                        },
+                    },
+                },
+            },
+
+            [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
+                initialRouteName: SCREENS.SETTINGS_HOME,
+                screens: {
+                    [SCREENS.SETTINGS_HOME]: {
+                        path: ROUTES.SETTINGS_HOME,
+                    },
+                    [SCREENS.SETTINGS_CENTRAL_PANE]: {
+                        screens: {
+                            [SCREENS.SETTINGS.SHARE_CODE]: {
+                                path: ROUTES.SETTINGS_SHARE_CODE,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.ROOT]: {
+                                path: ROUTES.SETTINGS_PROFILE,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+                                path: ROUTES.SETTINGS_PREFERENCES,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.SECURITY]: {
+                                path: ROUTES.SETTINGS_SECURITY,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.WALLET.ROOT]: {
+                                path: ROUTES.SETTINGS_WALLET,
+                                exact: true,
+                            },
+                            [SCREENS.SETTINGS.ABOUT]: {
+                                path: ROUTES.SETTINGS_ABOUT,
+                                exact: true,
+                            },
                         },
                     },
                 },

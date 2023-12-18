@@ -961,6 +961,7 @@ const CONST = {
             3: 100,
         },
     },
+    CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {

@@ -1404,6 +1404,12 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
             } satisfies AnchorPosition),
 
+        createAccountMenuPositionProfile: () =>
+            ({
+                horizontal: 18,
+                ...getPopOverVerticalOffset(202 + 40),
+            } satisfies AnchorPosition),
+
         createMenuPositionProfile: (windowWidth: number) =>
             ({
                 horizontal: windowWidth - 355,
@@ -2435,6 +2441,43 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             paddingHorizontal: 20,
             paddingBottom: 20,
+        },
+
+        avatarSectionWrapperSettings: {
+            width: '100%',
+            alignItems: 'center',
+            paddingTop: 20,
+        },
+
+        accountSettingsSectionContainer: {
+            borderBottomWidth: 1,
+            borderBottomColor: theme.border,
+            ...spacing.mt0,
+            ...spacing.mb0,
+            ...spacing.pt0,
+        },
+
+        centralPaneAnimation: {
+            height: CONST.CENTRAL_PANE_ANIMATION_HEIGHT,
+        },
+
+        sectionTitle: {
+            ...spacing.pt2,
+            ...spacing.pr3,
+            ...spacing.pb4,
+            paddingLeft: 13,
+            fontSize: 13,
+            fontFamily: fontFamily.EXP_NEUE,
+            fontWeight: 400,
+            lineHeight: 16,
+            color: theme.textSupporting,
+        },
+
+        sectionMenuItem: {
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            height: 56,
+            alignItems: 'center',
         },
 
         selectCircle: {
@@ -3977,7 +4020,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h, width: '100%'}),
+        aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {
             backgroundColor: theme.receiptDropUIBG,

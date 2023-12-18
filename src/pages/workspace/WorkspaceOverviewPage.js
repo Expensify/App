@@ -113,6 +113,7 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
                     <AvatarWithImagePicker
                         source={lodashGet(policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.LARGE}
+                        avatarStyle={styles.avatarLarge}
                         DefaultAvatar={() => (
                             <Avatar
                                 containerStyles={styles.avatarLarge}

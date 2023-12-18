@@ -7,7 +7,10 @@ import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRo
 import TAB_TO_CENTRAL_PANE_MAPPING from '@libs/Navigation/TAB_TO_CENTRAL_PANE_MAPPING';
 import {RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
+
+const isAtLeastOneInState = (state: State, screenName: string): boolean => !!state.routes.find((route) => route.name === screenName);
 
 /**
  * Adds report route without any specific reportID to the state.
@@ -41,6 +44,60 @@ const addCentralPaneNavigatorRoute = (state: State<RootStackParamList>) => {
     state.index = state.routes.length - 1; // eslint-disable-line
 };
 
+const mapScreenNameToSettingsScreenName: Record<string, string> = {
+    // [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: SCREENS.SETTINGS.PROFILE,
+};
+
+const handleSettingsOpened = (state: State) => {
+    const rhpNav = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    if (!rhpNav?.state?.routes[0]) {
+        return;
+    }
+    const screen = rhpNav.state.routes[0];
+    // check if we are on settings screen
+    if (screen.name !== 'Settings') {
+        return;
+    }
+    // check if we already have settings home route
+    if (isAtLeastOneInState(state, NAVIGATORS.FULL_SCREEN_NAVIGATOR)) {
+        return;
+    }
+
+    const settingsScreenName = screen?.state?.routes[0].name;
+
+    if (!settingsScreenName) {
+        return;
+    }
+
+    const settingsHomeRouteName = mapScreenNameToSettingsScreenName[settingsScreenName] || SCREENS.SETTINGS.PROFILE.ROOT;
+
+    const fullScreenRoute = {
+        name: NAVIGATORS.FULL_SCREEN_NAVIGATOR,
+        state: {
+            routes: [
+                {
+                    name: SCREENS.SETTINGS_HOME,
+                },
+                {
+                    name: SCREENS.SETTINGS_CENTRAL_PANE,
+                    state: {
+                        routes: [
+                            {
+                                name: settingsHomeRouteName,
+                            },
+                        ],
+                    },
+                },
+            ],
+        },
+    };
+    state.routes.splice(2, 0, fullScreenRoute);
+    // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
+    (state.index as number) = state.routes.length - 1;
+    // eslint-disable-next-line no-param-reassign, @typescript-eslint/non-nullable-type-assertion-style
+    (state.stale as boolean) = true;
+};
+
 function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
 
@@ -61,6 +118,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 partialState.stale = true; // eslint-disable-line
                 addCentralPaneNavigatorRoute(partialState);
             }
+            handleSettingsOpened(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;
         },

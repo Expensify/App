@@ -12,8 +12,9 @@ const lightTheme = {
     borderLighter: colors.productLight600,
     borderFocus: colors.green400,
     icon: colors.productLight700,
-    iconMenu: colors.green400,
+    iconMenu: colors.productLight700,
     iconHovered: colors.productLight900,
+    iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
     iconReversed: colors.productLight100,
     iconColorfulBackground: `${colors.ivory}cc`,
@@ -124,7 +125,7 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productLight200,
+            backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.RIGHT_MODAL.REFERRAL]: {

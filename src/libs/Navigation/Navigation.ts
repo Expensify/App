@@ -56,7 +56,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
         return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
     }
 
-    if ('name' in stateOrRoute && stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if ('name' in stateOrRoute && (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR)) {
         return 0;
     }
 
@@ -161,7 +161,7 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
         const rootState = navigationRef.getRootState();
         const lastRoute = rootState.routes.at(-1);
         // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
-        if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && (lastRoute.state?.index ?? 0) > 0) {
+        if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             navigationRef.current.goBack();
             return;
         }
@@ -212,6 +212,7 @@ function dismissModal(targetReportID?: string) {
     const rootState = navigationRef.getRootState();
     const lastRoute = rootState.routes.at(-1);
     switch (lastRoute?.name) {
+        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import HeaderPageLayout from './HeaderPageLayout';
@@ -34,6 +35,10 @@ const defaultProps = {
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    const shouldUseMaxHeight = propsToPassToHeader.shouldUseCentralPaneView && !isSmallScreenWidth;
+
     return (
         <HeaderPageLayout
             backgroundColor={backgroundColor || theme.appBG}
@@ -43,14 +48,15 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     <Lottie
                         source={illustration}
                         style={styles.w100}
-                        webStyle={styles.w100}
+                        webStyle={shouldUseMaxHeight ? styles.h100 : styles.w100}
                         autoPlay
                         loop
                     />
                     {overlayContent && overlayContent()}
                 </>
             }
-            headerContainerStyles={[styles.justifyContentCenter, styles.w100]}
+            // TODO: move to variables
+            headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldUseMaxHeight && styles.centralPaneAnimation]}
             footer={footer}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToPassToHeader}

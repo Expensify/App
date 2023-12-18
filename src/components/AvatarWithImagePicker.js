@@ -94,6 +94,9 @@ const propTypes = {
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
+
+    /** Style applied to the avatar */
+    avatarStyle: stylePropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -141,6 +144,7 @@ function AvatarWithImagePicker({
     anchorAlignment,
     onImageSelected,
     editorMaskImage,
+    avatarStyle,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -287,7 +291,7 @@ function AvatarWithImagePicker({
 
     return (
         <View style={StyleSheet.flatten([styles.alignItemsCenter, style])}>
-            <View style={[styles.pRelative, styles.avatarLarge]}>
+            <View style={[styles.pRelative, avatarStyle]}>
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     errors={errors}
@@ -305,8 +309,8 @@ function AvatarWithImagePicker({
                             <View>
                                 {source ? (
                                     <Avatar
-                                        containerStyles={styles.avatarLarge}
-                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                        containerStyles={avatarStyle}
+                                        imageStyles={[avatarStyle, styles.alignSelfCenter]}
                                         source={source}
                                         fallbackIcon={fallbackIcon}
                                         size={size}

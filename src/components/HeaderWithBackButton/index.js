@@ -12,6 +12,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import useStyleUtils from '@styles/useStyleUtils';
@@ -40,6 +41,7 @@ function HeaderWithBackButton({
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
+    shouldUseCentralPaneView = false,
     stepCounter = null,
     subtitle = '',
     title = '',
@@ -61,6 +63,8 @@ function HeaderWithBackButton({
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const shouldFinalShowBackButton = shouldShowBackButton && (!shouldUseCentralPaneView || isSmallScreenWidth);
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
@@ -68,8 +72,18 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                {shouldShowBackButton && (
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.flexRow,
+                    styles.alignItemsCenter,
+                    styles.flexGrow1,
+                    styles.justifyContentBetween,
+                    styles.overflowHidden,
+                    !shouldFinalShowBackButton && styles.pl5,
+                ]}
+            >
+                {shouldFinalShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {

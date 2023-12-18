@@ -1,10 +1,11 @@
+import {useNavigationState} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Avatar from '@components/Avatar';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import bankAccountPropTypes from '@components/bankAccountPropTypes';
 import cardPropTypes from '@components/cardPropTypes';
 import ConfirmModal from '@components/ConfirmModal';
@@ -22,29 +23,25 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import getTopmostCentralPaneName from '@libs/Navigation/getTopmostCentralPanePath';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import policyMemberPropType from '@pages/policyMemberPropType';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Session from '@userActions/Session';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import assignedCardPropTypes from './Wallet/assignedCardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -54,26 +51,6 @@ const propTypes = {
         /** Email of the logged in person */
         email: PropTypes.string,
     }),
-
-    /** The list of this user's policies */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The ID of the policy */
-            ID: PropTypes.string,
-
-            /** The name of the policy */
-            name: PropTypes.string,
-
-            /** The type of the policy */
-            type: PropTypes.string,
-
-            /** The user's role in the policy */
-            role: PropTypes.string,
-
-            /** The current action that is waiting to happen on the policy */
-            pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-        }),
-    ),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -86,9 +63,6 @@ const propTypes = {
 
     /** List of user's cards */
     fundList: PropTypes.objectOf(cardPropTypes),
-
-    /** Bank account attached to free plan */
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
@@ -104,28 +78,19 @@ const propTypes = {
         }),
     ),
 
-    cardList: PropTypes.objectOf(assignedCardPropTypes),
-
-    /** Members keyed by accountID for all policies */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
-
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
     session: {},
-    policies: {},
     userWallet: {
         currentBalance: 0,
     },
-    reimbursementAccount: {},
     walletTerms: {},
     bankAccountList: {},
     fundList: null,
     loginList: {},
-    cardList: {},
-    allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -136,6 +101,7 @@ function InitialSettingsPage(props) {
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
+    const activeRoute = useNavigationState(getTopmostCentralPaneName);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -165,177 +131,158 @@ function InitialSettingsPage(props) {
     );
 
     /**
-     * Retuns a list of default menu items
-     * @returns {Array} the default menu items
+     * Retuns a list of menu items data for account section
+     * @returns {Object} object with translationKey, style and items for the account section
      */
-    const getDefaultMenuItems = useMemo(() => {
-        const policiesAvatars = _.chain(props.policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, props.network.isOffline))
-            .sortBy((policy) => policy.name.toLowerCase())
-            .map((policy) => ({
-                id: policy.id,
-                source: policy.avatar || ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                name: policy.name,
-                type: CONST.ICON_TYPE_WORKSPACE,
-            }))
-            .value();
-
-        const policyBrickRoadIndicator =
-            !_.isEmpty(props.reimbursementAccount.errors) ||
-            _.chain(props.policies)
-                .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, props.allPolicyMembers))
-                .value()
-                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                : null;
+    const accountMenuItemsData = useMemo(() => {
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
-
         const paymentCardList = props.fundList || {};
 
-        return [
-            {
-                translationKey: 'common.shareCode',
-                icon: Expensicons.QrCode,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE);
-                }),
-            },
-            {
-                translationKey: 'common.workspaces',
-                icon: Expensicons.Building,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
-                }),
-                floatRightAvatars: policiesAvatars,
-                shouldStackHorizontally: true,
-                avatarSize: CONST.AVATAR_SIZE.SMALLER,
-                brickRoadIndicator: policyBrickRoadIndicator,
-            },
-            {
-                translationKey: 'common.profile',
-                icon: Expensicons.Profile,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-                }),
-                brickRoadIndicator: profileBrickRoadIndicator,
-            },
-            {
-                translationKey: 'common.preferences',
-                icon: Expensicons.Gear,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-                }),
-            },
-            {
-                translationKey: 'initialSettingsPage.security',
-                icon: Expensicons.Lock,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                }),
-            },
-            {
-                translationKey: 'common.wallet',
-                icon: Expensicons.Wallet,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
-                }),
-                brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) ||
-                    !_.isEmpty(props.userWallet.errors) ||
-                    !_.isEmpty(props.walletTerms.errors) ||
-                    CardUtils.hasDetectedFraud(props.cardList)
-                        ? 'error'
-                        : null,
-            },
-            {
-                translationKey: 'initialSettingsPage.help',
-                icon: Expensicons.QuestionMark,
-                action: () => {
-                    Link.openExternalLink(CONST.NEWHELP_URL);
+        return {
+            sectionStyle: styles.accountSettingsSectionContainer,
+            sectionTranslationKey: 'initialSettingsPage.account',
+            items: [
+                {
+                    translationKey: 'common.profile',
+                    icon: Expensicons.Profile,
+                    routeName: ROUTES.SETTINGS_PROFILE,
+                    brickRoadIndicator: profileBrickRoadIndicator,
                 },
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                link: CONST.NEWHELP_URL,
-            },
-            {
-                translationKey: 'initialSettingsPage.about',
-                icon: Expensicons.Info,
-                action: waitForNavigate(() => {
-                    Navigation.navigate(ROUTES.SETTINGS_ABOUT);
-                }),
-            },
-            {
-                translationKey: 'initialSettingsPage.signOut',
-                icon: Expensicons.Exit,
-                action: () => {
-                    signOut(false);
+                {
+                    translationKey: 'common.wallet',
+                    icon: Expensicons.Wallet,
+                    routeName: ROUTES.SETTINGS_WALLET,
+                    brickRoadIndicator:
+                        PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
+                            ? 'error'
+                            : null,
                 },
+                {
+                    translationKey: 'common.shareCode',
+                    icon: Expensicons.QrCode,
+                    routeName: ROUTES.SETTINGS_SHARE_CODE,
+                },
+                {
+                    translationKey: 'common.preferences',
+                    icon: Expensicons.Gear,
+                    routeName: ROUTES.SETTINGS_PREFERENCES,
+                },
+                {
+                    translationKey: 'initialSettingsPage.security',
+                    icon: Expensicons.Lock,
+                    routeName: ROUTES.SETTINGS_SECURITY,
+                },
+                {
+                    translationKey: 'initialSettingsPage.signOut',
+                    icon: Expensicons.Exit,
+                    action: () => {
+                        signOut(false);
+                    },
+                },
+            ],
+        };
+    }, [props.bankAccountList, props.fundList, props.loginList, props.userWallet.errors, props.walletTerms.errors, signOut, styles.accountSettingsSectionContainer]);
+
+    /**
+     * Retuns a list of menu items data for general section
+     * @returns {Object} object with translationKey, style and items for the general section
+     */
+    const generaltMenuItemsData = useMemo(
+        () => ({
+            sectionStyle: {
+                ...styles.pt4,
             },
-        ];
-    }, [
-        props.allPolicyMembers,
-        props.bankAccountList,
-        props.cardList,
-        props.fundList,
-        props.loginList,
-        props.network.isOffline,
-        props.policies,
-        props.reimbursementAccount.errors,
-        props.userWallet.errors,
-        props.walletTerms.errors,
-        signOut,
-        waitForNavigate,
-    ]);
+            sectionTranslationKey: 'initialSettingsPage.general',
+            items: [
+                {
+                    translationKey: 'initialSettingsPage.help',
+                    icon: Expensicons.QuestionMark,
+                    action: () => {
+                        Link.openExternalLink(CONST.NEWHELP_URL);
+                    },
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    link: CONST.NEWHELP_URL,
+                },
+                {
+                    translationKey: 'initialSettingsPage.about',
+                    icon: Expensicons.Info,
+                    routeName: ROUTES.SETTINGS_ABOUT,
+                },
+            ],
+        }),
+        [styles.pt4],
+    );
 
-    const getMenuItems = useMemo(() => {
-        /**
-         * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-         * @returns {String|undefined} the user's wallet balance
-         */
-        const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
+    /**
+     * Retuns JSX.Element with menu items
+     * @param {Object} menuItemsData list with menu items data
+     * @returns {JSX.Element} the menu items for passed data
+     */
+    const getMenuItemsSection = useCallback(
+        (menuItemsData) => {
+            /**
+             * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
+             * @returns {String|undefined} the user's wallet balance
+             */
+            const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
+            return (
+                <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
+                    <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
+                    {_.map(menuItemsData.items, (item, index) => {
+                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        const isPaymentItem = item.translationKey === 'common.wallet';
 
-        return (
-            <>
-                {_.map(getDefaultMenuItems, (item, index) => {
-                    const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                    const isPaymentItem = item.translationKey === 'common.wallet';
+                        return (
+                            <MenuItem
+                                key={`${keyTitle}_${index}`}
+                                wrapperStyle={styles.sectionMenuItem}
+                                title={keyTitle}
+                                icon={item.icon}
+                                iconType={item.iconType}
+                                disabled={isExecuting}
+                                onPress={singleExecution(() => {
+                                    if (item.action) {
+                                        item.action();
+                                    } else {
+                                        waitForNavigate(() => {
+                                            Navigation.navigate(item.routeName);
+                                        })();
+                                    }
+                                })}
+                                iconStyles={item.iconStyles}
+                                badgeText={getWalletBalance(isPaymentItem)}
+                                fallbackIcon={item.fallbackIcon}
+                                brickRoadIndicator={item.brickRoadIndicator}
+                                floatRightAvatars={item.floatRightAvatars}
+                                shouldStackHorizontally={item.shouldStackHorizontally}
+                                floatRightAvatarSize={item.avatarSize}
+                                ref={popoverAnchor}
+                                shouldBlockSelection={Boolean(item.link)}
+                                onSecondaryInteraction={
+                                    !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
+                                }
+                                focused={activeRoute && activeRoute.startsWith(item.routeName, 1)}
+                            />
+                        );
+                    })}
+                </View>
+            );
+        },
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, props.userWallet.currentBalance, isExecuting, singleExecution, activeRoute, waitForNavigate],
+    );
 
-                    return (
-                        <MenuItem
-                            key={`${keyTitle}_${index}`}
-                            title={keyTitle}
-                            icon={item.icon}
-                            iconType={item.iconType}
-                            disabled={isExecuting}
-                            onPress={singleExecution(item.action)}
-                            iconStyles={item.iconStyles}
-                            shouldShowRightIcon
-                            iconRight={item.iconRight}
-                            badgeText={getWalletBalance(isPaymentItem)}
-                            fallbackIcon={item.fallbackIcon}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            floatRightAvatars={item.floatRightAvatars}
-                            shouldStackHorizontally={item.shouldStackHorizontally}
-                            floatRightAvatarSize={item.avatarSize}
-                            ref={popoverAnchor}
-                            shouldBlockSelection={Boolean(item.link)}
-                            onSecondaryInteraction={
-                                !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
-                            }
-                        />
-                    );
-                })}
-            </>
-        );
-    }, [getDefaultMenuItems, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
+    const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
+    const generalMenuItems = useMemo(() => getMenuItemsSection(generaltMenuItemsData), [generaltMenuItemsData, getMenuItemsSection]);
+
+    const currentUserDetails = props.currentUserPersonalDetails || {};
+    const avatarURL = lodashGet(currentUserDetails, 'avatar', '');
+    const accountID = lodashGet(currentUserDetails, 'accountID', '');
 
     const headerContent = (
-        <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
+        <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter]}>
             {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
-                <CurrentUserPersonalDetailsSkeletonView
-                    backgroundColor={theme.appBG}
-                    avatarSize={CONST.AVATAR_SIZE.XLARGE}
-                />
+                <CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />
             ) : (
                 <>
                     <Tooltip text={translate('common.profile')}>
@@ -347,11 +294,24 @@ function InitialSettingsPage(props) {
                             role={CONST.ROLE.BUTTON}
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                <Avatar
-                                    imageStyles={[styles.avatarXLarge]}
-                                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                                <AvatarWithImagePicker
+                                    isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
+                                    source={UserUtils.getAvatar(avatarURL, accountID)}
+                                    onImageSelected={PersonalDetails.updateAvatar}
+                                    onImageRemoved={PersonalDetails.deleteAvatar}
+                                    anchorPosition={styles.createAccountMenuPositionProfile(props.windowWidth)}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                     size={CONST.AVATAR_SIZE.XLARGE}
-                                    fallbackIcon={props.currentUserPersonalDetails.fallbackIcon}
+                                    avatarStyle={styles.avatarXLarge}
+                                    pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}
+                                    errors={lodashGet(props.currentUserPersonalDetails, 'errorFields.avatar', null)}
+                                    errorRowStyles={[styles.mt6]}
+                                    onErrorClose={PersonalDetails.clearAvatarErrors}
+                                    previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
+                                    originalFileName={currentUserDetails.originalFileName}
+                                    headerTitle={props.translate('profilePage.profileAvatar')}
+                                    style={[styles.mh5]}
+                                    fallbackIcon={lodashGet(currentUserDetails, 'fallbackIcon')}
                                 />
                             </OfflineWithFeedback>
                         </PressableWithoutFeedback>
@@ -385,15 +345,20 @@ function InitialSettingsPage(props) {
         </View>
     );
 
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
+
     return (
         <HeaderPageLayout
-            title={translate('common.settings')}
+            title={translate('initialSettingsPage.accountSettings')}
             headerContent={headerContent}
-            headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
+            headerContainerStyles={[styles.justifyContentCenter]}
+            onBackButtonPress={() => Navigation.navigate(navigateBackTo)}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
+            childrenContainerStyles={[styles.m0, styles.p0]}
         >
             <View style={styles.w100}>
-                {getMenuItems}
+                {accountMenuItems}
+                {generalMenuItems}
                 <ConfirmModal
                     danger
                     title={translate('common.areYouSure')}
@@ -420,20 +385,11 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-        },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
-        },
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         fundList: {
             key: ONYXKEYS.FUND_LIST,
@@ -443,9 +399,6 @@ export default compose(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
-        },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
         },
     }),
     withNetwork(),

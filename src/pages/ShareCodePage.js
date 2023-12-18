@@ -81,11 +81,13 @@ class ShareCodePage extends React.Component {
             <ScreenWrapper testID={ShareCodePage.displayName}>
                 <HeaderWithBackButton
                     title={this.props.translate('common.shareCode')}
-                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS)}
+                    onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(this.props.report.reportID) : ROUTES.SETTINGS_HOME)}
+                    shouldUseCentralPaneView
+                    shouldShowBorderBottom
                 />
 
                 <ScrollView style={[this.props.themeStyles.flex1, this.props.themeStyles.mt3]}>
-                    <View style={this.props.themeStyles.shareCodePage}>
+                    <View style={[this.props.themeStyles.shareCodePage, {}]}>
                         <QRShareWithDownload
                             ref={this.qrCodeRef}
                             url={url}

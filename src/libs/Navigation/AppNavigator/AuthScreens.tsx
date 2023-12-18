@@ -5,11 +5,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+import {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
-import type {AuthScreensParamList} from '@navigation/types';
 import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
@@ -37,6 +37,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
 type AuthScreensProps = {
@@ -317,6 +318,11 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     options={screenOptions.rightModalNavigator}
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
+                    options={screenOptions.fullScreen}
+                    component={FullScreenNavigator}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
