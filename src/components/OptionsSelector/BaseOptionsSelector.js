@@ -95,6 +95,7 @@ function BaseOptionsSelector(props) {
     const [sections, setSections] = useState();
     const [shouldDisableRowSelection, setShouldDisableRowSelection] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [value, setValue] = useState('');
     const [paginationPage, setPaginationPage] = useState(1);
 
     const relatedTarget = useRef(null);
@@ -185,7 +186,7 @@ function BaseOptionsSelector(props) {
                         relatedTarget.current = null;
                     }
                     if (textInputRef.current.isFocused()) {
-                        setSelection(textInputRef.current, 0, props.value.length);
+                        setSelection(textInputRef.current, 0, value.length);
                     }
                 }
                 const selectedOption = props.onSelectRow(option);
@@ -199,7 +200,7 @@ function BaseOptionsSelector(props) {
                 setFocusedIndex(props.selectedOptions.length);
             }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, props.value.length, props.canSelectMultipleOptions, props.selectedOptions.length],
+        [props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, value.length, props.canSelectMultipleOptions, props.selectedOptions.length],
     );
 
     const selectFocusedOption = useCallback(() => {
@@ -341,7 +342,7 @@ function BaseOptionsSelector(props) {
         const isNewFocusedIndex = props.selectedOptions.length !== focusedIndex;
 
         // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-        if (props.selectedOptions.length !== prevSelectedOptions.current.length || !props.value) {
+        if (props.selectedOptions.length !== prevSelectedOptions.current.length || !value) {
             prevSelectedOptions.current = props.selectedOptions;
             scrollToIndex(0);
             return;
@@ -353,23 +354,26 @@ function BaseOptionsSelector(props) {
         }
         scrollToIndex(props.focusedIndex);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [allOptions.length, focusedIndex, props.focusedIndex, props.selectedOptions, props.value]);
+    }, [allOptions.length, focusedIndex, props.focusedIndex, props.selectedOptions, value]);
 
     const updateSearchValue = useCallback(
-        (value) => {
+        (searchValue) => {
+            setValue(searchValue);
             setErrorMessage(
-                value.length > props.maxLength
+                searchValue.length > props.maxLength
                     ? translate('common.error.characterLimitExceedCounter', {
-                          length: value.length,
+                          length: searchValue.length,
                           limit: props.maxLength,
                       })
                     : '',
             );
-            props.onChangeText(value);
+            props.onChangeText(searchValue);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.onChangeText, props.maxLength, translate],
     );
+
+    const debouncedUpdateSearchValue = _.debounce(updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     /**
      * Calculates all currently visible options based on the sections that are currently being shown
@@ -403,13 +407,13 @@ function BaseOptionsSelector(props) {
             if (props.shouldShowTextInput && props.shouldPreventDefaultFocusOnSelectRow) {
                 textInputRef.current.focus();
                 if (textInputRef.current.isFocused()) {
-                    setSelection(textInputRef.current, 0, props.value.length);
+                    setSelection(textInputRef.current, 0, value.length);
                 }
             }
             props.onAddToSelection(option);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.onAddToSelection, props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, props.value.length],
+        [props.onAddToSelection, props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, value.length],
     );
 
     /**
@@ -430,11 +434,11 @@ function BaseOptionsSelector(props) {
     const textInput = (
         <TextInput
             ref={textInputRef}
-            value={props.value}
+            value={value}
             label={props.textInputLabel}
             accessibilityLabel={props.textInputLabel}
             role={CONST.ROLE.PRESENTATION}
-            onChangeText={updateSearchValue}
+            onChangeText={debouncedUpdateSearchValue}
             errorText={errorMessage}
             onSubmitEditing={selectFocusedOption}
             placeholder={props.placeholderText}
