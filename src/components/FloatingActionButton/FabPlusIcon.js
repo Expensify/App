@@ -7,6 +7,24 @@ import useTheme from '@hooks/useTheme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
+// Adapting fill and stroke properties from react-native-svg to be able to animate them with Reanimated
+const adapter = createAnimatedPropAdapter(
+    (props) => {
+        const modifiedProps = {...props};
+        if (_.keys(modifiedProps).includes('fill')) {
+            modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
+        }
+        if (_.keys(modifiedProps).includes('stroke')) {
+            modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
+        }
+    },
+    ['fill', 'stroke'],
+);
+adapter.propTypes = {
+    fill: PropTypes.string,
+    stroke: PropTypes.string,
+};
+
 const propTypes = {
     /* Current state (active or not active) of the component */
     isActive: PropTypes.bool.isRequired,
@@ -22,24 +40,6 @@ function FabPlusIcon({isActive}) {
             easing: Easing.inOut(Easing.ease),
         });
     }, [isActive, sharedValue]);
-
-    // Adapting fill and stroke properties from react-native-svg to be able to animate them with Reanimated
-    const adapter = createAnimatedPropAdapter(
-        (props) => {
-            const modifiedProps = {...props};
-            if (_.keys(modifiedProps).includes('fill')) {
-                modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
-            }
-            if (_.keys(modifiedProps).includes('stroke')) {
-                modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
-            }
-        },
-        ['fill', 'stroke'],
-    );
-    adapter.propTypes = {
-        fill: PropTypes.string,
-        stroke: PropTypes.string,
-    };
 
     const animatedProps = useAnimatedProps(
         () => {
