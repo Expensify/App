@@ -128,6 +128,7 @@ function IOURequestStepCurrency({
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             shouldShowWrapper
             testID={IOURequestStepCurrency.displayName}
+            shouldReturnFocusOnDeactivate={false}
         >
             {({didScreenTransitionEnd}) => (
                 <SelectionList

@@ -28,14 +28,18 @@ const propTypes = {
 
     /** Whether or not to include safe area padding */
     includeSafeAreaPaddingBottom: PropTypes.bool,
+
+    /** Whether to return focus on deactivate of the focus trap */
+    shouldReturnFocusOnDeactivate: PropTypes.bool,
 };
 
 const defaultProps = {
     onEntryTransitionEnd: () => {},
     includeSafeAreaPaddingBottom: false,
+    shouldReturnFocusOnDeactivate: true,
 };
 
-function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper, includeSafeAreaPaddingBottom}) {
+function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTransitionEnd, children, shouldShowWrapper, includeSafeAreaPaddingBottom, shouldReturnFocusOnDeactivate}) {
     const styles = useThemeStyles();
 
     if (!shouldShowWrapper) {
@@ -48,6 +52,7 @@ function StepScreenWrapper({testID, headerTitle, onBackButtonPress, onEntryTrans
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
             shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldReturnFocusOnDeactivate={shouldReturnFocusOnDeactivate}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <View style={[styles.flex1]}>

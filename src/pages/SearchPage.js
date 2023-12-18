@@ -183,6 +183,7 @@ class SearchPage extends Component {
                 includeSafeAreaPaddingBottom={false}
                 testID={SearchPage.displayName}
                 onEntryTransitionEnd={this.updateOptions}
+                shouldReturnFocusOnDeactivate={false}
             >
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
