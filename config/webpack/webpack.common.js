@@ -97,6 +97,10 @@ const webpackConfig = ({envFile = '.env', platform = 'web'}) => ({
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
+
+                // Issue #31665 - Content security policy (CSP) safe version of
+                // mapboxgl's worker requires to be hosted from the same-origin.
+                {from: 'node_modules/mapbox-gl/dist/mapbox-gl-csp-worker.js'},
             ],
         }),
         new EnvironmentPlugin({JEST_WORKER_ID: null}),
