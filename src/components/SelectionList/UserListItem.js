@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
 function UserListItem({item, textStyles, alternateTextStyles, showTooltip}) {
