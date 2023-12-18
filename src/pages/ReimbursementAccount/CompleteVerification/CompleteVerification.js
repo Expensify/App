@@ -49,10 +49,10 @@ const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAcc
             bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, COMPLETE_VERIFICATION_KEYS.BANK_ACCOUNT_ID, 0),
             ...values,
         };
-        const uboStepValues = getSubstepValues(BENEFICIAL_OWNER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
+        const beneficialOwnersStepValues = getSubstepValues(BENEFICIAL_OWNER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
 
         BankAccounts.updateBeneficialOwnersForBankAccount({
-            ...uboStepValues,
+            ...beneficialOwnersStepValues,
             ...payload,
         });
     }, [reimbursementAccount, reimbursementAccountDraft, values]);

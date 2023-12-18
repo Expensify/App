@@ -9,12 +9,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 import ROUTES from '@src/ROUTES';
 
+const secureYourAccountUrl = encodeURI(
+    `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute()}","isFromNewDot":"true"}`,
+);
+
 function Enable2FACard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const secureYourAccountUrl = encodeURI(
-        `settings?param={"section":"account","action":"enableTwoFactorAuth","exitTo":"${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute()}","isFromNewDot":"true"}`,
-    );
 
     return (
         <Section

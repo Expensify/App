@@ -44,22 +44,26 @@ const validate = (values) => {
     return errors;
 };
 
-const completeVerificationKeys = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
 
 function ConfirmAgreements({onNext, reimbursementAccount}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const defaultValues = useMemo(
         () => ({
-            [completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: getDefaultValueForReimbursementAccountField(
+            [COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: getDefaultValueForReimbursementAccountField(
                 reimbursementAccount,
-                completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
+                COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT,
                 false,
             ),
-            [completeVerificationKeys.CERTIFY_TRUE_INFORMATION]: getDefaultValueForReimbursementAccountField(reimbursementAccount, completeVerificationKeys.CERTIFY_TRUE_INFORMATION, false),
-            [completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS]: getDefaultValueForReimbursementAccountField(
+            [COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION]: getDefaultValueForReimbursementAccountField(
                 reimbursementAccount,
-                completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS,
+                COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION,
+                false,
+            ),
+            [COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS]: getDefaultValueForReimbursementAccountField(
+                reimbursementAccount,
+                COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS,
                 false,
             ),
         }),
@@ -83,25 +87,25 @@ function ConfirmAgreements({onNext, reimbursementAccount}) {
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
-                    inputID={completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
+                    inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
                     style={styles.mt4}
                     LabelComponent={() => <Text>{translate('completeVerificationStep.isAuthorizedToUseBankAccount')}</Text>}
-                    defaultValue={defaultValues[completeVerificationKeys.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]}
+                    defaultValue={defaultValues[COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]}
                     shouldSaveDraft
                 />
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
-                    inputID={completeVerificationKeys.CERTIFY_TRUE_INFORMATION}
+                    inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
                     style={styles.mt4}
                     LabelComponent={() => <Text>{translate('completeVerificationStep.certifyTrueAndAccurate')}</Text>}
-                    defaultValue={defaultValues[completeVerificationKeys.CERTIFY_TRUE_INFORMATION]}
+                    defaultValue={defaultValues[COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION]}
                     shouldSaveDraft
                 />
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
-                    inputID={completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS}
+                    inputID={COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS}
                     style={styles.mt4}
                     LabelComponent={() => (
                         <Text>
@@ -109,7 +113,7 @@ function ConfirmAgreements({onNext, reimbursementAccount}) {
                             <TextLink href="https://use.expensify.com/achterms">{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
                         </Text>
                     )}
-                    defaultValue={defaultValues[completeVerificationKeys.ACCEPT_TERMS_AND_CONDITIONS]}
+                    defaultValue={defaultValues[COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS]}
                     shouldSaveDraft
                 />
             </FormProvider>
