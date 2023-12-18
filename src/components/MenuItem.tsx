@@ -87,7 +87,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         /** Any adjustments to style when menu item is hovered or pressed */
         hoverAndPressStyle: StyleProp<AnimatedStyle<ViewStyle>>;
 
-        descriptionTextStyle?: StyleProp<ViewStyle>;
+        descriptionTextStyle?: StyleProp<TextStyle>;
 
         /** The fill color to pass into the icon. */
         iconFill?: string;
