@@ -1379,6 +1379,31 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             textDecorationLine: 'none',
         },
+
+        breadcrumb: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeh1,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
+        },
+
+        breadcrumbStrong: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+        },
+
+        breadcrumbSeparator: {
+            color: theme.icon,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
+        },
+
+        breadcrumbLogo: {
+            top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
+            height: variables.lineHeightSizeh1,
+        },
+
         LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -1389,6 +1414,7 @@ const styles = (theme: ThemeColors) =>
                 borderBottomRightRadius: isSmallScreenWidth ? 0 : 24,
                 overflow: 'hidden',
             } satisfies ViewStyle),
+
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -3567,12 +3593,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            marginLeft: 0,
-            marginBottom: 2,
+            position: 'absolute',
+            bottom: -8,
+            left: -8,
             height: 12,
+            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
+            zIndex: -1,
         },
 
         headerEnvBadgeText: {
