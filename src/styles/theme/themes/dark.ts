@@ -65,7 +65,6 @@ const darkTheme = {
     dropUIBG: 'rgba(6,27,9,0.92)',
     receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green400,
-    pickerOptionsTextColor: colors.productDark900,
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
@@ -129,6 +128,10 @@ const darkTheme = {
         },
         [SCREENS.RIGHT_MODAL.REFERRAL]: {
             backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.RIGHT_MODAL.SIGN_IN]: {
+            backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },
