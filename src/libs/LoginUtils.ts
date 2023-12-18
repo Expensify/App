@@ -1,9 +1,9 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIP: number;
 Onyx.connect({
