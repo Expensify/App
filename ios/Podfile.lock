@@ -1,25 +1,25 @@
 PODS:
-  - Airship (16.11.3):
-    - Airship/Automation (= 16.11.3)
-    - Airship/Basement (= 16.11.3)
-    - Airship/Core (= 16.11.3)
-    - Airship/ExtendedActions (= 16.11.3)
-    - Airship/MessageCenter (= 16.11.3)
-  - Airship/Automation (16.11.3):
+  - Airship (16.12.1):
+    - Airship/Automation (= 16.12.1)
+    - Airship/Basement (= 16.12.1)
+    - Airship/Core (= 16.12.1)
+    - Airship/ExtendedActions (= 16.12.1)
+    - Airship/MessageCenter (= 16.12.1)
+  - Airship/Automation (16.12.1):
     - Airship/Core
-  - Airship/Basement (16.11.3)
-  - Airship/Core (16.11.3):
+  - Airship/Basement (16.12.1)
+  - Airship/Core (16.12.1):
     - Airship/Basement
-  - Airship/ExtendedActions (16.11.3):
+  - Airship/ExtendedActions (16.12.1):
     - Airship/Core
-  - Airship/MessageCenter (16.11.3):
+  - Airship/MessageCenter (16.12.1):
     - Airship/Core
-  - Airship/PreferenceCenter (16.11.3):
+  - Airship/PreferenceCenter (16.12.1):
     - Airship/Core
-  - AirshipFrameworkProxy (2.0.8):
-    - Airship (= 16.11.3)
-    - Airship/MessageCenter (= 16.11.3)
-    - Airship/PreferenceCenter (= 16.11.3)
+  - AirshipFrameworkProxy (2.1.1):
+    - Airship (= 16.12.1)
+    - Airship/MessageCenter (= 16.12.1)
+    - Airship/PreferenceCenter (= 16.12.1)
   - AppAuth (1.6.2):
     - AppAuth/Core (= 1.6.2)
     - AppAuth/ExternalUserAgent (= 1.6.2)
@@ -558,8 +558,8 @@ PODS:
   - React-jsinspector (0.72.4)
   - React-logger (0.72.4):
     - glog
-  - react-native-airship (15.2.6):
-    - AirshipFrameworkProxy (= 2.0.8)
+  - react-native-airship (15.3.1):
+    - AirshipFrameworkProxy (= 2.1.1)
     - React-Core
   - react-native-blob-util (0.17.3):
     - React-Core
@@ -777,35 +777,10 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
-  - RNReanimated (3.5.4):
-    - DoubleConversion
-    - FBLazyVector
-    - glog
-    - hermes-engine
-    - RCT-Folly
-    - RCTRequired
-    - RCTTypeSafety
-    - React-callinvoker
+  - RNReanimated (3.6.1):
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
-    - React-Core/DevSupport
-    - React-Core/RCTWebSocket
-    - React-CoreModules
-    - React-cxxreact
-    - React-hermes
-    - React-jsi
-    - React-jsiexecutor
-    - React-jsinspector
-    - React-RCTActionSheet
-    - React-RCTAnimation
-    - React-RCTAppDelegate
-    - React-RCTBlob
-    - React-RCTImage
-    - React-RCTLinking
-    - React-RCTNetwork
-    - React-RCTSettings
-    - React-RCTText
     - ReactCommon/turbomodule/core
-    - Yoga
   - RNScreens (3.21.0):
     - React-Core
     - React-RCTImage
@@ -1160,8 +1135,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: c70eed50e429f97f5adb285423c7291fb7a032ae
-  AirshipFrameworkProxy: 7bc4130c668c6c98e2d4c60fe4c9eb61a999be99
+  Airship: 2f4510b497a8200780752a5e0304a9072bfffb6d
+  AirshipFrameworkProxy: ea1b6c665c798637b93c465b5e505be3011f1d9d
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
@@ -1224,7 +1199,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: c7f826e40fa9cab5d37cab6130b1af237332b594
   React-jsinspector: aaed4cf551c4a1c98092436518c2d267b13a673f
   React-logger: da1ebe05ae06eb6db4b162202faeafac4b435e77
-  react-native-airship: 5d19f4ba303481cf4101ff9dee9249ef6a8a6b64
+  react-native-airship: 6ded22e4ca54f2f80db80b7b911c2b9b696d9335
   react-native-blob-util: 99f4d79189252f597fe0d810c57a3733b1b1dea6
   react-native-cameraroll: 8ffb0af7a5e5de225fd667610e2979fc1f0c2151
   react-native-config: 7cd105e71d903104e8919261480858940a6b9c0e
@@ -1280,7 +1255,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
-  RNReanimated: ab2e96c6d5591c3dfbb38a464f54c8d17fb34a87
+  RNReanimated: fdbaa9c964bbab7fac50c90862b6cc5f041679b9
   RNScreens: d037903436160a4b039d32606668350d2a808806
   RNSVG: d00c8f91c3cbf6d476451313a18f04d220d4f396
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d

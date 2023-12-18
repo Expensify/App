@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -444,13 +444,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
         };
     }
     return {};
-}
-
-function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
 }
 
 function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
@@ -1015,7 +1008,6 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1430,6 +1422,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         return containerStyles;
     },
+
+    getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

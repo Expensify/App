@@ -521,6 +521,7 @@ function MoneyRequestConfirmationList(props) {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
+                shouldShowPersonalBankAccountOption
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -564,7 +565,6 @@ function MoneyRequestConfirmationList(props) {
     return (
         <OptionsSelector
             sections={optionSelectorSections}
-            value=""
             onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
