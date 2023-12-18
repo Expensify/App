@@ -779,6 +779,19 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
+    // Update optimistic data for parent report action if the report is a child report and the task report has no visible child
+    const childVisibleActionCount = lodashGet(parentReportAction, 'childVisibleActionCount', 0);
+    if (childVisibleActionCount === 0) {
+        const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+            parentReport.reportID,
+            parentReport.lastVisibleActionCreated || '',
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (isNotEmptyObject(optimisticParentReportData)) {
+            optimisticData.push(optimisticParentReportData);
+        }
+    }
+
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
