@@ -67,7 +67,7 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
         }
 
         updateComment(comment);
-    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value, commentRef, isWeb]);
+    }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, report.reportID, updateComment, value, commentRef]);
 
     return null;
 }
