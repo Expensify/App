@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -13,31 +12,32 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {Report} from '@src/types/onyx';
 import variables from '@styles/variables';
 
-const propTypes = {
+type MoneyReportViewProps = {
     /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
+    report: Report,
 
     /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: PropTypes.bool.isRequired,
+    shouldShowHorizontalRule: boolean,
+
 };
 
-function MoneyReportView(props) {
+function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const isSettled = ReportUtils.isSettled(props.report.reportID);
+    const isSettled = ReportUtils.isSettled(report.reportID);
 
-    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.report);
+    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
 
     const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend;
-    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.report.currency, ReportUtils.hasOnlyDistanceRequestTransactions(props.report.reportID));
-    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, props.report.currency);
-    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, props.report.currency);
+    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency, ReportUtils.hasOnlyDistanceRequestTransactions(report.reportID));
+    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
+    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
 
     const subAmountTextStyles = [styles.taskTitleMenuItem, styles.alignSelfCenter, StyleUtils.getFontSizeStyle(variables.fontSizeh1), StyleUtils.getColorStyle(theme.textSupporting)];
 
@@ -112,15 +112,14 @@ function MoneyReportView(props) {
                     </>
                 ) : undefined}
                 <SpacerView
-                    shouldShow={props.shouldShowHorizontalRule}
-                    style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+                    shouldShow={shouldShowHorizontalRule}
+                    style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
                 />
             </View>
         </View>
     );
 }
 
-MoneyReportView.propTypes = propTypes;
 MoneyReportView.displayName = 'MoneyReportView';
 
 export default MoneyReportView;
