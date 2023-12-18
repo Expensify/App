@@ -2,14 +2,14 @@ import React, {RefObject, useCallback} from 'react';
 import {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 
 type DisplayNamesTooltipItemProps = {
     index?: number;
 
     /** The function to get a distance to shift the tooltip horizontally */
-    getTooltipShiftX?: (index: number) => number | undefined;
+    getTooltipShiftX?: (index: number) => number;
 
     /** The Account ID for the tooltip */
     accountID?: number;
@@ -32,7 +32,7 @@ type DisplayNamesTooltipItemProps = {
 
 function DisplayNamesTooltipItem({
     index = 0,
-    getTooltipShiftX = () => undefined,
+    getTooltipShiftX = () => 0,
     accountID = 0,
     avatar = '',
     login = '',
