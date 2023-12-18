@@ -37,8 +37,8 @@ function FabPlusIcon({isActive}) {
         ['fill', 'stroke'],
     );
     adapter.propTypes = {
-        fill: PropTypes.any,
-        stroke: PropTypes.any,
+        fill: PropTypes.string,
+        stroke: PropTypes.string,
     };
 
     const animatedProps = useAnimatedProps(
