@@ -5,7 +5,7 @@ import AddressSearch from '@components/AddressSearch';
 import InputWrapper from '@components/Form/InputWrapper';
 import StatePicker from '@components/StatePicker';
 import TextInput from '@components/TextInput';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {

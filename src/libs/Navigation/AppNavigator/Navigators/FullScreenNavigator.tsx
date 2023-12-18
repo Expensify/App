@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import createCustomFullScreenNavigator from '@libs/Navigation/AppNavigator/createCustomFullScreenNavigator';
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import useThemeStyles from '@styles/useThemeStyles';
 import SCREENS from '@src/SCREENS';
 
 const loadPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;

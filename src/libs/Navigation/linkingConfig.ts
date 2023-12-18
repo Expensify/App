@@ -110,7 +110,15 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
-
+            [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
+                screens: {
+                    [SCREENS.LEFT_MODAL.SEARCH]: {
+                        screens: {
+                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
+                        },
+                    },
+                },
+            },
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
                     [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -249,9 +257,14 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.STATUS_SET]: {
-                                path: ROUTES.SETTINGS_STATUS_SET,
-                                exact: true,
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                             },
                             [SCREENS.WORKSPACE.CURRENCY]: {
                                 path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
@@ -345,11 +358,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                             [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                             [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
-                        },
-                    },
-                    [SCREENS.RIGHT_MODAL.SEARCH]: {
-                        screens: {
-                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.DETAILS]: {

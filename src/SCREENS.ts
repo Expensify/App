@@ -39,8 +39,10 @@ const SCREENS = {
             CONTACT_METHODS: 'Settings_ContactMethods',
             CONTACT_METHOD_DETAILS: 'Settings_ContactMethodDetails',
             NEW_CONTACT_METHOD: 'Settings_NewContactMethod',
+            STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
+            STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
+            STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
             STATUS: 'Settings_Status',
-            STATUS_SET: 'Settings_Status_Set',
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
@@ -81,10 +83,12 @@ const SCREENS = {
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
+    LEFT_MODAL: {
+        SEARCH: 'Search',
+    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         NEW_CHAT: 'NewChat',
-        SEARCH: 'Search',
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',

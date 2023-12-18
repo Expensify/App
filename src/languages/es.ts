@@ -95,6 +95,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        searchWithThreeDots: 'Buscar...',
         next: 'Siguiente',
         previous: 'Anterior',
         goBack: 'Volver',
@@ -190,6 +191,8 @@ export default {
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
             characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
+            invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
+            invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
@@ -259,6 +262,8 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
+        am: 'AM',
+        pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
@@ -486,7 +491,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Buscar',
+        buttonSearch: 'Busca algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',
@@ -746,6 +751,7 @@ export default {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
+        goToExpensifyClassic: 'Ir a Expensify Classic',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'Términos de Servicio',
@@ -1168,12 +1174,19 @@ export default {
     },
     statusPage: {
         status: 'Estado',
-        setStatusTitle: 'Establece tu estado',
         statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        timePeriods: {
+            never: 'Nunca',
+            thirtyMinutes: '30 minutos',
+            oneHour: '1 hora',
+            afterToday: 'Hoy',
+            afterWeek: 'Una semana',
+            custom: 'Personalizado',
+        },
         untilTomorrow: 'Hasta mañana',
         untilTime: ({time}: UntilTimeParams) => {
             // Check for HH:MM AM/PM format and starts with '01:'
@@ -1191,6 +1204,10 @@ export default {
             // Default case
             return `Hasta ${time}`;
         },
+        date: 'Fecha',
+        time: 'Hora',
+        clearAfter: 'Borrar después',
+        whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Paso ${step}`;
@@ -1504,6 +1521,8 @@ export default {
                 companyCards: 'Tarjetas de crédito corporativas',
                 reimbursements: 'Reembolsos fáciles',
             },
+            notFound: 'No se encontró ningún espacio de trabajo',
+            description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',

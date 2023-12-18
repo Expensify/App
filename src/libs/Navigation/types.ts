@@ -120,7 +120,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.STATUS_SET]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
+    [SCREENS.WORKSPACE.INITIAL]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: undefined;
     [SCREENS.WORKSPACE.INVITE]: {
@@ -346,10 +349,13 @@ type PrivateNotesNavigatorParamList = {
     };
 };
 
+type LeftModalNavigatorParamList = {
+    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
@@ -440,6 +446,7 @@ type AuthScreensParamList = {
         name: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
+    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
@@ -465,6 +472,7 @@ export type {
     NavigationRoot,
     AuthScreensParamList,
     BottomTabNavigatorParamList,
+    LeftModalNavigatorParamList,
     RightModalNavigatorParamList,
     PublicScreensParamList,
     MoneyRequestNavigatorParamList,

@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import dismissModal from './dismissModal';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import getStateFromPath from './getStateFromPath';
@@ -82,6 +83,10 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     };
 }
 
+function isModalNavigator(targetNavigator?: string) {
+    return targetNavigator === NAVIGATORS.LEFT_MODAL_NAVIGATOR || targetNavigator === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -103,6 +108,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
+        const topRouteName = rootState.routes.at(-1)?.name;
+        const isTargetNavigatorOnTop = topRouteName === action.payload.name;
+
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
@@ -130,8 +138,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         } else if (type === CONST.NAVIGATION.TYPE.UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
-            // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
-        } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rootState?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            // If this action is navigating to the ModalNavigator and the last route on the root navigator is not already opened ModalNavigator then push
+        } else if (isModalNavigator(action.payload.name) && !isTargetNavigatorOnTop) {
+            if (isModalNavigator(topRouteName)) {
+                dismissModal('', navigation);
+            }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
@@ -166,7 +177,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         }
     }
 
-    if (action && 'payload' in action && action.payload && 'name' in action.payload && action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (action && 'payload' in action && action.payload && 'name' in action.payload && isModalNavigator(action.payload.name)) {
         const minimalAction = getMinimalAction(action, navigation.getRootState());
         if (minimalAction) {
             // There are situations where a route already exists on the current navigation stack

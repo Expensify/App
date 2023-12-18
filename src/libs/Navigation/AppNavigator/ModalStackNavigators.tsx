@@ -1,6 +1,7 @@
 import {ParamListBase} from '@react-navigation/routers';
 import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {
     AddPersonalBankAccountNavigatorParamList,
     DetailsNavigatorParamList,
@@ -28,8 +29,7 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import {ThemeStyles} from '@styles/styles';
-import useThemeStyles from '@styles/useThemeStyles';
+import {ThemeStyles} from '@styles/index';
 import SCREENS from '@src/SCREENS';
 import type {Screen} from '@src/SCREENS';
 
@@ -210,8 +210,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
-    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
-    // [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
@@ -232,9 +231,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require('../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require('../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.STATUS]: () => require('../../../pages/settings/Profile/CustomStatus/StatusPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.STATUS_SET]: () => require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require('../../../pages/settings/Profile/CustomStatus/SetDatePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: () => require('../../../pages/settings/Profile/CustomStatus/SetTimePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.INITIAL]: () => require('../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.CARD]: () => require('../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.RATE_AND_UNIT]: () => require('../../../pages/workspace/reimburse/WorkspaceRateAndUnitPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.CURRENCY]: () => require('../../../pages/workspace/WorkspaceOverviewCurrencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE]: () => require('../../../pages/workspace/WorkspaceInvitePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require('../../../pages/workspace/WorkspaceInviteMessagePage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,

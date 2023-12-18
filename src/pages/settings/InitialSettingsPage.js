@@ -22,6 +22,8 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -31,8 +33,6 @@ import * as UserUtils from '@libs/UserUtils';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersonalDetails from '@userActions/PersonalDetails';
@@ -171,6 +171,16 @@ function InitialSettingsPage(props) {
                     translationKey: 'initialSettingsPage.security',
                     icon: Expensicons.Lock,
                     routeName: ROUTES.SETTINGS_SECURITY,
+                },
+                {
+                    translationKey: 'initialSettingsPage.goToExpensifyClassic',
+                    icon: Expensicons.NewExpensify,
+                    action: () => {
+                        Link.openExternalLink(CONST.EXPENSIFY_INBOX_URL);
+                    },
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    link: CONST.EXPENSIFY_INBOX_URL,
                 },
                 {
                     translationKey: 'initialSettingsPage.signOut',

@@ -139,11 +139,12 @@ export default {
     signInLogoHeight: 34,
     signInLogoWidth: 120,
     signInLogoWidthLargeScreen: 144,
+    signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
-    lhnLogoWidth: 108,
-    lhnLogoHeight: 28,
+    lhnLogoWidth: 95.09,
+    lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
@@ -193,4 +194,6 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
+
+    lhpBorderRadius: 24,
 } as const;

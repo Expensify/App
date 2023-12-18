@@ -8,11 +8,11 @@ import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';

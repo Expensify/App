@@ -1,6 +1,7 @@
 import React, {memo, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Onyx, {OnyxEntry, withOnyx} from 'react-native-onyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -14,7 +15,6 @@ import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
 import * as Modal from '@userActions/Modal';
@@ -38,6 +38,7 @@ import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
+import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
 type AuthScreensProps = {
@@ -323,6 +324,12 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={screenOptions.fullScreen}
                     component={FullScreenNavigator}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    options={screenOptions.leftModalNavigator}
+                    component={LeftModalNavigator}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}

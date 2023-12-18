@@ -7,6 +7,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -19,8 +21,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -565,7 +565,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     return (
         <OptionsSelector
             sections={optionSelectorSections}
-            value=""
             onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
