@@ -363,7 +363,7 @@ function MenuItem(
             return;
         }
 
-        if (event && event.type === 'click') {
+        if (event?.type === 'click') {
             (event.currentTarget as HTMLElement).blur();
         }
 
