@@ -101,4 +101,5 @@ function Icon({
 Icon.displayName = 'Icon';
 
 export type {SrcProps};
+
 export default Icon;
