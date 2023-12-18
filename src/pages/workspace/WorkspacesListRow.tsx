@@ -50,7 +50,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const ownerDetails = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
+    const [ownerDetails] = PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID);
 
     const userFriendlyWorkspaceType = useMemo(() => {
         switch (workspaceType) {
