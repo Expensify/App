@@ -137,4 +137,5 @@ function IOURequestStepTaxAmountPage({
 IOURequestStepTaxAmountPage.propTypes = propTypes;
 IOURequestStepTaxAmountPage.defaultProps = defaultProps;
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
+
 export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepTaxAmountPage);
