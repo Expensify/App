@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useMemo, useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -132,6 +132,19 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
 
     let amountDescription = `${translate('iou.amount')}`;
+
+    const saveBillable = useCallback(
+        ({billable: newBillable}) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newBillable === TransactionUtils.getBillable(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestBillable(transaction.transactionID, report.reportID, newBillable);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
 
     if (isCardTransaction) {
         if (formattedOriginalAmount) {
@@ -301,7 +314,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         <Switch
                             accessibilityLabel={translate('common.billable')}
                             isOn={transactionBillable}
-                            onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
+                            onToggle={saveBillable}
                         />
                     </View>
                 )}
