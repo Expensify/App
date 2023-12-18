@@ -6,7 +6,7 @@
 function getListViewHeight(windowHeight) {
     return {
         overflow: 'auto',
-        maxHeight: windowHeight - 230,
+        maxHeight: windowHeight - 250,
     };
 }
 

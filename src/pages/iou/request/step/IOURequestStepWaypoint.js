@@ -208,6 +208,7 @@ function IOURequestStepWaypoint({
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
+                    scrollViewStyles={[styles.overflowHidden]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
@@ -215,8 +216,9 @@ function IOURequestStepWaypoint({
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
+                    submitButtonStyles={[styles.flexGrow0]}
                 >
-                    <View>
+                    <View style={[styles.flexGrow1]}>
                         <InputWrapperWithRef
                             InputComponent={AddressSearch}
                             canUseCurrentLocation

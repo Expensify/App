@@ -73,6 +73,12 @@ const propTypes = {
 
     /** Should validate function be called when the value of the input is changed */
     shouldValidateOnChange: PropTypes.bool,
+
+    /** Scroll view styles */
+    scrollViewStyles: stylePropTypes,
+
+    /** Submit button styles */
+    submitButtonStyles: stylePropTypes,
 };
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
@@ -94,6 +100,8 @@ const defaultProps = {
     validate: () => {},
     shouldValidateOnBlur: true,
     shouldValidateOnChange: true,
+    scrollViewStyles: [],
+    submitButtonStyles: [],
 };
 
 function getInitialValueByType(valueType) {
@@ -126,7 +134,7 @@ const FormProvider = forwardRef(
                 }
                 FormActions.setErrorFields(formID, null);
 
-                const validateErrors = validate(trimmedStringValues) || {};
+                const validateErrors = validate(values) || {};
 
                 // Validate the input for html tags. It should supercede any other error
                 _.each(trimmedStringValues, (inputValue, inputID) => {
@@ -155,11 +163,6 @@ const FormProvider = forwardRef(
                             }
                         }
                     }
-
-                    if (isMatch && leadingSpaceIndex === -1) {
-                        return;
-                    }
-
                     // Add a validation error here because it is a string value that contains HTML characters
                     validateErrors[inputID] = 'common.error.invalidCharacter';
                 });

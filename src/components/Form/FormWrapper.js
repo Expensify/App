@@ -68,7 +68,7 @@ const propTypes = {
     inputRefs: PropTypes.objectOf(refPropTypes).isRequired,
 
     /** Scroll view styles */
-    scrollViewStyle: stylePropTypes,
+    scrollViewStyles: stylePropTypes,
 };
 
 const defaultProps = {
@@ -81,8 +81,8 @@ const defaultProps = {
     scrollContextEnabled: false,
     footerContent: null,
     style: [],
+    scrollViewStyles: [],
     submitButtonStyles: [],
-    scrollViewStyle: [],
 };
 
 function FormWrapper(props) {
@@ -188,7 +188,7 @@ function FormWrapper(props) {
             {({safeAreaPaddingBottomStyle}) =>
                 props.scrollContextEnabled ? (
                     <ScrollViewWithContext
-                        style={[styles.w100, styles.flex1, ...props.scrollViewStyle]}
+                        style={[styles.w100, styles.flex1, ...props.scrollViewStyles]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}
@@ -197,7 +197,7 @@ function FormWrapper(props) {
                     </ScrollViewWithContext>
                 ) : (
                     <ScrollView
-                        style={[styles.w100, styles.flex1, ...props.scrollViewStyle]}
+                        style={[styles.w100, styles.flex1, ...props.scrollViewStyles]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
                         ref={formRef}

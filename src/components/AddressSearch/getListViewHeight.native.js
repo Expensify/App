@@ -7,7 +7,7 @@
 function getListViewHeight(windowHeight, isOffline) {
     return {
         overflow: 'hidden',
-        maxHeight: isOffline ? windowHeight - 330 : windowHeight - 280,
+        maxHeight: isOffline ? windowHeight - 350 : windowHeight - 300,
     };
 }
 
