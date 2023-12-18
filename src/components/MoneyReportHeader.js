@@ -91,7 +91,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const cancelPayment = useCallback(() => {
         IOU.cancelPayment(moneyRequestReport, chatReport);
         setIsConfirmModalVisible(false);
-    }, [setIsConfirmModalVisible, moneyRequestReport, chatReport]);
+    }, [moneyRequestReport, chatReport]);
 
     const threeDotsMenuItems = [];
     if (isPayer && isSettled) {
