@@ -84,7 +84,7 @@ function FormAlertWithSubmitButton({
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
             errorMessageStyle={errorMessageStyle}
         >
-            {(isOffline: boolean) => (
+            {(isOffline: boolean | undefined) => (
                 <View>
                     {isOffline && !enabledWhenOffline ? (
                         <Button
