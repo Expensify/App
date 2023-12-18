@@ -5,7 +5,6 @@ import type {WithCurrentUserPersonalDetailsHOCProps} from '@components/withCurre
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {PersonalDetails} from '@src/types/onyx';
 
 type ReactionTooltipContentProps = WithCurrentUserPersonalDetailsHOCProps & {
     /**
@@ -27,12 +26,7 @@ type ReactionTooltipContentProps = WithCurrentUserPersonalDetailsHOCProps & {
 function ReactionTooltipContent({accountIDs, currentUserPersonalDetails = {}, emojiCodes, emojiName}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const users: PersonalDetails[] = useMemo(
-        // TODO: remove eslint disable when https://github.com/Expensify/App/pull/30169 is merged
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        () => PersonalDetailsUtils.getPersonalDetailsByIDs(accountIDs, currentUserPersonalDetails.accountID, true),
-        [currentUserPersonalDetails.accountID, accountIDs],
-    );
+    const users = useMemo(() => PersonalDetailsUtils.getPersonalDetailsByIDs(accountIDs, currentUserPersonalDetails.accountID, true), [currentUserPersonalDetails.accountID, accountIDs]);
     const namesString = users
         .map((user) => user?.displayName)
         .filter((name) => name)
