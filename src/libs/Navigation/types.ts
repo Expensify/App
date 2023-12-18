@@ -384,7 +384,7 @@ type SettingsCentralPaneNavigatorParamList = {
 };
 
 type FullScreenNavigatorParamList = {
-    [SCREENS.SETTINGS_HOME]: undefined;
+    [SCREENS.SETTINGS.ROOT]: undefined;
     [SCREENS.SETTINGS_CENTRAL_PANE]: NavigatorScreenParams<SettingsCentralPaneNavigatorParamList>;
 };
 

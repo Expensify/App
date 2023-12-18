@@ -178,9 +178,9 @@ const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigat
     [SCREENS.I_AM_A_TEACHER]: () => require('../../../pages/TeachersUnite/ImTeacherPage').default as React.ComponentType,
 });
 
-// should it be merged with SettingsModalStackNavigator?
 const AccountSettingsModalStackNavigator = createModalStackNavigator(
     {
+        [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
         [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
         [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
         [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
@@ -193,7 +193,6 @@ const AccountSettingsModalStackNavigator = createModalStackNavigator(
 );
 
 const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorParamList>({
-    [SCREENS.SETTINGS.ROOT]: () => require('../../../pages/settings/InitialSettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SHARE_CODE]: () => require('../../../pages/ShareCodePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require('../../../pages/settings/Profile/PronounsPage').default as React.ComponentType,

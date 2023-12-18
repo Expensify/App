@@ -108,7 +108,7 @@ function ProfilePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
                 shouldUseCentralPaneView
                 shouldShowBorderBottom
             />

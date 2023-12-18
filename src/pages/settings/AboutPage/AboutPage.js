@@ -103,7 +103,7 @@ function AboutPage(props) {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
                         shouldUseCentralPaneView
                         shouldShowBorderBottom
                     />

@@ -46,7 +46,7 @@ function PressableAvatarWithIndicator({isCreateMenuOpen, currentUserPersonalDeta
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_HOME);
+        Navigation.navigate(ROUTES.SETTINGS);
     }, [isCreateMenuOpen]);
 
     return (

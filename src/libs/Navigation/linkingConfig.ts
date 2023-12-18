@@ -499,10 +499,10 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             },
 
             [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
-                initialRouteName: SCREENS.SETTINGS_HOME,
+                initialRouteName: SCREENS.SETTINGS.ROOT,
                 screens: {
-                    [SCREENS.SETTINGS_HOME]: {
-                        path: ROUTES.SETTINGS_HOME,
+                    [SCREENS.SETTINGS.ROOT]: {
+                        path: ROUTES.SETTINGS,
                     },
                     [SCREENS.SETTINGS_CENTRAL_PANE]: {
                         screens: {

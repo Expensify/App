@@ -185,7 +185,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
         <IllustratedHeaderPageLayout
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
             illustration={LottieAnimations.WorkspacePlanet}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_HOME)}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
             title={translate('common.workspaces')}
             shouldUseCentralPaneView
             footer={

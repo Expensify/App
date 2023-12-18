@@ -18,7 +18,6 @@ const SCREENS = {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
-    SETTINGS_HOME: 'SettingsHome',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',

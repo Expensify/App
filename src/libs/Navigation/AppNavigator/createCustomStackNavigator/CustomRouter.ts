@@ -76,7 +76,7 @@ const handleSettingsOpened = (state: State) => {
         state: {
             routes: [
                 {
-                    name: SCREENS.SETTINGS_HOME,
+                    name: SCREENS.SETTINGS.ROOT,
                 },
                 {
                     name: SCREENS.SETTINGS_CENTRAL_PANE,
