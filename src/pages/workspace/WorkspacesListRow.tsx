@@ -66,7 +66,7 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
     }, [workspaceType, translate]);
 
     if (isWide === undefined) {
-        return <></>;
+        return null;
     }
 
     return (
