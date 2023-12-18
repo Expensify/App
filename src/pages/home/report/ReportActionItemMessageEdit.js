@@ -13,9 +13,13 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import refPropTypes from '@components/refPropTypes';
 import Tooltip from '@components/Tooltip';
+import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -27,9 +31,6 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import reportPropTypes from '@pages/reportPropTypes';
-import containerComposeStyles from '@styles/containerComposeStyles';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -82,6 +83,7 @@ const isMobileSafari = Browser.isMobileSafari();
 function ReportActionItemMessageEdit(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
@@ -115,7 +117,7 @@ function ReportActionItemMessageEdit(props) {
     });
     const [selection, setSelection] = useState(getInitialSelection);
     const [isFocused, setIsFocused] = useState(false);
-    const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
+    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState(false);
     const [onyxFocused, setOnyxFocused] = useState(false);
 
@@ -368,6 +370,10 @@ function ReportActionItemMessageEdit(props) {
      */
     const focus = focusComposerWithDelay(textInputRef.current);
 
+    useEffect(() => {
+        validateCommentMaxLength(draft);
+    }, [draft, validateCommentMaxLength]);
+
     return (
         <>
             <View style={[styles.chatItemMessage, styles.flexRow]}>
@@ -385,7 +391,7 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 onPress={deleteDraft}
                                 style={styles.composerSizeButton}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                                 // disable dimming
                                 hoverDimmingValue={1}
@@ -397,7 +403,7 @@ function ReportActionItemMessageEdit(props) {
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
-                    <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
+                    <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                         <Composer
                             multiline
                             ref={(el) => {
@@ -453,7 +459,7 @@ function ReportActionItemMessageEdit(props) {
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
                                 disabled={hasExceededMaxCommentLength}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
@@ -469,11 +475,7 @@ function ReportActionItemMessageEdit(props) {
                     </View>
                 </View>
             </View>
-            <ExceededCommentLength
-                comment={draft}
-                reportID={props.reportID}
-                onExceededMaxCommentLength={(hasExceeded) => setHasExceededMaxCommentLength(hasExceeded)}
-            />
+            <ExceededCommentLength shouldShowError={hasExceededMaxCommentLength} />
         </>
     );
 }
