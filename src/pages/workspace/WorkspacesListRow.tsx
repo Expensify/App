@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {SvgProps} from 'react-native-svg';
+import {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -33,9 +34,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Items for the three dots menu */
     menuItems: MenuItem[];
 
-    /** Renders the component using big screen layout or small screen layout. When isWide is undefined, component
-     * will return nil to prevent layout from jumping on initial render and when parent width changes. */
-    isWide: boolean;
+    /** Renders the component using big screen layout or small screen layout. When renderLayout === WorkspaceListRowLayout.NONE,
+     * component will return null to prevent layout from jumping on initial render and when parent width changes. */
+    renderLayout?: ValueOf<typeof CONST.LAYOUT>;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
@@ -51,7 +52,16 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
     }
 };
 
-function WorkspacesListRow({title, menuItems, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails, isWide}: WorkspacesListRowProps) {
+function WorkspacesListRow({
+    title,
+    menuItems,
+    workspaceIcon,
+    fallbackWorkspaceIcon,
+    ownerAccountID,
+    workspaceType,
+    currentUserPersonalDetails,
+    renderLayout = CONST.LAYOUT.NONE,
+}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -70,15 +80,18 @@ function WorkspacesListRow({title, menuItems, workspaceIcon, fallbackWorkspaceIc
         }
     }, [workspaceType, translate]);
 
-    if (isWide === undefined) {
+    if (renderLayout === CONST.LAYOUT.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
         // isWide is undefined we don't assume anything and simply return null.
         return null;
     }
 
+    const isWide = renderLayout === CONST.LAYOUT.WIDE;
+    const isNarrow = renderLayout === CONST.LAYOUT.NARROW;
+
     return (
         <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5]}>
-            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, !isWide && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, isNarrow && [styles.mb3, styles.mr2], styles.alignItemsCenter]}>
                 <Avatar
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -93,14 +106,14 @@ function WorkspacesListRow({title, menuItems, workspaceIcon, fallbackWorkspaceIc
                 >
                     {title}
                 </Text>
-                {!isWide && (
+                {isNarrow && (
                     <ThreeDotsMenu
                         menuItems={menuItems}
                         anchorPosition={{top: 0, right: 0}}
                     />
                 )}
             </View>
-            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, !isWide && styles.mr5, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                 <Avatar
                     source={ownerDetails.avatar}
                     size={CONST.AVATAR_SIZE.SMALL}
@@ -121,7 +134,7 @@ function WorkspacesListRow({title, menuItems, workspaceIcon, fallbackWorkspaceIc
                     </Text>
                 </View>
             </View>
-            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, !isWide && styles.mr5, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                 <Icon
                     src={workspaceTypeIcon(workspaceType)}
                     width={34}
