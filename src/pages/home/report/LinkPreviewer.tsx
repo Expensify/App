@@ -21,15 +21,15 @@ type LinkPreviewerProps = {
 };
 
 function filterNonUniqueLinks(linkMetadata: LinkMetadata[]): LinkMetadata[] {
-    const map = new Map<string, string>();
+    const linksMap = new Map<string, string>();
     const result: LinkMetadata[] = [];
 
     linkMetadata.forEach((item) => {
-        if (!item.url || map.has(item.url)) {
+        if (!item.url || linksMap.has(item.url)) {
             return;
         }
 
-        map.set(item.url, item.url);
+        linksMap.set(item.url, item.url);
         result.push(item);
     });
 
