@@ -10,9 +10,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -45,6 +45,7 @@ const defaultProps = {
 
 function GetAssistancePage(props) {
     const styles = useThemeStyles();
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_CONTACT_METHODS);
     const menuItems = [
         {
             title: props.translate('getAssistancePage.chatWithConcierge'),
@@ -82,7 +83,7 @@ function GetAssistancePage(props) {
         <ScreenWrapper testID={GetAssistancePage.displayName}>
             <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
             />
             <ScrollView>
                 <Section
