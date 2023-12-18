@@ -20,11 +20,27 @@ type LinkPreviewerProps = {
     maxAmountOfPreviews?: number;
 };
 
+function filterNonUniqueLinks(linkMetadata: LinkMetadata[]): LinkMetadata[] {
+    const map = new Map<string, string>();
+    const result: LinkMetadata[] = [];
+
+    linkMetadata.forEach((item) => {
+        if (!item.url || map.has(item.url)) {
+            return;
+        }
+
+        map.set(item.url, item.url);
+        result.push(item);
+    });
+
+    return result;
+}
+
 function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPreviewerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const uniqueLinks = linkMetadata.filter((link, index) => linkMetadata.findIndex(({url}) => url === link.url) === index);
+    const uniqueLinks = filterNonUniqueLinks(linkMetadata);
     const maxAmmountOfLinks = maxAmountOfPreviews >= 0 ? Math.min(maxAmountOfPreviews, linkMetadata.length) : linkMetadata.length;
     const linksToShow = uniqueLinks.slice(0, maxAmmountOfLinks);
     return linksToShow.map((linkData) => {
