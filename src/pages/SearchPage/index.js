@@ -36,6 +36,11 @@ const defaultProps = {
     reports: {},
 };
 
+const searchRendered = () => {
+    Timing.end(CONST.TIMING.SEARCH_RENDER);
+    Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
+};
+
 function SearchPage({betas, reports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
@@ -120,11 +125,6 @@ function SearchPage({betas, reports}) {
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
-    };
-
-    const searchRendered = () => {
-        Timing.end(CONST.TIMING.SEARCH_RENDER);
-        Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
     };
 
     const handleScreenTransitionEnd = () => {
