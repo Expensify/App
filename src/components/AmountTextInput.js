@@ -67,7 +67,7 @@ function AmountTextInput(props) {
             onSelectionChange={props.onSelectionChange}
             role={CONST.ROLE.PRESENTATION}
             onKeyPress={props.onKeyPress}
-            containerStyles={[...StyleUtils.parseStyleAsArray(props.containerStyles)]}
+            testInputWrapper={[...StyleUtils.parseStyleAsArray(props.containerStyles)]}
         />
     );
 }
