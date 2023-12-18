@@ -1,7 +1,5 @@
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import {useEffect, useRef, useState} from 'react';
-import _ from 'underscore';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -10,17 +8,9 @@ import * as App from '@userActions/App';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import DeeplinkWrapperProps from './types';
 
-const propTypes = {
-    /** Children to render. */
-    children: PropTypes.node.isRequired,
-    /** User authentication status */
-    isAuthenticated: PropTypes.bool.isRequired,
-    /** The auto authentication status */
-    autoAuthState: PropTypes.string,
-};
-
-function isMacOSWeb() {
+function isMacOSWeb(): boolean {
     return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
 }
 
@@ -38,10 +28,11 @@ function promptToOpenInDesktopApp() {
         App.beginDeepLinkRedirect(!isMagicLink);
     }
 }
-function DeeplinkWrapper({children, isAuthenticated, autoAuthState}) {
-    const [currentScreen, setCurrentScreen] = useState();
+
+function DeeplinkWrapper({children, isAuthenticated, autoAuthState}: DeeplinkWrapperProps) {
+    const [currentScreen, setCurrentScreen] = useState<string | undefined>();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
-    const removeListener = useRef();
+    const removeListener = useRef<() => void>();
 
     useEffect(() => {
         // If we've shown the prompt and still have a listener registered,
@@ -55,21 +46,21 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState}) {
             setHasShownPrompt(false);
             Navigation.isNavigationReady().then(() => {
                 // Get initial route
-                const initialRoute = navigationRef.current.getCurrentRoute();
-                setCurrentScreen(initialRoute.name);
+                const initialRoute = navigationRef.current?.getCurrentRoute();
+                setCurrentScreen(initialRoute?.name);
 
-                removeListener.current = navigationRef.current.addListener('state', (event) => {
+                removeListener.current = navigationRef.current?.addListener('state', (event) => {
                     setCurrentScreen(Navigation.getRouteNameFromStateEvent(event));
                 });
             });
         }
     }, [hasShownPrompt, isAuthenticated]);
+
     useEffect(() => {
         // According to the design, we don't support unlink in Desktop app https://github.com/Expensify/App/issues/19681#issuecomment-1610353099
-        const isUnsupportedDeeplinkRoute = _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
-            const routeRegex = new RegExp(unsupportRouteRegex);
-            return routeRegex.test(window.location.pathname);
-        });
+        const routeRegex = new RegExp(CONST.REGEX.ROUTES.UNLINK_LOGIN);
+        const isUnsupportedDeeplinkRoute = routeRegex.test(window.location.pathname);
+
         // Making a few checks to exit early before checking authentication status
         if (!isMacOSWeb() || isUnsupportedDeeplinkRoute || hasShownPrompt || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED) {
             return;
@@ -99,5 +90,6 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState}) {
     return children;
 }
 
-DeeplinkWrapper.propTypes = propTypes;
+DeeplinkWrapper.displayName = 'DeeplinkWrapper';
+
 export default DeeplinkWrapper;
