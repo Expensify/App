@@ -4,18 +4,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Text from './Text';
 
-type ExceededCommentLengthProps = {
-    /** Show error when comment length is exceeded */
-    shouldShowError: boolean;
-};
-
-function ExceededCommentLength({shouldShowError}: ExceededCommentLengthProps) {
+function ExceededCommentLength() {
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
-
-    if (!shouldShowError) {
-        return null;
-    }
 
     return (
         <Text
