@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import {MenuItem} from '@src/types/onyx/OnyxCommon';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
@@ -28,6 +29,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Icon to be used when workspaceIcon is not present */
     fallbackWorkspaceIcon?: AvatarSource;
+
+    /** Items for the three dots menu */
+    menuItems: MenuItem[];
 
     /** Renders the component using big screen layout or small screen layout. When isWide is undefined, component
      * will return nil to prevent layout from jumping on initial render and when parent width changes. */
@@ -47,7 +51,7 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
     }
 };
 
-function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails, isWide}: WorkspacesListRowProps) {
+function WorkspacesListRow({title, menuItems, workspaceIcon, fallbackWorkspaceIcon, ownerAccountID, workspaceType, currentUserPersonalDetails, isWide}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -91,17 +95,8 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
                 </Text>
                 {!isWide && (
                     <ThreeDotsMenu
-                        menuItems={[]}
+                        menuItems={menuItems}
                         anchorPosition={{top: 0, right: 0}}
-                        iconTooltip={undefined}
-                        icon={undefined}
-                        iconFill={undefined}
-                        iconStyles={undefined}
-                        onIconPress={undefined}
-                        anchorAlignment={undefined}
-                        shouldOverlay={undefined}
-                        shouldSetModalVisibility={undefined}
-                        disabled={undefined}
                     />
                 )}
             </View>
@@ -150,17 +145,9 @@ function WorkspacesListRow({title, workspaceIcon, fallbackWorkspaceIcon, ownerAc
             </View>
             {isWide && (
                 <ThreeDotsMenu
-                    menuItems={[]}
+                    menuItems={menuItems}
                     anchorPosition={{top: 0, right: 0}}
                     iconStyles={[styles.mr2]}
-                    iconTooltip={undefined}
-                    icon={undefined}
-                    iconFill={undefined}
-                    onIconPress={undefined}
-                    anchorAlignment={undefined}
-                    shouldOverlay={undefined}
-                    shouldSetModalVisibility={undefined}
-                    disabled={undefined}
                 />
             )}
         </View>
