@@ -18,3 +18,5 @@ export default function useSingleExecution() {
 
     return {isExecuting: false, singleExecution};
 }
+
+export type {Action};
