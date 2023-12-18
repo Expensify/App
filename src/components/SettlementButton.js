@@ -97,6 +97,7 @@ const defaultProps = {
     addDebitCardRoute: '',
     currency: CONST.CURRENCY.USD,
     chatReportID: '',
+    confirmApproval: undefined,
 
     // The "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo"
     // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT

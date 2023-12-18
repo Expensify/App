@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HoldBanner from '@components/HoldBanner';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -21,11 +20,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
-import Text from './Text';
-import TextPill from './TextPill';
 import transactionPropTypes from './transactionPropTypes';
 
 const propTypes = {
