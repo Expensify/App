@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -78,8 +77,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         });
     }, [reports, personalDetails, searchValue, betas]);
 
-    const debouncedUpdateOptions = useMemo(() => _.debounce(updateOptions, 75), [updateOptions]);
-
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
         Performance.markStart(CONST.TIMING.SEARCH_RENDER);
@@ -91,7 +88,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             return;
         }
 
-        debouncedUpdateOptions();
+        updateOptions();
         // Ignoring the rule intentionally, we want to run the code only when search Value changes to prevent additional runs.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue]);
@@ -154,7 +151,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             return;
         }
         if (option.reportID) {
-            setSearchValue('');
             Navigation.dismissModal(option.reportID);
         } else {
             Report.navigateToAndOpenReport([option.login]);
@@ -180,7 +176,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
                     <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
