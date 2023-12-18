@@ -131,11 +131,10 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 
 function isMerchantMissing(transaction: Transaction) {
     const isMerchantEmpty =
-        transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+        transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
     const isModifiedMerchantEmpty =
         !transaction.modifiedMerchant ||
-        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
         transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
         transaction.modifiedMerchant === '';
 
