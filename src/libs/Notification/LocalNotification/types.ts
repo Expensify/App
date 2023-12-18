@@ -1,26 +1,17 @@
-import {ImageSourcePropType} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
+import ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import {Report, ReportAction} from '@src/types/onyx';
 
-type PushParams = {
-    title: string;
-    body?: string;
-    icon?: string | ImageSourcePropType;
-    delay?: number;
-    onClick?: () => void;
-    tag?: string;
-};
+type LocalNotificationClickHandler = () => void;
 
-type ReportCommentParams = {
-    report: OnyxEntry<Report>;
-    reportAction: ReportAction;
-    onClick: () => void;
+type LocalNotificationData = {
+    reportID?: string;
 };
 
 type LocalNotificationModule = {
-    showCommentNotification: (reportCommentParams: ReportCommentParams) => void;
+    showCommentNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
     showUpdateAvailableNotification: () => void;
-    showModifiedExpenseNotification: (reportCommentParams: ReportCommentParams) => void;
+    showModifiedExpenseNotification: (report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) => void;
+    clearReportNotifications: ClearReportNotifications;
 };
 
-export type {PushParams, ReportCommentParams, LocalNotificationModule};
+export type {LocalNotificationModule, LocalNotificationClickHandler, LocalNotificationData};
