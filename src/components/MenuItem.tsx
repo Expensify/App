@@ -386,7 +386,7 @@ function MenuItem(
                             errorText ? styles.pb5 : {},
                             combinedStyle,
                             !interactive && styles.cursorDefault,
-                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive), true),
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                             (isHovered || pressed) && hoverAndPressStyle,
                             ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                             shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
@@ -401,16 +401,16 @@ function MenuItem(
                     {({pressed}) => (
                         <>
                             <View style={[styles.flexColumn, styles.flex1]}>
-                                {Boolean(label) && (
+                                {!!label && (
                                     <View style={icon ? styles.mb2 : null}>
                                         <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                                     </View>
                                 )}
                                 <View style={[styles.flexRow, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
-                                    {Boolean(icon) && Array.isArray(icon) && (
+                                    {!!icon && Array.isArray(icon) && (
                                         <MultipleAvatars
                                             isHovered={isHovered}
-                                            isPressed={Boolean(pressed)}
+                                            isPressed={pressed}
                                             icons={icon}
                                             size={avatarSize}
                                             secondAvatarStyle={[
@@ -458,15 +458,12 @@ function MenuItem(
                                                 src={secondaryIcon}
                                                 width={iconWidth}
                                                 height={iconHeight}
-                                                fill={
-                                                    secondaryIconFill ??
-                                                    StyleUtils.getIconFillColor(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive), true)
-                                                }
+                                                fill={secondaryIconFill ?? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)}
                                             />
                                         </View>
                                     )}
                                     <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
-                                        {Boolean(description) && shouldShowDescriptionOnTop && (
+                                        {!!description && shouldShowDescriptionOnTop && (
                                             <Text
                                                 style={descriptionTextStyles}
                                                 numberOfLines={2}
@@ -475,12 +472,12 @@ function MenuItem(
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(title) && (Boolean(shouldRenderAsHTML) || (Boolean(shouldParseTitle) && Boolean(html.length))) && (
+                                            {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                 <View style={styles.renderHTMLTitle}>
                                                     <RenderHTML html={getProcessedTitle} />
                                                 </View>
                                             )}
-                                            {!shouldRenderAsHTML && !shouldParseTitle && Boolean(title) && (
+                                            {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
                                                 <Text
                                                     style={combinedTitleTextStyle}
                                                     numberOfLines={numberOfLinesTitle || undefined}
@@ -489,7 +486,7 @@ function MenuItem(
                                                     {renderTitleContent()}
                                                 </Text>
                                             )}
-                                            {Boolean(shouldShowTitleIcon) && titleIcon && (
+                                            {shouldShowTitleIcon && titleIcon && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
                                                         src={titleIcon}
@@ -498,7 +495,7 @@ function MenuItem(
                                                 </View>
                                             )}
                                         </View>
-                                        {Boolean(description) && !shouldShowDescriptionOnTop && (
+                                        {!!description && !shouldShowDescriptionOnTop && (
                                             <Text
                                                 style={descriptionTextStyles}
                                                 numberOfLines={2}
@@ -506,12 +503,12 @@ function MenuItem(
                                                 {description}
                                             </Text>
                                         )}
-                                        {Boolean(error) && (
+                                        {!!error && (
                                             <View style={[styles.mt1]}>
                                                 <Text style={[styles.textLabelError]}>{error}</Text>
                                             </View>
                                         )}
-                                        {furtherDetailsIcon && Boolean(furtherDetails) && (
+                                        {furtherDetailsIcon && !!furtherDetails && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                 <Icon
                                                     src={furtherDetailsIcon}
@@ -547,7 +544,7 @@ function MenuItem(
                                     <View style={[styles.justifyContentCenter, brickRoadIndicator ? styles.mr2 : undefined]}>
                                         <MultipleAvatars
                                             isHovered={isHovered}
-                                            isPressed={Boolean(pressed)}
+                                            isPressed={pressed}
                                             icons={floatRightAvatars}
                                             size={floatRightAvatarSize ?? fallbackAvatarSize}
                                             fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
@@ -555,7 +552,7 @@ function MenuItem(
                                         />
                                     </View>
                                 )}
-                                {Boolean(brickRoadIndicator) && (
+                                {!!brickRoadIndicator && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
@@ -563,23 +560,23 @@ function MenuItem(
                                         />
                                     </View>
                                 )}
-                                {Boolean(rightLabel) && (
+                                {!!rightLabel && (
                                     <View style={styles.justifyContentCenter}>
                                         <Text style={styles.rightLabelMenuItem}>{rightLabel}</Text>
                                     </View>
                                 )}
-                                {Boolean(shouldShowRightIcon) && (
+                                {shouldShowRightIcon && (
                                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled]}>
                                         <Icon
                                             src={iconRight}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, Boolean(pressed), success, disabled, interactive))}
+                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                         />
                                     </View>
                                 )}
                                 {shouldShowRightComponent && rightComponent}
                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                             </View>
-                            {Boolean(errorText) && (
+                            {!!errorText && (
                                 <FormHelpMessage
                                     isError
                                     shouldShowRedDotIndicator={false}
