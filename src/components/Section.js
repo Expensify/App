@@ -113,7 +113,7 @@ function Section({children, childrenStyles, containerStyles, icon, IconComponent
                     <IconSection
                         icon={icon}
                         IconComponent={IconComponent}
-                        iconContainerStyles={[iconContainerStyles, styles.alignSelfStart, styles.mb3]}
+                        iconContainerStyles={[...iconContainerStyles, styles.alignSelfStart, styles.mb3]}
                     />
                 )}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1, ...titleStyles]}>
