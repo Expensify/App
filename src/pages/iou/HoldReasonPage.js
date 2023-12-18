@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,22 +27,27 @@ const propTypes = {
             /** ID of the transaction the page was opened for */
             transactionID: PropTypes.string,
 
-            /** The report ID of the IOU */
-            reportID: PropTypes.string,
-
             /** Link to previous page */
             backTo: PropTypes.string,
         }),
     }).isRequired,
+
+    /* Onyx Props */
+    /** The report currently being used */
+    report: reportPropTypes,
 };
 
-function HoldReasonPage({route}) {
+const defaultProps = {
+    report: {},
+};
+
+function HoldReasonPage({route, report}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reasonRef = useRef();
 
     const transactionID = lodashGet(route, 'params.transactionID', '');
-    const reportID = lodashGet(route, 'params.reportID', '');
+    const {reportID} = report;
     const backTo = lodashGet(route, 'params.backTo', '');
 
     const navigateBack = () => {
@@ -57,7 +63,7 @@ function HoldReasonPage({route}) {
         const errors = {};
 
         if (_.isEmpty(value.comment)) {
-            errors.reason = 'common.error.fieldRequired';
+            errors.comment = 'common.error.fieldRequired';
         }
 
         return errors;
@@ -103,21 +109,14 @@ function HoldReasonPage({route}) {
 
 HoldReasonPage.displayName = 'MoneyRequestHoldReasonPage';
 HoldReasonPage.propTypes = propTypes;
+HoldReasonPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        iou: {
-            key: ONYXKEYS.IOU,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        report: {
-            key: ({route, iou}) => {
-                const reportID = IOU.getIOUReportID(iou, route);
+export default withOnyx({
+    report: {
+        key: ({route, iou}) => {
+            const reportID = IOU.getIOUReportID(iou, route);
 
-                return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-            },
+            return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
         },
-    }),
-)(HoldReasonPage);
+    },
+})(HoldReasonPage);

@@ -110,7 +110,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
-    const [heldAmount, fullAmount] = ReportUtils.getHeldAmount(moneyRequestReport.reportID);
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport.reportID);
     const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
 
     const confirmPayment = (type) => {
@@ -120,6 +120,15 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
             setIsHoldMenuVisible(true);
         } else {
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport);
+        }
+    };
+
+    const confirmApproval = () => {
+        setConfirmationType('approve');
+        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && (isPolicyAdmin || isManager || isPayer)) {
+            setIsHoldMenuVisible(true);
+        } else {
+            IOU.approveMoneyRequest(moneyRequestReport, true);
         }
     };
 
@@ -162,6 +171,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
+                            confirmApproval={confirmApproval}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport.reportID}
                             iouReport={moneyRequestReport}
@@ -192,6 +202,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
+                            confirmApproval={confirmApproval}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
@@ -223,7 +234,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
             </View>
             {isHoldMenuVisible && (
                 <ProcessMoneyRequestHoldMenu
-                    nonHeldAmount={heldAmount}
+                    nonHeldAmount={nonHeldAmount}
                     type={confirmationType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}

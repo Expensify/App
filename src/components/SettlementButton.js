@@ -31,6 +31,9 @@ const propTypes = {
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID: PropTypes.string,
 
+    /** Callback to open confirmation modal if any of the transactions is on HOLD */
+    confirmApproval: PropTypes.func,
+
     /** The IOU/Expense report we are paying */
     iouReport: iouReportPropTypes,
 
@@ -124,6 +127,7 @@ function SettlementButton({
     buttonSize,
     chatReportID,
     currency,
+    confirmApproval,
     enablePaymentsRoute,
     iouReport,
     isDisabled,
@@ -207,7 +211,11 @@ function SettlementButton({
         }
 
         if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            IOU.approveMoneyRequest(iouReport);
+            if (confirmApproval) {
+                confirmApproval();
+            } else {
+                IOU.approveMoneyRequest(iouReport);
+            }
             return;
         }
 

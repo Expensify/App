@@ -5,7 +5,7 @@ import colors from '@styles/theme/colors';
 import Text from './Text';
 
 type TextPillProps = {
-    /** The color of the text */
+    /** The color of the text/ */
     color?: string;
 
     children: React.ReactNode;
@@ -14,7 +14,7 @@ type TextPillProps = {
 function TextPill({color, children}: TextPillProps) {
     const styles = useThemeStyles();
 
-    return <Text style={[{backgroundColor: color ?? colors.red, alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6}, styles.textStrong]}>{children}</Text>;
+    return <Text style={[{backgroundColor: color ?? colors.red, borderRadius: 6}, styles.overflowHidden, styles.textStrong, styles.ph2, styles.pv1]}>{children}</Text>;
 }
 
 TextPill.displayName = 'TextPill';

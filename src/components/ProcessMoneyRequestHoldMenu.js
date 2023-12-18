@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import DecisionModal from '@components/DecisionModal';
 import useLocalize from '@hooks/useLocalize';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
+import DecisionModal from './DecisionModal';
 
 const propTypes = {
     /** Full amount of expense report to pay */
@@ -43,45 +43,29 @@ const defaultProps = {
 
 function ProcessMoneyRequestHoldMenu({type, nonHeldAmount, fullAmount, isSmallScreenWidth, onClose, isVisible, paymentType, chatReport, moneyRequestReport}) {
     const {translate} = useLocalize();
+    const isApprove = type === 'approve';
 
-    const onSubmitPayment = (full) => {
-        IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
-        onClose();
-    };
-
-    const onSubmitApproval = (full) => {
-        IOU.approveMoneyRequest(moneyRequestReport, full);
+    const onSubmit = (full) => {
+        if (isApprove) {
+            IOU.approveMoneyRequest(moneyRequestReport, full);
+        } else {
+            IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
+        }
         onClose();
     };
 
     return (
-        <>
-            {type === 'approve' ? (
-                <DecisionModal
-                    title={translate('iou.confirmApprove')}
-                    onClose={onClose}
-                    isVisible={isVisible}
-                    prompt={translate('iou.confirmApprovalAmount')}
-                    firstOptionText={`${translate('iou.approveOnly')} ${nonHeldAmount}`}
-                    secondOptionText={`${translate('iou.approve')} ${fullAmount}`}
-                    onFirstOptionSubmit={() => onSubmitApproval(false)}
-                    onSecondOptionSubmit={() => onSubmitApproval(true)}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                />
-            ) : (
-                <DecisionModal
-                    title={translate('iou.confirmPay')}
-                    isVisible={isVisible}
-                    onClose={onClose}
-                    prompt={translate('iou.confirmPayAmount')}
-                    firstOptionText={`${translate('iou.payOnly')} ${nonHeldAmount}`}
-                    secondOptionText={`${translate('iou.pay')} ${fullAmount}`}
-                    onFirstOptionSubmit={() => onSubmitPayment(false)}
-                    onSecondOptionSubmit={() => onSubmitPayment(true)}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                />
-            )}
-        </>
+        <DecisionModal
+            title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
+            onClose={onClose}
+            isVisible={isVisible}
+            prompt={translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')}
+            firstOptionText={`${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}`}
+            secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
+            onFirstOptionSubmit={() => onSubmit(false)}
+            onSecondOptionSubmit={() => onSubmit(true)}
+            isSmallScreenWidth={isSmallScreenWidth}
+        />
     );
 }
 

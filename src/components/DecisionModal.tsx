@@ -13,40 +13,36 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
-const propTypes = {
+type DecisionModalProps = {
     /** Title describing purpose of modal */
-    title: PropTypes.string.isRequired,
+    title: string;
 
     /** Modal subtitle/description */
-    prompt: PropTypes.string,
+    prompt?: string;
 
     /** Text content used in first button */
-    firstOptionText: PropTypes.string.isRequired,
+    firstOptionText: string;
 
     /** Text content used in second button */
-    secondOptionText: PropTypes.string.isRequired,
+    secondOptionText: string;
 
     /** onSubmit callback fired after clicking on first button */
-    onFirstOptionSubmit: PropTypes.func.isRequired,
+    onFirstOptionSubmit: () => void;
 
     /** onSubmit callback fired after clicking on  */
-    onSecondOptionSubmit: PropTypes.func.isRequired,
+    onSecondOptionSubmit: () => void;
 
     /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: PropTypes.bool.isRequired,
+    isSmallScreenWidth: boolean;
 
     /** Callback for closing modal */
-    onClose: PropTypes.func.isRequired,
+    onClose: () => void;
 
     /** Whether modal is visible */
-    isVisible: PropTypes.bool.isRequired,
+    isVisible: boolean;
 };
 
-const defaultProps = {
-    prompt: '',
-};
-
-function DecisionModal({title, prompt, firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}) {
+function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}: DecisionModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -55,7 +51,6 @@ function DecisionModal({title, prompt, firstOptionText, secondOptionText, onFirs
             onClose={onClose}
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            shouldEnableFocusTrap
         >
             <View style={[styles.m5]}>
                 <View>
@@ -96,7 +91,5 @@ function DecisionModal({title, prompt, firstOptionText, secondOptionText, onFirs
 }
 
 DecisionModal.displayName = 'DecisionModal';
-DecisionModal.propTypes = propTypes;
-DecisionModal.defaultProps = defaultProps;
 
 export default DecisionModal;

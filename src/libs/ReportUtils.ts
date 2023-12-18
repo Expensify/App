@@ -4327,19 +4327,22 @@ function hasHeldExpenses(iouReportID: string): boolean {
 }
 
 /**
- * Check if Report has any held expenses
+ * Return held and full amount formatted with used currency
  */
-function getHeldAmount(iouReportID: string): string[] {
+function getNonHeldAndFullAmount(iouReportID: string): string[] {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const usedCurrency = transactions[0].currency;
+
     let fullAmount = 0;
-    const heldAmount = transactions.reduce((previousValue, transaction) => {
+    const nonheldAmount = transactions.reduce((previousValue, transaction) => {
         fullAmount += transaction.amount * -1;
-        if (TransactionUtils.isOnHold(transaction)) {
+        if (!TransactionUtils.isOnHold(transaction)) {
             return previousValue + transaction.amount * -1;
         }
         return previousValue;
     }, 0);
-    return [CurrencyUtils.convertToDisplayString(heldAmount, transactions[0].currency), CurrencyUtils.convertToDisplayString(fullAmount, transactions[0].currency)];
+
+    return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
 }
 
 export {
@@ -4512,7 +4515,7 @@ export {
     navigateToPrivateNotes,
     canEditWriteCapability,
     hasHeldExpenses,
-    getHeldAmount,
+    getNonHeldAndFullAmount,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
 };

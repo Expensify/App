@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import HoldBanner from '@components/HoldBanner';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -91,17 +92,10 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
 
-    const holdMoneyRequest = () => {
+    const changeMoneyRequestStatus = () => {
         if (!isOnHold) {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(
-                    lodashGet(policy, 'type'),
-                    lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'),
-                    lodashGet(report, 'reportID'),
-                    activeRoute,
-                ),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(lodashGet(policy, 'type'), lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), activeRoute));
         } else {
             IOU.unholdRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), lodashGet(report, 'reportID'));
         }
@@ -119,7 +113,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         threeDotsMenuItems.push({
             icon: Expensicons.Stopwatch,
             text: !isOnHold ? translate('iou.holdRequest') : translate('iou.unholdRequest'),
-            onSelected: () => holdMoneyRequest(),
+            onSelected: () => changeMoneyRequestStatus(),
         });
     }
     if (canModifyRequest) {
@@ -170,12 +164,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         shouldShowBorderBottom
                     />
                 )}
-                {isOnHold && (
-                    <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.pb3, styles.ph5, styles.borderBottom]}>
-                        <TextPill>{translate('iou.hold')}</TextPill>
-                        <Text style={[styles.textLabel, styles.pl3]}>{translate('iou.requestOnHold')}</Text>
-                    </View>
-                )}
+                {isOnHold && <HoldBanner />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}

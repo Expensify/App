@@ -3373,9 +3373,8 @@ function putOnHold(transactionID, comment, reportID) {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            // key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${createdReportAction.reportID}`,
             value: {
-                [createdReportAction.reportActionID]: createdReportAction,
+                value: {[createdReportAction.reportActionID]: createdReportAction},
             },
         },
         {
@@ -3424,10 +3423,10 @@ function unholdRequest(transactionID, reportID) {
 
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                [createdReportAction.reportActionID]: createdReportAction,
+                value: {[createdReportAction.reportActionID]: createdReportAction},
             },
         },
         {
