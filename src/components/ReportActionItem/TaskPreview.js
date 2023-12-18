@@ -54,6 +54,12 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
+    /** The policy of root parent report */
+    rootParentReportpolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     /** The chat report associated with taskReport */
     chatReportID: PropTypes.string.isRequired,
 
@@ -72,6 +78,7 @@ const propTypes = {
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
     taskReport: {},
+    rootParentReportpolicy: {},
     isHovered: false,
 };
 
@@ -116,7 +123,7 @@ function TaskPreview(props) {
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID)}
+                        disabled={!Task.canModifyTask(props.taskReport, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportpolicy, 'role', ''))}
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(props.taskReport);
@@ -148,6 +155,10 @@ export default compose(
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
             initialValue: {},
+        },
+        rootParentReportpolicy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID || '0'}`,
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskPreview);
