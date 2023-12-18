@@ -17,7 +17,7 @@ type InteractiveStepSubHeaderProps = {
     onStepSelected?: (stepName: string) => void;
 
     /** The index of the step to start with */
-    startStep?: number;
+    startStepIndex?: number;
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
@@ -28,14 +28,14 @@ type InteractiveStepSubHeaderHandle = {
     moveNext: () => void;
 };
 
-function InteractiveStepSubHeader({stepNames, startStep = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
+function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
     const styles = useThemeStyles();
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
         throw new Error(`stepNames list must have at least ${MIN_AMOUNT_OF_STEPS} elements.`);
     }
 
-    const [currentStep, setCurrentStep] = useState(startStep);
+    const [currentStep, setCurrentStep] = useState(startStepIndex);
     useImperativeHandle(
         ref,
         () => ({

@@ -126,7 +126,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStep={1}
+                    startStepIndex={1}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>
