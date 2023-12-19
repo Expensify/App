@@ -565,6 +565,7 @@ function MoneyRequestConfirmationList(props) {
     return (
         <OptionsSelector
             sections={optionSelectorSections}
+            value=""
             onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
