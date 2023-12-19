@@ -15,6 +15,7 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
+import getPlatform from '@libs/getPlatform';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -152,6 +153,8 @@ function ReportActionsList({
         }
         return cacheUnreadMarkers.get(report.reportID);
     };
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
     const [currentUnreadMarker, setCurrentUnreadMarker] = useState(markerInit);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
@@ -314,8 +317,14 @@ function ReportActionsList({
     const initialNumToRender = useMemo(() => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight]);
+        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
+        if (linkedReportActionID && !isNative) {
+            // For web and desktop environments, it's crucial to set this value equal to or higher than the 'batch per render' setting. If it's set lower, the 'onStartReached' event will be triggered excessively, every time an additional item enters the virtualized list.
+
+            return Math.max(numToRender, 50);
+        }
+        return numToRender;
+    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID, isNative]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
