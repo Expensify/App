@@ -1380,6 +1380,41 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        breadcrumb: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeh1,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
+        },
+
+        breadcrumbStrong: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+        },
+
+        breadcrumbSeparator: {
+            color: theme.icon,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
+        },
+
+        breadcrumbLogo: {
+            top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
+            height: variables.lineHeightSizeh1,
+        },
+
+        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+            ({
+                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                position: 'absolute',
+                left: 0,
+                height: '100%',
+                borderTopRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
+                borderBottomRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
+
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -1601,14 +1636,15 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams) =>
+        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: -2 * variables.sideBarWidth,
+                // The overlay must also cover borderRadius of the LHP component
+                left: isModalOnTheLeft ? -variables.lhpBorderRadius : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: 0,
+                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -2372,7 +2408,7 @@ const styles = (theme: ThemeColors) =>
         anonymousRoomFooterLogoTaglineText: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeMedium,
-            color: theme.textLight,
+            color: theme.text,
         },
         signInButtonAvatar: {
             width: 80,
@@ -3028,6 +3064,31 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        searchPressable: {
+            height: 40,
+        },
+
+        searchContainer: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingHorizontal: 24,
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusRounded,
+        },
+
+        searchContainerHovered: {
+            backgroundColor: theme.border,
+        },
+
+        searchInputStyle: {
+            color: colors.productDark800,
+            fontSize: 13,
+            lineHeight: 16,
+            width: '100%',
+        },
+
         threeDotsPopoverOffset: (windowWidth: number) =>
             ({
                 ...getPopOverVerticalOffset(60),
@@ -3533,12 +3594,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            marginLeft: 0,
-            marginBottom: 2,
+            position: 'absolute',
+            bottom: -8,
+            left: -8,
             height: 12,
+            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
+            zIndex: -1,
         },
 
         headerEnvBadgeText: {
@@ -3706,8 +3770,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         reportPreviewBoxHoverBorder: {
-            borderColor: theme.border,
-            backgroundColor: theme.border,
+            borderColor: theme.cardBG,
+            backgroundColor: theme.cardBG,
         },
 
         reportContainerBorderRadius: {

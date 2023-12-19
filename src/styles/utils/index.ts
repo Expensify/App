@@ -1,5 +1,5 @@
 import {CSSProperties} from 'react';
-import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -446,13 +446,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
-function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
-}
-
 function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     return {
         width,
@@ -665,11 +658,11 @@ function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isI
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.border;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
     }
 
     if (isPressed) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.buttonPressedBG;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
     }
 
     return {borderColor};
@@ -867,7 +860,7 @@ function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: num
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): ViewStyle {
+function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): TextStyle {
     let paddingValue = 5;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
@@ -1015,7 +1008,6 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1430,6 +1422,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         return containerStyles;
     },
+
+    getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
