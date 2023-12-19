@@ -323,10 +323,10 @@ function MoneyRequestPreview(props) {
                             </View>
                             <View style={[styles.flexRow, styles.mt1]}>
                                 <View style={[styles.flex1]}>
-                                    {(shouldShowDescription || shouldShowMerchant) && <Text style={[styles.colorMuted]}>{merchantOrDescription}</Text>}
                                     {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
                                         <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                     )}
+                                    {(shouldShowDescription || shouldShowMerchant) && <Text style={[styles.textLabelSupporting]}>{merchantOrDescription}</Text>}
                                 </View>
                                 {props.isBillSplit && !_.isEmpty(participantAccountIDs) && requestAmount > 0 && (
                                     <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
