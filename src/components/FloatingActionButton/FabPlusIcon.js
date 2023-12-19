@@ -40,25 +40,6 @@ function FabPlusIcon({isActive}) {
         });
     }, [isActive, sharedValue]);
 
-    const adapter = createAnimatedPropAdapter(
-        (props) => {
-            const modifiedProps = {...props};
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
-            if (Object.keys(modifiedProps).includes('fill')) {
-                modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
-            }
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
-            if (Object.keys(modifiedProps).includes('stroke')) {
-                modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
-            }
-        },
-        ['fill', 'stroke'],
-    );
-    adapter.propTypes = {
-        fill: PropTypes.string,
-        stroke: PropTypes.string,
-    };
-
     const animatedProps = useAnimatedProps(
         () => {
             const fill = interpolateColor(sharedValue.value, [0, 1], [textLight, textDark]);
