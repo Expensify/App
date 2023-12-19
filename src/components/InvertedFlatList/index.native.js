@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useRef} from 'react';
+import PropTypes from 'prop-types';
 import {FlatList} from 'react-native';
 import useThemeStyles from '@styles/useThemeStyles';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
