@@ -12,8 +12,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
@@ -219,7 +219,7 @@ function ACHContractStep(props) {
                                         key={index}
                                         style={[styles.p5, styles.border, styles.mb2]}
                                     >
-                                        <Text style={[styles.textStrong, styles.mb2, styles.textWhite]}>{props.translate('beneficialOwnersStep.additionalOwner')}</Text>
+                                        <Text style={[styles.headerText, styles.mb2]}>{props.translate('beneficialOwnersStep.additionalOwner')}</Text>
                                         <IdentityForm
                                             translate={props.translate}
                                             style={[styles.mb2]}

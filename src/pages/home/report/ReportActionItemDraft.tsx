@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 
 function ReportActionItemDraft({children}: ChildrenProps) {
