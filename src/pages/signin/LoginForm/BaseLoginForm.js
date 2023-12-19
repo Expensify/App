@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -25,6 +24,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -52,7 +52,7 @@ const propTypes = {
         /** Success message to display when necessary */
         success: PropTypes.string,
 
-        /** Whether or not a sign on form is loading (being submitted) */
+        /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
 
@@ -239,7 +239,7 @@ function LoginForm(props) {
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
     const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
-    const hasError = !_.isEmpty(serverErrorText);
+    const shouldShowServerError = !_.isEmpty(serverErrorText) && _.isEmpty(formErrorText);
 
     return (
         <>
@@ -270,7 +270,7 @@ function LoginForm(props) {
                     autoCorrect={false}
                     inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formErrorText}
-                    hasError={hasError}
+                    hasError={shouldShowServerError}
                     maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
@@ -287,14 +287,14 @@ function LoginForm(props) {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
                 // key handler gets unsubscribed
                 props.isVisible && (
-                    <View style={[!_.isEmpty(serverErrorText) ? {} : styles.mt5]}>
+                    <View style={[shouldShowServerError ? {} : styles.mt5]}>
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.LOGIN_FORM}
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
-                            isAlertVisible={!_.isEmpty(serverErrorText)}
-                            buttonStyles={[!_.isEmpty(serverErrorText) ? styles.mt3 : {}]}
+                            isAlertVisible={shouldShowServerError}
+                            buttonStyles={[shouldShowServerError ? styles.mt3 : {}]}
                             containerStyles={[styles.mh0]}
                         />
                         {
