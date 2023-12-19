@@ -906,7 +906,7 @@ function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): Vie
 /**
  * Returns color style
  */
-function getColorStyle(color: string): ViewStyle | CSSProperties {
+function getColorStyle(color: string): TextStyle & ViewStyle {
     return {color};
 }
 
