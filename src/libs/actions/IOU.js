@@ -554,11 +554,7 @@ function buildOnyxDataForMoneyRequest(
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], policy.requiresTag, policyTags, policy.requiresCategory, policyCategories);
 
     if (violationsOnyxData) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: violationsOnyxData,
-        });
+        optimisticData.push(violationsOnyxData);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
