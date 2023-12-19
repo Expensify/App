@@ -900,6 +900,16 @@ const canAccessRouteByAnonymousUser = (route: string) => {
     return false;
 };
 
+/**
+ * set the last shown splash screen video
+ *
+ * @param {string} name
+ */
+
+const setLastShownSplashScreenVideo = (name: string) => {
+    Onyx.merge(ONYXKEYS.LAST_SHOWN_SPLASH_VIDEO, name);
+};
+
 export {
     beginSignIn,
     beginAppleSignIn,
@@ -930,4 +940,5 @@ export {
     validateTwoFactorAuth,
     waitForUserSignIn,
     canAccessRouteByAnonymousUser,
+    setLastShownSplashScreenVideo,
 };

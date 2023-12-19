@@ -204,15 +204,16 @@
     <!-- For test purposes, we rotate the video source each week -->
     <script>
         function displayVideo() {
-            const videos = [
-            '/videos/Expensify_Sonic_Minimal_Vocal.webm',
-            '/videos/Expensify_Sonic_Minimal_Nonvocal.webm',
-            '/videos/Expensify_Sonic_Full_Vocal.webm',
-            '/videos/Expensify_Sonic_Full_Nonvocal.webm',
-        ];
-            const randomIndex = Math.floor(Math.random() * videos.length);
-            document.getElementById('splash-video-source').src = videos[randomIndex];
-        };
+            const splashVideoVariants = [
+                {path: '/videos/Expensify_Sonic_Full_Nonvocal.webm', fileName: 'Full Nonvocal'},
+                {path: '/videos/Expensify_Sonic_Full_Vocal.webm', fileName: 'Full Vocal'},
+                {path: '/videos/Expensify_Sonic_Minimal_Nonvocal.webm', fileName: 'Sonic Minimal Nonvocal'},
+                {path: '/videos/Expensify_Sonic_Full_Nonvocal.webm', fileName: 'Sonic Minimal Vocal'},
+            ];
+            const randomIndex = Math.floor(Math.random() * splashVideoVariants.length);
+            document.getElementById('splash-video-source').src = splashVideoVariants[randomIndex].path;
+            localStorage.setItem('lastShownSplashVideo', splashVideoVariants[randomIndex].fileName);
+        }
         displayVideo();
     </script>
 </body>

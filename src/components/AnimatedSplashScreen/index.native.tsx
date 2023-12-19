@@ -2,17 +2,17 @@ import {useEffect} from 'react';
 import {StyleSheet, ViewStyle} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Video from 'react-native-video';
-import {ExpensifyFullNonvocal, ExpensifyFullVocal, ExpensifySonicMinimalNonvocal, ExpensifySonicMinimalVocal} from '@components/VideoAnimations';
+import {splashVideoVariants} from '@components/VideoAnimations';
+import {setLastShownSplashScreenVideo} from '@libs/actions/Session';
 import BootSplash from '@libs/BootSplash';
 import styles from '@styles/styles';
 import type AnimatedSplashScreenProps from './types';
 
-const videos = [ExpensifyFullNonvocal, ExpensifyFullVocal, ExpensifySonicMinimalNonvocal, ExpensifySonicMinimalVocal];
-
 function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: AnimatedSplashScreenProps) {
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;
     const opacity = useSharedValue(1);
-    const randomIndex = Math.floor(Math.random() * videos.length);
+    const randomIndex = Math.floor(Math.random() * splashVideoVariants.length);
+    setLastShownSplashScreenVideo(splashVideoVariants[randomIndex].fileName);
 
     const opacityStyle = useAnimatedStyle<ViewStyle>(() => ({
         opacity: opacity.value,
@@ -50,7 +50,7 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
             <Video
                 useTextureView
                 resizeMode="contain"
-                source={videos[randomIndex]}
+                source={splashVideoVariants[randomIndex].file}
                 style={StyleSheet.absoluteFill}
             />
         </Reanimated.View>

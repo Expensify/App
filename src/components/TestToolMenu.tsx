@@ -19,6 +19,7 @@ import Text from './Text';
 type TestToolMenuOnyxProps = {
     /** User object in Onyx */
     user: OnyxEntry<UserOnyx>;
+    lastShownSplashScreenVideo: OnyxEntry<string>;
 };
 
 type TestToolMenuProps = TestToolMenuOnyxProps & {
@@ -28,7 +29,7 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
 
 const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
-function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
+function TestToolMenu({user = USER_DEFAULT, network, lastShownSplashScreenVideo}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
 
@@ -89,6 +90,9 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     onPress={() => Session.invalidateCredentials()}
                 />
             </TestToolRow>
+            <TestToolRow title="Last shown splash video">
+                <Text style={styles.mutedTextLabel}>{lastShownSplashScreenVideo ?? ''}</Text>
+            </TestToolRow>
         </>
     );
 }
@@ -99,6 +103,9 @@ export default compose(
     withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
+        },
+        lastShownSplashScreenVideo: {
+            key: ONYXKEYS.LAST_SHOWN_SPLASH_VIDEO,
         },
     }),
     withNetwork(),
