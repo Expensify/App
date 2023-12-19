@@ -1,3 +1,7 @@
+import CONST from '@src/CONST';
+
+const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
+
 type OnfidoData = Record<string, unknown>;
 
 type BankAccountStepProps = {
@@ -64,7 +68,7 @@ type ReimbursementAccountProps = {
 };
 
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
-type BeneficialOwnerDraftData = Record<string, string>;
+type BeneficialOwnerDraftData = Record<`beneficialOwner_${string}_${string}`, string>;
 
 type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps & BeneficialOwnerDraftData;
 
