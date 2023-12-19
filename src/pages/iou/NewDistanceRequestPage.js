@@ -1,13 +1,15 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import DistanceRequest from '@components/DistanceRequest';
+import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {iouPropTypes} from './propTypes';
 
 const propTypes = {
@@ -44,6 +46,7 @@ const defaultProps = {
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that DistanceRequest can subscribe to the transaction.
 function NewDistanceRequestPage({iou, report, route}) {
     const iouType = lodashGet(route, 'params.iouType', 'request');
+    const isEditingNewRequest = Navigation.getActiveRoute().includes('address');
 
     useEffect(() => {
         if (iou.transactionID) {
@@ -52,12 +55,21 @@ function NewDistanceRequestPage({iou, report, route}) {
         IOU.setUpDistanceTransaction();
     }, [iou.transactionID]);
 
+    const onSubmit = useCallback(() => {
+        if (isEditingNewRequest) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
+            return;
+        }
+        IOU.navigateToNextPage(iou, iouType, report);
+    }, [iou, iouType, isEditingNewRequest, report]);
+
     return (
         <DistanceRequest
             report={report}
             route={route}
+            isEditingNewRequest={isEditingNewRequest}
             transactionID={iou.transactionID}
-            onSubmit={() => IOU.navigateToNextPage(iou, iouType, report)}
+            onSubmit={onSubmit}
         />
     );
 }
