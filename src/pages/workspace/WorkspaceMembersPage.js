@@ -20,6 +20,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
@@ -86,6 +87,7 @@ function WorkspaceMembersPage(props) {
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const isFocusedScreen = useIsFocused();
 
@@ -301,7 +303,6 @@ function WorkspaceMembersPage(props) {
     const policyOwner = lodashGet(props.policy, 'owner');
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const policyID = lodashGet(props.route, 'params.policyID');
-    const policyName = lodashGet(props.policy, 'name');
     const invitedPrimaryToSecondaryLogins = _.invert(props.policy.primaryLoginsInvited);
 
     const getMemberOptions = () => {
@@ -427,13 +428,13 @@ function WorkspaceMembersPage(props) {
             >
                 <HeaderWithBackButton
                     title={props.translate('workspace.common.members')}
-                    subtitle={policyName}
                     onBackButtonPress={() => {
                         setSearchValue('');
                         Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
                     }}
-                    shouldShowGetAssistanceButton
+                    shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                    shouldShowBorderBottom
                 />
                 <ConfirmModal
                     danger

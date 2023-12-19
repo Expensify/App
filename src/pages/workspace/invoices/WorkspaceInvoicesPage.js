@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
@@ -20,6 +22,7 @@ const propTypes = {
 };
 
 function WorkspaceInvoicesPage(props) {
+    const styles = useThemeStyles();
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
@@ -28,10 +31,10 @@ function WorkspaceInvoicesPage(props) {
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
         >
             {(hasVBA, policyID) => (
-                <>
+                <View style={[styles.workspaceSection, styles.mt6]}>
                     {!hasVBA && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
                     {hasVBA && <WorkspaceInvoicesVBAView policyID={policyID} />}
-                </>
+                </View>
             )}
         </WorkspacePageWithSections>
     );

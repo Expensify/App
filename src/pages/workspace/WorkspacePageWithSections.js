@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
@@ -91,8 +92,8 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const isUsingECard = lodashGet(user, 'isUsingExpensifyCard', false);
     const policyID = lodashGet(route, 'params.policyID');
-    const policyName = lodashGet(policy, 'name');
     const content = children(hasVBA, policyID, isUsingECard);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
         fetchData(shouldSkipVBBACall);
@@ -112,10 +113,10 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
             >
                 <HeaderWithBackButton
                     title={headerText}
-                    subtitle={policyName}
-                    shouldShowGetAssistanceButton
                     guidesCallTaskID={guidesCallTaskID}
+                    shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
+                    shouldShowBorderBottom
                 />
                 {shouldUseScrollView ? (
                     <ScrollViewWithContext
