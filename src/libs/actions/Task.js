@@ -864,9 +864,11 @@ function getTaskOwnerAccountID(taskReport) {
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  * @param {Object} taskReport
  * @param {Number} sessionAccountID
+ * @param {String} policyRole
+ *
  * @returns {Boolean}
  */
-function canModifyTask(taskReport, sessionAccountID) {
+function canModifyTask(taskReport, sessionAccountID, policyRole = '') {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -875,10 +877,15 @@ function canModifyTask(taskReport, sessionAccountID) {
         return true;
     }
 
+    const parentReport = ReportUtils.getParentReport(taskReport);
+
+    if (policyRole && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
+        return false;
+    }
+
     // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
     // - If the parent report is an #admins only room
     // - If you are a policy admin
-    const parentReport = ReportUtils.getParentReport(taskReport);
     return ReportUtils.isAllowedToComment(parentReport);
 }
 
