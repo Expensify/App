@@ -36,7 +36,7 @@ const defaultProps = {
     reports: {},
 };
 
-const searchRendered = () => {
+const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.SEARCH_RENDER);
     Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
 };
@@ -150,7 +150,7 @@ function SearchPage({betas, reports}) {
                             textInputHint={offlineMessage}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
-                            onLayout={searchRendered}
+                            onLayout={setPerformanceTimersEnd}
                             autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
