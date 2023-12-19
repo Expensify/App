@@ -1,15 +1,14 @@
+import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
+type BusinessInfoData = Record<ValueOf<typeof businessInfoStepKeys>, string>;
+
 /**
  * Returns the initial substep for the Business Info step based on already existing data
- *
- * @param {Object} data object that stores business info data
- *
- * @returns {number}
  */
-function getInitialSubstepForBusinessInfo(data) {
+function getInitialSubstepForBusinessInfo(data: BusinessInfoData): number {
     if (data[businessInfoStepKeys.COMPANY_NAME] === '') {
         return 0;
     }
