@@ -173,8 +173,8 @@ platform :ios do
         skip_profile_detection: true,
         scheme: "New Expensify AdHoc",
         xcargs: {
-            :PROVISIONING_PROFILE_SPECIFIER => "NewApp_AdHoc",
-            :PROVISIONING_PROFILE_SPECIFIER => "NewApp_AdHoc_Notification_Service",
+            :PROVISIONING_PROFILE_SPECIFIER => "(NewApp) AdHoc",
+            :PROVISIONING_PROFILE_SPECIFIER => "(NewApp) AdHoc: Notification Service",
         },
         export_method: "ad-hoc",
         export_options: {
