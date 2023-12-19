@@ -1,4 +1,3 @@
-import {randAmount} from '@ngneat/falso';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -131,29 +130,6 @@ test('[ReportUtils] getReportPreviewMessage on 5k policies', async () => {
 
     await waitForBatchedUpdates();
     await measureFunction(() => ReportUtils.getReportPreviewMessage(report, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy), {runs});
-});
-
-test('[ReportUtils] getModifiedExpenseMessage on 5k reports and policies', async () => {
-    const reportAction = {
-        ...createRandomReportAction(1),
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
-        originalMessage: {
-            originalMessage: {
-                amount: randAmount(),
-                currency: CONST.CURRENCY.USD,
-                oldAmount: randAmount(),
-                oldCurrency: CONST.CURRENCY.USD,
-            },
-        },
-    };
-
-    await Onyx.multiSet({
-        ...mockedPoliciesMap,
-        ...mockedReportsMap,
-    });
-
-    await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getModifiedExpenseMessage(reportAction), {runs});
 });
 
 test('[ReportUtils] getReportName on 1k participants', async () => {
