@@ -1,32 +1,31 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import compose from '@libs/compose';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from "@hooks/useThemeStyles";
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useWindowDimensions from "@hooks/useWindowDimensions";
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
 import * as Report from '@userActions/Report';
-import useStyleUtils from "@hooks/useStyleUtils";
-import SCREENS from "@src/SCREENS";
-import {View} from "react-native";
-import NAVIGATORS from "@src/NAVIGATORS";
-import * as Welcome from "@userActions/Welcome";
-import lodashGet from "lodash/get";
-import withNavigation from "./withNavigation";
-import LottieAnimations from "./LottieAnimations";
-import Text from "./Text";
-import Lottie from "./Lottie";
-import HeaderWithBackButton from "./HeaderWithBackButton";
-import MenuItemList from "./MenuItemList";
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
-import Modal from "./Modal";
+import * as Welcome from '@userActions/Welcome';
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
+import Lottie from './Lottie';
+import LottieAnimations from './LottieAnimations';
+import MenuItemList from './MenuItemList';
+import Modal from './Modal';
+import Text from './Text';
+import withNavigation from './withNavigation';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user accountID */
@@ -64,7 +63,8 @@ function PurposeForUsingExpensifyModal(props) {
 
     // This is not translated because it is a message coming from concierge, which only supports english
     const messageCopy = {
-        track: 'Great! To track your expenses, I suggest you create a workspace to keep everything contained:\n' +
+        track:
+            'Great! To track your expenses, I suggest you create a workspace to keep everything contained:\n' +
             '\n' +
             '1. Press your avatar icon\n' +
             '2. Choose Workspaces\n' +
@@ -76,18 +76,20 @@ function PurposeForUsingExpensifyModal(props) {
             '1. Choose My Business Expenses (or whatever you named it) in the list of chat rooms\n' +
             '2. Choose the + button in the chat compose window\n' +
             '3. Choose Request money\n' +
-            '4. Choose what kind of expense you\'d like to log, whether a manual expense, scanned receipt, or tracked distance.\n' +
+            "4. Choose what kind of expense you'd like to log, whether a manual expense, scanned receipt, or tracked distance.\n" +
             '\n' +
-            'That\'ll be stored in your My Business Expenses room for your later access. Thanks for asking, and let me know how it goes!',
-        submit: 'Hi there, to submit expenses for reimbursement, please:\n' +
+            "That'll be stored in your My Business Expenses room for your later access. Thanks for asking, and let me know how it goes!",
+        submit:
+            'Hi there, to submit expenses for reimbursement, please:\n' +
             '\n' +
             '1. Press the big green + button\n' +
             '2. Choose Request money\n' +
             '3. Indicate how much to request, either manually, by scanning a receipt, or by tracking distance\n' +
             '4. Enter the email address or phone number of your boss\n' +
             '\n' +
-            'And we\'ll take it from there to get you paid back. Please give it a shot and let me know how it goes!',
-        business: 'Great! To manage your team\'s expenses, create a workspace to keep everything contained:\n' +
+            "And we'll take it from there to get you paid back. Please give it a shot and let me know how it goes!",
+        business:
+            "Great! To manage your team's expenses, create a workspace to keep everything contained:\n" +
             '\n' +
             '1. Press your avatar icon\n' +
             '2. Choose Workspaces\n' +
@@ -95,7 +97,8 @@ function PurposeForUsingExpensifyModal(props) {
             '4. Name your workspace something meaningful (eg, "Galaxy Food Inc.")\n' +
             '\n' +
             'Once you have your workspace set up, you can invite your team to it via the Members pane and connect a business bank account to reimburse them!',
-        chatSplit: 'Hi there, to split an expense such as with a friend, please:\n' +
+        chatSplit:
+            'Hi there, to split an expense such as with a friend, please:\n' +
             '\n' +
             'Press the big green + button\n' +
             'Choose *Request money*\n' +
@@ -106,8 +109,8 @@ function PurposeForUsingExpensifyModal(props) {
             'Press *Add to split* when done adding friends\n' +
             'Press Split to split the bill\n' +
             '\n' +
-            'This will send a money request to each of your friends for however much they owe you, and we\'ll take care of getting you paid back. Thanks for asking, and let me know how it goes!',
-    }
+            "This will send a money request to each of your friends for however much they owe you, and we'll take care of getting you paid back. Thanks for asking, and let me know how it goes!",
+    };
 
     const closeModal = useCallback(() => {
         Report.dismissEngagementModal();
@@ -116,8 +119,8 @@ function PurposeForUsingExpensifyModal(props) {
 
     const completeModalAndClose = (message, choice) => {
         Report.completeEngagementModal(message, choice);
-        setIsModalOpen(false)
-    }
+        setIsModalOpen(false);
+    };
 
     const menuItems = [
         {

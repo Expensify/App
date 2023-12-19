@@ -138,22 +138,22 @@ function getReportID(route) {
 }
 
 function ReportScreen({
-                          betas,
-                          route,
-                          report,
-                          reportMetadata,
-                          reportActions,
-                          accountManagerReportID,
-                          personalDetails,
-                          markReadyForHydration,
-                          policies,
-                          isSidebarLoaded,
-                          viewportOffsetTop,
-                          isComposerFullSize,
-                          errors,
-                          userLeavingStatus,
-                          currentReportID,
-                      }) {
+    betas,
+    route,
+    report,
+    reportMetadata,
+    reportActions,
+    accountManagerReportID,
+    personalDetails,
+    markReadyForHydration,
+    policies,
+    isSidebarLoaded,
+    viewportOffsetTop,
+    isComposerFullSize,
+    errors,
+    userLeavingStatus,
+    currentReportID,
+}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();

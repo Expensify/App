@@ -146,8 +146,6 @@ function FloatingActionButtonAndPopover(props) {
         }
     };
 
-
-
     useEffect(() => {
         if (!didScreenBecomeInactive()) {
             return;

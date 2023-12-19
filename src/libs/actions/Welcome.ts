@@ -6,8 +6,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import OnyxPolicy from '@src/types/onyx/Policy';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
 import Report from '@src/types/onyx/Report';
+import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;

@@ -2511,10 +2511,10 @@ export default {
     purposeForExpensify: {
         track: 'Track my business expenses to file taxes',
         submit: 'Submit expenses to my employer to get paid back',
-        business: 'Manage my team\'s expenses',
+        business: "Manage my team's expenses",
         chatSplit: 'Chat and split expenses with friends',
         welcomeMessage: 'Welcome to Expensify',
-        welcomeSubtitle: 'What\'s your main purpose for using Expensify?',
+        welcomeSubtitle: "What's your main purpose for using Expensify?",
     },
     violations: {
         allTagLevelsRequired: 'dummy.violations.allTagLevelsRequired',

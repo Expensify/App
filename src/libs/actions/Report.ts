@@ -2475,7 +2475,7 @@ function completeEngagementModal(text: string, choice: string) {
         reportActionID?: string;
         commentReportActionID?: string | null;
         reportComment?: string;
-        engagementChoice: string,
+        engagementChoice: string;
         timezone?: string;
     };
 
@@ -2484,7 +2484,6 @@ function completeEngagementModal(text: string, choice: string) {
         reportActionID: reportCommentAction.reportActionID,
         reportComment: reportCommentText,
         engagementChoice: choice,
-
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -2501,7 +2500,7 @@ function completeEngagementModal(text: string, choice: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_INTRO_SELECTED,
-            value: {choice}
+            value: {choice},
         },
     ];
 
@@ -2509,8 +2508,8 @@ function completeEngagementModal(text: string, choice: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
-            value:  {[reportCommentAction.reportActionID]: {pendingAction: null}},
-        }
+            value: {[reportCommentAction.reportActionID]: {pendingAction: null}},
+        },
     ];
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
