@@ -6,25 +6,6 @@ import useTheme from '@hooks/useTheme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-const adapter = createAnimatedPropAdapter(
-    (props) => {
-        const modifiedProps = {...props};
-        // eslint-disable-next-line rulesdir/prefer-underscore-method
-        if (Object.keys(modifiedProps).includes('fill')) {
-            modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
-        }
-        // eslint-disable-next-line rulesdir/prefer-underscore-method
-        if (Object.keys(modifiedProps).includes('stroke')) {
-            modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
-        }
-    },
-    ['fill', 'stroke'],
-);
-adapter.propTypes = {
-    fill: PropTypes.string,
-    stroke: PropTypes.string,
-};
-
 const propTypes = {
     /* Current state (active or not active) of the component */
     isActive: PropTypes.bool.isRequired,
@@ -40,6 +21,25 @@ function FabPlusIcon({isActive}) {
             easing: Easing.inOut(Easing.ease),
         });
     }, [isActive, sharedValue]);
+
+    const adapter = createAnimatedPropAdapter(
+        (props) => {
+            const modifiedProps = {...props};
+            // eslint-disable-next-line rulesdir/prefer-underscore-method
+            if (Object.keys(modifiedProps).includes('fill')) {
+                modifiedProps.fill = {type: 0, payload: processColor(modifiedProps.fill)};
+            }
+            // eslint-disable-next-line rulesdir/prefer-underscore-method
+            if (Object.keys(modifiedProps).includes('stroke')) {
+                modifiedProps.stroke = {type: 0, payload: processColor(modifiedProps.stroke)};
+            }
+        },
+        ['fill', 'stroke'],
+    );
+    adapter.propTypes = {
+        fill: PropTypes.string,
+        stroke: PropTypes.string,
+    };
 
     const animatedProps = useAnimatedProps(
         () => {
