@@ -190,6 +190,7 @@ window.addEventListener('DOMContentLoaded', () => {
             // Disable the collapsible functionality of the library by
             // setting the maximum number of heading levels (6)
             collapseDepth: 6,
+            headingSelector: 'h1, h2, h3, summary',
 
             // Main class to add to lists.
             listClass: 'lhn-items',
@@ -226,6 +227,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // the LHN menu in responsive view.
     lhnContent.addEventListener('click', (event) => {
         const clickedLink = event.target;
+        console.log(clickedLink)
         if (clickedLink) {
             const href = clickedLink.getAttribute('href');
             if (href && href.startsWith('#') && !!document.getElementById(href.slice(1))) {
