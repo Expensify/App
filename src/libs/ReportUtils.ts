@@ -1398,8 +1398,8 @@ function getIcons(
 }
 
 /**
- * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local
- * variable, allPersonalDetails). If it doesn't exist in Onyx, then a default object is constructed.
+ * Gets the personal details for a login by looking in the ONYXKEYS.PERSONAL_DETAILS_LIST Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
+ * then a default object is constructed.
  */
 function getPersonalDetailsForAccountID(accountID: number): Partial<PersonalDetails> {
     if (!accountID) {
@@ -1549,8 +1549,8 @@ function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): strin
  * Returns the last visible message for a given report after considering the given optimistic actions
  *
  * @param reportID - the report for which last visible message has to be fetched
- * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible
- *     message
+ * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
+
  */
 function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: ReportActions = {}): LastVisibleMessage {
     const report = getReport(reportID);
@@ -2410,9 +2410,8 @@ function goBackToDetailsPage(report: OnyxEntry<Report>) {
 
 /**
  * Generate a random reportID up to 53 bits aka 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
- * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach,
- * those make up roughly one billionth of the space for these numbers, so we live with the 1 in a billion chance of a
- * collision with an older ID until we can switch to 64-bit IDs.
+ * There were approximately 98,000,000 reports with sequential IDs generated before we started using this approach, those make up roughly one billionth of the space for these numbers,
+ * so we live with the 1 in a billion chance of a collision with an older ID until we can switch to 64-bit IDs.
  *
  * In a test of 500M reports (28 years of reports at our current max rate) we got 20-40 collisions meaning that
  * this is more than random enough for our needs.
@@ -2426,9 +2425,8 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is
- * stored in the database For longer comments, skip parsing, but still escape the text, and display plaintext for
- * performance reasons. It takes over 40s to parse a 100k long string!!
+ * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
+ * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
 function getParsedComment(text: string): string {
     const parser = new ExpensiMark();
@@ -2732,13 +2730,11 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
  * @param participants - An array with participants details.
  * @param [transactionID] - Not required if the IOUReportAction type is 'pay'
  * @param [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, Expensify).
- * @param [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a
- *     randomID as default.
+ * @param [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param [isSettlingUp] - Whether we are settling up an IOU.
  * @param [isSendMoneyFlow] - Whether this is send money flow
  * @param [receipt]
- * @param [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense
- *     chat
+ * @param [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  */
 
 function buildOptimisticIOUReportAction(
@@ -3459,8 +3455,7 @@ function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Pol
     return true;
 }
 /**
- * Check if the report is the parent report of the currently viewed report or at least one child report has report
- * action
+ * Check if the report is the parent report of the currently viewed report or at least one child report has report action
  */
 function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): boolean {
     const currentReport = getReport(currentReportId);
@@ -3503,11 +3498,11 @@ function hasViolations(reportID: string, transactionViolations: TransactionViola
 }
 
 /**
- * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when
- * searching for reports or the reports shown in the LHN).
+ * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
+ * for reports or the reports shown in the LHN).
  *
- * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and
- * also filter out the majority of reports before filtering out very specific minority of reports.
+ * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
+ * filter out the majority of reports before filtering out very specific minority of reports.
  */
 function shouldReportBeInOptionList(
     report: OnyxEntry<Report>,
@@ -3811,11 +3806,9 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
 
 /**
  * Users can request money:
- * - in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy
- * expense chat)
+ * - in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
  * - in an open or submitted expense report tied to a policy expense chat the user owns
- *     - employee can request money in submitted expense report only if the policy has Instant Submit settings turned
- * on
+ *     - employee can request money in submitted expense report only if the policy has Instant Submit settings turned on
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
