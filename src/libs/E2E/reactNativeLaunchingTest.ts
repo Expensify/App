@@ -26,6 +26,7 @@ if (!Metrics.canCapturePerformanceMetrics()) {
 const tests: Tests = {
     [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
     [E2EConfig.TEST_NAMES.OpenSearchPage]: require('./tests/openSearchPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ChatOpening]: require('./tests/chatOpeningTest.e2e').default,
     [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
 };
 

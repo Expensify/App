@@ -58,6 +58,12 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
+    /** The policy of root parent report */
+    rootParentReportPolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     /** The current policy of the report */
     policy: PropTypes.shape({
         /** The policy name */
@@ -77,6 +83,7 @@ const defaultProps = {
         accountID: 0,
     },
     policy: {},
+    rootParentReportPolicy: {},
 };
 
 function HeaderView(props) {
@@ -102,6 +109,7 @@ function HeaderView(props) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(props.report, parentReportAction);
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(props.report.reportID);
+    const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
     const isEmptyChat = !props.report.lastMessageText && !props.report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(props.report);
     const isPolicyMember = useMemo(() => !_.isEmpty(props.policy), [props.policy]);
@@ -112,7 +120,7 @@ function HeaderView(props) {
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const threeDotMenuItems = [];
     if (isTaskReport && !isCanceledTaskReport) {
-        const canModifyTask = Task.canModifyTask(props.report, props.session.accountID);
+        const canModifyTask = Task.canModifyTask(props.report, props.session.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
 
         // Task is marked as completed
         if (ReportUtils.isCompletedTaskReport(props.report) && canModifyTask) {
@@ -134,7 +142,7 @@ function HeaderView(props) {
     }
 
     if ((isChatThread && !isEmptyChat) || isUserCreatedPolicyRoom || canLeaveRoom) {
-        if (props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             threeDotMenuItems.push({
                 icon: Expensicons.ChatBubbles,
                 text: translate('common.join'),
@@ -310,6 +318,13 @@ export default memo(
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
             selector: (policy) => _.pick(policy, ['name', 'avatar', 'pendingAction']),
+        },
+        rootParentReportPolicy: {
+            key: ({report}) => {
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => _.pick(policy, ['role']),
         },
     })(HeaderView),
 );
