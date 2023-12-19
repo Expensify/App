@@ -1,19 +1,20 @@
-import React, {forwardRef, useImperativeHandle, useRef} from 'react';
+import React, {ForwardedRef, forwardRef, useImperativeHandle, useRef} from 'react';
 import ViewShot from 'react-native-view-shot';
 import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
-import {qrShareDefaultProps, qrSharePropTypes} from '@components/QRShare/propTypes';
+import {QRShareProps} from '@components/QRShare/types';
 import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
+import QRShareWithDownloadHandle from './types';
 
-function QRShareWithDownload({innerRef, ...props}) {
+function QRShareWithDownload(props: QRShareProps, ref: ForwardedRef<QRShareWithDownloadHandle>) {
     const {isOffline} = useNetwork();
-    const qrCodeScreenshotRef = useRef(null);
+    const qrCodeScreenshotRef = useRef<ViewShot>(null);
 
     useImperativeHandle(
-        innerRef,
+        ref,
         () => ({
-            download: () => qrCodeScreenshotRef.current.capture().then((uri) => fileDownload(uri, getQrCodeFileName(props.title))),
+            download: () => qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(uri, getQrCodeFileName(props.title))),
         }),
         [props.title],
     );
@@ -23,24 +24,12 @@ function QRShareWithDownload({innerRef, ...props}) {
             <QRShare
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                logo={isOffline ? null : props.logo}
+                logo={isOffline ? undefined : props.logo}
             />
         </ViewShot>
     );
 }
 
-QRShareWithDownload.propTypes = qrSharePropTypes;
-QRShareWithDownload.defaultProps = qrShareDefaultProps;
 QRShareWithDownload.displayName = 'QRShareWithDownload';
 
-const QRShareWithDownloadWithRef = forwardRef((props, ref) => (
-    <QRShareWithDownload
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-QRShareWithDownloadWithRef.displayName = 'QRShareWithDownloadWithRef';
-
-export default QRShareWithDownloadWithRef;
+export default forwardRef(QRShareWithDownload);
