@@ -20,7 +20,11 @@ Onyx.connect({
  * @param [defaultValue] optional default display name value
  */
 function getDisplayNameOrDefault(displayName?: string, defaultValue = ''): string {
-    return displayName ?? defaultValue ?? Localize.translateLocal('common.hidden');
+    // Not using nullish coalescing as it differs from OR for strings. For example:
+    // '' || 'A' === 'A'
+    // '' ?? 'A' === ''
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
 
 /**
