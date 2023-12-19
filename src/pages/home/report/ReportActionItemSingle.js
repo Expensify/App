@@ -13,6 +13,9 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,9 +23,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import reportPropTypes from '@pages/reportPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
@@ -170,7 +170,7 @@ function ReportActionItemSingle(props) {
                     icons={[icon, secondaryAvatar]}
                     isInReportAction
                     shouldShowTooltip
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.highlightBG) : undefined]}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
                 />
             );
         }
@@ -217,7 +217,7 @@ function ReportActionItemSingle(props) {
                 onPress={showActorDetails}
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={actorHint}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
@@ -231,7 +231,7 @@ function ReportActionItemSingle(props) {
                             onPress={showActorDetails}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={actorHint}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment

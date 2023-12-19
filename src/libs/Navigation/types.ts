@@ -82,7 +82,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.STATUS_SET]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.INITIAL]: undefined;
     [SCREENS.WORKSPACE.SETTINGS]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
@@ -332,10 +334,13 @@ type PrivateNotesNavigatorParamList = {
     };
 };
 
+type LeftModalNavigatorParamList = {
+    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+};
+
 type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SETTINGS]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_CHAT]: NavigatorScreenParams<NewChatNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DETAILS]: NavigatorScreenParams<DetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PROFILE]: NavigatorScreenParams<ProfileNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
@@ -372,8 +377,8 @@ type PublicScreensParamList = {
         validateCode: string;
     };
     [SCREENS.UNLINK_LOGIN]: {
-        accountID: string;
-        validateCode: string;
+        accountID?: string;
+        validateCode?: string;
     };
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
@@ -405,6 +410,7 @@ type AuthScreensParamList = {
         name: string;
     };
     [SCREENS.NOT_FOUND]: undefined;
+    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [CONST.DEMO_PAGES.MONEY2020]: undefined;
@@ -421,6 +427,7 @@ export type {
     NavigationStateRoute,
     NavigationRoot,
     AuthScreensParamList,
+    LeftModalNavigatorParamList,
     RightModalNavigatorParamList,
     PublicScreensParamList,
     MoneyRequestNavigatorParamList,
