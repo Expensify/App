@@ -11,7 +11,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import {PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -24,7 +24,7 @@ type AvatarWithDisplayNamePropsWithOnyx = {
     parentReportActions: OnyxEntry<ReportActions>;
 
     /** Personal details of all users */
-    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
