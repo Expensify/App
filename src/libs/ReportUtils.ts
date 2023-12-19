@@ -3510,8 +3510,8 @@ function shouldReportBeInOptionList(
     isInGSDMode: boolean,
     betas: Beta[],
     policies: OnyxCollection<Policy>,
-    allReportActions?: OnyxCollection<ReportActions>,
     excludeEmptyChats = false,
+    allReportActions?: OnyxCollection<ReportActions>,
     transactionViolations?: TransactionViolations,
 ) {
     const isInDefaultMode = !isInGSDMode;

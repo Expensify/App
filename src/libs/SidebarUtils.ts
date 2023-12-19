@@ -147,7 +147,7 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = allReportsDictValues.filter((report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, allReportActions, true, transactionViolations),
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true, allReportActions, transactionViolations),
     );
 
     if (reportsToDisplay.length === 0) {
