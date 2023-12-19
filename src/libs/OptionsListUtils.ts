@@ -1,5 +1,4 @@
 /* eslint-disable no-continue */
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashOrderBy from 'lodash/orderBy';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -23,6 +22,7 @@ import * as LoginUtils from './LoginUtils';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PhoneNumber from './PhoneNumber';
 import {PersonalDetailsList} from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
@@ -229,7 +229,7 @@ Onyx.connect({
  * Adds expensify SMS domain (@expensify.sms) if login is a phone number and if it's not included yet
  */
 function addSMSDomainIfPhoneNumber(login: string): string {
-    const parsedPhoneNumber = parsePhoneNumber(login);
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
         return parsedPhoneNumber.number?.e164 + CONST.SMS.DOMAIN;
     }
@@ -303,25 +303,25 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
  */
 function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
-    const login = detail.login ?? participant.login ?? '';
-    const displayName = detail.displayName ?? LocalePhoneNumber.formatPhoneNumber(login);
+    const login = detail?.login ?? participant.login ?? '';
+    const displayName = detail?.displayName ?? LocalePhoneNumber.formatPhoneNumber(login);
     return {
-        keyForList: String(detail.accountID),
+        keyForList: String(detail?.accountID),
         login,
-        accountID: detail.accountID ?? -1,
+        accountID: detail?.accountID ?? -1,
         text: displayName,
-        firstName: detail.firstName ?? '',
-        lastName: detail.lastName ?? '',
+        firstName: detail?.firstName ?? '',
+        lastName: detail?.lastName ?? '',
         alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: UserUtils.getAvatar(detail.avatar ?? '', detail.accountID ?? -1),
+                source: UserUtils.getAvatar(detail?.avatar ?? '', detail?.accountID ?? -1),
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
-                id: detail.accountID,
+                id: detail?.accountID,
             },
         ],
-        phoneNumber: detail.phoneNumber ?? '',
+        phoneNumber: detail?.phoneNumber ?? '',
         selected: !!participant.selected,
         searchText: participant.searchText ?? '',
     };
@@ -557,14 +557,14 @@ function createOption(
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
-    const personalDetailList = Object.values(personalDetailMap);
-    const personalDetail = personalDetailList[0] ?? {};
+    const personalDetailList = Object.values(personalDetailMap).filter(Boolean) as PersonalDetails[];
+    const personalDetail = personalDetailList[0];
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
     let reportName;
 
     result.participantsList = personalDetailList;
-    result.isOptimisticPersonalDetail = personalDetail.isOptimisticPersonalDetail;
+    result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
 
     if (report) {
         result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -601,7 +601,7 @@ function createOption(
         if (result.isArchivedRoom && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
             const archiveReason = lastReportAction.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}` as 'reportArchiveReasons.removedFromPolicy', {
-                displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails?.displayName),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -627,16 +627,22 @@ function createOption(
     result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result);
 
     if (!hasMultipleParticipants) {
-        result.login = personalDetail.login;
-        result.accountID = Number(personalDetail.accountID);
-        result.phoneNumber = personalDetail.phoneNumber;
+        result.login = personalDetail?.login;
+        result.accountID = Number(personalDetail?.accountID);
+        result.phoneNumber = personalDetail?.phoneNumber;
     }
 
     result.text = reportName;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     result.searchText = getSearchText(report, reportName, personalDetailList, !!(result.isChatRoom || result.isPolicyExpenseChat), !!result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar ?? '', personalDetail.accountID), personalDetail.login, personalDetail.accountID);
+    result.icons = ReportUtils.getIcons(
+        report,
+        personalDetails,
+        UserUtils.getAvatar(personalDetail?.avatar ?? '', personalDetail?.accountID),
+        personalDetail?.login,
+        personalDetail?.accountID,
+    );
     result.subtitle = subtitle;
 
     return result;
@@ -1160,7 +1166,7 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions: ReportUtils.OptionData[] = [];
     const reportMapForAccountIDs: Record<number, Report> = {};
-    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
@@ -1240,20 +1246,11 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
-    const filteredDetails: OnyxEntry<PersonalDetailsList> = Object.keys(personalDetails ?? {})
-        .filter((key) => 'login' in (personalDetails?.[Number(key)] ?? {}))
-        .reduce((obj: OnyxEntry<PersonalDetailsList>, key) => {
-            if (obj && personalDetails?.[Number(key)]) {
-                // eslint-disable-next-line no-param-reassign
-                obj[Number(key)] = personalDetails?.[Number(key)];
-            }
-
-            return obj;
-        }, {});
-
-    const havingLoginPersonalDetails = !includeP2P ? {} : filteredDetails;
-    let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails ?? {}).map((personalDetail) =>
-        createOption([personalDetail?.accountID ?? 0], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? 0], reportActions, {
+    const havingLoginPersonalDetails = !includeP2P
+        ? {}
+        : Object.fromEntries(Object.entries(personalDetails ?? {}).filter(([, detail]) => Boolean(detail?.login) && !detail?.isOptimisticPersonalDetail));
+    let allPersonalDetailsOptions = Object.values(havingLoginPersonalDetails).map((personalDetail) =>
+        createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], reportActions, {
             showChatPreviewLine,
             forcePolicyNamePreview,
         }),
@@ -1422,7 +1419,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: personalDetailsOptions.filter((personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
+        personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
@@ -1608,7 +1605,7 @@ function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolea
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
+    const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 

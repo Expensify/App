@@ -118,7 +118,7 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
 
 const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: 3,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SMALL]: 2,
@@ -658,11 +658,11 @@ function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isI
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.border;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
     }
 
     if (isPressed) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.buttonPressedBG;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
     }
 
     return {borderColor};
@@ -860,7 +860,7 @@ function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: num
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): ViewStyle {
+function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): TextStyle {
     let paddingValue = 5;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {

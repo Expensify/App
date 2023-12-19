@@ -31,7 +31,7 @@ function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean 
  * Check if the policy has any error fields.
  */
 function hasPolicyErrorFields(policy: OnyxEntry<Policy>): boolean {
-    return Object.keys(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
+    return Object.values(policy?.errorFields ?? {}).some((fieldErrors) => Object.keys(fieldErrors ?? {}).length > 0);
 }
 
 /**
