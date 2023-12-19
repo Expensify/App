@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import variables from '@styles/variables';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
@@ -14,6 +15,9 @@ type WrappedTextProps = ChildrenProps & {
      * Style for each individual word (token) in the text. Note that a token can also include whitespace characters between words.
      */
     wordStyles?: StyleProp<ViewStyle>;
+
+    /** The size of the text */
+    fontSize?: number;
 };
 
 /**
@@ -39,7 +43,7 @@ function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJIS.test(text);
 }
 
-function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
+function WrappedText({children, wordStyles, textStyles, fontSize=variables.fontSizeNormal}: WrappedTextProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -55,7 +59,7 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
             key={`${rowText[0]}-${rowIndex}`}
         >
             {rowText.map((colText, colIndex) => {
-                const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), textStyles?.fontSize);
+                const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), fontSize);
                 return (
                     // Outer View is important to vertically center the Text
                     <View

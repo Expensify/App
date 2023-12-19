@@ -6,6 +6,7 @@ type InlineCodeBlockProps<TComponent extends TText> = {
     textStyle: StyleProp<TextStyle>;
     defaultRendererProps: TDefaultRendererProps<TComponent>;
     boxModelStyle: StyleProp<ViewStyle & TextStyle>;
+    fontSize: number;
 };
 
 export default InlineCodeBlockProps;

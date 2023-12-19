@@ -4,7 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type InlineCodeBlockProps from './types';
 import WrappedText from './WrappedText';
 
-function InlineCodeBlock<TComponent extends TText>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
+function InlineCodeBlock<TComponent extends TText>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle, fontSize}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
 
     return (
@@ -15,6 +15,7 @@ function InlineCodeBlock<TComponent extends TText>({TDefaultRenderer, defaultRen
             <WrappedText
                 textStyles={textStyle}
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
+                fontSize={fontSize}
             >
                 {defaultRendererProps.tnode.data}
             </WrappedText>
