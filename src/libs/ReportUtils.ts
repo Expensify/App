@@ -1853,7 +1853,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, repor
     if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
     }
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+    if (!isEmpty(transaction) && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
         return false;
     }
 
