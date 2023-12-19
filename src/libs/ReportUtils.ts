@@ -937,8 +937,8 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
  * Checks whether all the transactions linked to the IOU report are of the Distance Request type
  *
  */
-function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined, transactions: Transaction[] | undefined = undefined): boolean {
-    const allTransactionsOfPreview = transactions ?? TransactionUtils.getAllReportTransactions(iouReportID);
+function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
+    const allTransactionsOfPreview = TransactionUtils.getAllReportTransactions(iouReportID);
     return allTransactionsOfPreview.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
@@ -1624,8 +1624,8 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
  * Returns number of transactions that are nonReimbursable
  *
  */
-function hasNonReimbursableTransactions(iouReportID: string | undefined, transactions: Transaction[] | undefined = undefined): boolean {
-    const allTransactionsOfPreview = transactions ?? TransactionUtils.getAllReportTransactions(iouReportID);
+function hasNonReimbursableTransactions(iouReportID: string | undefined): boolean {
+    const allTransactionsOfPreview = TransactionUtils.getAllReportTransactions(iouReportID);
     return allTransactionsOfPreview.filter((transaction) => transaction.reimbursable === false).length > 0;
 }
 
@@ -1901,7 +1901,8 @@ function getTransactionsWithReceipts(iouReportID: string | undefined): Transacti
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" money request, and we remove this indicator to show the partial report total.
  */
-function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewAction: OnyxEntry<ReportAction>, transactionsWithReceipts: Transaction[] = []): boolean {
+function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewAction: OnyxEntry<ReportAction>): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     // If we have more requests than requests with receipts, we have some manual requests
     if (ReportActionsUtils.getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
@@ -1913,8 +1914,8 @@ function areAllRequestsBeingSmartScanned(iouReportID: string, reportPreviewActio
  * Check if any of the transactions in the report has required missing fields
  *
  */
-function hasMissingSmartscanFields(iouReportID: string, transactions: Transaction[] | undefined = undefined): boolean {
-    const transactionsWithReceipts = transactions ?? getTransactionsWithReceipts(iouReportID);
+function hasMissingSmartscanFields(iouReportID: string): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     return transactionsWithReceipts.some((transaction) => TransactionUtils.hasMissingSmartscanFields(transaction));
 }
 

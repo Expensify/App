@@ -121,12 +121,15 @@ function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [transactions, setTransactions] = useState([]);
+
+    const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
+    const [areAllRequestsBeingSmartScanned, setAreAllRequestsBeingSmartScanned] = useState(false);
+    const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
+    const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
 
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
-    const transactionsWithReceipts = useMemo(() => _.filter(transactions, (transaction) => TransactionUtils.hasReceipt(transaction)), [transactions]);
     const policyType = lodashGet(props.policy, 'type');
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
@@ -138,14 +141,13 @@ function ReportPreview(props) {
 
     const isApproved = ReportUtils.isReportApproved(props.iouReport);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(props.iouReport);
+    const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(props.iouReportID);
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
-    const hasOnlyDistanceRequests = ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID, transactions);
-    const isScanning = hasReceipts && ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action, transactionsWithReceipts);
-    const hasErrors = hasReceipts && ReportUtils.hasMissingSmartscanFields(props.iouReportID, transactionsWithReceipts);
+    const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
+    const hasErrors = hasReceipts && hasMissingSmartscanFields;
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
-    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(props.iouReportID, transactions);
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
     const hasPendingWaypoints = formattedMerchant && hasOnlyDistanceRequests && _.every(transactionsWithReceipts, (transaction) => lodashGet(transaction, 'pendingFields.waypoints', null));
     if (hasPendingWaypoints) {
@@ -213,8 +215,10 @@ function ReportPreview(props) {
                     return;
                 }
 
-                const allTransactions = TransactionUtils.getAllReportTransactions(props.iouReportID);
-                setTransactions(allTransactions);
+                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
+                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID));
+                setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
+                setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
             },
         });
 
