@@ -1,6 +1,9 @@
 /* eslint-disable no-continue */
 import Str from 'expensify-common/lib/str';
+// eslint-disable-next-line you-dont-need-lodash-underscore/get
+import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
+import lodashSet from 'lodash/set';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
@@ -10,8 +13,6 @@ import {Participant} from '@src/types/onyx/IOU';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
-import get from '@src/utils/get';
-import set from '@src/utils/set';
 import sortBy from '@src/utils/sortBy';
 import times from '@src/utils/times';
 import * as CollectionUtils from './CollectionUtils';
@@ -754,8 +755,8 @@ function sortCategories(categories: Record<string, Category>): Category[] {
      */
     sortedCategories.forEach((category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-        const existedValue = get(hierarchy, path, {});
-        set(hierarchy, path, {
+        const existedValue = lodashGet(hierarchy, path, {});
+        lodashSet(hierarchy, path, {
             ...existedValue,
             name: category.name,
         });
@@ -959,7 +960,7 @@ function getCategoryListSections(
 }
 
 /**
- * Transforms the provided tags into objects with a specific structure.
+ * Transforms the provided tags into option objects.
  *
  * @param tags - an initial tag array
  * @param tags[].enabled - a flag to enable/disable option in a list
