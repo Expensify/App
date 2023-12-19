@@ -1,8 +1,9 @@
 import {MutableRefObject} from 'react';
+import {TextInput} from 'react-native';
 
 type UseHtmlPaste = (
     textInputRef: MutableRefObject<
-        | (HTMLInputElement & {
+        | ((HTMLTextAreaElement & TextInput) & {
               isFocused?: () => boolean;
           })
         | null
