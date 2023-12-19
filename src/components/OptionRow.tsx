@@ -73,8 +73,10 @@ type OptionRowProps = {
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported?: boolean;
 
+    /** Display name and alternate text style */
     style?: StyleProp<TextStyle>;
 
+    /** Hovered background color */
     backgroundColor?: string;
 };
 
