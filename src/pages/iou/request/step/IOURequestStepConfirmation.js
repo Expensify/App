@@ -225,7 +225,6 @@ function IOURequestStepConfirmation({
                     transaction.category,
                     transaction.tag,
                     report.reportID,
-                    transaction.merchant,
                 );
                 return;
             }
