@@ -886,7 +886,7 @@ function getTaskOwnerAccountID(taskReport: OnyxTypes.Report): number | null {
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  */
-function canModifyTask(taskReport: OnyxTypes.Report, sessionAccountID: number, policyRole: ValueOf<typeof CONST.POLICY.ROLE>): boolean {
+function canModifyTask(taskReport: OnyxTypes.Report, sessionAccountID: number, policyRole: ValueOf<typeof CONST.POLICY.ROLE> | undefined): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
