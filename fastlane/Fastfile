@@ -174,7 +174,6 @@ platform :ios do
         scheme: "New Expensify AdHoc",
         xcargs: {
             :PROVISIONING_PROFILE_SPECIFIER => "(NewApp) AdHoc",
-            :PROVISIONING_PROFILE_SPECIFIER => "(NewApp) AdHoc: Notification Service",
         },
         export_method: "ad-hoc",
         export_options: {
