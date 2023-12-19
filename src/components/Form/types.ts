@@ -72,4 +72,4 @@ type InputProps = InputPropsToPass & {
 
 type RegisterInput = (inputID: string, props: InputPropsToPass) => InputProps;
 
-export type {InputWrapperProps, FormProps, InputRef, InputRefs, RegisterInput, ValueType, InputValues, InputProps};
+export type {InputWrapperProps, FormProps, InputRef, InputRefs, RegisterInput, ValueType, InputValues, InputProps, FormID};

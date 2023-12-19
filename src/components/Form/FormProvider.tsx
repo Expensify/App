@@ -18,7 +18,9 @@ import {FormProps, InputRef, InputRefs, InputValues, RegisterInput, ValueType} f
 // More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
 
-function getInitialValueByType(valueType?: ValueType): false | Date | '' {
+type DefaultValue = false | Date | '';
+
+function getInitialValueByType(valueType?: ValueType): DefaultValue {
     switch (valueType) {
         case 'string':
             return '';
@@ -248,9 +250,7 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
                             setTouchedInput(inputID);
                         }, VALIDATE_DELAY);
                     }
-                    if (typeof inputProps.onTouched === 'function') {
-                        inputProps.onTouched(event);
-                    }
+                    inputProps.onTouched?.(event);
                 },
                 onPress: (event) => {
                     if (!inputProps.shouldSetTouchedOnBlurOnly) {
@@ -258,9 +258,7 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
                             setTouchedInput(inputID);
                         }, VALIDATE_DELAY);
                     }
-                    if (typeof inputProps.onPress === 'function') {
-                        inputProps.onPress(event);
-                    }
+                    inputProps.onPress?.(event);
                 },
                 onPressOut: (event) => {
                     // To prevent validating just pressed inputs, we need to set the touched input right after
@@ -271,9 +269,7 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
                             setTouchedInput(inputID);
                         }, VALIDATE_DELAY);
                     }
-                    if (typeof inputProps.onPressOut === 'function') {
-                        inputProps.onPressOut(event);
-                    }
+                    inputProps.onPressOut?.(event);
                 },
                 onBlur: (event) => {
                     // Only run validation when user proactively blurs the input.
@@ -298,10 +294,7 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
                             }
                         }, VALIDATE_DELAY);
                     }
-
-                    if (typeof inputProps.onBlur === 'function') {
-                        inputProps.onBlur(event);
-                    }
+                    inputProps.onBlur?.(event);
                 },
                 onInputChange: (value, key) => {
                     const inputKey = key || inputID;
@@ -320,10 +313,7 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
                     if (inputProps.shouldSaveDraft) {
                         FormActions.setDraftValues(formID, {[inputKey]: value});
                     }
-
-                    if (typeof inputProps.onValueChange === 'function') {
-                        inputProps.onValueChange(value, inputKey);
-                    }
+                    inputProps.onValueChange?.(value, inputKey);
                 },
             };
         },
