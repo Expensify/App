@@ -64,6 +64,7 @@ function BaseHTMLEngineProvider(props) {
                 tagName: 'next-steps',
                 mixedUAStyles: {...styles.textLabelSupporting},
             }),
+            'next-steps-email': defaultHTMLElementModels.span.extend({tagName: 'next-steps-email'}),
         }),
         [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
     );

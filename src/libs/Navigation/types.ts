@@ -377,8 +377,8 @@ type PublicScreensParamList = {
         validateCode: string;
     };
     [SCREENS.UNLINK_LOGIN]: {
-        accountID: string;
-        validateCode: string;
+        accountID?: string;
+        validateCode?: string;
     };
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
