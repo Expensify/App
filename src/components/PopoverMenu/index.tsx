@@ -98,14 +98,13 @@ function PopoverMenu({
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const selectedItemIndex = useRef<number>(null);
+    const selectedItemIndex = useRef<number | null>(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItems.length - 1, isActive: isVisible});
 
     const selectItem = (index: number) => {
         const selectedItem = menuItems[index];
         onItemSelected(selectedItem, index);
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-        (selectedItemIndex.current as number) = index;
+        selectedItemIndex.current = index;
     };
 
     useKeyboardShortcut(
@@ -132,7 +131,7 @@ function PopoverMenu({
                 setFocusedIndex(-1);
                 if (selectedItemIndex.current !== null) {
                     menuItems[selectedItemIndex.current].onSelected();
-                    (selectedItemIndex.current as number | null) = null;
+                    selectedItemIndex.current = null;
                 }
             }}
             animationIn={animationIn}
