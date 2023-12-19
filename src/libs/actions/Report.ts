@@ -349,11 +349,6 @@ function addActions(reportID: string, text = '', file?: File) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: optimisticReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: optimisticReportActions,
         },
@@ -403,11 +398,6 @@ function addActions(reportID: string, text = '', file?: File) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: failureReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: failureReportActions,
         },
@@ -430,6 +420,47 @@ function addActions(reportID: string, text = '', file?: File) {
         });
         DateUtils.setTimezoneUpdated();
     }
+
+    const loginList = ReportUtils.getMentionListFromComment((reportCommentAction?.message ?? [])[0].html ?? '');
+
+    // When we send a mention in the chat room, we will invite this user to the chat room if this user isn't a participant of the room.
+    // So we should update participant of the report in optimistic data.
+    if (loginList.length > 0 && ReportUtils.isUserCreatedPolicyRoom(report as OnyxEntry<Report>)) {
+        const participantAccountIDs = report?.participantAccountIDs ?? [];
+        const accountIDs = PersonalDetailsUtils.getAccountIDsByLogins(loginList);
+        const newAccountIDs = accountIDs.filter((accountID) => !participantAccountIDs.includes(accountID));
+
+        if (newAccountIDs.length > 0) {
+            optimisticReport.participantAccountIDs = [...participantAccountIDs, ...newAccountIDs];
+            failureReport.participantAccountIDs = participantAccountIDs;
+
+            type PersonalDetailsOnyxData = {
+                optimisticData: OnyxUpdate[];
+                successData: OnyxUpdate[];
+                failureData: OnyxUpdate[];
+            };
+
+            const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(loginList, accountIDs) as PersonalDetailsOnyxData;
+
+            optimisticData.push(...newPersonalDetailsOnyxData.optimisticData);
+
+            successData.push(...newPersonalDetailsOnyxData.successData);
+
+            failureData.push(...newPersonalDetailsOnyxData.failureData);
+        }
+    }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: optimisticReport,
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: failureReport,
+    });
 
     API.write(commandName, parameters, {
         optimisticData,

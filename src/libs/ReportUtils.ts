@@ -2432,6 +2432,27 @@ function getParsedComment(text: string): string {
     return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(text) : lodashEscape(text);
 }
 
+function getMentionListFromComment(html: string): string[] {
+    const regex = /(<mention-user>)(.*?)(<\/mention-user>)/gi;
+
+    let match = regex.exec(html);
+    const mentionList: string[] = [];
+
+    while (match) {
+        if (!match) {
+            break;
+        }
+        const loginInMention = match ? match[2] : '';
+        if (mentionList.findIndex((login) => login === loginInMention) === -1) {
+            mentionList.push(loginInMention);
+        }
+        html.substr(match.index, match[0].length);
+        match = regex.exec(html);
+    }
+
+    return mentionList;
+}
+
 function buildOptimisticAddCommentReportAction(text?: string, file?: File): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
@@ -4490,6 +4511,7 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    getMentionListFromComment,
 };
 
 export type {OptionData, OptimisticChatReport};
