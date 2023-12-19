@@ -946,7 +946,7 @@ function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): bo
  * If the report is a thread and has a chat type set, it is a workspace chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
-    return isThread(report) && !isDM(report);
+    return isThread(report) && isChatReport(report) && !isDM(report);
 }
 
 /**
