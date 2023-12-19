@@ -144,7 +144,7 @@ function SearchPage({betas, reports}) {
                     <HeaderWithBackButton title={translate('common.search')} />
                     <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
                         <SelectionList
-                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : []}
+                            sections={didScreenTransitionEnd && isOptionsDataReady ? sections : CONST.EMPTY_ARRAY}
                             textInputValue={searchValue}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputHint={offlineMessage}
