@@ -3037,6 +3037,10 @@ const CONST = {
         DEFAULT: 5,
         CAROUSEL: 3,
     },
+    BRICK_ROAD: {
+        GBR: 'GBR',
+        RBR: 'RBR',
+    },
 } as const;
 
 export default CONST;
