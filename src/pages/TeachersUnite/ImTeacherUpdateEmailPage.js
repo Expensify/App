@@ -35,7 +35,7 @@ function ImTeacherUpdateEmailPage() {
                 linkKey="teachersUnitePage.contactMethods"
                 onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 iconWidth={variables.signInLogoWidthLargeScreen}
-                iconHeight={variables.lhnLogoWidth}
+                iconHeight={variables.signInLogoHeightLargeScreen}
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
