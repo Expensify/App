@@ -555,7 +555,7 @@ function AddressSearch({
                                 StyleUtils.getGoogleListViewStyle(displayListViewBorder),
                                 styles.borderLeft,
                                 styles.borderRight,
-                                getListViewHeight(windowHeight, network.isOffline),
+                                getListViewHeight(windowHeight, locationErrorCode, network.isOffline),
                                 !isFocused && {height: 0},
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],

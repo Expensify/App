@@ -26,6 +26,7 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import getAddressFormHeight from './getAddressFormHeight';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -75,7 +76,7 @@ function IOURequestStepWaypoint({
     transaction,
 }) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -218,7 +219,7 @@ function IOURequestStepWaypoint({
                     submitButtonText={translate('common.save')}
                     submitButtonStyles={[styles.flexGrow0]}
                 >
-                    <View style={[styles.flexGrow1]}>
+                    <View style={[getAddressFormHeight(windowHeight)]}>
                         <InputWrapperWithRef
                             InputComponent={AddressSearch}
                             canUseCurrentLocation

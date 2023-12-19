@@ -2,6 +2,7 @@ import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddressSearch from '@components/AddressSearch';
@@ -24,6 +25,7 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import getAddressFormHeight from './request/step/getAddressFormHeight';
 
 const propTypes = {
     /** Route params */
@@ -78,7 +80,7 @@ const defaultProps = {
 
 function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -211,7 +213,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.overflowHidden]}
+                    style={[styles.flexGrow1, styles.mh5]}
                     scrollViewStyles={[styles.overflowHidden]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
@@ -220,32 +222,35 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
+                    submitButtonStyles={[styles.flexGrow0]}
                 >
-                    <InputWrapper
-                        InputComponent={AddressSearch}
-                        canUseCurrentLocation
-                        inputID={`waypoint${waypointIndex}`}
-                        ref={(e) => (textInput.current = e)}
-                        hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
-                        containerStyles={[styles.mt3]}
-                        label={translate('distance.address')}
-                        defaultValue={waypointAddress}
-                        onPress={selectWaypoint}
-                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
-                        renamedInputKeys={{
-                            address: `waypoint${waypointIndex}`,
-                            city: null,
-                            country: null,
-                            street: null,
-                            street2: null,
-                            zipCode: null,
-                            lat: null,
-                            lng: null,
-                            state: null,
-                        }}
-                        predefinedPlaces={recentWaypoints}
-                        resultTypes=""
-                    />
+                    <View style={[getAddressFormHeight(windowHeight)]}>
+                        <InputWrapper
+                            InputComponent={AddressSearch}
+                            canUseCurrentLocation
+                            inputID={`waypoint${waypointIndex}`}
+                            ref={(e) => (textInput.current = e)}
+                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
+                            containerStyles={[styles.mt3]}
+                            label={translate('distance.address')}
+                            defaultValue={waypointAddress}
+                            onPress={selectWaypoint}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                            renamedInputKeys={{
+                                address: `waypoint${waypointIndex}`,
+                                city: null,
+                                country: null,
+                                street: null,
+                                street2: null,
+                                zipCode: null,
+                                lat: null,
+                                lng: null,
+                                state: null,
+                            }}
+                            predefinedPlaces={recentWaypoints}
+                            resultTypes=""
+                        />
+                    </View>
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>
