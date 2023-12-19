@@ -13,12 +13,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,6 +57,12 @@ const propTypes = {
         report: reportPropTypes,
     }),
 
+    /** The policy of root parent report */
+    rootParentReportPolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -66,6 +72,7 @@ const defaultProps = {
     session: {},
     route: {},
     task: {},
+    rootParentReportPolicy: {},
 };
 
 function TaskAssigneeSelectorModal(props) {
@@ -112,12 +119,8 @@ function TaskAssigneeSelectorModal(props) {
     }, [props, searchValue, allPersonalDetails, isLoading]);
 
     useEffect(() => {
-        const debouncedSearch = _.debounce(updateOptions, 200);
-        debouncedSearch();
-        return () => {
-            debouncedSearch.cancel();
-        };
-    }, [updateOptions]);
+        updateOptions();
+    }, [searchValue, updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -185,8 +188,6 @@ function TaskAssigneeSelectorModal(props) {
         // Check to see if we're creating a new task
         // If there's no route params, we're creating a new task
         if (!props.route.params && option.accountID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
             Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             return Navigation.goBack(ROUTES.NEW_TASK);
         }
@@ -204,7 +205,7 @@ function TaskAssigneeSelectorModal(props) {
     };
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
@@ -221,7 +222,6 @@ function TaskAssigneeSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
@@ -258,6 +258,13 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        rootParentReportPolicy: {
+            key: ({report}) => {
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskAssigneeSelectorModal);

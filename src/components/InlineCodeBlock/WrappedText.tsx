@@ -1,11 +1,10 @@
 import React, {Fragment} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import Text from '@components/Text';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import variables from '@styles/variables';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */

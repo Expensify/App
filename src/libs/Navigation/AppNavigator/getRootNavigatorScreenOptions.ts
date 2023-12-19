@@ -1,6 +1,6 @@
 import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
-import getNavigationModalCardStyle from '@styles/getNavigationModalCardStyles';
-import {ThemeStyles} from '@styles/styles';
+import {ThemeStyles} from '@styles/index';
+import getNavigationModalCardStyle from '@styles/utils/getNavigationModalCardStyles';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
@@ -14,6 +14,8 @@ const commonScreenOptions: StackNavigationOptions = {
     cardOverlayEnabled: true,
     animationTypeForReplace: 'push',
 };
+
+const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
 
 export default (isSmallScreenWidth: boolean, themeStyles: ThemeStyles): ScreenOptions => ({
     rightModalNavigator: {
@@ -32,7 +34,23 @@ export default (isSmallScreenWidth: boolean, themeStyles: ThemeStyles): ScreenOp
             right: 0,
         },
     },
+    leftModalNavigator: {
+        ...commonScreenOptions,
+        cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
+        presentation: 'transparentModal',
 
+        // We want pop in LHP since there are some flows that would work weird otherwise
+        animationTypeForReplace: 'pop',
+        cardStyle: {
+            ...getNavigationModalCardStyle(),
+
+            // This is necessary to cover translated sidebar with overlay.
+            width: isSmallScreenWidth ? '100%' : '200%',
+
+            // LHP should be displayed in place of the sidebar
+            left: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
+        },
+    },
     homeScreen: {
         title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,

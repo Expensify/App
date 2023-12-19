@@ -712,39 +712,9 @@ button {
     }
 }
 
-#floating-concierge-button-global {
-    position: fixed;
-    display: block;
-    @include breakpoint($breakpoint-tablet) {
-        display: none;
-    }
-}
-
-#floating-concierge-button-lhn {
-    position: absolute;
-    display: none;
-    @include breakpoint($breakpoint-tablet) {
-        display: block;
-    }
-}
-
 .get-help {
     flex-wrap: wrap;
     margin-top: 40px;
-}
-
-.floating-concierge-button {
-    bottom: 2rem;
-    right: 2rem;
-
-    img {
-        width: 4rem;
-        height: 4rem;
-
-        &:hover {
-            filter: saturate(2);
-        }
-    }
 }
 
 .disable-scrollbar {
