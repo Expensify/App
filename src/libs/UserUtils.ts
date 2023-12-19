@@ -137,7 +137,7 @@ function getDefaultAvatarURL(accountID: string | number = ''): string {
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param avatarSource - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
+function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
     if (typeof avatarSource === 'string') {
         if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
             return true;
@@ -150,7 +150,7 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
     }
 
     if (!avatarSource) {
-        // If null source, we should also use a default avatar
+        // If source is undefined, we should also use a default avatar
         return true;
     }
 
@@ -164,8 +164,8 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource as string) : avatarSource;
+function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource) : avatarSource;
 }
 
 /**
