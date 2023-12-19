@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
