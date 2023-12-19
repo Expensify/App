@@ -2,14 +2,18 @@ import {useEffect} from 'react';
 import {StyleSheet, ViewStyle} from 'react-native';
 import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import Video from 'react-native-video';
-import {ExpensifySonicMinimalVocal} from '@components/VideoAnimations';
+import {ExpensifyFullNonvocal, ExpensifyFullVocal, ExpensifySonicMinimalNonvocal, ExpensifySonicMinimalVocal} from '@components/VideoAnimations';
 import BootSplash from '@libs/BootSplash';
 import styles from '@styles/styles';
 import type AnimatedSplashScreenProps from './types';
 
+const videos = [ExpensifyFullNonvocal, ExpensifyFullVocal, ExpensifySonicMinimalNonvocal, ExpensifySonicMinimalVocal];
+
 function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: AnimatedSplashScreenProps) {
     const navigationBarHeight = BootSplash.navigationBarHeight || 0;
     const opacity = useSharedValue(1);
+    const randomIndex = Math.floor(Math.random() * videos.length);
+
     const opacityStyle = useAnimatedStyle<ViewStyle>(() => ({
         opacity: opacity.value,
     }));
@@ -46,7 +50,7 @@ function AnimatedSplashScreen({onHide = () => {}, shouldHideSplashScreen}: Anima
             <Video
                 useTextureView
                 resizeMode="contain"
-                source={ExpensifySonicMinimalVocal}
+                source={videos[randomIndex]}
                 style={StyleSheet.absoluteFill}
             />
         </Reanimated.View>

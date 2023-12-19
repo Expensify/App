@@ -174,6 +174,7 @@
             <!-- End Google Tag Manager -->
         <% } %>
     <% } %>
+
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
@@ -182,6 +183,7 @@
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->
     <% } %>
+    
     <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
     <div id="root"></div>
     <div id="splash">
@@ -194,10 +196,24 @@
             disableremoteplayback
         >
             <source
-                src="/videos/Expensify_Sonic_Minimal_Vocal.webm"
+                id="splash-video-source"
                 type="video/webm"
             />
         </video>
     </div>
+    <!-- For test purposes, we rotate the video source each week -->
+    <script>
+        function displayVideo() {
+            const videos = [
+            '/videos/Expensify_Sonic_Minimal_Vocal.webm',
+            '/videos/Expensify_Sonic_Minimal_Nonvocal.webm',
+            '/videos/Expensify_Sonic_Full_Vocal.webm',
+            '/videos/Expensify_Sonic_Full_Nonvocal.webm',
+        ];
+            const randomIndex = Math.floor(Math.random() * videos.length);
+            document.getElementById('splash-video-source').src = videos[randomIndex];
+        };
+        displayVideo();
+    </script>
 </body>
 </html>
