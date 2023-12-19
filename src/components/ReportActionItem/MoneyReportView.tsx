@@ -75,7 +75,7 @@ function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProp
                         </Text>
                     </View>
                 </View>
-                {shouldShowBreakdown ? (
+                {shouldShowBreakdown && (
                     <>
                         <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
@@ -114,7 +114,7 @@ function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProp
                             </View>
                         </View>
                     </>
-                ) : undefined}
+                )}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
                     style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
