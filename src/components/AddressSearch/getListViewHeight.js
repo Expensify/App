@@ -5,7 +5,7 @@
  * @returns {Object} styles for list view.
  */
 function getListViewHeight(windowHeight, locationErrorCode) {
-    const restHeight = locationErrorCode ? 250 + 64 : 250;
+    const restHeight = locationErrorCode ? 257 + 64 : 257;
     return {
         overflow: 'auto',
         maxHeight: windowHeight - restHeight,

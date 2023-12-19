@@ -80,7 +80,7 @@ const defaultProps = {
 
 function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -224,7 +224,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     submitButtonText={translate('common.save')}
                     submitButtonStyles={[styles.flexGrow0]}
                 >
-                    <View style={[getAddressFormHeight(windowHeight)]}>
+                    <View style={[getAddressFormHeight(windowHeight, isOffline && isSmallScreenWidth)]}>
                         <InputWrapper
                             InputComponent={AddressSearch}
                             canUseCurrentLocation

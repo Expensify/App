@@ -76,7 +76,7 @@ function IOURequestStepWaypoint({
     transaction,
 }) {
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -219,7 +219,7 @@ function IOURequestStepWaypoint({
                     submitButtonText={translate('common.save')}
                     submitButtonStyles={[styles.flexGrow0]}
                 >
-                    <View style={[getAddressFormHeight(windowHeight)]}>
+                    <View style={[getAddressFormHeight(windowHeight, isOffline && isSmallScreenWidth)]}>
                         <InputWrapperWithRef
                             InputComponent={AddressSearch}
                             canUseCurrentLocation
