@@ -12,11 +12,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -130,7 +130,7 @@ function NewContactMethodPage(props) {
                         InputComponent={TextInput}
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
                         aria-label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"

@@ -2,13 +2,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
 import BaseReportActionContextMenu from '@pages/home/report/ContextMenu/BaseReportActionContextMenu';
 import {
     defaultProps as GenericReportActionContextMenuDefaultProps,
     propTypes as genericReportActionContextMenuPropTypes,
 } from '@pages/home/report/ContextMenu/genericReportActionContextMenuPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -25,11 +24,11 @@ const defaultProps = {
 };
 
 function MiniReportActionContextMenu(props) {
-    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     return (
         <View
-            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(styles, props.displayAsGroup)}
+            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.isVisible}}
         >
             <BaseReportActionContextMenu

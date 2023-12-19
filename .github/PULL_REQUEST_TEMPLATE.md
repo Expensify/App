@@ -18,8 +18,8 @@ $ https://github.com/Expensify/App/issues/<issueID(comment)>
 
 Do NOT only link the issue number like this: $ #<issueID>
 --->
-$ 
-PROPOSAL: 
+$
+PROPOSAL:
 
 
 ### Tests
@@ -98,7 +98,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] The file has a description of what it does and/or why is needed at the top of the file if the code is not self explanatory
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
-    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)`)
+    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/utils/index.ts) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)`)
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
