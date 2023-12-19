@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
@@ -22,13 +21,13 @@ type ReportWelcomeTextOnyxProps = {
 
 type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
     /** The report currently being looked at */
-    report: Report;
+    report: OnyxEntry<Report>;
 
     /** The policy for the current route */
-    policy: Policy;
+    policy: OnyxEntry<Policy>;
 };
 
-function ReportWelcomeText({report = {} as Report, policy = {} as Policy, personalDetails = {}}: ReportWelcomeTextProps) {
+function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -37,8 +36,8 @@ function ReportWelcomeText({report = {} as Report, policy = {} as Policy, person
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        // TODO: Remove type assertion (`as PersonalDetailsList`) after `src/libs/OptionsListUtils.js` is migrated into ts
-        OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails) as PersonalDetailsList,
+        // @ts-expect-error TODO: Remove this once `src/libs/OptionsListUtils.js` is migrated to TypeScript.
+        OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails),
         isMultipleParticipant,
     );
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
@@ -56,7 +55,7 @@ function ReportWelcomeText({report = {} as Report, policy = {} as Policy, person
                 {isPolicyExpenseChat && (
                     <>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
-                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report.ownerAccountID)}</Text>
+                        <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
@@ -65,7 +64,7 @@ function ReportWelcomeText({report = {} as Report, policy = {} as Policy, person
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        {roomWelcomeMessage.showReportName && (
+                        {roomWelcomeMessage.showReportName && !!report?.reportID && (
                             <Text
                                 style={[styles.textStrong]}
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID))}
@@ -95,7 +94,7 @@ function ReportWelcomeText({report = {} as Report, policy = {} as Policy, person
                                         </Text>
                                     )}
                                 </UserDetailsTooltip>
-                                {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                                {!!pronouns && <Text>{` (${pronouns})`}</Text>}
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
                                 {index === displayNamesWithTooltips.length - 2 && <Text>{` ${translate('common.and')} `}</Text>}
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
