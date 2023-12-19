@@ -59,6 +59,7 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
 
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id)), [policy.id]);
+    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_NAME.getRoute(policy.id)), [policy.id]);
 
     const policyName = lodashGet(policy, 'name', '');
 
@@ -107,7 +108,7 @@ function WorkspaceOverviewPage({policy, currencyList, windowWidth, route}) {
                             description={translate('workspace.editor.nameInputLabel')}
                             shouldShowRightIcon
                             disabled={hasVBA}
-                            onPress={onPressCurrency}
+                            onPress={onPressName}
                         />
 
                         <View>
