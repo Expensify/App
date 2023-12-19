@@ -117,7 +117,7 @@ function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProp
                 ) : undefined}
                 <SpacerView
                     shouldShow={shouldShowHorizontalRule}
-                    style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
+                    style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
                 />
             </View>
         </View>
