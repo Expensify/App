@@ -49,7 +49,7 @@ class NotificationService: UANotificationServiceExtension {
       return
     }
     
-    // Create an intent for the incoming message
+    // Create an intent for the incoming communication message
     let intent: INSendMessageIntent = createMessageIntent(notificationData: notificationData)
 
     // Use the intent to initialize the interaction.
@@ -187,7 +187,7 @@ class NotificationService: UANotificationServiceExtension {
                                      sender: sender,
                                      attachments: nil)
     
-    // When the group name is set, we force the avatar to just be the sender's avatar
+    // If the group name is set, we force the avatar to just be the sender's avatar
     intent.setImage(avatar, forParameterNamed: \.speakableGroupName)
     
     return intent
