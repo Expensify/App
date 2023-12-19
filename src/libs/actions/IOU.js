@@ -457,20 +457,16 @@ function buildOnyxDataForMoneyRequest(
                     : {}),
             },
         },
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {
-                          pendingFields: null,
-                          errorFields: {
-                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                          },
-                      },
-                  },
-              ]
-            : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: {
+                    ...(isNewIOUReport ? {createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage')} : {}),
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -624,7 +620,7 @@ function getMoneyRequestInformation(
     if (iouReport) {
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
-            if (policy.outputCurrency === currency) {
+            if (lodashGet(policy, 'outputCurrency') === currency) {
                 // Because of the Expense reports are stored as negative values, we substract the total from the amount
                 iouReport.total -= amount;
             }
