@@ -62,15 +62,7 @@ type SubscriptAvatarProps = {
     showTooltip?: boolean;
 };
 
-function SubscriptAvatar({
-    mainAvatar = {},
-    secondaryAvatar,
-    subscriptIcon,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    backgroundColor,
-    noMargin = false,
-    showTooltip = true,
-}: SubscriptAvatarProps) {
+function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -131,7 +123,7 @@ function SubscriptAvatar({
                         StyleUtils.getAvatarBorderWidth(CONST.AVATAR_SIZE.SMALL),
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        StyleUtils.getBorderColorStyle(backgroundColor || theme.componentBG),
+                        StyleUtils.getBorderColorStyle(backgroundColor || theme.sidebar),
                         styles.subscriptIcon,
                         styles.dFlex,
                         styles.justifyContentCenter,
