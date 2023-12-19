@@ -1993,7 +1993,7 @@ export default {
     },
     breadcrumbs: {
         // TODO-IDEAL: Verify translations in Spanish
-        chats: 'Chats'
+        chats: 'Chats',
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {

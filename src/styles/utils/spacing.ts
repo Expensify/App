@@ -377,6 +377,10 @@ export default {
         paddingHorizontal: 24,
     },
 
+    ph7: {
+        paddingHorizontal: 28,
+    },
+
     ph8: {
         paddingHorizontal: 32,
     },
@@ -551,6 +555,10 @@ export default {
 
     gap5: {
         gap: 20,
+    },
+
+    gap6: {
+        gap: 24,
     },
 
     gap7: {

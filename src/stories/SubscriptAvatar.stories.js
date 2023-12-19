@@ -1,7 +1,6 @@
 import React from 'react';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import CONST from '@src/CONST';
 
