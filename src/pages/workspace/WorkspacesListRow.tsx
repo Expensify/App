@@ -5,6 +5,7 @@ import {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {MenuItemProps} from '@components/MenuItem';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -13,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import {MenuItem} from '@src/types/onyx/OnyxCommon';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
@@ -32,7 +32,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     fallbackWorkspaceIcon?: AvatarSource;
 
     /** Items for the three dots menu */
-    menuItems: MenuItem[];
+    menuItems: MenuItemProps[];
 
     /** Renders the component using big screen layout or small screen layout. When renderLayout === WorkspaceListRowLayout.NONE,
      * component will return null to prevent layout from jumping on initial render and when parent width changes. */
