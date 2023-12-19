@@ -46,7 +46,7 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
         return {};
     }
 
-    //The key in this map is the workspace id
+    // The key in this map is the workspace id
     const workspacesBrickRoadsMap: Record<string, BrickRoad> = {};
 
     Object.keys(allReports).forEach((report) => {
