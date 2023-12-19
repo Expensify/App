@@ -139,6 +139,7 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
     reportScrollManager,
+    listID,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -483,6 +484,7 @@ function ReportActionsList({
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
+                    key={listID}
                 />
             </Animated.View>
         </>
