@@ -2900,6 +2900,7 @@ const styles = (theme: ThemeColors) =>
         peopleBadge: {
             backgroundColor: theme.icon,
             ...spacing.ph3,
+            ...spacing.ml3,
         },
 
         peopleBadgeText: {
