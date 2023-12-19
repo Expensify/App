@@ -63,7 +63,10 @@ type ReimbursementAccountProps = {
     amount3?: string;
 };
 
-type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps;
+// BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
+type BeneficialOwnerDraftData = Record<`beneficialOwner_${string}_${string}`, string>;
+
+type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps & BeneficialOwnerDraftData;
 
 export default ReimbursementAccountDraft;
 export type {ACHContractStepProps, BeneficialOwnersStepDraftProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps};

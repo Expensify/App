@@ -1,7 +1,18 @@
-import lodashGet from 'lodash/get';
 import CONST from '@src/CONST';
+import {ReimbursementAccountDraft} from '@src/types/onyx';
 
-function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft) {
+type BeneficialOwnerValues = {
+    firstName: string;
+    lastName: string;
+    dob: string;
+    ssnLast4: string;
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+};
+
+function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountDraft): BeneficialOwnerValues {
     const beneficialOwnerPrefix = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
     const beneficialOwnerInfoKey = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
@@ -14,17 +25,17 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimburseme
         city: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.CITY}`,
         state: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.STATE}`,
         zipCode: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.ZIP_CODE}`,
-    };
+    } as const;
 
     return {
-        firstName: lodashGet(reimbursementAccountDraft, INPUT_KEYS.firstName, ''),
-        lastName: lodashGet(reimbursementAccountDraft, INPUT_KEYS.lastName, ''),
-        dob: lodashGet(reimbursementAccountDraft, INPUT_KEYS.dob, ''),
-        ssnLast4: lodashGet(reimbursementAccountDraft, INPUT_KEYS.ssnLast4, ''),
-        street: lodashGet(reimbursementAccountDraft, INPUT_KEYS.street, ''),
-        city: lodashGet(reimbursementAccountDraft, INPUT_KEYS.city, ''),
-        state: lodashGet(reimbursementAccountDraft, INPUT_KEYS.state, ''),
-        zipCode: lodashGet(reimbursementAccountDraft, INPUT_KEYS.zipCode, ''),
+        firstName: reimbursementAccountDraft[INPUT_KEYS.firstName] ?? '',
+        lastName: reimbursementAccountDraft[INPUT_KEYS.lastName] ?? '',
+        dob: reimbursementAccountDraft[INPUT_KEYS.dob] ?? '',
+        ssnLast4: reimbursementAccountDraft[INPUT_KEYS.ssnLast4] ?? '',
+        street: reimbursementAccountDraft[INPUT_KEYS.street] ?? '',
+        city: reimbursementAccountDraft[INPUT_KEYS.city] ?? '',
+        state: reimbursementAccountDraft[INPUT_KEYS.state] ?? '',
+        zipCode: reimbursementAccountDraft[INPUT_KEYS.zipCode] ?? '',
     };
 }
 
