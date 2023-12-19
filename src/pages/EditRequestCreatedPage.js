@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +35,8 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <DatePicker
+                <InputWrapper
+                    InputComponent={DatePicker}
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
