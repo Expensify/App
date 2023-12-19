@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {Keyboard, ScrollView, View} from 'react-native';
+import {InteractionManager, Keyboard, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -21,6 +21,7 @@ import withThemeStyles, {withThemeStylesPropTypes} from '@components/withThemeSt
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -119,12 +120,22 @@ class ContactMethodDetailsPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        const validatedDate = lodashGet(this.props.loginList, [this.getContactMethod(), 'validatedDate']);
-        const prevValidatedDate = lodashGet(prevProps.loginList, [this.getContactMethod(), 'validatedDate']);
+        const contactMethod = this.getContactMethod();
+        const validatedDate = lodashGet(this.props.loginList, [contactMethod, 'validatedDate']);
+        const prevValidatedDate = lodashGet(prevProps.loginList, [contactMethod, 'validatedDate']);
 
+        const loginData = lodashGet(this.props.loginList, contactMethod, {});
+        const isDefaultContactMethod = this.props.session.email === loginData.partnerUserID;
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         if (!prevValidatedDate && validatedDate) {
+            // If the selected contactMethod is the current session['login'] and the account is unvalidated,
+            // the current authToken is invalid after the successful magic code verification.
+            // So we need to sign out the user and redirect to the sign in page.
+            if (isDefaultContactMethod) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
         }
     }
@@ -264,6 +275,14 @@ class ContactMethodDetailsPage extends Component {
                         title={this.props.translate('contacts.removeContactMethod')}
                         onConfirm={this.confirmDeleteAndHideModal}
                         onCancel={() => this.toggleDeleteModal(false)}
+                        onModalHide={() => {
+                            InteractionManager.runAfterInteractions(() => {
+                                if (!this.validateCodeFormRef.current) {
+                                    return;
+                                }
+                                this.validateCodeFormRef.current.focusLastSelected();
+                            });
+                        }}
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
                         cancelText={this.props.translate('common.cancel')}

@@ -31,25 +31,28 @@ export default PropTypes.shape({
     modifiedMerchant: PropTypes.string,
 
     /** The comment object on the transaction */
-    comment: PropTypes.shape({
-        /** The text of the comment */
-        comment: PropTypes.string,
+    comment: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.shape({
+            /** The text of the comment */
+            comment: PropTypes.string,
 
-        /** The waypoints defining the distance request */
-        waypoints: PropTypes.shape({
-            /** The latitude of the waypoint */
-            lat: PropTypes.number,
+            /** The waypoints defining the distance request */
+            waypoints: PropTypes.shape({
+                /** The latitude of the waypoint */
+                lat: PropTypes.number,
 
-            /** The longitude of the waypoint */
-            lng: PropTypes.number,
+                /** The longitude of the waypoint */
+                lng: PropTypes.number,
 
-            /** The address of the waypoint */
-            address: PropTypes.string,
+                /** The address of the waypoint */
+                address: PropTypes.string,
 
-            /** The name of the waypoint */
-            name: PropTypes.string,
+                /** The name of the waypoint */
+                name: PropTypes.string,
+            }),
         }),
-    }),
+    ]),
 
     /** The type of transaction */
     type: PropTypes.oneOf(_.values(CONST.TRANSACTION.TYPE)),

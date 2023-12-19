@@ -67,7 +67,6 @@ class SearchPage extends Component {
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
         this.updateOptions = this.updateOptions.bind(this);
-        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
         this.state = {
             searchValue: '',
             recentReports: {},
@@ -84,11 +83,8 @@ class SearchPage extends Component {
     }
 
     onChangeText(searchValue = '') {
-        if (searchValue.length) {
-            Report.searchInServer(searchValue);
-        }
-
-        this.setState({searchValue}, this.debouncedUpdateOptions);
+        Report.searchInServer(searchValue);
+        this.setState({searchValue}, this.updateOptions);
     }
 
     /**
@@ -159,14 +155,7 @@ class SearchPage extends Component {
         }
 
         if (option.reportID) {
-            this.setState(
-                {
-                    searchValue: '',
-                },
-                () => {
-                    Navigation.dismissModal(option.reportID);
-                },
-            );
+            Navigation.dismissModal(option.reportID);
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
@@ -193,7 +182,6 @@ class SearchPage extends Component {
                         <View style={[this.props.themeStyles.flex1, this.props.themeStyles.w100, this.props.themeStyles.pRelative]}>
                             <OptionsSelector
                                 sections={sections}
-                                value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
                                 onChangeText={this.onChangeText}
                                 headerMessage={headerMessage}
@@ -204,8 +192,6 @@ class SearchPage extends Component {
                                 textInputAlert={
                                     this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
                                 }
-                                shouldShowReferralCTA
-                                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                                 autoFocus
