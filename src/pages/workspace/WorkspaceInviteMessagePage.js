@@ -1,7 +1,7 @@
 import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -77,9 +77,13 @@ function WorkspaceInviteMessagePage(props) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    if (_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
+    useEffect(() => {
+        if (!_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
+            return;
+        }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID), true);
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const saveDraft = (newDraft) => {
         Policy.setWorkspaceInviteMessageDraft(props.route.params.policyID, newDraft);
