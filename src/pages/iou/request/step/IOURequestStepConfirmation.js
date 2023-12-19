@@ -178,7 +178,7 @@ function IOURequestStepConfirmation({
                 policyCategories,
             );
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy, policyTags, policyCategories],
     );
 
     /**
@@ -261,21 +261,7 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [
-            iouType,
-            transaction,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
-            report,
-            reportID,
-            requestType,
-            createDistanceRequest,
-            requestMoney,
-            receiptFile,
-            policy,
-            policyTags,
-            policyCategories,
-        ],
+        [iouType, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, report, reportID, requestType, createDistanceRequest, requestMoney, receiptFile],
     );
 
     /**
