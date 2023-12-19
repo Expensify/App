@@ -30,6 +30,7 @@ import {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    TextColorStyle,
     WorkspaceColorStyle,
 } from './types';
 
