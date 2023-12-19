@@ -2508,7 +2508,7 @@ function completeEngagementModal(text: string, choice: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
-            value: {[reportCommentAction.reportActionID]: {pendingAction: null}},
+            value: {[reportCommentAction.reportActionID ?? '']: {pendingAction: null}},
         },
     ];
 

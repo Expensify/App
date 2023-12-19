@@ -162,8 +162,6 @@ function PurposeForUsingExpensifyModal(props) {
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isModalOpen}
             onClose={closeModal}
-            shouldAddTopSafeAreaMargin={false}
-            shouldAddTopSafeAreaPadding={false}
         >
             <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
                 <Lottie
