@@ -3,9 +3,9 @@ import {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import ONYXKEYS from '@src/ONYXKEYS';
-import CONST from '@src/CONST';
 import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** The comment of the report */
@@ -34,7 +34,7 @@ const defaultProps = {
     comment: '',
 };
 
-const isWeb = getPlatform() === CONST.PLATFORM.WEB
+const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
 /**
  * This component doesn't render anything. It runs a side effect to update the comment of a report under certain conditions.
