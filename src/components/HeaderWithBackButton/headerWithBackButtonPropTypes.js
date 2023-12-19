@@ -96,6 +96,9 @@ const propTypes = {
 
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport: PropTypes.bool,
+
+    /** Whether we should overlay the 3 dots menu */
+    shouldOverlayDots: PropTypes.bool,
 };
 
 export default propTypes;
