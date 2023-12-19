@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
+import Breadcrumbs from '@components/Breadcrumbs';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -178,7 +179,19 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
             </View>
-            <View style={[styles.pRelative, styles.flex1]}>
+            <View style={[styles.ph5, styles.pv3, styles.justifyContentBetween]}>
+                <Breadcrumbs
+                    breadcrumbs={[
+                        {
+                            type: CONST.BREADCRUMB_TYPE.ROOT,
+                        },
+                        {
+                            text: translate('breadcrumbs.chats'),
+                        },
+                    ]}
+                />
+            </View>
+            <View style={[styles.pRelative, styles.flex1, styles.pt3]}>
                 <LHNOptionsList
                     style={styles.flex1}
                     contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}

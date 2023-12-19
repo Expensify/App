@@ -1991,6 +1991,10 @@ export default {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
     },
+    breadcrumbs: {
+        // TODO-IDEAL: Verify translations in Spanish
+        chats: 'Chats'
+    },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText1: 'Start a chat, ',
