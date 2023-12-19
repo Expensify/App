@@ -172,9 +172,6 @@ platform :ios do
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "New Expensify AdHoc",
-        xcargs: {
-            :PROVISIONING_PROFILE_SPECIFIER => "(NewApp) AdHoc",
-        },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
