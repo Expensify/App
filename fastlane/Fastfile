@@ -176,8 +176,8 @@ platform :ios do
         export_options: {
             method: "ad-hoc",
             provisioningProfiles: {
-              "com.expensify.chat.adhoc" => "NewApp_AdHoc",
-              "com.expensify.chat.adhoc.NotificationServiceExtension" => "NewApp_AdHoc_Notification_Service",
+              "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
+              "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
             },
             manageAppVersionAndBuildNumber: false
         }
