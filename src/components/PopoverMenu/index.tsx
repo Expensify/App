@@ -2,8 +2,8 @@ import React, {RefObject, useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
-import type {ValueOf} from 'type-fest';
 import MenuItem from '@components/MenuItem';
+import type {AnchorAlignment} from '@components/Popover/types';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -11,6 +11,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
 
 type MenuItemProps = {
     /** An icon element displayed on the left side */
@@ -33,22 +34,6 @@ type MenuItemProps = {
 
     /** Icon Height */
     iconHeight?: number;
-};
-
-type AnchorPosition = {
-    /** The vertical anchor position of the popover menu */
-    vertical: number;
-
-    /** The horizontal anchor position of the popover menu */
-    horizontal: number;
-};
-
-type AnchorAlignment = {
-    /** The horizontal anchor alignment of the popover menu */
-    horizontal?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-
-    /** The vertical anchor alignment of the popover menu */
-    vertical?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
