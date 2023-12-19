@@ -55,9 +55,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, checkComposerVisibility, isUnm
                 return;
             }
             const isVisible = typeof checkComposerVisibility === 'function' && checkComposerVisibility();
-            const isFocused = textInputRef.current?.isFocused?.();
+            const isFocused = textInputRef.current?.isFocused();
 
-            if (textInputRef.current?.isFocused && !isFocused && !isVisible) {
+            if (!isFocused && !isVisible) {
                 return;
             }
 
