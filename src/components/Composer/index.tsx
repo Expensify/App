@@ -1,198 +1,107 @@
+import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {BaseSyntheticEvent, ForwardedRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
-import {StyleSheet, View} from 'react-native';
-import _ from 'underscore';
+import {DimensionValue, NativeSyntheticEvent, Text as RNText, StyleSheet, TextInput, TextInputKeyPressEventData, TextInputProps, TextInputSelectionChangeEventData, View} from 'react-native';
+import {AnimatedProps} from 'react-native-reanimated';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import withNavigation from '@components/withNavigation';
 import useIsScrollBarVisible from '@hooks/useIsScrollBarVisible';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
-
-const propTypes = {
-    /** Maximum number of lines in the text input */
-    maxLines: PropTypes.number,
-
-    /** The default value of the comment box */
-    defaultValue: PropTypes.string,
-
-    /** The value of the comment box */
-    value: PropTypes.string,
-
-    /** Number of lines for the comment */
-    numberOfLines: PropTypes.number,
-
-    /** Callback method to update number of lines for the comment */
-    onNumberOfLinesChange: PropTypes.func,
-
-    /** Callback method to handle pasting a file */
-    onPasteFile: PropTypes.func,
-
-    /** A ref to forward to the text input */
-    forwardedRef: PropTypes.func,
-
-    /** General styles to apply to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.any,
-
-    /** If the input should clear, it actually gets intercepted instead of .clear() */
-    shouldClear: PropTypes.bool,
-
-    /** When the input has cleared whoever owns this input should know about it */
-    onClear: PropTypes.func,
-
-    /** Whether or not this TextInput is disabled. */
-    isDisabled: PropTypes.bool,
-
-    /** Set focus to this component the first time it renders.
-  Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
-    autoFocus: PropTypes.bool,
-
-    /** Update selection position on change */
-    onSelectionChange: PropTypes.func,
-
-    /** Selection Object */
-    selection: PropTypes.shape({
-        start: PropTypes.number,
-        end: PropTypes.number,
-    }),
-
-    /** Whether the full composer can be opened */
-    isFullComposerAvailable: PropTypes.bool,
-
-    /** Allow the full composer to be opened */
-    setIsFullComposerAvailable: PropTypes.func,
-
-    /** Should we calculate the caret position */
-    shouldCalculateCaretPosition: PropTypes.bool,
-
-    /** Function to check whether composer is covered up or not */
-    checkComposerVisibility: PropTypes.func,
-
-    /** Whether this is the report action compose */
-    isReportActionCompose: PropTypes.bool,
-
-    /** Whether the sull composer is open */
-    isComposerFullSize: PropTypes.bool,
-
-    /** Should make the input only scroll inside the element avoid scroll out to parent */
-    shouldContainScroll: PropTypes.bool,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    defaultValue: undefined,
-    value: undefined,
-    numberOfLines: 0,
-    onNumberOfLinesChange: () => {},
-    maxLines: -1,
-    onPasteFile: () => {},
-    shouldClear: false,
-    onClear: () => {},
-    style: null,
-    isDisabled: false,
-    autoFocus: false,
-    forwardedRef: null,
-    onSelectionChange: () => {},
-    selection: {
-        start: 0,
-        end: 0,
-    },
-    isFullComposerAvailable: false,
-    setIsFullComposerAvailable: () => {},
-    shouldCalculateCaretPosition: false,
-    checkComposerVisibility: () => false,
-    isReportActionCompose: false,
-    isComposerFullSize: false,
-    shouldContainScroll: false,
-};
+import {ComposerProps} from './types';
 
 /**
  * Retrieves the characters from the specified cursor position up to the next space or new line.
  *
- * @param {string} str - The input string.
- * @param {number} cursorPos - The position of the cursor within the input string.
- * @returns {string} - The substring from the cursor position up to the next space or new line.
+ * @param inputString - The input string.
+ * @param cursorPosition - The position of the cursor within the input string.
+ * @returns - The substring from the cursor position up to the next space or new line.
  *                     If no space or new line is found, returns the substring from the cursor position to the end of the input string.
  */
-const getNextChars = (str, cursorPos) => {
+const getNextChars = (inputString: string, cursorPosition: number): string => {
     // Get the substring starting from the cursor position
-    const substr = str.substring(cursorPos);
+    const subString = inputString.substring(cursorPosition);
 
     // Find the index of the next space or new line character
-    const spaceIndex = substr.search(/[ \n]/);
+    const spaceIndex = subString.search(/[ \n]/);
 
     if (spaceIndex === -1) {
-        return substr;
+        return subString;
     }
 
     // If there is a space or new line, return the substring up to the space or new line
-    return substr.substring(0, spaceIndex);
+    return subString.substring(0, spaceIndex);
 };
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
-function Composer({
-    value,
-    defaultValue,
-    maxLines,
-    onKeyPress,
-    style,
-    shouldClear,
-    autoFocus,
-    translate,
-    isFullComposerAvailable,
-    shouldCalculateCaretPosition,
-    numberOfLines: numberOfLinesProp,
-    isDisabled,
-    forwardedRef,
-    navigation,
-    onClear,
-    onPasteFile,
-    onSelectionChange,
-    onNumberOfLinesChange,
-    setIsFullComposerAvailable,
-    checkComposerVisibility,
-    selection: selectionProp,
-    isReportActionCompose,
-    isComposerFullSize,
-    shouldContainScroll,
-    ...props
-}) {
+function Composer(
+    {
+        value,
+        defaultValue,
+        maxLines = -1,
+        onKeyPress = () => {},
+        style,
+        shouldClear = false,
+        autoFocus = false,
+        isFullComposerAvailable = false,
+        shouldCalculateCaretPosition = false,
+        numberOfLines: numberOfLinesProp = 0,
+        isDisabled = false,
+        onClear = () => {},
+        onPasteFile = () => {},
+        onSelectionChange = () => {},
+        onNumberOfLinesChange = () => {},
+        setIsFullComposerAvailable = () => {},
+        checkComposerVisibility = () => false,
+        selection: selectionProp = {
+            start: 0,
+            end: 0,
+        },
+        isReportActionCompose = false,
+        isComposerFullSize = false,
+        shouldContainScroll = false,
+        ...props
+    }: ComposerProps,
+    ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>,
+) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const textRef = useRef(null);
-    const textInput = useRef(null);
+    const navigation = useNavigation();
+    const textRef = useRef<HTMLElement & RNText>(null);
+    const textInput = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
-    const [selection, setSelection] = useState({
+    const [selection, setSelection] = useState<
+        | {
+              start: number;
+              end?: number;
+          }
+        | undefined
+    >({
         start: selectionProp.start,
         end: selectionProp.end,
     });
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
-    const isScrollBarVisible = useIsScrollBarVisible(textInput, value);
+    const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
 
     useEffect(() => {
         if (!shouldClear) {
             return;
         }
-        textInput.current.clear();
+        textInput.current?.clear();
         setNumberOfLines(1);
         onClear();
     }, [shouldClear, onClear]);
@@ -208,55 +117,55 @@ function Composer({
 
     /**
      *  Adds the cursor position to the selection change event.
-     *
-     * @param {Event} event
      */
-    const addCursorPositionToSelectionChange = (event) => {
+    const addCursorPositionToSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        const webEvent = event as BaseSyntheticEvent<TextInputSelectionChangeEventData>;
+
         if (shouldCalculateCaretPosition) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
-                setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
-                setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
+                setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
+                setCaretContent(getNextChars(value ?? '', webEvent.nativeEvent.selection.start));
             });
             const selectionValue = {
-                start: event.nativeEvent.selection.start,
-                end: event.nativeEvent.selection.end,
-                positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-                positionY: textRef.current.offsetTop,
+                start: webEvent.nativeEvent.selection.start,
+                end: webEvent.nativeEvent.selection.end,
+                positionX: (textRef.current?.offsetLeft ?? 0) - CONST.SPACE_CHARACTER_WIDTH,
+                positionY: textRef.current?.offsetTop,
             };
+
             onSelectionChange({
+                ...webEvent,
                 nativeEvent: {
+                    ...webEvent.nativeEvent,
                     selection: selectionValue,
                 },
             });
             setSelection(selectionValue);
         } else {
-            onSelectionChange(event);
-            setSelection(event.nativeEvent.selection);
+            onSelectionChange(webEvent);
+            setSelection(webEvent.nativeEvent.selection);
         }
     };
 
     /**
      * Set pasted text to clipboard
-     * @param {String} text
      */
-    const paste = useCallback((text) => {
+    const paste = useCallback((text?: string) => {
         try {
             document.execCommand('insertText', false, text);
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            textInput.current.blur();
-            textInput.current.focus();
+            textInput.current?.blur();
+            textInput.current?.focus();
             // eslint-disable-next-line no-empty
         } catch (e) {}
     }, []);
 
     /**
      * Manually place the pasted HTML into Composer
-     *
-     * @param {String} html - pasted HTML
      */
     const handlePastedHTML = useCallback(
-        (html) => {
+        (html: string) => {
             const parser = new ExpensiMark();
             paste(parser.htmlToMarkdown(html));
         },
@@ -265,12 +174,10 @@ function Composer({
 
     /**
      * Paste the plaintext content into Composer.
-     *
-     * @param {ClipboardEvent} event
      */
     const handlePastePlainText = useCallback(
-        (event) => {
-            const plainText = event.clipboardData.getData('text/plain');
+        (event: ClipboardEvent) => {
+            const plainText = event.clipboardData?.getData('text/plain');
             paste(plainText);
         },
         [paste],
@@ -279,44 +186,43 @@ function Composer({
     /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
-     *
-     * @param {ClipboardEvent} event
      */
     const handlePaste = useCallback(
-        (event) => {
+        (event: ClipboardEvent) => {
             const isVisible = checkComposerVisibility();
-            const isFocused = textInput.current.isFocused();
+            const isFocused = textInput.current?.isFocused();
 
             if (!(isVisible || isFocused)) {
                 return;
             }
 
             if (textInput.current !== event.target) {
+                const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
-                const isTargetInput = event.target.nodeName === 'INPUT' || event.target.nodeName === 'TEXTAREA' || event.target.contentEditable === 'true';
+                const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
                 if (isTargetInput) {
                     return;
                 }
 
-                textInput.current.focus();
+                textInput.current?.focus();
             }
 
             event.preventDefault();
 
-            const {files, types} = event.clipboardData;
             const TEXT_HTML = 'text/html';
 
             // If paste contains files, then trigger file management
-            if (files.length > 0) {
+            if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                onPasteFile(event.clipboardData.files[0]);
+                onPasteFile(event.clipboardData?.files[0]);
                 return;
             }
 
             // If paste contains HTML
-            if (types.includes(TEXT_HTML)) {
-                const pastedHTML = event.clipboardData.getData(TEXT_HTML);
+            if (event.clipboardData?.types.includes(TEXT_HTML)) {
+                const pastedHTML = event.clipboardData?.getData(TEXT_HTML);
 
                 const domparser = new DOMParser();
                 const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
@@ -342,11 +248,11 @@ function Composer({
      * divide by line height to get the total number of rows for the textarea.
      */
     const updateNumberOfLines = useCallback(() => {
-        if (textInput.current === null) {
+        if (!textInput.current) {
             return;
         }
         // we reset the height to 0 to get the correct scrollHeight
-        textInput.current.style.height = 0;
+        textInput.current.style.height = '0';
         const computedStyle = window.getComputedStyle(textInput.current);
         const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
@@ -372,8 +278,8 @@ function Composer({
         const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
         const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
 
-        if (_.isFunction(forwardedRef)) {
-            forwardedRef(textInput.current);
+        if (typeof ref === 'function') {
+            ref(textInput.current);
         }
 
         if (textInput.current) {
@@ -392,9 +298,9 @@ function Composer({
     }, []);
 
     const handleKeyPress = useCallback(
-        (e) => {
+        (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
             // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
-            if (!onKeyPress || isEnterWhileComposition(e)) {
+            if (!onKeyPress || isEnterWhileComposition(e as unknown as KeyboardEvent)) {
                 return;
             }
             onKeyPress(e);
@@ -410,10 +316,7 @@ function Composer({
                 opacity: 0,
             }}
         >
-            <Text
-                multiline
-                style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth}]}
-            >
+            <Text style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth as DimensionValue}]}>
                 {`${valueBeforeCaret} `}
                 <Text
                     numberOfLines={1}
@@ -453,11 +356,10 @@ function Composer({
                 autoComplete="off"
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
-                ref={(el) => (textInput.current = el)}
+                ref={(el: TextInput & HTMLTextAreaElement) => (textInput.current = el)}
                 selection={selection}
                 style={inputStyleMemo}
                 value={value}
-                forwardedRef={forwardedRef}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -474,9 +376,8 @@ function Composer({
 
                         textInput.current.focus();
                     });
-                    if (props.onFocus) {
-                        props.onFocus(e);
-                    }
+
+                    props.onFocus?.(e);
                 }}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
@@ -484,18 +385,6 @@ function Composer({
     );
 }
 
-Composer.propTypes = propTypes;
-Composer.defaultProps = defaultProps;
 Composer.displayName = 'Composer';
 
-const ComposerWithRef = React.forwardRef((props, ref) => (
-    <Composer
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-ComposerWithRef.displayName = 'ComposerWithRef';
-
-export default compose(withLocalize, withNavigation)(ComposerWithRef);
+export default React.forwardRef(Composer);

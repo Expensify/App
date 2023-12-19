@@ -344,7 +344,7 @@ function getOptionData(
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                     policyName: ReportUtils.getPolicyName(report, false, policy),
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails?.displayName),
                 });
                 break;
             }
