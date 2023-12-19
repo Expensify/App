@@ -4494,4 +4494,4 @@ export {
     shouldAutoFocusOnKeyPress,
 };
 
-export type {OptionData, OptimisticChatReport};
+export type {OptionData, OptimisticChatReport, DisplayNameWithTooltips};

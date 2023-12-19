@@ -20,6 +20,13 @@ import * as Report from './Report';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'participantAccountIDs' | 'notificationPreference' | 'pendingFields'>;
 type Assignee = {icons: Icon[]; displayName: string; subtitle: string};
+type ShareDestination = {
+    icons: Icon[];
+    displayName: string;
+    subtitle: string;
+    displayNamesWithTooltips: ReportUtils.DisplayNameWithTooltips;
+    shouldUseFullTitleToDisplay: boolean;
+};
 
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -219,6 +226,7 @@ function createTaskAndNavigate(
         assigneeChatReportActionID?: string;
         assigneeChatCreatedReportActionID?: string;
     };
+
     const parameters: CreateTaskParameters = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
         parentReportID,
@@ -689,7 +697,7 @@ function getAssignee(assigneeAccountID: number, personalDetails: Record<string, 
 /**
  * Get the share destination data
  * */
-function getShareDestination(reportID: string, reports: Record<string, OnyxTypes.Report>, personalDetails: Record<string, OnyxTypes.PersonalDetails>) {
+function getShareDestination(reportID: string, reports: Record<string, OnyxTypes.Report>, personalDetails: Record<string, OnyxTypes.PersonalDetails>): ShareDestination {
     const report = reports[`report_${reportID}`] ?? {};
 
     const participantAccountIDs = report.participantAccountIDs ?? [];
