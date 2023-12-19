@@ -141,7 +141,7 @@ function WorkspaceInviteMessagePage(props) {
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID))}
                 />
                 <FormProvider
-                    style={[styles.themeStyles.flexGrow1, styles.themeStyles.ph5]}
+                    style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM}
                     validate={validate}
                     onSubmit={sendInvitation}
@@ -153,27 +153,27 @@ function WorkspaceInviteMessagePage(props) {
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
                             href={CONST.PRIVACY_URL}
-                            style={[styles.themeStyles.mv2, styles.themeStyles.alignSelfStart]}
+                            style={[styles.mv2, styles.alignSelfStart]}
                         >
-                            <View style={[styles.themeStyles.flexRow]}>
-                                <Text style={[styles.themeStyles.mr1, styles.themeStyles.label, styles.themeStyles.link]}>{translate('common.privacy')}</Text>
+                            <View style={[styles.flexRow]}>
+                                <Text style={[styles.mr1, styles.label, styles.link]}>{translate('common.privacy')}</Text>
                             </View>
                         </PressableWithoutFeedback>
                     }
                 >
-                    <View style={[styles.themeStyles.mv4, styles.themeStyles.justifyContentCenter, styles.themeStyles.alignItemsCenter]}>
+                    <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <MultipleAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
                             icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(props.invitedEmailsToAccountIDsDraft), props.allPersonalDetails, props.invitedEmailsToAccountIDsDraft)}
                             shouldStackHorizontally
                             shouldDisplayAvatarsInRows
-                            secondAvatarStyle={[styles.themeStyles.secondAvatarInline]}
+                            secondAvatarStyle={[styles.secondAvatarInline]}
                         />
                     </View>
-                    <View style={[styles.themeStyles.mb5]}>
+                    <View style={[styles.mb5]}>
                         <Text>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                     </View>
-                    <View style={[styles.themeStyles.mb3]}>
+                    <View style={[styles.mb3]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
@@ -183,15 +183,18 @@ function WorkspaceInviteMessagePage(props) {
                             autoCompleteType="off"
                             autoCorrect={false}
                             autoGrowHeight
-                            inputStyle={[styles.themeStyles.verticalAlignTop]}
-                            containerStyles={[styles.themeStyles.autoGrowHeightMultilineInput]}
+                            inputStyle={[styles.verticalAlignTop]}
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
                             value={welcomeMessage}
                             onChangeText={(text) => {
                                 saveDraft(text);
                             }}
                             ref={(el) => {
-                                updateMultilineInputRange(el);
+                                if (!el) {
+                                    return;
+                                }
                                 inputCallbackRef(el);
+                                updateMultilineInputRange(el);
                             }}
                         />
                     </View>
