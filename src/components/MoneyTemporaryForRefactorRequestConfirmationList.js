@@ -275,6 +275,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
 
     const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRouteError = TransactionUtils.hasRouteError(transaction);
     const isDistanceRequestWithoutRoute = isDistanceRequest && !hasRoute;
     const formattedAmount = isDistanceRequestWithoutRoute
         ? translate('common.tbd')
@@ -290,12 +291,16 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
     const shouldDisplayFieldError = useMemo(() => {
-        if (!isEditingSplitBill) {
+        if (!isEditingSplitBill && !isDistanceRequest) {
             return false;
         }
 
-        return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
-    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
+        return (
+            (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) ||
+            (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction)) ||
+            (isDistanceRequest && hasRouteError)
+        );
+    }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit, hasRouteError, isDistanceRequest]);
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -306,9 +311,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
+        if (shouldDisplayFieldError && hasRouteError) {
+            setFormError('bankAccount.error.address');
+            return;
+        }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, hasRouteError]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -685,6 +694,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                             }
                             disabled={didConfirm || !isTypeRequest}
+                            brickRoadIndicator={hasRouteError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                             interactive={!isReadOnly}
                         />
                     )}
