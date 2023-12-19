@@ -176,19 +176,19 @@ function PurposeForUsingExpensifyModal(props) {
                     iconFill={theme.iconColorfulBackground}
                 />
             </View>
-                <View style={[styles.w100, styles.ph5, styles.pv5]}>
-                    <Text
-                        style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                        numberOfLines={2}
-                    >
-                        {translate('purposeForExpensify.welcomeMessage')}
-                    </Text>
-                    <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
-                </View>
-                <MenuItemList
-                    menuItems={menuItems}
-                    shouldUseSingleExecution
-                />
+            <View style={[styles.w100, styles.ph5, styles.pv5]}>
+                <Text
+                    style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                    numberOfLines={2}
+                >
+                    {translate('purposeForExpensify.welcomeMessage')}
+                </Text>
+                <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+            </View>
+            <MenuItemList
+                menuItems={menuItems}
+                shouldUseSingleExecution
+            />
         </Modal>
     );
 }

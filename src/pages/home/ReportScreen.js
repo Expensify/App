@@ -35,7 +35,6 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import PurposeForUsingExpensifyModal from '@components/PurposeForUsingExpensifyModal';
 import HeaderView from './HeaderView';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';

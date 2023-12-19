@@ -2,9 +2,9 @@ import React, {useCallback, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import FreezeWrapper from '@libs/Navigation/FreezeWrapper';
 import BaseSidebarScreen from './BaseSidebarScreen';
+import PurposeForUsingExpensifyModal from "@components/PurposeForUsingExpensifyModal";
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import sidebarPropTypes from './sidebarPropTypes';
-import PurposeForUsingExpensifyModal from "@components/PurposeForUsingExpensifyModal";
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);

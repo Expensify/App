@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import OnyxPolicy from '@src/types/onyx/Policy';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {EmptyObject} from '@src/types/utils/EmptyObject';
 import Report from '@src/types/onyx/Report';
 import * as Policy from './Policy';
 
