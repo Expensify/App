@@ -117,7 +117,7 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
                 const topmostCentralPaneRoute = getTopmostCentralPaneRoute(partialState);
                 const isBottomTabMatchingCentralPane = topmostCentralPaneRoute && TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name].includes(topmostCentralPaneRoute.name);
 
-                if (!isSmallScreenWidth && !isBottomTabMatchingCentralPane) {
+                if (!isBottomTabMatchingCentralPane) {
                     // If we added a route we need to make sure that the state.stale is true to generate new key for this route
                     // @ts-expect-error Updating read only property
                     // noinspection JSConstantReassignment
