@@ -119,9 +119,7 @@ function HeaderWithBackButton({
                                 onPress={(event) => {
                                     // Blur the pressable in case this button triggers a Growl notification
                                     // We do not want to overlap Growl with the Tooltip (#15271)
-                                    if (event?.currentTarget) {
-                                        (event.currentTarget as HTMLElement).blur();
-                                    }
+                                    (event?.currentTarget as HTMLElement)?.blur();
 
                                     if (!isDownloadButtonActive) {
                                         return;
