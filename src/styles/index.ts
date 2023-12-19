@@ -2691,6 +2691,8 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
+        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
+
         requestPreviewBox: {
             marginTop: 12,
             maxWidth: variables.reportPreviewMaxWidth,
