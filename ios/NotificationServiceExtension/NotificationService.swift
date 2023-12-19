@@ -31,6 +31,9 @@ class NotificationService: UANotificationServiceExtension {
     }
   }
   
+  /**
+   * Parses the notification content and modifies it to be a Communication Notification. More info here: https://developer.apple.com/documentation/usernotifications/implementing_communication_notifications
+   */
   @available(iOSApplicationExtension 15.0, *)
   func configureCommunicationNotification(notificationContent: UNMutableNotificationContent, contentHandler: @escaping (UNNotificationContent) -> Void) {
     var notificationData: NotificationData
