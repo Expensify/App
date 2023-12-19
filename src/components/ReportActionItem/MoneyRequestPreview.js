@@ -38,6 +38,7 @@ import CONST from '@src/CONST';
 import * as Localize from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionItemImages from './ReportActionItemImages';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 
 const propTypes = {
     /** The active IOUReport, used for Onyx subscription */
@@ -169,6 +170,8 @@ function MoneyRequestPreview(props) {
 
     const hasPendingWaypoints = lodashGet(props.transaction, 'pendingFields.waypoints', null);
 
+    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+
     const getSettledMessage = () => {
         if (isExpensifyCardTransaction) {
             return translate('common.done');
@@ -257,7 +260,12 @@ function MoneyRequestPreview(props) {
                         !props.onPreviewPressed ? [styles.moneyRequestPreviewBox, ...props.containerStyles] : {},
                     ]}
                 >
-                    {hasReceipt && (
+                    {showMapAsImage && (
+                        <View style={styles.reportActionItemImages}>
+                            <ConfirmedRoute transaction={props.transaction} />
+                        </View>
+                    )}
+                    {!showMapAsImage && hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
                             isHovered={props.isHovered || isScanning}

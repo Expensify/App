@@ -40,6 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportActionItemImage from './ReportActionItemImage';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -106,6 +107,9 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
+
+    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+
     if (isDistanceRequest && (!formattedTransactionAmount || hasPendingWaypoints)) {
         formattedTransactionAmount = translate('common.tbd');
     }
@@ -179,7 +183,14 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
             <AnimatedEmptyStateBackground />
             <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}>
-                {hasReceipt && (
+                {showMapAsImage && (
+                    <OfflineWithFeedback pendingAction={pendingAction}>
+                        <View style={styles.moneyRequestViewImage}>
+                            <ConfirmedRoute transaction={transaction} />
+                        </View>
+                    </OfflineWithFeedback>
+                )}
+                {!showMapAsImage && hasReceipt && (
                     <OfflineWithFeedback pendingAction={pendingAction}>
                         <View style={styles.moneyRequestViewImage}>
                             <ReportActionItemImage

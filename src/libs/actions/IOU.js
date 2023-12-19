@@ -685,6 +685,9 @@ function getMoneyRequestInformation(
             ...optimisticTransaction,
             ...existingTransaction,
             transactionID: optimisticTransaction.transactionID,
+            pendingFields: {
+                waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            }
         };
     }
 
