@@ -277,7 +277,7 @@ function getOptionData(
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
-    const hasViolations = canUseViolations && ReportUtils.transactionThreadHasViolations(report, transactionViolations, null);
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, null);
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);

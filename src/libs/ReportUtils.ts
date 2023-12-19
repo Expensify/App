@@ -3487,7 +3487,7 @@ function transactionHasViolation(transactionID: string, transactionViolations: T
 /**
  * Checks to see if a report's parentAction is a money request that contains a violation
  */
-function transactionThreadHasViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions> | null = {}): boolean {
+function doesTransactionThreadHaveViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions> | null = {}): boolean {
     if (!reportActions) {
         return false;
     }
@@ -3595,7 +3595,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && transactionThreadHasViolations(report, transactionViolations ?? {}, allReportActions)) {
+    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && doesTransactionThreadHaveViolations(report, transactionViolations ?? {}, allReportActions)) {
         return true;
     }
 
@@ -4556,7 +4556,7 @@ export {
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
-    transactionThreadHasViolations,
+    doesTransactionThreadHaveViolations,
     hasViolations,
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
