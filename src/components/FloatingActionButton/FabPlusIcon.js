@@ -6,6 +6,24 @@ import useTheme from '@hooks/useTheme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
+const adapter = createAnimatedPropAdapter(
+    (props) => {
+        // eslint-disable-next-line rulesdir/prefer-underscore-method no-param-reassign
+        if (Object.keys(props).includes('fill')) {
+            props.fill = {type: 0, payload: processColor(props.fill)};
+        }
+        // eslint-disable-next-line rulesdir/prefer-underscore-method no-param-reassign
+        if (Object.keys(props).includes('stroke')) {
+            props.stroke = {type: 0, payload: processColor(props.stroke)};
+        }
+    },
+    ['fill', 'stroke'],
+);
+adapter.propTypes = {
+    fill: PropTypes.string,
+    stroke: PropTypes.string,
+};
+
 const propTypes = {
     /* Current state (active or not active) of the component */
     isActive: PropTypes.bool.isRequired,
