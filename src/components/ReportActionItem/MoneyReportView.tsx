@@ -38,7 +38,12 @@ function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProp
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
 
-    const subAmountTextStyles = [styles.taskTitleMenuItem, styles.alignSelfCenter, StyleUtils.getFontSizeStyle(variables.fontSizeh1), StyleUtils.getColorStyle(theme.textSupporting)];
+    const subAmountTextStyles: StyleProp<TextStyle> = [
+        styles.taskTitleMenuItem,
+        styles.alignSelfCenter,
+        StyleUtils.getFontSizeStyle(variables.fontSizeh1),
+        StyleUtils.getColorStyle(theme.textSupporting),
+    ];
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
