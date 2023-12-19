@@ -41,6 +41,8 @@ const setPerformanceTimersEnd = () => {
     Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
 };
 
+const SearchPageFooterInstance = <SearchPageFooter />;
+
 function SearchPage({betas, reports}) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const {translate} = useLocalize();
@@ -154,7 +156,7 @@ function SearchPage({betas, reports}) {
                             autoFocus
                             onSelectRow={selectReport}
                             showLoadingPlaceholder={!didScreenTransitionEnd || !isOptionsDataReady}
-                            footerContent={<SearchPageFooter />}
+                            footerContent={SearchPageFooterInstance}
                         />
                     </View>
                 </>
