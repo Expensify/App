@@ -1,6 +1,6 @@
-import {cloneElement, forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {cloneElement, forwardRef, Ref, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import assignRef from '@libs/assignRef';
+import mergeRefs from '@libs/mergeRefs';
 import {getReturnValue} from '@libs/ValueUtils';
 import CONST from '@src/CONST';
 import HoverableProps from './types';
@@ -24,9 +24,6 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         },
         [shouldHandleScroll],
     );
-
-    // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
-    useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => elementRef.current, []);
 
     useEffect(() => {
         if (isHovered) {
@@ -118,17 +115,8 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         [child.props],
     );
 
-    // We need to access the ref of a children from both parent and current component
-    // So we pass it to current ref and assign it once again to the child ref prop
-    const hijackRef = (el: HTMLElement) => {
-        elementRef.current = el;
-        if (child.ref) {
-            assignRef(child.ref, el);
-        }
-    };
-
     return cloneElement(child, {
-        ref: hijackRef,
+        ref: mergeRefs(elementRef, outerRef, child.ref),
         onMouseEnter: hoverAndForwardOnMouseEnter,
         onMouseLeave: unhoverAndForwardOnMouseLeave,
         onBlur: unhoverAndForwardOnBlur,
