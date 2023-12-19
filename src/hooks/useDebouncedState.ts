@@ -1,11 +1,12 @@
-import {debounce} from 'lodash';
+import debounce from 'lodash/debounce';
 import {useEffect, useRef, useState} from 'react';
+import CONST from '@src/CONST';
 
 /**
  * A React hook that provides a state and its debounced version.
  *
  * @param initialValue - The initial value of the state.
- * @param delay - The debounce delay in milliseconds. Defaults to 100ms.
+ * @param delay - The debounce delay in milliseconds. Defaults to SEARCH_FOR_REPORTS_DEBOUNCE_TIME = 300ms.
  * @returns A tuple containing:
  *          - The current state value.
  *          - The debounced state value.
@@ -16,7 +17,7 @@ import {useEffect, useRef, useState} from 'react';
  * @example
  * const [value, debouncedValue, setValue] = useDebouncedState<string>("", 300);
  */
-function useDebouncedState<T>(initialValue: T, delay = 100): [T, T, (value: T) => void] {
+function useDebouncedState<T>(initialValue: T, delay = CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME): [T, T, (value: T) => void] {
     const [value, setValue] = useState(initialValue);
     const [debouncedValue, setDebouncedValue] = useState(initialValue);
     const debouncedSetDebouncedValue = useRef(debounce(setDebouncedValue, delay)).current;

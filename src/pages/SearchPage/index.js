@@ -50,7 +50,7 @@ function SearchPage({betas, reports}) {
 
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('', 75);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
