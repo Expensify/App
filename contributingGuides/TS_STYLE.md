@@ -24,6 +24,8 @@
   - [1.17 `.tsx`](#tsx)
   - [1.18 No inline prop types](#no-inline-prop-types)
   - [1.19 Satisfies operator](#satisfies-operator)
+  - [1.20 Hooks instead of HOCs](#hooks-instead-of-hocs)
+  - [1.21 `compose` usage](#compose-usage)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -124,7 +126,7 @@ type Foo = {
 
 <a name="d-ts-extension"></a><a name="1.2"></a>
 
-- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
+- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and JavaScript's built-in modules (e.g. `window` object) can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
 
   > Why? Type errors in `d.ts` files are not checked by TypeScript [^1].
 
@@ -509,6 +511,102 @@ type Foo = {
   } satisfies Record<string, ViewStyle>;
   ```
 
+  <a name="hooks-instead-of-hocs"></a><a name="1.20"></a>
+
+- [1.20](#hooks-instead-of-hocs) **Hooks instead of HOCs**: Replace HOCs usage with Hooks whenever possible.
+  
+  > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
+
+  > Note: Because Onyx doesn't provide a hook yet, in a component that accesses Onyx data with `withOnyx` HOC, please make sure that you don't use other HOCs (if applicable) to avoid HOC nesting.
+
+  ```tsx
+  // BAD
+  type ComponentOnyxProps = {
+      session: OnyxEntry<Session>;
+  };
+
+  type ComponentProps = WindowDimensionsProps &
+      WithLocalizeProps &
+      ComponentOnyxProps & {
+          someProp: string;
+      };
+
+  function Component({windowWidth, windowHeight, translate, session, someProp}: ComponentProps) {
+      // component's code
+  }
+
+  export default compose(
+      withWindowDimensions,
+      withLocalize,
+      withOnyx<ComponentProps, ComponentOnyxProps>({
+          session: {
+              key: ONYXKEYS.SESSION,
+          },
+      }),
+  )(Component);
+
+  // GOOD
+  type ComponentOnyxProps = {
+      session: OnyxEntry<Session>;
+  };
+
+  type ComponentProps = ComponentOnyxProps & {
+      someProp: string;
+  };
+
+  function Component({session, someProp}: ComponentProps) {
+      const {windowWidth, windowHeight} = useWindowDimensions();
+      const {translate} = useLocalize();
+      // component's code
+  }
+
+  // There is no hook alternative for withOnyx yet.
+  export default withOnyx<ComponentProps, ComponentOnyxProps>({
+      session: {
+          key: ONYXKEYS.SESSION,
+      },
+  })(Component);
+  ```
+
+  <a name="compose-usage"></a><a name="1.21"></a>
+
+- [1.21](#compose-usage) **`compose` usage**: Avoid the usage of `compose` function to compose HOCs in TypeScript files. Use nesting instead.
+  
+  > Why? `compose` function doesn't work well with TypeScript when dealing with several HOCs being used in a component, many times resulting in wrong types and errors. Instead, nesting can be used to allow a seamless use of multiple HOCs and result in a correct return type of the compoment. Also, you can use [hooks instead of HOCs](#hooks-instead-of-hocs) whenever possible to minimize or even remove the need of HOCs in the component.
+
+  ```ts
+  // BAD
+  export default compose(
+      withCurrentUserPersonalDetails,
+      withReportOrNotFound(),
+      withOnyx<ComponentProps, ComponentOnyxProps>({
+          session: {
+              key: ONYXKEYS.SESSION,
+          },
+      }),
+  )(Component);
+
+  // GOOD
+  export default withCurrentUserPersonalDetails(
+      withReportOrNotFound()(
+          withOnyx<ComponentProps, ComponentOnyxProps>({
+              session: {
+                  key: ONYXKEYS.SESSION,
+              },
+          })(Component),
+      ),
+  );
+
+  // GOOD - alternative to HOC nesting
+  const ComponentWithOnyx = withOnyx<ComponentProps, ComponentOnyxProps>({
+      session: {
+          key: ONYXKEYS.SESSION,
+      },
+  })(Component);
+  const ComponentWithReportOrNotFound = withReportOrNotFound()(ComponentWithOnyx);
+  export default withCurrentUserPersonalDetails(ComponentWithReportOrNotFound);
+  ```
+
 ## Exception to Rules
 
 Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. The internal engineer assigned to the PR should be the one that approves each exception, however all discussion regarding granting exceptions should happen in the public channel instead of the GitHub PR page so that the TS migration team can access them easily.
@@ -521,7 +619,7 @@ This rule will apply until the migration is done. After the migration, discussio
 
 > Comment in the `#expensify-open-source` Slack channel if any of the following situations are encountered. Each comment should be prefixed with `TS ATTENTION:`. Internal engineers will access each situation and prescribe solutions to each case. Internal engineers should refer to general solutions to each situation that follows each list item.
 
-- I think types definitions in a third party library is incomplete or incorrect
+- I think types definitions in a third party library or JavaScript's built-in module are incomplete or incorrect
 
 When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/types/modules/*.d.ts`, each library as a separate file.
 
@@ -540,7 +638,7 @@ declare module "external-library-name" {
 
 > This section contains instructions that are applicable during the migration.
 
-- 🚨 DO NOT write new code in TypeScript yet. The only time you write TypeScript code is when the file you're editing has already been migrated to TypeScript by the migration team. This guideline will be updated once it's time for new code to be written in TypeScript. If you're doing a major overhaul or refactoring of particular features or utilities of App and you believe it might be beneficial to migrate relevant code to TypeScript as part of the refactoring, please ask in the #expensify-open-source channel about it (and prefix your message with `TS ATTENTION:`).
+- 🚨 DO NOT write new code in TypeScript yet. The only time you write TypeScript code is when the file you're editing has already been migrated to TypeScript by the migration team, or when you need to add new files under `src/libs`, `src/hooks`, `src/styles`, and `src/languages` directories. This guideline will be updated once it's time for new code to be written in TypeScript. If you're doing a major overhaul or refactoring of particular features or utilities of App and you believe it might be beneficial to migrate relevant code to TypeScript as part of the refactoring, please ask in the #expensify-open-source channel about it (and prefix your message with `TS ATTENTION:`).
 
 - If you're migrating a module that doesn't have a default implementation (i.e. `index.ts`, e.g. `getPlatform`), convert `index.website.js` to `index.ts`. Without `index.ts`, TypeScript cannot get type information where the module is imported.
 
@@ -578,6 +676,25 @@ object?.foo ?? 'bar';
   // @ts-expect-error
   const y: number = 123; // TS error: Unused '@ts-expect-error' directive.
   ```
+
+- The TS issue I'm working on is blocked by another TS issue because of type errors. What should I do?
+
+  In order to proceed with the migration faster, we are now allowing the use of `@ts-expect-error` annotation to temporally suppress those errors and help you unblock your issues. The only requirements is that you MUST add the annotation with a comment explaining that it must be removed when the blocking issue is migrated, e.g.:
+
+  ```tsx
+  return (
+      <MenuItem
+          // @ts-expect-error TODO: Remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TypeScript.
+          wrapperStyle={styles.mr3}
+          key={text}
+          icon={icon}
+          title={text}
+          onPress={onPress}
+      />
+  );
+  ```
+
+  **You will also need to reference the blocking issue in your PR.** You can find all the TS issues [here](https://github.com/orgs/Expensify/projects/46).
 
 ## Learning Resources
 

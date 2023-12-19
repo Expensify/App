@@ -1469,12 +1469,12 @@ function getDisplayNamesWithTooltips(
 
     return personalDetailsListArray
         .map((user) => {
-            const accountID = Number(user.accountID);
+            const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user.pronouns;
+            let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
                 pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
@@ -1483,7 +1483,7 @@ function getDisplayNamesWithTooltips(
             return {
                 displayName,
                 avatar,
-                login: user.login ?? '',
+                login: user?.login ?? '',
                 accountID,
                 pronouns,
             };
