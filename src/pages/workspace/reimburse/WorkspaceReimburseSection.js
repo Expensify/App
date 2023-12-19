@@ -9,10 +9,10 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import networkPropTypes from '@components/networkPropTypes';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 

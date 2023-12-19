@@ -26,6 +26,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -126,6 +127,7 @@ class WorkspaceInviteMessagePage extends React.Component {
         Keyboard.dismiss();
         Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
+        SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
         Navigation.goBack(ROUTES.HOME);
         Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(this.props.route.params.policyID));
@@ -192,7 +194,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                role={CONST.ACCESSIBILITY_ROLE.LINK}
+                                role={CONST.ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[this.props.themeStyles.mv2, this.props.themeStyles.alignSelfStart]}
@@ -222,7 +224,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[this.props.themeStyles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
-                                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                role={CONST.ROLE.PRESENTATION}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}

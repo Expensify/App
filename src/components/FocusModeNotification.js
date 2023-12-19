@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -10,6 +10,7 @@ import Text from './Text';
 import TextLinkWithRef from './TextLink';
 
 function FocusModeNotification() {
+    const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     useEffect(() => {
