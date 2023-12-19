@@ -1,8 +1,20 @@
 import React, {forwardRef} from 'react';
-import {Role} from 'react-native';
+import {NativePointerEvent, NativeSyntheticEvent, Role} from 'react-native';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import GenericPressable from './BaseGenericPressable';
 import PressableProps, {PressableRef} from './types';
+
+function saveFocusedInput(e: NativeSyntheticEvent<NativePointerEvent>) {
+    const target = e.target as unknown as EventTarget;
+    if (!target) {
+        return;
+    }
+    // If an input is clicked, it usually doesn't show a modal, so there's no need to save the focused input.
+    if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) {
+        return;
+    }
+    ComposerFocusManager.saveFocusedInput();
+}
 
 function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: PressableRef) {
     const accessible = props.accessible ?? props.accessible === undefined ? true : props.accessible;
@@ -11,7 +23,7 @@ function WebGenericPressable({focusable = true, ...props}: PressableProps, ref: 
         <GenericPressable
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onPointerDown={ComposerFocusManager.saveFocusedElement}
+            onPointerDown={saveFocusedInput}
             ref={ref}
             // change native accessibility props to web accessibility props
             focusable={focusable}

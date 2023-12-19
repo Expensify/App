@@ -155,7 +155,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     };
 
     const deleteStopAndHideModal = () => {
-        setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.DELETE);
+        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         Transaction.removeWaypoint(transaction, waypointIndex);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));

@@ -108,7 +108,8 @@ function GenericPressable(
                 ref.current?.blur();
             }
             onPress(event);
-            ComposerFocusManager.removeFocusedElement();
+
+            ComposerFocusManager.clearFocusedInput();
 
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         },

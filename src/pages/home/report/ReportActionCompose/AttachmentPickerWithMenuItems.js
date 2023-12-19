@@ -271,7 +271,7 @@ function AttachmentPickerWithMenuItems({
                             restoreFocusType={restoreFocusType}
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
                             isVisible={isMenuVisible && isFocused}
-                            onModalShow={() => setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.DEFAULT)}
+                            onModalShow={() => setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT)}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 if (index !== menuItems.length - 1) {
@@ -279,11 +279,11 @@ function AttachmentPickerWithMenuItems({
                                     return;
                                 }
                                 // TODO:refine
-                                let type = CONST.MODAL.RESTORE_TYPE.DEFAULT;
+                                let type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT;
                                 if (Browser.isFileCancelSupported()) {
-                                    type = CONST.MODAL.RESTORE_TYPE.PRESERVE;
+                                    type = CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE;
                                 } else if (Browser.isMobile()) {
-                                    type = CONST.MODAL.RESTORE_TYPE.DELETE;
+                                    type = CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE;
                                 }
                                 setRestoreFocusType(type);
                                 setMenuVisibility(false);

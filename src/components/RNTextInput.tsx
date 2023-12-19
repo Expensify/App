@@ -14,7 +14,7 @@ function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Compo
 
     const inputRef = React.useRef<React.Component<AnimatedProps<TextInputProps>> | null>(null);
 
-    useEffect(() => () => ComposerFocusManager.releaseElement(inputRef.current), []);
+    useEffect(() => () => ComposerFocusManager.releaseInput(inputRef.current), []);
 
     return (
         <AnimatedTextInput

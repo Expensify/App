@@ -129,7 +129,7 @@ const modalScreenListeners = {
         Modal.setModalVisibility(true);
     },
     beforeRemove: () => {
-        ComposerFocusManager.restoreFocusState(modalId, CONST.MODAL.RESTORE_TYPE.DEFAULT, true);
+        ComposerFocusManager.restoreFocusState(modalId, CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, true);
 
         // Clear search input (WorkspaceInvitePage) when modal is closed
         SearchInputManager.searchInput = '';

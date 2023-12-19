@@ -63,7 +63,7 @@ type BaseModalProps = WindowDimensionsProps &
         hideModalContentWhileAnimating?: boolean;
 
         /** how to re-focus after the modal is dismissed */
-        restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_TYPE>;
+        restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
     };
 
 type ModalRef = {

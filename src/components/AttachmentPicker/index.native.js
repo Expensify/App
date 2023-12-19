@@ -313,7 +313,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                 }}
                 isVisible={isVisible}
                 anchorPosition={styles.createMenuPosition}
-                onModalShow={() => setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.DEFAULT)}
+                onModalShow={() => setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT)}
                 onModalHide={onModalHide.current}
             >
                 <View style={!isSmallScreenWidth && styles.createMenuContainer}>
@@ -323,7 +323,7 @@ function AttachmentPicker({type, children, shouldHideCameraOption}) {
                             icon={item.icon}
                             title={translate(item.textTranslationKey)}
                             onPress={() => {
-                                setRestoreFocusType(CONST.MODAL.RESTORE_TYPE.PRESERVE);
+                                setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
                                 selectItem(item);
                             }}
                             focused={focusedIndex === menuIndex}

@@ -2,30 +2,26 @@ import {TextInput} from 'react-native';
 import _ from 'underscore';
 import CONST from '@src/CONST';
 
-let focusedElement = null;
+let focusedInput = null;
 
-function getActiveElement() {
+function getActiveInput() {
     return TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField();
 }
 
-function saveFocusedElement(e) {
-    const target = e.target;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        return;
+function saveFocusedInput() {
+    const activeInput = getActiveInput();
+    if (activeInput) {
+        focusedInput = activeInput;
     }
-    const activeElement = getActiveElement();
-    if (!activeElement || (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA')) {
-        return;
-    }
-    focusedElement = activeElement;
 }
 
-function removeFocusedElement() {
-    if (!focusedElement) {
+function clearFocusedInput() {
+    if (!focusedInput) {
         return;
     }
+
     // we have to use timeout because of measureLayout
-    setTimeout(() => (focusedElement = null), CONST.ANIMATION_IN_TIMING);
+    setTimeout(() => (focusedInput = null), CONST.ANIMATION_IN_TIMING);
 }
 
 let uniqueModalId = 1;
@@ -39,22 +35,22 @@ global.demo = new Proxy(
         obj: () => [...focusMap.values()],
         arr: () => activeModals,
         promise: () => [...promiseMap],
-        el: () => focusedElement,
+        el: () => focusedInput,
     },
     {
         get: (target, key) => target[key] && target[key](),
     },
 );
 
-function releaseElement(el) {
-    if (!el) {
+function releaseInput(input) {
+    if (!input) {
         return;
     }
-    if (el === focusedElement) {
-        focusedElement = null;
+    if (input === focusedInput) {
+        focusedInput = null;
     }
     [...focusMap].forEach(([key, value]) => {
-        if (value !== el) {
+        if (value !== input) {
             return;
         }
         focusMap.delete(key);
@@ -67,8 +63,8 @@ function getId() {
 
 function saveFocusState(id, container) {
     // For popoverWithoutOverlay, react calls autofocus before useEffect.
-    const input = focusedElement || getActiveElement();
-    focusedElement = null;
+    const input = focusedInput || getActiveInput();
+    focusedInput = null;
     if (activeModals.indexOf(id) < 0) {
         activeModals.push(id);
     }
@@ -87,22 +83,22 @@ function saveFocusState(id, container) {
  * If we intentionally clicked on another input box, there is no need to restore focus.
  * But if we are closing the RHP, we can ignore the focused input.
  *
- * @param {Element} element
+ * @param {TextInput} input
  * @param {Boolean} shouldIgnoreFocused
  */
-function focusElement(element, shouldIgnoreFocused = false) {
+function focus(input, shouldIgnoreFocused = false) {
     if (shouldIgnoreFocused) {
-        element.focus();
+        input.focus();
         return;
     }
-    const focused = getActiveElement();
-    if (focused) {
+    const activeInput = getActiveInput();
+    if (activeInput) {
         return;
     }
-    element.focus();
+    input.focus();
 }
 
-function restoreFocusState(id, type = CONST.MODAL.RESTORE_TYPE.DEFAULT, shouldIgnoreFocused = false) {
+function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, shouldIgnoreFocused = false) {
     // TODO:del
     console.debug(`restore ${id}, type is ${type}, active modals are`, activeModals.join());
     if (!id) {
@@ -122,12 +118,12 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_TYPE.DEFAULT, shouldIg
         return;
     }
     activeModals.splice(index, 1);
-    if (type === CONST.MODAL.RESTORE_TYPE.PRESERVE) {
+    if (type === CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE) {
         // TODO:del
         console.debug('preserve input focus');
         return;
     }
-    if (type === CONST.MODAL.RESTORE_TYPE.DELETE) {
+    if (type === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
         // TODO:del
         console.debug('delete, no restore');
         focusMap.delete(id);
@@ -139,9 +135,9 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_TYPE.DEFAULT, shouldIg
         console.debug('modal is not the topmost one');
         return;
     }
-    const element = focusMap.get(id);
-    if (element) {
-        focusElement(element, shouldIgnoreFocused);
+    const input = focusMap.get(id);
+    if (input) {
+        focus(input, shouldIgnoreFocused);
         focusMap.delete(id);
         return;
     }
@@ -153,15 +149,15 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_TYPE.DEFAULT, shouldIg
     }
 
     // find the topmost one
-    const [lastKey, lastElement] = _.last([...focusMap]);
-    if (!lastElement) {
+    const [lastKey, lastInput] = _.last([...focusMap]);
+    if (!lastInput) {
         // TODO:del
         console.error('no, impossible');
         return;
     }
     // TODO:del
     console.debug('oh, try to restore topmost');
-    focusElement(lastElement, shouldIgnoreFocused);
+    focus(lastInput, shouldIgnoreFocused);
     focusMap.delete(lastKey);
 }
 
@@ -231,9 +227,9 @@ function tryRestoreFocusByExternal() {
 
 export default {
     getId,
-    saveFocusedElement,
-    removeFocusedElement,
-    releaseElement,
+    saveFocusedInput,
+    clearFocusedInput,
+    releaseInput,
     saveFocusState,
     restoreFocusState,
     resetReadyToFocus,
