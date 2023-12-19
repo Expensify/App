@@ -1,7 +1,3 @@
-import CONST from '@src/CONST';
-
-const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
-
 type OnfidoData = Record<string, unknown>;
 
 type BankAccountStepProps = {
