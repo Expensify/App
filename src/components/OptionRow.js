@@ -77,6 +77,7 @@ const propTypes = {
     isMultilineSupported: PropTypes.bool,
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    keyForList: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
@@ -99,6 +100,7 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
     shouldPreventDefaultFocusOnSelectRow: false,
+    keyForList: undefined,
 };
 
 function OptionRow(props) {
@@ -163,6 +165,7 @@ function OptionRow(props) {
             <Hoverable>
                 {(hovered) => (
                     <PressableWithFeedback
+                        testID={props.keyForList}
                         ref={(el) => (pressableRef.current = el)}
                         onPress={(e) => {
                             if (!props.onSelectRow) {
