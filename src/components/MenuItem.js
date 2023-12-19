@@ -83,6 +83,7 @@ const defaultProps = {
     shouldShowRightComponent: false,
     titleWithTooltips: [],
     shouldCheckActionAllowedOnPress: true,
+    isPaneMenu: false,
 };
 
 const MenuItem = React.forwardRef((props, ref) => {
@@ -230,6 +231,7 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                         StyleUtils.getIconFillColor(
                                                             getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
                                                             true,
+                                                            props.isPaneMenu,
                                                         )
                                                     }
                                                 />
@@ -262,7 +264,11 @@ const MenuItem = React.forwardRef((props, ref) => {
                                                 height={props.iconHeight}
                                                 fill={
                                                     props.secondaryIconFill ||
-                                                    StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
+                                                    StyleUtils.getIconFillColor(
+                                                        getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
+                                                        true,
+                                                        props.isPaneMenu,
+                                                    )
                                                 }
                                             />
                                         </View>

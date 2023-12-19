@@ -263,6 +263,7 @@ function InitialSettingsPage(props) {
                                 onSecondaryInteraction={
                                     !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
                                 }
+                                isPaneMenu
                             />
                         );
                     })}
