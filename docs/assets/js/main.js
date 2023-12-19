@@ -227,7 +227,6 @@ window.addEventListener('DOMContentLoaded', () => {
     // the LHN menu in responsive view.
     lhnContent.addEventListener('click', (event) => {
         const clickedLink = event.target;
-        console.log(clickedLink)
         if (clickedLink) {
             const href = clickedLink.getAttribute('href');
             if (href && href.startsWith('#') && !!document.getElementById(href.slice(1))) {
