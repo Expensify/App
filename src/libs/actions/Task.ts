@@ -32,7 +32,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: Record<string, OnyxTypes.PersonalDetails> | null;
+let allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (allPersonalDetails = value),
