@@ -206,7 +206,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
 
     const submitWaypoints = useCallback(() => {
         // If there is any error or loading state, don't let user go to next page.
-        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || isLoading) {
+        if (_.size(validatedWaypoints) < 2 || hasRouteError || isLoadingRoute || (isLoading && !isOffline)) {
             setHasError(true);
             return;
         }
@@ -216,7 +216,7 @@ function DistanceRequest({transactionID, report, transaction, route, isEditingRe
         }
 
         onSubmit(waypoints);
-    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditingNewRequest, isEditingRequest]);
+    }, [onSubmit, setHasError, hasRouteError, isLoadingRoute, isLoading, validatedWaypoints, waypoints, isEditingNewRequest, isEditingRequest, isOffline]);
 
     const content = (
         <>
