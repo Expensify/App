@@ -32,8 +32,12 @@ const getTopMostReportIDFromRHP = (state: State): string => {
 };
 
 // Get matching central pane route for bottom tab navigator. e.g HOME -> REPORT
-function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>): NavigationPartialRoute<CentralPaneName> {
+function getMatchingCentralPaneRouteForState(state: State<RootStackParamList>): NavigationPartialRoute<CentralPaneName> | undefined {
     const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
+
+    if (!topmostBottomTabRoute) {
+        return;
+    }
 
     const centralPaneName = TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name][0];
 

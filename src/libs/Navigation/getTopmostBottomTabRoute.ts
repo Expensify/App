@@ -1,10 +1,11 @@
 import {BottomTabName, NavigationPartialRoute, RootStackParamList, State} from './types';
 
-function getTopmostBottomTabRoute(state: State<RootStackParamList>): NavigationPartialRoute<BottomTabName> {
+function getTopmostBottomTabRoute(state: State<RootStackParamList>): NavigationPartialRoute<BottomTabName> | undefined {
     const bottomTabNavigatorRoute = state.routes[0];
 
+    // The bottomTabNavigatorRoute state may be empty if we just logged in.
     if (!bottomTabNavigatorRoute || bottomTabNavigatorRoute.name !== 'BottomTabNavigator' || bottomTabNavigatorRoute.state === undefined) {
-        throw new Error('There is no bottomTabNavigator route mounted as the first route in the root state.');
+        return undefined;
     }
 
     const topmostBottomTabRoute = bottomTabNavigatorRoute.state.routes.at(-1);

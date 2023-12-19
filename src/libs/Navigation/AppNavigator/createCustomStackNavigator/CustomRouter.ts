@@ -19,7 +19,9 @@ const isAtLeastOneInState = (state: State, screenName: string): boolean => !!sta
  * @param state - react-navigation state
  */
 const addCentralPaneNavigatorRoute = (state: State<RootStackParamList>) => {
-    const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(state);
+    // We only add the route if the bottom tab state is defined therefore matchingCentralPaneRoute will be defined.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(state)!;
 
     const bottomTabRoute = state.routes.filter((route) => route.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR);
     const centralPaneRoutes = state.routes.filter((route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
@@ -105,19 +107,23 @@ function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
     return {
         ...stackRouter,
         getRehydratedState(partialState: StackNavigationState<RootStackParamList>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            const isSmallScreenWidth = getIsSmallScreenWidth();
             // Make sure that there is at least one CentralPaneNavigator (ReportScreen by default) in the state if this is a wide layout
-            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(partialState);
             const topmostBottomTabRoute = getTopmostBottomTabRoute(partialState);
+            const isSmallScreenWidth = getIsSmallScreenWidth();
 
-            const isBottomTabMatchingCentralPane = topmostCentralPaneRoute && TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name].includes(topmostCentralPaneRoute.name);
+            // If we log in there is a few rehydrations where the state for the bottomTab doesn't exist yet.
+            // isSmallScreen is checked here to avoid calling check functions for optimazation purposes.
+            if (topmostBottomTabRoute && !isSmallScreenWidth) {
+                const topmostCentralPaneRoute = getTopmostCentralPaneRoute(partialState);
+                const isBottomTabMatchingCentralPane = topmostCentralPaneRoute && TAB_TO_CENTRAL_PANE_MAPPING[topmostBottomTabRoute.name].includes(topmostCentralPaneRoute.name);
 
-            if (!isSmallScreenWidth && !isBottomTabMatchingCentralPane) {
-                // If we added a route we need to make sure that the state.stale is true to generate new key for this route
-                // @ts-expect-error Updating read only property
-                // noinspection JSConstantReassignment
-                partialState.stale = true; // eslint-disable-line
-                addCentralPaneNavigatorRoute(partialState);
+                if (!isSmallScreenWidth && !isBottomTabMatchingCentralPane) {
+                    // If we added a route we need to make sure that the state.stale is true to generate new key for this route
+                    // @ts-expect-error Updating read only property
+                    // noinspection JSConstantReassignment
+                    partialState.stale = true; // eslint-disable-line
+                    addCentralPaneNavigatorRoute(partialState);
+                }
             }
             handleSettingsOpened(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
