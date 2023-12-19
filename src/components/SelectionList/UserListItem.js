@@ -5,7 +5,7 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useStyleUtils from '@styles/useStyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
 import {userListItemPropTypes} from './selectionListPropTypes';
 
 function UserListItem({item, textStyles, alternateTextStyles, showTooltip, style}) {
