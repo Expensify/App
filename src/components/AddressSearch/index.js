@@ -111,6 +111,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** location bias based on rectangular format */
+    locationBias: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -138,6 +141,7 @@ const defaultProps = {
     maxInputLength: undefined,
     predefinedPlaces: [],
     resultTypes: 'address',
+    locationBias: undefined,
 };
 
 function AddressSearch({
@@ -162,6 +166,7 @@ function AddressSearch({
     shouldSaveDraft,
     translate,
     value,
+    locationBias,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -179,11 +184,12 @@ function AddressSearch({
             language: preferredLocale,
             types: resultTypes,
             components: isLimitedToUSA ? 'country:us' : undefined,
+            locationbias: locationBias ? locationBias : 'ipbias',
         }),
-        [preferredLocale, resultTypes, isLimitedToUSA],
+        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
-
+    // console.log("AddressSearch:locationBias["+locationBias+"]");
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
