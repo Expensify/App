@@ -784,7 +784,8 @@ function convertAccountIDBasedMentionsToDisplayNames(html: string, personalDetai
     let modifiedHtml = html.slice(0);
     [...html.matchAll(CONST.REGEX.ACCOUNT_ID_BASED_MENTION)].forEach((match) => {
         const [mention, accountID] = match;
-        const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [Number(accountID), 'displayName'], personalDetails?.[Number(accountID)]?.login ?? '');
+        const personalDetail = personalDetails?.[Number(accountID)];
+        const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail?.displayName ?? '', personalDetail?.login ?? '');
         modifiedHtml = modifiedHtml.replace(mention, displayName);
     });
     return modifiedHtml;
