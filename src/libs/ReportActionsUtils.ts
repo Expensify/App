@@ -23,10 +23,6 @@ type LastVisibleMessage = {
     lastMessageHtml?: string;
 };
 
-type SlicedResult = {
-    catted: ReportAction[];
-    expanded: ReportAction[];
-};
 type MemberChangeMessageUserMentionElement = {
     readonly kind: 'userMention';
     readonly accountID: number;
@@ -300,36 +296,6 @@ function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction
     }
 
     return array.slice(startIndex, endIndex + 1);
-}
-
-/**
- * Returns the sliced range of report actions from the given array.
- *
- * param {ReportAction[]} array
- * param {String} id
- * returns {Object}
- * getSlicedRangeFromArrayByID([{id:1}, ..., {id: 100}], 50) => { catted: [{id:1}, ..., {id: 50}], expanded: [{id: 45}, ..., {id: 55}] }
- */
-function getSlicedRangeFromArrayByID(array: ReportAction[], id: string): SlicedResult {
-    let index;
-    if (id) {
-        index = array.findIndex((obj) => obj.reportActionID === id);
-    } else {
-        index = array.length - 1;
-    }
-
-    if (index === -1) {
-        return {catted: [], expanded: []};
-    }
-
-    const amountOfItemsBeforeLinkedOne = 25;
-    const expandedStart = index >= amountOfItemsBeforeLinkedOne ? index - amountOfItemsBeforeLinkedOne : 0;
-
-    const catted: ReportAction[] = array.slice(index, array.length);
-    const expanded: ReportAction[] = array.slice(expandedStart, array.length);
-    // We need the expanded version to prevent jittering of list. So when user navigate to linked message we show to him the catted version. After that we show the expanded version.
-    // Then we can show all reports.
-    return {catted, expanded};
 }
 
 /**
@@ -936,7 +902,6 @@ export {
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
     getRangeFromArrayByID,
-    getSlicedRangeFromArrayByID,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
