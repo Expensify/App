@@ -1,6 +1,6 @@
 import React, {cloneElement, forwardRef, Ref} from 'react';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
-import {getFirstValue, getReturnValue} from '@libs/ValueUtils';
+import {getReturnValue} from '@libs/ValueUtils';
 import ActiveHoverable from './ActiveHoverable';
 import HoverableProps from './types';
 
@@ -13,7 +13,7 @@ function Hoverable({isDisabled, ...props}: HoverableProps, ref: Ref<HTMLElement>
     // If Hoverable is disabled, just render the child without additional logic or event listeners.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (isDisabled || !hasHoverSupport()) {
-        return cloneElement(getFirstValue(getReturnValue(props.children, false)), {ref});
+        return cloneElement(getReturnValue(props.children, false), {ref});
     }
 
     return (

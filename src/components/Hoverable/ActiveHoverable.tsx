@@ -1,7 +1,7 @@
 import {cloneElement, forwardRef, Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import assignRef from '@libs/assignRef';
-import {getFirstValue, getReturnValue} from '@libs/ValueUtils';
+import {getReturnValue} from '@libs/ValueUtils';
 import CONST from '@src/CONST';
 import HoverableProps from './types';
 
@@ -84,7 +84,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, children}: 
         return () => document.removeEventListener('visibilitychange', unsetHoveredWhenDocumentIsHidden);
     }, []);
 
-    const child = useMemo(() => getFirstValue(getReturnValue(children, !isScrollingRef.current && isHovered)), [children, isHovered]);
+    const child = useMemo(() => getReturnValue(children, !isScrollingRef.current && isHovered), [children, isHovered]);
 
     const childOnMouseEnter = child.props.onMouseEnter;
     const childOnMouseLeave = child.props.onMouseLeave;

@@ -1,6 +1,6 @@
 import {ReactElement, RefAttributes} from 'react';
 
-type HoverableChild = (ReactElement & RefAttributes<HTMLElement>) | [ReactElement & RefAttributes<HTMLElement>];
+type HoverableChild = ReactElement & RefAttributes<HTMLElement>;
 type HoverableChildren = ((isHovered: boolean) => HoverableChild) | HoverableChild;
 
 type HoverableProps = {
