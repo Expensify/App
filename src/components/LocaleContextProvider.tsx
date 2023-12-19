@@ -30,13 +30,13 @@ type LocaleContextProps = {
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string;
 
     /** Formats number formatted according to locale and options */
-    numberFormat: (number: number, options: Intl.NumberFormatOptions) => string;
+    numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
 
     /** Converts a datetime into a localized string representation that's relative to current moment in time */
     datetimeToRelative: (datetime: string) => string;
 
     /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase: boolean) => string;
+    datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
 
     /** Updates date-fns internal locale */
     updateLocale: () => void;

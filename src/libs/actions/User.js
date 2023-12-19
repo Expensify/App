@@ -17,7 +17,6 @@ import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as Session from './Session';
-import redirectToSignIn from './SignInRedirect';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -69,8 +68,6 @@ function closeAccount(message) {
             ],
         },
     );
-    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
-    redirectToSignIn();
 }
 
 /**
