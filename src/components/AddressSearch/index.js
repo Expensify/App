@@ -276,6 +276,11 @@ function AddressSearch({
             values.state = stateFallback;
         }
 
+        // Set the state to be the same as the city in case the state is empty.
+        if (_.isEmpty(values.state)) {
+            values.state = values.city;
+        }
+
         // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"
         // We are setting up a fallback to ensure "values.street" is populated with a relevant value
         if (!values.street && details.adr_address) {
