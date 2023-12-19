@@ -39,4 +39,4 @@ type PopoverProps = BaseModalProps & {
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
 
-export type {PopoverProps, PopoverWithWindowDimensionsProps, AnchorAlignment, PopoverDimensions};
+export type {PopoverProps, PopoverWithWindowDimensionsProps};

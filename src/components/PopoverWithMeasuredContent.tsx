@@ -5,13 +5,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
 import Popover from './Popover';
 import {PopoverProps} from './Popover/types';
-
-type AnchorPosition = {
-    horizontal: number;
-    vertical: number;
-};
 
 type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     /** The horizontal and vertical anchors points for the popover */
@@ -45,18 +41,18 @@ function PopoverWithMeasuredContent({
     const [popoverWidth, setPopoverWidth] = useState(popoverDimensions.width);
     const [popoverHeight, setPopoverHeight] = useState(popoverDimensions.height);
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
-    const [isCurrentVisible, setIsCurrentVisible] = useState(false);
+    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     /**
      * When Popover becomes visible, we need to recalculate the Dimensions.
-     * Skip render on Popover until recalculations have done by setting isContentMeasured false as early as possible.
+     * Skip render on Popover until recalculations are done by setting isContentMeasured to false as early as possible.
      */
-    if (!isCurrentVisible && isVisible) {
+    if (!isPopoverVisible && isVisible) {
         // When Popover is shown recalculate
         setIsContentMeasured(popoverDimensions.width > 0 && popoverDimensions.height > 0);
-        setIsCurrentVisible(true);
-    } else if (isCurrentVisible && !isVisible) {
-        setIsCurrentVisible(false);
+        setIsPopoverVisible(true);
+    } else if (isPopoverVisible && !isVisible) {
+        setIsPopoverVisible(false);
     }
 
     /**
