@@ -230,7 +230,6 @@ function Tooltip(
                 ref={ref}
             >
                 <Hoverable
-                    onMouseEnter={updateTargetAndMousePosition}
                     onHoverIn={showTooltip}
                     onHoverOut={hideTooltip}
                     shouldHandleScroll={shouldHandleScroll}
