@@ -4139,6 +4139,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
+        workspaceSection: {
+            maxWidth: variables.workspaceSectionMaxWidth,
+            alignSelf: 'center',
+        },
+
         aspectRatioLottie: (animation: DotLottieAnimation) => ({aspectRatio: animation.w / animation.h}),
 
         receiptDropHeaderGap: {

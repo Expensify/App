@@ -103,7 +103,7 @@ function WorkspaceReimburseView(props) {
     }, [props.policy.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
-        <>
+        <View style={[styles.workspaceSection, styles.mt6]}>
             <Section
                 title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
@@ -159,7 +159,7 @@ function WorkspaceReimburseView(props) {
                 network={props.network}
                 translate={translate}
             />
-        </>
+        </View>
     );
 }
 
