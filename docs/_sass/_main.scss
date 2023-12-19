@@ -111,10 +111,22 @@ h5,
 h6 {
     margin-top: 20px;
 }
-  
+
+#faq::marker {
+    font-size: 1.5em;
+}
+
 details summary { 
     cursor: pointer;
     user-select: none;
+}
+
+details > summary {
+    list-style-image: url("/assets/images/arrow-right.svg");
+}
+
+details[open] > summary {
+    list-style-image: url("/assets/images/down.svg");
 }
 
 h1, 
