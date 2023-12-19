@@ -1,4 +1,3 @@
-import {CSSProperties} from 'react';
 import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
@@ -31,6 +30,7 @@ import {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    TextColorStyle,
     WorkspaceColorStyle,
 } from './types';
 
@@ -118,7 +118,7 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
 
 const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: 3,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SMALL]: 2,
@@ -402,7 +402,7 @@ function getBackgroundColorStyle(backgroundColor: string): ViewStyle {
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextStyle {
+function getTextColorStyle(color: string): TextColorStyle {
     return {
         color,
     };
@@ -613,7 +613,7 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 /**
  * Get minimum width as style
  */
-function getMinimumWidth(minWidth: number): ViewStyle | CSSProperties {
+function getMinimumWidth(minWidth: number): ViewStyle {
     return {
         minWidth,
     };
@@ -906,7 +906,7 @@ function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): Vie
 /**
  * Returns color style
  */
-function getColorStyle(color: string): ViewStyle | CSSProperties {
+function getColorStyle(color: string): TextColorStyle {
     return {color};
 }
 

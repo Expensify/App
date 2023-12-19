@@ -9,7 +9,7 @@ type DisplayNamesTooltipItemProps = {
     index?: number;
 
     /** The function to get a distance to shift the tooltip horizontally */
-    getTooltipShiftX?: (index: number) => number;
+    getTooltipShiftX?: (index: number) => number | undefined;
 
     /** The Account ID for the tooltip */
     accountID?: number;
@@ -32,7 +32,7 @@ type DisplayNamesTooltipItemProps = {
 
 function DisplayNamesTooltipItem({
     index = 0,
-    getTooltipShiftX = () => 0,
+    getTooltipShiftX = () => undefined,
     accountID = 0,
     avatar = '',
     login = '',
