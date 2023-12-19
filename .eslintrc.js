@@ -61,7 +61,7 @@ const restrictedImportPatterns = [
         message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
     },
     {
-        group: ['@styles/utils/**', '!@styles/utils/FontUtils'],
+        group: ['@styles/utils/**', '!@styles/utils/FontUtils', '!@styles/utils/types'],
         message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
     },
     {
