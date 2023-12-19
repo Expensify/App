@@ -43,7 +43,7 @@ function WorkspaceNamePage({policy}) {
 
             Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id));
+            Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id));
         },
         [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
     );
@@ -71,7 +71,7 @@ function WorkspaceNamePage({policy}) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.editor.nameInputLabel')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
