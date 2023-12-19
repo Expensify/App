@@ -8,10 +8,10 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type ThreeDotsAnchorPosition = {
     /** The vertical anchor position of the three dots menu */
-    vertical?: number;
+    vertical: number;
 
     /** The horizontal anchor position of the three dots menu */
-    horizontal?: number;
+    horizontal: number;
 };
 
 type ThreeDotsMenuItems = {
@@ -19,10 +19,10 @@ type ThreeDotsMenuItems = {
     icon?: React.FC<SvgProps>;
 
     /** Text label */
-    text?: string;
+    text: string;
 
     /** A callback triggered when the item is selected */
-    onSelected?: () => void;
+    onSelected: () => void;
 };
 
 type HeaderWithBackButtonProps = ChildrenProps & {
