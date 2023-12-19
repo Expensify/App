@@ -1,7 +1,7 @@
 import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -75,30 +75,32 @@ function WorkspaceInviteMessagePage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const [welcomeNote, setWelcomeNote] = useState();
+
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const getDefaultWelcomeNote = () =>
+        props.workspaceInviteMessageDraft ||
+        translate('workspace.inviteMessage.welcomeNote', {
+            workspaceName: props.policy.name,
+        });
 
     useEffect(() => {
         if (!_.isEmpty(props.invitedEmailsToAccountIDsDraft)) {
+            setWelcomeNote(getDefaultWelcomeNote());
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(props.route.params.policyID), true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const saveDraft = (newDraft) => {
+    const debouncedSaveDraft = _.debounce((newDraft) => {
         Policy.setWorkspaceInviteMessageDraft(props.route.params.policyID, newDraft);
-    };
-
-    const getDefaultWelcomeNote = () =>
-        translate('workspace.inviteMessage.welcomeNote', {
-            workspaceName: props.policy.name,
-        });
-
-    const welcomeMessage = props.workspaceInviteMessageDraft || getDefaultWelcomeNote();
+    });
 
     const sendInvitation = () => {
         Keyboard.dismiss();
-        Policy.addMembersToWorkspace(props.invitedEmailsToAccountIDsDraft, welcomeMessage, props.route.params.policyID);
+        Policy.addMembersToWorkspace(props.invitedEmailsToAccountIDsDraft, welcomeNote, props.route.params.policyID);
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, {});
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
@@ -187,11 +189,12 @@ function WorkspaceInviteMessagePage(props) {
                             autoCompleteType="off"
                             autoCorrect={false}
                             autoGrowHeight
-                            inputStyle={[styles.verticalAlignTop]}
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            value={welcomeMessage}
+                            defaultValue={getDefaultWelcomeNote()}
+                            value={welcomeNote}
                             onChangeText={(text) => {
-                                saveDraft(text);
+                                setWelcomeNote(text);
+                                debouncedSaveDraft(text);
                             }}
                             ref={(el) => {
                                 if (!el) {
