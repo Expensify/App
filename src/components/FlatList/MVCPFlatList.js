@@ -1,7 +1,7 @@
 /* eslint-disable es/no-optional-chaining, es/no-nullish-coalescing-operators, react/prop-types */
 import PropTypes from 'prop-types';
 import React from 'react';
-import {FlatList} from 'react-native';
+import {FlatList, InteractionManager} from 'react-native';
 
 function mergeRefs(...args) {
     return function forwardRef(node) {
@@ -137,8 +137,10 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
     }, [adjustForMaintainVisibleContentPosition, getContentView, getScrollOffset, scrollToOffset]);
 
     React.useEffect(() => {
-        prepareForMaintainVisibleContentPosition();
-        setupMutationObserver();
+        InteractionManager.runAfterInteractions(() => {
+            prepareForMaintainVisibleContentPosition();
+            setupMutationObserver();
+        });
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
     const setMergedRef = useMergeRefs(scrollRef, forwardedRef);
