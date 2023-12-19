@@ -153,8 +153,8 @@ function MoneyRequestPreview(props) {
     const isCurrentUserManager = managerID === sessionAccountID;
 
     const {amount: requestAmount, currency: requestCurrency, comment: requestComment, merchant} = ReportUtils.getTransactionDetails(props.transaction);
-    const description = truncate(requestComment, {length: 123});
-    const requestMerchant = truncate(merchant, {length: 123});
+    const description = truncate(requestComment, {length: 83});
+    const requestMerchant = truncate(merchant, {length: 83});
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
