@@ -5,9 +5,9 @@ import Composer from '@components/Composer';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useStyleUtils from '@hooks/useStyleUtils';
+import {defaultStyles} from '@styles/index';
+import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
@@ -25,35 +25,36 @@ const story = {
 const parser = new ExpensiMark();
 
 function Default(args) {
+    const StyleUtils = useStyleUtils();
     const [pastedFile, setPastedFile] = useState(null);
     const [comment, setComment] = useState(args.defaultValue);
     const renderedHTML = parser.replace(comment);
 
     return (
         <View>
-            <View style={[styles.border, styles.p4]}>
+            <View style={[defaultStyles.border, defaultStyles.p4]}>
                 <ComposerWithNavigation
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...args}
                     multiline
                     onChangeText={setComment}
                     onPasteFile={setPastedFile}
-                    style={[styles.textInputCompose, styles.w100, styles.verticalAlignTop]}
+                    style={[defaultStyles.textInputCompose, defaultStyles.w100, defaultStyles.verticalAlignTop]}
                 />
             </View>
-            <View style={[styles.flexRow, styles.mv5, styles.flexWrap, styles.w100]}>
+            <View style={[defaultStyles.flexRow, defaultStyles.mv5, defaultStyles.flexWrap, defaultStyles.w100]}>
                 <View
-                    style={[styles.border, styles.noLeftBorderRadius, styles.noRightBorderRadius, styles.p5, styles.flex1]}
+                    style={[defaultStyles.border, defaultStyles.noLeftBorderRadius, defaultStyles.noRightBorderRadius, defaultStyles.p5, defaultStyles.flex1]}
                     id={CONST.REPORT.DROP_NATIVE_ID}
                 >
-                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
+                    <Text style={[defaultStyles.mb2, defaultStyles.textLabelSupporting]}>Entered Comment (Drop Enabled)</Text>
                     <Text>{comment}</Text>
                 </View>
-                <View style={[styles.p5, styles.borderBottom, styles.borderRight, styles.borderTop, styles.flex1]}>
-                    <Text style={[styles.mb2, styles.textLabelSupporting]}>Rendered Comment</Text>
+                <View style={[defaultStyles.p5, defaultStyles.borderBottom, defaultStyles.borderRight, defaultStyles.borderTop, defaultStyles.flex1]}>
+                    <Text style={[defaultStyles.mb2, defaultStyles.textLabelSupporting]}>Rendered Comment</Text>
                     {Boolean(renderedHTML) && <RenderHTML html={renderedHTML} />}
                     {Boolean(pastedFile) && (
-                        <View style={styles.mv3}>
+                        <View style={defaultStyles.mv3}>
                             <Image
                                 source={{uri: URL.createObjectURL(pastedFile)}}
                                 resizeMode="contain"
@@ -70,7 +71,7 @@ function Default(args) {
 Default.args = {
     autoFocus: true,
     placeholder: 'Compose Text Here',
-    placeholderTextColor: themeColors.placeholderText,
+    placeholderTextColor: defaultTheme.placeholderText,
     defaultValue: `Composer can do the following:
 
      * It can contain MD e.g. *bold* _italic_

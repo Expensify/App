@@ -11,14 +11,15 @@ import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +52,7 @@ function EmojiPickerMenu(props) {
     const {forwardedRef, frequentlyUsedEmojis, preferredSkinTone, onEmojiSelected, preferredLocale, translate} = props;
 
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
 
@@ -307,6 +309,10 @@ function EmojiPickerMenu(props) {
                 }
                 const emoji = lodashGet(item, ['types', preferredSkinTone], item.code);
                 onEmojiSelected(emoji, item);
+                // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
+                keyBoardEvent.preventDefault();
+                // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
+                keyBoardEvent.stopPropagation();
                 return;
             }
 
@@ -319,7 +325,7 @@ function EmojiPickerMenu(props) {
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (searchInputRef.current && !searchInputRef.current.isFocused()) {
+            if (searchInputRef.current && !searchInputRef.current.isFocused() && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 searchInputRef.current.focus();
             }
         },
@@ -479,7 +485,7 @@ function EmojiPickerMenu(props) {
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
                     defaultValue=""
                     ref={searchInputRef}

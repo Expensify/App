@@ -10,9 +10,9 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -46,11 +46,11 @@ const defaultProps = {
  */
 
 function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
     const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
-    const styles = useThemeStyles();
 
     let receiptImageComponent;
 
@@ -83,18 +83,18 @@ function ReportActionItemImage({thumbnail, image, enablePreviewModal, transactio
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
                     <AttachmentModal
-                        headerTitle="Receipt"
                         source={imageSource}
                         isAuthTokenRequired={!isLocalFile}
                         report={report}
                         isReceiptAttachment
                         allowToDownload
+                        originalFileName={transaction.filename}
                     >
                         {({show}) => (
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.w100, styles.h100]}
                                 onPress={show}
-                                role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                 accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                             >
                                 {receiptImageComponent}
