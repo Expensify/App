@@ -50,6 +50,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
                 cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+                keyboardHandlingEnabled: false,
             }),
             [styles],
         );

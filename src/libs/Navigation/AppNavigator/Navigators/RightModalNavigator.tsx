@@ -18,7 +18,13 @@ const Stack = createStackNavigator<RightModalNavigatorParamList>();
 function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
+    const screenOptions = useMemo(
+        () => ({
+            ...ModalNavigatorScreenOptions(styles),
+            keyboardHandlingEnabled: false,
+        }),
+        [styles],
+    );
 
     return (
         <NoDropZone>
