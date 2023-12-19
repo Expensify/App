@@ -181,6 +181,6 @@ export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWi
         canEvict: false,
     },
     personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
 })(AvatarWithDisplayName);
