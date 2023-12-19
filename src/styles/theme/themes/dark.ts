@@ -41,7 +41,7 @@ const darkTheme = {
     inverse: colors.productDark900,
     shadow: colors.black,
     componentBG: colors.productDark100,
-    hoverComponentBG: colors.productDark200,
+    hoverComponentBG: colors.productDark300,
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
     sidebar: colors.productDark200,
@@ -128,6 +128,10 @@ const darkTheme = {
         },
         [SCREENS.RIGHT_MODAL.REFERRAL]: {
             backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.RIGHT_MODAL.SIGN_IN]: {
+            backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },
