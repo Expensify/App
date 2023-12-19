@@ -3473,11 +3473,8 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 /**
  * Checks to see if a report's parentAction is a money request that contains a violation
  */
-function doesTransactionThreadHaveViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions> | null = {}): boolean {
-    if (!reportActions) {
-        return false;
-    }
-    const resolvedParentReportAction = reportActions[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
+function doesTransactionThreadHaveViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions>): boolean {
+    const resolvedParentReportAction = reportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
     if (!resolvedParentReportAction) {
         return false;
     }
@@ -3581,7 +3578,7 @@ function shouldReportBeInOptionList(
     }
 
     // Always show IOU reports with violations
-    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && doesTransactionThreadHaveViolations(report, transactionViolations ?? {}, allReportActions)) {
+    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && doesTransactionThreadHaveViolations(report, transactionViolations ?? {}, allReportActions ?? {})) {
         return true;
     }
 
