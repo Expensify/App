@@ -1,5 +1,5 @@
+import {ComposerProps} from '@components/Composer/types';
 import CONST from '@src/CONST';
-import ComposerProps from './types';
 
 /**
  * Update isFullComposerAvailable if needed
@@ -8,7 +8,7 @@ import ComposerProps from './types';
 function updateIsFullComposerAvailable(props: ComposerProps, numberOfLines: number) {
     const isFullComposerAvailable = numberOfLines >= CONST.COMPOSER.FULL_COMPOSER_MIN_LINES;
     if (isFullComposerAvailable !== props.isFullComposerAvailable) {
-        props.setIsFullComposerAvailable(isFullComposerAvailable);
+        props.setIsFullComposerAvailable?.(isFullComposerAvailable);
     }
 }
 
