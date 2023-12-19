@@ -44,6 +44,14 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, participantAccountIDs);
 
+    const navigateToReport = () => {
+        if (!report?.reportID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
+    };
+
     return (
         <>
             <View>
@@ -64,10 +72,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {isChatRoom && (
                     <>
                         <Text>{roomWelcomeMessage.phrase1}</Text>
-                        {roomWelcomeMessage.showReportName && !!report?.reportID && (
+                        {roomWelcomeMessage.showReportName && (
                             <Text
                                 style={[styles.textStrong]}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID))}
+                                onPress={navigateToReport}
                                 suppressHighlighting
                             >
                                 {ReportUtils.getReportName(report)}
@@ -80,7 +88,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>
                         {displayNamesWithTooltips.map(({displayName, pronouns, accountID}, index) => (
-                            <Text key={`${displayName}${pronouns}${accountID}`}>
+                            // eslint-disable-next-line react/no-array-index-key
+                            <Text key={`${displayName}${pronouns}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
                                     {ReportUtils.isOptimisticPersonalDetail(accountID) ? (
                                         <Text style={[styles.textStrong]}>{displayName}</Text>
