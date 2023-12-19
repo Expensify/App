@@ -100,7 +100,7 @@ class ShareCodePage extends React.Component {
                     <View style={{marginTop: 36}}>
                         <ContextMenuItem
                             isAnonymousAction
-                            text={this.props.translate('qrCodes.copyUrlToClipboard')}
+                            text={this.props.translate('qrCodes.copy')}
                             shouldShowRightIcon
                             icon={Expensicons.Copy}
                             successIcon={Expensicons.Checkmark}
