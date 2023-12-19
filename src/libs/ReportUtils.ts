@@ -568,10 +568,15 @@ function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Given a collection of reports returns them sorted by last read
+ * Given a collection of reports returns them sorted by last read and optionally filtered by a specific policyID.
  */
-function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry<Report>> {
-    return Object.values(reports ?? {})
+function sortReportsByLastRead(reports: OnyxCollection<Report>, policyID?: string): Array<OnyxEntry<Report>> {
+    let reportsValues = Object.values(reports ?? {});
+    if (policyID) {
+        reportsValues = reportsValues.filter((report) => report?.policyID === policyID);
+    }
+
+    return reportsValues
         .filter((report) => !!report?.reportID && !!report?.lastReadTime)
         .sort((a, b) => {
             const aTime = new Date(a?.lastReadTime ?? '');
