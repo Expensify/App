@@ -565,7 +565,6 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             />
             {isSmallScreenWidth && (
                 <ProcessMoneyRequestHoldMenu
-                    onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
                     isVisible={shouldShowHoldMenu}
                 />

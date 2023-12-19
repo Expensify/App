@@ -49,6 +49,6 @@ function ProcessMoneyRequestHoldPage({onClose, onConfirm}) {
 }
 
 ProcessMoneyRequestHoldPage.propTypes = propTypes;
-ProcessMoneyRequestHoldPage.displayName = 'StatusPage';
+ProcessMoneyRequestHoldPage.displayName = 'ProcessMoneyRequestHoldPage';
 
 export default ProcessMoneyRequestHoldPage;
