@@ -23,7 +23,6 @@ const propTypes = {
 
 function WorkspaceTravelPage(props) {
     const styles = useThemeStyles();
-
     return (
         <WorkspacePageWithSections
             shouldUseScrollView

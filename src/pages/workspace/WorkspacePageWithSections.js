@@ -118,7 +118,6 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                     shouldShowBorderBottom
                 />
-
                 {shouldUseScrollView ? (
                     <ScrollViewWithContext
                         keyboardShouldPersistTaps="handled"

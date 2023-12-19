@@ -23,7 +23,6 @@ const propTypes = {
 
 function WorkspaceBillsPage(props) {
     const styles = useThemeStyles();
-
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
