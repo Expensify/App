@@ -1,10 +1,10 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserUtils';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';

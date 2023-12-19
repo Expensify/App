@@ -3,10 +3,10 @@ import CategoryPicker from '@components/CategoryPicker';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -50,7 +50,11 @@ function IOURequestStepCategory({
      * @param {String} category.searchText
      */
     const updateCategory = (category) => {
-        IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, category.searchText);
+        if (category.searchText === transaction.category) {
+            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+        } else {
+            IOU.setMoneyRequestCategory_temporaryForRefactor(transactionID, category.searchText);
+        }
         navigateBack();
     };
 

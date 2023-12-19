@@ -11,12 +11,13 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import Visibility from '@libs/Visibility';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -130,7 +131,6 @@ function ReportActionsList({
     isSmallScreenWidth,
     personalDetailsList,
     currentUserPersonalDetails,
-    hasOutstandingIOU,
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -190,7 +190,7 @@ function ReportActionsList({
         }
 
         if (ReportUtils.isUnread(report)) {
-            if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
             } else {
                 readActionSkipped.current = true;
@@ -382,14 +382,13 @@ function ReportActionsList({
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
-                hasOutstandingIOU={hasOutstandingIOU}
                 sortedReportActions={sortedReportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
             />
         ),
-        [report, linkedReportActionID, hasOutstandingIOU, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
+        [report, linkedReportActionID, sortedReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
