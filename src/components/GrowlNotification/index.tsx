@@ -27,7 +27,18 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    const types: Record<string, {icon: React.FC<SvgProps>; iconColor: string}> = {
+    type GrowlIconTypes = Record<
+        string,
+        {
+            /** Expensicon for the page */
+            icon: React.FC<SvgProps>;
+
+            /** Color for the icon (should be from theme) */
+            iconColor: string;
+        }
+    >;
+
+    const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
             icon: Expensicons.Checkmark,
             iconColor: theme.success,
