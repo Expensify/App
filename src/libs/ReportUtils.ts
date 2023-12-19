@@ -91,7 +91,7 @@ type ReportAndWorkspaceName = {
 
 type OptimisticReportAction = {
     commentText: string;
-    reportAction: Partial<ReportAction>;
+    reportAction: {reportActionID: string} & Partial<ReportAction>;
 };
 
 type UpdateOptimisticParentReportAction = {
@@ -219,21 +219,25 @@ type OptimisticChatReport = Pick<
     | 'writeCapability'
 >;
 
-type OptimisticTaskReportAction = Pick<
-    ReportAction,
-    | 'actionName'
-    | 'actorAccountID'
-    | 'automatic'
-    | 'avatar'
-    | 'created'
-    | 'isAttachment'
-    | 'message'
-    | 'originalMessage'
-    | 'person'
-    | 'pendingAction'
-    | 'reportActionID'
-    | 'shouldShow'
-    | 'isFirstItem'
+type OptimisticTaskReportAction = {reportActionID: string} & Partial<
+    Pick<
+        ReportAction,
+        | 'actionName'
+        | 'actorAccountID'
+        | 'automatic'
+        | 'avatar'
+        | 'created'
+        | 'isAttachment'
+        | 'message'
+        | 'originalMessage'
+        | 'person'
+        | 'pendingAction'
+        | 'shouldShow'
+        | 'isFirstItem'
+        | 'previousMessage'
+        | 'errors'
+        | 'linkMetadata'
+    >
 >;
 
 type OptimisticWorkspaceChats = {
@@ -3158,7 +3162,6 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
-        originalMessage: undefined,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -4494,4 +4497,4 @@ export {
     shouldAutoFocusOnKeyPress,
 };
 
-export type {OptionData, OptimisticChatReport, DisplayNameWithTooltips};
+export type {OptionData, OptimisticChatReport, OptimisticTaskReportAction, DisplayNameWithTooltips};
