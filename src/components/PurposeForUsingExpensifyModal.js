@@ -5,13 +5,17 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useThemeStyles from "@styles/useThemeStyles";
-import useTheme from '@styles/themes/useTheme';
+import useThemeStyles from "@hooks/useThemeStyles";
+import useTheme from '@hooks/useTheme';
 import useWindowDimensions from "@hooks/useWindowDimensions";
 import * as Report from '@userActions/Report';
-import useStyleUtils from "@styles/useStyleUtils";
+import useStyleUtils from "@hooks/useStyleUtils";
 import SCREENS from "@src/SCREENS";
 import {View} from "react-native";
+import NAVIGATORS from "@src/NAVIGATORS";
+import * as Welcome from "@userActions/Welcome";
+import lodashGet from "lodash/get";
+import withNavigation from "./withNavigation";
 import LottieAnimations from "./LottieAnimations";
 import Text from "./Text";
 import Lottie from "./Lottie";
@@ -20,10 +24,6 @@ import MenuItemList from "./MenuItemList";
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import Modal from "./Modal";
 import * as Expensicons from './Icon/Expensicons';
-import lodashGet from "lodash/get";
-import NAVIGATORS from "@src/NAVIGATORS";
-import * as Welcome from "@userActions/Welcome";
-import withNavigation from "@components/withNavigation";
 
 const propTypes = {
 
