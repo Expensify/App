@@ -6,23 +6,9 @@ import HeaderPageLayout from '@components/HeaderPageLayout';
 import HoldMenuSectionList from '@components/HoldMenuSectionList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 const propTypes = {
-    /** Array of sections with an icon, title and a description */
-    holdMenuSections: PropTypes.arrayOf(
-        PropTypes.shape({
-            /** The icon supplied with the section */
-            icon: PropTypes.elementType,
-
-            /** Translation key for the title */
-            titleTranslationKey: PropTypes.string,
-
-            /** Translation key for the description */
-            descriptionTranslationKey: PropTypes.string,
-        }),
-    ).isRequired,
-
     /** Method to trigger when pressing back button of the header */
     onClose: PropTypes.func.isRequired,
 
@@ -30,7 +16,7 @@ const propTypes = {
     onConfirm: PropTypes.func.isRequired,
 };
 
-function ProcessMoneyRequestHoldPage({holdMenuSections, onClose, onConfirm}) {
+function ProcessMoneyRequestHoldPage({onClose, onConfirm}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -56,7 +42,7 @@ function ProcessMoneyRequestHoldPage({holdMenuSections, onClose, onConfirm}) {
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
                     <Text style={[styles.holdRequestInline]}>{translate('iou.hold')}</Text>
                 </View>
-                <HoldMenuSectionList holdMenuSections={holdMenuSections} />
+                <HoldMenuSectionList />
             </View>
         </HeaderPageLayout>
     );

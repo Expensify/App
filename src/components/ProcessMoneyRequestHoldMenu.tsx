@@ -3,16 +3,13 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Button from './Button';
-import HoldMenuSectionList, {HoldMenuSection} from './HoldMenuSectionList';
+import HoldMenuSectionList from './HoldMenuSectionList';
 import {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
 import {AnchorAlignment} from './Popover/types';
 import Text from './Text';
 
 type ProcessMoneyRequestHoldMenuProps = {
-    /** Array of sections with an icon, title and a description */
-    holdMenuSections: HoldMenuSection[];
-
     /** Whether the content is visible */
     isVisible: boolean;
 
@@ -32,7 +29,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     anchorRef: React.RefObject<HTMLElement>;
 };
 
-function ProcessMoneyRequestHoldMenu({holdMenuSections, isVisible, onClose, onConfirm, anchorPosition, anchorAlignment, anchorRef}: ProcessMoneyRequestHoldMenuProps) {
+function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment, anchorRef}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -51,7 +48,7 @@ function ProcessMoneyRequestHoldMenu({holdMenuSections, isVisible, onClose, onCo
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
                     <Text style={[styles.holdRequestInline]}>{translate('iou.hold')}</Text>
                 </View>
-                <HoldMenuSectionList holdMenuSections={holdMenuSections} />
+                <HoldMenuSectionList />
                 <Button
                     success
                     style={[styles.mt5]}

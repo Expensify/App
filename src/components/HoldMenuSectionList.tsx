@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {TranslationPaths} from '@src/languages/types';
 import Icon from './Icon';
+import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 type HoldMenuSection = {
@@ -19,14 +20,27 @@ type HoldMenuSection = {
     descriptionTranslationKey: TranslationPaths;
 };
 
-type HoldMenuSelectionListProps = {
-    /** Array of sections with an icon, title and a description */
-    holdMenuSections: HoldMenuSection[];
-};
-
-function HoldMenuSectionList({holdMenuSections}: HoldMenuSelectionListProps) {
+function HoldMenuSectionList() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const holdMenuSections: HoldMenuSection[] = [
+        {
+            icon: Illustrations.Hourglass,
+            titleTranslationKey: 'iou.whatIsHoldTitle',
+            descriptionTranslationKey: 'iou.whatIsHoldExplain',
+        },
+        {
+            icon: Illustrations.CommentBubbles,
+            titleTranslationKey: 'iou.holdIsTemporaryTitle',
+            descriptionTranslationKey: 'iou.holdIsTemporaryExplain',
+        },
+        {
+            icon: Illustrations.TrashCan,
+            titleTranslationKey: 'iou.deleteHoldTitle',
+            descriptionTranslationKey: 'iou.deleteHoldExplain',
+        },
+    ];
 
     return (
         <>
