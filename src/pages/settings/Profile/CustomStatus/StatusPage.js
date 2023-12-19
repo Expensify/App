@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -123,6 +124,8 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
         return {};
     }, [brickRoadIndicator]);
 
+    const {inputCallbackRef} = useAutoFocusInput();
+
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
@@ -159,14 +162,13 @@ function StatusPage({draftStatus, currentUserPersonalDetails}) {
                         />
                         <InputWrapper
                             InputComponent={TextInput}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ACCESSIBILITY_ROLE.TEXT}
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
                             maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
-                            autoFocus
-                            shouldDelayFocus
                         />
                     </View>
                     <MenuItemWithTopDescription
