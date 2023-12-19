@@ -19,7 +19,12 @@ function BottomTabBar() {
     const styles = useThemeStyles();
 
     // Parent navigator of the bottom tab bar is the root navigator.
-    const currentTabName = useNavigationState<RootStackParamList, string>((state) => getTopmostBottomTabRoute(state).name);
+    const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
+        const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
+        if (topmostBottomTabRoute) {
+            return topmostBottomTabRoute.name;
+        }
+    });
 
     return (
         <View style={styles.bottomTabBarContainer}>

@@ -124,7 +124,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath);
-            if (topmostBottomTabRoute.name !== matchingBottomTabRoute.name) {
+            if (topmostBottomTabRoute && topmostBottomTabRoute.name !== matchingBottomTabRoute.name) {
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: matchingBottomTabRoute,
@@ -155,7 +155,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             root.dispatch(actionForBottomTabNavigator);
             // If the layout is wide we need to push matching central pane route to the stack.
             if (!getIsSmallScreenWidth()) {
-                const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath);
+                // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath)!;
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: {
