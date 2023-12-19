@@ -427,7 +427,6 @@ function getLastMessageTextForReport(report) {
         const htmlWithoutMutedTags = lodashGet(lastReportAction, 'message[0].html', '').replace(/<[/]?muted-text>/g, '');
         const htmlWithoutAccountIDBasedMentions = ReportActionUtils.convertAccountIDBasedMentionsToDisplayNames(htmlWithoutMutedTags, allPersonalDetails);
         lastMessageTextFromReport = htmlWithoutAccountIDBasedMentions.replace(/<a[^>]*>(.*?)<\/a>/gi, '$1');
-
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
