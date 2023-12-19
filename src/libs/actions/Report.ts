@@ -17,8 +17,8 @@ import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import {ReportCommentParams} from '@libs/Notification/LocalNotification/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -475,6 +475,8 @@ function openReport(
     if (!reportID) {
         return;
     }
+
+    clearReportNotifications(reportID);
 
     const optimisticReport = reportActionsExist(reportID)
         ? {}
@@ -1822,17 +1824,19 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     }
 
     Log.info('[LocalNotification] Creating notification');
-    const report = allReports?.[reportID] ?? null;
 
-    const notificationParams: ReportCommentParams = {
-        report,
-        reportAction,
-        onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
-    };
+    const report = allReports?.[reportID] ?? null;
+    if (!report) {
+        Log.hmmm("[LocalNotification] couldn't show report action notification because the report wasn't found", {reportID, reportActionID: reportAction.reportActionID});
+        return;
+    }
+
+    const onClick = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-        LocalNotification.showModifiedExpenseNotification(notificationParams);
+        LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
     } else {
-        LocalNotification.showCommentNotification(notificationParams);
+        LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
 
     notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
