@@ -3,16 +3,9 @@ import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
+import type {AnchorPosition} from '@src/styles';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-
-type ThreeDotsAnchorPosition = {
-    /** The vertical anchor position of the three dots menu */
-    vertical: number;
-
-    /** The horizontal anchor position of the three dots menu */
-    horizontal: number;
-};
 
 type ThreeDotsMenuItems = {
     /** An icon element displayed on the left side */
@@ -72,7 +65,7 @@ type HeaderWithBackButtonProps = ChildrenProps & {
     threeDotsMenuItems?: ThreeDotsMenuItems[];
 
     /** The anchor position of the menu */
-    threeDotsAnchorPosition?: ThreeDotsAnchorPosition;
+    threeDotsAnchorPosition?: AnchorPosition;
 
     /** Whether we should show a close button */
     shouldShowCloseButton?: boolean;
