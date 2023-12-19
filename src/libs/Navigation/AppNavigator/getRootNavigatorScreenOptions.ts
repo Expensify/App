@@ -47,7 +47,8 @@ export default (isSmallScreenWidth: boolean, themeStyles: ThemeStyles): ScreenOp
             // This is necessary to cover translated sidebar with overlay.
             width: isSmallScreenWidth ? '100%' : '200%',
 
-            transform: [{translateX: isSmallScreenWidth ? 0 : -variables.sideBarWidth}],
+            // LHP should be displayed in place of the sidebar
+            left: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
         },
     },
     homeScreen: {
