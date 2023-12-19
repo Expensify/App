@@ -46,7 +46,6 @@ blockquote {
 
 article,
 aside,
-details,
 figcaption,
 figure,
 footer,
@@ -55,8 +54,7 @@ hgroup,
 main,
 menu,
 nav,
-section,
-summary {
+section {
     display: block;
 }
 
@@ -113,23 +111,10 @@ h5,
 h6 {
     margin-top: 20px;
 }
-
-details>summary {
-    list-style: none;
-}
-
-// summary::-webkit-details-marker {
-//     display: block;
-// }
-
-// summary::before {
-//     content: ' ►';
-// }
-
-// details[open] summary::before {
-//     content: " ▼";
-// }
   
+details summary { 
+    cursor: pointer;
+}
 
 h1, 
 summary {
