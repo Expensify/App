@@ -1,12 +1,14 @@
-import {ReactNode} from 'react';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import {ReactElement, ReactNode} from 'react';
 
-type TooltipProps = ChildrenProps & {
+type TooltipProps = {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
     text?: string;
 
     /** Maximum number of lines to show in tooltip */
     numberOfLines?: number;
+
+    /** Children to wrap with Tooltip. */
+    children: ReactElement;
 
     /** Any additional amount to manually adjust the horizontal position of the tooltip.
     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */

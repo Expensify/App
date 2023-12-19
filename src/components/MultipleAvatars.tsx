@@ -142,7 +142,7 @@ function MultipleAvatars({
     if (icons.length === 1 && !shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                accountID={Number(icons[0].id)}
+                accountID={icons[0].id}
                 icon={icons[0]}
                 fallbackUserDetails={{
                     displayName: icons[0].name,
@@ -184,7 +184,7 @@ function MultipleAvatars({
                         {[...avatars].splice(0, maxAvatarsInRow).map((icon, index) => (
                             <UserDetailsTooltip
                                 key={`stackedAvatars-${icon.id}`}
-                                accountID={Number(icon.id)}
+                                accountID={icon.id}
                                 icon={icon}
                                 fallbackUserDetails={{
                                     displayName: icon.name,
@@ -257,7 +257,7 @@ function MultipleAvatars({
                 <View style={avatarContainerStyles}>
                     <View style={[singleAvatarStyle, icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[0].type) : {}]}>
                         <UserDetailsTooltip
-                            accountID={Number(icons[0].id)}
+                            accountID={icons[0].id}
                             icon={icons[0]}
                             fallbackUserDetails={{
                                 displayName: icons[0].name,
@@ -279,7 +279,7 @@ function MultipleAvatars({
                         <View style={[secondAvatarStyles, secondAvatarStyle, icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(size, icons[1].type) : {}]}>
                             {icons.length === 2 ? (
                                 <UserDetailsTooltip
-                                    accountID={Number(icons[1].id)}
+                                    accountID={icons[1].id}
                                     icon={icons[1]}
                                     fallbackUserDetails={{
                                         displayName: icons[1].name,
