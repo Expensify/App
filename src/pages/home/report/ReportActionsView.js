@@ -96,17 +96,9 @@ function getReportActionID(route) {
     return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
 }
 
-const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMessage, cb) => {
+const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMessage) => {
     const [edgeID, setEdgeID] = useState(linkedID);
-    const prevLinkedID = useRef(linkedID);
-    const test = useRef(true);
-    // Function to calculate the current slice of the message array
-
-    // const listID = useMemo(() => {
-    //     //  return reportActionID || 'list'
-    //     console.log('route.key', route);
-    //     return route.key + Math.random().toString;
-    // }, [route]);
+    const [listID, setListID] = useState(1);
 
     const index = useMemo(() => {
         if (!linkedID) {
@@ -114,40 +106,23 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
         }
 
         return messageArray.findIndex((obj) => String(obj.reportActionID) === String(edgeID || linkedID));
-    }, [messageArray, linkedID, edgeID, isLoadingLinkedMessage]);
+    }, [messageArray, linkedID, edgeID]);
 
-    useEffect(() => {
-        console.log('get.useHandleList.setEdgeID_EMPTY', linkedID !== prevLinkedID.current, linkedID, prevLinkedID.current);
+    useMemo(() => {
         setEdgeID('');
-        // if (linkedID !== prevLinkedID.current) {
-        //     setEdgeID('');
-        //     prevLinkedID.current = linkedID;
-        // }
-        test.current = false;
     }, [route, linkedID]);
 
-    console.log('get.useHandleList.INFO.index', index);
-    console.log('get.useHandleList.INFO.linkedID', linkedID);
-    console.log('get.useHandleList.INFO.messageArray', messageArray.length);
-
     const cattedArray = useMemo(() => {
-        if (!linkedID) {
+        if (!linkedID || index === -1) {
             return messageArray;
         }
 
-        if (index === -1) {
-            return messageArray;
-        }
-        console.log('get.useHandleList.calculateSlice.0.index', index);
         if (linkedID && !edgeID) {
-            console.log('get.useHandleList.calculateSlice.1.linkedID', linkedID);
-            cb();
+            setListID((i) => i + 1);
             return messageArray.slice(index, messageArray.length);
         } else if (linkedID && edgeID) {
-            console.log('get.useHandleList.calculateSlice.2.linkedID_edgeID', linkedID, edgeID);
-            const amountOfItemsBeforeLinkedOne = 49;
+            const amountOfItemsBeforeLinkedOne = 10;
             const newStartIndex = index >= amountOfItemsBeforeLinkedOne ? index - amountOfItemsBeforeLinkedOne : 0;
-            console.log('get.useHandleList.calculateSlice.2.index_newStartIndex', index, newStartIndex);
             if (index) {
                 return messageArray.slice(newStartIndex, messageArray.length);
             }
@@ -156,20 +131,16 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
         return messageArray;
     }, [linkedID, messageArray, edgeID, index, isLoadingLinkedMessage]);
 
-    // const cattedArray = calculateSlice();
-
     const hasMoreCashed = cattedArray.length < messageArray.length;
 
-    // Function to handle pagination (dummy in this case, as actual slicing is done in calculateSlice)
     const paginate = useCallback(
         ({firstReportActionID, distanceFromStart}) => {
-            // This function is a placeholder as the actual pagination is handled by calculateSlice
+            // This function is a placeholder as the actual pagination is handled by cattedArray
             // It's here if you need to trigger any side effects during pagination
             if (!hasMoreCashed) {
-                console.log('get.useHandleList.paginate.0.NO_CACHE');
                 fetchFn({distanceFromStart});
             }
-            console.log('get.useHandleList.paginate.1.firstReportActionID');
+
             setEdgeID(firstReportActionID);
         },
         [setEdgeID, fetchFn, hasMoreCashed],
@@ -179,9 +150,7 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
         cattedArray,
         fetchFunc: paginate,
         linkedIdIndex: index,
-        setNull: () => {
-            setEdgeID('');
-        },
+        listID,
     };
 };
 
@@ -189,93 +158,11 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
     const reportScrollManager = useReportScrollManager();
-    const {scrollToBottom} = reportScrollManager;
     const route = useRoute();
     const {reportActionID} = getReportActionID(route);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    // const isFirstRender = useRef(true);
-
-    const [listID, setListID] = useState('1');
-    const [isLinkingLoading, setLinkingLoading] = useState(!!reportActionID);
     const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
-
-    console.log('get.isLoadingLinkedMessage', isLoadingLinkedMessage);
-    // const {catted: reportActionsBeforeAndIncludingLinked, expanded: reportActionsBeforeAndIncludingLinkedExpanded} = useMemo(() => {
-    //     if (reportActionID && allReportActions?.length) {
-    //         return ReportActionsUtils.getSlicedRangeFromArrayByID(allReportActions, reportActionID);
-    //     }
-    //     // catted means the reportActions before and including the linked message
-    //     // expanded means the reportActions before and including the linked message plus the next 5
-    //     return {catted: [], expanded: []};
-    // }, [allReportActions, reportActionID]);
-
-    /**
-     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
-     * displaying.
-     */
-    const throttledLoadNewerChats = useCallback(
-        ({distanceFromStart}) => {
-            console.log('get.throttledLoadNewerChats.0');
-            // return null;
-            if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
-                return;
-            }
-            console.log('get.throttledLoadNewerChats.1');
-
-            // Ideally, we wouldn't need to use the 'distanceFromStart' variable. However, due to the low value set for 'maxToRenderPerBatch',
-            // the component undergoes frequent re-renders. This frequent re-rendering triggers the 'onStartReached' callback multiple times.
-            //
-            // To mitigate this issue, we use 'CONST.CHAT_HEADER_LOADER_HEIGHT' as a threshold. This ensures that 'onStartReached' is not
-            // triggered unnecessarily when the chat is initially opened or when the user has reached the end of the list but hasn't scrolled further.
-            //
-            // Additionally, we use throttling on the 'onStartReached' callback to further reduce the frequency of its invocation.
-            // This should be removed once the issue of frequent re-renders is resolved.
-            //
-            // onStartReached is triggered during the first render. Since we use OpenReport on the first render and are confident about the message ordering, we can safely skip this call
-            // if (isFirstRender.current || isLinkingToExtendedMessage || distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT) {
-            // if (isLinkingToExtendedMessage) {
-            //     console.log('get.throttledLoadNewerChats.2', isFirstRender.current, isLinkingToExtendedMessage, distanceFromStart <= CONST.CHAT_HEADER_LOADER_HEIGHT, distanceFromStart);
-            //     // isFirstRender.current = false;
-            //     return;
-            // }
-
-            console.log('get.throttledLoadNewerChats.3');
-            const newestReportAction = reportActions[0];
-            Report.getNewerActions(reportID, newestReportAction.reportActionID);
-        },
-        // [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, reportActions, hasNewestReportAction],
-        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, reportActions],
-    );
-    const triggerList = useCallback(() => {
-      setListID(id => id + 1)
-    },[setListID])
-
-    const {
-        cattedArray: reportActions,
-        fetchFunc,
-        linkedIdIndex,
-        setNull,
-    } = useHandleList(
-        reportActionID,
-        allReportActions,
-        throttledLoadNewerChats,
-        route,
-        isLoadingLinkedMessage,
-        triggerList
-    );
-
-    useEffect(() => {
-        console.log('get.useEffect.reportActionID', reportActionID);
-        if (!reportActionID) {
-            return;
-        }
-        console.log('get.useEffect.route', JSON.stringify(route));
-        fetchReport();
-        // setNull()
-        // setListID(`${route.key}_${reportActionID}` )
-    }, [route, reportActionID, fetchReport, scrollToBottom]);
-
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
 
@@ -286,26 +173,27 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
 
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
+     * displaying.
+     */
+    const throttledLoadNewerChats = useCallback(
+        () => {
+            if (props.isLoadingNewerReportActions || props.isLoadingInitialReportActions) {
+                return;
+            }
+
+            // eslint-disable-next-line no-use-before-define
+            Report.getNewerActions(reportID, newestReportAction.reportActionID);
+        },
+        // eslint-disable-next-line no-use-before-define
+        [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, newestReportAction],
+    );
+
+    const {cattedArray: reportActions, fetchFunc, linkedIdIndex, listID} = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route, isLoadingLinkedMessage);
+
     const hasNewestReportAction = lodashGet(reportActions[0], 'isNewestReportAction');
-
-    // const listID = useMemo(
-    //     () =>
-    //         // return reportActionID || 'list';
-    //         // console.log('route.key', route);
-    //         `${route.key}_${reportActionID}`,
-    //     // `${route.key}`,
-    //     [reportActionID, route, isLinkingLoading],
-    // );
-    // useEffect(() => {
-    //     scrollToBottom();
-    // }, [listID, scrollToBottom]);
-
-    useEffect(() => {
-        if (!reportActionID) {
-            return;
-        }
-        setLinkingLoading(!!reportActionID);
-    }, [route, reportActionID]);
+    const newestReportAction = lodashGet(reportActions, '[0]');
 
     /**
      * @returns {Boolean}
@@ -404,9 +292,9 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
 
     const firstReportActionID = useMemo(() => reportActions[0]?.reportActionID, [reportActions]);
     const handleLoadNewerChats = useCallback(
+        // eslint-disable-next-line rulesdir/prefer-early-return
         ({distanceFromStart}) => {
-            if ((reportActionID && linkedIdIndex > -1) || (!reportActionID && !hasNewestReportAction)) {
-                setLinkingLoading(false);
+            if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction) || (!reportActionID && !hasNewestReportAction)) {
                 fetchFunc({firstReportActionID, distanceFromStart});
             }
         },
