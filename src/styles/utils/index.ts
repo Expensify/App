@@ -658,11 +658,11 @@ function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isI
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.border;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
     }
 
     if (isPressed) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.buttonPressedBG;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
     }
 
     return {borderColor};

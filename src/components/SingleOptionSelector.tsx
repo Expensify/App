@@ -1,42 +1,35 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import {TranslationPaths} from '@src/languages/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import SelectCircle from './SelectCircle';
 import Text from './Text';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
-const propTypes = {
+type Item = {
+    key: string;
+    label: TranslationPaths;
+};
+
+type SingleOptionSelectorProps = {
     /** Array of options for the selector, key is a unique identifier, label is a localize key that will be translated and displayed */
-    options: PropTypes.arrayOf(
-        PropTypes.shape({
-            key: PropTypes.string,
-            label: PropTypes.string,
-        }),
-    ),
+    options?: Item[];
 
     /** Key of the option that is currently selected */
-    selectedOptionKey: PropTypes.string,
+    selectedOptionKey?: string;
 
     /** Function to be called when an option is selected */
-    onSelectOption: PropTypes.func,
-    ...withLocalizePropTypes,
+    onSelectOption?: (item: Item) => void;
 };
 
-const defaultProps = {
-    options: [],
-    selectedOptionKey: undefined,
-    onSelectOption: () => {},
-};
-
-function SingleOptionSelector({options, selectedOptionKey, onSelectOption, translate}) {
+function SingleOptionSelector({options = [], selectedOptionKey, onSelectOption = () => {}}: SingleOptionSelectorProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     return (
         <View style={styles.pt4}>
-            {_.map(options, (option) => (
+            {options.map((option) => (
                 <View
                     style={styles.flexRow}
                     key={option.key}
@@ -61,8 +54,6 @@ function SingleOptionSelector({options, selectedOptionKey, onSelectOption, trans
     );
 }
 
-SingleOptionSelector.propTypes = propTypes;
-SingleOptionSelector.defaultProps = defaultProps;
 SingleOptionSelector.displayName = 'SingleOptionSelector';
 
-export default withLocalize(SingleOptionSelector);
+export default SingleOptionSelector;
