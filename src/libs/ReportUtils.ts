@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {ChangeLog, IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
 import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -1211,7 +1211,8 @@ function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
 
 function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-    return allPolicies?.[`policy${report?.policyID}`]?.avatar ?? getDefaultWorkspaceAvatar(workspaceName);
+    const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar ?? '';
+    return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
 }
 
 /**
@@ -1457,12 +1458,12 @@ function getDisplayNamesWithTooltips(
 
     return personalDetailsListArray
         .map((user) => {
-            const accountID = Number(user.accountID);
+            const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user.pronouns;
+            let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
                 pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
@@ -1471,7 +1472,7 @@ function getDisplayNamesWithTooltips(
             return {
                 displayName,
                 avatar,
-                login: user.login ?? '',
+                login: user?.login ?? '',
                 accountID,
                 pronouns,
             };
@@ -1812,6 +1813,10 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
         return true;
     }
 
+    if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+        return false;
+    }
+
     const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
 
     if (!moneyRequestReportID) {
@@ -2118,7 +2123,7 @@ function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): strin
     const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ?? 0);
+        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
 
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage?.created ?? '', formattedOldCreated?.toString?.(), Localize.translateLocal('common.date'), false);
@@ -3677,8 +3682,8 @@ function getRouteFromLink(url: string | null): string {
 
     // Get the reportID from URL
     let route = url;
+    const localWebAndroidRegEx = /^(https:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
     linkingConfig.prefixes.forEach((prefix) => {
-        const localWebAndroidRegEx = /^(http:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
         if (route.startsWith(prefix)) {
             route = route.replace(prefix, '');
         } else if (localWebAndroidRegEx.test(route)) {
@@ -4227,44 +4232,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>)
 }
 
 /**
- * Return room channel log display message
- */
-function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): string {
-    const verb =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-            ? 'invited'
-            : 'removed';
-
-    const mentions = (reportAction?.originalMessage as ChangeLog)?.targetAccountIDs?.map(() => {
-        const personalDetail = allPersonalDetails?.accountID;
-        const displayNameOrLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '') || (personalDetail?.displayName ?? '') || Localize.translateLocal('common.hidden');
-        return `@${displayNameOrLogin}`;
-    });
-
-    const lastMention = mentions?.pop();
-    let message = '';
-
-    if (mentions?.length === 0) {
-        message = `${verb} ${lastMention}`;
-    } else if (mentions?.length === 1) {
-        message = `${verb} ${mentions?.[0]} and ${lastMention}`;
-    } else {
-        message = `${verb} ${mentions?.join(', ')}, and ${lastMention}`;
-    }
-
-    const roomName = (reportAction?.originalMessage as ChangeLog)?.roomName ?? '';
-    if (roomName) {
-        const preposition =
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
-                ? ' to'
-                : ' from';
-        message += `${preposition} ${roomName}`;
-    }
-
-    return message;
-}
-
-/**
  * Checks if a report is a group chat.
  *
  * A report is a group chat if it meets the following conditions:
@@ -4517,7 +4484,6 @@ export {
     getReimbursementQueuedActionMessage,
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
-    getChannelLogMemberMessage,
     getRoom,
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,

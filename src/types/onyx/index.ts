@@ -1,6 +1,6 @@
 import Account from './Account';
 import AccountData from './AccountData';
-import BankAccount from './BankAccount';
+import BankAccount, {BankAccountList} from './BankAccount';
 import Beta from './Beta';
 import BlockedFromConcierge from './BlockedFromConcierge';
 import Card from './Card';
@@ -11,10 +11,10 @@ import DemoInfo from './DemoInfo';
 import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
-import Fund from './Fund';
+import Fund, {FundList} from './Fund';
 import IOU from './IOU';
 import Locale from './Locale';
-import Login from './Login';
+import Login, {LoginList} from './Login';
 import MapboxAccessToken from './MapboxAccessToken';
 import Modal from './Modal';
 import Network from './Network';
@@ -57,10 +57,10 @@ import WalletTransfer from './WalletTransfer';
 
 export type {
     Account,
-    UserLocation,
     AccountData,
     AddDebitCardForm,
     BankAccount,
+    BankAccountList,
     Beta,
     BlockedFromConcierge,
     Card,
@@ -73,9 +73,11 @@ export type {
     Form,
     FrequentlyUsedEmoji,
     Fund,
+    FundList,
     IOU,
     Locale,
     Login,
+    LoginList,
     MapboxAccessToken,
     Modal,
     Network,
@@ -86,16 +88,16 @@ export type {
     PersonalDetailsList,
     PlaidData,
     Policy,
-    PolicyCategory,
     PolicyCategories,
+    PolicyCategory,
     PolicyMember,
     PolicyMembers,
     PolicyTag,
     PolicyTags,
     PrivatePersonalDetails,
+    RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
-    RecentWaypoint,
     ReimbursementAccount,
     ReimbursementAccountDraft,
     Report,
@@ -113,6 +115,7 @@ export type {
     Transaction,
     TransactionViolation,
     User,
+    UserLocation,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,

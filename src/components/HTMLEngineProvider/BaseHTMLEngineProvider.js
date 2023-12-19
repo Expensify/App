@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
 import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import singleFontFamily from '@styles/fontFamily/singleFontFamily';
-import useThemeStyles from '@styles/useThemeStyles';
+import singleFontFamily from '@styles/utils/fontFamily/singleFontFamily';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
@@ -64,6 +64,7 @@ function BaseHTMLEngineProvider(props) {
                 tagName: 'next-steps',
                 mixedUAStyles: {...styles.textLabelSupporting},
             }),
+            'next-steps-email': defaultHTMLElementModels.span.extend({tagName: 'next-steps-email'}),
         }),
         [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
     );
