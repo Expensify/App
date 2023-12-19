@@ -263,7 +263,12 @@ export default compose(
         },
         workspaceInviteMessageDraft: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-            selector: (draft) => (isEmpty(draft) ? '' : draft),
+            selector: (draft) => {
+                if (_.isUndefined(draft)) {
+                    return draft;
+                }
+                return isEmpty(draft) ? '' : draft;
+            },
         },
     }),
     withNavigationFocus,
