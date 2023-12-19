@@ -672,10 +672,10 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
 /**
  *
  * @param timezone
- * function parse timezone to supported timezone
+ * function format unsupported timezone to supported timezone
  * @returns Timezone
  */
-function parseTimezone(timezoneInput: Timezone): Timezone {
+function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
     if (!timezoneInput?.selected) {
         return timezoneInput;
     }
@@ -725,7 +725,7 @@ const DateUtils = {
     getDaysOfWeek,
     formatWithUTCTimeZone,
     isTimeAtLeastOneMinuteInFuture,
-    parseTimezone,
+    formatToSupportedTimezone,
 };
 
 export default DateUtils;

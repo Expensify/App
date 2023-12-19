@@ -295,9 +295,9 @@ function updateAutomaticTimezone(timezone: Timezone) {
     type UpdateAutomaticTimezoneParams = {
         timezone: string;
     };
-
+    const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(DateUtils.parseTimezone(timezone)),
+        timezone: JSON.stringify(formatedTimezone),
     };
 
     API.write('UpdateAutomaticTimezone', parameters, {
@@ -307,7 +307,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [currentUserAccountID]: {
-                        timezone,
+                        timezone: formatedTimezone,
                     },
                 },
             },

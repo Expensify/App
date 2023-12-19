@@ -40,7 +40,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
         const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
             () =>
                 accountPersonalDetails
-                    ? {...accountPersonalDetails, accountID, timezone: accountPersonalDetails.timezone ? DateUtils.parseTimezone(accountPersonalDetails.timezone) : undefined}
+                    ? {...accountPersonalDetails, accountID, timezone: accountPersonalDetails.timezone ? DateUtils.formatToSupportedTimezone(accountPersonalDetails.timezone) : undefined}
                     : {},
             [accountPersonalDetails, accountID],
         );
