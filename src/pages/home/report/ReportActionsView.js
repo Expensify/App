@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -11,6 +12,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
+import useReportScrollManager from '@hooks/useReportScrollManager';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -95,6 +97,7 @@ function ReportActionsView(props) {
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
     const isFocused = useIsFocused();
+    const reportScrollManager = useReportScrollManager();
     const reportID = props.report.reportID;
     const hasNewestReportAction = lodashGet(props.reportActions[0], 'isNewestReportAction');
 
@@ -115,6 +118,10 @@ function ReportActionsView(props) {
 
     useEffect(() => {
         openReportIfNecessary();
+
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -255,6 +262,7 @@ function ReportActionsView(props) {
         <>
             <ReportActionsList
                 report={props.report}
+                reportScrollManager={reportScrollManager}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={props.reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}

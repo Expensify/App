@@ -11,7 +11,6 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -136,9 +135,9 @@ function ReportActionsList({
     loadOlderChats,
     onLayout,
     isComposerFullSize,
+    reportScrollManager,
 }) {
     const styles = useThemeStyles();
-    const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const route = useRoute();
