@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import OnyxPolicy from '@src/types/onyx/Policy';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import Report from '@src/types/onyx/Report';
 import * as Policy from './Policy';
 
@@ -39,9 +40,6 @@ type ShowParams = {
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    if (allPolicies) {
-        debugger;
-    }
     if (isFirstTimeNewExpensifyUser === undefined || isLoadingReportData || hasSelectedChoice === undefined || hasDismissedModal === undefined) {
         return;
     }
@@ -108,7 +106,7 @@ Onyx.connect({
     },
 });
 
-const allPolicies: OnyxCollection<OnyxPolicy> = {};
+const allPolicies: OnyxCollection<OnyxPolicy> | EmptyObject = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
@@ -186,7 +184,7 @@ function show({routes, showEngagementModal = () => {}, showPopoverMenu = () => f
 
         // If user is not already an admin of a free policy and we are not navigating them to their workspace or creating a new workspace via workspace/new then
         // we will show the engagement modal.
-        if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isDisplayingWorkspaceRoute && !hasSelectedChoice && !hasDismissedModal) {
+        if (!Policy.isAdminOfFreePolicy(allPolicies ?? undefined) && !isDisplayingWorkspaceRoute && !hasSelectedChoice && !hasDismissedModal && Object.keys(allPolicies ?? {}).length === 1) {
             showEngagementModal();
         }
 
