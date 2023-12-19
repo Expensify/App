@@ -186,6 +186,21 @@ const chatReportSelector = (report) =>
     };
 
 /**
+ * @param {Object} [reportActions]
+ * @returns {Object|undefined}
+ */
+const reportActionsSelector = (reportActions) =>
+    reportActions &&
+    _.map(reportActions, (reportAction) => ({
+        errors: _.get(reportAction, 'errors', []),
+        message: [
+            {
+                moderationDecision: {decision: _.get(reportAction, 'message[0].moderationDecision.decision')},
+            },
+        ],
+    }));
+
+/**
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
@@ -219,6 +234,7 @@ export default compose(
         },
         allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            selector: reportActionsSelector,
             initialValue: {},
         },
         policies: {
