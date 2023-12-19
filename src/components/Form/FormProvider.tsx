@@ -18,9 +18,9 @@ import {FormProps, InputRef, InputRefs, InputValues, RegisterInput, ValueType} f
 // More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
 
-type DefaultValue = false | Date | '';
+type InitialDefaultValue = false | Date | '';
 
-function getInitialValueByType(valueType?: ValueType): DefaultValue {
+function getInitialValueByType(valueType?: ValueType): InitialDefaultValue {
     switch (valueType) {
         case 'string':
             return '';
@@ -346,9 +346,9 @@ export default (<TForm extends Form & Record<string, unknown>>() =>
             key: ONYXKEYS.NETWORK,
         },
         formState: {
-            key: (props) => props.formID as typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: (props) => props.formID as keyof typeof ONYXKEYS.FORMS,
         },
         draftValues: {
-            key: (props) => `${props.formID}Draft` as typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM_DRAFT,
+            key: (props) => `${props.formID}Draft` as keyof typeof ONYXKEYS.FORMS,
         },
     })(forwardRef(FormProvider<TForm>)))();

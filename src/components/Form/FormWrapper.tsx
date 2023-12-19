@@ -88,11 +88,11 @@ function FormWrapper({
                             }
 
                             // We subtract 10 to scroll slightly above the input
-                            if (focusInput?.measureLayout && formContentRef.current && typeof focusInput.measureLayout === 'function') {
+                            if (formContentRef.current) {
                                 // We measure relative to the content root, not the scroll view, as that gives
                                 // consistent results across mobile and web
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                                focusInput.measureLayout(formContentRef.current, (_x, y) =>
+                                focusInput?.measureLayout?.(formContentRef.current, (_x, y) =>
                                     formRef.current?.scrollTo({
                                         y: y - 10,
                                         animated: false,
@@ -101,9 +101,7 @@ function FormWrapper({
                             }
 
                             // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                            if (focusInput?.focus && typeof focusInput.focus === 'function') {
-                                focusInput.focus();
-                            }
+                            focusInput?.focus?.();
                         }}
                         // @ts-expect-error FormAlertWithSubmitButton migration
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
@@ -168,6 +166,6 @@ FormWrapper.displayName = 'FormWrapper';
 export default withOnyx<FormWrapperProps, FormWrapperOnyxProps>({
     formState: {
         // FIX: Fabio plz help 😂
-        key: (props) => props.formID as typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+        key: (props) => props.formID as keyof typeof ONYXKEYS.FORMS,
     },
 })(FormWrapper);
