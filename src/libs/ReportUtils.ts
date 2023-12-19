@@ -1471,12 +1471,12 @@ function getDisplayNamesWithTooltips(
 
     return personalDetailsListArray
         .map((user) => {
-            const accountID = Number(user.accountID);
+            const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user.pronouns;
+            let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
                 pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
@@ -1485,7 +1485,7 @@ function getDisplayNamesWithTooltips(
             return {
                 displayName,
                 avatar,
-                login: user.login ?? '',
+                login: user?.login ?? '',
                 accountID,
                 pronouns,
             };
@@ -2136,7 +2136,7 @@ function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): strin
     const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
     if (hasModifiedCreated) {
         // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ?? 0);
+        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
         formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
 
         return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage?.created ?? '', formattedOldCreated?.toString?.(), Localize.translateLocal('common.date'), false);
