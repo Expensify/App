@@ -55,6 +55,7 @@ function EditRequestAmountPage({defaultAmount, defaultCurrency, onNavigateToCurr
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={onNavigateToCurrency}
                 onSubmitButtonPress={onSubmit}
+                isEditing
             />
         </ScreenWrapper>
     );
