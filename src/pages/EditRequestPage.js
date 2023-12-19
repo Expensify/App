@@ -9,11 +9,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import tagPropTypes from '@components/tagPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -129,7 +129,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 Navigation.dismissModal();
                 return;
             }
-            // Temporarily disabling currency editing and it will be enabled as a quick follow up
+
             IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount);
             Navigation.dismissModal();
         },

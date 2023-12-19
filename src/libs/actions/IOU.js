@@ -2254,7 +2254,7 @@ function editMoneyRequest(transaction, transactionThreadReportID, transactionCha
 }
 
 /**
- * Updates the created date of a money request
+ * Updates the amount and currency fields of a money request
  *
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
