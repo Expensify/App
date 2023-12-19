@@ -273,6 +273,7 @@ function InitialSettingsPage(props) {
                                     !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
                                 }
                                 focused={activeRoute && activeRoute.startsWith(item.routeName, 1)}
+                                isPaneMenu
                             />
                         );
                     })}
