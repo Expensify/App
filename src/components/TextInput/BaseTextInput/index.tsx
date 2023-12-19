@@ -420,7 +420,7 @@ function BaseTextInput(
                 </PressableWithoutFeedback>
                 {!!inputHelpText && (
                     <FormHelpMessage
-                        isError={!errorText}
+                        isError={!!errorText}
                         message={inputHelpText}
                     />
                 )}
