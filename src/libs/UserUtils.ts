@@ -7,7 +7,7 @@ import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
+import {PersonalDetailsList} from '@src/types/onyx';
 import Login from '@src/types/onyx/Login';
 import hashCode from './hashCode';
 
@@ -17,7 +17,7 @@ type AvatarSource = React.FC<SvgProps> | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
 
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = _.isEmpty(val) ? {} : val),

@@ -1,9 +1,9 @@
 import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
+import createModalCardStyleInterpolator from '@libs/Navigation/AppNavigator/createModalCardStyleInterpolator';
 import {ThemeStyles} from '@styles/index';
 import {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
-import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';
 
 type ScreenOptions = Record<string, StackNavigationOptions>;
 
@@ -15,9 +15,11 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
+const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
+
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
 
-const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, styles, StyleUtils) => {
+const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, themeStyles, StyleUtils): ScreenOptions => {
     const modalCardStyleInterpolator = createModalCardStyleInterpolator(StyleUtils);
 
     return {
@@ -37,7 +39,23 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 right: 0,
             },
         },
+        leftModalNavigator: {
+            ...commonScreenOptions,
+            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
+            presentation: 'transparentModal',
 
+            // We want pop in LHP since there are some flows that would work weird otherwise
+            animationTypeForReplace: 'pop',
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+
+                // This is necessary to cover translated sidebar with overlay.
+                width: isSmallScreenWidth ? '100%' : '200%',
+
+                // LHP should be displayed in place of the sidebar
+                left: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
+            },
+        },
         homeScreen: {
             title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
@@ -49,7 +67,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
 
                 // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
                 marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
-                ...(isSmallScreenWidth ? {} : styles.borderRight),
+                ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
             },
         },
 

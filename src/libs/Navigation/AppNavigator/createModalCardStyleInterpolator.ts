@@ -11,16 +11,17 @@ type ModalCardStyleInterpolator = (
         inverted,
         layouts: {screen},
     }: StackCardInterpolationProps,
+    outputRangeMultiplier?: number,
 ) => StackCardInterpolatedStyle;
 type CreateModalCardStyleInterpolator = (StyleUtils: StyleUtilsType) => ModalCardStyleInterpolator;
 
 const createModalCardStyleInterpolator: CreateModalCardStyleInterpolator =
     (StyleUtils) =>
-    (isSmallScreenWidth, isFullScreenModal, {current: {progress}, inverted, layouts: {screen}}) => {
+    (isSmallScreenWidth, isFullScreenModal, {current: {progress}, inverted, layouts: {screen}}, outputRangeMultiplier = 1) => {
         const translateX = Animated.multiply(
             progress.interpolate({
                 inputRange: [0, 1],
-                outputRange: [isSmallScreenWidth ? screen.width : variables.sideBarWidth, 0],
+                outputRange: [outputRangeMultiplier * (isSmallScreenWidth ? screen.width : variables.sideBarWidth), 0],
                 extrapolate: 'clamp',
             }),
             inverted,
