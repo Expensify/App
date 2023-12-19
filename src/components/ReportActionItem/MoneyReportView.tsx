@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleProp, TextStyle} from 'react-native';
+import {StyleProp, TextStyle, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SpacerView from '@components/SpacerView';
