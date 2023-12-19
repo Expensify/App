@@ -19,7 +19,7 @@ type RequiredAccessibilityLabel =
            * @example 'Search'
            * @example 'Close'
            */
-          accessibilityLabel?: string;
+          accessibilityLabel: string;
       }
     | {
           /**

@@ -154,7 +154,6 @@ type Report = {
     isHidden?: boolean;
     isChatRoom?: boolean;
     participantsList?: PersonalDetails[];
-    text?: string;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
 };

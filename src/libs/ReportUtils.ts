@@ -319,6 +319,7 @@ type CustomIcon = {
 };
 
 type OptionData = {
+    text: string;
     alternateText?: string | null;
     allReportErrors?: Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
