@@ -231,6 +231,10 @@ platform :ios do
         scheme: "New Expensify",
         output_name: "New Expensify.ipa",
         export_options: {
+            provisioningProfiles: {
+              "com.chat.expensify.chat" => "(NewApp) AppStore",
+              "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
+            },
             manageAppVersionAndBuildNumber: false
         }
     )
