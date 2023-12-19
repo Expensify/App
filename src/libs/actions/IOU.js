@@ -556,7 +556,7 @@ function buildOnyxDataForMoneyRequest(
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
         failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
         });
