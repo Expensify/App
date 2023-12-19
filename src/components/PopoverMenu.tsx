@@ -2,16 +2,16 @@ import React, {RefObject, useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';
-import MenuItem from '@components/MenuItem';
-import type {AnchorAlignment} from '@components/Popover/types';
-import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import MenuItem from './MenuItem';
+import type {AnchorAlignment} from './Popover/types';
+import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
+import Text from './Text';
 
 type MenuItemProps = {
     /** An icon element displayed on the left side */
