@@ -59,9 +59,6 @@ function addStop(transactionID: string) {
 
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        pendingFields: {
-            waypoints: isDraft ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        },
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,
