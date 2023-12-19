@@ -2,13 +2,13 @@ import lodashEscape from 'lodash/escape';
 import React from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import Banner from './Banner';
 
 type ArchivedReportFooterOnyxProps = {
@@ -16,7 +16,7 @@ type ArchivedReportFooterOnyxProps = {
     reportClosedAction: OnyxEntry<ReportAction>;
 
     /** Personal details of all users */
-    personalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {
@@ -30,14 +30,14 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     const originalMessage = reportClosedAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ? reportClosedAction.originalMessage : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [report.ownerAccountID, 'displayName']);
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[report?.ownerAccountID ?? 0]?.displayName);
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [newAccountID, 'displayName']);
-        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, [oldAccountID, 'displayName']);
+        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[newAccountID ?? 0]?.displayName);
+        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? 0]?.displayName);
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;

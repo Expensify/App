@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import {subYears} from 'date-fns';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -15,10 +14,11 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressForm from '@pages/ReimbursementAccount/AddressForm';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -193,7 +193,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalFirstName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
                         shouldSaveDraft
                     />
@@ -203,7 +203,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.legalLastName)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
@@ -225,12 +225,13 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         inputMode={CONST.INPUT_MODE.TEL}
                         label={translate(fieldNameTranslationKeys.phoneNumber)}
                         accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         defaultValue={currentUserPersonalDetails.phoneNumber}
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    <DatePicker
+                    <InputWrapper
+                        InputComponent={DatePicker}
                         inputID="dob"
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys.dob)}
@@ -245,7 +246,7 @@ function AdditionalDetailsStep({walletAdditionalDetails, translate, currentUserP
                         containerStyles={[styles.mt4]}
                         label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
                         accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={shouldAskForFullSSN ? 9 : 4}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />

@@ -151,7 +151,7 @@ const bigObjectToFind = {
  * More on the measureFunction API:
  * @see https://callstack.github.io/reassure/docs/api#measurefunction-function
  */
-test('getAddressComponents on a big dataset', async () => {
+test('[GooglePlacesUtils] getAddressComponents on a big dataset', async () => {
     await measureFunction(
         () => {
             GooglePlacesUtils.getAddressComponents(addressComponents, bigObjectToFind);

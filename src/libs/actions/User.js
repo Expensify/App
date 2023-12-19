@@ -17,7 +17,6 @@ import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
 import * as Report from './Report';
 import * as Session from './Session';
-import redirectToSignIn from './SignInRedirect';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -69,8 +68,6 @@ function closeAccount(message) {
             ],
         },
     );
-    // Run cleanup actions to prevent reconnection callbacks from blocking logging in again
-    redirectToSignIn();
 }
 
 /**
@@ -528,8 +525,9 @@ function subscribeToUserEvents() {
                 return;
             }
 
-            const onyxUpdatePromise = Onyx.update(pushJSON);
-            triggerNotifications(pushJSON);
+            const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
+                triggerNotifications(pushJSON);
+            });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
             // the onyx updates in order
@@ -858,7 +856,7 @@ function updateDraftCustomStatus(status) {
  *
  */
 function clearDraftCustomStatus() {
-    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: '', customDateTemporary: ''});
 }
 
 export {
