@@ -1,3 +1,4 @@
+import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -11,6 +12,14 @@ type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | un
 type Errors = Record<string, string>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+
+type MenuItem = {
+    icon: React.FC<SvgProps>;
+
+    text: string;
+
+    onPress: () => void;
+};
 
 type Icon = {
     /** Avatar source to display */
@@ -29,4 +38,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};
+export type {Icon, MenuItem, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};
