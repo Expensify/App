@@ -2006,14 +2006,14 @@ const styles = (theme: ThemeColors) =>
             height: 24,
             width: 24,
             backgroundColor: theme.icon,
-            borderRadius: 24,
+            borderRadius: 12,
         },
 
         singleAvatarSmall: {
-            height: 18,
-            width: 18,
+            height: 16,
+            width: 16,
             backgroundColor: theme.icon,
-            borderRadius: 18,
+            borderRadius: 8,
         },
 
         singleAvatarMedium: {
@@ -2027,17 +2027,17 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -18,
             bottom: -18,
-            borderWidth: 3,
-            borderRadius: 30,
+            borderWidth: 2,
+            borderRadius: 14,
             borderColor: 'transparent',
         },
 
         secondAvatarSmall: {
             position: 'absolute',
-            right: -13,
-            bottom: -13,
-            borderWidth: 3,
-            borderRadius: 18,
+            right: -14,
+            bottom: -14,
+            borderWidth: 2,
+            borderRadius: 10,
             borderColor: 'transparent',
         },
 
@@ -2058,8 +2058,8 @@ const styles = (theme: ThemeColors) =>
 
         secondAvatarSubscriptCompact: {
             position: 'absolute',
-            bottom: -1,
-            right: -1,
+            bottom: -4,
+            right: -4,
         },
 
         secondAvatarSubscriptSmallNormal: {
@@ -2697,6 +2697,8 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
             paddingVertical: 12,
         },
+
+        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
 
         requestPreviewBox: {
             marginTop: 12,
