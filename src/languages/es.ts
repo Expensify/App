@@ -95,6 +95,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        searchWithThreeDots: 'Buscar...',
         next: 'Siguiente',
         previous: 'Anterior',
         goBack: 'Volver',
@@ -490,7 +491,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Buscar',
+        buttonSearch: 'Busca algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',
@@ -750,6 +751,7 @@ export default {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
+        goToExpensifyClassic: 'Ir a Expensify Classic',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'Términos de Servicio',
@@ -2381,7 +2383,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copyUrlToClipboard: 'Copiar URL al portapapeles',
+        copy: 'Copiar',
         copied: '¡Copiado!',
     },
     moderation: {

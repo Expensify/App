@@ -131,7 +131,12 @@ export default [
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
             const isModifiedExpenseAction = ReportActionsUtils.isModifiedExpenseAction(reportAction);
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
-            return (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+            return (
+                !isWhisperAction &&
+                (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) &&
+                !ReportUtils.isThreadFirstChat(reportAction, reportID)
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
@@ -162,7 +167,8 @@ export default [
             const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-            return !subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
+            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+            return !subscribed && !isWhisperAction && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
@@ -422,8 +428,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
@@ -436,8 +441,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.unPin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {

@@ -302,7 +302,7 @@ function OptionRowLHN(props) {
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
                             )}
-                            {!shouldShowGreenDotIndicator && optionItem.isPinned && (
+                            {!shouldShowGreenDotIndicator && !hasBrickError && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
