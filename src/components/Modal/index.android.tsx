@@ -10,7 +10,7 @@ import BaseModalProps, {ModalRef} from './types';
 function Modal({useNativeDriver = true, restoreFocusType, onModalHide, ...rest}: BaseModalProps) {
     const modalRef = useRef<ModalRef>(null);
     const hideModal = () => {
-        onModalHide();
+        onModalHide?.();
         if (restoreFocusType && restoreFocusType !== CONST.MODAL.RESTORE_TYPE.DEFAULT) {
             modalRef?.current?.removePromise();
             return;
