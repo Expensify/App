@@ -368,6 +368,7 @@ function MagicCodeInput(props) {
                         collapsable={false}
                     >
                         <TextInput
+                            caretHidden
                             onLayout={(e) => {
                                 inputWidth.current = e.nativeEvent.layout.width;
                             }}
