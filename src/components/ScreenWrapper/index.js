@@ -1,4 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, PanResponder, View} from 'react-native';
@@ -39,6 +38,13 @@ const ScreenWrapper = React.forwardRef(
             shouldDismissKeyboardBeforeClose,
             onEntryTransitionEnd,
             testID,
+            /**
+             * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
+             * when the screen transition ends.
+             *
+             * This is required because transitionEnd event doesn't trigger in the testing environment.
+             */
+            navigation,
         },
         ref,
     ) => {
@@ -48,7 +54,6 @@ const ScreenWrapper = React.forwardRef(
         const keyboardState = useKeyboardState();
         const {isDevelopment} = useEnvironment();
         const {isOffline} = useNetwork();
-        const navigation = useNavigation();
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
         const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;

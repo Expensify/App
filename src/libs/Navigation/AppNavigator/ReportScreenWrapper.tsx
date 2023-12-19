@@ -13,7 +13,10 @@ function ReportScreenWrapper({route, navigation}: ReportScreenWrapperProps) {
     return (
         <>
             {/* @ts-expect-error Error will be resolved after ReportScreen migration to TypeScript */}
-            <ReportScreen route={route} />
+            <ReportScreen
+                route={route}
+                navigation={navigation}
+            />
             <ReportScreenIDSetter
                 route={route}
                 navigation={navigation}
