@@ -3514,7 +3514,7 @@ function transactionThreadHasViolations(report: Report, transactionViolations: T
 /**
  * Checks to see if a report contains a violation
  */
-function reportHasViolations(reportID: string, transactionViolations: TransactionViolations): boolean {
+function hasViolations(reportID: string, transactionViolations: TransactionViolations): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(reportID);
     return transactions.some((transaction) => transactionHasViolation(transaction.transactionID, transactionViolations));
 }
@@ -4557,7 +4557,7 @@ export {
     getPersonalDetailsForAccountID,
     getRoom,
     transactionThreadHasViolations,
-    reportHasViolations,
+    hasViolations,
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
