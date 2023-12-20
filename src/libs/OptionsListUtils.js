@@ -1062,7 +1062,7 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
  */
 function transformedTaxRates(policyTaxRates) {
     const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const getName = (data, code) => `${data.name} (${data.value})${defaulTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const getName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, name: getName(data, code), actualName: data.name}]));
     return taxes;
 }
