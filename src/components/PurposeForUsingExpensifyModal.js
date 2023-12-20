@@ -120,6 +120,7 @@ function PurposeForUsingExpensifyModal(props) {
     const completeModalAndClose = (message, choice) => {
         Report.completeEngagementModal(message, choice);
         setIsModalOpen(false);
+        Report.navigateToConciergeChat();
     };
 
     const menuItems = [
