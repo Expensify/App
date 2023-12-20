@@ -27,6 +27,9 @@ const propTypes = {
         }),
     ).isRequired,
 
+    /** Value in the search input field */
+    value: PropTypes.string.isRequired,
+
     /** Callback fired when text changes */
     onChangeText: PropTypes.func,
 
