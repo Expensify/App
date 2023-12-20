@@ -44,7 +44,7 @@ function MemberInviteList(props) {
     const {selectedOptions, setSelectedOptions, excludedUsers, betas, didScreenTransitionEnd, name, inviteUsers} = props;
     const {translate} = useLocalize();
     const [personalDetails, setPersonalDetails] = useState([]);
-    const [usersToInvite, setUsersToInvite] = useState([]);
+    const [userToInvite, setUserToInvite] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -64,6 +64,7 @@ function MemberInviteList(props) {
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
         const personalDetailsWithoutSelected = _.filter(personalDetails, ({login}) => !_.contains(selectedLogins, login));
         const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
+        const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
         sections.push({
             title: translate('common.contacts'),
@@ -73,18 +74,14 @@ function MemberInviteList(props) {
         });
         indexOffset += personalDetailsFormatted.length;
 
-        _.each(usersToInvite, (userToInvite) => {
-            const hasUnselectedUserToInvite = !_.contains(selectedLogins, userToInvite.login);
-
-            if (hasUnselectedUserToInvite) {
-                sections.push({
-                    title: undefined,
-                    data: [OptionsListUtils.formatMemberForList(userToInvite)],
-                    shouldShow: true,
-                    indexOffset: indexOffset++,
-                });
-            }
-        });
+        if (hasUnselectedUserToInvite) {
+            sections.push({
+                title: undefined,
+                data: [OptionsListUtils.formatMemberForList(userToInvite)],
+                shouldShow: true,
+                indexOffset,
+            });
+        }
 
         return sections;
     };
@@ -96,8 +93,6 @@ function MemberInviteList(props) {
     }, []);
 
     useEffect(() => {
-        const newUsersToInviteDict = {};
-
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, betas, searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails information
@@ -108,14 +103,7 @@ function MemberInviteList(props) {
             newSelectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
         });
 
-        const userToInvite = inviteOptions.userToInvite;
-
-        // Only add the user to the invites list if it is valid
-        if (userToInvite) {
-            newUsersToInviteDict[userToInvite.accountID] = userToInvite;
-        }
-
-        setUsersToInvite(_.values(newUsersToInviteDict));
+        setUserToInvite(inviteOptions.userToInvite);
         setPersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
@@ -139,14 +127,14 @@ function MemberInviteList(props) {
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+        if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (usersToInvite.length === 0 && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue).toLowerCase())) {
+        if (!userToInvite && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue).toLowerCase())) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name});
         }
-        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, usersToInvite, personalDetails.length, name]);
+        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
+    }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails.length, name]);
 
     return (
         <SelectionList
