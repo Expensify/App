@@ -42,11 +42,11 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.FREE:
-            return Illustrations.BigRocket;
+            return Illustrations.HandCard;
         case CONST.POLICY.TYPE.CORPORATE:
-            return Illustrations.HotDogStand;
+            return Illustrations.ShieldYellow;
         case CONST.POLICY.TYPE.TEAM:
-            return Illustrations.SmallRocket;
+            return Illustrations.Mailbox;
         default:
             throw new Error(`Don't know which icon to serve for workspace type`);
     }
