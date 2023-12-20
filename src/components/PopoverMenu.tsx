@@ -13,9 +13,9 @@ import type {AnchorAlignment} from './Popover/types';
 import PopoverWithMeasuredContent from './PopoverWithMeasuredContent';
 import Text from './Text';
 
-type MenuItemProps = {
+type PopoverMenuItem = {
     /** An icon element displayed on the left side */
-    icon?: React.FC<SvgProps>;
+    icon: React.FC<SvgProps>;
 
     /** Text label */
     text: string;
@@ -46,10 +46,10 @@ type PopoverMenuProps = PopoverModalProps & {
     isVisible: boolean;
 
     /** Callback to fire when a CreateMenu item is selected */
-    onItemSelected: (selectedItem: MenuItemProps, index: number) => void;
+    onItemSelected: (selectedItem: PopoverMenuItem, index: number) => void;
 
     /** Menu items to be rendered on the list */
-    menuItems: MenuItemProps[];
+    menuItems: PopoverMenuItem[];
 
     /** Optional non-interactive text to display as a header for any create menu */
     headerText?: string;
@@ -147,7 +147,6 @@ function PopoverMenu({
                 {menuItems.map((item, menuIndex) => (
                     <MenuItem
                         key={item.text}
-                        // @ts-expect-error TODO: Remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TypeScript.
                         icon={item.icon}
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
