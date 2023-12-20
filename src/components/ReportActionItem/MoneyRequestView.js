@@ -69,8 +69,6 @@ const transactionViolationPropType = PropTypes.shape({
     }),
 });
 
-const transactionViolationsPropTypes = PropTypes.arrayOf(transactionViolationPropType);
-
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -92,7 +90,7 @@ const propTypes = {
     transaction: transactionPropTypes,
 
     /** Violations detected in this transaction */
-    transactionViolations: transactionViolationsPropTypes,
+    transactionViolations: PropTypes.arrayOf(transactionViolationPropType),
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
@@ -343,19 +341,23 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     </OfflineWithFeedback>
                 )}
 
-                <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                    <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                    <Switch
-                        accessibilityLabel={translate('common.billable')}
-                        isOn={transactionBillable}
-                        onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
-                    />
-                </View>
-                {canUseViolations && (
-                    <ViolationMessages
-                        violations={getViolationsForField('billable')}
-                        isLast
-                    />
+                {shouldShowBillable && (
+                    <>
+                        <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                            <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                            <Switch
+                                accessibilityLabel={translate('common.billable')}
+                                isOn={transactionBillable}
+                                onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
+                            />
+                        </View>
+                        {hasViolations('billable') && (
+                            <ViolationMessages
+                                violations={getViolationsForField('billable')}
+                                isLast
+                            />
+                        )}
+                    </>
                 )}
             </View>
             <SpacerView
