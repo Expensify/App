@@ -64,6 +64,7 @@ function BaseHTMLEngineProvider(props) {
                 tagName: 'next-steps',
                 mixedUAStyles: {...styles.textLabelSupporting},
             }),
+            'next-steps-email': defaultHTMLElementModels.span.extend({tagName: 'next-steps-email'}),
             video: defaultHTMLElementModels.div.extend({
                 tagName: 'video',
                 mixedUAStyles: {whiteSpace: 'pre'},
