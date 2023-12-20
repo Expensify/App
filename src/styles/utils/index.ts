@@ -1,5 +1,4 @@
-import {CSSProperties} from 'react';
-import {Animated, DimensionValue, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
+import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
 import {EdgeInsets} from 'react-native-safe-area-context';
 import {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -31,6 +30,7 @@ import {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    TextColorStyle,
     WorkspaceColorStyle,
 } from './types';
 
@@ -118,7 +118,7 @@ const avatarFontSizes: Partial<Record<AvatarSizeName, number>> = {
 
 const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: 3,
-    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 1,
+    [CONST.AVATAR_SIZE.SMALL_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.MID_SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SUBSCRIPT]: 2,
     [CONST.AVATAR_SIZE.SMALL]: 2,
@@ -402,7 +402,7 @@ function getBackgroundColorStyle(backgroundColor: string): ViewStyle {
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextStyle {
+function getTextColorStyle(color: string): TextColorStyle {
     return {
         color,
     };
@@ -620,7 +620,7 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 /**
  * Get minimum width as style
  */
-function getMinimumWidth(minWidth: number): ViewStyle | CSSProperties {
+function getMinimumWidth(minWidth: number): ViewStyle {
     return {
         minWidth,
     };
@@ -665,11 +665,11 @@ function getHorizontalStackedAvatarBorderStyle({theme, isHovered, isPressed, isI
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
     if (isHovered) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.border;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.border;
     }
 
     if (isPressed) {
-        borderColor = isInReportAction ? theme.highlightBG : theme.buttonPressedBG;
+        borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
     }
 
     return {borderColor};
@@ -701,7 +701,7 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ViewStyle {
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyReport = false): ImageStyle {
     const emptyStateBackground = isMoneyReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT : CONST.EMPTY_STATE_BACKGROUND;
 
     if (isSmallScreenWidth) {
@@ -867,7 +867,7 @@ function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: num
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): ViewStyle {
+function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): TextStyle {
     let paddingValue = 5;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
@@ -913,7 +913,7 @@ function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): Vie
 /**
  * Returns color style
  */
-function getColorStyle(color: string): ViewStyle | CSSProperties {
+function getColorStyle(color: string): TextColorStyle {
     return {color};
 }
 
