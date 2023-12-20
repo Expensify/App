@@ -17,7 +17,7 @@ type StateSelectorModalProps = {
     isVisible: boolean;
 
     /** State value selected  */
-    currentState?: State | '';
+    currentState?: State;
 
     /** Function to call when the user selects a State */
     onStateSelected?: (state: CountryData) => void;
@@ -35,7 +35,7 @@ type StateSelectorModalProps = {
     label?: string;
 };
 
-function StateSelectorModal({currentState = '', isVisible, onClose = () => {}, onStateSelected = () => {}, searchValue, setSearchValue, label}: StateSelectorModalProps) {
+function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStateSelected = () => {}, searchValue, setSearchValue, label}: StateSelectorModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
