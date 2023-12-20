@@ -60,7 +60,7 @@ function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRSha
                 {title}
             </Text>
 
-            {subtitle && (
+            {!!subtitle && (
                 <Text
                     fontSize={variables.fontSizeLabel}
                     numberOfLines={2}
