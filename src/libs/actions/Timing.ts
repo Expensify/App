@@ -39,8 +39,8 @@ function end(eventName: string, secondaryName = '', maxExecutionTime = 0) {
         return;
     }
 
+    const {startTime, shouldUseFirebase} = timestampData[eventName];
     Environment.getEnvironment().then((envName) => {
-        const {startTime, shouldUseFirebase} = timestampData[eventName];
         const eventTime = Date.now() - startTime;
 
         if (shouldUseFirebase) {
