@@ -7,8 +7,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -44,7 +44,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}) {
                             isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
                             isDisabledProp ? styles.cursorDisabled : undefined,
                         ]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
                     >
                         {({pressed}) => (

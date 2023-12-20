@@ -20,7 +20,7 @@ import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import appSetup from '../../src/setup';
-import fontWeightBold from '../../src/styles/fontWeight/bold';
+import fontWeightBold from '../../src/styles/utils/fontWeight/bold';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
