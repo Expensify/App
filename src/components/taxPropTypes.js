@@ -12,18 +12,18 @@ const taxPropTypes = PropTypes.shape({
 });
 
 export default PropTypes.shape({
-    /** Defualt name of taxes */
+    /** Name of the tax */
     name: PropTypes.string.isRequired,
 
-    /** Defualt external ID of taxes */
+    /** Default policy tax ID */
     defaultExternalID: PropTypes.string,
 
     /** Default value of taxes */
     defaultValue: PropTypes.string,
 
-    /** Default Foreign Tax ID */
+    /** Default foreign policy tax ID */
     foreignTaxDefault: PropTypes.string,
 
-    /** List of Taxes names and values */
+    /** List of tax names and values */
     taxes: PropTypes.objectOf(taxPropTypes),
 });

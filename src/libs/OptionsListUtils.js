@@ -1061,8 +1061,8 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
  * @returns {Array<Object>}
  */
 function transformedTaxRates(policyTaxRates) {
-    const defaulTaxKey = policyTaxRates.defaultExternalID;
-    const getName = (data, code) => `${data.name} (${data.value})${defaulTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const defaultTaxKey = policyTaxRates.defaultExternalID;
+    const getName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, name: getName(data, code), actualName: data.name}]));
     return taxes;
 }
@@ -1187,7 +1187,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     }
 
     policyRatesSections.push({
-        // "All" section when items amount more than the threshold
+        // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
         indexOffset,
