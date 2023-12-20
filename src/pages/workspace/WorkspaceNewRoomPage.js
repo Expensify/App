@@ -259,7 +259,7 @@ function WorkspaceNewRoomPage(props) {
                 testID={WorkspaceNewRoomPage.displayName}
             >
                 {({insets}) =>
-                    workspaceOptions.length === 0 || true ? (
+                    workspaceOptions.length === 0 ? (
                         renderEmptyWorkspaceView()
                     ) : (
                         <KeyboardAvoidingView
