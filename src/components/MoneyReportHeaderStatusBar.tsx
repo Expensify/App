@@ -3,20 +3,16 @@ import {Text, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
-import nextStepPropTypes from '@pages/nextStepPropTypes';
 import CONST from '@src/CONST';
+import ReportNextStep from '@src/types/onyx/ReportNextStep';
 import RenderHTML from './RenderHTML';
 
-const propTypes = {
+type MoneyReportHeaderStatusBarProps = {
     /** The next step for the report */
-    nextStep: nextStepPropTypes,
+    nextStep: ReportNextStep;
 };
 
-const defaultProps = {
-    nextStep: {},
-};
-
-function MoneyReportHeaderStatusBar({nextStep}) {
+function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -38,7 +34,5 @@ function MoneyReportHeaderStatusBar({nextStep}) {
 }
 
 MoneyReportHeaderStatusBar.displayName = 'MoneyReportHeaderStatusBar';
-MoneyReportHeaderStatusBar.propTypes = propTypes;
-MoneyReportHeaderStatusBar.defaultProps = defaultProps;
 
 export default MoneyReportHeaderStatusBar;

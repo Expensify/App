@@ -1,4 +1,3 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import BankAccount from './BankAccount';
@@ -10,7 +9,7 @@ type PaymentMethod = (BankAccount | Fund) & {
     iconSize?: number;
     iconHeight?: number;
     iconWidth?: number;
-    iconStyles?: Array<ViewStyle | CSSProperties>;
+    iconStyles?: ViewStyle[];
 };
 
 export default PaymentMethod;
