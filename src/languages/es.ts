@@ -1,9 +1,9 @@
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
     AlreadySignedInParams,
     AmountEachParams,
+    ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -26,6 +26,7 @@ import type {
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
+    ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
@@ -63,6 +64,7 @@ import type {
     SplitAmountParams,
     StepCounterParams,
     TagSelectionParams,
+    TaskCreatedActionParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
@@ -93,6 +95,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        searchWithThreeDots: 'Buscar...',
         next: 'Siguiente',
         previous: 'Anterior',
         goBack: 'Volver',
@@ -188,6 +191,8 @@ export default {
             characterLimit: ({limit}: CharacterLimitParams) => `Supera el límite de ${limit} caracteres`,
             characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
+            invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
+            invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
             invalidCharacter: 'Carácter invalido',
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
@@ -257,6 +262,8 @@ export default {
         kilometers: 'kilómetros',
         recent: 'Reciente',
         all: 'Todo',
+        am: 'AM',
+        pm: 'PM',
         tbd: 'Por determinar',
         selectCurrency: 'Selecciona una moneda',
         card: 'Tarjeta',
@@ -416,9 +423,10 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: ({action}: EditActionParams) => `Edit ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
-        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) => `¿Estás seguro de que quieres eliminar este ${ReportActionsUtils.isMoneyRequestAction(action) ? 'pedido' : 'comentario'}`,
+        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
+            `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         subscribeToThread: 'Suscribirse al hilo',
@@ -483,7 +491,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Buscar',
+        buttonSearch: 'Busca algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',
@@ -553,6 +561,7 @@ export default {
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         payElsewhere: 'Pagar de otra forma',
         nextSteps: 'Pasos Siguientes',
+        finished: 'Finalizado',
         requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -565,7 +574,9 @@ export default {
         payerSpentAmount: ({payer, amount}: PayerPaidAmountParams): string => `${payer} gastó ${amount}`,
         payerSpent: ({payer}: PayerPaidParams) => `${payer} gastó: `,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} aprobó:`,
+        managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
+        approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó su billetera Expensify en un plazo de 30 días.`,
@@ -576,13 +587,12 @@ export default {
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheRequest: 'cambió la solicitud',
-        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `estableció ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
+        setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
         setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) =>
             `estableció la distancia a ${newDistanceToDisplay}, lo que estableció el importe a ${newAmountToDisplay}`,
-        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) =>
-            `eliminó ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
+        removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} (previamente ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) =>
-            `cambió ${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
+            `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -590,6 +600,7 @@ export default {
         tagSelection: ({tagName}: TagSelectionParams) => `Seleccione una ${tagName} para organizar mejor tu dinero.`,
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {
+            invalidCategoryLength: 'El largo de la categoría escogida excede el máximo permitido (255). Por favor escoge otra categoría o acorta la categoría primero.',
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
@@ -605,6 +616,9 @@ export default {
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',
+        set: 'estableció',
+        changed: 'cambió',
+        removed: 'eliminó',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -739,6 +753,7 @@ export default {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
+        goToExpensifyClassic: 'Ir a Expensify Classic',
         readTheTermsAndPrivacy: {
             phrase1: 'Leer los',
             phrase2: 'Términos de Servicio',
@@ -1158,12 +1173,19 @@ export default {
     },
     statusPage: {
         status: 'Estado',
-        setStatusTitle: 'Establece tu estado',
         statusExplanation: 'Agrega un emoji para que tus colegas y amigos puedan saber fácilmente qué está pasando. ¡También puedes agregar un mensaje opcionalmente!',
         today: 'Hoy',
         clearStatus: 'Borrar estado',
         save: 'Guardar',
         message: 'Mensaje',
+        timePeriods: {
+            never: 'Nunca',
+            thirtyMinutes: '30 minutos',
+            oneHour: '1 hora',
+            afterToday: 'Hoy',
+            afterWeek: 'Una semana',
+            custom: 'Personalizado',
+        },
         untilTomorrow: 'Hasta mañana',
         untilTime: ({time}: UntilTimeParams) => {
             // Check for HH:MM AM/PM format and starts with '01:'
@@ -1181,6 +1203,10 @@ export default {
             // Default case
             return `Hasta ${time}`;
         },
+        date: 'Fecha',
+        time: 'Hora',
+        clearAfter: 'Borrar después',
+        whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Paso ${step}`;
@@ -1278,8 +1304,11 @@ export default {
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
-        cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
-        cameraRequestMessage: 'No has habilitado los permisos para acceder a la cámara. Necesitamos acceso para completar la verificaciôn.',
+        cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
+        cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
+        microphonePermissionsNotGranted: 'Permiso para acceder al micrófono',
+        microphoneRequestMessage:
+            'Necesitamos acceso a tu micrófono para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
         originalDocumentNeeded: 'Por favor, sube una imagen original de tu identificación en lugar de una captura de pantalla o imagen escaneada.',
         documentNeedsBetterQuality:
             'Parece que tu identificación esta dañado o le faltan características de seguridad. Por favor, sube una imagen de tu documento sin daños y que se vea completamente.',
@@ -1490,6 +1519,8 @@ export default {
                 companyCards: 'Tarjetas de crédito corporativas',
                 reimbursements: 'Reembolsos fáciles',
             },
+            notFound: 'No se encontró ningún espacio de trabajo',
+            description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -1572,6 +1603,12 @@ export default {
             invitePeople: 'Invitar nuevos miembros',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            user: 'usuario',
+            users: 'usuarios',
+            invited: 'invitó',
+            removed: 'eliminó',
+            to: 'a',
+            from: 'de',
         },
         inviteMessage: {
             inviteMessageTitle: 'Añadir un mensaje',
@@ -1697,6 +1734,7 @@ export default {
         assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
+            created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
             canceled: 'tarea eliminado',
             reopened: 'marcada como incompleta',
@@ -2347,7 +2385,7 @@ export default {
         parentNavigationSummary: ({rootReportName, workspaceName}: ParentNavigationSummaryParams) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
-        copyUrlToClipboard: 'Copiar URL al portapapeles',
+        copy: 'Copiar',
         copied: '¡Copiado!',
     },
     moderation: {
@@ -2443,31 +2481,30 @@ export default {
             buttonText1: 'Inicia un chat y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Pide dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Pide dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
             buttonText1: 'Envía dinero, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
+            body: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierten en clientes de Expensify.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
-            buttonText1: 'Recomienda a un amigo y ',
+            buttonText1: 'Invita a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recomienda a un amigo y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body1: `Envía tu enlace de invitación de Expensify a un amigo o a cualquier otra persona que conozcas que dedique demasiado tiempo a los gastos. Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
+            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE} por cada recomendación`,
-            body1: 'Si conoces a alguien que dedique demasiado tiempo a los gastos (literalmente cualquiera: tu vecino, tu jefe, tu amigo de contabilidad), envíale tu enlace de invitación de Expensify:',
-            body2: `Cuando comiencen una suscripción anual, obtendrás $${CONST.REFERRAL_PROGRAM.REVENUE}. Así de fácil.`,
+            header: `Invita a un amigo y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `Sé el primero en invitar a un amigo (o a cualquier otra persona) a Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} si se convierte en cliente de Expensify. Comparte tu enlace de invitación por SMS, email o publícalo en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },

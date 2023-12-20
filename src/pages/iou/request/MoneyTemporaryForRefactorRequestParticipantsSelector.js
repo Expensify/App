@@ -10,6 +10,7 @@ import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
@@ -17,7 +18,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -209,30 +209,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             }
 
             onParticipantsAdded(newSelectedOptions);
-
-            const chatOptions = OptionsListUtils.getFilteredOptions(
-                reports,
-                personalDetails,
-                betas,
-                isOptionInList ? searchTerm : '',
-                newSelectedOptions,
-                CONST.EXPENSIFY_EMAILS,
-
-                // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-                // sees the option to request money from their admin on their own Workspace Chat.
-                iouType === CONST.IOU.TYPE.REQUEST,
-
-                // We don't want to include any P2P options like personal details or reports that are not workspace chats for certain features.
-                iouType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
-            );
-
-            setNewChatOptions({
-                recentReports: chatOptions.recentReports,
-                personalDetails: chatOptions.personalDetails,
-                userToInvite: chatOptions.userToInvite,
-            });
         },
-        [participants, onParticipantsAdded, reports, personalDetails, betas, searchTerm, iouType],
+        [participants, onParticipantsAdded],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -240,7 +218,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         Boolean(newChatOptions.userToInvite),
         searchTerm.trim(),
         maxParticipantsReached,
-        _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+        _.some(participants, (participant) => lodashGet(participant, 'searchText', '').toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
@@ -265,7 +243,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             false,
             {},
             [],
-            true,
+
+            // We don't want the user to be able to invite individuals when they are in the "Distance request" flow for now.
+            // This functionality is being built here: https://github.com/Expensify/App/issues/23291
+            iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             true,
         );
         setNewChatOptions({
