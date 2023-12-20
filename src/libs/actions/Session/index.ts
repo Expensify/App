@@ -125,7 +125,8 @@ function signOutAndRedirectToSignIn() {
  * @param isAnonymousAction The action is allowed for anonymous or not
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed<TCallback extends (...args: unknown[]) => unknown>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function checkIfActionIsAllowed<TCallback extends (...args: any[]) => any>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
@@ -339,9 +340,19 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: true,
             },
         },
+        // We are making a temporary modification to 'signedInWithShortLivedAuthToken' to ensure that 'App.openApp' will be called at least once
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.SESSION,
+            value: {
+                signedInWithShortLivedAuthToken: true,
+            },
+        },
     ];
 
-    const successData: OnyxUpdate[] = [
+    // Subsequently, we revert it back to the default value of 'signedInWithShortLivedAuthToken' in 'successData' or 'failureData' to ensure the user is logged out on refresh
+    // We are combining both success and failure data params into one const as they are identical
+    const resolutionData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -349,17 +360,17 @@ function signInWithShortLivedAuthToken(email: string, authToken: string) {
                 isLoading: false,
             },
         },
-    ];
-
-    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
+            key: ONYXKEYS.SESSION,
             value: {
-                isLoading: false,
+                signedInWithShortLivedAuthToken: null,
             },
         },
     ];
+
+    const successData = resolutionData;
+    const failureData = resolutionData;
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
