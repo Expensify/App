@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -77,10 +78,16 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         });
     }, [reports, personalDetails, searchValue, betas]);
 
+    const debouncedUpdateOptions = useMemo(() => _.debounce(updateOptions, 75), [updateOptions]);
+
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
         Performance.markStart(CONST.TIMING.SEARCH_RENDER);
     }, []);
+
+    useEffect(() => {
+        updateOptions();
+    }, [reports, personalDetails, betas, updateOptions]);
 
     useEffect(() => {
         if (!isMounted.current) {
@@ -88,7 +95,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             return;
         }
 
-        updateOptions();
+        debouncedUpdateOptions();
         // Ignoring the rule intentionally, we want to run the code only when search Value changes to prevent additional runs.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue]);
@@ -177,6 +184,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
                         <OptionsSelector
                             sections={getSections()}
                             onSelectRow={selectReport}
+                            value={searchValue}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             hideSectionHeaders
