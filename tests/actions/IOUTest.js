@@ -83,7 +83,6 @@ describe('actions/IOU', () => {
                                     // They should be linked together
                                     expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
                                     expect(chatReport.iouReportID).toBe(iouReport.reportID);
-                                    expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                     resolve();
                                 },
@@ -206,7 +205,6 @@ describe('actions/IOU', () => {
             let chatReport = {
                 reportID: 1234,
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: false,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
             const createdAction = {
@@ -249,7 +247,6 @@ describe('actions/IOU', () => {
 
                                     // They should be linked together
                                     expect(chatReport.iouReportID).toBe(iouReportID);
-                                    expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                     resolve();
                                 },
@@ -370,7 +367,6 @@ describe('actions/IOU', () => {
             let chatReport = {
                 reportID: chatReportID,
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: true,
                 iouReportID,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
@@ -581,7 +577,6 @@ describe('actions/IOU', () => {
                                         // They should be linked together
                                         expect(chatReport.participantAccountIDs).toEqual([CARLOS_ACCOUNT_ID]);
                                         expect(chatReport.iouReportID).toBe(iouReport.reportID);
-                                        expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                         resolve();
                                     },
@@ -815,7 +810,6 @@ describe('actions/IOU', () => {
             let carlosChatReport = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: false,
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
             const carlosCreatedAction = {
@@ -827,7 +821,6 @@ describe('actions/IOU', () => {
             let julesChatReport = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
-                hasOutstandingIOU: true,
                 iouReportID: julesIOUReportID,
                 participantAccountIDs: [JULES_ACCOUNT_ID],
             };
@@ -985,16 +978,13 @@ describe('actions/IOU', () => {
                                     expect(groupChat.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
 
                                     // The 1:1 chat reports and the IOU reports should be linked together
-                                    expect(carlosChatReport.hasOutstandingIOU).toBe(true);
                                     expect(carlosChatReport.iouReportID).toBe(carlosIOUReport.reportID);
                                     expect(carlosIOUReport.chatReportID).toBe(carlosChatReport.reportID);
                                     expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
-                                    expect(julesChatReport.hasOutstandingIOU).toBe(true);
                                     expect(julesChatReport.iouReportID).toBe(julesIOUReport.reportID);
                                     expect(julesIOUReport.chatReportID).toBe(julesChatReport.reportID);
 
-                                    expect(vitChatReport.hasOutstandingIOU).toBe(true);
                                     expect(vitChatReport.iouReportID).toBe(vitIOUReport.reportID);
                                     expect(vitIOUReport.chatReportID).toBe(vitChatReport.reportID);
                                     expect(carlosIOUReport.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
@@ -1233,7 +1223,6 @@ describe('actions/IOU', () => {
                                     expect(chatReport).toBeTruthy();
                                     expect(chatReport).toHaveProperty('reportID');
                                     expect(chatReport).toHaveProperty('iouReportID');
-                                    expect(chatReport.hasOutstandingIOU).toBe(true);
 
                                     iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
                                     expect(iouReport).toBeTruthy();
@@ -1313,7 +1302,6 @@ describe('actions/IOU', () => {
                                     chatReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.CHAT);
                                     iouReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.IOU);
 
-                                    expect(chatReport.hasOutstandingIOU).toBe(false);
                                     expect(chatReport.iouReportID).toBeFalsy();
 
                                     // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
@@ -1364,7 +1352,6 @@ describe('actions/IOU', () => {
                                     chatReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.CHAT);
                                     iouReport = _.find(allReports, (r) => r.type === CONST.REPORT.TYPE.IOU);
 
-                                    expect(chatReport.hasOutstandingIOU).toBe(false);
                                     expect(chatReport.iouReportID).toBeFalsy();
 
                                     // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
@@ -1925,7 +1912,6 @@ describe('actions/IOU', () => {
             expect(chatReport).toBeTruthy();
             expect(chatReport).toHaveProperty('reportID');
             expect(chatReport).toHaveProperty('iouReportID');
-            expect(chatReport.hasOutstandingIOU).toBe(true);
 
             // Then one of them should be an IOU report with relevant properties
             iouReport = _.find(allReports, (report) => report.type === CONST.REPORT.TYPE.IOU);
@@ -2492,7 +2478,6 @@ describe('actions/IOU', () => {
             expect(iouReport).toBeTruthy();
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
-            expect(iouReport.hasOutstandingIOU).toBeTruthy();
             expect(iouReport.total).toBe(30000);
 
             const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -2510,7 +2495,6 @@ describe('actions/IOU', () => {
             expect(iouReport).toBeTruthy();
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
-            expect(iouReport.hasOutstandingIOU).toBeTruthy();
             expect(iouReport.total).toBe(20000);
 
             // When we resume fetch
@@ -2520,7 +2504,6 @@ describe('actions/IOU', () => {
             expect(iouReport).toBeTruthy();
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
-            expect(iouReport.hasOutstandingIOU).toBeTruthy();
             expect(iouReport.total).toBe(20000);
         });
 

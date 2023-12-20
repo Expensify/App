@@ -9,9 +9,9 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState
 import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -183,7 +183,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                                 latitude: currentPosition?.latitude,
                                 zoom: initialState.zoom,
                             }}
-                            style={StyleUtils.getTextColorStyle(theme.mapAttributionText) as React.CSSProperties}
+                            style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
                             mapStyle={styleURL}
                         >
                             {waypoints?.map(({coordinate, markerComponent, id}) => {
