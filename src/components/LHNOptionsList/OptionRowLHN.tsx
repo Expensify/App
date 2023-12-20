@@ -93,6 +93,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
             event,
             '',
+            // @ts-expect-error TODO: Remove this once ReportActionContextMenu (https://github.com/Expensify/App/pull/32670) is migrated to TypeScript.
             popoverAnchor,
             reportID,
             '0',

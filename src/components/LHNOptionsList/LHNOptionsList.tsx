@@ -55,6 +55,7 @@ function LHNOptionsList({
                     reportActions={itemReportActions}
                     parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
+                    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
                     personalDetails={participantsPersonalDetails}
                     transaction={itemTransaction}
                     receiptTransactions={transactions}
