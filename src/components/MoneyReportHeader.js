@@ -98,15 +98,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         setIsConfirmModalVisible(false);
     }, [moneyRequestReport, chatReport]);
 
-    const threeDotsMenuItems = [];
-    if (isPayer && isSettled) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: 'Cancel payment',
-            onSelected: () => setIsConfirmModalVisible(true),
-        });
-    }
-    const shouldShowThreeDotsButton = !!threeDotsMenuItems.length;
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
@@ -127,6 +118,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
+    if (isPayer && isSettled) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: 'Cancel payment',
+            onSelected: () => setIsConfirmModalVisible(true),
+        });
+    }
     if (!ReportUtils.isArchivedRoom(chatReport)) {
         threeDotsMenuItems.push({
             icon: ZoomIcon,
@@ -149,9 +147,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldEnableDetailPageNavigation
-                shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                threeDotsMenuItems={threeDotsMenuItems}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
