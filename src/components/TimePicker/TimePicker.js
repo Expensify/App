@@ -165,7 +165,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
 
             if (filteredText.length < 2) {
                 // If we remove a value, prepend 0.
-                newHour = `0${text}`;
+                newHour = `0${filteredText}`;
                 newSelection = 0;
                 // If the second digit is > 2, replace the hour with 0 and the second digit.
             } else if (formattedText > 12 && formattedText <= 24) {
@@ -173,33 +173,23 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newSelection = 2;
                 setAmPmValue(CONST.TIME_PERIOD.PM);
             } else if (formattedText > 24) {
-                newHour = `0${text[1]}`;
+                newHour = `0${filteredText[1]}`;
                 newSelection = 2;
             } else {
-                newHour = `${text[0]}${text[1]}`;
+                newHour = `${filteredText[0]}${filteredText[1]}`;
                 setHours(newHour);
                 newSelection = 2;
             }
-        } else if (selectionHour.start === 2 && selectionHour.end === 2) {
-            // The cursor is at the end and no text is selected.
-            if (filteredText.length < 2) {
-                newHour = `${text}0`;
-                newSelection = 1;
-            } else {
-                newSelection = 2;
-            }
-        } else if (selectionHour.start === 0 && selectionHour.end === 2) {
-            if (filteredText <= 1) {
-                newHour = `${filteredText}0`;
-                newSelection = 1;
-            } else if (filteredText > 12 && filteredText <= 24) {
-                newHour = String(filteredText - 12).padStart(2, '0');
-                newSelection = 2;
-                setAmPmValue(CONST.TIME_PERIOD.PM);
-            } else {
-                newHour = String(Math.min(filteredText, 12)).padStart(2, '0');
-                newSelection = 2;
-            }
+        } else if (filteredText.length <= 1 && filteredText < 2) {
+            newHour = `${filteredText}0`;
+            newSelection = 1;
+        } else if (filteredText > 12 && filteredText <= 24) {
+            newHour = String(filteredText - 12).padStart(2, '0');
+            newSelection = 2;
+            setAmPmValue(CONST.TIME_PERIOD.PM);
+        } else if (filteredText.length <= 2) {
+            newHour = String(Math.min(filteredText, 12)).padStart(2, '0');
+            newSelection = 2;
         }
 
         setHours(newHour);
@@ -231,7 +221,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         if (selectionMinute.start === 0 && selectionMinute.end === 0) {
             // The cursor is at the start.
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
-            if (text[0] >= 6) {
+            if (filteredText[0] >= 6) {
                 newMinute = `0${formattedText[1]}`;
                 newSelection = 2;
             } else {
@@ -242,27 +232,20 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             // The cursor is at the second position.
             // If we remove a value, prepend 0.
             if (filteredText.length < 2) {
-                newMinute = `0${text}`;
+                newMinute = `0${filteredText}`;
                 newSelection = 0;
                 setSelectionHour({start: 2, end: 2});
                 hourInputRef.current.focus();
             } else {
-                newMinute = `${text[0]}${text[1]}`;
+                newMinute = `${filteredText[0]}${filteredText[1]}`;
                 newSelection = 2;
             }
-        } else if (selectionMinute.start === 2 && selectionMinute.end === 2 && filteredText.length < 2) {
-            // The cursor is at the end and no text is selected
-            newMinute = `${text}0`;
+        } else if (filteredText.length <= 1 && filteredText <= 5) {
+            newMinute = `${filteredText}0`;
             newSelection = 1;
-        } else if (selectionMinute.start === 0 && selectionMinute.end === 2) {
-            // The user selects and replaces the text
-            if (filteredText <= 5) {
-                newMinute = `${filteredText}0`;
-                newSelection = 1;
-            } else {
-                newMinute = String(Math.min(filteredText, 59)).padStart(2, '0');
-                newSelection = 2;
-            }
+        } else if (filteredText.length <= 2) {
+            newMinute = String(Math.min(filteredText, 59)).padStart(2, '0');
+            newSelection = 2;
         }
 
         setMinute(newMinute);
@@ -362,10 +345,11 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             if (selectionMinute.start !== 0 || selectionMinute.end !== 0 || e.key !== 'Backspace') {
                 return;
             }
-            hourInputRef.current.focus();
+            e.preventDefault();
+            focusHourInputOnLastCharacter();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectionMinute.start, selectionMinute.end],
+        [selectionMinute.start, selectionMinute.end, focusHourInputOnLastCharacter],
     );
 
     const {styleForAM, styleForPM} = StyleUtils.getStatusAMandPMButtonStyle(amPmValue);
