@@ -25,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as Policy from './Policy';
 import * as Report from './Report';
-import {isScanRequest} from "@libs/TransactionUtils";
 
 let betas;
 Onyx.connect({
