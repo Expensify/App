@@ -2478,6 +2478,10 @@ export default {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
     },
+    breadcrumbs: {
+        // TODO-IDEAL: Verify translations in Spanish
+        chats: 'Chats',
+    },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText1: 'Inicia un chat y ',

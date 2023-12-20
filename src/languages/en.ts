@@ -1992,7 +1992,6 @@ export default {
         transactionDate: 'Transaction date',
     },
     breadcrumbs: {
-        // TODO-IDEAL: Verify translations in Spanish
         chats: 'Chats',
     },
     referralProgram: {
