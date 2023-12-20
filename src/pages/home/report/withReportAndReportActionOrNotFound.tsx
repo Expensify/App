@@ -70,7 +70,8 @@ export default function <TProps extends ComponentProps, TRef>(WrappedComponent: 
         const isLoadingReportAction = isEmptyObject(props.reportActions) || (props.reportMetadata?.isLoadingInitialReportActions && isEmptyObject(getReportAction()));
         const shouldHideReport = !isLoadingReport && (!props.report?.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas));
 
-        if ((isLoadingReport ?? isLoadingReportAction) && !shouldHideReport) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
             return <FullscreenLoadingIndicator />;
         }
 
