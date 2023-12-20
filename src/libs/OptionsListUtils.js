@@ -1187,7 +1187,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     }
 
     policyRatesSections.push({
-        // "All" section when items amount more than the threshold
+        // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
         indexOffset,
