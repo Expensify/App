@@ -11,16 +11,7 @@ import Avatar from './Avatar';
 import Icon, {IconProps} from './Icon';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
-type SubIcon = {
-    /** Avatar source to display */
-    source: IconProps['src'];
-
-    /** Width of the icon */
-    width?: number;
-
-    /** Height of the icon */
-    height?: number;
-};
+type SubIcon = Pick<IconProps, 'src' | 'width' | 'height'>;
 
 type SubAvatar = {
     /** Avatar source to display */
