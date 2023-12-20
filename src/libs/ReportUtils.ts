@@ -870,7 +870,7 @@ function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if the current user is allowed to comment on the given report.
  */
-function isAllowedToComment(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isAllowedToComment(report: OnyxEntry<Report>): boolean {
     // Default to allowing all users to post
     const capability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -2075,7 +2075,7 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
 /**
  * Returns the parentReport if the given report is a thread.
  */
-function getParentReport(report: OnyxEntry<Report> | EmptyObject): OnyxEntry<Report> | EmptyObject {
+function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
     if (!report?.parentReportID) {
         return {};
     }

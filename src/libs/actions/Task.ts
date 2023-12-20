@@ -39,7 +39,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? 0;
+        currentUserAccountID = value?.accountID ?? -1;
     },
 });
 
@@ -77,7 +77,7 @@ function createTaskAndNavigate(
     description: string,
     assigneeEmail: string,
     assigneeAccountID = 0,
-    assigneeChatReport: OnyxTypes.Report | null = null,
+    assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null,
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
 ) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description, policyID);
@@ -177,6 +177,7 @@ function createTaskAndNavigate(
             assigneeChatReport,
         );
 
+        console.log({assigneeChatReportOnyxData});
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
         failureData.push(...assigneeChatReportOnyxData.failureData);
@@ -468,7 +469,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write('EditTask', parameters, {optimisticData, successData, failureData});
 }
 
-function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: OnyxTypes.Report | null = null) {
+function editTaskAssignee(report: OnyxTypes.Report, ownerAccountID: number, assigneeEmail: string, assigneeAccountID = 0, assigneeChatReport: OnyxEntry<OnyxTypes.Report> = null) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
     const reportName = report.reportName?.trim();
@@ -740,7 +741,7 @@ function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: n
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const taskReport = ReportUtils.getReport(taskReportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(isNotEmptyObject(taskReport) ? taskReport : null);
-    const parentReport = ReportUtils.getParentReport(taskReport);
+    const parentReport = isNotEmptyObject(taskReport) ? ReportUtils.getParentReport(taskReport) : {};
     const optimisticReportAction: ReportUtils.OptimisticTaskReportAction = {
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction.message,
@@ -884,8 +885,8 @@ function getTaskAssigneeAccountID(taskReport: OnyxTypes.Report): number | undefi
 /**
  * Returns Task owner accountID
  */
-function getTaskOwnerAccountID(taskReport: OnyxTypes.Report): number | null {
-    return taskReport?.ownerAccountID ?? null;
+function getTaskOwnerAccountID(taskReport: OnyxTypes.Report): number | undefined {
+    return taskReport?.ownerAccountID ?? undefined;
 }
 
 /**
@@ -909,7 +910,7 @@ function canModifyTask(taskReport: OnyxTypes.Report, sessionAccountID: number, p
     // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
     // - If the parent report is an #admins only room
     // - If you are a policy admin
-    return ReportUtils.isAllowedToComment(parentReport);
+    return isNotEmptyObject(parentReport) && ReportUtils.isAllowedToComment(parentReport);
 }
 
 function clearTaskErrors(reportID: string) {
