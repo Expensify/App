@@ -7,8 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
-import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
-import {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,16 +17,14 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import withPolicy from './withPolicy';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
+    ...policyPropTypes,
 };
 
 const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
-    isLoadingApp: true,
+    ...policyDefaultProps,
 };
 
 function WorkspaceNamePage({policy}) {
