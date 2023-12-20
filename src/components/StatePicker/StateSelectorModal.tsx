@@ -1,48 +1,41 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
-import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import searchCountryOptions from '@libs/searchCountryOptions';
+import searchCountryOptions, {type CountryData} from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type State = keyof typeof COMMON_CONST.STATES;
+
+type StateSelectorModalProps = {
     /** Whether the modal is visible */
-    isVisible: PropTypes.bool.isRequired,
+    isVisible: boolean;
 
     /** State value selected  */
-    currentState: PropTypes.string,
+    currentState?: State | '';
 
     /** Function to call when the user selects a State */
-    onStateSelected: PropTypes.func,
+    onStateSelected?: (state: CountryData) => void;
 
     /** Function to call when the user closes the State modal */
-    onClose: PropTypes.func,
+    onClose?: () => void;
 
     /** The search value from the selection list */
-    searchValue: PropTypes.string.isRequired,
+    searchValue: string;
 
     /** Function to call when the user types in the search input */
-    setSearchValue: PropTypes.func.isRequired,
+    setSearchValue: (value: string) => void;
 
     /** Label to display on field */
-    label: PropTypes.string,
+    label?: string;
 };
 
-const defaultProps = {
-    currentState: '',
-    onClose: () => {},
-    onStateSelected: () => {},
-    label: undefined,
-};
-
-function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
+function StateSelectorModal({currentState = '', isVisible, onClose = () => {}, onStateSelected = () => {}, searchValue, setSearchValue, label}: StateSelectorModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -53,11 +46,11 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
         setSearchValue('');
     }, [isVisible, setSearchValue]);
 
-    const countryStates = useMemo(
+    const countryStates: CountryData[] = useMemo(
         () =>
-            _.map(_.keys(COMMON_CONST.STATES), (state) => {
-                const stateName = translate(`allStates.${state}.stateName`);
-                const stateISO = translate(`allStates.${state}.stateISO`);
+            Object.keys(COMMON_CONST.STATES).map((state) => {
+                const stateName = translate(`allStates.${state as State}.stateName`);
+                const stateISO = translate(`allStates.${state as State}.stateISO`);
                 return {
                     value: stateISO,
                     keyForList: stateISO,
@@ -81,6 +74,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
             hideModalContentWhileAnimating
             useNativeDriver
         >
+            {/* @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript. */}
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
@@ -93,6 +87,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
+                    /* @ts-expect-error TODO: Remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is migrated to TypeScript. */
                     headerMessage={headerMessage}
                     textInputLabel={label || translate('common.state')}
                     textInputValue={searchValue}
@@ -108,8 +103,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
     );
 }
 
-StateSelectorModal.propTypes = propTypes;
-StateSelectorModal.defaultProps = defaultProps;
 StateSelectorModal.displayName = 'StateSelectorModal';
 
 export default StateSelectorModal;
+export type {State};

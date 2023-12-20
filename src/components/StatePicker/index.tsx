@@ -1,41 +1,28 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {ForwardedRef, useState} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import refPropTypes from '@components/refPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import StateSelectorModal from './StateSelectorModal';
+import type {CountryData} from '@libs/searchCountryOptions';
+import StateSelectorModal, {type State} from './StateSelectorModal';
 
-const propTypes = {
+type StatePickerProps = {
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText?: string;
 
     /** State to display */
-    value: PropTypes.string,
+    value?: State;
 
     /** Callback to call when the input changes */
-    onInputChange: PropTypes.func,
-
-    /** A ref to forward to MenuItemWithTopDescription */
-    forwardedRef: refPropTypes,
+    onInputChange?: (value: string) => void;
 
     /** Label to display on field */
-    label: PropTypes.string,
+    label?: string;
 };
 
-const defaultProps = {
-    value: undefined,
-    forwardedRef: undefined,
-    errorText: '',
-    onInputChange: () => {},
-    label: undefined,
-};
-
-function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
+function StatePicker({value, onInputChange, label, errorText = ''}: StatePickerProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -49,20 +36,20 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
         setIsPickerVisible(false);
     };
 
-    const updateStateInput = (state) => {
+    const updateStateInput = (state: CountryData) => {
         if (state.value !== value) {
-            onInputChange(state.value);
+            onInputChange?.(state.value);
         }
         hidePickerModal();
     };
 
-    const title = value && _.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';
+    const title = value && Object.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
+                ref={ref}
                 shouldShowRightIcon
                 title={title}
                 description={label || translate('common.state')}
@@ -85,18 +72,6 @@ function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     );
 }
 
-StatePicker.propTypes = propTypes;
-StatePicker.defaultProps = defaultProps;
 StatePicker.displayName = 'StatePicker';
 
-const StatePickerWithRef = React.forwardRef((props, ref) => (
-    <StatePicker
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
-StatePickerWithRef.displayName = 'StatePickerWithRef';
-
-export default StatePickerWithRef;
+export default React.forwardRef(StatePicker);

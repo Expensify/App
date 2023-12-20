@@ -37,3 +37,4 @@ function searchCountryOptions(searchValue: string, countriesData: CountryData[])
 }
 
 export default searchCountryOptions;
+export type {CountryData};
