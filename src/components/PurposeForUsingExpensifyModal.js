@@ -204,7 +204,7 @@ function PurposeForUsingExpensifyModal(props) {
 
 PurposeForUsingExpensifyModal.propTypes = propTypes;
 PurposeForUsingExpensifyModal.defaultProps = defaultProps;
-PurposeForUsingExpensifyModal.displayName = 'AddPaymentMethodMenu';
+PurposeForUsingExpensifyModal.displayName = 'PurposeForUsingExpensifyModal';
 
 export default compose(
     withWindowDimensions,
