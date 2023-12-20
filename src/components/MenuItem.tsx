@@ -1,4 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ImageContentFit} from 'expo-image';
 import React, {ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {AnimatedStyle} from 'react-native-reanimated';
@@ -226,6 +227,9 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
 
         /** Icon should be displayed in its own color */
         displayInDefaultIconColor?: boolean;
+
+        /** Determines how the icon should be resized to fit its container */
+        contentFit?: ImageContentFit;
     };
 
 function MenuItem(
@@ -287,6 +291,7 @@ function MenuItem(
         onSecondaryInteraction,
         titleWithTooltips,
         displayInDefaultIconColor = false,
+        contentFit = 'cover',
     }: MenuItemProps,
     ref: ForwardedRef<View>,
 ) {
@@ -428,6 +433,7 @@ function MenuItem(
                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
                                             {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
+                                                    contentFit={contentFit}
                                                     hovered={isHovered}
                                                     pressed={pressed}
                                                     src={icon}
@@ -463,6 +469,7 @@ function MenuItem(
                                     {secondaryIcon && (
                                         <View style={[styles.popoverMenuIcon, iconStyles]}>
                                             <Icon
+                                                contentFit={contentFit}
                                                 src={secondaryIcon}
                                                 width={iconWidth}
                                                 height={iconHeight}
