@@ -223,6 +223,8 @@ function getOrderedReportIDs(
 
 type ActorDetails = {
     displayName?: string;
+    firstName?: string;
+    lastName?: string;
     accountID?: number;
 };
 
@@ -332,7 +334,7 @@ function getOptionData(
             : null;
     }
 
-    const lastActorDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+    const lastActorDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.firstName ?? lastActorDetails.displayName : '';
     let lastMessageText = lastMessageTextFromReport;
 
     const reportAction = lastReportActions?.[report.reportID];
