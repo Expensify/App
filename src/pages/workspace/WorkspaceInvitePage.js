@@ -60,7 +60,6 @@ const defaultProps = {
 function WorkspaceInvitePage(props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [selectedOptions, setSelectedOptions] = useState([]);
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
@@ -76,9 +75,9 @@ function WorkspaceInvitePage(props) {
 
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
-    const validate = () => {
+    const validate = (selectedMembersSize) => {
         const errors = {};
-        if (selectedOptions.length <= 0) {
+        if (selectedMembersSize <= 0) {
             errors.noUserSelected = true;
         }
 
@@ -86,13 +85,13 @@ function WorkspaceInvitePage(props) {
         return _.size(errors) <= 0;
     };
 
-    const inviteUser = () => {
-        if (!validate()) {
+    const inviteUsers = (selectedUsers) => {
+        if (!validate(selectedUsers.length)) {
             return;
         }
 
         const invitedEmailsToAccountIDs = {};
-        _.each(selectedOptions, (option) => {
+        _.each(selectedUsers, (option) => {
             const login = option.login || '';
             const accountID = lodashGet(option, 'accountID', '');
             if (!login.toLowerCase().trim() || !accountID) {
@@ -132,9 +131,7 @@ function WorkspaceInvitePage(props) {
                     />
                     <MemberInviteList
                         didScreenTransitionEnd={didScreenTransitionEnd}
-                        inviteUsers={inviteUser}
-                        selectedOptions={selectedOptions}
-                        setSelectedOptions={setSelectedOptions}
+                        inviteUsers={inviteUsers}
                         excludedUsers={excludedUsers}
                         name={policyName}
                     />

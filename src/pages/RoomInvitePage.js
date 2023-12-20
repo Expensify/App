@@ -53,17 +53,16 @@ const defaultProps = {
 
 function RoomInvitePage(props) {
     const styles = useThemeStyles();
-    const [selectedOptions, setSelectedOptions] = useState([]);
     const {translate} = useLocalize();
 
-    const validate = useCallback(() => {
+    const validate = useCallback((selectedUsersSize) => {
         const errors = {};
-        if (selectedOptions.length <= 0) {
+        if (selectedUsersSize <= 0) {
             errors.noUserSelected = true;
         }
 
         return _.size(errors) <= 0;
-    }, [selectedOptions]);
+    }, []);
 
     // Non policy members should not be able to view the participants of a room
     const reportID = props.report.reportID;
@@ -80,12 +79,12 @@ function RoomInvitePage(props) {
         [props.report],
     );
 
-    const inviteUsers = useCallback(() => {
+    const inviteUsers = useCallback((selectedUsers) => {
         if (!validate()) {
             return;
         }
         const invitedEmailsToAccountIDs = {};
-        _.each(selectedOptions, (option) => {
+        _.each(selectedUsers, (option) => {
             const login = option.login || '';
             const accountID = lodashGet(option, 'accountID', '');
             if (!login.toLowerCase().trim() || !accountID) {
@@ -95,7 +94,7 @@ function RoomInvitePage(props) {
         });
         Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
         Navigation.navigate(backRoute);
-    }, [selectedOptions, backRoute, props.report.reportID, validate]);
+    }, [backRoute, props.report.reportID, validate]);
 
     return (
         <ScreenWrapper
@@ -118,8 +117,6 @@ function RoomInvitePage(props) {
                     <MemberInviteList
                         didScreenTransitionEnd={didScreenTransitionEnd}
                         inviteUsers={inviteUsers}
-                        selectedOptions={selectedOptions}
-                        setSelectedOptions={setSelectedOptions}
                         excludedUsers={excludedUsers}
                         name={reportName}
                     />

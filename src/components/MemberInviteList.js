@@ -19,16 +19,11 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Array of already selected options */
-    selectedOptions: PropTypes.arrayOf(optionPropTypes).isRequired,
-
     didScreenTransitionEnd: PropTypes.bool.isRequired,
 
     excludedUsers: PropTypes.arrayOf(PropTypes.string),
 
     name: PropTypes.string,
-
-    setSelectedOptions: PropTypes.func.isRequired,
 
     inviteUsers: PropTypes.func.isRequired,
 };
@@ -41,8 +36,9 @@ const defaultProps = {
 };
 
 function MemberInviteList(props) {
-    const {selectedOptions, setSelectedOptions, excludedUsers, betas, didScreenTransitionEnd, name, inviteUsers} = props;
+    const {excludedUsers, betas, didScreenTransitionEnd, name, inviteUsers} = props;
     const {translate} = useLocalize();
+    const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
 
