@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -46,7 +47,7 @@ const defaultProps = {
 };
 
 function MemberInviteList(props) {
-    const {excludedUsers, betas, name, inviteUsers, shouldShowAlertPrompt, confirmButtonText} = props;
+    const {excludedUsers, betas, name, shouldShowAlertPrompt, confirmButtonText} = props;
     const {translate} = useLocalize();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
@@ -143,6 +144,24 @@ function MemberInviteList(props) {
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails.length, name]);
+
+    const inviteUsers = (selectedUsers) => {
+        if (selectedUsers.length <= 0) {
+            return;
+        }
+
+        const selectedEmailsToAccountIDs = {};
+        _.each(selectedUsers, (option) => {
+            const login = option.login || '';
+            const accountID = lodashGet(option, 'accountID', '');
+            if (!login.toLowerCase().trim() || !accountID) {
+                return;
+            }
+            selectedEmailsToAccountIDs[login] = Number(accountID);
+        });
+
+        props.inviteUsers(selectedEmailsToAccountIDs);
+    };
 
     return (
         <>

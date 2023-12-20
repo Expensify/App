@@ -52,15 +52,6 @@ const defaultProps = {
 function RoomInvitePage(props) {
     const {translate} = useLocalize();
 
-    const validate = useCallback((selectedUsersSize) => {
-        const errors = {};
-        if (selectedUsersSize <= 0) {
-            errors.noUserSelected = true;
-        }
-
-        return _.size(errors) <= 0;
-    }, []);
-
     // Non policy members should not be able to view the participants of a room
     const reportID = props.report.reportID;
     const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
@@ -77,23 +68,11 @@ function RoomInvitePage(props) {
     );
 
     const inviteUsers = useCallback(
-        (selectedUsers) => {
-            if (!validate()) {
-                return;
-            }
-            const invitedEmailsToAccountIDs = {};
-            _.each(selectedUsers, (option) => {
-                const login = option.login || '';
-                const accountID = lodashGet(option, 'accountID', '');
-                if (!login.toLowerCase().trim() || !accountID) {
-                    return;
-                }
-                invitedEmailsToAccountIDs[login] = Number(accountID);
-            });
-            Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
+        (selectedEmailsToAccountIDs) => {
+            Report.inviteToRoom(props.report.reportID, selectedEmailsToAccountIDs);
             Navigation.navigate(backRoute);
         },
-        [backRoute, props.report.reportID, validate],
+        [backRoute, props.report.reportID],
     );
 
     return (
