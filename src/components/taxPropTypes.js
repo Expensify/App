@@ -12,7 +12,7 @@ const taxPropTypes = PropTypes.shape({
 });
 
 export default PropTypes.shape({
-    /** Defualt name of taxes */
+    /** Name of the tax */
     name: PropTypes.string.isRequired,
 
     /** Default policy tax ID */
