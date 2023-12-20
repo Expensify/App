@@ -1,7 +1,7 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
+import {PolicyCategories, PolicyTag, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const ViolationsUtils = {
     /**
@@ -12,7 +12,7 @@ const ViolationsUtils = {
         transaction: Transaction,
         transactionViolations: TransactionViolation[],
         policyRequiresTags: boolean,
-        policyTags: PolicyTags,
+        policyTags: Record<string, PolicyTag>,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
     ): {
