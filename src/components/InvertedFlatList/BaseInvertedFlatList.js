@@ -2,6 +2,8 @@ import PropTypes from 'prop-types';
 import React, {forwardRef} from 'react';
 import FlatList from '@components/FlatList';
 
+const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
+
 const propTypes = {
     /** Same as FlatList can be any array of anything */
     // eslint-disable-next-line react/forbid-prop-types
@@ -23,6 +25,7 @@ const BaseInvertedFlatList = forwardRef((props, ref) => (
         windowSize={15}
         maintainVisibleContentPosition={{
             minIndexForVisible: 0,
+            autoscrollToTopThreshold: AUTOSCROLL_TO_TOP_THRESHOLD,
         }}
         inverted
     />
