@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 type LHNOptionsListOnyxProps = {
     /** The policy which the user has access to and which the report could be tied to */
@@ -57,7 +57,7 @@ type OptionRowLHNDataProps = {
     isFocused: boolean;
 
     /** List of users' personal details */
-    personalDetails: Record<string, PersonalDetails>;
+    personalDetails: PersonalDetailsList;
 
     /** The preferred language for the app */
     preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;

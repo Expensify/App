@@ -1,4 +1,4 @@
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent} from 'react-native';
 import {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import type {ParsableStyle} from '@styles/utils/types';
 

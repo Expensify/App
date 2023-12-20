@@ -4,9 +4,8 @@ import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
+import {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import Beta from '@src/types/onyx/Beta';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
@@ -232,7 +231,7 @@ type ActorDetails = {
 function getOptionData(
     report: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
-    personalDetails: Record<number, PersonalDetails>,
+    personalDetails: PersonalDetailsList,
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: OnyxEntry<Policy>,
     parentReportAction: OnyxEntry<ReportAction>,
@@ -285,7 +284,8 @@ function getOptionData(
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
-    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
+    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
+    result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = Object.keys(result.allReportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
