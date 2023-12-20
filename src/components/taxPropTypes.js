@@ -15,7 +15,7 @@ export default PropTypes.shape({
     /** Defualt name of taxes */
     name: PropTypes.string.isRequired,
 
-    /** Defualt external ID of taxes */
+    /** Default policy tax ID */
     defaultExternalID: PropTypes.string,
 
     /** Default value of taxes */
