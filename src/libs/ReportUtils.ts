@@ -2016,11 +2016,13 @@ function getReportPreviewMessage(
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
 
-    if (!isPreviewMessageForParentChatReport) {
-        const lastActorID = reportAction?.actorAccountID;
-        const amount = originalMessage?.amount ?? 0;
-        const currency = originalMessage?.currency ?? report.currency;
-        const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency ?? '');
+    const lastActorID = reportAction?.actorAccountID;
+
+    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
+    if (originalMessage?.amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
+        const amount = originalMessage?.amount;
+        const currency = originalMessage?.currency ?? report.currency ?? '';
+        const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
         return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
     }
@@ -2650,6 +2652,8 @@ function buildOptimisticIOUReportAction(
                 : participants.map((participant) => participant.accountID);
         }
     }
+    console.log({originalMessage});
+    console.log({message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp)});
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
