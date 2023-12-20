@@ -68,6 +68,7 @@ import Globe from '@assets/images/globe.svg';
 import Hashtag from '@assets/images/hashtag.svg';
 import Heart from '@assets/images/heart.svg';
 import History from '@assets/images/history.svg';
+import Home from '@assets/images/home.svg';
 import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
@@ -204,6 +205,7 @@ export {
     Hashtag,
     Heart,
     History,
+    Home,
     Hourglass,
     ImageCropCircleMask,
     ImageCropSquareMask,
