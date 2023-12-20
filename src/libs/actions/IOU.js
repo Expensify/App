@@ -25,6 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as Policy from './Policy';
 import * as Report from './Report';
+import {isScanRequest} from "@libs/TransactionUtils";
 
 let betas;
 Onyx.connect({
@@ -285,11 +286,11 @@ function resetMoneyRequestInfo(id = '') {
  *
  * @param {Object} receipt
  * @param {String} filename
- * @param {Boolean} [isDistance]
+ * @param {Boolean} [isScanRequest]
  * @returns {Object}
  */
-function getReceiptError(receipt, filename, isDistance = false) {
-    return _.isEmpty(receipt) || isDistance
+function getReceiptError(receipt, filename, isScanRequest = true) {
+    return _.isEmpty(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source, filename});
 }
@@ -308,7 +309,7 @@ function buildOnyxDataForMoneyRequest(
     isNewChatReport,
     isNewIOUReport,
 ) {
-    const isDistance = TransactionUtils.isDistanceRequest(transaction);
+    const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -512,7 +513,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewChatReport
                     ? {
                           [chatCreatedAction.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isDistance),
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
                           },
                           [reportPreviewAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -521,7 +522,7 @@ function buildOnyxDataForMoneyRequest(
                     : {
                           [reportPreviewAction.reportActionID]: {
                               created: reportPreviewAction.created,
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isDistance),
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
                           },
                       }),
             },
@@ -533,7 +534,7 @@ function buildOnyxDataForMoneyRequest(
                 ...(isNewIOUReport
                     ? {
                           [iouCreatedAction.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isDistance),
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
                           },
                           [iouAction.reportActionID]: {
                               errors: ErrorUtils.getMicroSecondOnyxError(null),
@@ -541,7 +542,7 @@ function buildOnyxDataForMoneyRequest(
                       }
                     : {
                           [iouAction.reportActionID]: {
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isDistance),
+                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt.filename, isScanRequest),
                           },
                       }),
             },
