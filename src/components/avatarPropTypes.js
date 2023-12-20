@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 export default PropTypes.shape({
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),

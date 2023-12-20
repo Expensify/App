@@ -1,11 +1,11 @@
-import React, {useCallback} from 'react';
-import PropTypes from 'prop-types';
 import {useFocusEffect} from '@react-navigation/native';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import CONST from '../CONST';
-import * as DemoActions from '../libs/actions/DemoActions';
+import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Navigation from '@libs/Navigation/Navigation';
+import * as DemoActions from '@userActions/DemoActions';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */

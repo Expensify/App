@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import WaypointEditor from './WaypointEditor';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** The transactionID of this request */

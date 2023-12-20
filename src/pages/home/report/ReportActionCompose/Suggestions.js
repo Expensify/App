@@ -1,7 +1,10 @@
-import React, {useRef, useCallback, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import SuggestionMention from './SuggestionMention';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+import {DragAndDropContext} from '@components/DragAndDrop/Provider';
+import usePrevious from '@hooks/usePrevious';
 import SuggestionEmoji from './SuggestionEmoji';
+import SuggestionMention from './SuggestionMention';
 import * as SuggestionProps from './suggestionProps';
 
 const propTypes = {
@@ -40,11 +43,30 @@ function Suggestions({
     resetKeyboardInput,
     measureParentContainer,
     isAutoSuggestionPickerLarge,
+    isComposerFocused,
 }) {
     const suggestionEmojiRef = useRef(null);
     const suggestionMentionRef = useRef(null);
+    const {isDraggingOver} = useContext(DragAndDropContext);
+    const prevIsDraggingOver = usePrevious(isDraggingOver);
 
-    const getSuggestions = useCallback(() => suggestionEmojiRef.current.getSuggestions() || suggestionMentionRef.current.getSuggestions(), []);
+    const getSuggestions = useCallback(() => {
+        if (suggestionEmojiRef.current && suggestionEmojiRef.current.getSuggestions) {
+            const emojiSuggestions = suggestionEmojiRef.current.getSuggestions();
+            if (emojiSuggestions.length > 0) {
+                return emojiSuggestions;
+            }
+        }
+
+        if (suggestionMentionRef.current && suggestionMentionRef.current.getSuggestions) {
+            const mentionSuggestions = suggestionMentionRef.current.getSuggestions();
+            if (mentionSuggestions.length > 0) {
+                return mentionSuggestions;
+            }
+        }
+
+        return [];
+    }, []);
 
     /**
      * Clean data related to EmojiSuggestions
@@ -93,6 +115,13 @@ function Suggestions({
         [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
+    useEffect(() => {
+        if (!(!prevIsDraggingOver && isDraggingOver)) {
+            return;
+        }
+        updateShouldShowSuggestionMenuToFalse();
+    }, [isDraggingOver, prevIsDraggingOver, updateShouldShowSuggestionMenuToFalse]);
+
     const baseProps = {
         value,
         setValue,
@@ -103,10 +132,11 @@ function Suggestions({
         composerHeight,
         isAutoSuggestionPickerLarge,
         measureParentContainer,
+        isComposerFocused,
     };
 
     return (
-        <>
+        <View testID="suggestions">
             <SuggestionEmoji
                 ref={suggestionEmojiRef}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -118,7 +148,7 @@ function Suggestions({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...baseProps}
             />
-        </>
+        </View>
     );
 }
 
@@ -126,10 +156,14 @@ Suggestions.propTypes = propTypes;
 Suggestions.defaultProps = defaultProps;
 Suggestions.displayName = 'Suggestions';
 
-export default React.forwardRef((props, ref) => (
+const SuggestionsWithRef = React.forwardRef((props, ref) => (
     <Suggestions
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+SuggestionsWithRef.displayName = 'SuggestionsWithRef';
+
+export default SuggestionsWithRef;

@@ -1,34 +1,35 @@
+import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import * as Report from '../../libs/actions/Report';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import TextInput from '../../components/TextInput';
-import Text from '../../components/Text';
-import BankAccount from '../../libs/models/BankAccount';
-import TextLink from '../../components/TextLink';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as ValidationUtils from '../../libs/ValidationUtils';
+import Button from '@components/Button';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import BankAccount from '@libs/models/BankAccount';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+import * as BankAccounts from '@userActions/BankAccounts';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Enable2FAPrompt from './Enable2FAPrompt';
 import EnableStep from './EnableStep';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
-import Form from '../../components/Form';
-import * as Expensicons from '../../components/Icon/Expensicons';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import Section from '../../components/Section';
-import CONST from '../../CONST';
-import Button from '../../components/Button';
-import MenuItem from '../../components/MenuItem';
-import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
-import Enable2FAPrompt from './Enable2FAPrompt';
-import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -43,6 +44,9 @@ const propTypes = {
         /** If user has two-factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
+
+    /** policyID of the workspace where user is setting up bank account */
+    policyID: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -73,7 +77,8 @@ const filterInput = (amount) => {
     return value;
 };
 
-function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account}) {
+function ValidationStep({reimbursementAccount, translate, onBackButtonPress, account, policyID}) {
+    const styles = useThemeStyles();
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -140,49 +145,52 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                 </View>
             )}
             {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
-                <Form
+                <FormProvider
                     formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                     submitButtonText={translate('validationStep.buttonText')}
                     onSubmit={submit}
                     validate={validate}
-                    style={[styles.mh5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 >
                     <View style={[styles.mb2]}>
                         <Text style={[styles.mb5]}>{translate('validationStep.description')}</Text>
                         <Text style={[styles.mb2]}>{translate('validationStep.descriptionCTA')}</Text>
                     </View>
                     <View style={[styles.mv5]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="amount1"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.52"
-                            keyboardType="decimal-pad"
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputMode={CONST.INPUT_MODE.DECIMAL}
+                            role={CONST.ROLE.PRESENTATION}
                         />
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="amount2"
                             shouldSaveDraft
                             containerStyles={[styles.mb1]}
                             placeholder="1.53"
-                            keyboardType="decimal-pad"
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputMode={CONST.INPUT_MODE.DECIMAL}
+                            role={CONST.ROLE.PRESENTATION}
                         />
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             shouldSaveDraft
                             inputID="amount3"
                             containerStyles={[styles.mb1]}
                             placeholder="1.54"
-                            keyboardType="decimal-pad"
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputMode={CONST.INPUT_MODE.DECIMAL}
+                            role={CONST.ROLE.PRESENTATION}
                         />
                     </View>
                     {!requiresTwoFactorAuth && (
                         <View style={[styles.mln5, styles.mrn5]}>
-                            <Enable2FAPrompt />
+                            <Enable2FAPrompt policyID={policyID} />
                         </View>
                     )}
-                </Form>
+                </FormProvider>
             )}
             {isVerifying && (
                 <ScrollView style={[styles.flex1]}>
@@ -210,7 +218,7 @@ function ValidationStep({reimbursementAccount, translate, onBackButtonPress, acc
                         />
                     </Section>
                     {reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
-                    {!requiresTwoFactorAuth && <Enable2FAPrompt />}
+                    {!requiresTwoFactorAuth && <Enable2FAPrompt policyID={policyID} />}
                 </ScrollView>
             )}
         </ScreenWrapper>

@@ -1,7 +1,7 @@
-import {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
-import CONST from '../../CONST';
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;

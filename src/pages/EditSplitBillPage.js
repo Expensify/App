@@ -1,21 +1,24 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../CONST';
-import ROUTES from '../ROUTES';
-import ONYXKEYS from '../ONYXKEYS';
-import compose from '../libs/compose';
-import transactionPropTypes from '../components/transactionPropTypes';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import Navigation from '../libs/Navigation/Navigation';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import transactionPropTypes from '@components/transactionPropTypes';
+import compose from '@libs/compose';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import EditRequestAmountPage from './EditRequestAmountPage';
+import EditRequestCategoryPage from './EditRequestCategoryPage';
+import EditRequestCreatedPage from './EditRequestCreatedPage';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
-import EditRequestCreatedPage from './EditRequestCreatedPage';
-import EditRequestAmountPage from './EditRequestAmountPage';
+import EditRequestTagPage from './EditRequestTagPage';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /** Route from navigation */
@@ -38,13 +41,16 @@ const propTypes = {
 
     /** The draft transaction that holds data to be persisted on the current transaction */
     draftTransaction: transactionPropTypes,
+
+    /** The report currently being used */
+    report: reportPropTypes.isRequired,
 };
 
 const defaultProps = {
     draftTransaction: undefined,
 };
 
-function EditSplitBillPage({route, transaction, draftTransaction}) {
+function EditSplitBillPage({route, transaction, draftTransaction, report}) {
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
     const reportID = lodashGet(route, ['params', 'reportID'], '');
     const reportActionID = lodashGet(route, ['params', 'reportActionID'], '');
@@ -55,6 +61,8 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
         comment: transactionDescription,
         merchant: transactionMerchant,
         created: transactionCreated,
+        category: transactionCategory,
+        tag: transactionTag,
     } = draftTransaction ? ReportUtils.getTransactionDetails(draftTransaction) : ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
@@ -63,10 +71,10 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(reportID, reportActionID));
     }
 
-    function setDraftSplitTransaction(transactionChanges) {
+    const setDraftSplitTransaction = (transactionChanges) => {
         IOU.setDraftSplitTransaction(transaction.transactionID, transactionChanges);
         navigateBackToSplitDetails();
-    }
+    };
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
@@ -85,13 +93,7 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
         return (
             <EditRequestCreatedPage
                 defaultCreated={transactionCreated}
-                defaultAmount={transactionAmount}
-                reportID={reportID}
-                onSubmit={(transactionChanges) => {
-                    setDraftSplitTransaction({
-                        created: transactionChanges.created,
-                    });
-                }}
+                onSubmit={setDraftSplitTransaction}
             />
         );
     }
@@ -112,7 +114,7 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
                     });
                 }}
                 onNavigateToCurrency={() => {
-                    const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
+                    const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_SPLIT_BILL_CURRENCY.getRoute(reportID, reportActionID, defaultCurrency, activeRoute));
                 }}
             />
@@ -130,6 +132,30 @@ function EditSplitBillPage({route, transaction, draftTransaction}) {
         );
     }
 
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.CATEGORY) {
+        return (
+            <EditRequestCategoryPage
+                defaultCategory={transactionCategory}
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={(transactionChanges) => {
+                    setDraftSplitTransaction({category: transactionChanges.category.trim()});
+                }}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAG) {
+        return (
+            <EditRequestTagPage
+                defaultTag={transactionTag}
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={(transactionChanges) => {
+                    setDraftSplitTransaction({tag: transactionChanges.tag.trim()});
+                }}
+            />
+        );
+    }
+
     return <FullPageNotFoundView shouldShow />;
 }
 
@@ -141,6 +167,9 @@ export default compose(
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
             canEvict: false,
+        },
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     }),
     // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file

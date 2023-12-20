@@ -1,33 +1,33 @@
-import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo} from 'react';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {View, ScrollView} from 'react-native';
-import RoomHeaderAvatars from '../components/RoomHeaderAvatars';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import ONYXKEYS from '../ONYXKEYS';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Navigation from '../libs/Navigation/Navigation';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import styles from '../styles/styles';
-import DisplayNames from '../components/DisplayNames';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import * as PolicyUtils from '../libs/PolicyUtils';
-import * as Report from '../libs/actions/Report';
-import participantPropTypes from '../components/participantPropTypes';
-import * as Expensicons from '../components/Icon/Expensicons';
-import ROUTES from '../ROUTES';
-import MenuItem from '../components/MenuItem';
-import Text from '../components/Text';
-import CONST from '../CONST';
-import reportPropTypes from './reportPropTypes';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DisplayNames from '@components/DisplayNames';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MultipleAvatars from '@components/MultipleAvatars';
+import {withNetwork} from '@components/OnyxProvider';
+import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
+import participantPropTypes from '@components/participantPropTypes';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import PressableWithoutFeedback from '../components/Pressable/PressableWithoutFeedback';
-import ParentNavigationSubtitle from '../components/ParentNavigationSubtitle';
-import MultipleAvatars from '../components/MultipleAvatars';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -59,9 +59,11 @@ const defaultProps = {
 };
 
 function ReportDetailsPage(props) {
+    const styles = useThemeStyles();
     const policy = useMemo(() => props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`], [props.policies, props.report.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
-    const shouldUseFullTitle = ReportUtils.isTaskReport(props.report);
+    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(props.report.policyID, props.policies), [props.report.policyID, props.policies]);
+    const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(props.report), [props.report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
     const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
@@ -71,10 +73,20 @@ function ReportDetailsPage(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(props.report);
-    const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
     const participants = useMemo(() => ReportUtils.getParticipantsIDs(props.report), [props.report]);
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(props.report) && participants.length > 1, [props.report, participants.length]);
+
+    const isPrivateNotesFetchTriggered = !_.isUndefined(props.report.isLoadingPrivateNotes);
+
+    useEffect(() => {
+        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
+        if (isPrivateNotesFetchTriggered || props.network.isOffline) {
+            return;
+        }
+
+        Report.getReportPrivateNote(props.report.reportID);
+    }, [props.report.reportID, props.network.isOffline, isPrivateNotesFetchTriggered]);
 
     const menuItems = useMemo(() => {
         const items = [];
@@ -93,7 +105,10 @@ function ReportDetailsPage(props) {
             return items;
         }
 
-        if (participants.length) {
+        // The Members page is only shown when:
+        // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
+        // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
+        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
@@ -101,7 +116,21 @@ function ReportDetailsPage(props) {
                 subtitle: participants.length,
                 isAnonymousAction: false,
                 action: () => {
-                    Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
+                    if (isUserCreatedPolicyRoom && !props.report.parentReportID) {
+                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(props.report.reportID));
+                    } else {
+                        Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(props.report.reportID));
+                    }
+                },
+            });
+        } else if (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember) && !props.report.parentReportID) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
+                translationKey: 'common.invite',
+                icon: Expensicons.Users,
+                isAnonymousAction: false,
+                action: () => {
+                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(props.report.reportID));
                 },
             });
         }
@@ -123,23 +152,13 @@ function ReportDetailsPage(props) {
                 translationKey: 'privateNotes.title',
                 icon: Expensicons.Pencil,
                 isAnonymousAction: false,
-                action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(props.report.reportID)),
+                action: () => ReportUtils.navigateToPrivateNotes(props.report, props.session),
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
             });
         }
 
-        if (isUserCreatedPolicyRoom || canLeaveRoom) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
-                translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
-                icon: Expensicons.Exit,
-                isAnonymousAction: false,
-                action: () => Report.leaveRoom(props.report.reportID),
-            });
-        }
-
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isUserCreatedPolicyRoom, canLeaveRoom, isGroupDMChat]);
+    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, props.report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, props.session]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -149,18 +168,26 @@ function ReportDetailsPage(props) {
     const icons = useMemo(() => ReportUtils.getIcons(props.report, props.personalDetails, props.policies), [props.report, props.personalDetails, props.policies]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
-        <Text
-            style={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1]}
+        <DisplayNames
+            fullTitle={chatRoomSubtitle}
+            tooltipEnabled
             numberOfLines={1}
-        >
-            {chatRoomSubtitle}
-        </Text>
+            textStyles={[styles.sidebarLinkText, styles.textLabelSupporting, styles.pre, styles.mt1, styles.textAlignCenter]}
+            shouldUseFullTitle
+        />
     ) : null;
 
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
-                <HeaderWithBackButton title={props.translate('common.details')} />
+                <HeaderWithBackButton
+                    title={props.translate('common.details')}
+                    shouldNavigateToTopMostReport
+                    onBackButtonPress={() => {
+                        Navigation.goBack();
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
+                    }}
+                />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
@@ -186,8 +213,9 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
+                                    style={[styles.w100]}
                                     disabled={policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(props.report.policyID));
@@ -235,13 +263,17 @@ ReportDetailsPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withReportOrNotFound(),
+    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(ReportDetailsPage);

@@ -1,30 +1,28 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../../../styles/styles';
-import Icon from '../../../../components/Icon';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import AttachmentPicker from '../../../../components/AttachmentPicker';
-import * as Report from '../../../../libs/actions/Report';
-import PopoverMenu from '../../../../components/PopoverMenu';
-import CONST from '../../../../CONST';
-import Tooltip from '../../../../components/Tooltip';
-import * as Browser from '../../../../libs/Browser';
-import PressableWithFeedback from '../../../../components/Pressable/PressableWithFeedback';
-import useLocalize from '../../../../hooks/useLocalize';
-import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as IOU from '../../../../libs/actions/IOU';
-import * as Task from '../../../../libs/actions/Task';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import Permissions from '../../../../libs/Permissions';
+import AttachmentPicker from '@components/AttachmentPicker';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import PopoverMenu from '@components/PopoverMenu';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withNavigationFocus from '@components/withNavigationFocus';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as IOU from '@userActions/IOU';
+import * as Report from '@userActions/Report';
+import * as Task from '@userActions/Task';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report currently being looked at */
     report: PropTypes.shape({
         /** ID of the report */
@@ -84,10 +82,12 @@ const propTypes = {
         // eslint-disable-next-line react/forbid-prop-types
         current: PropTypes.object,
     }).isRequired,
+
+    /** Whether or not the screen is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
-    betas: [],
     reportParticipantIDs: [],
 };
 
@@ -98,7 +98,6 @@ const defaultProps = {
  * @returns {React.Component}
  */
 function AttachmentPickerWithMenuItems({
-    betas,
     report,
     reportParticipantIDs,
     displayFileInModal,
@@ -116,7 +115,9 @@ function AttachmentPickerWithMenuItems({
     onAddActionPressed,
     onItemSelected,
     actionButtonRef,
+    isFocused,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
 
@@ -126,23 +127,25 @@ function AttachmentPickerWithMenuItems({
      */
     const moneyRequestOptions = useMemo(() => {
         const options = {
-            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
+            [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: translate('iou.splitBill'),
+                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.SPLIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID)),
             },
-            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
+            [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.requestMoney'),
+                onSelected: () => Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report.reportID)),
             },
-            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
+            [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: translate('iou.sendMoney'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report.reportID),
             },
         };
 
         return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
-            onSelected: () => IOU.startMoneyRequest(option, report.reportID),
         }));
     }, [report, reportParticipantIDs, translate]);
 
@@ -151,8 +154,7 @@ function AttachmentPickerWithMenuItems({
      * @returns {Boolean}
      */
     const taskOption = useMemo(() => {
-        // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(betas) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
+        if (!ReportUtils.canCreateTaskInReport(report)) {
             return [];
         }
 
@@ -163,12 +165,30 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => Task.clearOutTaskInfoAndNavigate(reportID),
             },
         ];
-    }, [betas, report, reportID, translate]);
+    }, [report, reportID, translate]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
         onMenuClosed();
     };
+
+    const prevIsFocused = usePrevious(isFocused);
+
+    /**
+     * Check if current screen is inactive and previous screen is active.
+     * Used to close already opened popover menu when any other page is opened over current page.
+     *
+     * @return {Boolean}
+     */
+    const didScreenBecomeInactive = useCallback(() => !isFocused && prevIsFocused, [isFocused, prevIsFocused]);
+
+    // When the navigation is focused, we want to close the popover menu.
+    useEffect(() => {
+        if (!didScreenBecomeInactive() || !isMenuVisible) {
+            return;
+        }
+        setMenuVisibility(false);
+    }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
     return (
         <AttachmentPicker>
@@ -209,7 +229,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
                                         <Icon src={Expensicons.Collapse} />
@@ -228,7 +248,7 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
                                         <Icon src={Expensicons.Expand} />
@@ -240,6 +260,9 @@ function AttachmentPickerWithMenuItems({
                                     ref={actionButtonRef}
                                     onPress={(e) => {
                                         e.preventDefault();
+                                        if (!isFocused) {
+                                            return;
+                                        }
                                         onAddActionPressed();
 
                                         // Drop focus to avoid blue focus ring.
@@ -248,7 +271,7 @@ function AttachmentPickerWithMenuItems({
                                     }}
                                     style={styles.composerSizeButton}
                                     disabled={isBlockedFromConcierge || disabled}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
                                     <Icon src={Expensicons.Plus} />
@@ -257,7 +280,7 @@ function AttachmentPickerWithMenuItems({
                         </View>
                         <PopoverMenu
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
-                            isVisible={isMenuVisible}
+                            isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
@@ -287,8 +310,4 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(AttachmentPickerWithMenuItems);
+export default withNavigationFocus(AttachmentPickerWithMenuItems);

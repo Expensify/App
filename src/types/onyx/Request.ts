@@ -1,4 +1,5 @@
 import {OnyxUpdate} from 'react-native-onyx';
+import Response from './Response';
 
 type OnyxData = {
     successData?: OnyxUpdate[];
@@ -6,14 +7,23 @@ type OnyxData = {
     optimisticData?: OnyxUpdate[];
 };
 
+type RequestType = 'get' | 'post';
+
 type RequestData = {
     command: string;
+    commandName?: string;
     data?: Record<string, unknown>;
-    type?: string;
+    type?: RequestType;
     shouldUseSecure?: boolean;
+    successData?: OnyxUpdate[];
+    failureData?: OnyxUpdate[];
+    idempotencyKey?: string;
+
+    resolve?: (value: Response) => void;
+    reject?: (value?: unknown) => void;
 };
 
 type Request = RequestData & OnyxData;
 
 export default Request;
-export type {OnyxData};
+export type {OnyxData, RequestType};

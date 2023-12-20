@@ -1,26 +1,27 @@
-import React from 'react';
-import _ from 'underscore';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import styles from '../styles/styles';
-import ONYXKEYS from '../ONYXKEYS';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Navigation from '../libs/Navigation/Navigation';
-import ScreenWrapper from '../components/ScreenWrapper';
-import OptionsList from '../components/OptionsList';
-import ROUTES from '../ROUTES';
-import personalDetailsPropType from './personalDetailsPropType';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import compose from '../libs/compose';
-import * as ReportUtils from '../libs/ReportUtils';
-import reportPropTypes from './reportPropTypes';
+import PropTypes from 'prop-types';
+import React from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OptionsList from '@components/OptionsList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import Navigation from '@libs/Navigation/Navigation';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
-import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
-import CONST from '../CONST';
-import * as UserUtils from '../libs/UserUtils';
-import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
+import personalDetailsPropType from './personalDetailsPropType';
+import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -59,10 +60,11 @@ const getAllParticipants = (report, personalDetails, translate) =>
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
+            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail.displayName);
 
             return {
                 alternateText: userLogin,
-                displayName: userPersonalDetail.displayName,
+                displayName,
                 accountID: userPersonalDetail.accountID,
                 icons: [
                     {
@@ -74,15 +76,16 @@ const getAllParticipants = (report, personalDetails, translate) =>
                 ],
                 keyForList: `${index}-${userLogin}`,
                 login: userLogin,
-                text: userPersonalDetail.displayName,
+                text: displayName,
                 tooltipText: userLogin,
-                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
+                participantsList: [{accountID, displayName}],
             };
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
         .value();
 
 function ReportParticipantsPage(props) {
+    const styles = useThemeStyles();
     const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
         ...participant,
         isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
@@ -106,10 +109,7 @@ function ReportParticipantsPage(props) {
                                 : 'common.details',
                         )}
                     />
-                    <View
-                        pointerEvents="box-none"
-                        style={[styles.containerWithSpaceBetween]}
-                    >
+                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                         {Boolean(participants.length) && (
                             <OptionsList
                                 sections={[
@@ -145,7 +145,7 @@ ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,
-    withReportOrNotFound,
+    withReportOrNotFound(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

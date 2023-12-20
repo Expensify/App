@@ -1,8 +1,8 @@
 import {Platform} from 'react-native';
 import Config, {NativeConfig} from 'react-native-config';
+import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
 import * as Url from './libs/Url';
-import CONST from './CONST';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to prevent headaches

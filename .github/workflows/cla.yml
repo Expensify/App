@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     # This job only runs for pull request comments or pull request target events (not issue comments)
     # It does not run for pull requests created by OSBotify
-    if: ${{ github.event.issue.pull_request || (github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'OSBotify') }}
+    if: ${{ github.event.issue.pull_request || (github.event_name == 'pull_request_target' && github.event.pull_request.user.login != 'OSBotify' && github.event.pull_request.user.login != 'imgbot[bot]') }}
     steps:
         - name: CLA comment check
           uses: actions-ecosystem/action-regex-match@9c35fe9ac1840239939c59e5db8839422eed8a73

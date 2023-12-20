@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import MapView from '../MapView';
+import MapView from '@components/MapView';
 import * as distanceMapViewPropTypes from './distanceMapViewPropTypes';
 
 function DistanceMapView(props) {

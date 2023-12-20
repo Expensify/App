@@ -1,7 +1,7 @@
-import Onyx from 'react-native-onyx';
 import canvasSize from 'canvas-size';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as Browser from '../Browser';
+import Onyx from 'react-native-onyx';
+import * as Browser from '@libs/Browser';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Calculate the max area of canvas on this specific platform and save it in onyx

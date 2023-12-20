@@ -1,17 +1,20 @@
-import React, {useMemo, useState} from 'react';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import React, {useMemo, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import OptionsSelector from '../OptionsSelector';
-import {propTypes, defaultProps} from './tagPickerPropTypes';
+import _ from 'underscore';
+import OptionsSelector from '@components/OptionsSelector';
+import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {defaultProps, propTypes} from './tagPickerPropTypes';
 
-function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubmit}) {
+function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption, insets, onSubmit}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -36,28 +39,29 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
         ];
     }, [selectedTag]);
 
-    const initialFocusedIndex = useMemo(() => {
-        if (isTagsCountBelowThreshold && selectedOptions.length > 0) {
-            return _.chain(policyTagList)
-                .values()
-                .findIndex((policyTag) => policyTag.name === selectedOptions[0].name, true)
-                .value();
+    const enabledTags = useMemo(() => {
+        if (!shouldShowDisabledAndSelectedOption) {
+            return policyTagList;
         }
-
-        return 0;
-    }, [policyTagList, selectedOptions, isTagsCountBelowThreshold]);
+        const selectedNames = _.map(selectedOptions, (s) => s.name);
+        const tags = [...selectedOptions, ..._.filter(policyTagList, (policyTag) => policyTag.enabled && !selectedNames.includes(policyTag.name))];
+        return tags;
+    }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     const sections = useMemo(
-        () =>
-            OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, policyTagList, policyRecentlyUsedTagsList, false).tagOptions,
-        [searchValue, selectedOptions, policyTagList, policyRecentlyUsedTagsList],
+        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessage(lodashGet(sections, '[0].data.length', 0) > 0, false, '');
+    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(lodashGet(sections, '[0].data.length', 0) > 0, searchValue);
+
+    const selectedOptionKey = lodashGet(_.filter(lodashGet(sections, '[0].data', []), (policyTag) => policyTag.searchText === selectedTag)[0], 'keyForList');
 
     return (
         <OptionsSelector
+            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
             optionHoveredStyle={styles.hoveredComponentBG}
+            sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
             headerMessage={headerMessage}
@@ -67,7 +71,10 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, onSubm
             isRowMultilineSupported
             shouldShowTextInput={shouldShowTextInput}
             value={searchValue}
-            initialFocusedIndex={initialFocusedIndex}
+            // Focus the first option when searching
+            focusedIndex={0}
+            // Focus the selected option on first load
+            initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
         />

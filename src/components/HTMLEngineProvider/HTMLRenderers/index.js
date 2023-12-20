@@ -1,9 +1,10 @@
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
 import EditedRenderer from './EditedRenderer';
-import MentionHereRenderer from './MentionHereRenderer';
 import ImageRenderer from './ImageRenderer';
+import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
+import NextStepsEmailRenderer from './NextStepsEmailRenderer';
 import PreRenderer from './PreRenderer';
 
 /**
@@ -14,10 +15,12 @@ export default {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImageRenderer,
+    video: AnchorRenderer, // temporary until we have a video player component
 
     // Custom tag renderers
     edited: EditedRenderer,
     pre: PreRenderer,
     'mention-user': MentionUserRenderer,
     'mention-here': MentionHereRenderer,
+    'next-steps-email': NextStepsEmailRenderer,
 };

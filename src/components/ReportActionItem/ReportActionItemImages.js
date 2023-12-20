@@ -1,19 +1,23 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import {Polygon, Svg} from 'react-native-svg';
 import _ from 'underscore';
-import styles from '../../styles/styles';
-import Text from '../Text';
+import Text from '@components/Text';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
-import * as StyleUtils from '../../styles/StyleUtils';
-import variables from '../../styles/variables';
 
 const propTypes = {
     /** array of image and thumbnail URIs */
     images: PropTypes.arrayOf(
         PropTypes.shape({
-            thumbnail: PropTypes.string,
+            thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
             image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+            transaction: transactionPropTypes,
         }),
     ).isRequired,
 
@@ -47,6 +51,9 @@ const defaultProps = {
  */
 
 function ReportActionItemImages({images, size, total, isHovered}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     // Calculate the number of images to be shown, limited by the value of 'size' (if defined)
     // or the total number of images.
     const numberOfShownImages = Math.min(size || images.length, images.length);
@@ -66,9 +73,11 @@ function ReportActionItemImages({images, size, total, isHovered}) {
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
 
+    const triangleWidth = variables.reportActionItemImagesMoreCornerTriangleWidth;
+
     return (
         <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-            {_.map(shownImages, ({thumbnail, image}, index) => {
+            {_.map(shownImages, ({thumbnail, image, transaction, isLocalFile}, index) => {
                 const isLastImage = index === numberOfShownImages - 1;
 
                 // Show a border to separate multiple images. Shown to the right for each except the last.
@@ -82,11 +91,22 @@ function ReportActionItemImages({images, size, total, isHovered}) {
                         <ReportActionItemImage
                             thumbnail={thumbnail}
                             image={image}
+                            isLocalFile={isLocalFile}
+                            transaction={transaction}
                         />
                         {isLastImage && remaining > 0 && (
                             <View style={[styles.reportActionItemImagesMoreContainer]}>
                                 <View style={[styles.reportActionItemImagesMore, isHovered ? styles.reportActionItemImagesMoreHovered : {}]} />
-                                <View style={[styles.reportActionItemImagesMoreCornerTriangle, isHovered ? styles.reportActionItemImagesMoreCornerTriangleHighlighted : {}]} />
+                                <Svg
+                                    height={triangleWidth}
+                                    width={triangleWidth}
+                                    style={styles.reportActionItemImagesMoreCornerTriangle}
+                                >
+                                    <Polygon
+                                        points={`${triangleWidth},0 ${triangleWidth},${triangleWidth} 0,${triangleWidth}`}
+                                        fill={isHovered ? theme.border : theme.cardBG}
+                                    />
+                                </Svg>
                                 <Text style={[styles.reportActionItemImagesMoreText, styles.textStrong]}>{remaining > MAX_REMAINING ? `${MAX_REMAINING}+` : `+${remaining}`}</Text>
                             </View>
                         )}

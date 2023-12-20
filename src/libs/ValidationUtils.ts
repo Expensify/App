@@ -1,14 +1,16 @@
-import {subYears, addYears, startOfDay, endOfMonth, parse, isAfter, isBefore, isValid, isWithinInterval, isSameDay, format} from 'date-fns';
+import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
-import CONST from '../CONST';
+import CONST from '@src/CONST';
+import {Report} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
+import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
-import {Report} from '../types/onyx';
-import * as OnyxCommon from '../types/onyx/OnyxCommon';
+import {parsePhoneNumber} from './PhoneNumber';
+import StringUtils from './StringUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -73,7 +75,7 @@ function isValidPastDate(date: string | Date): boolean {
  */
 function isRequiredFulfilled(value: string | Date | unknown[] | Record<string, unknown>): boolean {
     if (typeof value === 'string') {
-        return value.trim().length > 0;
+        return !StringUtils.isEmptyString(value);
     }
 
     if (isDate(value)) {
@@ -195,11 +197,34 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
 }
 
 /**
+ * Validate that given date is not in the past.
+ */
+function getDatePassedError(inputDate: string): string {
+    const currentDate = new Date();
+    const parsedDate = new Date(`${inputDate}T00:00:00`); // set time to 00:00:00 for accurate comparison
+
+    // If input date is not valid, return an error
+    if (!isValid(parsedDate)) {
+        return 'common.error.dateInvalid';
+    }
+
+    // Clear time for currentDate so comparison is based solely on the date
+    currentDate.setHours(0, 0, 0, 0);
+
+    if (parsedDate < currentDate) {
+        return 'common.error.dateInvalid';
+    }
+
+    return '';
+}
+
+/**
  * Similar to backend, checks whether a website has a valid URL or not.
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url: string): boolean {
-    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url);
+    const isLowerCase = url === url.toLowerCase();
+    return new RegExp(`^${URL_REGEX_WITH_REQUIRED_PROTOCOL}$`, 'i').test(url) && isLowerCase;
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -296,6 +321,13 @@ function isValidLegalName(name: string): boolean {
 }
 
 /**
+ * Checks that the provided name doesn't contain special characters or numbers
+ */
+function isValidPersonName(value: string) {
+    return /^[^\d^!#$%*=<>;{}"]+$/.test(value);
+}
+
+/**
  * Checks if the provided string includes any of the provided reserved words
  */
 function doesContainReservedWord(value: string, reservedWords: string[]): boolean {
@@ -352,6 +384,46 @@ function isValidAccountRoute(accountID: number): boolean {
     return CONST.REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 
+/**
+ * Validates that the date and time are at least one minute in the future.
+ * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
+ * returns an object containing the error messages for the date and time
+ */
+const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidationErrorKey: string; timeValidationErrorKey: string} => {
+    if (!data) {
+        return {
+            dateValidationErrorKey: '',
+            timeValidationErrorKey: '',
+        };
+    }
+    const parsedInputData = parseISO(data);
+
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    return {
+        dateValidationErrorKey,
+        timeValidationErrorKey,
+    };
+};
+type ValuesType = Record<string, unknown>;
+
+/**
+ * This function is used to remove invisible characters from strings before validation and submission.
+ */
+function prepareValues(values: ValuesType): ValuesType {
+    const trimmedStringValues: ValuesType = {};
+
+    for (const [inputID, inputValue] of Object.entries(values)) {
+        if (typeof inputValue === 'string') {
+            trimmedStringValues[inputID] = StringUtils.removeInvisibleCharacters(inputValue);
+        } else {
+            trimmedStringValues[inputID] = inputValue;
+        }
+    }
+
+    return trimmedStringValues;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -384,5 +456,9 @@ export {
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    getDatePassedError,
     isValidRecoveryCode,
+    validateDateTimeIsAtLeastOneMinuteInFuture,
+    prepareValues,
+    isValidPersonName,
 };

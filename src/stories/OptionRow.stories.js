@@ -1,7 +1,8 @@
 import React from 'react';
-import OptionRow from '../components/OptionRow';
-import * as Expensicons from '../components/Icon/Expensicons';
-import OnyxProvider from '../components/OnyxProvider';
+import * as Expensicons from '@components/Icon/Expensicons';
+import OnyxProvider from '@components/OnyxProvider';
+import OptionRow from '@components/OptionRow';
+
 /* eslint-disable react/jsx-props-no-spreading */
 
 /**

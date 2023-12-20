@@ -1,4 +1,4 @@
-import * as Composer from '../actions/Composer';
+import * as Composer from '@userActions/Composer';
 import SetShouldShowComposeInputKeyboardAware from './types';
 
 const setShouldShowComposeInputKeyboardAware: SetShouldShowComposeInputKeyboardAware = (shouldShow) => {

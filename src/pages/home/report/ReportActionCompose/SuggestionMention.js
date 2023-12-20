@@ -1,16 +1,15 @@
-import React, {useState, useCallback, useRef, useImperativeHandle, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import CONST from '../../../../CONST';
-import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
-import MentionSuggestions from '../../../../components/MentionSuggestions';
-import * as UserUtils from '../../../../libs/UserUtils';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
-import useLocalize from '../../../../hooks/useLocalize';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import personalDetailsPropType from '../../../personalDetailsPropType';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MentionSuggestions from '@components/MentionSuggestions';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import * as SuggestionProps from './suggestionProps';
 
 /**
@@ -28,9 +27,6 @@ const defaultSuggestionsValues = {
 };
 
 const propTypes = {
-    /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** A ref to this component */
     forwardedRef: PropTypes.shape({current: PropTypes.shape({})}),
 
@@ -38,7 +34,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
     forwardedRef: null,
 };
 
@@ -48,14 +43,16 @@ function SuggestionMention({
     selection,
     setSelection,
     isComposerFullSize,
-    personalDetails,
     updateComment,
     composerHeight,
     forwardedRef,
     isAutoSuggestionPickerLarge,
     measureParentContainer,
+    isComposerFocused,
 }) {
-    const {translate} = useLocalize();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const {translate, formatPhoneNumber} = useLocalize();
+    const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const isMentionSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedMentions) && suggestionValues.shouldShowSuggestionMenu;
@@ -77,10 +74,10 @@ function SuggestionMention({
         (highlightedMentionIndexInner) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.alternateText}`;
-            const commentAfterAtSignWithMentionRemoved = value.slice(suggestionValues.atSignIndex).replace(CONST.REGEX.MENTION_REPLACER, '');
+            const mentionCode = mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${mentionObject.login}`;
+            const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterAtSignWithMentionRemoved)}`, true);
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
             setSelection({
                 start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
                 end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
@@ -90,7 +87,7 @@ function SuggestionMention({
                 suggestedMentions: [],
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, updateComment, setSelection],
+        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection],
     );
 
     /**
@@ -149,10 +146,11 @@ function SuggestionMention({
 
             const filteredPersonalDetails = _.filter(_.values(personalDetailsParam), (detail) => {
                 // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
-                if (!detail.login) {
+                if (!detail.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
-                if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
+                const displayText = detail.displayName === formatPhoneNumber(detail.login) ? detail.displayName : `${detail.displayName} ${detail.login}`;
+                if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
                 return true;
@@ -162,7 +160,8 @@ function SuggestionMention({
             _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
                 suggestions.push({
                     text: detail.displayName,
-                    alternateText: detail.login,
+                    alternateText: formatPhoneNumber(detail.login),
+                    login: detail.login,
                     icons: [
                         {
                             name: detail.login,
@@ -176,38 +175,51 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [translate],
+        [translate, formatPhoneNumber],
     );
 
     const calculateMentionSuggestion = useCallback(
         (selectionEnd) => {
-            if (shouldBlockCalc.current || selectionEnd < 1) {
+            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
 
             const valueAfterTheCursor = value.substring(selectionEnd);
-            const indexOfFirstWhitespaceCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.NEW_LINE_OR_WHITE_SPACE_OR_EMOJI);
+            const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
 
-            let indexOfLastNonWhitespaceCharAfterTheCursor;
-            if (indexOfFirstWhitespaceCharOrEmojiAfterTheCursor === -1) {
-                // we didn't find a whitespace/emoji after the cursor, so we will use the entire string
-                indexOfLastNonWhitespaceCharAfterTheCursor = value.length;
+            let suggestionEndIndex;
+            if (indexOfFirstSpecialCharOrEmojiAfterTheCursor === -1) {
+                // We didn't find a special char/whitespace/emoji after the cursor, so we will use the entire string
+                suggestionEndIndex = value.length;
             } else {
-                indexOfLastNonWhitespaceCharAfterTheCursor = indexOfFirstWhitespaceCharOrEmojiAfterTheCursor + selectionEnd;
+                suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
             }
 
-            const leftString = value.substring(0, indexOfLastNonWhitespaceCharAfterTheCursor);
+            const leftString = value.substring(0, suggestionEndIndex);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord = _.last(words);
+            const secondToLastWord = words[words.length - 3];
 
             let atSignIndex;
+            let suggestionWord;
+            let prefix;
+
+            // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
             if (lastWord.startsWith('@')) {
                 atSignIndex = leftString.lastIndexOf(lastWord);
-            }
+                suggestionWord = lastWord;
 
-            const prefix = lastWord.substring(1);
+                prefix = suggestionWord.substring(1);
+            } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
+                atSignIndex = leftString.lastIndexOf(secondToLastWord);
+                suggestionWord = `${secondToLastWord} ${lastWord}`;
+
+                prefix = suggestionWord.substring(1);
+            } else {
+                prefix = lastWord.substring(1);
+            }
 
             const nextState = {
                 suggestedMentions: [],
@@ -215,10 +227,11 @@ function SuggestionMention({
                 mentionPrefix: prefix,
             };
 
-            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(lastWord);
+            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(suggestionWord);
 
-            if (!isCursorBeforeTheMention && isMentionCode(lastWord)) {
+            if (!isCursorBeforeTheMention && isMentionCode(suggestionWord)) {
                 const suggestions = getMentionOptions(personalDetails, prefix);
+
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !_.isEmpty(suggestions);
             }
@@ -229,12 +242,19 @@ function SuggestionMention({
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value],
+        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
     );
 
     useEffect(() => {
+        if (value.length < previousValue.length) {
+            // A workaround to not show the suggestions list when the user deletes a character before the mention.
+            // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
+            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
+            return;
+        }
+
         calculateMentionSuggestion(selection.end);
-    }, [selection, calculateMentionSuggestion]);
+    }, [selection, value, previousValue, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -280,7 +300,7 @@ function SuggestionMention({
             highlightedMentionIndex={highlightedMentionIndex}
             mentions={suggestionValues.suggestedMentions}
             comment={value}
-            updateComment={(newComment) => setValue(newComment)}
+            updateComment={setValue}
             colonIndex={suggestionValues.colonIndex}
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
@@ -296,16 +316,14 @@ SuggestionMention.propTypes = propTypes;
 SuggestionMention.defaultProps = defaultProps;
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(
-    React.forwardRef((props, ref) => (
-        <SuggestionMention
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+const SuggestionMentionWithRef = React.forwardRef((props, ref) => (
+    <SuggestionMention
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+SuggestionMentionWithRef.displayName = 'SuggestionMentionWithRef';
+
+export default SuggestionMentionWithRef;

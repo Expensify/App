@@ -1,20 +1,19 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Dimensions} from 'react-native';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import * as Report from '../../../../../libs/actions/Report';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import PopoverWithMeasuredContent from '../../../../../components/PopoverWithMeasuredContent';
-import BaseReactionList from '../BaseReactionList';
-import compose from '../../../../../libs/compose';
-import withCurrentUserPersonalDetails from '../../../../../components/withCurrentUserPersonalDetails';
-import * as PersonalDetailsUtils from '../../../../../libs/PersonalDetailsUtils';
-import * as EmojiUtils from '../../../../../libs/EmojiUtils';
-import CONST from '../../../../../CONST';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import EmojiReactionsPropTypes from '../../../../../components/Reactions/EmojiReactionsPropTypes';
+import _ from 'underscore';
+import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     reportActionID: PropTypes.string,
@@ -121,30 +120,27 @@ class BasePopoverReactionList extends React.Component {
      * Get the reaction information.
      *
      * @param {Object} selectedReaction
+     * @param {String} emojiName
      * @returns {Object}
      */
-    getReactionInformation(selectedReaction) {
+    getReactionInformation(selectedReaction, emojiName) {
         if (!selectedReaction) {
             return {
                 emojiName: '',
-                emojiCount: 0,
+                reactionCount: 0,
                 emojiCodes: [],
                 hasUserReacted: false,
                 users: [],
             };
         }
-        const reactionUsers = _.pick(selectedReaction.users, _.identity);
-        const emojiCount = _.map(reactionUsers, (user) => user).length;
-        const userAccountIDs = _.map(reactionUsers, (user, accountID) => Number(accountID));
-        const emojiName = selectedReaction.emojiName;
-        const emoji = EmojiUtils.findEmojiByName(emojiName);
-        const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, selectedReaction.users);
-        const hasUserReacted = Report.hasAccountIDEmojiReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
+
+        const {emojiCodes, reactionCount, hasUserReacted, userAccountIDs} = EmojiUtils.getEmojiReactionDetails(emojiName, selectedReaction, this.props.currentUserPersonalDetails.accountID);
+
         const users = PersonalDetailsUtils.getPersonalDetailsByIDs(userAccountIDs, this.props.currentUserPersonalDetails.accountID, true);
         return {
             emojiName,
-            emojiCount,
             emojiCodes,
+            reactionCount,
             hasUserReacted,
             users,
         };
@@ -205,7 +201,7 @@ class BasePopoverReactionList extends React.Component {
 
     render() {
         const selectedReaction = this.state.isPopoverVisible ? lodashGet(this.props.emojiReactions, [this.props.emojiName]) : null;
-        const {emojiName, emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
+        const {emojiName, emojiCodes, reactionCount, hasUserReacted, users} = this.getReactionInformation(selectedReaction, this.props.emojiName);
 
         return (
             <PopoverWithMeasuredContent
@@ -226,7 +222,7 @@ class BasePopoverReactionList extends React.Component {
                     users={users}
                     emojiName={emojiName}
                     emojiCodes={emojiCodes}
-                    emojiCount={emojiCount}
+                    emojiCount={reactionCount}
                     onClose={this.hideReactionList}
                     hasUserReacted={hasUserReacted}
                 />

@@ -1,4 +1,4 @@
-import CONST from '../CONST';
+import CONST from '@src/CONST';
 
 /**
  * Return the max available index for arrow manager.

@@ -10,13 +10,13 @@ jobs:
     runs-on: macos-12
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Wait for staging deploys to finish
-        uses: Expensify/App/.github/actions/javascript/awaitStagingDeploys@main
+        uses: ./.github/actions/javascript/awaitStagingDeploys
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -30,6 +30,6 @@ jobs:
 
       - name: Announce failed workflow
         if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

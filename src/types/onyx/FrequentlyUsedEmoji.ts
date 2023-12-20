@@ -13,6 +13,9 @@ type FrequentlyUsedEmoji = {
 
     /** The emoji skin tone type */
     types?: string[];
+
+    /** The emoji keywords */
+    keywords?: string[];
 };
 
 export default FrequentlyUsedEmoji;

@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
 /* eslint-disable @typescript-eslint/no-empty-interface */
+
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
+// eslint-disable-next-line no-restricted-imports
 import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
-import {BootSplashModule} from '../../libs/BootSplash/types';
+import {BootSplashModule} from '@libs/BootSplash/types';
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
@@ -33,7 +36,7 @@ declare module 'react-native' {
         'aria-haspopup'?: 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
         'aria-hidden'?: boolean;
         'aria-invalid'?: boolean;
-        'aria-keyshortcuts'?: string[];
+        'aria-keyshortcuts'?: string;
         'aria-label'?: string;
         'aria-labelledby'?: idRef;
         'aria-level'?: number;
@@ -83,7 +86,7 @@ declare module 'react-native' {
         accessibilityInvalid?: boolean;
         accessibilityKeyShortcuts?: string[];
         accessibilityLabel?: string;
-        accessibilityLabelledBy?: idRefList;
+        accessibilityLabelledBy?: idRef;
         accessibilityLevel?: number;
         accessibilityLiveRegion?: 'assertive' | 'none' | 'polite';
         accessibilityModal?: boolean;
@@ -281,7 +284,11 @@ declare module 'react-native' {
         enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send';
         readOnly?: boolean;
     }
-    interface TextInputProps extends WebTextInputProps {}
+    interface TextInputProps extends WebTextInputProps {
+        // TODO: remove once the app is updated to RN 0.73
+        smartInsertDelete?: boolean;
+        isFullComposerAvailable?: boolean;
+    }
 
     /**
      * Image
@@ -310,7 +317,10 @@ declare module 'react-native' {
         readonly hovered: boolean;
         readonly pressed: boolean;
     }
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {}
+    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+        readonly isScreenReaderActive: boolean;
+        readonly isDisabled: boolean;
+    }
 
     // Extracted from react-native-web, packages/react-native-web/src/exports/Pressable/index.js
     interface WebPressableProps extends WebSharedProps {
@@ -331,6 +341,7 @@ declare module 'react-native' {
         // Exclusive to react-native-web, "pointerEvents" already included on RN
         animationKeyframes?: string | Record<string, ViewStyle>;
         writingDirection?: 'auto' | 'ltr' | 'rtl';
+        enableBackground?: string;
     }
 
     interface ViewStyle extends WebStyle {}

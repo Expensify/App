@@ -1,16 +1,18 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import BlockingView from '../BlockingViews/BlockingView';
-import MapView from '../MapView';
-import styles from '../../styles/styles';
-import useNetwork from '../../hooks/useNetwork';
-import useLocalize from '../../hooks/useLocalize';
-import * as Expensicons from '../Icon/Expensicons';
-import * as StyleUtils from '../../styles/StyleUtils';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MapView from '@components/MapView';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as distanceMapViewPropTypes from './distanceMapViewPropTypes';
 
 function DistanceMapView(props) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();

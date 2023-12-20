@@ -1,27 +1,29 @@
-import React from 'react';
-import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashGet from 'lodash/get';
-import * as Expensicons from '../../../../components/Icon/Expensicons';
-import * as Report from '../../../../libs/actions/Report';
-import * as Download from '../../../../libs/actions/Download';
-import Clipboard from '../../../../libs/Clipboard';
-import * as ReportUtils from '../../../../libs/ReportUtils';
-import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
-import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
-import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import {hideContextMenu, showDeleteModal, clearActiveReportAction} from './ReportActionContextMenu';
-import CONST from '../../../../CONST';
-import getAttachmentDetails from '../../../../libs/fileDownload/getAttachmentDetails';
-import fileDownload from '../../../../libs/fileDownload';
-import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
-import * as Environment from '../../../../libs/Environment/Environment';
-import Permissions from '../../../../libs/Permissions';
-import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReactions';
-import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
-import Navigation from '../../../../libs/Navigation/Navigation';
-import ROUTES from '../../../../ROUTES';
-import * as Task from '../../../../libs/actions/Task';
+import React from 'react';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
+import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import Clipboard from '@libs/Clipboard';
+import EmailUtils from '@libs/EmailUtils';
+import * as Environment from '@libs/Environment/Environment';
+import fileDownload from '@libs/fileDownload';
+import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as TaskUtils from '@libs/TaskUtils';
+import * as Download from '@userActions/Download';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -31,6 +33,20 @@ import * as Task from '../../../../libs/actions/Task';
 function getActionText(reportAction) {
     const message = _.last(lodashGet(reportAction, 'message', null));
     return lodashGet(message, 'html', '');
+}
+
+/**
+ * Sets the HTML string to Clipboard.
+ * @param {String} content
+ */
+function setClipboardMessage(content) {
+    const parser = new ExpensiMark();
+    if (!Clipboard.canSetHtml()) {
+        Clipboard.setString(parser.htmlToMarkdown(content));
+    } else {
+        const plainText = parser.htmlToText(content);
+        Clipboard.setHtml(content, plainText);
+    }
 }
 
 const CONTEXT_MENU_TYPES = {
@@ -125,10 +141,17 @@ export default [
             if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
-            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
             const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-            return isCommentAction || isReportPreviewAction || isIOUAction;
+            const isModifiedExpenseAction = ReportActionsUtils.isModifiedExpenseAction(reportAction);
+            const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
+            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+            return (
+                (!isWhisperAction || isIOUAction || isReportPreviewAction) &&
+                (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) &&
+                !ReportUtils.isThreadFirstChat(reportAction, reportID)
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
@@ -140,6 +163,84 @@ export default [
             }
 
             Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.subscribeToThread',
+        icon: Expensicons.Bell,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            const subscribed = childReportNotificationPreference !== 'hidden';
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
+            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+            return !subscribed && !isWhisperAction && (isCommentAction || isReportPreviewAction || isIOUAction);
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+                });
+                return;
+            }
+
+            ReportActionComposeFocusManager.focus();
+            Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.unsubscribeFromThread',
+        icon: Expensicons.BellSlash,
+        successTextTranslateKey: '',
+        successIcon: null,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            const subscribed = childReportNotificationPreference !== 'hidden';
+            if (type !== CONTEXT_MENU_TYPES.REPORT_ACTION) {
+                return false;
+            }
+            const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+            const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
+            return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
+            if (!childReportNotificationPreference) {
+                const isActionCreator = ReportUtils.isActionCreator(reportAction);
+                childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+            }
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
+                });
+                return;
+            }
+
+            ReportActionComposeFocusManager.focus();
+            Report.toggleSubscribeToChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },
@@ -164,10 +265,10 @@ export default [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type) => type === CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
-            Clipboard.setString(selection.replace('mailto:', ''));
+            Clipboard.setString(EmailUtils.trimMailTo(selection));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: (selection) => selection.replace('mailto:', ''),
+        getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection)),
     },
     {
         isAnonymousAction: true,
@@ -179,15 +280,13 @@ export default [
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportActionsUtils.isReportActionAttachment(reportAction) && !ReportActionsUtils.isMessageDeleted(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
-        // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
+        // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
-            const isCreateTaskAction = ReportActionsUtils.isCreatedTaskReportAction(reportAction);
             const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
-            const reportID = lodashGet(reportAction, 'originalMessage.taskReportID', '').toString();
-            const messageHtml = isTaskAction || isCreateTaskAction ? Task.getTaskReportActionMessage(reportAction.actionName, reportID, isCreateTaskAction) : lodashGet(message, 'html', '');
+            const messageHtml = isTaskAction ? TaskUtils.getTaskReportActionMessage(reportAction.actionName) : lodashGet(message, 'html', '');
 
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             if (!isAttachment) {
@@ -197,19 +296,22 @@ export default [
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (ReportActionsUtils.isCreatedTaskReportAction(reportAction)) {
+                    const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
+                    Clipboard.setString(taskPreviewMessage);
+                } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
+                    const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html;
+                    setClipboardMessage(logMessage);
+                } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
+                    const submittedMessage = _.reduce(reportAction.message, (acc, curr) => `${acc}${curr.text}`, '');
+                    Clipboard.setString(submittedMessage);
                 } else if (content) {
-                    const parser = new ExpensiMark();
-                    if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(parser.htmlToMarkdown(content));
-                    } else {
-                        const plainText = parser.htmlToText(content);
-                        Clipboard.setHtml(content, plainText);
-                    }
+                    setClipboardMessage(content);
                 }
             }
 
@@ -335,8 +437,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
@@ -349,8 +450,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.unPin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {

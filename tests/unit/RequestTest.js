@@ -1,6 +1,6 @@
 import * as Request from '../../src/libs/Request';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 beforeAll(() => {
     global.fetch = TestHelper.getGlobalFetchMock();

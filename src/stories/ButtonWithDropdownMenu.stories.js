@@ -1,5 +1,5 @@
 import React from 'react';
-import ButtonWithDropdownMenu from '../components/ButtonWithDropdownMenu';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

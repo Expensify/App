@@ -1,11 +1,11 @@
-import _ from 'underscore';
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import menuItemPropTypes from './menuItemPropTypes';
+import _ from 'underscore';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import MenuItem from './MenuItem';
-import styles from '../styles/styles';
-import useLocalize from '../hooks/useLocalize';
+import menuItemPropTypes from './menuItemPropTypes';
 import Text from './Text';
 
 const propTypes = {
@@ -20,6 +20,7 @@ const propTypes = {
 };
 
 function FeatureList({menuItems, headline, description}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <>
@@ -41,6 +42,7 @@ function FeatureList({menuItems, headline, description}) {
                     iconHeight={60}
                     iconStyles={[styles.mr3, styles.ml3]}
                     interactive={false}
+                    wrapperStyle={[styles.cursorAuto]}
                 />
             ))}
         </>

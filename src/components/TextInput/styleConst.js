@@ -1,4 +1,4 @@
-import variables from '../../styles/variables';
+import variables from '@styles/variables';
 
 const ACTIVE_LABEL_TRANSLATE_Y = 4;
 const ACTIVE_LABEL_SCALE = 0.8668;

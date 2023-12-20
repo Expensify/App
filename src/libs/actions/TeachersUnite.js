@@ -1,12 +1,12 @@
-import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import * as API from '../API';
-import Navigation from '../Navigation/Navigation';
-import CONST from '../../CONST';
-import * as ReportUtils from '../ReportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
+import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import * as API from '@libs/API';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let sessionEmail = '';
 let sessionAccountID = 0;

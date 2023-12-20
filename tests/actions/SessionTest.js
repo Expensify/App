@@ -1,17 +1,16 @@
-import Onyx from 'react-native-onyx';
 import {beforeEach, jest, test} from '@jest/globals';
-import HttpUtils from '../../src/libs/HttpUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import ONYXKEYS from '../../src/ONYXKEYS';
-import * as TestHelper from '../utils/TestHelper';
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
-import PushNotification from '../../src/libs/Notification/PushNotification';
 import * as App from '../../src/libs/actions/App';
 import OnyxUpdateManager from '../../src/libs/actions/OnyxUpdateManager';
-
+import HttpUtils from '../../src/libs/HttpUtils';
+import PushNotification from '../../src/libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
 import subscribePushNotification from '../../src/libs/Notification/PushNotification/subscribePushNotification';
+import ONYXKEYS from '../../src/ONYXKEYS';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.

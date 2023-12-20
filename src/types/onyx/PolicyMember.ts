@@ -14,4 +14,7 @@ type PolicyMember = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type PolicyMembers = Record<string, PolicyMember>;
+
 export default PolicyMember;
+export type {PolicyMembers};

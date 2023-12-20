@@ -70,7 +70,7 @@ components:
 - The tests themselves :
   - The tests are located in `src/libs/E2E/tests`
   - As opposed to other test frameworks, the tests are _inside the app_, and execute logic using app code (e.g. `navigationRef.navigate('Signin')`)
-  - For the tests there is a custom entry for react native, located in `src/libs/E2E/reactNativeLaunchingTest.js`
+  - For the tests there is a custom entry for react native, located in `src/libs/E2E/reactNativeLaunchingTest.ts`
 
 - The test runner:
     - Orchestrates the test suite.
@@ -85,13 +85,13 @@ components:
 
 - Client:
   - Client-side code (app) for communication with the test server.
-  - Located in `src/libs/E2E/client.js`.
+  - Located in `src/libs/E2E/client.ts`.
 
 
 ## How a test gets executed
 
 There exists a custom android entry point for the app, which is used for the e2e tests.
-The entry file used is `src/libs/E2E/reactNativeEntry.js`, and here we can add our test case.
+The entry file used is `src/libs/E2E/reactNativeEntry.ts`, and here we can add our test case.
 
 The test case should only execute its test once. The _test runner_ is responsible for running the
 test multiple time to average out the results.
@@ -128,7 +128,7 @@ Therefore, a customized release build type is needed, which is called `e2eReleas
 text traffic enabled but works otherwise just like a release build.
 
 In addition to that, another entry file will be used (instead of `index.js`). The entry file used is
-`src/libs/E2E/reactNativeEntry.js`. By using a custom entry file we avoid bundling any e2e testing code
+`src/libs/E2E/reactNativeEntry.ts`. By using a custom entry file we avoid bundling any e2e testing code
 into the actual release app.
 
 For the app to detect that it is currently running e2e tests, an environment variable called `E2E_TESTING=true` must

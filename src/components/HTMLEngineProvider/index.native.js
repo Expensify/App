@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
-import {propTypes, defaultProps} from './htmlEnginePropTypes';
+import {defaultProps, propTypes} from './htmlEnginePropTypes';
 
 function HTMLEngineProvider(props) {
     return (

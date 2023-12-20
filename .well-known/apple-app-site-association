@@ -81,6 +81,10 @@
                         "comment": "Search"
                     },
                     {
+                        "/": "/send/*",
+                        "comment": "Send money"
+                    },
+                    {
                         "/": "/money2020/*",
                         "comment": "Money 2020"
                     }

@@ -1,5 +1,5 @@
-import Config from '../CONFIG';
-import {Request} from '../types/onyx';
+import Config from '@src/CONFIG';
+import {Request} from '@src/types/onyx';
 import * as ApiUtils from './ApiUtils';
 
 // Absolute URLs (`/` or `//`) should be resolved from API ROOT

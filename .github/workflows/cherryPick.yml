@@ -27,7 +27,7 @@ jobs:
   createNewVersion:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
 
   cherryPick:
@@ -35,13 +35,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout staging branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Set up git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+        id: setupGitForOSBotify
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
@@ -49,7 +50,7 @@ jobs:
 
       - name: Get previous app version
         id: getPreviousVersion
-        uses: Expensify/App/.github/actions/javascript/getPreviousVersion@main
+        uses: ./.github/actions/javascript/getPreviousVersion
         with:
           SEMVER_LEVEL: "PATCH"
 
@@ -66,7 +67,7 @@ jobs:
 
       - name: Get merge commit for pull request to CP
         id: getCPMergeCommit
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
+        uses: ./.github/actions/javascript/getPullRequestDetails
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}
@@ -119,7 +120,7 @@ jobs:
              **Important:** There may be conflicts that GitHub is not able to detect, so please _carefully_ review this pull request before approving."
           gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
       - name: "Announces a CP failure in the #announce Slack room"
         uses: 8398a7/action-slack@v3

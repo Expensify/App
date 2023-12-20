@@ -1,18 +1,19 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import TextInput from '../components/TextInput';
-import Picker from '../components/Picker';
-import StatePicker from '../components/StatePicker';
-import AddressSearch from '../components/AddressSearch';
-import DatePicker from '../components/DatePicker';
-import * as FormActions from '../libs/actions/FormActions';
-import styles from '../styles/styles';
-import CheckboxWithLabel from '../components/CheckboxWithLabel';
-import Text from '../components/Text';
-import NetworkConnection from '../libs/NetworkConnection';
-import CONST from '../CONST';
-import InputWrapper from '../components/Form/InputWrapper';
-import FormProvider from '../components/Form/FormProvider';
+import AddressSearch from '@components/AddressSearch';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import DatePicker from '@components/DatePicker';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import Picker from '@components/Picker';
+import StatePicker from '@components/StatePicker';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import NetworkConnection from '@libs/NetworkConnection';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import {defaultStyles} from '@styles/index';
+import * as FormActions from '@userActions/FormActions';
+import CONST from '@src/CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -46,7 +47,7 @@ function Template(args) {
             <View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     accessibilityLabel="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
@@ -55,31 +56,31 @@ function Template(args) {
             </View>
             <InputWrapper
                 InputComponent={TextInput}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
-                containerStyles={[styles.mt4]}
+                containerStyles={[defaultStyles.mt4]}
             />
             <InputWrapper
                 InputComponent={AddressSearch}
                 label="Street"
                 inputID="street"
-                containerStyles={[styles.mt4]}
+                containerStyles={[defaultStyles.mt4]}
                 hint="No PO box"
             />
             <InputWrapper
                 InputComponent={DatePicker}
-                label="Date of birth"
                 inputID="dob"
-                containerStyles={[styles.mt4]}
+                label="Date of Birth"
+                containerStyles={[defaultStyles.mt4]}
             />
             <View>
                 <InputWrapper
                     InputComponent={Picker}
                     label="Fruit"
                     inputID="pickFruit"
-                    containerStyles={[styles.mt4]}
+                    containerStyles={[defaultStyles.mt4]}
                     shouldSaveDraft
                     items={[
                         {
@@ -101,7 +102,7 @@ function Template(args) {
                 InputComponent={Picker}
                 label="Another Fruit"
                 inputID="pickAnotherFruit"
-                containerStyles={[styles.mt4]}
+                containerStyles={[defaultStyles.mt4]}
                 items={[
                     {
                         label: 'Select a Fruit',
@@ -117,7 +118,7 @@ function Template(args) {
                     },
                 ]}
             />
-            <View style={styles.mt4}>
+            <View style={defaultStyles.mt4}>
                 <InputWrapper
                     InputComponent={StatePicker}
                     inputID="state"
@@ -127,7 +128,7 @@ function Template(args) {
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 inputID="checkbox"
-                style={[styles.mb4, styles.mt5]}
+                style={[defaultStyles.mb4, defaultStyles.mt5]}
                 LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
         </FormProvider>
@@ -153,7 +154,7 @@ function WithNativeEventHandler(args) {
         <FormProvider {...args}>
             <InputWrapper
                 InputComponent={TextInput}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 accessibilityLabel="Routing number"
                 label="Routing number"
                 inputID="routingNumber"
@@ -177,28 +178,28 @@ const defaultArgs = {
     submitButtonText: 'Submit',
     validate: (values) => {
         const errors = {};
-        if (!values.routingNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.routingNumber)) {
             errors.routingNumber = 'Please enter a routing number';
         }
-        if (!values.accountNumber) {
+        if (!ValidationUtils.isRequiredFulfilled(values.accountNumber)) {
             errors.accountNumber = 'Please enter an account number';
         }
-        if (!values.street) {
+        if (!ValidationUtils.isRequiredFulfilled(values.street)) {
             errors.street = 'Please enter an address';
         }
-        if (!values.dob) {
+        if (!ValidationUtils.isRequiredFulfilled(values.dob)) {
             errors.dob = 'Please enter your date of birth';
         }
-        if (!values.pickFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickFruit)) {
             errors.pickFruit = 'Please select a fruit';
         }
-        if (!values.pickAnotherFruit) {
+        if (!ValidationUtils.isRequiredFulfilled(values.pickAnotherFruit)) {
             errors.pickAnotherFruit = 'Please select a fruit';
         }
-        if (!values.state) {
+        if (!ValidationUtils.isRequiredFulfilled(values.state)) {
             errors.state = 'Please select a state';
         }
-        if (!values.checkbox) {
+        if (!ValidationUtils.isRequiredFulfilled(values.checkbox)) {
             errors.checkbox = 'You must accept the Terms of Service to continue';
         }
         return errors;

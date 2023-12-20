@@ -1,11 +1,11 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import React from 'react';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import compose from '@libs/compose';
+import withPolicy, {policyPropTypes} from '@pages/workspace/withPolicy';
+import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import CONST from '@src/CONST';
 import WorkspaceReimburseView from './WorkspaceReimburseView';
-import WorkspacePageWithSections from '../WorkspacePageWithSections';
-import CONST from '../../../CONST';
-import compose from '../../../libs/compose';
-import withPolicy, {policyPropTypes} from '../withPolicy';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */

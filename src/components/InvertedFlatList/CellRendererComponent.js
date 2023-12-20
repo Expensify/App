@@ -1,6 +1,6 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     /** Position index of the list item in a list view */

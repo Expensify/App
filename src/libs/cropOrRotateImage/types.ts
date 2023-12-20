@@ -18,12 +18,8 @@ type Action = {
     rotate?: number;
 };
 
-type FileWithUri = File & {
-    uri: string;
-};
-
 type CustomRNImageManipulatorResult = RNImageManipulatorResult & {size: number; type: string; name: string};
 
-type CropOrRotateImage = (uri: string, actions: Action[], options: CropOrRotateImageOptions) => Promise<FileWithUri | CustomRNImageManipulatorResult>;
+type CropOrRotateImage = (uri: string, actions: Action[], options: CropOrRotateImageOptions) => Promise<File | CustomRNImageManipulatorResult>;
 
-export type {CropOrRotateImage, CropOptions, Action, FileWithUri, CropOrRotateImageOptions};
+export type {CropOrRotateImage, CropOptions, Action, CropOrRotateImageOptions, CustomRNImageManipulatorResult};

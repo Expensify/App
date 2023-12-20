@@ -1,30 +1,76 @@
-import React, {useRef} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import {PopoverContext} from '../PopoverProvider';
-import * as Modal from '../../libs/actions/Modal';
-import {propTypes, defaultProps} from '../Popover/popoverPropTypes';
-import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getModalStyles from '../../styles/getModalStyles';
-import withWindowDimensions from '../withWindowDimensions';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
+import {PopoverContext} from '@components/PopoverProvider';
+import withWindowDimensions from '@components/withWindowDimensions';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as Modal from '@userActions/Modal';
 
 function Popover(props) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {onOpen, close} = React.useContext(PopoverContext);
-    const firstRenderRef = useRef(true);
-    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} = getModalStyles(
-        'popover',
-        {
-            windowWidth: props.windowWidth,
-            windowHeight: props.windowHeight,
-            isSmallScreenWidth: false,
-        },
-        props.anchorPosition,
-        props.innerContainerStyle,
-        props.outerStyle,
+    const insets = useSafeAreaInsets();
+    const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
+        StyleUtils.getModalStyles(
+            'popover',
+            {
+                windowWidth: props.windowWidth,
+                windowHeight: props.windowHeight,
+                isSmallScreenWidth: false,
+            },
+            props.anchorPosition,
+            props.innerContainerStyle,
+            props.outerStyle,
+        );
+
+    const {
+        paddingTop: safeAreaPaddingTop,
+        paddingBottom: safeAreaPaddingBottom,
+        paddingLeft: safeAreaPaddingLeft,
+        paddingRight: safeAreaPaddingRight,
+    } = useMemo(() => StyleUtils.getSafeAreaPadding(insets), [StyleUtils, insets]);
+
+    const modalPaddingStyles = useMemo(
+        () =>
+            StyleUtils.getModalPaddingStyles({
+                safeAreaPaddingTop,
+                safeAreaPaddingBottom,
+                safeAreaPaddingLeft,
+                safeAreaPaddingRight,
+                shouldAddBottomSafeAreaMargin,
+                shouldAddTopSafeAreaMargin,
+                shouldAddBottomSafeAreaPadding,
+                shouldAddTopSafeAreaPadding,
+                modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+                modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+                modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+                modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+                insets,
+            }),
+        [
+            StyleUtils,
+            insets,
+            modalContainerStyle.marginBottom,
+            modalContainerStyle.marginTop,
+            modalContainerStyle.paddingBottom,
+            modalContainerStyle.paddingTop,
+            safeAreaPaddingBottom,
+            safeAreaPaddingLeft,
+            safeAreaPaddingRight,
+            safeAreaPaddingTop,
+            shouldAddBottomSafeAreaMargin,
+            shouldAddBottomSafeAreaPadding,
+            shouldAddTopSafeAreaMargin,
+            shouldAddTopSafeAreaPadding,
+        ],
     );
 
     React.useEffect(() => {
+        let removeOnClose;
         if (props.isVisible) {
             props.onModalShow();
             onOpen({
@@ -32,6 +78,7 @@ function Popover(props) {
                 close: props.onClose,
                 anchorRef: props.anchorRef,
             });
+            removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
         } else {
             props.onModalHide();
             close(props.anchorRef);
@@ -39,14 +86,12 @@ function Popover(props) {
         }
         Modal.willAlertModalBecomeVisible(props.isVisible);
 
-        // We prevent setting closeModal function to null when the component is invisible the first time it is rendered
-        if (!firstRenderRef.current || !props.isVisible) {
-            firstRenderRef.current = false;
-            return;
-        }
-        firstRenderRef.current = false;
-        Modal.setCloseModal(props.isVisible ? () => props.onClose(props.anchorRef) : null);
-
+        return () => {
+            if (!removeOnClose) {
+                return;
+            }
+            removeOnClose();
+        };
         // We want this effect to run strictly ONLY when isVisible prop changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);
@@ -60,44 +105,16 @@ function Popover(props) {
             style={[modalStyle, {zIndex: 1}]}
             ref={props.withoutOverlayRef}
         >
-            <SafeAreaInsetsContext.Consumer>
-                {(insets) => {
-                    const {
-                        paddingTop: safeAreaPaddingTop,
-                        paddingBottom: safeAreaPaddingBottom,
-                        paddingLeft: safeAreaPaddingLeft,
-                        paddingRight: safeAreaPaddingRight,
-                    } = StyleUtils.getSafeAreaPadding(insets);
-
-                    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
-                        safeAreaPaddingTop,
-                        safeAreaPaddingBottom,
-                        safeAreaPaddingLeft,
-                        safeAreaPaddingRight,
-                        shouldAddBottomSafeAreaMargin,
-                        shouldAddTopSafeAreaMargin,
-                        shouldAddBottomSafeAreaPadding,
-                        shouldAddTopSafeAreaPadding,
-                        modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-                        modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-                        modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-                        modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-                        insets,
-                    });
-                    return (
-                        <View
-                            style={{
-                                ...styles.defaultModalContainer,
-                                ...modalContainerStyle,
-                                ...modalPaddingStyles,
-                            }}
-                            ref={props.forwardedRef}
-                        >
-                            {props.children}
-                        </View>
-                    );
+            <View
+                style={{
+                    ...styles.defaultModalContainer,
+                    ...modalContainerStyle,
+                    ...modalPaddingStyles,
                 }}
-            </SafeAreaInsetsContext.Consumer>
+                ref={props.forwardedRef}
+            >
+                <ColorSchemeWrapper>{props.children}</ColorSchemeWrapper>
+            </View>
         </View>
     );
 }

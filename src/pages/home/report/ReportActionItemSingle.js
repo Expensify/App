@@ -1,48 +1,40 @@
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import reportActionPropTypes from './reportActionPropTypes';
-import ReportActionItemFragment from './ReportActionItemFragment';
-import styles from '../../../styles/styles';
+import Avatar from '@components/Avatar';
+import MultipleAvatars from '@components/MultipleAvatars';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SubscriptAvatar from '@components/SubscriptAvatar';
+import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import ControlSelection from '@libs/ControlSelection';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import ReportActionItemDate from './ReportActionItemDate';
-import Avatar from '../../../components/Avatar';
-import personalDetailsPropType from '../../personalDetailsPropType';
-import compose from '../../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import {withPersonalDetails} from '../../../components/OnyxProvider';
-import ControlSelection from '../../../libs/ControlSelection';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import CONST from '../../../CONST';
-import SubscriptAvatar from '../../../components/SubscriptAvatar';
-import reportPropTypes from '../../reportPropTypes';
-import * as UserUtils from '../../../libs/UserUtils';
-import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
-import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import MultipleAvatars from '../../../components/MultipleAvatars';
-import * as StyleUtils from '../../../styles/StyleUtils';
-import themeColors from '../../../styles/themes/default';
-import Permissions from '../../../libs/Permissions';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Text from '../../../components/Text';
-import Tooltip from '../../../components/Tooltip';
-import DateUtils from '../../../libs/DateUtils';
+import ReportActionItemFragment from './ReportActionItemFragment';
+import reportActionPropTypes from './reportActionPropTypes';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
-    /** All of the personalDetails */
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
-
     /** Styles for the outermost View */
-    // eslint-disable-next-line react/forbid-prop-types
-    wrapperStyles: PropTypes.arrayOf(PropTypes.object),
+    wrapperStyle: stylePropTypes,
 
     /** Children view component for this action item */
     children: PropTypes.node.isRequired,
@@ -69,8 +61,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetailsList: {},
-    wrapperStyles: [styles.chatItem],
+    wrapperStyle: undefined,
     showHeader: true,
     shouldShowSubscriptAvatar: false,
     hasBeenFlagged: false,
@@ -88,9 +79,13 @@ const showWorkspaceDetails = (reportID) => {
 };
 
 function ReportActionItemSingle(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
-    let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields, status, fallbackIcon} = props.personalDetailsList[actorAccountID] || {};
+    let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
@@ -100,10 +95,10 @@ function ReportActionItemSingle(props) {
         displayName = ReportUtils.getPolicyName(props.report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
-    } else if (props.action.delegateAccountID && props.personalDetailsList[props.action.delegateAccountID]) {
+    } else if (props.action.delegateAccountID && personalDetails[props.action.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
+        const delegateDetails = personalDetails[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
         actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
@@ -116,8 +111,8 @@ function ReportActionItemSingle(props) {
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
-        const secondaryUserDetails = props.personalDetailsList[secondaryAccountId] || {};
-        const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
+        const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
+        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
             source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
@@ -126,7 +121,10 @@ function ReportActionItemSingle(props) {
             id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
-        secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
+        const avatarIconIndex = props.report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(props.report) ? 0 : 1;
+        const reportIcons = ReportUtils.getIcons(props.report, {});
+
+        secondaryAvatar = reportIcons[avatarIconIndex];
     }
     const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: isWorkspaceActor ? '' : actorAccountID};
 
@@ -159,7 +157,9 @@ function ReportActionItemSingle(props) {
     }, [isWorkspaceActor, reportID, actorAccountID, props.action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
-        () => !isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID),
+        () =>
+            actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
+            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)),
         [props.action, isWorkspaceActor, actorAccountID],
     );
 
@@ -170,10 +170,7 @@ function ReportActionItemSingle(props) {
                     icons={[icon, secondaryAvatar]}
                     isInReportAction
                     shouldShowTooltip
-                    secondAvatarStyle={[
-                        StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
-                        props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG) : undefined,
-                    ]}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
                 />
             );
         }
@@ -206,13 +203,13 @@ function ReportActionItemSingle(props) {
             </UserDetailsTooltip>
         );
     };
-    const hasEmojiStatus = !displayAllActors && status && status.emojiCode && Permissions.canUseCustomStatus(props.betas);
+    const hasEmojiStatus = !displayAllActors && status && status.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(lodashGet(status, 'clearAfter'));
     const statusText = lodashGet(status, 'text', '');
     const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
 
     return (
-        <View style={props.wrapperStyles}>
+        <View style={[styles.chatItem, props.wrapperStyle]}>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
@@ -220,7 +217,7 @@ function ReportActionItemSingle(props) {
                 onPress={showActorDetails}
                 disabled={shouldDisableDetailPage}
                 accessibilityLabel={actorHint}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
@@ -234,7 +231,7 @@ function ReportActionItemSingle(props) {
                             onPress={showActorDetails}
                             disabled={shouldDisableDetailPage}
                             accessibilityLabel={actorHint}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
@@ -268,12 +265,4 @@ ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
-export default compose(
-    withLocalize,
-    withPersonalDetails(),
-    withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(ReportActionItemSingle);
+export default withLocalize(ReportActionItemSingle);
