@@ -13,16 +13,16 @@ type PopoverProps = BaseModalProps & {
     anchorPosition?: PopoverAnchorPosition;
 
     /** The anchor alignment of the popover */
-    anchorAlignment?: AnchorAlignment;
+    anchorAlignment: AnchorAlignment;
 
     /** The anchor ref of the popover */
-    anchorRef?: React.RefObject<HTMLElement>;
+    anchorRef: React.RefObject<HTMLElement>;
 
     /** Whether disable the animations */
-    disableAnimation?: boolean;
+    disableAnimation: boolean;
 
     /** Whether we don't want to show overlay */
-    withoutOverlay?: boolean;
+    withoutOverlay: boolean;
 
     /** The dimensions of the popover */
     popoverDimensions?: PopoverDimensions;
