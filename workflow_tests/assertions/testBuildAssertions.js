@@ -185,7 +185,16 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             ],
             [],
         ),
-        utils.createStepAssertion('Decrypt profile', true, null, 'IOS', 'Decrypt profile', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Decrypt AppStore profile', true, null, 'IOS', 'Decrypt AppStore profile', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion(
+            'Decrypt AppStore Notification Service profile',
+            true,
+            null,
+            'IOS',
+            'Decrypt AppStore Notification Service profile',
+            [],
+            [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}],
+        ),
         utils.createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypt certificate', [], [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion(
             'Configure AWS Credentials',
