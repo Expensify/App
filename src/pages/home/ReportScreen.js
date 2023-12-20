@@ -154,7 +154,6 @@ function ReportScreen({
     route,
     report,
     reportMetadata,
-    // sortedReportActions,
     allReportActions,
     accountManagerReportID,
     personalDetails,
@@ -182,11 +181,11 @@ function ReportScreen({
 
     const reportActions = useMemo(() => {
         if (allReportActions?.length === 0) return [];
-        const sorterReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions);
+        const sorterReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true);
         const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sorterReportActions, reportActionID);
         const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
         return reportActionsWithoutDeleted;
-    }, [reportActionID, allReportActions]);
+    }, [reportActionID, allReportActions, isOffline]);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
@@ -199,11 +198,9 @@ function ReportScreen({
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- need to re-filter the report actions when network status changes
-    const filteredReportActions = useMemo(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true), [isOffline, reportActions]);
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(filteredReportActions) && reportMetadata.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
@@ -470,7 +467,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={filteredReportActions}
+                                        reportActions={reportActions}
                                         report={report}
                                         isLinkingToMessage={isLinkingToMessage}
                                         setLinkingToMessageTrigger={setLinkingToMessageTrigger}
@@ -492,7 +489,7 @@ function ReportScreen({
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportActions={filteredReportActions}
+                                        reportActions={reportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
