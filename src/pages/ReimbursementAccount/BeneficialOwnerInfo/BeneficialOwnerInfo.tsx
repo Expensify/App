@@ -1,24 +1,18 @@
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import BeneficialOwnerCheckUBO from './substeps/BeneficialOwnerCheckUBO';
 import AddressUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/AddressUBO';
 import ConfirmationUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/ConfirmationUBO';
@@ -27,79 +21,60 @@ import LegalNameUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/LegalNam
 import SocialSecurityNumberUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/SocialSecurityNumberUBO';
 import CompanyOwnersListUBO from './substeps/CompanyOwnersListUBO';
 
-const propTypes = {
+type BeneficialOwnerInfoProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount?: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+    reimbursementAccountDraft?: OnyxEntry<ReimbursementAccountDraft>;
 
     /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 
     /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: PropTypes.func.isRequired,
+    onCloseButtonPress: () => void;
 
     /** Changes variable responsible for displaying step 4 or 5 */
-    setIsBeneficialOwnerInfoSet: PropTypes.func.isRequired,
-};
-
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
+    setIsBeneficialOwnerInfoSet: (newState: boolean) => void;
 };
 
 const BODY_CONTENT = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
-const BENEFICIAL_OWNER_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
-const BENEFICIAL_OWNER_KEYS_KEY = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.BENEFICIAL_OWNER_KEYS;
 const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 
-function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress, setIsBeneficialOwnerInfoSet}) {
+function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress, setIsBeneficialOwnerInfoSet}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const companyName = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'companyName', '');
+    const companyName = reimbursementAccount?.achData.companyName ?? '';
     const defaultValues = {
-        [BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT]: lodashGet(
-            reimbursementAccount,
-            BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT,
-            lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT, false),
-        ),
-        [BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS]: lodashGet(
-            reimbursementAccount,
-            BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS,
-            lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS, false),
-        ),
-        [BENEFICIAL_OWNER_KEYS_KEY]: lodashGet(reimbursementAccountDraft, BENEFICIAL_OWNER_KEYS_KEY, []),
+        ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
+        hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
+        beneficialOwnerKeys: reimbursementAccount?.achData?.beneficialOwnerKeys ?? reimbursementAccountDraft?.beneficialOwnerKeys ?? [],
     };
 
     // We're only reading beneficialOwnerKeys from draft values because there is not option to remove UBO
     // if we were to set them based on values saved in BE then there would be no option to enter different UBOs
     // user would always see the same UBOs that was saved in BE when returning to this step and trying to change something
-    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState(defaultValues[BENEFICIAL_OWNER_KEYS_KEY]);
+    const [beneficialOwnerKeys, setBeneficialOwnerKeys] = useState<string[]>(defaultValues.beneficialOwnerKeys);
     const [beneficialOwnerBeingModifiedID, setBeneficialOwnerBeingModifiedID] = useState('');
     const [isEditingCreatedBeneficialOwner, setIsEditingCreatedBeneficialOwner] = useState(false);
-    const [isUserUBO, setIsUserUBO] = useState(defaultValues[BENEFICIAL_OWNER_INFO_STEP_KEYS.OWNS_MORE_THAN_25_PERCENT]);
-    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(defaultValues[BENEFICIAL_OWNER_INFO_STEP_KEYS.HAS_OTHER_BENEFICIAL_OWNERS]);
+    const [isUserUBO, setIsUserUBO] = useState(defaultValues.ownsMoreThan25Percent);
+    const [isAnyoneElseUBO, setIsAnyoneElseUBO] = useState(defaultValues.hasOtherBeneficialOwners);
     const [currentUBOSubstep, setCurrentUBOSubstep] = useState(1);
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 
     const submit = () => {
-        const bankAccountID = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0);
-
-        const beneficialOwners =
-            beneficialOwnerKeys.length === 0
-                ? []
-                : _.map(beneficialOwnerKeys, (ownerKey) => ({
-                      firstName: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_firstName`),
-                      lastName: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_lastName`),
-                      dob: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_dob`),
-                      ssnLast4: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_ssnLast4`),
-                      street: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_street`),
-                      city: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_city`),
-                      state: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_state`),
-                      zipCode: lodashGet(reimbursementAccountDraft, `beneficialOwner_${ownerKey}_zipCode`),
-                  }));
+        const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
+        const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
+        const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
+            beneficialOwnerFields.reduce(
+                (acc, fieldName) => ({
+                    ...acc,
+                    [fieldName]: reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`],
+                }),
+                {},
+            ),
+        );
 
         BankAccounts.updateBeneficialOwnersForBankAccountDraft({
             ownsMoreThan25Percent: isUserUBO,
@@ -113,16 +88,17 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     const addBeneficialOwner = (beneficialOwnerID) => {
         // Each beneficial owner is assigned a unique key that will connect it to values in saved ONYX.
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
-        setBeneficialOwnerKeys((previousBeneficialOwners) => {
-            const newBeneficialOwners = [...previousBeneficialOwners, beneficialOwnerID];
-            FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
-            return newBeneficialOwners;
-        });
+        const newBeneficialOwners = [...beneficialOwnerKeys, beneficialOwnerID];
+
+        setBeneficialOwnerKeys(newBeneficialOwners);
+        FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
     };
 
     const startFrom = 0;
     const handleBeneficialOwnerDetailsFormSubmit = () => {
-        if (_.find(beneficialOwnerKeys, (beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) === undefined && canAddMoreUBOS) {
+        const shouldAddBeneficialOwner = !beneficialOwnerKeys.find((beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) && canAddMoreUBOS;
+
+        if (shouldAddBeneficialOwner) {
             addBeneficialOwner(beneficialOwnerBeingModifiedID);
         }
 
@@ -298,8 +274,6 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     );
 }
 
-BeneficialOwnerInfo.propTypes = propTypes;
-BeneficialOwnerInfo.defaultProps = defaultProps;
 BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
 
 export default withOnyx({
