@@ -40,9 +40,6 @@ export default PropTypes.shape({
     // Whether the report corresponds to a chat room
     isChatRoom: PropTypes.bool,
 
-    // Whether the option has an outstanding IOU
-    hasOutstandingIOU: PropTypes.bool,
-
     // Custom icon to render on the right side of the option
     customIcon: PropTypes.shape({
         // The icon source

@@ -4,9 +4,9 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +43,7 @@ function GetPhysicalCardName({
         params: {domain},
     },
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const onValidate = (values) => {
         const errors = {};

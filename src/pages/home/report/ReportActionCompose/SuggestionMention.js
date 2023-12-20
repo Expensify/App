@@ -149,7 +149,8 @@ function SuggestionMention({
                 if (!detail.login || detail.isOptimisticPersonalDetail) {
                     return false;
                 }
-                if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
+                const displayText = detail.displayName === formatPhoneNumber(detail.login) ? detail.displayName : `${detail.displayName} ${detail.login}`;
+                if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
                 return true;

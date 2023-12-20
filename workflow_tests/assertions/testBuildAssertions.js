@@ -61,6 +61,18 @@ const assertAndroidJobExecuted = (workflowResult, ref = '', didExecute = true, f
         ),
         utils.createStepAssertion('Setup Node', true, null, 'ANDROID', 'Setup Node', [], []),
         utils.createStepAssertion(
+            'Setup Java',
+            true,
+            null,
+            'ANDROID',
+            'Setup Java',
+            [
+                {key: 'distribution', value: 'oracle'},
+                {key: 'java-version', value: '17'},
+            ],
+            [],
+        ),
+        utils.createStepAssertion(
             'Setup Ruby',
             true,
             null,

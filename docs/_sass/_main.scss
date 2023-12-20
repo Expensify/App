@@ -3,19 +3,6 @@
 @import 'fonts';
 @import 'search-bar';
 
-$color-appBG: $color-green-appBG;
-$color-highlightBG: $color-green-highlightBG;
-$color-accent : $color-green400;
-$color-borders: $color-green-borders;
-$color-icons: $color-green-icons;
-$color-text: $color-white;
-$color-link: $color-blue300;
-$color-link-hovered: $color-blue200;
-$color-success: $color-green400;
-$color-text-supporting: $color-light-gray-green;
-$color-green-hover: $color-green-hover;
-$color-gray-label: $color-gray-label;
-
 * {
     margin: 0;
     padding: 0;
@@ -78,6 +65,7 @@ body {
     height: 100%;
     min-height: 100%;
     background: $color-appBG;
+    color: $color-text-supporting;
 }
 
 hr {
@@ -148,7 +136,7 @@ textarea {
     font-weight: 400;
     font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
     font-size: 16px;
-    color: $color-text;
+    color: $color-text-supporting;
 }
 
 button {
@@ -159,7 +147,7 @@ button {
     font-weight: bold;
 
     &.success {
-        background-color: $color-success;
+        background-color: $color-button-success-background;
         color: $color-text;
         width: 100%;
         border-radius: 100px;
@@ -167,7 +155,7 @@ button {
         padding-right: 20px;
 
         &:hover {
-            background-color: desaturate($color-success, 15%);
+            background-color: $color-button-success-background-hover;
             cursor: pointer;
         }
 
@@ -262,6 +250,7 @@ button {
 
     .lhn-header {
         padding: 24px;
+
         @include breakpoint($breakpoint-tablet) {
             padding: 44px;
         }
@@ -269,6 +258,7 @@ button {
         #header-button {
             display: block;
             padding-right: 24px;
+
             @include breakpoint($breakpoint-tablet) {
                 display: none;
             }
@@ -282,7 +272,7 @@ button {
             margin-right: auto;
 
             @include breakpoint($breakpoint-desktop) {
-                width: 210px;
+                width: 180px;
                 align-content: normal;
                 display: flex;
                 margin-left: 0;
@@ -372,7 +362,7 @@ button {
             // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
             // https://stackoverflow.com/questions/628301/the-border-radius-property-and-border-collapsecollapse-dont-mix-how-can-i-use
             border-style: hidden;
-            box-shadow: 0 0 0 1px $color-green-borders;
+            box-shadow: 0 0 0 1px $color-borders;
         }
 
         th:first-child {
@@ -394,12 +384,12 @@ button {
         th,
         td {
             padding: 6px 13px;
-            border: 1px solid $color-green-borders;
+            border: 1px solid $color-borders;
         }
 
         thead tr th {
             font-weight: bold;
-            background-color: $color-green-highlightBG;
+            background-color: $color-highlightBG;
         }
 
         .img-wrap {
@@ -457,11 +447,11 @@ button {
 
 .link {
     display: inline;
-    color: $color-link;
+    color: $color-text-supporting;
     cursor: pointer;
 
     &:hover {
-        color: $color-link-hovered;
+        color: $color-link;
     }
 }
 
@@ -530,7 +520,7 @@ button {
     background-color: $color-highlightBG;
 
     &:hover {
-        background-color: darken($color-highlightBG, 1%);
+        background-color: $color-row-hover;
     }
 
     .row {
@@ -629,13 +619,14 @@ button {
     }
 
     p.description {
+        color: $color-text-supporting;
         padding: 20px 0 20px 0;
     }
 
     p.url {
         padding: 0;
         font-size: 0.8em;
-        color: $color-gray-label;
+        color: $color-text-supporting;
     }
 }
 
@@ -721,39 +712,9 @@ button {
     }
 }
 
-#floating-concierge-button-global {
-    position: fixed;
-    display: block;
-    @include breakpoint($breakpoint-tablet) {
-        display: none;
-    }
-}
-
-#floating-concierge-button-lhn {
-    position: absolute;
-    display: none;
-    @include breakpoint($breakpoint-tablet) {
-        display: block;
-    }
-}
-
 .get-help {
     flex-wrap: wrap;
-    margin-top: auto;
-}
-
-.floating-concierge-button {
-    bottom: 2rem;
-    right: 2rem;
-
-    img {
-        width: 4rem;
-        height: 4rem;
-
-        &:hover {
-            filter: saturate(2);
-        }
-    }
+    margin-top: 40px;
 }
 
 .disable-scrollbar {
@@ -773,9 +734,12 @@ button {
 
     h3 {
         color: $color-success;
+        font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
         font-size: 17px;
-        font-weight: 700;
+        font-weight: 500;
+        padding: 0;
         margin-bottom: 16px;
+        margin-top: 0;
     }
 
     ul {
@@ -787,13 +751,13 @@ button {
             margin: 0 0 8px;
 
             a {
-                color: $color-text;
+                color: $color-text-supporting;
                 display: block;
                 padding: 4px 0;
                 word-break: break-word;
 
                 &:hover {
-                    color: $color-success;
+                    color: $color-link;
                 }
             }
         }
@@ -803,11 +767,11 @@ button {
         padding-bottom: 20px;
 
         a {
-            color: $color-text;
+            color: $color-text-supporting;
             display: inline-block;
 
             &:hover {
-                color: $color-success;
+                color: $color-link;
             }
         }
     }
