@@ -10,10 +10,6 @@ const propTypes = {
         current: PropTypes.instanceOf(FlatList),
     }).isRequired,
 
-    /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    contentContainerStyle: PropTypes.any,
-
     /** Same as for FlatList */
     onScroll: PropTypes.func,
 };
@@ -21,7 +17,7 @@ const propTypes = {
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
 function InvertedFlatList(props) {
-    const {innerRef, contentContainerStyle} = props;
+    const {innerRef} = props;
 
     const lastScrollEvent = useRef(null);
     const scrollEndTimeout = useRef(null);
@@ -106,7 +102,6 @@ function InvertedFlatList(props) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={innerRef}
-            contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}
         />
     );
@@ -114,7 +109,6 @@ function InvertedFlatList(props) {
 
 InvertedFlatList.propTypes = propTypes;
 InvertedFlatList.defaultProps = {
-    contentContainerStyle: {},
     onScroll: () => {},
 };
 InvertedFlatList.displayName = 'InvertedFlatList';
