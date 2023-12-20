@@ -220,6 +220,13 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     }, []);
 
     useEffect(() => {
+        if (!reportActionID) {
+            return;
+        }
+        Report.openReport({reportID, reportActionID});
+    }, [route]);
+
+    useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
         // When returning from offline to online state we want to trigger a request to OpenReport which
         // will fetch the reportActions data and mark the report as read. If the report is not fully visible
