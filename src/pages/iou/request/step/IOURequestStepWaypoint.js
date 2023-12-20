@@ -39,7 +39,7 @@ const propTypes = {
     /** The optimistic transaction for this request */
     transaction: transactionPropTypes,
 
-    /* Current location coordinates of the user*/
+    /* Current location coordinates of the user */
     userLocation: PropTypes.shape({
         /** Latitude of the location */
         latitude: PropTypes.number,
@@ -102,9 +102,6 @@ function IOURequestStepWaypoint({
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
 
-    const directionCoordinatesSize = _.size(directionCoordinates);
-    console.log('**** IOUREQUESTSTEPWAYPOINT **** ==> [' + filledWaypointCount + '], directionCoordinatesCount[' + directionCoordinatesSize + ']');
-
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
@@ -121,7 +118,6 @@ function IOURequestStepWaypoint({
         // If there are no filled wayPoints and if user's current location cannot be retrieved,
         // it is futile to arrive at a biased location. Let's return
         if (filledWaypointCount === 0 && _.isEmpty(userLocation)) {
-            console.log('Use Case 1: There are no filled waypoints. Also, current location of the user cannot be retrieved. The App will behave like it was before this feature.');
             return null;
         }
 
@@ -148,8 +144,6 @@ function IOURequestStepWaypoint({
         // We will get direction coordinates when user is adding a stop after filling the Start and Finish waypoints.
         // Include direction coordinates when available.
         if (_.size(directionCoordinates) > 0) {
-            console.log('Use Case 5: Additional stops after Start and Finish waypoints will give us direction coordinates. Include this to arrive at rectangular boundary');
-            console.dir(directionCoordinates);
             longitudes.push(..._.map(directionCoordinates, (coordinate) => coordinate[0]));
             latitudes.push(..._.map(directionCoordinates, (coordinate) => coordinate[1]));
         }
@@ -157,13 +151,8 @@ function IOURequestStepWaypoint({
         // When no filled waypoints are available but the current location of the user is available,
         // let us consider the current user's location to construct a rectangular bound
         if (filledWaypointCount === 0 && !_.isEmpty(userLocation)) {
-            console.log('Use Case 2: There are no filled waypoints. But, we have the current location of the user. Let us bias location around the current location.');
             longitudes.push(userLocation.longitude);
             latitudes.push(userLocation.latitude);
-        }
-
-        if (filledWaypointCount === 1) {
-            console.log('Use Case 3: There is exactly one waypoint. Let us bias location around this waypoint: lat[' + latitudes[0] + '],lng[' + longitudes[0] + ']');
         }
 
         // Extend the rectangular bound by 0.5 degree (roughly around 25-30 miles in US)
@@ -178,18 +167,10 @@ function IOURequestStepWaypoint({
         const north = maxLat < 90 ? maxLat : 90;
         const east = maxLng < 180 ? maxLng : 180;
 
-        const rectFormat = `rectangle:${south},${west}|${north},${east}`;
-
-        if (filledWaypointCount === 2) {
-            console.log('Use Case 4: There two waypoints. Let us bias location around this waypoint');
-            console.dir(latitudes);
-            console.dir(longitudes);
-        }
-        console.log('NEW RECTANGULAR BOUNDARY[' + rectFormat + ']');
-
         // Format: rectangle:south,west|north,east
+        const rectFormat = `rectangle:${south},${west}|${north},${east}`;
         return rectFormat;
-    }, [userLocation, directionCoordinates, filledWaypointCount]);
+    }, [userLocation, directionCoordinates, filledWaypointCount, allWaypoints]);
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     // Hide the menu when there is only start and finish waypoint

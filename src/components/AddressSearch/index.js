@@ -184,12 +184,11 @@ function AddressSearch({
             language: preferredLocale,
             types: resultTypes,
             components: isLimitedToUSA ? 'country:us' : undefined,
-            locationbias: locationBias ? locationBias : 'ipbias',
+            locationbias: locationBias || 'ipbias',
         }),
         [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
-    // console.log("AddressSearch:locationBias["+locationBias+"]");
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
