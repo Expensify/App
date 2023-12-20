@@ -1,5 +1,6 @@
 import {RouteProp, useNavigation} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
+import {TextInput} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -65,7 +66,7 @@ function WaypointEditor({
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const textInput = useRef(null);
+    const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(waypointIndex, 10);
     const allWaypoints = transaction?.comment.waypoints ?? {};
     const currentWaypoint = allWaypoints[`waypoint${waypointIndex}`] ?? {};
@@ -158,9 +159,12 @@ function WaypointEditor({
     };
 
     return (
+        /* @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => textInput.current?.focus()}
+            onEntryTransitionEnd={() => {
+                textInput.current?.focus();
+            }}
             shouldEnableMaxHeight
             testID={WaypointEditor.displayName}
         >
@@ -191,6 +195,7 @@ function WaypointEditor({
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */}
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
@@ -202,10 +207,13 @@ function WaypointEditor({
                     submitButtonText={translate('common.save')}
                 >
                     <InputWrapper
+                        /* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript. */
                         InputComponent={AddressSearch}
                         canUseCurrentLocation
                         inputID={`waypoint${waypointIndex}`}
-                        ref={(e) => (textInput.current = e)}
+                        ref={(e) => {
+                            textInput.current = e;
+                        }}
                         hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
                         containerStyles={[styles.mt3]}
                         label={translate('distance.address')}
