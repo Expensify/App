@@ -25,7 +25,6 @@ import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
