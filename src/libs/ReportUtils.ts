@@ -1993,7 +1993,7 @@ function getReportPreviewMessage(
             return Localize.translateLocal('iou.receiptScanning');
         }
     }
-        const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
+    const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
@@ -2017,12 +2017,12 @@ function getReportPreviewMessage(
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
 
     if (!isPreviewMessageForParentChatReport) {
-        const lastActorID = reportAction?.actorAccountID
+        const lastActorID = reportAction?.actorAccountID;
         const amount = originalMessage?.amount ?? 0;
         const currency = originalMessage?.currency ?? report.currency;
         const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency ?? '');
         const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
-        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`
+        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
     }
 
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});

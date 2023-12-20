@@ -328,13 +328,16 @@ function getOptionData(
         const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
             ? {
-                displayName: lastActorDisplayName,
-                accountID: report.lastActorAccountID,
-            }
+                  displayName: lastActorDisplayName,
+                  accountID: report.lastActorAccountID,
+              }
             : null;
     }
 
-    const lastActorDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.firstName ?? lastActorDetails.displayName : '';
+    const lastActorDisplayName =
+        hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID
+            ? lastActorDetails.firstName ?? lastActorDetails.displayName
+            : '';
     let lastMessageText = lastMessageTextFromReport;
 
     const reportAction = lastReportActions?.[report.reportID];
@@ -357,7 +360,7 @@ function getOptionData(
         }
     }
 
-    const isThreadMessage = ReportUtils.isThread(report) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
+    const isThreadMessage = ReportUtils.isThread(report) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
