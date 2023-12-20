@@ -1,10 +1,6 @@
 import Str from 'expensify-common/lib/str';
+import type {Message} from '@src/types/onyx/ReportNextStep';
 import EmailUtils from './EmailUtils';
-
-type Message = {
-    text: string;
-    type?: string;
-};
 
 function parseMessage(messages: Message[] | undefined) {
     let nextStepHTML = '';

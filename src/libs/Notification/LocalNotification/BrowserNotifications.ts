@@ -2,6 +2,7 @@
 import Str from 'expensify-common/lib/str';
 import {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as AppUpdate from '@userActions/AppUpdate';
 import {Report, ReportAction} from '@src/types/onyx';
@@ -108,7 +109,7 @@ export default {
 
     pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ReportUtils.getModifiedExpenseMessage(reportAction);
+        const body = ModifiedExpenseMessage.getForReportAction(reportAction);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,
