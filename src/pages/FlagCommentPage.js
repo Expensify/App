@@ -10,15 +10,16 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import withReportAndReportActionOrNotFound from './home/report/withReportAndReportActionOrNotFound';
 import reportPropTypes from './reportPropTypes';
@@ -161,7 +162,14 @@ function FlagCommentPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
-                    <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
+                    <HeaderWithBackButton
+                        title={props.translate('reportActionContextMenu.flagAsOffensive')}
+                        shouldNavigateToTopMostReport
+                        onBackButtonPress={() => {
+                            Navigation.goBack();
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.report.reportID));
+                        }}
+                    />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         style={styles.settingsPageBackground}

@@ -17,6 +17,11 @@ jobs:
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
 
+      - name: Set dummy git credentials
+        run: |
+            git config --global user.email "test@test.com"
+            git config --global user.name "Test"
+
       - name: Run performance testing script
         shell: bash
         run: |
@@ -27,6 +32,7 @@ jobs:
           npm install --force
           npx reassure --baseline
           git switch --force --detach -
+          git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
           npm install --force
           npx reassure --branch
 

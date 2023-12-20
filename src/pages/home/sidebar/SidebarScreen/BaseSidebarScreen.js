@@ -1,10 +1,10 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import Performance from '@libs/Performance';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
-import useThemeStyles from '@styles/useThemeStyles';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import sidebarPropTypes from './sidebarPropTypes';
@@ -30,7 +30,6 @@ function BaseSidebarScreen(props) {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            shouldDisableFocusTrap
         >
             {({insets}) => (
                 <>

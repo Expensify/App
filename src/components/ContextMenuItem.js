@@ -1,11 +1,10 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useImperativeHandle} from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import getContextMenuItemStyles from '@styles/getContextMenuItemStyles';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
@@ -54,6 +53,7 @@ const defaultProps = {
 
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -97,8 +97,8 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             wrapperStyle={styles.pr9}
             success={!isThrottledButtonActive}
             description={description}
-            descriptionTextStyle={styles.breakAll}
-            style={getContextMenuItemStyles(windowWidth)}
+            descriptionTextStyle={styles.breakWord}
+            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive={isThrottledButtonActive}

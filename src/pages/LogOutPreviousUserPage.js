@@ -8,6 +8,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -54,7 +55,10 @@ function LogOutPreviousUserPage(props) {
             }
 
             const exitTo = lodashGet(props, 'route.params.exitTo', '');
-            if (exitTo && !props.account.isLoading && !isLoggingInAsNewUser) {
+            // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+            // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+            // which is already called when AuthScreens mounts.
+            if (exitTo && exitTo !== ROUTES.WORKSPACE_NEW && !props.account.isLoading && !isLoggingInAsNewUser) {
                 Navigation.isNavigationReady().then(() => {
                     Navigation.navigate(exitTo);
                 });
