@@ -1,4 +1,3 @@
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import {Login} from '@src/types/onyx';
 import Navigation from './Navigation/Navigation';
@@ -82,7 +81,7 @@ function setCurrentRoute(currentRoute: string, domain: string, privatePersonalDe
     }
 
     // Redirect the user if he's not allowed to be on the current step
-    Navigation.navigate(expectedRoute, CONST.NAVIGATION.ACTION_TYPE.REPLACE);
+    Navigation.goBack(expectedRoute);
 }
 
 /**
