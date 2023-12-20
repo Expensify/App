@@ -882,8 +882,6 @@ function canModifyTask(taskReport, sessionAccountID, policyRole = '') {
         return true;
     }
 
-    const parentReport = ReportUtils.getParentReport(taskReport);
-
     if (policyRole && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
         return false;
     }
