@@ -178,8 +178,6 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openExternalLink(CONST.EXPENSIFY_INBOX_URL);
                     },
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
                     link: CONST.EXPENSIFY_INBOX_URL,
                 },
                 {
@@ -210,8 +208,6 @@ function InitialSettingsPage(props) {
                     action: () => {
                         Link.openExternalLink(CONST.NEWHELP_URL);
                     },
-                    shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
                     link: CONST.NEWHELP_URL,
                 },
                 {
