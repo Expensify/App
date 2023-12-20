@@ -2,30 +2,34 @@ import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Page} from 'react-pdf';
+import _ from 'underscore';
 import stylePropTypes from '@styles/stylePropTypes';
 import PDFViewConstants from './constants';
 
-const WebPDFPageRenderer = memo(({index: pageIndex, data, style}) => {
-    const {pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize} = data;
+const WebPDFPageRenderer = memo(
+    ({index: pageIndex, data, style}) => {
+        const {pageWidth, calculatePageHeight, getDevicePixelRatio, estimatedItemSize} = data;
 
-    const pageHeight = calculatePageHeight(pageIndex);
-    const devicePixelRatio = getDevicePixelRatio(pageWidth, pageHeight);
+        const pageHeight = calculatePageHeight(pageIndex);
+        const devicePixelRatio = getDevicePixelRatio(pageWidth, pageHeight);
 
-    return (
-        <View style={{...style, top: `${parseFloat(style.top) + PDFViewConstants.PAGE_BORDER}px`}}>
-            <Page
-                key={`page_${pageIndex}`}
-                width={pageWidth}
-                height={pageHeight || estimatedItemSize}
-                pageIndex={pageIndex}
-                // This needs to be empty to avoid multiple loading texts which show per page and look ugly
-                // See https://github.com/Expensify/App/issues/14358 for more details
-                loading=""
-                devicePixelRatio={devicePixelRatio}
-            />
-        </View>
-    );
-});
+        return (
+            <View style={{...style, top: `${parseFloat(style.top) + PDFViewConstants.PAGE_BORDER}px`}}>
+                <Page
+                    key={`page_${pageIndex}`}
+                    width={pageWidth}
+                    height={pageHeight || estimatedItemSize}
+                    pageIndex={pageIndex}
+                    // This needs to be empty to avoid multiple loading texts which show per page and look ugly
+                    // See https://github.com/Expensify/App/issues/14358 for more details
+                    loading=""
+                    devicePixelRatio={devicePixelRatio}
+                />
+            </View>
+        );
+    },
+    (prevProps, nextProps) => _.isEqual(prevProps, nextProps),
+);
 
 WebPDFPageRenderer.displayName = 'WebPDFPageRenderer';
 WebPDFPageRenderer.propTypes = {
