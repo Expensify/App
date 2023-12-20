@@ -5,6 +5,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import networkPropTypes from '@components/networkPropTypes';
@@ -211,6 +212,10 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
 
     useEffect(() => {
         openReportIfNecessary();
+
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
