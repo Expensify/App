@@ -355,14 +355,12 @@ function InitialSettingsPage(props) {
         </View>
     );
 
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.HOME);
-
     return (
         <HeaderPageLayout
             title={translate('initialSettingsPage.accountSettings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.justifyContentCenter]}
-            onBackButtonPress={() => Navigation.navigate(navigateBackTo)}
+            onBackButtonPress={() => Navigation.closeFullScreen()}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
             childrenContainerStyles={[styles.m0, styles.p0]}
         >
