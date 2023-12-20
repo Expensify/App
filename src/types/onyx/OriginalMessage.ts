@@ -193,7 +193,24 @@ type OriginalMessagePolicyTask = {
 
 type OriginalMessageModifiedExpense = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
-    originalMessage: unknown;
+    originalMessage: {
+        oldMerchant?: string;
+        merchant?: string;
+        oldCurrency?: string;
+        currency?: string;
+        oldAmount?: number;
+        amount?: number;
+        oldComment?: string;
+        newComment?: string;
+        oldCreated?: string;
+        created?: string;
+        oldCategory?: string;
+        category?: string;
+        oldTag?: string;
+        tag?: string;
+        oldBillable?: string;
+        billable?: string;
+    };
 };
 
 type OriginalMessageReimbursementQueued = {
