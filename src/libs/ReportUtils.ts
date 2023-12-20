@@ -425,6 +425,36 @@ function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHA
     return report?.chatType;
 }
 
+/**
+ * Returns the parentReport if the given report is a thread.
+ */
+function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
+    if (!report?.parentReportID) {
+        return {};
+    }
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
+}
+
+/**
+ * Returns the root parentReport if the given report is nested.
+ * Uses recursion to iterate any depth of nested reports.
+ */
+function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject): OnyxEntry<Report> | EmptyObject {
+    if (!report) {
+        return {};
+    }
+
+    // Returns the current report as the root report, because it does not have a parentReportID
+    if (!report?.parentReportID) {
+        return report;
+    }
+
+    const parentReport = getReport(report?.parentReportID);
+
+    // Runs recursion to iterate a parent report
+    return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
+}
+
 function getPolicy(policyID: string): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
@@ -2147,36 +2177,6 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
     }
 
     return originalMessage;
-}
-
-/**
- * Returns the parentReport if the given report is a thread.
- */
-function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
-    if (!report?.parentReportID) {
-        return {};
-    }
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
-}
-
-/**
- * Returns the root parentReport if the given report is nested.
- * Uses recursion to iterate any depth of nested reports.
- */
-function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject): OnyxEntry<Report> | EmptyObject {
-    if (!report) {
-        return {};
-    }
-
-    // Returns the current report as the root report, because it does not have a parentReportID
-    if (!report?.parentReportID) {
-        return report;
-    }
-
-    const parentReport = getReport(report?.parentReportID);
-
-    // Runs recursion to iterate a parent report
-    return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
 }
 
 /**
