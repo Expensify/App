@@ -1,4 +1,3 @@
-import {CSSProperties} from 'react';
 import {ViewStyle} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
@@ -9,7 +8,7 @@ type BankIcon = {
     iconSize?: number;
     iconHeight?: number;
     iconWidth?: number;
-    iconStyles?: Array<ViewStyle | CSSProperties>;
+    iconStyles?: ViewStyle[];
 };
 
 type BankName = ValueOf<typeof CONST.BANK_NAMES>;
