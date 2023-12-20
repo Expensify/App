@@ -119,7 +119,6 @@ function RoomInvitePage(props) {
                     <View style={[styles.flex1]}>
                         {didScreenTransitionEnd && (
                             <MemberInviteList
-                                didScreenTransitionEnd={didScreenTransitionEnd}
                                 inviteUsers={inviteUsers}
                                 excludedUsers={excludedUsers}
                                 name={reportName}
