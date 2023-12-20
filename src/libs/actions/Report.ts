@@ -1,6 +1,7 @@
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
+import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -23,6 +24,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -2031,6 +2033,10 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                     return;
                 }
 
+                if (shouldSkipDeepLinkNavigation(route)) {
+                    return;
+                }
+
                 Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
@@ -2498,6 +2504,8 @@ function searchForReports(searchInput: string) {
     API.read('SearchForReports', parameters, {successData, failureData});
 }
 
+const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME, {leading: false});
+
 function searchInServer(searchInput: string) {
     if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
@@ -2508,7 +2516,7 @@ function searchInServer(searchInput: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(searchInput);
+    debouncedSearchInServer(searchInput);
 }
 
 function clearNewRoomFormError() {
