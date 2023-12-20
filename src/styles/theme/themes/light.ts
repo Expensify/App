@@ -9,7 +9,7 @@ const lightTheme = {
     splashBG: colors.green400,
     highlightBG: colors.productLight200,
     border: colors.productLight400,
-    borderLighter: colors.productLight600,
+    borderLighter: colors.productLight400,
     borderFocus: colors.green400,
     icon: colors.productLight700,
     iconMenu: colors.green400,
@@ -41,7 +41,7 @@ const lightTheme = {
     inverse: colors.productLight900,
     shadow: colors.black,
     componentBG: colors.productLight100,
-    hoverComponentBG: colors.productLight200,
+    hoverComponentBG: colors.productLight300,
     activeComponentBG: colors.productLight400,
     signInSidebar: colors.green800,
     sidebar: colors.productLight200,
@@ -128,6 +128,10 @@ const lightTheme = {
         },
         [SCREENS.RIGHT_MODAL.REFERRAL]: {
             backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.RIGHT_MODAL.SIGN_IN]: {
+            backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },
