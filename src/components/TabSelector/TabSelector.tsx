@@ -99,11 +99,11 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                 const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
                 const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);
                 const backgroundColor = getBackgroundColor(state.routes.length, index, affectedAnimatedTabs);
-                const isFocused = index === state.index;
+                const isActive = index === state.index;
                 const {icon, title} = getIconAndTitle(route.name, translate);
 
                 const onPress = () => {
-                    if (isFocused) {
+                    if (isActive) {
                         return;
                     }
 
@@ -132,7 +132,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
-                        isFocused={isFocused}
+                        isActive={isActive}
                     />
                 );
             })}

@@ -6,7 +6,7 @@ type TabLabelProps = {
     /** Title of the tab */
     title?: string;
 
-    /** Animated opacity value while the label is inactive state */
+    /** Animated opacity value while the label is in inactive state */
     inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
 
     /** Animated opacity value while the label is in active state */

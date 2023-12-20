@@ -7,10 +7,10 @@ type TabIconProps = {
     /** Icon to display on tab */
     icon?: (props: SrcProps) => React.ReactNode;
 
-    /** Animated opacity value while the label is inactive state */
+    /** Animated opacity value while the icon is in inactive state */
     inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
 
-    /** Animated opacity value while the label is in active state */
+    /** Animated opacity value while the icon is in active state */
     activeOpacity?: number | Animated.AnimatedInterpolation<number>;
 };
 
