@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import optionPropTypes from '@components/optionPropTypes';
 import stylePropTypes from '@styles/stylePropTypes';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -127,8 +126,8 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
 
-    /** Initial focused index value */
-    initialFocusedIndex: PropTypes.number,
+    /** Index for option to focus on */
+    focusedIndex: PropTypes.number,
 
     /** Whether the text input should intercept swipes or not */
     shouldTextInputInterceptSwipe: PropTypes.bool,
@@ -162,7 +161,7 @@ const defaultProps = {
     onConfirmSelection: () => {},
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
-    optionHoveredStyle: styles.hoveredComponentBG,
+    optionHoveredStyle: undefined,
     sectionHeaderStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
@@ -174,7 +173,7 @@ const defaultProps = {
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
     isRowMultilineSupported: false,
-    initialFocusedIndex: undefined,
+    focusedIndex: undefined,
     shouldTextInputInterceptSwipe: false,
     shouldAllowScrollingChildren: false,
     nestedScrollEnabled: true,

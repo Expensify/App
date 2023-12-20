@@ -93,7 +93,7 @@ function requestReplacementExpensifyCard(cardId, reason) {
 /**
  * Activates the physical Expensify card based on the last four digits of the card number
  *
- * @param {Number} cardLastFourDigits
+ * @param {String} cardLastFourDigits
  * @param {Number} cardID
  */
 function activatePhysicalExpensifyCard(cardLastFourDigits, cardID) {

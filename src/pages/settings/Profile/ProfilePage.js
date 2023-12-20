@@ -13,12 +13,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as UserUtils from '@libs/UserUtils';
 import userPropTypes from '@pages/settings/userPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -83,15 +82,13 @@ function ProfilePage(props) {
             pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
-        ...(Permissions.canUseCustomStatus(props.betas)
-            ? [
-                  {
-                      description: props.translate('statusPage.status'),
-                      title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
-                      pageRoute: ROUTES.SETTINGS_STATUS,
-                  },
-              ]
-            : []),
+        ...[
+            {
+                description: props.translate('statusPage.status'),
+                title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
+                pageRoute: ROUTES.SETTINGS_STATUS,
+            },
+        ],
         {
             description: props.translate('pronounsPage.pronouns'),
             title: getPronouns(),
@@ -183,9 +180,6 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

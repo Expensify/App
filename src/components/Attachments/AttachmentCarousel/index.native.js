@@ -1,15 +1,14 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,57 +19,20 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({
-    report,
-    reportActions,
-    parentReportActions,
-    source,
-    onNavigate,
-    setDownloadButtonVisibility,
-    translate,
-    transaction,
-    onClose,
-    isLoadingReportData,
-    reportMetadata,
-    isLoadingApp,
-}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
-
-    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
-    const [isReceipt, setIsReceipt] = useState(false);
+    const [activeSource, setActiveSource] = useState(source);
 
-    const isLoadingReport = isLoadingReportData && (_.isEmpty(report) || !report.reportID);
-    const isLoadingReportAction = _.isEmpty(reportActions) || reportMetadata.isLoadingInitialReportActions;
-
-    // For small screen, we don't call openReport API when we go to a sub report page by deeplink
-    // So we need to call openReport here for small screen
-    useEffect(() => {
-        if (!_.isEmpty(report) && !_.isEmpty(reportActions)) {
-            return;
-        }
-        Report.openReport(report.reportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.reportID]);
-
-    const compareImage = useCallback(
-        (attachment) => {
-            if (attachment.isReceipt && isReceipt) {
-                return attachment.transactionID === transaction.transactionID;
-            }
-            return attachment.source === source;
-        },
-        [source, isReceipt, transaction],
-    );
+    const compareImage = useCallback((attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
         const parentReportAction = parentReportActions[report.parentReportActionID];
-        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions, transaction);
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -105,7 +67,6 @@ function AttachmentCarousel({
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
-            setIsReceipt(item.isReceipt);
             setActiveSource(item.source);
 
             onNavigate(item);
@@ -134,14 +95,17 @@ function AttachmentCarousel({
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item, isActive}) => (
+        ({item, index, isActive}) => (
             <CarouselItem
                 item={item}
+                isSingleItem={attachments.length === 1}
+                index={index}
+                activeIndex={page}
                 isFocused={isActive && activeSource === item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
     );
 
     if (isLoadingReport || isLoadingReportAction || isLoadingApp) {
@@ -151,48 +115,47 @@ function AttachmentCarousel({
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) =>
-                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
-            }
             onMouseEnter={() => setShouldShowArrows(true)}
             onMouseLeave={() => setShouldShowArrows(false)}
         >
-            {page === -1 ? (
-                <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
-                    iconWidth={variables.modalTopIconWidth}
-                    iconHeight={variables.modalTopIconHeight}
-                    title={translate('notFound.notHere')}
-                />
+            {page == null ? (
+                <FullScreenLoadingIndicator />
             ) : (
                 <>
-                    <CarouselButtons
-                        shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
-                        page={page}
-                        attachments={attachments}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrows}
-                    />
-
-                    {containerDimensions.width > 0 && containerDimensions.height > 0 && (
-                        <AttachmentCarouselPager
-                            items={attachments}
-                            renderItem={renderItem}
-                            initialIndex={page}
-                            onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                            onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                    setShouldShowArrows(true);
-                                }
-                            }}
-                            onSwipeDown={onClose}
-                            containerWidth={containerDimensions.width}
-                            containerHeight={containerDimensions.height}
-                            ref={pagerRef}
+                    {page === -1 ? (
+                        <BlockingView
+                            icon={Illustrations.ToddBehindCloud}
+                            iconWidth={variables.modalTopIconWidth}
+                            iconHeight={variables.modalTopIconHeight}
+                            title={translate('notFound.notHere')}
                         />
+                    ) : (
+                        <>
+                            <CarouselButtons
+                                shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
+                                page={page}
+                                attachments={attachments}
+                                onBack={() => cycleThroughAttachments(-1)}
+                                onForward={() => cycleThroughAttachments(1)}
+                                autoHideArrow={autoHideArrows}
+                                cancelAutoHideArrow={cancelAutoHideArrows}
+                            />
+
+                            <AttachmentCarouselPager
+                                items={attachments}
+                                renderItem={renderItem}
+                                initialIndex={page}
+                                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                                onPinchGestureChange={(newIsPinchGestureRunning) => {
+                                    setIsPinchGestureRunning(newIsPinchGestureRunning);
+                                    if (!newIsPinchGestureRunning && !shouldShowArrows) {
+                                        setShouldShowArrows(true);
+                                    }
+                                }}
+                                onSwipeDown={onClose}
+                                ref={pagerRef}
+                            />
+                        </>
                     )}
                 </>
             )}
@@ -204,7 +167,6 @@ AttachmentCarousel.defaultProps = defaultProps;
 AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default compose(
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
@@ -216,24 +178,6 @@ export default compose(
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
-        },
-    }),
-    // eslint-disable-next-line rulesdir/no-multiple-onyx-in-file
-    withOnyx({
-        transaction: {
-            key: ({report, parentReportActions}) => {
-                const parentReportAction = lodashGet(parentReportActions, [report.parentReportActionID]);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
-            },
-        },
-        isLoadingApp: {
-            key: ONYXKEYS.IS_LOADING_APP,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        reportMetadata: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         },
     }),
     withLocalize,

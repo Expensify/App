@@ -6,6 +6,12 @@ const commonListItemPropTypes = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused: PropTypes.bool,
 
+    /** Style to be applied to Text */
+    textStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style to be applied on the alternate text */
+    alternateTextStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Whether this item is disabled */
     isDisabled: PropTypes.bool,
 
@@ -182,6 +188,9 @@ const propTypes = {
 
     /** Custom content to display in the footer */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+
+    /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
+    shouldUseDynamicMaxToRenderPerBatch: PropTypes.bool,
 };
 
 export {propTypes, baseListItemPropTypes, radioListItemPropTypes, userListItemPropTypes};

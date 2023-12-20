@@ -3,7 +3,7 @@ import {ActionListContext} from '@pages/home/ReportScreenContext';
 import ReportScrollManagerData from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const flatListRef = useContext(ActionListContext);
+    const {flatListRef} = useContext(ActionListContext);
 
     /**
      * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because

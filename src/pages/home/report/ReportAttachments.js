@@ -3,6 +3,7 @@ import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import reportPropTypes from '@pages/reportPropTypes';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,13 +25,13 @@ const propTypes = {
     report: reportPropTypes,
 };
 
-const defaultProps = {
-    report: {},
-};
+function ReportAttachments(props) {
+    const reportID = _.get(props, ['route', 'params', 'reportID']);
+    const report = ReportUtils.getReport(reportID);
 
-function ReportAttachments({report, route}) {
-    const reportID = _.get(route, ['params', 'reportID']);
-    const source = decodeURI(_.get(route, ['params', 'source']));
+    // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
+    const decodedSource = decodeURI(_.get(props, ['route', 'params', 'source']));
+    const source = Number(decodedSource) || decodedSource;
 
     const onCarouselAttachmentChange = useCallback(
         (attachment) => {
@@ -46,7 +47,11 @@ function ReportAttachments({report, route}) {
             defaultOpen
             report={report}
             source={source}
-            onModalHide={() => Navigation.dismissModal()}
+            onModalHide={() => {
+                Navigation.dismissModal();
+                // This enables Composer refocus when the attachments modal is closed by the browser navigation
+                ComposerFocusManager.setReadyToFocus();
+            }}
             onCarouselAttachmentChange={onCarouselAttachmentChange}
         />
     );

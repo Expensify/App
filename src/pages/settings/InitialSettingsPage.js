@@ -21,11 +21,13 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -34,8 +36,6 @@ import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActi
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Session from '@userActions/Session';
@@ -44,6 +44,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import assignedCardPropTypes from './Wallet/assignedCardPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -89,9 +90,6 @@ const propTypes = {
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
 
@@ -105,6 +103,8 @@ const propTypes = {
             errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
         }),
     ),
+
+    cardList: PropTypes.objectOf(assignedCardPropTypes),
 
     /** Members keyed by accountID for all policies */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
@@ -120,11 +120,11 @@ const defaultProps = {
         currentBalance: 0,
     },
     reimbursementAccount: {},
-    betas: [],
     walletTerms: {},
     bankAccountList: {},
     fundList: null,
     loginList: {},
+    cardList: {},
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -240,7 +240,10 @@ function InitialSettingsPage(props) {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }),
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
+                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, paymentCardList) ||
+                    !_.isEmpty(props.userWallet.errors) ||
+                    !_.isEmpty(props.walletTerms.errors) ||
+                    CardUtils.hasDetectedFraud(props.cardList)
                         ? 'error'
                         : null,
             },
@@ -262,6 +265,16 @@ function InitialSettingsPage(props) {
                 }),
             },
             {
+                translationKey: 'initialSettingsPage.goToExpensifyClassic',
+                icon: Expensicons.NewExpensify,
+                action: () => {
+                    Link.openExternalLink(CONST.EXPENSIFY_INBOX_URL);
+                },
+                shouldShowRightIcon: true,
+                iconRight: Expensicons.NewWindow,
+                link: CONST.EXPENSIFY_INBOX_URL,
+            },
+            {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
                 action: () => {
@@ -272,6 +285,7 @@ function InitialSettingsPage(props) {
     }, [
         props.allPolicyMembers,
         props.bankAccountList,
+        props.cardList,
         props.fundList,
         props.loginList,
         props.network.isOffline,
@@ -286,10 +300,9 @@ function InitialSettingsPage(props) {
     const getMenuItems = useMemo(() => {
         /**
          * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-         * @returns {Number} the user wallet balance
+         * @returns {String|undefined} the user's wallet balance
          */
-        const getWalletBalance = (isPaymentItem) =>
-            isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined;
+        const getWalletBalance = (isPaymentItem) => (isPaymentItem ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
 
         return (
             <>
@@ -324,7 +337,7 @@ function InitialSettingsPage(props) {
                 })}
             </>
         );
-    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
+    }, [getDefaultMenuItems, props.userWallet.currentBalance, translate, isExecuting, singleExecution]);
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapper, styles.justifyContentCenter]}>
@@ -341,7 +354,7 @@ function InitialSettingsPage(props) {
                             disabled={isExecuting}
                             onPress={singleExecution(openProfileSettings)}
                             accessibilityLabel={translate('common.profile')}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                         >
                             <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                 <Avatar
@@ -358,7 +371,7 @@ function InitialSettingsPage(props) {
                         disabled={isExecuting}
                         onPress={singleExecution(openProfileSettings)}
                         accessibilityLabel={translate('common.profile')}
-                        role={CONST.ACCESSIBILITY_ROLE.LINK}
+                        role={CONST.ROLE.LINK}
                     >
                         <Tooltip text={translate('common.profile')}>
                             <Text
@@ -387,7 +400,7 @@ function InitialSettingsPage(props) {
             title={translate('common.settings')}
             headerContent={headerContent}
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentCenter]}
-            backgroundColor={theme.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ROOT]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
         >
             <View style={styles.w100}>
                 {getMenuItems}
@@ -426,9 +439,6 @@ export default compose(
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
         },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
@@ -443,6 +453,9 @@ export default compose(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
         },
     }),
     withNetwork(),

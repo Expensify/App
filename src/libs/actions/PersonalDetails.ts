@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import {CustomRNImageManipulatorResult, FileWithUri} from '@libs/cropOrRotateImage/types';
+import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -9,7 +9,7 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {DateOfBirthForm, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
 type FirstAndLastName = {
@@ -27,7 +27,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = null;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
@@ -445,7 +445,7 @@ function openPublicProfilePage(accountID: number) {
 /**
  * Updates the user's avatar image
  */
-function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
+function updateAvatar(file: File | CustomRNImageManipulatorResult) {
     if (!currentUserAccountID) {
         return;
     }
@@ -495,13 +495,13 @@ function updateAvatar(file: FileWithUri | CustomRNImageManipulatorResult) {
                     pendingFields: {
                         avatar: null,
                     },
-                },
+                } as OnyxEntry<Partial<PersonalDetails>>,
             },
         },
     ];
 
     type UpdateUserAvatarParams = {
-        file: FileWithUri | CustomRNImageManipulatorResult;
+        file: File | CustomRNImageManipulatorResult;
     };
 
     const parameters: UpdateUserAvatarParams = {file};
