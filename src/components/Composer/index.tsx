@@ -15,7 +15,6 @@ import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
 import {ComposerProps} from './types';
 
