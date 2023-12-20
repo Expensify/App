@@ -9,6 +9,9 @@ import withKeyboardState from '@components/withKeyboardState';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -23,13 +26,10 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import containerComposeStyles from '@styles/containerComposeStyles';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -39,11 +39,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 const {RNTextInputReset} = NativeModules;
-
-// For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
-// and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
-// so we need to ensure that it is only updated after focus.
-const isMobileSafari = Browser.isMobileSafari();
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -82,6 +77,7 @@ function ComposerWithSuggestions({
     // Focus
     onFocus,
     onBlur,
+    onValueChange,
     // Composer
     isComposerFullSize,
     isMenuVisible,
@@ -109,6 +105,7 @@ function ComposerWithSuggestions({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -132,10 +129,7 @@ function ComposerWithSuggestions({
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({
-        start: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
-        end: isMobileSafari && !shouldAutoFocus ? 0 : value.length,
-    }));
+    const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -436,18 +430,7 @@ function ComposerWithSuggestions({
                 return;
             }
 
-            // If the key pressed is non-character keys like Enter, Shift, ... do not focus
-            if (e.key.length > 1) {
-                return;
-            }
-
-            // If a key is pressed in combination with Meta, Control or Alt do not focus
-            if (e.metaKey || e.ctrlKey || e.altKey) {
-                return;
-            }
-
-            // If the space key is pressed, do not focus
-            if (e.code === 'Space') {
+            if (!ReportUtils.shouldAutoFocusOnKeyPress(e)) {
                 return;
             }
 
@@ -498,7 +481,7 @@ function ComposerWithSuggestions({
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
+        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !modal.isVisible && isFocused && (prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -507,7 +490,8 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
+
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, shouldAutoFocus);
@@ -533,9 +517,13 @@ function ComposerWithSuggestions({
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
+    useEffect(() => {
+        onValueChange(value);
+    }, [onValueChange, value]);
+
     return (
         <>
-            <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
+            <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={shouldAutoFocus}
@@ -546,7 +534,7 @@ function ComposerWithSuggestions({
                     onChangeText={(commentValue) => updateComment(commentValue, true)}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
@@ -574,6 +562,7 @@ function ComposerWithSuggestions({
                         setComposerHeight(composerLayoutHeight);
                     }}
                     onScroll={hideSuggestionMenu}
+                    shouldContainScroll={Browser.isMobileSafari()}
                 />
             </View>
 

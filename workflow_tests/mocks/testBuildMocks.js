@@ -62,6 +62,7 @@ const TESTBUILD__ANDROID__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
     [],
 );
 const TESTBUILD__ANDROID__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setup Node', 'ANDROID', [], []);
+const TESTBUILD__ANDROID__SETUP_JAVA__STEP_MOCK = utils.createMockStep('Setup Java', 'Setup Java', 'ANDROID', ['distribution', 'java-version'], []);
 const TESTBUILD__ANDROID__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setup Ruby', 'ANDROID', ['ruby-version', 'bundler-cache'], []);
 const TESTBUILD__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK = utils.createMockStep('Decrypt keystore', 'Decrypt keystore', 'ANDROID', [], ['LARGE_SECRET_PASSPHRASE']);
 const TESTBUILD__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK = utils.createMockStep('Decrypt json key', 'Decrypt json key', 'ANDROID', [], ['LARGE_SECRET_PASSPHRASE']);
@@ -85,6 +86,7 @@ const TESTBUILD__ANDROID__STEP_MOCKS = [
     TESTBUILD__ANDROID__CHECKOUT__STEP_MOCK,
     TESTBUILD__ANDROID__CREATE_ENV_ADHOC__STEP_MOCK,
     TESTBUILD__ANDROID__SETUP_NODE__STEP_MOCK,
+    TESTBUILD__ANDROID__SETUP_JAVA__STEP_MOCK,
     TESTBUILD__ANDROID__SETUP_RUBY__STEP_MOCK,
     TESTBUILD__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK,
     TESTBUILD__ANDROID__DECRYPT_JSON_KEY__STEP_MOCK,

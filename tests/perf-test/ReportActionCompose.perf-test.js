@@ -80,7 +80,7 @@ function ReportActionComposeWrapper() {
 }
 const mockEvent = {preventDefault: jest.fn()};
 
-test('should render Composer with text input interactions', async () => {
+test('[ReportActionCompose] should render Composer with text input interactions', async () => {
     const scenario = async () => {
         // Query for the composer
         const composer = await screen.findByTestId('composer');
@@ -99,7 +99,7 @@ test('should render Composer with text input interactions', async () => {
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
-test('should press add attachemnt button', async () => {
+test('[ReportActionCompose] should press add attachemnt button', async () => {
     const scenario = async () => {
         // Query for the attachment button
         const hintAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAction');
@@ -111,7 +111,7 @@ test('should press add attachemnt button', async () => {
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
-test('should press add emoji button', async () => {
+test('[ReportActionCompose] should press add emoji button', async () => {
     const scenario = async () => {
         // Query for the emoji button
         const hintEmojiButtonText = Localize.translateLocal('reportActionCompose.emoji');
@@ -123,7 +123,7 @@ test('should press add emoji button', async () => {
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
-test('should press send message button', async () => {
+test('[ReportActionCompose] should press send message button', async () => {
     const scenario = async () => {
         // Query for the send button
         const hintSendButtonText = Localize.translateLocal('common.send');
@@ -135,7 +135,7 @@ test('should press send message button', async () => {
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario, runs}));
 });
 
-test('render composer with attachement modal interactions', async () => {
+test('[ReportActionCompose] render composer with attachement modal interactions', async () => {
     const scenario = async () => {
         const hintAddAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAttachment');
         const hintAssignTaskButtonText = Localize.translateLocal('newTaskPage.assignTask');
