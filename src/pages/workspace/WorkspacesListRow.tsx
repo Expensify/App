@@ -34,9 +34,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Items for the three dots menu */
     menuItems: MenuItemProps[];
 
-    /** Renders the component using big screen layout or small screen layout. When renderLayout === WorkspaceListRowLayout.NONE,
+    /** Renders the component using big screen layout or small screen layout. When layoutWidth === WorkspaceListRowLayout.NONE,
      * component will return null to prevent layout from jumping on initial render and when parent width changes. */
-    renderLayout?: ValueOf<typeof CONST.LAYOUT>;
+    layoutWidth?: ValueOf<typeof CONST.LAYOUT_WIDTH>;
 };
 
 const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
@@ -60,7 +60,7 @@ function WorkspacesListRow({
     ownerAccountID,
     workspaceType,
     currentUserPersonalDetails,
-    renderLayout = CONST.LAYOUT.NONE,
+    layoutWidth = CONST.LAYOUT_WIDTH.NONE,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -80,14 +80,14 @@ function WorkspacesListRow({
         }
     }, [workspaceType, translate]);
 
-    if (renderLayout === CONST.LAYOUT.NONE) {
+    if (layoutWidth === CONST.LAYOUT_WIDTH.NONE) {
         // To prevent layout from jumping or rendering for a split second, when
         // isWide is undefined we don't assume anything and simply return null.
         return null;
     }
 
-    const isWide = renderLayout === CONST.LAYOUT.WIDE;
-    const isNarrow = renderLayout === CONST.LAYOUT.NARROW;
+    const isWide = layoutWidth === CONST.LAYOUT_WIDTH.WIDE;
+    const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
 
     return (
         <View style={[isWide ? styles.flexRow : styles.flexColumn, isWide && styles.gap5, styles.highlightBG, styles.br3, styles.pv5, styles.pl5]}>
