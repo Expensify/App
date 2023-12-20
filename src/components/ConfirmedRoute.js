@@ -5,9 +5,9 @@ import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -115,9 +115,6 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
 }
 
 export default withOnyx({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },

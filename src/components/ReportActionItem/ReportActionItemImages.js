@@ -5,9 +5,9 @@ import {Polygon, Svg} from 'react-native-svg';
 import _ from 'underscore';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
 

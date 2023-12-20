@@ -11,12 +11,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -225,7 +225,7 @@ function WorkspaceInvitePage(props) {
         if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
+        if (usersToInvite.length === 0 && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue))) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);

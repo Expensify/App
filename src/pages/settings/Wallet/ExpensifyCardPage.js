@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -13,21 +13,20 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import FormUtils from '@libs/FormUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Card from '@userActions/Card';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import assignedCardPropTypes from './assignedCardPropTypes';
-import DangerCardSection from './DangerCardSection';
+import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
 const propTypes = {
@@ -87,7 +86,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    cardList: {},
+    cardList: null,
     draftValues: {
         addressLine1: '',
         addressLine2: '',
@@ -123,21 +122,24 @@ function ExpensifyCardPage({
         params: {domain},
     },
 }) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const domainCards = CardUtils.getDomainCards(cardList)[domain];
-    const virtualCard = _.find(domainCards, (card) => card.isVirtual) || {};
-    const physicalCard = _.find(domainCards, (card) => !card.isVirtual) || {};
+    const domainCards = useMemo(() => cardList && CardUtils.getDomainCards(cardList)[domain], [cardList, domain]);
+    const virtualCard = useMemo(() => (domainCards && _.find(domainCards, (card) => card.isVirtual)) || {}, [domainCards]);
+    const physicalCard = useMemo(() => (domainCards && _.find(domainCards, (card) => !card.isVirtual)) || {}, [domainCards]);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isNotFound, setIsNotFound] = useState(false);
     const [details, setDetails] = useState({});
     const [cardDetailsError, setCardDetailsError] = useState('');
 
-    if (_.isEmpty(virtualCard) && _.isEmpty(physicalCard)) {
-        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
-    }
+    useEffect(() => {
+        if (!cardList) {
+            return;
+        }
+        setIsNotFound(_.isEmpty(virtualCard) && _.isEmpty(physicalCard));
+    }, [cardList, physicalCard, virtualCard]);
 
     const formattedAvailableSpendAmount = CurrencyUtils.convertToDisplayString(physicalCard.availableSpend || virtualCard.availableSpend || 0);
 
@@ -166,6 +168,10 @@ function ExpensifyCardPage({
     const hasDetectedIndividualFraud = _.some(domainCards, (card) => card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
     const cardDetailsErrorObject = cardDetailsError ? {error: cardDetailsError} : {};
 
+    if (isNotFound) {
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -184,8 +190,8 @@ function ExpensifyCardPage({
 
                         {hasDetectedDomainFraud ? (
                             <DotIndicatorMessage
-                                style={[styles.pageWrapper]}
-                                textStyle={[styles.walletLockedMessage]}
+                                style={styles.pageWrapper}
+                                textStyles={styles.walletLockedMessage}
                                 messages={{0: translate('cardPage.cardLocked')}}
                                 type="error"
                             />
@@ -193,17 +199,15 @@ function ExpensifyCardPage({
 
                         {hasDetectedIndividualFraud && !hasDetectedDomainFraud ? (
                             <>
-                                <DangerCardSection
+                                <RedDotCardSection
                                     title={translate('cardPage.suspiciousBannerTitle')}
                                     description={translate('cardPage.suspiciousBannerDescription')}
                                 />
-                                <MenuItemWithTopDescription
-                                    title={translate('cardPage.reviewTransaction')}
-                                    titleStyle={styles.walletCardMenuItem}
-                                    icon={Expensicons.MagnifyingGlass}
-                                    iconFill={theme.icon}
-                                    shouldShowRightIcon
-                                    brickRoadIndicator="error"
+
+                                <Button
+                                    medium
+                                    style={[styles.mh5, styles.mb5]}
+                                    text={translate('cardPage.reviewTransaction')}
                                     onPress={() => Link.openOldDotLink('inbox')}
                                 />
                             </>
