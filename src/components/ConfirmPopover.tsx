@@ -60,8 +60,10 @@ function ConfirmPopover({
             anchorPosition={anchorPosition}
         >
             <ConfirmContent
+                // @ts-expect-error TODO: Remove this once ConfirmContent (https://github.com/Expensify/App/issues/25047) is migrated to TypeScript.
                 contentStyles={contentStyles}
                 title={title}
+                // @ts-expect-error TODO: Remove this once ConfirmContent (https://github.com/Expensify/App/issues/25047) is migrated to TypeScript.
                 prompt={prompt}
                 confirmText={confirmText}
                 cancelText={cancelText}
