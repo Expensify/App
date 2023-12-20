@@ -45,5 +45,7 @@ type BankAccount = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type BankAccountList = Record<string, BankAccount>;
+
 export default BankAccount;
-export type {AccountData, AdditionalData};
+export type {AccountData, AdditionalData, BankAccountList};

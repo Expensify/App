@@ -10,12 +10,12 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
@@ -141,7 +141,7 @@ function HeaderWithBackButton({
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
                                 disabled={shouldDisableGetAssistanceButton}
-                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID))))}
+                                onPress={singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.GET_ASSISTANCE.getRoute(guidesCallTaskID, Navigation.getActiveRoute()))))}
                                 style={[styles.touchableButtonImage]}
                                 role="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -168,7 +168,7 @@ function HeaderWithBackButton({
                             <PressableWithoutFeedback
                                 onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
-                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon

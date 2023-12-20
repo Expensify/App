@@ -10,13 +10,13 @@ import networkPropTypes from '@components/networkPropTypes';
 import {withNetwork} from '@components/OnyxProvider';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
@@ -274,6 +274,11 @@ function AddressSearch({
         // So we use a secondary field (administrative_area_level_2) as a fallback
         if (country === CONST.COUNTRY.GB) {
             values.state = stateFallback;
+        }
+
+        // Set the state to be the same as the city in case the state is empty.
+        if (_.isEmpty(values.state)) {
+            values.state = values.city;
         }
 
         // Some edge-case addresses may lack both street_number and route in the API response, resulting in an empty "values.street"

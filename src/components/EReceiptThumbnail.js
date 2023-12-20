@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,7 +72,7 @@ function EReceiptThumbnail({transaction}) {
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
     }
 
-    const getBackgroundImage = useMemo((trans) => backgroundImages[StyleUtils.getEReceiptColorCode(trans)], [StyleUtils]);
+    const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
 
     return (
         <View
@@ -86,7 +86,7 @@ function EReceiptThumbnail({transaction}) {
             onLayout={onContainerLayout}
         >
             <Image
-                source={getBackgroundImage(transaction)}
+                source={backgroundImage}
                 style={styles.eReceiptBackgroundThumbnail}
                 resizeMode="cover"
             />

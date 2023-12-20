@@ -1,5 +1,5 @@
 import {createContext} from 'react';
 
-const AttachmentCarouselContextPager = createContext(null);
+const AttachmentCarouselPagerContext = createContext(null);
 
-export default AttachmentCarouselContextPager;
+export default AttachmentCarouselPagerContext;

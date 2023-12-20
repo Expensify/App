@@ -1,9 +1,10 @@
 import React, {useMemo} from 'react';
 import {Text, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
+import CONST from '@src/CONST';
 import RenderHTML from './RenderHTML';
 
 const propTypes = {
@@ -27,7 +28,7 @@ function MoneyReportHeaderStatusBar({nextStep}) {
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
             <View style={styles.moneyRequestHeaderStatusBarBadge}>
-                <Text style={[styles.textStrong, styles.textLabel]}>{translate('iou.nextSteps')}</Text>
+                <Text style={[styles.textLabel, styles.textMicroBold]}>{translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextSteps')}</Text>
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
                 <RenderHTML html={messageContent} />
