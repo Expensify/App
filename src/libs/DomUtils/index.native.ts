@@ -2,6 +2,10 @@ import GetActiveElement from './types';
 
 const getActiveElement: GetActiveElement = () => null;
 
+const addCSS = () => null;
+
+const getAutofilledInputStyle = () => null;
+
 const requestAnimationFrame = (callback: () => void) => {
     if (!callback) {
         return;
@@ -11,6 +15,8 @@ const requestAnimationFrame = (callback: () => void) => {
 };
 
 export default {
+    addCSS,
+    getAutofilledInputStyle,
     getActiveElement,
     requestAnimationFrame,
 };
