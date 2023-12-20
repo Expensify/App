@@ -101,8 +101,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         originalCurrency: transactionOriginalCurrency,
         cardID: transactionCardID,
     } = ReportUtils.getTransactionDetails(transaction);
-    const isEmptyMerchant =
-        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
