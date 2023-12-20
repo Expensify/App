@@ -33,7 +33,7 @@ type ShareDestination = {
 };
 
 let currentUserEmail = '';
-let currentUserAccountID = 0;
+let currentUserAccountID = -1;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -885,7 +885,7 @@ function getTaskAssigneeAccountID(taskReport: OnyxTypes.Report): number | undefi
  * Returns Task owner accountID
  */
 function getTaskOwnerAccountID(taskReport: OnyxTypes.Report): number | undefined {
-    return taskReport?.ownerAccountID ?? undefined;
+    return taskReport?.ownerAccountID;
 }
 
 /**
