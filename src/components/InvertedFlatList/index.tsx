@@ -92,4 +92,5 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: Flat
 }
 
 InvertedFlatList.displayName = 'InvertedFlatList';
+
 export default forwardRef(InvertedFlatList);
