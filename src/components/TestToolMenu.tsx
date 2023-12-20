@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import NetworkOnyx from '@src/types/onyx/Network';
 import UserOnyx from '@src/types/onyx/User';
 import Button from './Button';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
 import TestToolRow from './TestToolRow';
@@ -90,9 +91,19 @@ function TestToolMenu({user = USER_DEFAULT, network, lastShownSplashScreenVideo}
                     onPress={() => Session.invalidateCredentials()}
                 />
             </TestToolRow>
-            <TestToolRow title="Last shown splash video">
+
+            <MenuItemWithTopDescription
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment, spaced-comment
+                //@ts-ignore
+                interactive={false}
+                description="Last shown splash video"
+                title={lastShownSplashScreenVideo ?? ''}
+                wrapperStyle={{paddingHorizontal: 0, paddingVertical: 0}}
+            />
+
+            {/* <TestToolRow title="Last shown splash video">
                 <Text style={styles.mutedTextLabel}>{lastShownSplashScreenVideo ?? ''}</Text>
-            </TestToolRow>
+            </TestToolRow> */}
         </>
     );
 }
