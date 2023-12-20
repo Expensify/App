@@ -231,7 +231,7 @@ function WorkspaceNewRoomPage(props) {
     const renderEmptyWorkspaceView = () => (
         <>
             <BlockingView
-                icon={Illustrations.ToddBehindCloud}
+                icon={Illustrations.TeleScope}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
