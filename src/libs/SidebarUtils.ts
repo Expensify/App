@@ -150,7 +150,7 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
+    let reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -174,14 +174,12 @@ function getOrderedReportIDs(
     const nonArchivedReports: Report[] = [];
     const archivedReports: Report[] = [];
 
-    let workspaceReportsToDisplay: Report[] = reportsToDisplay;
-
     if (currentPolicyID) {
-        workspaceReportsToDisplay = workspaceReportsToDisplay.filter((report) => report.policyID === currentPolicyID);
+        reportsToDisplay = reportsToDisplay.filter((report) => report.policyID === currentPolicyID);
     }
 
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    workspaceReportsToDisplay.forEach((report) => {
+    reportsToDisplay.forEach((report) => {
         // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
         // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
         // the reportDisplayName property to the report object directly.
