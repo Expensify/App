@@ -4,8 +4,6 @@ import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
-import reportPropTypes from '@pages/reportPropTypes';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
@@ -54,7 +52,6 @@ function ReportAttachments(props) {
 }
 
 ReportAttachments.propTypes = propTypes;
-ReportAttachments.defaultProps = defaultProps;
 ReportAttachments.displayName = 'ReportAttachments';
 
 export default ReportAttachments;
