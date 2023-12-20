@@ -6,7 +6,7 @@
  * @returns {Object} styles for list view.
  */
 function getListViewHeight(windowHeight, locationErrorCode, isOffline) {
-    let restHeight = locationErrorCode ? 320 + 64 : 320;
+    let restHeight = locationErrorCode ? 330 + 64 : 330;
     if (isOffline) {
         restHeight += 50;
     }
