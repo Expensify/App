@@ -119,8 +119,12 @@ function TaskAssigneeSelectorModal(props) {
     }, [props, searchValue, allPersonalDetails, isLoading]);
 
     useEffect(() => {
-        updateOptions();
-    }, [searchValue, updateOptions]);
+        const debouncedSearch = _.debounce(updateOptions, 200);
+        debouncedSearch();
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -188,6 +192,8 @@ function TaskAssigneeSelectorModal(props) {
         // Check to see if we're creating a new task
         // If there's no route params, we're creating a new task
         if (!props.route.params && option.accountID) {
+            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
+            setSearchValue('');
             Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             return Navigation.goBack(ROUTES.NEW_TASK);
         }
@@ -222,6 +228,7 @@ function TaskAssigneeSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
+                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
