@@ -38,6 +38,7 @@ function BaseModal(
         onLayout,
         avoidKeyboard = false,
         children,
+        shouldShowBackdrop = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -185,7 +186,7 @@ function BaseModal(
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}
-            backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
+            backdropOpacity={!shouldShowBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
             backdropTransitionOutTiming={0}
             hasBackdrop={fullscreen}
             coverScreen={fullscreen}
