@@ -1,6 +1,5 @@
 import React, {ComponentType, ForwardedRef, RefAttributes, useMemo} from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import DateUtils from '@libs/DateUtils';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import CONST from '@src/CONST';
@@ -38,7 +37,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
         const accountID = props.session?.accountID ?? 0;
         const accountPersonalDetails = personalDetails?.[accountID];
         const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
-            () => (accountPersonalDetails ? {...accountPersonalDetails, accountID, timezone: accountPersonalDetails.timezone} : {}),
+            () => (accountPersonalDetails ? {...accountPersonalDetails, accountID} : {}),
             [accountPersonalDetails, accountID],
         );
         return (
