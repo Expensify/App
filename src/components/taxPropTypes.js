@@ -24,6 +24,6 @@ export default PropTypes.shape({
     /** Default foreign policy tax ID */
     foreignTaxDefault: PropTypes.string,
 
-    /** List of Taxes names and values */
+    /** List of tax names and values */
     taxes: PropTypes.objectOf(taxPropTypes),
 });
