@@ -382,6 +382,7 @@ function ComposerWithSuggestions({
                 const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
                 syncSelectionWithOnChangeTextRef.current = null;
 
+                // ensure that selection is set imperatively after all state changes are effective
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
