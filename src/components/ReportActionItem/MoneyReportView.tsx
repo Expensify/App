@@ -75,7 +75,7 @@ function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProp
                         </Text>
                     </View>
                 </View>
-                {shouldShowBreakdown && (
+                {Boolean(shouldShowBreakdown) && (
                     <>
                         <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
