@@ -501,6 +501,10 @@ export default {
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
     },
+    allSettingsScreen: {
+        subscriptions: 'Suscripciones',
+        cardsAndDomains: 'Tarjetas y Dominios',
+    },
     tabSelector: {
         chat: 'Chat',
         room: 'Sala',
@@ -2477,6 +2481,10 @@ export default {
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
+    },
+    breadcrumbs: {
+        // TODO-IDEAL: Verify translations in Spanish
+        chats: 'Chats',
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {

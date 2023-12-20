@@ -508,6 +508,10 @@ export default {
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
     },
+    allSettingsScreen: {
+        subscriptions: 'Subscriptions',
+        cardsAndDomains: 'Cards & Domains',
+    },
     tabSelector: {
         chat: 'Chat',
         room: 'Room',
@@ -1993,7 +1997,7 @@ export default {
     },
     breadcrumbs: {
         // TODO-IDEAL: Verify translations in Spanish
-        chats: 'Chats'
+        chats: 'Chats',
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {

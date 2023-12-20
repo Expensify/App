@@ -25,6 +25,7 @@ import Building from '@assets/images/building.svg';
 import Calendar from '@assets/images/calendar.svg';
 import Camera from '@assets/images/camera.svg';
 import Car from '@assets/images/car.svg';
+import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
@@ -154,6 +155,7 @@ export {
     Calendar,
     Camera,
     Car,
+    CardsAndDomains,
     Cash,
     ChatBubble,
     ChatBubbles,
