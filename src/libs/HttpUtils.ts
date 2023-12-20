@@ -30,7 +30,7 @@ let cancellationController = new AbortController();
  * If there is a network error, we'll set the application offline.
  */
 function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, command = ''): Promise<Response> {
-    const signal = command === CONST.NETWORK.COMMAND.LOG ? undefined : cancellationController.signal;    
+    const signal = command === CONST.NETWORK.COMMAND.LOG ? undefined : cancellationController.signal;
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal,
