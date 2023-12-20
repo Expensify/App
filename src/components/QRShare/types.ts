@@ -1,4 +1,4 @@
-import {ImageSourcePropType, NativeMethods} from 'react-native';
+import {ImageSourcePropType} from 'react-native';
 import {Svg} from 'react-native-svg';
 import {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
 
@@ -36,7 +36,7 @@ type QRShareProps = {
 };
 
 type QRShareHandle = {
-    getSvg: () => (Svg & NativeMethods) | undefined;
+    getSvg: () => Svg | undefined;
 };
 
 export type {QRShareHandle, QRShareProps};

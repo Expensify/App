@@ -1,5 +1,5 @@
 import React from 'react';
-import {ImageSourcePropType, NativeMethods} from 'react-native';
+import {ImageSourcePropType} from 'react-native';
 import QRCodeLibrary from 'react-native-qrcode-svg';
 import {Svg} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
@@ -38,7 +38,7 @@ type QRCodeProps = {
      * Function to retrieve the internal component ref and be able to call it's
      * methods
      */
-    getRef?: (ref: Svg & NativeMethods) => Svg & NativeMethods;
+    getRef?: (ref: Svg) => Svg;
 };
 
 function QRCode({url, logo, getRef, size = 120, color, backgroundColor, logoRatio = CONST.QR.DEFAULT_LOGO_SIZE_RATIO, logoMarginRatio = CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}: QRCodeProps) {

@@ -1,5 +1,5 @@
 import React, {ForwardedRef, forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import {LayoutChangeEvent, NativeMethods, View} from 'react-native';
+import {LayoutChangeEvent, View} from 'react-native';
 import {Svg} from 'react-native-svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import QRCode from '@components/QRCode';
@@ -14,7 +14,7 @@ function QRShare({url, title, subtitle, logo, logoRatio, logoMarginRatio}: QRSha
     const theme = useTheme();
 
     const [qrCodeSize, setQrCodeSize] = useState(1);
-    const svgRef = useRef<Svg & NativeMethods>();
+    const svgRef = useRef<Svg>();
 
     useImperativeHandle(
         ref,
