@@ -2,9 +2,11 @@ import {OnyxUpdate} from 'react-native-onyx';
 import Request from './Request';
 import Response from './Response';
 
+type OnyxServerUpdate = OnyxUpdate & {shouldNotify?: boolean};
+
 type OnyxUpdateEvent = {
     eventType: string;
-    data: OnyxUpdate[];
+    data: OnyxServerUpdate[];
 };
 
 type OnyxUpdatesFromServer = {
@@ -16,4 +18,4 @@ type OnyxUpdatesFromServer = {
     updates?: OnyxUpdateEvent[];
 };
 
-export type {OnyxUpdatesFromServer, OnyxUpdateEvent};
+export type {OnyxUpdatesFromServer, OnyxUpdateEvent, OnyxServerUpdate};

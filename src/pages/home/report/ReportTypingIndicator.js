@@ -7,8 +7,8 @@ import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import TextWithEllipsis from '@components/TextWithEllipsis';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 
