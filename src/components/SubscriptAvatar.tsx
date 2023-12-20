@@ -4,35 +4,17 @@ import {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import {AvatarType} from '@src/types/onyx/OnyxCommon';
+import {Icon as IconCommon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import Icon, {IconProps} from './Icon';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
 type SubIcon = Pick<IconProps, 'src' | 'width' | 'height'>;
 
-type SubAvatar = {
-    /** Avatar source to display */
-    source?: AvatarSource;
-
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: AvatarType;
-
-    /** Owner of the avatar. If user, displayName. If workspace, policy name */
-    name?: string;
-
-    /** Avatar id */
-    id?: number | string;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
-};
-
 type SubscriptAvatarProps = {
     /** Avatar URL or icon */
-    mainAvatar?: SubAvatar;
+    mainAvatar: IconCommon;
 
     /** Set the size of avatars */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -41,7 +23,7 @@ type SubscriptAvatarProps = {
     backgroundColor?: string;
 
     /** Subscript avatar URL or icon */
-    secondaryAvatar?: SubAvatar;
+    secondaryAvatar?: IconCommon;
 
     /** Subscript icon type */
     subscriptIcon?: SubIcon;
@@ -53,7 +35,7 @@ type SubscriptAvatarProps = {
     showTooltip?: boolean;
 };
 
-function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
+function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -124,7 +106,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size 
                     dataSet={{dragArea: false}}
                 >
                     <Icon
-                        src={subscriptIcon.source}
+                        src={subscriptIcon.src}
                         width={subscriptIcon.width}
                         height={subscriptIcon.height}
                         additionalStyles={styles.alignSelfCenter}
