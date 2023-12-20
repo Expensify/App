@@ -3,7 +3,7 @@ import {StyleProp, View, ViewProps} from 'react-native';
 
 type CellRendererComponentProps = ViewProps & {
     index: number;
-    style: StyleProp<ViewProps>;
+    style?: StyleProp<ViewProps>;
 };
 
 function CellRendererComponent(props: CellRendererComponentProps) {
