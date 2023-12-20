@@ -1379,16 +1379,42 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             textDecorationLine: 'none',
         },
+
+        breadcrumb: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeh1,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
+        },
+
+        breadcrumbStrong: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+        },
+
+        breadcrumbSeparator: {
+            color: theme.icon,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightSizeh1,
+            ...headlineFont,
+        },
+
+        breadcrumbLogo: {
+            top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
+            height: variables.lineHeightSizeh1,
+        },
+
         LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                 position: 'absolute',
                 left: 0,
                 height: '100%',
-                borderTopRightRadius: isSmallScreenWidth ? 0 : 24,
-                borderBottomRightRadius: isSmallScreenWidth ? 0 : 24,
+                borderTopRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
+                borderBottomRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
                 overflow: 'hidden',
             } satisfies ViewStyle),
+
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
@@ -1614,7 +1640,8 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
+                // The overlay must also cover borderRadius of the LHP component
+                left: isModalOnTheLeft ? -variables.lhpBorderRadius : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
                 right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
@@ -1972,14 +1999,14 @@ const styles = (theme: ThemeColors) =>
             height: 24,
             width: 24,
             backgroundColor: theme.icon,
-            borderRadius: 24,
+            borderRadius: 12,
         },
 
         singleAvatarSmall: {
-            height: 18,
-            width: 18,
+            height: 16,
+            width: 16,
             backgroundColor: theme.icon,
-            borderRadius: 18,
+            borderRadius: 8,
         },
 
         singleAvatarMedium: {
@@ -1993,17 +2020,17 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -18,
             bottom: -18,
-            borderWidth: 3,
-            borderRadius: 30,
+            borderWidth: 2,
+            borderRadius: 14,
             borderColor: 'transparent',
         },
 
         secondAvatarSmall: {
             position: 'absolute',
-            right: -13,
-            bottom: -13,
-            borderWidth: 3,
-            borderRadius: 18,
+            right: -14,
+            bottom: -14,
+            borderWidth: 2,
+            borderRadius: 10,
             borderColor: 'transparent',
         },
 
@@ -2024,8 +2051,8 @@ const styles = (theme: ThemeColors) =>
 
         secondAvatarSubscriptCompact: {
             position: 'absolute',
-            bottom: -1,
-            right: -1,
+            bottom: -4,
+            right: -4,
         },
 
         secondAvatarSubscriptSmallNormal: {
@@ -2663,6 +2690,8 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 20,
             paddingVertical: 12,
         },
+
+        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
 
         requestPreviewBox: {
             marginTop: 12,
@@ -3567,12 +3596,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         headerEnvBadge: {
-            marginLeft: 0,
-            marginBottom: 2,
+            position: 'absolute',
+            bottom: -8,
+            left: -8,
             height: 12,
+            width: 22,
             paddingLeft: 4,
             paddingRight: 4,
             alignItems: 'center',
+            zIndex: -1,
         },
 
         headerEnvBadgeText: {
@@ -3745,8 +3777,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         reportPreviewBoxHoverBorder: {
-            borderColor: theme.border,
-            backgroundColor: theme.border,
+            borderColor: theme.cardBG,
+            backgroundColor: theme.cardBG,
         },
 
         reportContainerBorderRadius: {
