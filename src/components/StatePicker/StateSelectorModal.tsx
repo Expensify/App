@@ -82,14 +82,14 @@ function StateSelectorModal({currentState = '', isVisible, onClose = () => {}, o
                 testID={StateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
-                    title={label || translate('common.state')}
+                    title={label ?? translate('common.state')}
                     shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
                     /* @ts-expect-error TODO: Remove this once SelectionList (https://github.com/Expensify/App/issues/31981) is migrated to TypeScript. */
                     headerMessage={headerMessage}
-                    textInputLabel={label || translate('common.state')}
+                    textInputLabel={label ?? translate('common.state')}
                     textInputValue={searchValue}
                     sections={[{data: searchResults, indexOffset: 0}]}
                     onSelectRow={onStateSelected}

@@ -52,7 +52,7 @@ function StatePicker({value, onInputChange, label, errorText = ''}: StatePickerP
                 ref={ref}
                 shouldShowRightIcon
                 title={title}
-                description={label || translate('common.state')}
+                description={label ?? translate('common.state')}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
             />
