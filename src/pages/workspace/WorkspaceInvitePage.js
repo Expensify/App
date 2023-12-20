@@ -10,7 +10,6 @@ import MemberInviteList from '@components/MemberInviteList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -57,7 +56,6 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
@@ -128,17 +126,15 @@ function WorkspaceInvitePage(props) {
                             Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
                         }}
                     />
-                    <View style={[styles.flex1]}>
-                        {didScreenTransitionEnd && (
-                            <MemberInviteList
-                                inviteUsers={inviteUsers}
-                                excludedUsers={excludedUsers}
-                                name={policyName}
-                                confirmButtonText={translate('common.next')}
-                                shouldShowAlertPrompt={shouldShowAlertPrompt}
-                            />
-                        )}
-                    </View>
+                    {didScreenTransitionEnd && (
+                        <MemberInviteList
+                            inviteUsers={inviteUsers}
+                            excludedUsers={excludedUsers}
+                            name={policyName}
+                            confirmButtonText={translate('common.next')}
+                            shouldShowAlertPrompt={shouldShowAlertPrompt}
+                        />
+                    )}
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>
