@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
+// eslint-disable-next-line no-restricted-imports
 import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
 import {BootSplashModule} from '@libs/BootSplash/types';

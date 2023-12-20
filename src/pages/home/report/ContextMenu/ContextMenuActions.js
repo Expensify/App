@@ -11,6 +11,7 @@ import EmailUtils from '@libs/EmailUtils';
 import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -281,7 +282,7 @@ export default [
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
