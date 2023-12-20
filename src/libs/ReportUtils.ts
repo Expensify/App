@@ -348,9 +348,6 @@ type OnyxDataTaskAssigneeChat = {
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
 
-let environmentURL: string;
-Environment.getEnvironmentURL().then((url: string) => (environmentURL = url));
-
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
