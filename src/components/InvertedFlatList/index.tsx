@@ -11,6 +11,7 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: Flat
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
+
     useEffect(
         () => () => {
             if (!scrollEndTimeout.current) {
