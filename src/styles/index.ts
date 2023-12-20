@@ -3916,7 +3916,6 @@ const styles = (theme: ThemeColors) =>
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
-            maxHeight: 500,
         },
 
         mapView: {
