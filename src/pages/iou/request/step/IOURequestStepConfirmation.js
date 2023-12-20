@@ -199,9 +199,12 @@ function IOURequestStepConfirmation({
                 transaction.merchant,
                 transaction.billable,
                 TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true),
+                policy,
+                policyTags,
+                policyCategories,
             );
         },
-        [report, transaction],
+        [policy, policyCategories, policyTags, report, transaction],
     );
 
     const createTransaction = useCallback(

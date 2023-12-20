@@ -216,9 +216,25 @@ function MoneyRequestConfirmPage(props) {
                 props.iou.currency,
                 props.iou.merchant,
                 props.iou.billable,
+                props.policy,
+                props.policyTags,
+                props.policyCategories,
             );
         },
-        [props.report, props.iou.created, props.iou.transactionID, props.iou.category, props.iou.tag, props.iou.amount, props.iou.currency, props.iou.merchant, props.iou.billable],
+        [
+            props.report,
+            props.iou.created,
+            props.iou.transactionID,
+            props.iou.category,
+            props.iou.tag,
+            props.iou.amount,
+            props.iou.currency,
+            props.iou.merchant,
+            props.iou.billable,
+            props.policy,
+            props.policyTags,
+            props.policyCategories,
+        ],
     );
 
     const createTransaction = useCallback(
