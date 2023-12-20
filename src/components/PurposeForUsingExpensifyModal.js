@@ -168,6 +168,7 @@ function PurposeForUsingExpensifyModal(props) {
             isVisible={isModalOpen}
             onClose={closeModal}
             innerContainerStyle={styles.pt0}
+            shouldShowBackdrop
         >
             <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
                 <Lottie
