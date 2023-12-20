@@ -190,6 +190,7 @@ window.addEventListener('DOMContentLoaded', () => {
             // Disable the collapsible functionality of the library by
             // setting the maximum number of heading levels (6)
             collapseDepth: 6,
+            headingSelector: 'h1, h2, h3, summary',
 
             // Main class to add to lists.
             listClass: 'lhn-items',

@@ -1489,8 +1489,9 @@ export default {
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
         emptyWorkspace: {
-            title: 'Create a new workspace',
-            subtitle: "Workspaces are where you'll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.",
+            title: 'Create a workspace',
+            subtitle: 'Manage business expenses, issue cards, send invoices, and more.',
+            createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
                 companyCards: 'Company credit cards',
