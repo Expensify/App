@@ -177,7 +177,6 @@ function createTaskAndNavigate(
             assigneeChatReport,
         );
 
-        console.log({assigneeChatReportOnyxData});
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
         failureData.push(...assigneeChatReportOnyxData.failureData);
