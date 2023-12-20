@@ -26,6 +26,7 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: Flat
      * Emits when the scrolling is in progress. Also,
      * invokes the onScroll callback function from props.
      *
+     * @param event - The onScroll event from the FlatList
      */
     const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         onScrollProp(event);

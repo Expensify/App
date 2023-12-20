@@ -26,4 +26,6 @@ function CellRendererComponent(props: CellRendererComponentProps) {
     );
 }
 
+CellRendererComponent.displayName = 'CellRendererComponent';
+
 export default CellRendererComponent;
