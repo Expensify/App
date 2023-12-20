@@ -61,9 +61,6 @@ type BaseModalProps = WindowDimensionsProps &
          * See: https://github.com/react-native-modal/react-native-modal/pull/116
          * */
         hideModalContentWhileAnimating?: boolean;
-
-        /** Should we show the background overlay around the modal */
-        shouldShowBackdrop?: boolean;
     };
 
 export default BaseModalProps;
