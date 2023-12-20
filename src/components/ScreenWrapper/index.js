@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, PanResponder, View} from 'react-native';
@@ -44,10 +45,19 @@ const ScreenWrapper = React.forwardRef(
              *
              * This is required because transitionEnd event doesn't trigger in the testing environment.
              */
-            navigation,
+            navigation: navigationProp,
         },
         ref,
     ) => {
+        /**
+         * We are only passing navigation as prop from
+         * ReportScreenWrapper -> ReportScreen -> ScreenWrapper
+         *
+         * so in other places where ScreenWrapper is used, we need to
+         * fallback to useNavigation.
+         */
+        const navigationFallback = useNavigation();
+        const navigation = navigationProp || navigationFallback;
         const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
         const {initialHeight} = useInitialDimensions();
         const styles = useThemeStyles();
