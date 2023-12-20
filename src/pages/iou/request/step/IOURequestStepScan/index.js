@@ -115,6 +115,11 @@ function IOURequestStepScan({
     };
 
     const navigateToConfirmationStep = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
         // If the transaction was created from the global create, the person needs to select participants, so take them there.
         if (isFromGlobalCreate) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
@@ -125,7 +130,7 @@ function IOURequestStepScan({
         // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
         IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouType, transactionID, reportID));
-    }, [iouType, report, reportID, transactionID, isFromGlobalCreate]);
+    }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
         (file, source) => {
