@@ -192,6 +192,9 @@ function ReportActionItemMessageEdit(props) {
         }
 
         return () => {
+            InputFocus.callback(() => setIsFocused(false));
+            InputFocus.inputFocusChange(false);
+
             // Skip if the current report action is not active
             if (!isActive()) {
                 return;
@@ -288,8 +291,6 @@ function ReportActionItemMessageEdit(props) {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        InputFocus.callback(() => setIsFocused(false));
-        InputFocus.inputFocusChange(false);
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action, '');
 

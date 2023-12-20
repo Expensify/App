@@ -40,6 +40,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -427,7 +428,7 @@ function ReportActionItem(props) {
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
         } else {
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             children = (
