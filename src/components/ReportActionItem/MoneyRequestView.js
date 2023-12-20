@@ -109,7 +109,7 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         comment: {comment: ''},
     },
-    transactionViolations: null,
+    transactionViolations: [],
     policyTags: {},
 };
 
@@ -342,18 +342,20 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowBillable && (
-                    <>
-                        <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
-                            <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                            <Switch
-                                accessibilityLabel={translate('common.billable')}
-                                isOn={transactionBillable}
-                                onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
-                            />
-                        </View>
-                        {canUseViolations && <ViolationMessages violations={getViolationsForField('billable')} />}
-                    </>
+
+                <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                    <Switch
+                        accessibilityLabel={translate('common.billable')}
+                        isOn={transactionBillable}
+                        onToggle={(value) => IOU.editMoneyRequest(transaction, report.reportID, {billable: value})}
+                    />
+                </View>
+                {canUseViolations && (
+                    <ViolationMessages
+                        violations={getViolationsForField('billable')}
+                        isLast
+                    />
                 )}
             </View>
             <SpacerView
