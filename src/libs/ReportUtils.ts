@@ -1938,7 +1938,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
  * @param [reportAction] This can be either a report preview action or the IOU action
  */
 function getReportPreviewMessage(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | EmptyObject,
     reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
