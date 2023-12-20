@@ -135,7 +135,7 @@ function WorkspaceInvitePage(props) {
                                 excludedUsers={excludedUsers}
                                 name={policyName}
                                 confirmButtonText={translate('common.next')}
-                                shouldShowAlertProm={shouldShowAlertPrompt}
+                                shouldShowAlertPrompt
                             />
                         )}
                     </View>
