@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -9,6 +10,7 @@ import MemberInviteList from '@components/MemberInviteList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -55,6 +57,7 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
@@ -125,14 +128,17 @@ function WorkspaceInvitePage(props) {
                             Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
                         }}
                     />
-                    <MemberInviteList
-                        didScreenTransitionEnd={didScreenTransitionEnd}
-                        inviteUsers={inviteUsers}
-                        excludedUsers={excludedUsers}
-                        name={policyName}
-                        confirmButtonText={translate('common.next')}
-                        shouldShowAlertProm={shouldShowAlertPrompt}
-                    />
+                    <View style={[styles.flex1]}>
+                        {didScreenTransitionEnd && (
+                            <MemberInviteList
+                                inviteUsers={inviteUsers}
+                                excludedUsers={excludedUsers}
+                                name={policyName}
+                                confirmButtonText={translate('common.next')}
+                                shouldShowAlertProm={shouldShowAlertPrompt}
+                            />
+                        )}
+                    </View>
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>

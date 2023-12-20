@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -8,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MemberInviteList from '@components/MemberInviteList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -49,6 +51,7 @@ const defaultProps = {
 };
 
 function RoomInvitePage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const validate = useCallback((selectedUsersSize) => {
@@ -113,13 +116,17 @@ function RoomInvitePage(props) {
                             Navigation.goBack(backRoute);
                         }}
                     />
-                    <MemberInviteList
-                        didScreenTransitionEnd={didScreenTransitionEnd}
-                        inviteUsers={inviteUsers}
-                        excludedUsers={excludedUsers}
-                        name={reportName}
-                        confirmButtonText={translate('common.invite')}
-                    />
+                    <View style={[styles.flex1]}>
+                        {didScreenTransitionEnd && (
+                            <MemberInviteList
+                                didScreenTransitionEnd={didScreenTransitionEnd}
+                                inviteUsers={inviteUsers}
+                                excludedUsers={excludedUsers}
+                                name={reportName}
+                                confirmButtonText={translate('common.invite')}
+                            />
+                        )}
+                    </View>
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>

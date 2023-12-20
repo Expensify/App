@@ -21,9 +21,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /** To indicate that the screen transaction has ended */
-    didScreenTransitionEnd: PropTypes.bool.isRequired,
-
     /** The users are not eligible for invitation */
     excludedUsers: PropTypes.arrayOf(PropTypes.string),
 
@@ -49,7 +46,7 @@ const defaultProps = {
 };
 
 function MemberInviteList(props) {
-    const {excludedUsers, betas, didScreenTransitionEnd, name, inviteUsers, shouldShowAlertPrompt, confirmButtonText} = props;
+    const {excludedUsers, betas, name, inviteUsers, shouldShowAlertPrompt, confirmButtonText} = props;
     const {translate} = useLocalize();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
@@ -97,7 +94,7 @@ function MemberInviteList(props) {
         return sections;
     };
 
-    const sections = didScreenTransitionEnd ? getSections() : [];
+    const sections = getSections();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -160,7 +157,7 @@ function MemberInviteList(props) {
                 onConfirm={() => inviteUsers(selectedOptions)}
                 showScrollIndicator
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails)}
             />
             <View style={[styles.flexShrink0]}>
                 <FormAlertWithSubmitButton
