@@ -1518,8 +1518,9 @@ export default {
             collect: 'Recolectar',
         },
         emptyWorkspace: {
-            title: 'Crear un nuevo espacio de trabajo',
-            subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+            title: 'Crea un espacio de trabajo',
+            subtitle: 'Administra gastos de empresa, emite tarjetas, envía facturas y mucho más.',
+            createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',
                 companyCards: 'Tarjetas de crédito corporativas',
