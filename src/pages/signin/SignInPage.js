@@ -3,22 +3,21 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import CustomStatusBar from '@components/CustomStatusBar';
+import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import ThemeProvider from '@components/ThemeProvider';
+import ThemeStylesProvider from '@components/ThemeStylesProvider';
 import useLocalize from '@hooks/useLocalize';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
-import getPlatform from '@libs/getPlatform';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import * as StyleUtils from '@styles/StyleUtils';
-import ThemeProvider from '@styles/themes/ThemeProvider';
-import ThemeStylesProvider from '@styles/ThemeStylesProvider';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -103,15 +102,9 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
     const isSAMLRequired = Boolean(account.isSAMLRequired);
     const hasEmailDeliveryFailure = Boolean(account.hasEmailDeliveryFailure);
 
-    // SAML is temporarily restricted to users on the beta or to users signing in on web and mweb
-    let shouldShowChooseSSOOrMagicCode = false;
-    let shouldInitiateSAMLLogin = false;
-    const platform = getPlatform();
-    if (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP) {
-        // True if the user has SAML required and we haven't already initiated SAML for their account
-        shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
-        shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
-    }
+    // True if the user has SAML required and we haven't already initiated SAML for their account
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && account.isLoading;
+    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
@@ -141,6 +134,7 @@ function getRenderOptions({hasLogin, hasValidateCode, account, isPrimaryLogin, i
 
 function SignInPageInner({credentials, account, isInModal, activeClients, preferredLocale}) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldShowSmallScreen = isSmallScreenWidth || isInModal;
@@ -167,6 +161,19 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         }
         App.setLocale(Localize.getDevicePreferredLocale());
     }, [preferredLocale]);
+    useEffect(() => {
+        if (credentials.login) {
+            return;
+        }
+
+        // If we don't have a login set, reset the user's SAML login preferences
+        if (isUsingMagicCode) {
+            setIsUsingMagicCode(false);
+        }
+        if (hasInitiatedSAMLLogin) {
+            setHasInitiatedSAMLLogin(false);
+        }
+    }, [credentials.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
     const {
         shouldShowLoginForm,
@@ -231,7 +238,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
         if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
             welcomeText = '';
         }
-    } else if (!shouldInitiateSAMLLogin) {
+    } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
 
@@ -261,7 +268,6 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
                             <ValidateCodeForm
                                 isUsingRecoveryCode={isUsingRecoveryCode}
                                 setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                                setIsUsingMagicCode={setIsUsingMagicCode}
                             />
                         )}
                         {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
@@ -282,7 +288,7 @@ function SignInPage(props) {
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
-                    <CustomStatusBar isNested />
+                    <CustomStatusBarAndBackground isNested />
                     <SignInPageInner
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}

@@ -99,7 +99,6 @@ describe('OptionsListUtils', () => {
             participantAccountIDs: [8],
             reportName: 'Mister Sinister',
             iouReportID: 100,
-            hasOutstandingIOU: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
 

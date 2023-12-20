@@ -1,8 +1,46 @@
 import {OnyxEntry} from 'react-native-onyx';
+import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import {Report, Transaction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
+import * as FileUtils from './fileDownload/FileUtils';
+import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
+
+function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+    // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
+    switch (requestType) {
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
+            break;
+        case CONST.IOU.REQUEST_TYPE.SCAN:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID));
+            break;
+        default:
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
+            break;
+    }
+}
+
+type SuccessCallback = (file?: File) => void;
+// eslint-disable-next-line rulesdir/no-negated-variables
+function navigateToStartStepIfScanFileCannotBeRead(
+    receiptFilename: string,
+    receiptPath: string,
+    onSuccess: SuccessCallback,
+    requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>,
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    transactionID: string,
+    reportID: string,
+) {
+    if (!receiptFilename || !receiptPath) {
+        return;
+    }
+
+    const onFailure = () => navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
+}
 
 /**
  * Calculates the amount per user given a list of participants
@@ -57,8 +95,6 @@ function updateIOUOwnerAndTotal(iouReport: OnyxEntry<Report>, actorAccountID: nu
             iouReportUpdate.managerID = iouReport.ownerAccountID;
             iouReportUpdate.total = -iouReportUpdate.total;
         }
-
-        iouReportUpdate.hasOutstandingIOU = iouReportUpdate.total !== 0;
     }
 
     return iouReportUpdate;
@@ -82,4 +118,4 @@ function isValidMoneyRequestType(iouType: string): boolean {
     return moneyRequestType.includes(iouType);
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};
+export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, navigateToStartStepIfScanFileCannotBeRead};

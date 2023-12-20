@@ -12,7 +12,7 @@ type PopoverAnchorPosition = {
 };
 
 type BaseModalProps = WindowDimensionsProps &
-    ModalProps & {
+    Partial<ModalProps> & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
 

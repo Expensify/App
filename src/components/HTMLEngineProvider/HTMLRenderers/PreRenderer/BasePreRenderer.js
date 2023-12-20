@@ -6,8 +6,8 @@ import htmlRendererPropTypes from '@components/HTMLEngineProvider/HTMLRenderers/
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -51,7 +51,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
                         onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         accessibilityLabel={props.translate('accessibilityHints.prestyledText')}
                     >
                         <View>

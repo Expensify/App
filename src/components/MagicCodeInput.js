@@ -4,10 +4,10 @@ import {StyleSheet, View} from 'react-native';
 import {TapGestureHandler} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
 import networkPropTypes from './networkPropTypes';
@@ -108,6 +108,7 @@ const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const inputRefs = useRef();
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState(0);
@@ -407,7 +408,7 @@ function MagicCodeInput(props) {
                         <View
                             style={[
                                 styles.textInputContainer,
-                                StyleUtils.getHeightOfMagicCodeInput(styles),
+                                StyleUtils.getHeightOfMagicCodeInput(),
                                 props.hasError || props.errorText ? styles.borderColorDanger : {},
                                 focusedIndex === index ? styles.borderColorFocus : {},
                             ]}

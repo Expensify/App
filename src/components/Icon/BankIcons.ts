@@ -1,13 +1,13 @@
 import {SvgProps} from 'react-native-svg';
 import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
-import {ThemeStyles} from '@styles/styles';
+import {type ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {BankIcon, BankName, BankNameKey} from '@src/types/onyx/Bank';
 
 type BankIconParams = {
-    themeStyles: ThemeStyles;
+    styles: ThemeStyles;
     bankName?: BankName;
     isCard?: boolean;
 };
@@ -62,6 +62,9 @@ function getAssetIcon(bankNameKey: BankNameKey, isCard: boolean): React.FC<SvgPr
         [CONST.BANK_NAMES.HUNTINGTON_BANK]: isCard
             ? (require('@assets/images/cardicons/huntington-bank.svg').default as React.FC<SvgProps>)
             : (require('@assets/images/bankicons/huntington-bank.svg').default as React.FC<SvgProps>),
+        [CONST.BANK_NAMES.HUNTINGTON_NATIONAL]: isCard
+            ? (require('@assets/images/cardicons/huntington-bank.svg').default as React.FC<SvgProps>)
+            : (require('@assets/images/bankicons/huntington-bank.svg').default as React.FC<SvgProps>),
         [CONST.BANK_NAMES.NAVY_FEDERAL_CREDIT_UNION]: isCard
             ? (require('@assets/images/cardicons/navy-federal-credit-union.svg').default as React.FC<SvgProps>)
             : (require('@assets/images/bankicons/navy-federal-credit-union.svg').default as React.FC<SvgProps>),
@@ -95,14 +98,25 @@ function getAssetIcon(bankNameKey: BankNameKey, isCard: boolean): React.FC<SvgPr
 }
 
 function getBankNameKey(bankName: string): BankNameKey {
-    const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => value?.toLowerCase() === bankName);
+    const bank = Object.entries(CONST.BANK_NAMES).find(([, value]) => {
+        const condensedValue = value.replace(/\s/g, '');
+        return (
+            bankName === value ||
+            bankName.includes(value) ||
+            bankName.startsWith(value) ||
+            bankName === condensedValue ||
+            bankName.includes(condensedValue) ||
+            bankName.startsWith(condensedValue)
+        );
+    });
     return (bank?.[0] as BankNameKey) ?? '';
 }
 
 /**
  * Returns Bank Icon Object that matches to existing bank icons or default icons
  */
-export default function getBankIcon({themeStyles, bankName, isCard = false}: BankIconParams): BankIcon {
+
+export default function getBankIcon({styles, bankName, isCard = false}: BankIconParams): BankIcon {
     const bankIcon: BankIcon = {
         icon: isCard ? GenericBankCard : GenericBank,
     };
@@ -117,11 +131,11 @@ export default function getBankIcon({themeStyles, bankName, isCard = false}: Ban
     // For default Credit Card icon the icon size should not be set.
     if (!isCard) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
-        bankIcon.iconStyles = [themeStyles.bankIconContainer];
+        bankIcon.iconStyles = [styles.bankIconContainer];
     } else {
         bankIcon.iconHeight = variables.bankCardHeight;
         bankIcon.iconWidth = variables.bankCardWidth;
-        bankIcon.iconStyles = [themeStyles.assignedCardsIconContainer];
+        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
     }
 
     return bankIcon;
