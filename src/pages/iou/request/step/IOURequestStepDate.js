@@ -1,8 +1,7 @@
-import dateAdd from 'date-fns/add';
-import dateSubtract from 'date-fns/sub';
 import React from 'react';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,6 +9,7 @@ import compose from '@libs/compose';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
@@ -67,12 +67,13 @@ function IOURequestStepDate({
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <DatePicker
+                <InputWrapper
+                    InputComponent={DatePicker}
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
                     defaultValue={transaction.created}
-                    maxDate={dateAdd(new Date(), {years: 1})}
-                    minDate={dateSubtract(new Date(), {years: 20})}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
             </FormProvider>
         </StepScreenWrapper>
