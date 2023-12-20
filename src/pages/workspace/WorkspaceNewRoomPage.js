@@ -232,8 +232,8 @@ function WorkspaceNewRoomPage(props) {
         <>
             <BlockingView
                 icon={Illustrations.TeleScope}
-                iconWidth={variables.modalTopIconWidth}
-                iconHeight={variables.modalTopIconHeight}
+                iconWidth={variables.emptyWorkspaceIconWidth}
+                iconHeight={variables.emptyWorkspaceIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
@@ -259,7 +259,7 @@ function WorkspaceNewRoomPage(props) {
                 testID={WorkspaceNewRoomPage.displayName}
             >
                 {({insets}) =>
-                    workspaceOptions.length === 0 ? (
+                    workspaceOptions.length === 0 || true ? (
                         renderEmptyWorkspaceView()
                     ) : (
                         <KeyboardAvoidingView
