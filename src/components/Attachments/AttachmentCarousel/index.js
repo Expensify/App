@@ -3,7 +3,6 @@ import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -146,10 +145,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ),
         [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
-
-    if (isLoadingReport || isLoadingReportAction || isLoadingApp) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <View

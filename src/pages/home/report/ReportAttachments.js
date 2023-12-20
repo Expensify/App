@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
@@ -20,9 +19,6 @@ const propTypes = {
             source: PropTypes.string.isRequired,
         }).isRequired,
     }).isRequired,
-
-    /** The report that has this attachment */
-    report: reportPropTypes,
 };
 
 function ReportAttachments(props) {
@@ -35,8 +31,8 @@ function ReportAttachments(props) {
 
     const onCarouselAttachmentChange = useCallback(
         (attachment) => {
-            const attachmentRoute = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
-            Navigation.navigate(attachmentRoute);
+            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, attachment.source);
+            Navigation.navigate(route);
         },
         [reportID],
     );
@@ -61,8 +57,4 @@ ReportAttachments.propTypes = propTypes;
 ReportAttachments.defaultProps = defaultProps;
 ReportAttachments.displayName = 'ReportAttachments';
 
-export default withOnyx({
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${_.get(route, ['params', 'reportID'])}`,
-    },
-})(ReportAttachments);
+export default ReportAttachments;

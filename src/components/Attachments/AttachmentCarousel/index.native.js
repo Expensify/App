@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
 import CarouselButtons from './CarouselButtons';
@@ -107,10 +106,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ),
         [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
     );
-
-    if (isLoadingReport || isLoadingReportAction || isLoadingApp) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <View

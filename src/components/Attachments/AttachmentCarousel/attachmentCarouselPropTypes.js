@@ -41,11 +41,6 @@ const defaultProps = {
     onNavigate: () => {},
     onClose: () => {},
     setDownloadButtonVisibility: () => {},
-    reportMetadata: {
-        isLoadingInitialReportActions: true,
-    },
-    isLoadingReportData: true,
-    isLoadingApp: true,
 };
 
 export {propTypes, defaultProps};
