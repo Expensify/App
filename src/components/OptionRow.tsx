@@ -140,7 +140,6 @@ function OptionRow({
     const hoveredBackgroundColor = hoveredStyle?.backgroundColor ? (hoveredStyle.backgroundColor as string) : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = (option.participantsList?.length ?? 0) > 1;
-    const defaultSubscriptSize = option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), isMultipleParticipant);
@@ -205,7 +204,7 @@ function OptionRow({
                                             mainAvatar={option.icons[0]}
                                             secondaryAvatar={option.icons[1]}
                                             backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
-                                            size={defaultSubscriptSize}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -314,7 +313,7 @@ export default React.memo(
         prevProps.showSelectedState === nextProps.showSelectedState &&
         prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        lodashIsEqual(prevProps.option.icons, nextProps.option.icons) &&
+        !lodashIsEqual(prevProps.option.icons, nextProps.option.icons) &&
         prevProps.optionIsFocused === nextProps.optionIsFocused &&
         prevProps.option.text === nextProps.option.text &&
         prevProps.option.alternateText === nextProps.option.alternateText &&
