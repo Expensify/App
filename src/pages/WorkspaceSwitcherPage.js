@@ -1,24 +1,20 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import OptionRow from '@components/OptionRow';
 import OptionsSelector from '@components/OptionsSelector';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import useTheme from '@styles/themes/useTheme';
 import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
-import Icon from '@src/components/Icon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -54,180 +50,164 @@ const defaultProps = {
 function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [selectedOption, setSelectedOption] = useState();
+    const [searchTerm, setSearchTerm] = useState('');
 
     const getIndicatorTypeForPolicy = useCallback(
         // TO DO: Wait for missing logic to be implemented in other PR
         // CONST.BRICK_ROAD_INDICATOR_STATUS.INFO or CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+        // eslint-disable-next-line no-unused-vars
         (policyId) => undefined,
         [],
     );
 
-    const getMenuItem = useCallback(
-        (item) => {
-            const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-
-            const option = {
-                text: keyTitle,
-                brickRoadIndicator: getIndicatorTypeForPolicy(item.policyId),
-                icons: [
-                    {
-                        source: item.icon,
-                        type: item.iconType,
-                        fill: item.iconFill,
-                        name: keyTitle,
-                        fallbackIcon: item.fallbackIcon,
-                    },
-                ],
-            };
-
-            // return (
-            //     <MenuItem
-            //         title={keyTitle}
-            //         icon={item.icon}
-            //         iconType={CONST.ICON_TYPE_WORKSPACE}
-            //         onPress={item.action}
-            //         iconStyles={item.iconStyles}
-            //         iconFill={item.iconFill}
-            //         fallbackIcon={item.fallbackIcon}
-            //         brickRoadIndicator={item.brickRoadIndicator}
-            //         disabled={item.disabled}
-            //         rightComponent={rightComponent}
-            //         shouldShowRightComponent={shouldShowRightComponent}
-            //     />
-            // );
-
-            return (
-                <OptionRow
-                    option={option}
-                    onSelectRow={item.action}
-                    showTitleTooltip={false}
-                    shouldShowSubscript={false}
-                    highlightSelected
-                    isSelected={item.policyId === activeWorkspaceID}
-                />
-            );
-        },
-        [activeWorkspaceID, getIndicatorTypeForPolicy, translate],
+    const hasUnreadData = useCallback(
+        // TO DO: Implement checking if policy has some unread data
+        // eslint-disable-next-line no-unused-vars
+        (policyId) => false, 
+        []
     );
+
+    const selectPolicy = useCallback((option) => {
+        const policyID = option.policyID;
+        Policy.selectWorkspace(policyID);
+
+        if (policyID) {
+            setSelectedOption(option);
+        } else {
+            setSelectedOption(undefined);
+        }
+    }, []);
+
+    const onChangeText = useCallback((newSearchTerm) => {
+        // TO DO: Handle searching logic
+        setSearchTerm(newSearchTerm);
+    }, [])
 
     const usersWorkspaces = useMemo(
         () =>
             _.chain(policies)
                 .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
                 .map((policy) => ({
-                    title: policy.name,
-                    policyId: policy.id,
-                    icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                    iconType: CONST.ICON_TYPE_WORKSPACE,
-                    action: () => {
-                        Policy.selectWorkspace(policy.id);
-                    },
-                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                    pendingAction: policy.pendingAction,
-                    errors: policy.errors,
-                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    text: policy.name,
+                    policyID: policy.id,
+                    brickRoadIndicator: getIndicatorTypeForPolicy(policy.id),
+                    icons: [
+                        {
+                            source: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                            fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                            name: policy.name,
+                            type: CONST.ICON_TYPE_WORKSPACE,
+                        },
+                    ],
+                    boldStyle: hasUnreadData(policy.id),
                 }))
-                .sortBy((policy) => policy.title.toLowerCase())
+                .sortBy((policy) => policy.text.toLowerCase())
                 .value(),
-        [policies, isOffline],
+        [policies, isOffline, getIndicatorTypeForPolicy, hasUnreadData],
     );
 
     const usersWorkspacesSectionData = useMemo(
-        () => [
-            {
+        () => ({
                 data: usersWorkspaces,
                 shouldShow: true,
                 indexOffset: 0,
-            },
-        ],
+            }),
         [usersWorkspaces],
     );
 
-    const allWorkspaces = useMemo(
-        () => [
-            {
-                title: 'Expensify',
-                icon: Expensicons.ExpensifyAppIcon,
-                iconType: CONST.ICON_TYPE_AVATAR,
-                action: () => {
-                    Policy.selectWorkspace(undefined);
+    const everythingSection = useMemo(() => {
+        const option = {
+            text: 'Expensify',
+            icons: [
+                {
+                    source: Expensicons.ExpensifyAppIcon,
+                    name: 'Expensify',
+                    type: CONST.ICON_TYPE_AVATAR,
                 },
-                indicatorType: getIndicatorTypeForPolicy(undefined),
-            },
-        ],
-        [getIndicatorTypeForPolicy],
-    );
+            ],
+            brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
+            boldStyle: hasUnreadData(undefined),
+        };
 
-    const getWorkspacesSection = useCallback(
-        (workspaces, section, showAddWorkspaceButton) => (
-            <View>
+        return (
+            <>
                 <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb3]}>
                     <Text
                         style={styles.label}
                         color={theme.textSupporting}
                     >
-                        {section}
+                        Everything
                     </Text>
-                    {showAddWorkspaceButton && (
-                        <PressableWithFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}>
-                            {({hovered}) => (
-                                <Icon
-                                    src={Expensicons.Plus}
-                                    width={12}
-                                    height={12}
-                                    additionalStyles={[styles.highlightBG, styles.borderRadiusNormal, styles.p2, hovered && styles.bordersBG]}
-                                />
-                            )}
-                        </PressableWithFeedback>
-                    )}
                 </View>
-                <View style={{marginBottom: 12}}>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</View>
-            </View>
+                <View>
+                    <OptionRow
+                        option={{...option, brickRoadIndicator: option.policyID === activeWorkspaceID ? undefined : option.brickRoadIndicator}}
+                        onSelectRow={selectPolicy}
+                        showTitleTooltip={false}
+                        shouldShowSubscript={false}
+                        highlightSelected
+                        isSelected={option.policyID === activeWorkspaceID}
+                    />
+                </View>
+            </>
+        );
+    }, [activeWorkspaceID, getIndicatorTypeForPolicy, hasUnreadData, selectPolicy, styles.alignItemsCenter, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb3, styles.mh4, theme.textSupporting]);
+
+    const inputCallbackRef = useAutoFocusInput();
+    const workspacesSection = useMemo(
+        () => (
+            <>
+            <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+                    <Text
+                        style={[styles.mt3, styles.label]}
+                        color={theme.textSupporting}
+                    >
+                        Workspaces
+                    </Text>
+                </View>
+            {/* TO DO: Display breadcrumb */}
+            {usersWorkspacesSectionData.data.length === 0 && <View/>}
+            <OptionsSelector
+                ref={inputCallbackRef}
+                sections={[usersWorkspacesSectionData]}
+                value={searchTerm}
+                shouldShowTextInput={usersWorkspacesSectionData.data.length > 8}
+                onChangeText={onChangeText}
+                selectedOptions={selectedOption ? [selectedOption] : []}
+                onSelectRow={selectPolicy}
+                boldStyle
+                shouldPreventDefaultFocusOnSelectRow
+                highlightSelectedOptions
+                shouldShowOptions
+                autoFocus={false}
+                disableFocusOptions
+                canSelectMultipleOptions={false}
+                shouldShowSubscript={false}
+                showTitleTooltip={false}
+                contentContainerStyles={[styles.pt0, styles.mt0]}
+                />
+                </>
         ),
-        [
-            getMenuItem,
-            styles.alignItemsCenter,
-            styles.borderRadiusNormal,
-            styles.bordersBG,
-            styles.flexRow,
-            styles.highlightBG,
-            styles.justifyContentBetween,
-            styles.label,
-            styles.mb3,
-            styles.mh4,
-            styles.p2,
-            theme.textSupporting,
-        ],
+        [inputCallbackRef, onChangeText, searchTerm, selectPolicy, selectedOption, styles.alignItemsCenter, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb1, styles.mh4, styles.mt0, styles.mt3, styles.pt0, theme.textSupporting, usersWorkspacesSectionData],
     );
 
-    const allWorkspacesSection = useMemo(() => getWorkspacesSection(allWorkspaces, 'Everything', false, false), [allWorkspaces, getWorkspacesSection]);
-    const usersWorkspacesSection = useMemo(() => getWorkspacesSection(usersWorkspaces, 'Workspaces', true, true), [getWorkspacesSection, usersWorkspaces]);
-
-    // const {inputCallbackRef} = useAutoFocusInput();
+    useEffect(() => {
+        if (!activeWorkspaceID) {
+            return;
+        }
+        const optionToSet = _.find(usersWorkspaces, (option) => option.policyID === activeWorkspaceID);
+        setSelectedOption(optionToSet);
+    }, [activeWorkspaceID, usersWorkspaces]);
 
     return (
         <HeaderPageLayout
             title="Choose a workspace"
             backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SELECTOR.ROOT].backgroundColor}
         >
-            {allWorkspacesSection}
-            {usersWorkspacesSection}
-            {/* <OptionsSelector
-                            ref={inputCallbackRef}
-                            onAddToSelection={(option) => {}}
-                            sections={usersWorkspacesSectionData}
-                            selectedOptions={[]}
-                            value="Find"
-                            onSelectRow={(option) => {}}
-                            onChangeText
-                            headerMessage
-                            boldStyle
-                            shouldPreventDefaultFocusOnSelectRow
-                            shouldShowOptions
-                            autoFocus={false}
-                        /> */}
+            {everythingSection}
+            {workspacesSection}
         </HeaderPageLayout>
     );
 }

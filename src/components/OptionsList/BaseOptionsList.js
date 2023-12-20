@@ -192,6 +192,10 @@ function BaseOptionsList({
                 return true;
             }
 
+            if (option.policyID && option.policyID === item.policyID) {
+                return true;
+            }
+
             if (_.isEmpty(option.name)) {
                 return false;
             }
@@ -201,7 +205,7 @@ function BaseOptionsList({
 
         return (
             <OptionRow
-                option={item}
+                option={{...item, brickRoadIndicator: isSelected ? undefined : item.brickRoadIndicator}}
                 showTitleTooltip={showTitleTooltip}
                 hoverStyle={optionHoveredStyle}
                 optionIsFocused={!disableFocusOptions && !isItemDisabled && focusedIndex === index + section.indexOffset}
@@ -212,7 +216,7 @@ function BaseOptionsList({
                 selectedStateButtonText={multipleOptionSelectorButtonText}
                 onSelectedStatePressed={onAddToSelection}
                 highlightSelected={highlightSelectedOptions}
-                boldStyle={boldStyle}
+                boldStyle={_.isUndefined(item.boldStyle) ? boldStyle : item.boldStyle}
                 isDisabled={isItemDisabled}
                 shouldHaveOptionSeparator={index > 0 && shouldHaveOptionSeparator}
                 shouldDisableRowInnerPadding={shouldDisableRowInnerPadding}
