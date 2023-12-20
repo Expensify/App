@@ -75,6 +75,9 @@ const propTypes = {
     /** Whether to disable interactivity of option rows */
     isDisabled: PropTypes.bool,
 
+    /** Whether to disable focus options of rows */
+    disableFocusOptions: PropTypes.bool,
+
     /** Display the text of the option in bold font style */
     boldStyle: PropTypes.bool,
 
@@ -166,6 +169,7 @@ const defaultProps = {
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
+    disableFocusOptions: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
     maxLength: CONST.SEARCH_MAX_LENGTH,
