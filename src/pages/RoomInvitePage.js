@@ -1,16 +1,13 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MemberInviteList from '@components/MemberInviteList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -52,7 +49,6 @@ const defaultProps = {
 };
 
 function RoomInvitePage(props) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const validate = useCallback((selectedUsersSize) => {
@@ -79,22 +75,25 @@ function RoomInvitePage(props) {
         [props.report],
     );
 
-    const inviteUsers = useCallback((selectedUsers) => {
-        if (!validate()) {
-            return;
-        }
-        const invitedEmailsToAccountIDs = {};
-        _.each(selectedUsers, (option) => {
-            const login = option.login || '';
-            const accountID = lodashGet(option, 'accountID', '');
-            if (!login.toLowerCase().trim() || !accountID) {
+    const inviteUsers = useCallback(
+        (selectedUsers) => {
+            if (!validate()) {
                 return;
             }
-            invitedEmailsToAccountIDs[login] = Number(accountID);
-        });
-        Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
-        Navigation.navigate(backRoute);
-    }, [backRoute, props.report.reportID, validate]);
+            const invitedEmailsToAccountIDs = {};
+            _.each(selectedUsers, (option) => {
+                const login = option.login || '';
+                const accountID = lodashGet(option, 'accountID', '');
+                if (!login.toLowerCase().trim() || !accountID) {
+                    return;
+                }
+                invitedEmailsToAccountIDs[login] = Number(accountID);
+            });
+            Report.inviteToRoom(props.report.reportID, invitedEmailsToAccountIDs);
+            Navigation.navigate(backRoute);
+        },
+        [backRoute, props.report.reportID, validate],
+    );
 
     return (
         <ScreenWrapper
@@ -119,19 +118,8 @@ function RoomInvitePage(props) {
                         inviteUsers={inviteUsers}
                         excludedUsers={excludedUsers}
                         name={reportName}
+                        confirmButtonText={translate('common.invite')}
                     />
-
-                    <View style={[styles.flexShrink0]}>
-                        <FormAlertWithSubmitButton
-                            isDisabled={!selectedOptions.length}
-                            buttonText={translate('common.invite')}
-                            onSubmit={inviteUsers}
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                            enabledWhenOffline
-                            disablePressOnEnter
-                            isAlertVisible={false}
-                        />
-                    </View>
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>

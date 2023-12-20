@@ -1,17 +1,14 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MemberInviteList from '@components/MemberInviteList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -58,7 +55,6 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
@@ -134,19 +130,9 @@ function WorkspaceInvitePage(props) {
                         inviteUsers={inviteUsers}
                         excludedUsers={excludedUsers}
                         name={policyName}
+                        confirmButtonText={translate('common.next')}
+                        shouldShowAlertProm={shouldShowAlertPrompt}
                     />
-                    <View style={[styles.flexShrink0]}>
-                        <FormAlertWithSubmitButton
-                            isDisabled={!selectedOptions.length}
-                            isAlertVisible={shouldShowAlertPrompt}
-                            buttonText={translate('common.next')}
-                            onSubmit={inviteUser}
-                            message={props.policy.alertMessage}
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                            enabledWhenOffline
-                            disablePressOnEnter
-                        />
-                    </View>
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>
@@ -160,6 +146,9 @@ WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 export default compose(
     withPolicyAndFullscreenLoading,
     withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },

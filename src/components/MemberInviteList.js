@@ -1,15 +1,17 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import optionPropTypes from './optionPropTypes';
+import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import SelectionList from './SelectionList';
 
 const propTypes = {
@@ -19,13 +21,23 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
+    /** To indicate that the screen transaction has ended */
     didScreenTransitionEnd: PropTypes.bool.isRequired,
 
+    /** The users are not eligible for invitation */
     excludedUsers: PropTypes.arrayOf(PropTypes.string),
 
+    /** It can be policyName or reportName */
     name: PropTypes.string,
 
+    /** Function to invite users */
     inviteUsers: PropTypes.func.isRequired,
+
+    /** Text displayed on the bottom submit button */
+    confirmButtonText: PropTypes.string.isRequired,
+
+    /** Whether to show the alert text */
+    shouldShowAlertPrompt: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -33,16 +45,19 @@ const defaultProps = {
     betas: [],
     excludedUsers: [],
     name: '',
+    shouldShowAlertPrompt: false,
 };
 
 function MemberInviteList(props) {
-    const {excludedUsers, betas, didScreenTransitionEnd, name, inviteUsers} = props;
+    const {excludedUsers, betas, didScreenTransitionEnd, name, inviteUsers, shouldShowAlertPrompt, confirmButtonText} = props;
     const {translate} = useLocalize();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState('');
+
+    const styles = useThemeStyles();
 
     const getSections = () => {
         const sections = [];
@@ -133,19 +148,32 @@ function MemberInviteList(props) {
     }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails.length, name]);
 
     return (
-        <SelectionList
-            canSelectMultiple
-            sections={sections}
-            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-            textInputValue={searchTerm}
-            onChangeText={setSearchTerm}
-            headerMessage={headerMessage}
-            onSelectRow={toggleOption}
-            onConfirm={inviteUsers}
-            showScrollIndicator
-            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-            showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
-        />
+        <>
+            <SelectionList
+                canSelectMultiple
+                sections={sections}
+                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                headerMessage={headerMessage}
+                onSelectRow={toggleOption}
+                onConfirm={() => inviteUsers(selectedOptions)}
+                showScrollIndicator
+                shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+            />
+            <View style={[styles.flexShrink0]}>
+                <FormAlertWithSubmitButton
+                    isDisabled={!selectedOptions.length}
+                    buttonText={confirmButtonText}
+                    onSubmit={() => inviteUsers(selectedOptions)}
+                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                    enabledWhenOffline
+                    disablePressOnEnter
+                    isAlertVisible={shouldShowAlertPrompt}
+                />
+            </View>
+        </>
     );
 }
 
