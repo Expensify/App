@@ -2652,8 +2652,6 @@ function buildOptimisticIOUReportAction(
                 : participants.map((participant) => participant.accountID);
         }
     }
-    console.log({originalMessage});
-    console.log({message: getIOUReportActionMessage(iouReportID, type, amount, comment, currency, paymentType, isSettlingUp)});
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
