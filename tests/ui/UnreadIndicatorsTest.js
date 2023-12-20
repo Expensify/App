@@ -31,6 +31,11 @@ jest.setTimeout(30000);
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual('react-native-reanimated/mock'),
+    createAnimatedPropAdapter: jest.fn,
+}));
+
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
     // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means

@@ -446,13 +446,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
     return {};
 }
 
-function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
-}
-
 function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
     return {
         width,
@@ -1015,7 +1008,6 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
