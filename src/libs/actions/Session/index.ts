@@ -125,7 +125,8 @@ function signOutAndRedirectToSignIn() {
  * @param isAnonymousAction The action is allowed for anonymous or not
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed<TCallback extends (...args: unknown[]) => unknown>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function checkIfActionIsAllowed<TCallback extends (...args: any[]) => any>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
