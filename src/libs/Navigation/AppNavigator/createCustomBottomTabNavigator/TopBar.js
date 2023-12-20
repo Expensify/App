@@ -41,7 +41,7 @@ function TopBar({isCreateMenuOpen = false}) {
                 />
             </PressableWithFeedback>
             <Search
-                prompt={translate('sidebarScreen.buttonSearch')}
+                placeholder={translate('sidebarScreen.buttonSearch')}
                 onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                 style={{flex: 1}}
             />
