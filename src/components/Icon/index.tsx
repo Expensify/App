@@ -102,12 +102,6 @@ class Icon extends PureComponent<IconProps> {
     }
 }
 
-<<<<<<< HEAD
-Icon.displayName = 'Icon';
-
-export default Icon;
-=======
 export type {SrcProps};
 
 export default withTheme(withThemeStyles(withStyleUtils(Icon)));
->>>>>>> 9a936b1 (Merge pull request #33325 from rayane-djouah/Revert-"Migrate-Icon/index.js-and-FloatingActionButton-to-function-component")
