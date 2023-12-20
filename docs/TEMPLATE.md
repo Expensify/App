@@ -21,7 +21,7 @@ What options does a user have then interacting with this feature?
 What elements of this feature are pay-walled vs. free?
 -->
 
-# FAQ
+{% include faq-begin.md %}
 <!--
 This section covers the useful but not as vital information, it should capture commonly queried elements which do not organically form part of the About or How-to sections.
 
@@ -32,6 +32,7 @@ This section covers the useful but not as vital information, it should capture c
 - Is there any general troubleshooting for this feature?
  - Note: troubleshooting should generally go in the FAQ, but if there is extensive troubleshooting, such as with integrations, that will be housed in a separate page, stored with and linked from the main page for that feature.
 -->
+{% include faq-end.md %}
 
 # Deep Dive
 <!--
