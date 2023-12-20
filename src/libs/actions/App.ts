@@ -498,12 +498,6 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
         return;
     }
 
-    type OpenOldDotLinkParams = {
-        shouldRetry: boolean;
-    };
-
-    const parameters: OpenOldDotLinkParams = {shouldRetry: false};
-
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects('OpenOldDotLink').then((response) => {
         if (!response) {
