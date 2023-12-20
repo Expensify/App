@@ -3,9 +3,9 @@ import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import variables from '@styles/variables';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
@@ -43,7 +43,7 @@ function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJIS.test(text);
 }
 
-function WrappedText({children, wordStyles, textStyles, fontSize=variables.fontSizeNormal}: WrappedTextProps) {
+function WrappedText({children, wordStyles, textStyles, fontSize = variables.fontSizeNormal}: WrappedTextProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
