@@ -131,6 +131,7 @@ function PurposeForUsingExpensifyModal(props) {
             iconRight: Expensicons.ArrowRight,
             onPress: () => completeModalAndClose(messageCopy.track, 'trackNewDot'),
             shouldShowRightIcon: true,
+            numberOfLinesTitle: 2,
         },
         {
             key: 'purposeForExpensify.submit',
@@ -139,6 +140,7 @@ function PurposeForUsingExpensifyModal(props) {
             iconRight: Expensicons.ArrowRight,
             onPress: () => completeModalAndClose(messageCopy.submit, 'submitNewDot'),
             shouldShowRightIcon: true,
+            numberOfLinesTitle: 2,
         },
         {
             key: 'purposeForExpensify.business',
@@ -147,6 +149,7 @@ function PurposeForUsingExpensifyModal(props) {
             iconRight: Expensicons.ArrowRight,
             onPress: () => completeModalAndClose(messageCopy.business, 'businessNewDot'),
             shouldShowRightIcon: true,
+            numberOfLinesTitle: 2,
         },
         {
             key: 'purposeForExpensify.chatSplit',
@@ -155,6 +158,7 @@ function PurposeForUsingExpensifyModal(props) {
             iconRight: Expensicons.ArrowRight,
             onPress: () => completeModalAndClose(messageCopy.chatSplit, 'chatSplitNewDot'),
             shouldShowRightIcon: true,
+            numberOfLinesTitle: 2,
         },
     ];
 
