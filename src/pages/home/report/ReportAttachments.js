@@ -4,6 +4,7 @@ import _ from 'underscore';
 import AttachmentModal from '@components/AttachmentModal';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
