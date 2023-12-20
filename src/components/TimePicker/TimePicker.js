@@ -117,12 +117,13 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const resetHours = () => {
         setHours('00');
         setSelectionHour({start: 0, end: 0});
-    }
+    };
 
     const resetMinutes = () => {
         setMinute('00');
         setSelectionMinute({start: 0, end: 0});
-    }
+        focusHourInputOnLastCharacter();
+    };
 
     // This function receive value from hour input and validate it
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
@@ -133,8 +134,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         }
 
         const isOnlyNumericValue = /^\d+$/.test(text.trim());
-        // Skip if the user is pasting the text or use non numeric characters.
-        if (selectionHour.start !== selectionHour.end || !isOnlyNumericValue) {
+        if (!isOnlyNumericValue) {
             return;
         }
 
@@ -144,13 +144,11 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         let newHour = hours;
         let newSelection = selectionHour.start;
 
-        // Case when the cursor is at the start.
-        if (selectionHour.start === 0) {
-            // Handle cases where the hour would be > 12.
-
-            // when you entering text the filteredText would consist of three numbers
+        if (selectionHour.start === 0 && selectionHour.end === 0) {
+            // When the user is entering text, the filteredText consists of three numbers
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
             if (formattedText > 12 && formattedText <= 24) {
+                // The hour is between 12 and 24 – switch AM to PM.
                 newHour = String(formattedText - 12).padStart(2, '0');
                 newSelection = 2;
                 setAmPmValue(CONST.TIME_PERIOD.PM);
@@ -161,8 +159,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newHour = `${formattedText[0]}${formattedText[1]}`;
                 newSelection = 1;
             }
-        } else if (selectionHour.start === 1) {
-            // Case when the cursor is at the second position.
+        } else if (selectionHour.start === 1 && selectionHour.end === 1) {
+            // The cursor is at the second position.
             const formattedText = `${filteredText[0]}${filteredText[1]}`;
 
             if (filteredText.length < 2) {
@@ -183,11 +181,23 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newSelection = 2;
             }
         } else if (selectionHour.start === 2 && selectionHour.end === 2) {
-            // Case when the cursor is at the end and no text is selected.
+            // The cursor is at the end and no text is selected.
             if (filteredText.length < 2) {
                 newHour = `${text}0`;
                 newSelection = 1;
             } else {
+                newSelection = 2;
+            }
+        } else if (selectionHour.start === 0 && selectionHour.end === 2) {
+            if (filteredText <= 1) {
+                newHour = `${filteredText}0`;
+                newSelection = 1;
+            } else if (filteredText > 12 && filteredText <= 24) {
+                newHour = String(filteredText - 12).padStart(2, '0');
+                newSelection = 2;
+                setAmPmValue(CONST.TIME_PERIOD.PM);
+            } else {
+                newHour = String(Math.min(filteredText, 12)).padStart(2, '0');
                 newSelection = 2;
             }
         }
@@ -204,13 +214,11 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const handleMinutesChange = (text) => {
         if (_.isEmpty(text)) {
             resetMinutes();
-            focusHourInputOnLastCharacter();
             return;
         }
 
         const isOnlyNumericValue = /^\d+$/.test(text.trim());
-        // Skip if the user is pasting the text or use non numeric characters.
-        if (selectionMinute.start !== selectionMinute.end || !isOnlyNumericValue) {
+        if (!isOnlyNumericValue) {
             return;
         }
 
@@ -219,22 +227,9 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
 
         let newMinute = minute;
         let newSelection = selectionMinute.start;
-        // Case when user selects and replaces the text.
-        if (selectionMinute.start !== selectionMinute.end) {
-            // If the first digit is > 5, prepend 0.
-            if (filteredText.length === 1 && filteredText > 5) {
-                newMinute = `0${filteredText}`;
-                newSelection = 2;
-                // If the first digit is <= 5, append 0 at the end.
-            } else if (filteredText.length === 1 && filteredText <= 5) {
-                newMinute = `${filteredText}0`;
-                newSelection = 1;
-            } else {
-                newMinute = `${filteredText.slice(0, 2)}`;
-                newSelection = 2;
-            }
-        } else if (selectionMinute.start === 0) {
-            // Case when the cursor is at the start.
+
+        if (selectionMinute.start === 0 && selectionMinute.end === 0) {
+            // The cursor is at the start.
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
             if (text[0] >= 6) {
                 newMinute = `0${formattedText[1]}`;
@@ -243,8 +238,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newMinute = `${formattedText[0]}${formattedText[1]}`;
                 newSelection = 1;
             }
-        } else if (selectionMinute.start === 1) {
-            // Case when the cursor is at the second position.
+        } else if (selectionMinute.start === 1 && selectionMinute.end === 1) {
+            // The cursor is at the second position.
             // If we remove a value, prepend 0.
             if (filteredText.length < 2) {
                 newMinute = `0${text}`;
@@ -255,10 +250,19 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newMinute = `${text[0]}${text[1]}`;
                 newSelection = 2;
             }
-        } else if (filteredText.length < 2) {
-            // Case when the cursor is at the end and no text is selected.
+        } else if (selectionMinute.start === 2 && selectionMinute.end === 2 && filteredText.length < 2) {
+            // The cursor is at the end and no text is selected
             newMinute = `${text}0`;
             newSelection = 1;
+        } else if (selectionMinute.start === 0 && selectionMinute.end === 2) {
+            // The user selects and replaces the text
+            if (filteredText <= 5) {
+                newMinute = `${filteredText}0`;
+                newSelection = 1;
+            } else {
+                newMinute = String(Math.min(filteredText, 59)).padStart(2, '0');
+                newSelection = 2;
+            }
         }
 
         setMinute(newMinute);
@@ -295,7 +299,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 } else if (isMinuteFocused) {
                     if (selectionMinute.start === 0 && selectionMinute.end === 2) {
                         resetMinutes();
-                        focusHourInputOnLastCharacter();
                         return;
                     }
 
