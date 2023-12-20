@@ -133,7 +133,6 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
         category: transaction?.category ?? '',
         created: transaction?.created ?? '',
         currency: transaction?.currency ?? '',
-        pendingAction: transaction?.pendingAction ?? null,
         merchant: transaction?.merchant ?? '',
         reportID: transaction?.reportID ?? '',
         transactionID: transaction?.transactionID ?? '',

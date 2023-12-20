@@ -37,7 +37,7 @@ type Geometry = {
 };
 
 type MappedWaypoint = {
-    name: string | undefined;
+    name?: string;
     description: string;
     geometry: Geometry;
 };
@@ -143,8 +143,8 @@ function WaypointEditor({
 
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat ?? 0,
-            lng: values.lng ?? 0,
+            lat: values.lat ?? -1,
+            lng: values.lng ?? -1,
             address: values.address ?? '',
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             name: values.name,

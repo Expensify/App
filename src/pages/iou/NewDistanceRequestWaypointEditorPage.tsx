@@ -14,7 +14,7 @@ type NewDistanceRequestWaypointEditorPageProps = StackScreenProps<MoneyRequestNa
 
 // This component is responsible for grabbing the transactionID from the IOU key
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that WaypointEditor can subscribe to the transaction.
-function NewDistanceRequestWaypointEditorPage({transactionID, route}: NewDistanceRequestWaypointEditorPageProps) {
+function NewDistanceRequestWaypointEditorPage({transactionID = '', route}: NewDistanceRequestWaypointEditorPageProps) {
     return (
         <WaypointEditor
             // Put the transactionID into the route params so that WaypointEdit behaves the same when creating a new waypoint
@@ -23,7 +23,7 @@ function NewDistanceRequestWaypointEditorPage({transactionID, route}: NewDistanc
                 {
                     params: {
                         ...route.params,
-                        transactionID: transactionID ?? '',
+                        transactionID,
                     },
                 } as RouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.EDIT_WAYPOINT>
             }
