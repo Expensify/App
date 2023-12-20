@@ -26,7 +26,7 @@ function triggerMultiEventHandler(eventType: string, data: OnyxUpdate[]): Promis
  * Abstraction around subscribing to private user channel events. Handles all logs and errors automatically.
  */
 function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string, onEvent: (pushJSON: PushJSON) => void) {
-    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
+    const pusherChannelName = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}` as const;
 
     function logPusherEvent(pushJSON: PushJSON) {
         Log.info(`[Report] Handled ${eventName} event sent by Pusher`, false, pushJSON);

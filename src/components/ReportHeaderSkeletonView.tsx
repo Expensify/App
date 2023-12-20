@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Icon from './Icon';
@@ -14,9 +14,10 @@ import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
+    onBackButtonPress?: () => void;
 };
 
-function ReportHeaderSkeletonView({shouldAnimate = true}: ReportHeaderSkeletonViewProps) {
+function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}}: ReportHeaderSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -27,9 +28,9 @@ function ReportHeaderSkeletonView({shouldAnimate = true}: ReportHeaderSkeletonVi
             <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && styles.pl5]}>
                 {isSmallScreenWidth && (
                     <PressableWithFeedback
-                        onPress={() => {}}
+                        onPress={onBackButtonPress}
                         style={[styles.LHNToggle]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
                     >
                         <Icon src={Expensicons.BackArrow} />

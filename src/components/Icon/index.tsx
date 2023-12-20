@@ -102,4 +102,6 @@ class Icon extends PureComponent<IconProps> {
     }
 }
 
+export type {SrcProps};
+
 export default withTheme(withThemeStyles(withStyleUtils(Icon)));

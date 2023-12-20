@@ -32,12 +32,6 @@ on:
       OS_BOTIFY_COMMIT_TOKEN:
         description: OSBotify personal access token, used to workaround committing to protected branch
         required: true
-      OS_BOTIFY_APP_ID:
-        description: Application ID for OS Botify App
-        required: true
-      OS_BOTIFY_PRIVATE_KEY:
-        description: OSBotify private key
-        required: true
 
 jobs:
   validateActor:
@@ -76,18 +70,16 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: ./.github/actions/composite/setupGitForOSBotify
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
       - name: Generate version
         id: bumpVersion
         uses: ./.github/actions/javascript/bumpVersion
         with:
-          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
       - name: Commit new version

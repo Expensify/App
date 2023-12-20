@@ -4,7 +4,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import Collapsible from './Collapsible';
@@ -32,7 +32,7 @@ function CollapsibleSection({title, children}: CollapsibleSectionProps) {
             <PressableWithFeedback
                 onPress={toggleSection}
                 style={[styles.pb4, styles.flexRow]}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}
                 hoverDimmingValue={1}
                 pressDimmingValue={0.2}
