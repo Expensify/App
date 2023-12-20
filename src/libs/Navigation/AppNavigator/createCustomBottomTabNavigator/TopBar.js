@@ -32,7 +32,7 @@ function TopBar({isCreateMenuOpen = false}) {
             style={[styles.gap6, styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
             dataSet={{dragArea: true}}
         >
-            <PressableWithFeedback accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}>
+            <PressableWithFeedback role={CONST.ROLE.BUTTON}>
                 <SubscriptAvatar
                     mainAvatar={{source: Expensicons.ExpensifyAppIcon, name: 'Expensify', type: CONST.ICON_TYPE_AVATAR}}
                     subscriptIcon={{source: Expensicons.DownArrow, width: 8, height: 8}}

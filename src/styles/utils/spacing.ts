@@ -377,10 +377,6 @@ export default {
         paddingHorizontal: 24,
     },
 
-    ph7: {
-        paddingHorizontal: 28,
-    },
-
     ph8: {
         paddingHorizontal: 32,
     },
