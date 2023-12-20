@@ -5,7 +5,7 @@
 import React from 'react';
 import {Layer, Source} from 'react-map-gl';
 import {View} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {DirectionProps} from './MapViewTypes';
 
 function Direction({coordinates}: DirectionProps) {

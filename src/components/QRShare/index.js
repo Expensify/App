@@ -4,8 +4,8 @@ import _ from 'underscore';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {qrShareDefaultProps, qrSharePropTypes} from './propTypes';
 
