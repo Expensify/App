@@ -4,17 +4,14 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Breadcrumbs from '@components/Breadcrumbs';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -51,13 +48,6 @@ const defaultProps = {
     ...policyDefaultProps,
     reimbursementAccount: {},
 };
-
-/**
- * @param {string} policyID
- */
-function openEditor(policyID) {
-    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
-}
 
 /**
  * @param {string} policyID
@@ -151,7 +141,7 @@ function WorkspaceInitialPage(props) {
     const menuItems = [
         {
             translationKey: 'workspace.common.overview',
-            icon: Expensicons.Gear,
+            icon: Expensicons.Home,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
@@ -262,47 +252,19 @@ function WorkspaceInitialPage(props) {
                             errors={policy.errors}
                             errorRowStyles={[styles.ph5, styles.pv2]}
                         >
-                            <View style={[styles.flex1]}>
-                                <View style={styles.avatarSectionWrapper}>
-                                    <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                                        <Tooltip text={translate('workspace.common.settings')}>
-                                            <PressableWithoutFeedback
-                                                disabled={hasPolicyCreationError || isExecuting}
-                                                style={[styles.pRelative, styles.avatarLarge]}
-                                                onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
-                                                accessibilityLabel={translate('workspace.common.settings')}
-                                                role={CONST.ROLE.BUTTON}
-                                            >
-                                                <Avatar
-                                                    containerStyles={styles.avatarLarge}
-                                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                    source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
-                                                    name={policyName}
-                                                    type={CONST.ICON_TYPE_WORKSPACE}
-                                                />
-                                            </PressableWithoutFeedback>
-                                        </Tooltip>
-                                        {!_.isEmpty(policy.name) && (
-                                            <Tooltip text={translate('workspace.common.settings')}>
-                                                <PressableWithoutFeedback
-                                                    disabled={hasPolicyCreationError || isExecuting}
-                                                    style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
-                                                    onPress={singleExecution(waitForNavigate(() => openEditor(policy.id)))}
-                                                    accessibilityLabel={translate('workspace.common.settings')}
-                                                    role={CONST.ROLE.BUTTON}
-                                                >
-                                                    <Text
-                                                        numberOfLines={1}
-                                                        style={[styles.textHeadline, styles.alignSelfCenter, styles.pre]}
-                                                    >
-                                                        {policy.name}
-                                                    </Text>
-                                                </PressableWithoutFeedback>
-                                            </Tooltip>
-                                        )}
-                                    </View>
+                            <View style={[styles.mh3, styles.flex1]}>
+                                <View style={[styles.mh5, styles.pv5, styles.justifyContentBetween]}>
+                                    <Breadcrumbs
+                                        breadcrumbs={[
+                                            {
+                                                type: CONST.BREADCRUMB_TYPE.STRONG,
+                                                text: policyName,
+                                            },
+                                            {
+                                                text: translate('common.settings'),
+                                            },
+                                        ]}
+                                    />
                                 </View>
                                 {/*
                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
@@ -315,10 +277,9 @@ function WorkspaceInitialPage(props) {
                                         interactive={!hasPolicyCreationError}
                                         title={translate(item.translationKey)}
                                         icon={item.icon}
-                                        iconRight={item.iconRight}
                                         onPress={item.action}
-                                        shouldShowRightIcon
                                         brickRoadIndicator={item.brickRoadIndicator}
+                                        wrapperStyle={styles.sectionMenuItem}
                                     />
                                 ))}
                             </View>
