@@ -126,8 +126,21 @@ Delete all articles for the hub
 2. Delete the folder with your hub name and all its contents. eg: `integrations/`
 
 # How to rename a hub
+If you need help with how to do this on github. Follow this [slack thread 🧵](https://expensify.slack.com/archives/C02QSAC6BJ8/p1703012261896119?thread_ts=1702999732.847589&cid=C02QSAC6BJ8) in `#expensifyhelp`
+
+Let's assume that we need to rename the hub `get-paid-back` to `payments` for the platform `New Expensify`
+1. Go to `docs/new-expensify/hubs/`
+2. Rename the folder `get-paid-back/` to `payments`
+3. Go to `docs/articles/new-expensify/`
+4. Rename the folder `get-paid-back/` to `payments`
+5. Open docs/_data/_routes.yml 
+6. Rename the href `get-paid-back` to `payments`
+7. Change `title` to `Payments`
 
 # How to change icon of a hub
+1. Open `docs/_data/_routes.yml`
+2. Under the platform and hub, replace the icon link `assets/images/send.svg`.
+3. Use an existing icon, or a new one by adding it to `docs/assets/images/`
 
 # How to create a new subcategory
 Creating a new subcategory is as easy as creating a new folder. For example, if we want to create a new subcategory `HR Integrations` for the hub `Integrations` and platform `Expensify Classic`
