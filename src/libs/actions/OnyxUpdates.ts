@@ -1,6 +1,6 @@
-import Log from '@libs/Log';
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {Merge} from 'type-fest';
+import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
