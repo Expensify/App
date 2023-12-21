@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import dateAdd from 'date-fns/add';
+import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
@@ -18,6 +20,8 @@ const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
+const MAX_DATE = dateAdd(new Date(), {years: 1});
+const MIN_DATE = dateSubtract(new Date(), {years: 20});
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
@@ -103,6 +107,8 @@ const CONST = {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
         MAX_YEAR: CURRENT_YEAR + 100,
+        MAX_DATE,
+        MIN_DATE,
     },
 
     DATE_BIRTH: {
