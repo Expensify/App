@@ -1589,6 +1589,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // Add tag to optimistic policy recently used tags when a participant is a workspace
         const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
+        // Create optimistic transactionThread
+        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             oneOnOneChatReport,
@@ -1603,6 +1607,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             optimisticPolicyRecentlyUsedTags,
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
+            optimisticTransactionThread,
+            optimisticCreatedActionForTransactionThread,
         );
 
         const individualSplit = {
