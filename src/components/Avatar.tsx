@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -70,18 +70,22 @@ function Avatar({
         setImageError(false);
     }, [source]);
 
+    const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
+    const fallbackAvatar = useMemo(
+        () => (isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon ?? illustrations.FallbackAvatar),
+        [fallbackIcon, illustrations.FallbackAvatar, isWorkspace, name],
+    );
+
     if (!source) {
         return null;
     }
 
-    const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(size);
 
     const imageStyle = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill ?? theme.icon;
-    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon ?? illustrations.FallbackAvatar;
 
     const avatarSource = imageError ? fallbackAvatar : source;
 
