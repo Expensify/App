@@ -7,7 +7,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import refPropTypes from './refPropTypes';
 
 type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */
@@ -24,7 +23,7 @@ type CountrySelectorProps = {
     inputID: string;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange}: CountrySelectorProps, ref: ForwardedRef<typeof MenuItemWithTopDescription>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange}: CountrySelectorProps, ref: ForwardedRef<View>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
