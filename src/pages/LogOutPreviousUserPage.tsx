@@ -22,11 +22,11 @@ type LogOutPreviousUserPageOnyxProps = {
 
 type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
-function LogOutPreviousUserPage({account = {isLoading: false}, session, route: {params}}: LogOutPreviousUserPageProps) {
+function LogOutPreviousUserPage({account, session, route: {params}}: LogOutPreviousUserPageProps) {
     useEffect(() => {
         Linking.getInitialURL().then((transitionURL) => {
             const sessionEmail = session?.email;
-            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
+            const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
 
             if (isLoggingInAsNewUser) {
                 SessionUserAction.signOutAndRedirectToSignIn();
