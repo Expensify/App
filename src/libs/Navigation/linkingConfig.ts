@@ -1,48 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {getStateFromPath, LinkingOptions, NavigationState, PartialState} from '@react-navigation/native';
+import {LinkingOptions} from '@react-navigation/native';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
-import {BottomTabName, NavigationPartialRoute, RootStackParamList} from './types';
-
-function getStateWithProperTab(state: PartialState<NavigationState<RootStackParamList>>) {
-    // If the bottom tab navigator state is defined we don't need to do anything.
-    const isBottomTabNavigatorStateDefined = state.routes.at(0)?.state !== undefined;
-    if (isBottomTabNavigatorStateDefined) {
-        return state;
-    }
-
-    // If not, we need to insert the tab that matches the currently generated state.
-    const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
-
-    // We need to have at least one HOME route in the state, otherwise the app won't load.
-    const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME}];
-
-    if (matchingBottomTabRoute.name !== SCREENS.HOME) {
-        // If the generated state requires tab other than HOME, we need to insert it.
-        routesForBottomTabNavigator.push(matchingBottomTabRoute);
-    }
-
-    const stateWithTab = {...state};
-
-    // The first route in root stack is always the BOTTOM_TAB_NAVIGATOR
-    stateWithTab.routes[0] = {name: NAVIGATORS.BOTTOM_TAB_NAVIGATOR, state: {routes: routesForBottomTabNavigator}};
-
-    return stateWithTab;
-}
+import getAdaptedStateFromPath from './getAdaptedStateFromPath';
+import {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
-    getStateFromPath: (path, options) => {
-        const state = getStateFromPath(path, options);
-
-        if (state === undefined) {
-            throw new Error('Unable to parse path');
-        }
-        const stateWithTab = getStateWithProperTab(state as PartialState<NavigationState<RootStackParamList>>);
-        return stateWithTab;
-    },
+    getStateFromPath: getAdaptedStateFromPath,
     prefixes: [
         'app://-/',
         'new-expensify://',

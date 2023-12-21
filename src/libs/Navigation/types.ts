@@ -459,12 +459,15 @@ type BottomTabName = keyof BottomTabNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneNavigatorParamList;
 
+type FullScreenName = keyof SettingsCentralPaneNavigatorParamList;
+
 export type {
     NavigationRef,
     StackNavigationAction,
     CentralPaneNavigatorParamList,
     BottomTabName,
     CentralPaneName,
+    FullScreenName,
     RootStackParamList,
     StateOrRoute,
     NavigationStateRoute,
