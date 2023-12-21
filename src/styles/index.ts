@@ -2205,6 +2205,7 @@ const styles = (theme: ThemeColors) =>
             ({
                 width: isSmallScreenWidth ? '100%' : 350,
                 ...(isSmallScreenWidth && flex.flex1),
+                alignSelf: 'flex-start',
             } satisfies ViewStyle),
 
         centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
