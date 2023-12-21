@@ -58,10 +58,6 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
             EmojiPickerAction.showEmojiPicker(
                 () => {},
                 (emojiCode, emojiObject) => {
-                    if (!emojiObject) {
-                        return;
-                    }
-
                     onSelectEmoji(emojiObject);
                 },
                 refParam ?? ref.current,

@@ -14,11 +14,13 @@ type EmojiPopoverAnchor = View | HTMLDivElement | ReportActionContextMenu | Text
 
 type OnWillShowPicker = (callback: CloseContextMenuCallback) => void;
 
+type OnModalHideValue = () => void;
+
 // TODO: Move this type to src/components/EmojiPicker/EmojiPicker.js once it is converted to TS
 type EmojiPickerRef = {
     showEmojiPicker: (
-        onModalHideValue?: () => void,
-        onEmojiSelectedValue?: () => void,
+        onModalHideValue?: OnModalHideValue,
+        onEmojiSelectedValue?: OnEmojiSelected,
         emojiPopoverAnchor?: EmojiPopoverAnchor,
         anchorOrigin?: AnchorOrigin,
         onWillShow?: OnWillShowPicker,
@@ -31,7 +33,7 @@ type EmojiPickerRef = {
     resetEmojiPopoverAnchor: () => void;
 };
 
-type OnEmojiSelected = (emojiCode?: string, emojiObject?: Emoji) => void;
+type OnEmojiSelected = (emojiCode: string, emojiObject: Emoji) => void;
 
 const emojiPickerRef = React.createRef<EmojiPickerRef>();
 
@@ -46,12 +48,12 @@ const emojiPickerRef = React.createRef<EmojiPickerRef>();
  * @param id - Unique id for EmojiPicker
  */
 function showEmojiPicker(
-    onModalHide = () => {},
+    onModalHide: OnModalHideValue = () => {},
     onEmojiSelected: OnEmojiSelected = () => {},
     emojiPopoverAnchor: EmojiPopoverAnchor = null,
-    anchorOrigin: AnchorOrigin | undefined = undefined,
+    anchorOrigin?: AnchorOrigin,
     onWillShow: OnWillShowPicker = () => {},
-    id: string | undefined = undefined,
+    id?: string,
 ) {
     if (!emojiPickerRef.current) {
         return;

@@ -38,15 +38,34 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
     shouldBlockReactions?: boolean;
 };
 
+type PopoverReactionListAnchors = Record<string, View | HTMLDivElement | null>;
+
 type FormattedReaction = {
+    /** The emoji codes to display in the bubble */
     emojiCodes: string[];
+
+    /** IDs of users used the reaction */
     userAccountIDs: number[];
+
+    /** Total reaction count */
     reactionCount: number;
+
+    /** Whether the current account has reacted to the report action */
     hasUserReacted: boolean;
+
+    /** Oldest timestamp of when the emoji was added */
     oldestTimestamp: string;
+
+    /** Callback to fire on press */
     onPress: () => void;
+
+    /** Callback to fire on reaction list open */
     onReactionListOpen: (event: GestureResponderEvent | MouseEvent) => void;
+
+    /** The name of the emoji */
     reactionEmojiName: string;
+
+    /** The type of action that's pending  */
     pendingAction: PendingAction;
 };
 
@@ -60,7 +79,7 @@ function ReportActionItemEmojiReactions({
 }: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
-    const popoverReactionListAnchors = useRef<Record<string, View | HTMLDivElement | null>>({});
+    const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
 
     let totalReactionCount = 0;
 

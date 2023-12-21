@@ -52,10 +52,6 @@ function MiniQuickEmojiReactions({
         EmojiPickerAction.showEmojiPicker(
             onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                if (!emojiObject) {
-                    return;
-                }
-
                 onEmojiSelected(emojiObject, emojiReactions);
             },
             ref.current,

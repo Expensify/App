@@ -27,6 +27,7 @@ function ReactionTooltipContent({accountIDs, currentUserPersonalDetails = {}, em
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const users = useMemo(() => PersonalDetailsUtils.getPersonalDetailsByIDs(accountIDs, currentUserPersonalDetails.accountID, true), [currentUserPersonalDetails.accountID, accountIDs]);
+
     const namesString = users
         .map((user) => user?.displayName)
         .filter((name) => name)
