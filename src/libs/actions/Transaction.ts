@@ -5,12 +5,12 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, Transaction} from '@src/types/onyx';
 import {OnyxData} from '@src/types/onyx/Request';
 import {WaypointCollection} from '@src/types/onyx/Transaction';
-import * as IOU from '@userActions/IOU';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
