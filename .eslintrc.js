@@ -24,6 +24,11 @@ const restrictedImportPaths = [
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
     },
+    {
+        name: 'react',
+        importNames: ['CSSProperties'],
+        message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [

@@ -15,6 +15,7 @@ export default {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImageRenderer,
+    video: AnchorRenderer, // temporary until we have a video player component
 
     // Custom tag renderers
     edited: EditedRenderer,

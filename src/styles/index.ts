@@ -122,6 +122,13 @@ const headlineFont = {
     fontWeight: '500',
 } satisfies TextStyle;
 
+const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
+    ({
+        position: 'absolute',
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        height: '100%',
+    } satisfies ViewStyle);
+
 const webViewStyles = (theme: ThemeColors) =>
     ({
         // As of react-native-render-html v6, don't declare distinct styles for
@@ -938,8 +945,12 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        calendarDayContainerSelected: {
+        buttonDefaultBG: {
             backgroundColor: theme.buttonDefaultBG,
+        },
+
+        buttonHoveredBG: {
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
@@ -1406,21 +1417,14 @@ const styles = (theme: ThemeColors) =>
 
         LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                position: 'absolute',
+                ...modalNavigatorContainer(isSmallScreenWidth),
                 left: 0,
-                height: '100%',
-                borderTopRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
-                borderBottomRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
-                overflow: 'hidden',
             } satisfies ViewStyle),
 
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                position: 'absolute',
+                ...modalNavigatorContainer(isSmallScreenWidth),
                 right: 0,
-                height: '100%',
             } satisfies ViewStyle),
 
         onlyEmojisText: {
@@ -1641,7 +1645,7 @@ const styles = (theme: ThemeColors) =>
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
                 // The overlay must also cover borderRadius of the LHP component
-                left: isModalOnTheLeft ? -variables.lhpBorderRadius : -2 * variables.sideBarWidth,
+                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
                 right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
@@ -1952,10 +1956,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'flex-end',
         },
 
-        hoveredButton: {
-            backgroundColor: theme.buttonHoveredBG,
-        },
-
         composerSizeButton: {
             alignSelf: 'center',
             height: 32,
@@ -1999,14 +1999,14 @@ const styles = (theme: ThemeColors) =>
             height: 24,
             width: 24,
             backgroundColor: theme.icon,
-            borderRadius: 24,
+            borderRadius: 12,
         },
 
         singleAvatarSmall: {
-            height: 18,
-            width: 18,
+            height: 16,
+            width: 16,
             backgroundColor: theme.icon,
-            borderRadius: 18,
+            borderRadius: 8,
         },
 
         singleAvatarMedium: {
@@ -2020,17 +2020,17 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -18,
             bottom: -18,
-            borderWidth: 3,
-            borderRadius: 30,
+            borderWidth: 2,
+            borderRadius: 14,
             borderColor: 'transparent',
         },
 
         secondAvatarSmall: {
             position: 'absolute',
-            right: -13,
-            bottom: -13,
-            borderWidth: 3,
-            borderRadius: 18,
+            right: -14,
+            bottom: -14,
+            borderWidth: 2,
+            borderRadius: 10,
             borderColor: 'transparent',
         },
 
@@ -2051,8 +2051,8 @@ const styles = (theme: ThemeColors) =>
 
         secondAvatarSubscriptCompact: {
             position: 'absolute',
-            bottom: -1,
-            right: -1,
+            bottom: -4,
+            right: -4,
         },
 
         secondAvatarSubscriptSmallNormal: {
@@ -3916,7 +3916,6 @@ const styles = (theme: ThemeColors) =>
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
-            maxHeight: 500,
         },
 
         mapView: {
