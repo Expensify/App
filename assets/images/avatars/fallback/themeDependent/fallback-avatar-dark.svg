@@ -1,5 +1,12 @@
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="40" height="40" rx="20" fill="#1A3D32"/>
-<path d="M28.9975 27C28.9975 28.5 28 29 26.5 29C25 29 22.304 29 19.9985 29C17.693 29 15.0924 29 13.5 29C11.9076 29 11 28.5 11 27C11 23 15.5 20 19.9985 20C24.4969 20 28.9975 23 28.9975 27Z" fill="#8B9C8F"/>
-<path d="M24 15C24 17.2091 22.2091 19 20 19C17.7909 19 16 17.2091 16 15C16 12.7909 17.7909 11 20 11C22.2091 11 24 12.7909 24 15Z" fill="#8B9C8F"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 27.9.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 40 40" style="enable-background:new 0 0 40 40;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#1A3D32;}
+	.st1{fill:#8B9C8F;}
+</style>
+<path class="st0" d="M0,20C0,9,9,0,20,0l0,0c11,0,20,9,20,20l0,0c0,11-9,20-20,20l0,0C9,40,0,31,0,20L0,20z"/>
+<path class="st1" d="M29,27c0,1.5-1,2-2.5,2s-4.2,0-6.5,0s-4.9,0-6.5,0S11,28.5,11,27c0-4,4.5-7,9-7C24.5,20,29,23,29,27z"/>
+<path class="st1" d="M24,15c0,2.2-1.8,4-4,4s-4-1.8-4-4s1.8-4,4-4S24,12.8,24,15z"/>
 </svg>
