@@ -65,6 +65,10 @@ function BaseHTMLEngineProvider(props) {
                 mixedUAStyles: {...styles.textLabelSupporting},
             }),
             'next-steps-email': defaultHTMLElementModels.span.extend({tagName: 'next-steps-email'}),
+            video: defaultHTMLElementModels.div.extend({
+                tagName: 'video',
+                mixedUAStyles: {whiteSpace: 'pre'},
+            }),
         }),
         [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
     );
@@ -72,7 +76,6 @@ function BaseHTMLEngineProvider(props) {
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
     const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
-
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
