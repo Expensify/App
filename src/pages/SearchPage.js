@@ -163,42 +163,39 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         searchValue,
     );
 
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={SearchPage.displayName}
-                onEntryTransitionEnd={this.updateOptions}
-            >
-                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithBackButton title={this.props.translate('common.search')} />
-                        <View style={[this.props.themeStyles.flex1, this.props.themeStyles.w100, this.props.themeStyles.pRelative]}>
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
-                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                textInputAlert={
-                                    this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
-                                }
-                                shouldShowReferralCTA
-                                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
-                                onLayout={this.searchRendered}
-                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                                autoFocus
-                                isLoadingNewOptions={this.props.isSearchingForReports}
-                            />
-                        </View>
-                    </>
-                )}
-            </ScreenWrapper>
-        );
-    }
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID={SearchPage.displayName}
+            onEntryTransitionEnd={updateOptions}
+        >
+            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithBackButton title={translate('common.search')} />
+                    <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
+                        <OptionsSelector
+                            sections={getSections()}
+                            onSelectRow={selectReport}
+                            value={searchValue}
+                            onChangeText={onChangeText}
+                            headerMessage={headerMessage}
+                            hideSectionHeaders
+                            showTitleTooltip
+                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            shouldShowReferralCTA
+                            referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}
+                            textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                            onLayout={searchRendered}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            autoFocus
+                            isLoadingNewOptions={isSearchingForReports}
+                        />
+                    </View>
+                </>
+            )}
+        </ScreenWrapper>
+    );
 }
 
 SearchPage.propTypes = propTypes;
