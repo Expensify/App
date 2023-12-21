@@ -13,8 +13,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
-import CONST from '@src/CONST';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
