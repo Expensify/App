@@ -57,6 +57,12 @@ const propTypes = {
         report: reportPropTypes,
     }),
 
+    /** The policy of root parent report */
+    rootParentReportPolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -66,6 +72,7 @@ const defaultProps = {
     session: {},
     route: {},
     task: {},
+    rootParentReportPolicy: {},
 };
 
 function TaskAssigneeSelectorModal(props) {
@@ -204,7 +211,7 @@ function TaskAssigneeSelectorModal(props) {
     };
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
@@ -258,6 +265,13 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        rootParentReportPolicy: {
+            key: ({report}) => {
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskAssigneeSelectorModal);

@@ -1,22 +1,28 @@
+import {Report, ReportAction} from '@src/types/onyx';
 import BrowserNotifications from './BrowserNotifications';
-import {LocalNotificationModule, ReportCommentParams} from './types';
+import {LocalNotificationClickHandler, LocalNotificationModule} from './types';
 
-function showCommentNotification({report, reportAction, onClick}: ReportCommentParams) {
-    BrowserNotifications.pushReportCommentNotification({report, reportAction, onClick});
+function showCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
+    BrowserNotifications.pushReportCommentNotification(report, reportAction, onClick);
 }
 
 function showUpdateAvailableNotification() {
     BrowserNotifications.pushUpdateAvailableNotification();
 }
 
-function showModifiedExpenseNotification({report, reportAction, onClick}: ReportCommentParams) {
-    BrowserNotifications.pushModifiedExpenseNotification({report, reportAction, onClick});
+function showModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler) {
+    BrowserNotifications.pushModifiedExpenseNotification(report, reportAction, onClick);
+}
+
+function clearReportNotifications(reportID: string) {
+    BrowserNotifications.clearNotifications((notificationData) => notificationData.reportID === reportID);
 }
 
 const LocalNotification: LocalNotificationModule = {
     showCommentNotification,
     showUpdateAvailableNotification,
     showModifiedExpenseNotification,
+    clearReportNotifications,
 };
 
 export default LocalNotification;
