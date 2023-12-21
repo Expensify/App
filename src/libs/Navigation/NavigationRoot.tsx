@@ -81,6 +81,7 @@ function NavigationRoot({authenticated, onReady}: NavigationRootProps) {
             currentReportIDValue?.updateCurrentReportID(state);
         }, 0);
         parseAndLogRoute(state);
+        console.log(state);
     };
 
     return (
