@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -170,35 +170,37 @@ function PurposeForUsingExpensifyModal(props) {
             innerContainerStyle={styles.pt0}
             shouldUseCustomBackdrop={!isSmallScreenWidth}
         >
-            <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
-                <Lottie
-                    source={LottieAnimations.Hands}
-                    style={styles.w100}
-                    webStyle={styles.w100}
-                    autoPlay
-                    loop
+            <ScrollView>
+                <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
+                    <Lottie
+                        source={LottieAnimations.Hands}
+                        style={styles.w100}
+                        webStyle={styles.w100}
+                        autoPlay
+                        loop
+                    />
+                    <HeaderWithBackButton
+                        shouldShowCloseButton
+                        shouldShowBackButton={false}
+                        onCloseButtonPress={closeModal}
+                        shouldOverlay
+                        iconFill={theme.iconColorfulBackground}
+                    />
+                </View>
+                <View style={[styles.w100, styles.ph5, styles.pv5]}>
+                    <Text
+                        style={[styles.textHeadline, styles.preWrap, styles.mb2]}
+                        numberOfLines={2}
+                    >
+                        {translate('purposeForExpensify.welcomeMessage')}
+                    </Text>
+                    <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
+                </View>
+                <MenuItemList
+                    menuItems={menuItems}
+                    shouldUseSingleExecution
                 />
-                <HeaderWithBackButton
-                    shouldShowCloseButton
-                    shouldShowBackButton={false}
-                    onCloseButtonPress={closeModal}
-                    shouldOverlay
-                    iconFill={theme.iconColorfulBackground}
-                />
-            </View>
-            <View style={[styles.w100, styles.ph5, styles.pv5]}>
-                <Text
-                    style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                    numberOfLines={2}
-                >
-                    {translate('purposeForExpensify.welcomeMessage')}
-                </Text>
-                <Text style={styles.baseFontStyle}>{translate('purposeForExpensify.welcomeSubtitle')}</Text>
-            </View>
-            <MenuItemList
-                menuItems={menuItems}
-                shouldUseSingleExecution
-            />
+            </ScrollView>
         </Modal>
     );
 }
