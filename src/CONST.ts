@@ -471,6 +471,8 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
     EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
+    ADMIN_POLICIES_URL: 'admin_policies',
+    ADMIN_DOMAINS_URL: 'admin_domains',
 
     SIGN_IN_FORM_WIDTH: 300,
 

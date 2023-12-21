@@ -508,6 +508,10 @@ export default {
         listOfChats: 'List of chats',
         saveTheWorld: 'Save the world',
     },
+    allSettingsScreen: {
+        subscriptions: 'Subscriptions',
+        cardsAndDomains: 'Cards & Domains',
+    },
     tabSelector: {
         chat: 'Chat',
         room: 'Room',
