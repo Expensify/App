@@ -1,5 +1,4 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
