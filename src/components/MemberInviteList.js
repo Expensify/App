@@ -47,6 +47,7 @@ const defaultProps = {
     excludedUsers: [],
     name: '',
     shouldShowAlertPrompt: false,
+    showLoadingPlaceholder: false,
 };
 
 function MemberInviteList(props) {
@@ -179,7 +180,7 @@ function MemberInviteList(props) {
                 onConfirm={() => inviteUsers(selectedOptions)}
                 showScrollIndicator
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                showLoadingPlaceholder={showLoadingPlaceholder || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                showLoadingPlaceholder={showLoadingPlaceholder || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
             />
             <View style={[styles.flexShrink0]}>
                 <FormAlertWithSubmitButton
