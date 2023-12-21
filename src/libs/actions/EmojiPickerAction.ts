@@ -1,7 +1,7 @@
 import React from 'react';
 import {TextInput, View} from 'react-native';
 import {ValueOf} from 'type-fest';
-import {Emoji} from '@assets/emojis/types';
+import type {Emoji} from '@assets/emojis/types';
 import type {CloseContextMenuCallback, ReportActionContextMenu} from '@components/Reactions/QuickEmojiReactions/types';
 import CONST from '@src/CONST';
 

@@ -2,7 +2,7 @@ import type {Locale} from '@src/types/onyx';
 import emojis from './common';
 import enEmojis from './en';
 import esEmojis from './es';
-import {Emoji, EmojisList} from './types';
+import type {Emoji, EmojisList} from './types';
 
 type EmojiTable = Record<string, Emoji>;
 

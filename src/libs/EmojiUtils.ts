@@ -7,7 +7,7 @@ import * as Emojis from '@assets/emojis';
 import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
+import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import {SupportedLanguage} from './EmojiTrie';
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {Emoji} from '@assets/emojis/types';
+import type {Emoji} from '@assets/emojis/types';
 import AddReactionBubble from '@components/Reactions/AddReactionBubble';
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import Tooltip from '@components/Tooltip';
