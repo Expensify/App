@@ -53,12 +53,8 @@ const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string =>
         return name;
     }
 
-    if (lang === CONST.LOCALES.ES) {
-        const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
-        return Emojis.localeEmojis[lang]?.[emojiCode]?.name ?? '';
-    }
-
-    return '';
+    const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
+    return (lang && Emojis.localeEmojis[lang]?.[emojiCode]?.name) ?? '';
 };
 
 /**
@@ -443,8 +439,8 @@ const getPreferredSkinToneIndex = (value: string | number | null): number => {
  * based on the users preferred skin tone.
  */
 const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string | number>): string => {
-    if (emoji.types && preferredSkinTone) {
-        const emojiCodeWithSkinTone = emoji.types[Number(preferredSkinTone)];
+    if (emoji.types && typeof preferredSkinTone === 'number') {
+        const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
 
         // Note: it can happen that preferredSkinTone has a outdated format,
         // so it makes sense to check if we actually got a valid emoji code back

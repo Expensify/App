@@ -4,13 +4,6 @@ import CONST from '@src/CONST';
 import Timing from './actions/Timing';
 import Trie from './Trie';
 
-type LocalizedEmoji = {
-    name?: string;
-    keywords: string[];
-};
-
-type LocalizedEmojis = Record<string, LocalizedEmoji>;
-
 type EmojiMetaData = {
     suggestions?: Emoji[];
     code?: string;
@@ -65,8 +58,8 @@ function getNameParts(name: string): string[] {
 
 function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<EmojiMetaData> {
     const trie = new Trie();
-    const langEmojis: LocalizedEmojis = localeEmojis[lang];
-    const defaultLangEmojis: LocalizedEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
+    const langEmojis = localeEmojis[lang];
+    const defaultLangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
     emojis
