@@ -297,12 +297,12 @@ function ReportScreen({
              * Group 2: Optional email group between \s+....\s* start rule with @+valid email
              * Group 3: Title is remaining characters
              */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*(.*)/;
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
 
             const match = text.match(taskRegex);
             if (match) {
                 const email = match[1] ? match[1].trim() : undefined;
-                const title = match[2] ? match[2].trim() : undefined;
+                const title = match[2] ? match[2].trim().replace(/\n/g, ' ') : undefined;
                 if (title) {
                     let assignee = {};
                     if (email) {
