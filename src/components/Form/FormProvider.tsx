@@ -346,9 +346,9 @@ export default (<TForm extends Form & Record<string, unknown>>() =>
             key: ONYXKEYS.NETWORK,
         },
         formState: {
-            key: (props) => props.formID as keyof typeof ONYXKEYS.FORMS,
+            key: (props) => props.formID as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM,
         },
         draftValues: {
-            key: (props) => `${props.formID}Draft` as keyof typeof ONYXKEYS.FORMS,
+            key: (props) => `${props.formID}Draft` as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM,
         },
     })(forwardRef(FormProvider<TForm>)))();

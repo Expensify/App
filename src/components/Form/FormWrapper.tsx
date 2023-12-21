@@ -166,6 +166,6 @@ FormWrapper.displayName = 'FormWrapper';
 export default withOnyx<FormWrapperProps, FormWrapperOnyxProps>({
     formState: {
         // FIX: Fabio plz help 😂
-        key: (props) => props.formID as keyof typeof ONYXKEYS.FORMS,
+        key: (props) => props.formID as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM,
     },
 })(FormWrapper);
