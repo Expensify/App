@@ -35,6 +35,20 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
+/**
+ * Sets the HTML string to Clipboard.
+ * @param {String} content
+ */
+function setClipboardMessage(content) {
+    const parser = new ExpensiMark();
+    if (!Clipboard.canSetHtml()) {
+        Clipboard.setString(parser.htmlToMarkdown(content));
+    } else {
+        const plainText = parser.htmlToText(content);
+        Clipboard.setHtml(content, plainText);
+    }
+}
+
 // A list of all the context actions in this menu.
 export default [
     {
@@ -127,7 +141,7 @@ export default [
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
             return (
-                !isWhisperAction &&
+                (!isWhisperAction || isIOUAction || isReportPreviewAction) &&
                 (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) &&
                 !ReportUtils.isThreadFirstChat(reportAction, reportID)
             );
@@ -284,19 +298,13 @@ export default [
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
-                    const logMessage = ReportActionsUtils.getMemberChangeMessagePlainText(reportAction);
-                    Clipboard.setString(logMessage);
+                    const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html;
+                    setClipboardMessage(logMessage);
                 } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
                     const submittedMessage = _.reduce(reportAction.message, (acc, curr) => `${acc}${curr.text}`, '');
                     Clipboard.setString(submittedMessage);
                 } else if (content) {
-                    const parser = new ExpensiMark();
-                    if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(parser.htmlToMarkdown(content));
-                    } else {
-                        const plainText = parser.htmlToText(content);
-                        Clipboard.setHtml(content, plainText);
-                    }
+                    setClipboardMessage(content);
                 }
             }
 
