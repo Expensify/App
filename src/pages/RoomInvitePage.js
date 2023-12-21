@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -93,14 +92,13 @@ function RoomInvitePage(props) {
                             Navigation.goBack(backRoute);
                         }}
                     />
-                    {didScreenTransitionEnd && (
-                        <MemberInviteList
-                            inviteUsers={inviteUsers}
-                            excludedUsers={excludedUsers}
-                            name={reportName}
-                            confirmButtonText={translate('common.invite')}
-                        />
-                    )}
+                    <MemberInviteList
+                        inviteUsers={inviteUsers}
+                        excludedUsers={excludedUsers}
+                        name={reportName}
+                        confirmButtonText={translate('common.invite')}
+                        showLoadingPlaceholder={!didScreenTransitionEnd}
+                    />
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>

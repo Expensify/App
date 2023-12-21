@@ -36,6 +36,9 @@ const propTypes = {
 
     /** Whether to show the alert text */
     shouldShowAlertPrompt: PropTypes.bool,
+
+    /** Whether to force loading placeholder */
+    showLoadingPlaceholder: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -47,7 +50,7 @@ const defaultProps = {
 };
 
 function MemberInviteList(props) {
-    const {excludedUsers, betas, name, shouldShowAlertPrompt, confirmButtonText} = props;
+    const {excludedUsers, betas, name, shouldShowAlertPrompt, confirmButtonText, showLoadingPlaceholder} = props;
     const {translate} = useLocalize();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
@@ -95,7 +98,7 @@ function MemberInviteList(props) {
         return sections;
     };
 
-    const sections = getSections();
+    const sections = showLoadingPlaceholder ? [] : getSections();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -176,7 +179,7 @@ function MemberInviteList(props) {
                 onConfirm={() => inviteUsers(selectedOptions)}
                 showScrollIndicator
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                showLoadingPlaceholder={!OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                showLoadingPlaceholder={showLoadingPlaceholder || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
             />
             <View style={[styles.flexShrink0]}>
                 <FormAlertWithSubmitButton

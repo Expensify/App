@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -103,15 +102,14 @@ function WorkspaceInvitePage(props) {
                             Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
                         }}
                     />
-                    {didScreenTransitionEnd && (
-                        <MemberInviteList
-                            inviteUsers={inviteUsers}
-                            excludedUsers={excludedUsers}
-                            name={policyName}
-                            confirmButtonText={translate('common.next')}
-                            shouldShowAlertPrompt={shouldShowAlertPrompt}
-                        />
-                    )}
+                    <MemberInviteList
+                        inviteUsers={inviteUsers}
+                        excludedUsers={excludedUsers}
+                        name={policyName}
+                        confirmButtonText={translate('common.next')}
+                        shouldShowAlertPrompt={shouldShowAlertPrompt}
+                        showLoadingPlaceholder={!didScreenTransitionEnd}
+                    />
                 </FullPageNotFoundView>
             )}
         </ScreenWrapper>
