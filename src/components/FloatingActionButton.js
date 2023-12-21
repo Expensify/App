@@ -1,16 +1,40 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {Platform} from 'react-native';
+import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Svg, {Path} from 'react-native-svg';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import FabPlusIcon from './FabPlusIcon';
+import variables from '@styles/variables';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
+
+const adapter = createAnimatedPropAdapter(
+    (props) => {
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
+        if (Object.keys(props).includes('fill')) {
+            // eslint-disable-next-line no-param-reassign
+            props.fill = {type: 0, payload: processColor(props.fill)};
+        }
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
+        if (Object.keys(props).includes('stroke')) {
+            // eslint-disable-next-line no-param-reassign
+            props.stroke = {type: 0, payload: processColor(props.stroke)};
+        }
+    },
+    ['fill', 'stroke'],
+);
+adapter.propTypes = {
+    fill: PropTypes.string,
+    stroke: PropTypes.string,
+};
 
 const propTypes = {
     /* Callback to fire on request to toggle the FloatingActionButton */
@@ -27,7 +51,7 @@ const propTypes = {
 };
 
 const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
-    const {success, buttonDefaultBG} = useTheme();
+    const {success, buttonDefaultBG, textLight, textDark} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
     const {translate} = useLocalize();
@@ -52,6 +76,18 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
         };
     });
 
+    const animatedProps = useAnimatedProps(
+        () => {
+            const fill = interpolateColor(sharedValue.value, [0, 1], [textLight, textDark]);
+
+            return {
+                fill,
+            };
+        },
+        undefined,
+        Platform.OS === 'web' ? undefined : adapter,
+    );
+
     return (
         <Tooltip text={translate('common.new')}>
             <View style={styles.floatingActionButtonContainer}>
@@ -73,7 +109,15 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                     onLongPress={() => {}}
                     style={[styles.floatingActionButton, animatedStyle]}
                 >
-                    <FabPlusIcon isActive={isActive} />
+                    <Svg
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
+                    >
+                        <AnimatedPath
+                            d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
+                            animatedProps={animatedProps}
+                        />
+                    </Svg>
                 </AnimatedPressable>
             </View>
         </Tooltip>
