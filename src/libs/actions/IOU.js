@@ -175,7 +175,7 @@ function clearMoneyRequest(transactionID) {
  * @param {String} currency
  */
 function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, currency ? {amount, currency} : {amount});
 }
 
 /**
