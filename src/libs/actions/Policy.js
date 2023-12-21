@@ -1,4 +1,5 @@
 import {PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import filter from 'lodash/filter';
@@ -18,7 +19,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 
 const allPolicies = {};
 Onyx.connect({
