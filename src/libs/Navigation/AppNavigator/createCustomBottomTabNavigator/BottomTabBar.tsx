@@ -34,6 +34,7 @@ function BottomTabBar() {
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="Chats"
+                style={[styles.touchableButtonImage]}
             >
                 <Icon
                     src={Expensicons.ChatBubble}
@@ -47,6 +48,7 @@ function BottomTabBar() {
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="Settings"
+                style={[styles.touchableButtonImage]}
             >
                 <Icon
                     src={Expensicons.Gear}
