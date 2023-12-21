@@ -44,8 +44,12 @@ function HoldMenuSectionList() {
 
     return (
         <>
-            {holdMenuSections.map((section) => (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+            {holdMenuSections.map((section, i) => (
+                <View
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={i}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}
+                >
                     <Icon
                         width={variables.holdMenuIconSize}
                         height={variables.holdMenuIconSize}

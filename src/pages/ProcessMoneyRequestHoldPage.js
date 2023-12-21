@@ -1,5 +1,4 @@
-import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
@@ -7,18 +6,16 @@ import HoldMenuSectionList from '@components/HoldMenuSectionList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 
-const propTypes = {
-    /** Method to trigger when pressing back button of the header */
-    onClose: PropTypes.func.isRequired,
-
-    /** Method to trigger when pressing confirm button */
-    onConfirm: PropTypes.func.isRequired,
-};
-
-function ProcessMoneyRequestHoldPage({onClose, onConfirm}) {
+function ProcessMoneyRequestHoldPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const onConfirm = useCallback(() => {
+        // Currently only goes back, this will be changed after backends for hold will be merged
+        Navigation.goBack();
+    }, []);
 
     const footerComponent = useMemo(
         () => (
@@ -35,7 +32,7 @@ function ProcessMoneyRequestHoldPage({onClose, onConfirm}) {
         <HeaderPageLayout
             title={translate('common.back')}
             footer={footerComponent}
-            onBackButtonPress={onClose}
+            onBackButtonPress={() => Navigation.goBack()}
         >
             <View style={[styles.mh5, styles.flex1]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
@@ -48,7 +45,6 @@ function ProcessMoneyRequestHoldPage({onClose, onConfirm}) {
     );
 }
 
-ProcessMoneyRequestHoldPage.propTypes = propTypes;
 ProcessMoneyRequestHoldPage.displayName = 'ProcessMoneyRequestHoldPage';
 
 export default ProcessMoneyRequestHoldPage;
