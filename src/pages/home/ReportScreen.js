@@ -291,16 +291,27 @@ function ReportScreen({
      */
     const onSubmitComment = useCallback(
         (text) => {
-            const taskRegex = /^\[\](?:\s+@([^\s@]+@[\w.-]+))?\s+(.+)/;
+            /**
+             * Matching task rule by group
+             * Group 1: Start task rule with []
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 3: Title is remaining characters
+             */
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*(.*)/;
+
             const match = text.match(taskRegex);
             if (match) {
-                const email = match[1] ? match[1].trim() : undefined; // Email might be undefined if not captured
-                const title = match[2];
-                let assignee = {};
-                if (email) {
-                    assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+                const email = match[1] ? match[1].trim() : undefined;
+                const title = match[2] ? match[2].trim() : undefined;
+                if (title) {
+                    let assignee = {};
+                    if (email) {
+                        assignee = _.find(_.values(allPersonalDetails), (p) => p.login === email) || {};
+                    }
+                    Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
+                } else {
+                    Report.addComment(getReportID(route), text);
                 }
-                Task.createTaskAndNavigate(getReportID(route), title, '', assignee.login, assignee.accountID, assignee.assigneeChatReport, report.policyID);
             } else {
                 Report.addComment(getReportID(route), text);
             }
