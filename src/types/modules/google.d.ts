@@ -32,5 +32,4 @@ declare global {
     }
 }
 
-// We used the export {} line to mark this file as an external module
-export {};
+export default Response;

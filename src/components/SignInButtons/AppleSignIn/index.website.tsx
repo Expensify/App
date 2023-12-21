@@ -1,8 +1,7 @@
-import get from 'lodash/get';
 import React, {useEffect, useState} from 'react';
 import Config, {NativeConfig} from 'react-native-config';
 import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
-import withNavigationFocus from '@components/withNavigationFocus';
+import withNavigationFocus, {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -11,7 +10,7 @@ import {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/typ
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches.
-const lodashGet = (config: NativeConfig, key: string, defaultValue: string) => get(config, key, defaultValue).trim();
+const getConfig = (config: NativeConfig, key: string, defaultValue: string) => (config?.[key] ?? defaultValue).trim();
 
 type AppleSignInDivProps = {
     isDesktopFlow: boolean;
@@ -21,16 +20,18 @@ type SingletonAppleSignInButtonProps = AppleSignInDivProps & {
     isFocused: boolean;
 };
 
-type AppleSignInProps = AppleSignInDivProps;
+type AppleSignInProps = WithNavigationFocusProps & {
+    isDesktopFlow?: boolean;
+};
 
 /**
  * Apple Sign In Configuration for Web.
  */
 const config = {
-    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONFIG.APPLE_SIGN_IN.SERVICE_ID),
+    clientId: getConfig(Config, 'ASI_CLIENTID_OVERRIDE', CONFIG.APPLE_SIGN_IN.SERVICE_ID),
     scope: 'name email',
     // never used, but required for configuration
-    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', CONFIG.APPLE_SIGN_IN.REDIRECT_URI),
+    redirectURI: getConfig(Config, 'ASI_REDIRECTURI_OVERRIDE', CONFIG.APPLE_SIGN_IN.REDIRECT_URI),
     state: '',
     nonce: '',
     usePopup: true,
@@ -54,9 +55,8 @@ const failureListener = (event: AppleIDSignInOnFailureEvent) => {
 
 /**
  * Apple Sign In button for Web.
- * @returns React Component
  */
-function AppleSignInDiv({isDesktopFlow = false}: AppleSignInDivProps) {
+function AppleSignInDiv({isDesktopFlow}: AppleSignInDivProps) {
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
         // first mounted.
@@ -135,4 +135,5 @@ function AppleSignIn({isDesktopFlow = false}: AppleSignInProps) {
     return <SingletonAppleSignInButtonWithFocus isDesktopFlow={isDesktopFlow} />;
 }
 
-export default AppleSignIn;
+AppleSignIn.displayName = 'AppleSignIn';
+export default withNavigationFocus(AppleSignIn);

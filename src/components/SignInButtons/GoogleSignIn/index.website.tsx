@@ -1,22 +1,19 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import Response from '@src/types/modules/google';
 
-type GoogleSignInProps = WithLocalizeProps & {
-    isDesktopFlow: boolean;
+type GoogleSignInProps = {
+    isDesktopFlow?: boolean;
 };
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
 const mainId = 'google-sign-in-main';
 const desktopId = 'google-sign-in-desktop';
-
-type Response = {
-    credential: string;
-};
 
 const signIn = (response: Response) => {
     Session.beginGoogleSignIn(response.credential);
@@ -28,7 +25,8 @@ const signIn = (response: Response) => {
  * @returns {React.Component}
  */
 
-function GoogleSignIn({translate, isDesktopFlow = false}: GoogleSignInProps) {
+function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const loadScript = useCallback(() => {
         const google = window.google;
@@ -91,4 +89,4 @@ function GoogleSignIn({translate, isDesktopFlow = false}: GoogleSignInProps) {
 
 GoogleSignIn.displayName = 'GoogleSignIn';
 
-export default withLocalize(GoogleSignIn);
+export default GoogleSignIn;

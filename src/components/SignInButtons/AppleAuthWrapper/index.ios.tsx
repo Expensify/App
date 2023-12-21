@@ -5,8 +5,6 @@ import * as Session from '@userActions/Session';
 /**
  * Apple Sign In wrapper for iOS
  * revokes the session if the credential is revoked.
- *
- * @returns null
  */
 function AppleAuthWrapper() {
     useEffect(() => {

@@ -1,20 +1,20 @@
-type ClientConfigI = {
-    clientId?: string | undefined;
-    redirectURI?: string | undefined;
-    scope?: string | undefined;
-    state?: string | undefined;
-    nonce?: string | undefined;
-    usePopup?: boolean | undefined;
+type ClientConfig = {
+    clientId?: string;
+    redirectURI?: string;
+    scope?: string;
+    state?: string;
+    nonce?: string;
+    usePopup?: boolean;
 };
 
-type AuthI = {
-    init: (config: ClientConfigI) => void;
-    signIn: (signInConfig?: ClientConfigI) => Promise<SignInResponseI>;
+type Auth = {
+    init: (config: ClientConfig) => void;
+    signIn: (signInConfig?: ClientConfig) => Promise<SignInResponseI>;
     renderButton: () => void;
 };
 
 type AppleID = {
-    auth: AuthI;
+    auth: Auth;
 };
 
 declare global {

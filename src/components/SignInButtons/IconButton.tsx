@@ -1,8 +1,10 @@
 import React from 'react';
+import {SvgProps} from 'react-native-svg';
+import {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
@@ -10,20 +12,27 @@ import {TranslationPaths} from '@src/languages/types';
 const providerData = {
     [CONST.SIGN_IN_METHOD.APPLE]: {
         icon: Expensicons.AppleLogo,
-        accessibilityLabel: 'common.signInWithApple' as TranslationPaths,
+        accessibilityLabel: 'common.signInWithApple',
     },
     [CONST.SIGN_IN_METHOD.GOOGLE]: {
         icon: Expensicons.GoogleLogo,
-        accessibilityLabel: 'common.signInWithGoogle' as TranslationPaths,
+        accessibilityLabel: 'common.signInWithGoogle',
     },
+} satisfies Record<
+    ValueOf<typeof CONST.SIGN_IN_METHOD>,
+    {
+        icon: React.FC<SvgProps>;
+        accessibilityLabel: TranslationPaths;
+    }
+>;
+
+type IconButtonProps = {
+    onPress?: () => void;
+    provider: ValueOf<typeof CONST.SIGN_IN_METHOD>;
 };
 
-type IconButtonProps = WithLocalizeProps & {
-    onPress: () => void;
-    provider: keyof typeof providerData;
-};
-
-function IconButton({onPress, provider, translate}: IconButtonProps) {
+function IconButton({onPress = () => {}, provider}: IconButtonProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     return (
         <PressableWithoutFeedback
@@ -43,4 +52,4 @@ function IconButton({onPress, provider, translate}: IconButtonProps) {
 
 IconButton.displayName = 'IconButton';
 
-export default withLocalize(IconButton);
+export default IconButton;
