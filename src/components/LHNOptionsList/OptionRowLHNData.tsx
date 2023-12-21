@@ -30,7 +30,7 @@ function OptionRowLHNData({
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
 
-    const optionItemRef = useRef<OptionData | undefined>();
+    const optionItemRef = useRef<OptionData | undefined>(undefined);
     const linkedTransaction = useMemo(() => {
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
         const lastReportAction = sortedReportActions[0];
@@ -44,9 +44,9 @@ function OptionRowLHNData({
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
-        if (item) {
-            optionItemRef.current = item;
-        }
+
+        optionItemRef.current = item;
+
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
