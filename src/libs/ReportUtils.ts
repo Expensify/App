@@ -553,7 +553,7 @@ function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
 function sortReportsByLastRead(reports: OnyxCollection<Report>, reportsMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return Object.values(reports ?? {})
         .filter(
-            (report) => !!report?.reportID && ((reportsMetadata && !!reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime) ?? !!report?.lastReadTime),
+            (report) => !!report?.reportID && !!(reportsMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime)
         )
         .sort((a, b) => {
             const aTime = new Date((reportsMetadata && a && reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a.reportID}`]?.lastVisitTime) ?? a?.lastReadTime ?? '');
