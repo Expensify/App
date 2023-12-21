@@ -132,7 +132,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     return (
         <View style={[styles.flex1, styles.h100]}>
-            <View style={[styles.ph5, styles.pv3, styles.justifyContentBetween]}>
+            <View style={[styles.ph5, styles.pv5, styles.justifyContentBetween]}>
                 <Breadcrumbs
                     breadcrumbs={[
                         {
