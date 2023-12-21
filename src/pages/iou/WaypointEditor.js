@@ -15,11 +15,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -134,7 +134,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 
         // Allows letting you set a waypoint to an empty value
         if (waypointValue === '') {
-            Transaction.removeWaypoint(transactionID, waypointIndex);
+            Transaction.removeWaypoint(transaction, waypointIndex);
         }
 
         // While the user is offline, the auto-complete address search will not work
@@ -154,7 +154,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
     };
 
     const deleteStopAndHideModal = () => {
-        Transaction.removeWaypoint(transactionID, waypointIndex);
+        Transaction.removeWaypoint(transaction, waypointIndex);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_DISTANCE_TAB.getRoute(iouType));
     };
@@ -256,7 +256,6 @@ WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
-        selector: (transaction) => (transaction ? {transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}} : null),
     },
     recentWaypoints: {
         key: ONYXKEYS.NVP_RECENT_WAYPOINTS,

@@ -1,12 +1,13 @@
 import React, {ForwardedRef, forwardRef, useEffect} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import refPropTypes from './refPropTypes';
 
 type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */

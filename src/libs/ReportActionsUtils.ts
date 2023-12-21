@@ -108,6 +108,10 @@ function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
 
+function isSubmittedExpenseAction(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+}
+
 function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return (reportAction?.whisperedToAccountIDs ?? []).length > 0;
 }
@@ -146,11 +150,11 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report>, allReportActionsParam?: OnyxCollection<ReportActions>): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report>): ReportAction | Record<string, never> {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return (allReportActionsParam ?? allReportActions)?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
 }
 
 /**
@@ -179,14 +183,14 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction>): boole
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
  */
-function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false): ReportAction[] {
+function getSortedReportActions(reportActions: ReportAction[] | null, shouldSortInDescendingOrder = false, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     if (!Array.isArray(reportActions)) {
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
 
     const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
 
-    return reportActions?.filter(Boolean).sort((first, second) => {
+    const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
         // First sort by timestamp
         if (first.created !== second.created) {
             return (first.created < second.created ? -1 : 1) * invertedMultiplier;
@@ -206,6 +210,16 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         // will be consistent across all users and devices
         return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
     });
+
+    // If shouldMarkTheFirstItemAsNewest is true, label the first reportAction as isNewestReportAction
+    if (shouldMarkTheFirstItemAsNewest && sortedActions?.length > 0) {
+        sortedActions[0] = {
+            ...sortedActions[0],
+            isNewestReportAction: true,
+        };
+    }
+
+    return sortedActions;
 }
 
 /**
@@ -361,7 +375,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !!reportAction.pendingAction;
+    const isPending = !!reportAction.pendingAction && !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
@@ -467,12 +481,12 @@ function filterOutDeprecatedReportActions(reportActions: ReportActions | null): 
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
  */
-function getSortedReportActionsForDisplay(reportActions: ReportActions | null): ReportAction[] {
+function getSortedReportActionsForDisplay(reportActions: ReportActions | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
     const filteredReportActions = Object.entries(reportActions ?? {})
         .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))
         .map((entry) => entry[1]);
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURL(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true);
+    return getSortedReportActions(baseURLAdjustedReportActions, true, shouldMarkTheFirstItemAsNewest);
 }
 
 /**
@@ -721,7 +735,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         .map((messageElement) => {
             switch (messageElement.kind) {
                 case 'userMention':
-                    return `<mention-user accountID=${messageElement.accountID}></mention-user>`;
+                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
                 case 'roomReference':
                     return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
                 default:
@@ -786,6 +800,7 @@ export {
     isDeletedParentAction,
     isMessageDeleted,
     isModifiedExpenseAction,
+    isSubmittedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isPendingRemove,
