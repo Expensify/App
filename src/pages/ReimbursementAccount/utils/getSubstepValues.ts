@@ -5,13 +5,13 @@ function getSubstepValues<T extends keyof ReimbursementAccountDraft>(
     inputKeys: Record<string, T>,
     reimbursementAccountDraft: ReimbursementAccountDraft,
     reimbursementAccount: ReimbursementAccount,
-): Record<T, ReimbursementAccountDraft[T]> {
+): {[K in T]: ReimbursementAccountDraft[K]} {
     return Object.entries(inputKeys).reduce(
         (acc, [, value]) => ({
             ...acc,
             [value]: reimbursementAccountDraft[value] ?? getDefaultValueForReimbursementAccountField(reimbursementAccount, value, ''),
         }),
-        {} as Record<T, ReimbursementAccountDraft[T]>,
+        {} as {[K in T]: ReimbursementAccountDraft[K]},
     );
 }
 
