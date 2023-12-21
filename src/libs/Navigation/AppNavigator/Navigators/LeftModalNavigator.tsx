@@ -34,6 +34,10 @@ function LeftModalNavigator({navigation}: LeftModalNavigatorProps) {
                         name={SCREENS.LEFT_MODAL.SEARCH}
                         component={ModalStackNavigators.SearchModalStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER}
+                        component={ModalStackNavigators.WorkspaceSwitcherModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>

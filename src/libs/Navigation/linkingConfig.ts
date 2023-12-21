@@ -83,6 +83,13 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
                         },
                     },
+                    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
+                        screens: {
+                            [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+                                path: ROUTES.WORKSPACE_SWITCHER,
+                            },
+                        },
+                    },
                 },
             },
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
@@ -256,14 +263,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                             [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_NAME.route,
                         },
-                    },
-                    [SCREENS.RIGHT_MODAL.WORKSPACE_SWITCHER]: {
-                        screens: {
-                            [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
-                                path: ROUTES.WORKSPACE_SWITCHER,
-                            },
-                        },
-                    },
+                    }, 
                     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
                         screens: {
                             [SCREENS.PRIVATE_NOTES.VIEW]: ROUTES.PRIVATE_NOTES_VIEW.route,

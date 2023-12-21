@@ -2,9 +2,7 @@ import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Environment from '@libs/Environment/Environment';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import pkg from '../../package.json';
 import Badge from './Badge';
 
@@ -35,9 +33,6 @@ function EnvironmentBadge() {
             textStyles={[styles.headerEnvBadgeText]}
             environment={environment}
             pressable
-            onPress={() => {
-                Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
-            }}
         />
     );
 }

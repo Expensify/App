@@ -10,10 +10,10 @@ import OptionsSelector from '@components/OptionsSelector';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,8 +65,8 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const hasUnreadData = useCallback(
         // TO DO: Implement checking if policy has some unread data
         // eslint-disable-next-line no-unused-vars
-        (policyId) => false, 
-        []
+        (policyId) => false,
+        [],
     );
 
     const selectPolicy = useCallback((option) => {
@@ -83,7 +83,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const onChangeText = useCallback((newSearchTerm) => {
         // TO DO: Handle searching logic
         setSearchTerm(newSearchTerm);
-    }, [])
+    }, []);
 
     const usersWorkspaces = useMemo(
         () =>
@@ -110,10 +110,10 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
 
     const usersWorkspacesSectionData = useMemo(
         () => ({
-                data: usersWorkspaces,
-                shouldShow: true,
-                indexOffset: 0,
-            }),
+            data: usersWorkspaces,
+            shouldShow: true,
+            indexOffset: 0,
+        }),
         [usersWorkspaces],
     );
 
@@ -153,13 +153,25 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                 </View>
             </>
         );
-    }, [activeWorkspaceID, getIndicatorTypeForPolicy, hasUnreadData, selectPolicy, styles.alignItemsCenter, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb3, styles.mh4, theme.textSupporting]);
+    }, [
+        activeWorkspaceID,
+        getIndicatorTypeForPolicy,
+        hasUnreadData,
+        selectPolicy,
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.justifyContentBetween,
+        styles.label,
+        styles.mb3,
+        styles.mh4,
+        theme.textSupporting,
+    ]);
 
     const inputCallbackRef = useAutoFocusInput();
     const workspacesSection = useMemo(
         () => (
             <>
-            <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+                <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
                     <Text
                         style={[styles.mt3, styles.label]}
                         color={theme.textSupporting}
@@ -167,30 +179,47 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                         Workspaces
                     </Text>
                 </View>
-            {/* TO DO: Display breadcrumb */}
-            {usersWorkspacesSectionData.data.length === 0 && <View/>}
-            <OptionsSelector
-                ref={inputCallbackRef}
-                sections={[usersWorkspacesSectionData]}
-                value={searchTerm}
-                shouldShowTextInput={usersWorkspacesSectionData.data.length > 8}
-                onChangeText={onChangeText}
-                selectedOptions={selectedOption ? [selectedOption] : []}
-                onSelectRow={selectPolicy}
-                boldStyle
-                shouldPreventDefaultFocusOnSelectRow
-                highlightSelectedOptions
-                shouldShowOptions
-                autoFocus={false}
-                disableFocusOptions
-                canSelectMultipleOptions={false}
-                shouldShowSubscript={false}
-                showTitleTooltip={false}
-                contentContainerStyles={[styles.pt0, styles.mt0]}
+                {/* TO DO: Display breadcrumb */}
+                {usersWorkspacesSectionData.data.length === 0 && <View />}
+                <OptionsSelector
+                    ref={inputCallbackRef}
+                    sections={[usersWorkspacesSectionData]}
+                    value={searchTerm}
+                    shouldShowTextInput={usersWorkspacesSectionData.data.length > 8}
+                    onChangeText={onChangeText}
+                    selectedOptions={selectedOption ? [selectedOption] : []}
+                    onSelectRow={selectPolicy}
+                    boldStyle
+                    shouldPreventDefaultFocusOnSelectRow
+                    highlightSelectedOptions
+                    shouldShowOptions
+                    autoFocus={false}
+                    disableFocusOptions
+                    canSelectMultipleOptions={false}
+                    shouldShowSubscript={false}
+                    showTitleTooltip={false}
+                    contentContainerStyles={[styles.pt0, styles.mt0]}
                 />
-                </>
+            </>
         ),
-        [inputCallbackRef, onChangeText, searchTerm, selectPolicy, selectedOption, styles.alignItemsCenter, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb1, styles.mh4, styles.mt0, styles.mt3, styles.pt0, theme.textSupporting, usersWorkspacesSectionData],
+        [
+            inputCallbackRef,
+            onChangeText,
+            searchTerm,
+            selectPolicy,
+            selectedOption,
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.justifyContentBetween,
+            styles.label,
+            styles.mb1,
+            styles.mh4,
+            styles.mt0,
+            styles.mt3,
+            styles.pt0,
+            theme.textSupporting,
+            usersWorkspacesSectionData,
+        ],
     );
 
     useEffect(() => {

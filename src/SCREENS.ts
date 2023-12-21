@@ -85,6 +85,7 @@ const SCREENS = {
     },
     LEFT_MODAL: {
         SEARCH: 'Search',
+        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     WORKSPACE_SWITCHER: {
         ROOT: 'WorkspaceSwitcher_Root',
@@ -113,7 +114,6 @@ const SCREENS = {
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
-        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
