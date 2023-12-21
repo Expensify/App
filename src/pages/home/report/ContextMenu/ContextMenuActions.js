@@ -11,6 +11,7 @@ import EmailUtils from '@libs/EmailUtils';
 import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -32,6 +33,20 @@ import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './Repor
 function getActionText(reportAction) {
     const message = _.last(lodashGet(reportAction, 'message', null));
     return lodashGet(message, 'html', '');
+}
+
+/**
+ * Sets the HTML string to Clipboard.
+ * @param {String} content
+ */
+function setClipboardMessage(content) {
+    const parser = new ExpensiMark();
+    if (!Clipboard.canSetHtml()) {
+        Clipboard.setString(parser.htmlToMarkdown(content));
+    } else {
+        const plainText = parser.htmlToText(content);
+        Clipboard.setHtml(content, plainText);
+    }
 }
 
 const CONTEXT_MENU_TYPES = {
@@ -131,7 +146,12 @@ export default [
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
             const isModifiedExpenseAction = ReportActionsUtils.isModifiedExpenseAction(reportAction);
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
-            return (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+            return (
+                (!isWhisperAction || isIOUAction || isReportPreviewAction) &&
+                (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) &&
+                !ReportUtils.isThreadFirstChat(reportAction, reportID)
+            );
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
@@ -162,7 +182,8 @@ export default [
             const isCommentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
             const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-            return !subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
+            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+            return !subscribed && !isWhisperAction && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             let childReportNotificationPreference = lodashGet(reportAction, 'childReportNotificationPreference', '');
@@ -275,7 +296,7 @@ export default [
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
-                    const modifyExpenseMessage = ReportUtils.getModifiedExpenseMessage(reportAction);
+                    const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction);
@@ -284,19 +305,13 @@ export default [
                     const taskPreviewMessage = TaskUtils.getTaskCreatedMessage(reportAction);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (ReportActionsUtils.isMemberChangeAction(reportAction)) {
-                    const logMessage = ReportActionsUtils.getMemberChangeMessagePlainText(reportAction);
-                    Clipboard.setString(logMessage);
+                    const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html;
+                    setClipboardMessage(logMessage);
                 } else if (ReportActionsUtils.isSubmittedExpenseAction(reportAction)) {
                     const submittedMessage = _.reduce(reportAction.message, (acc, curr) => `${acc}${curr.text}`, '');
                     Clipboard.setString(submittedMessage);
                 } else if (content) {
-                    const parser = new ExpensiMark();
-                    if (!Clipboard.canSetHtml()) {
-                        Clipboard.setString(parser.htmlToMarkdown(content));
-                    } else {
-                        const plainText = parser.htmlToText(content);
-                        Clipboard.setHtml(content, plainText);
-                    }
+                    setClipboardMessage(content);
                 }
             }
 
@@ -422,8 +437,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
@@ -436,8 +450,7 @@ export default [
         isAnonymousAction: false,
         textTranslateKey: 'common.unPin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
-            type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {
