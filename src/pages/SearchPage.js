@@ -45,18 +45,10 @@ const defaultProps = {
 
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     const [searchValue, setSearchValue] = useState('');
-    const [searchOptions, setSearchOptions] = useState(() => {
-        const {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
-        } = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas);
-
-        return {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
-        };
+    const [searchOptions, setSearchOptions] = useState({
+        recentReports: {},
+        personalDetails: {},
+        userToInvite: {},
     });
 
     const {isOffline} = useNetwork();
@@ -179,7 +171,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={translate('common.search')} />
+                    <HeaderWithBackButton title={translate('common.search')}/>
                     <View style={[themeStyles.flex1, themeStyles.w100, themeStyles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
