@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import variables from '@styles/variables';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
@@ -137,8 +138,8 @@ function WorkspacesListRow({
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                 <Icon
                     src={workspaceTypeIcon(workspaceType)}
-                    width={34}
-                    height={34}
+                    width={variables.workspaceTypeIconWidth}
+                    height={variables.workspaceTypeIconWidth}
                     additionalStyles={styles.workspaceTypeWrapper}
                 />
                 <View style={styles.dFlex}>
