@@ -43,7 +43,7 @@ function TopBar({isCreateMenuOpen = false}) {
             <Search
                 placeholder={translate('sidebarScreen.buttonSearch')}
                 onPress={Session.checkIfActionIsAllowed(showSearchPage)}
-                style={{flex: 1}}
+                containerStyle={styles.flexGrow1}
             />
             <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
         </View>
