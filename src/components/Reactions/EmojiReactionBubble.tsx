@@ -1,11 +1,11 @@
 import React from 'react';
-import {GestureResponderEvent} from 'react-native';
 import {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 
 type EmojiReactionBubbleProps = {
@@ -23,7 +23,7 @@ type EmojiReactionBubbleProps = {
      * Called when the user long presses or right clicks
      * on the reaction bubble.
      */
-    onReactionListOpen?: (event: GestureResponderEvent | MouseEvent) => void;
+    onReactionListOpen?: (event: ReactionListEvent) => void;
 
     /**
      * The number of reactions to display in the bubble.

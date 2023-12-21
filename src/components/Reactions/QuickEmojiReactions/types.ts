@@ -1,37 +1,11 @@
-import {GestureResponderEvent, Text as RNText, TextInput} from 'react-native';
+import {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-type ShowContextMenu = (
-    type: 'LINK' | 'REPORT_ACTION' | 'EMAIL' | 'REPORT',
-    event: GestureResponderEvent | MouseEvent,
-    selection: string,
-    contextMenuAnchor: RNText | null,
-    reportID?: string,
-    reportActionID?: string,
-    originalReportID?: string,
-    draftMessage?: string,
-    onShow?: () => void,
-    onHide?: () => void,
-    isArchivedRoom?: boolean,
-    isChronosReport?: boolean,
-    isPinnedChat?: boolean,
-    isUnreadChat?: boolean,
-) => void;
-
-// TODO: remove when https://github.com/Expensify/App/pull/32670 is merged
-type ReportActionContextMenu = {
-    showContextMenu: ShowContextMenu;
-    hideContextMenu: (callback: () => void) => void;
-    showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: () => void, onCancel?: () => void) => void;
-    hideDeleteModal: () => void;
-    isActiveReportAction: (accountID: string | number) => boolean;
-    instanceID: string;
-    runAndResetOnPopoverHide: () => void;
-    clearActiveReportAction: () => void;
-};
+// TODO: remove when ReportActionContextMenu file migration https://github.com/Expensify/App/pull/32670 is merged
+type ReportActionContextMenu = Record<string, unknown>;
 
 type PickerRefElement = TextInput | ReportActionContextMenu | null;
 
@@ -70,7 +44,6 @@ type BaseQuickEmojiReactionsProps = BaseQuickEmojiReactionsOnyxProps & {
     reportAction: ReportAction;
 
     /** Id of the ReportAction for EmojiPicker. */
-    // eslint-disable-next-line react/no-unused-prop-types -- It's used inside withOnyx HOC
     reportActionID: string;
 };
 

@@ -1,6 +1,6 @@
 import sortBy from 'lodash/sortBy';
 import React, {useContext, useRef} from 'react';
-import {GestureResponderEvent, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Emoji} from '@assets/emojis/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -8,7 +8,7 @@ import Tooltip from '@components/Tooltip';
 import withCurrentUserPersonalDetails, {type WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import {type ReactionListAnchor, ReactionListContext, type ReactionListEvent} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 import {Locale} from '@src/types/onyx';
@@ -38,7 +38,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
     shouldBlockReactions?: boolean;
 };
 
-type PopoverReactionListAnchors = Record<string, View | HTMLDivElement | null>;
+type PopoverReactionListAnchors = Record<string, ReactionListAnchor>;
 
 type FormattedReaction = {
     /** The emoji codes to display in the bubble */
@@ -60,7 +60,7 @@ type FormattedReaction = {
     onPress: () => void;
 
     /** Callback to fire on reaction list open */
-    onReactionListOpen: (event: GestureResponderEvent | MouseEvent) => void;
+    onReactionListOpen: (event: ReactionListEvent) => void;
 
     /** The name of the emoji */
     reactionEmojiName: string;
@@ -103,7 +103,7 @@ function ReportActionItemEmojiReactions({
                 toggleReaction(emoji);
             };
 
-            const onReactionListOpen = (event: GestureResponderEvent | MouseEvent) => {
+            const onReactionListOpen = (event: ReactionListEvent) => {
                 reactionListRef?.current?.showReactionList(event, popoverReactionListAnchors.current[emojiName], emojiName, reportActionID);
             };
 
