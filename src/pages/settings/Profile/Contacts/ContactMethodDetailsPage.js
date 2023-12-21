@@ -220,7 +220,9 @@ class ContactMethodDetailsPage extends Component {
      * @param {Boolean} isOpen
      */
     toggleDeleteModal(isOpen) {
-        this.setState({isDeleteModalOpen: isOpen});
+        InteractionManager.runAfterInteractions(() => {
+            this.setState({isDeleteModalOpen: isOpen});
+        });
         Keyboard.dismiss();
     }
 
