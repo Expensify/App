@@ -166,7 +166,7 @@ function LoginForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (props.network.isOffline || props.account.isLoading) {
+        if (props.network.isOffline || props.account.isLoading || isLoading.current) {
             return;
         }
         isLoading.current = true;
