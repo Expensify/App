@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PrivatePersonalDetails, Session} from '@src/types/onyx';

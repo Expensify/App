@@ -10,6 +10,7 @@ import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
@@ -17,7 +18,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -218,7 +218,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         Boolean(newChatOptions.userToInvite),
         searchTerm.trim(),
         maxParticipantsReached,
-        _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+        _.some(participants, (participant) => lodashGet(participant, 'searchText', '').toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 

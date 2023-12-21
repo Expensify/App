@@ -9,9 +9,9 @@ import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import validateSubmitShortcut from './validateSubmitShortcut';
@@ -106,6 +106,9 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback?: boolean;
 
+    /** Should disable the long press? */
+    isLongPressDisabled?: boolean;
+
     /** Id to use for this button */
     id?: string;
 
@@ -149,6 +152,7 @@ function Button(
         shouldRemoveRightBorderRadius = false,
         shouldRemoveLeftBorderRadius = false,
         shouldEnableHapticFeedback = false,
+        isLongPressDisabled = false,
 
         id = '',
         accessibilityLabel = '',
@@ -255,6 +259,9 @@ function Button(
                 return onPress(event);
             }}
             onLongPress={(event) => {
+                if (isLongPressDisabled) {
+                    return;
+                }
                 if (shouldEnableHapticFeedback) {
                     HapticFeedback.longPress();
                 }
@@ -293,7 +300,7 @@ function Button(
             ]}
             id={id}
             accessibilityLabel={accessibilityLabel}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
             hoverDimmingValue={1}
         >
             {renderContent()}
