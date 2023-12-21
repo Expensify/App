@@ -323,7 +323,7 @@ function ReportScreen({
 
             return () => clearTimeout(refID);
         },
-        [route, allPersonalDetails],
+        [route, allPersonalDetails, report.policyID],
     );
 
     // Clear notifications for the current report when it's opened and re-focused
