@@ -735,7 +735,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         .map((messageElement) => {
             switch (messageElement.kind) {
                 case 'userMention':
-                    return `<mention-user accountID=${messageElement.accountID}></mention-user>`;
+                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
                 case 'roomReference':
                     return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
                 default:
