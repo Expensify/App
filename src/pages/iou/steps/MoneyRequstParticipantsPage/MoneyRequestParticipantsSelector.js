@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import refPropTypes from '@components/refPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -17,6 +16,7 @@ import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +48,9 @@ const propTypes = {
         }),
     ),
 
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -70,6 +73,7 @@ const defaultProps = {
     participants: [],
     forwardedRef: undefined,
     safeAreaPaddingBottomStyle: {},
+    personalDetails: {},
     reports: {},
     betas: [],
     isDistanceRequest: false,
@@ -80,6 +84,7 @@ function MoneyRequestParticipantsSelector({
     forwardedRef,
     betas,
     participants,
+    personalDetails,
     reports,
     translate,
     navigateToRequest,
@@ -98,7 +103,7 @@ function MoneyRequestParticipantsSelector({
         userToInvite: null,
     });
     const {isOffline} = useNetwork();
-    const personalDetails = usePersonalDetails();
+
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     /**
@@ -155,32 +160,20 @@ function MoneyRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, searchTerm, translate]);
+    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
 
     /**
      * Adds a single participant to the request
      *
      * @param {Object} option
      */
-    const addSingleParticipant = useCallback(
-        (option) => {
-            onAddParticipants(
-                [
-                    {
-                        accountID: option.accountID,
-                        login: option.login,
-                        isPolicyExpenseChat: option.isPolicyExpenseChat,
-                        reportID: option.reportID,
-                        selected: true,
-                        searchText: option.searchText,
-                    },
-                ],
-                false,
-            );
-            navigateToRequest();
-        },
-        [onAddParticipants, navigateToRequest],
-    );
+    const addSingleParticipant = (option) => {
+        onAddParticipants(
+            [{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true, searchText: option.searchText}],
+            false,
+        );
+        navigateToRequest();
+    };
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -222,16 +215,12 @@ function MoneyRequestParticipantsSelector({
         [participants, onAddParticipants],
     );
 
-    const headerMessage = useMemo(
-        () =>
-            OptionsListUtils.getHeaderMessage(
-                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
-                Boolean(newChatOptions.userToInvite),
-                searchTerm.trim(),
-                maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
-            ),
-        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
+    const headerMessage = OptionsListUtils.getHeaderMessage(
+        newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+        Boolean(newChatOptions.userToInvite),
+        searchTerm.trim(),
+        maxParticipantsReached,
+        _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
@@ -289,27 +278,23 @@ function MoneyRequestParticipantsSelector({
         navigateToSplit();
     }, [shouldShowSplitBillErrorMessage, navigateToSplit]);
 
-    const footerContent = useMemo(
-        () => (
-            <View>
-                {shouldShowSplitBillErrorMessage && (
-                    <FormHelpMessage
-                        style={[styles.ph1, styles.mb2]}
-                        isError
-                        message="iou.error.splitBillMultipleParticipantsErrorMessage"
-                    />
-                )}
-                <Button
-                    success
-                    text={translate('iou.addToSplit')}
-                    onPress={handleConfirmSelection}
-                    pressOnEnter
-                    isDisabled={shouldShowSplitBillErrorMessage}
+    const footerContent = (
+        <View>
+            {shouldShowSplitBillErrorMessage && (
+                <FormHelpMessage
+                    style={[styles.ph1, styles.mb2]}
+                    isError
+                    message="iou.error.splitBillMultipleParticipantsErrorMessage"
                 />
-            </View>
-        ),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [handleConfirmSelection, shouldShowSplitBillErrorMessage, translate],
+            )}
+            <Button
+                success
+                text={translate('iou.addToSplit')}
+                onPress={handleConfirmSelection}
+                pressOnEnter
+                isDisabled={shouldShowSplitBillErrorMessage}
+            />
+        </View>
     );
 
     return (
@@ -321,6 +306,7 @@ function MoneyRequestParticipantsSelector({
                 onAddToSelection={addParticipantToSelection}
                 sections={sections}
                 selectedOptions={participants}
+                value={searchTerm}
                 onSelectRow={addSingleParticipant}
                 onChangeText={setSearchTermAndSearchInServer}
                 ref={forwardedRef}
@@ -360,6 +346,9 @@ MoneyRequestParticipantsSelectorWithRef.displayName = 'MoneyRequestParticipantsS
 export default compose(
     withLocalize,
     withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },

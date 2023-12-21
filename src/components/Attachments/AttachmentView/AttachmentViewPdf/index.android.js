@@ -18,7 +18,7 @@ function AttachmentViewPdf(props) {
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.value !== 0 && offsetY.value !== 0) {
+            if (offsetX.value !== 0 && offsetY.value !== 0 && attachmentCarouselPagerContext) {
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
