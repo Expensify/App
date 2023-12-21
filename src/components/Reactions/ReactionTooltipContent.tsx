@@ -1,12 +1,12 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
-import type {WithCurrentUserPersonalDetailsHOCProps} from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
-type ReactionTooltipContentProps = WithCurrentUserPersonalDetailsHOCProps & {
+type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'> & {
     /**
      * A list of emoji codes to display in the tooltip.
      */
