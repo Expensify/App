@@ -159,6 +159,9 @@ type Report = {
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
     selected?: boolean;
+
+    /** If the report contains reportFields, save the field id and its value */
+    reportFields?: Record<string, string>;
 };
 
 export default Report;

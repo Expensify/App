@@ -20,6 +20,7 @@ import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -472,7 +473,8 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
-    const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    const lastReportAction: OnyxEntry<ReportAction> =
+        allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
     let lastMessageTextFromReport = '';
     const lastActionName = lastReportAction?.actionName ?? '';
 
@@ -497,8 +499,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>): string {
     } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey ?? 'common.attachment') as TranslationPaths)}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
-        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage ?? '', true);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(lastReportAction);
+        lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||

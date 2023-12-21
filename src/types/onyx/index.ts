@@ -25,9 +25,11 @@ import PlaidData from './PlaidData';
 import Policy from './Policy';
 import PolicyCategory, {PolicyCategories} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
+import PolicyReportField from './PolicyReportField';
 import PolicyTag, {PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
+import RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import RecentWaypoint from './RecentWaypoint';
 import ReimbursementAccount from './ReimbursementAccount';
@@ -37,6 +39,7 @@ import ReportAction, {ReportActions} from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
+import ReportNextStep from './ReportNextStep';
 import ReportUserIsTyping from './ReportUserIsTyping';
 import Request from './Request';
 import Response from './Response';
@@ -106,6 +109,7 @@ export type {
     ReportActions,
     ReportActionsDrafts,
     ReportMetadata,
+    ReportNextStep,
     Request,
     Response,
     ScreenShareRequest,
@@ -124,4 +128,6 @@ export type {
     WalletTerms,
     WalletTransfer,
     ReportUserIsTyping,
+    PolicyReportField,
+    RecentlyUsedReportFields,
 };
