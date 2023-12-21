@@ -12,8 +12,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -204,7 +204,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     return (
         <HeaderPageLayout
             title="Choose a workspace"
-            backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SELECTOR.ROOT].backgroundColor}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SWITCHER.ROOT].backgroundColor}
         >
             {everythingSection}
             {workspacesSection}
