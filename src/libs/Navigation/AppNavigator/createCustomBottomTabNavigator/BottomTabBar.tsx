@@ -31,13 +31,13 @@ function BottomTabBar() {
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <Tooltip text={translate('breadcrumbs.chats')}>
+            <Tooltip text={translate('common.chats')}>
                 <PressableWithFeedback
                     onPress={() => {
                         Navigation.navigate(ROUTES.HOME);
                     }}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('breadcrumbs.chats')}
+                    accessibilityLabel={translate('common.chats')}
                     style={[styles.touchableButtonImage]}
                 >
                     <Icon

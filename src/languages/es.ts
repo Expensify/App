@@ -110,6 +110,7 @@ export default {
         magicCode: 'Código mágico',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
+        chats: 'Chats',
         profile: 'Perfil',
         referral: 'Remisión',
         payments: 'Pagos',
@@ -2481,10 +2482,6 @@ export default {
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
         transactionDate: 'Fecha de transacción',
-    },
-    breadcrumbs: {
-        // TODO-IDEAL: Verify translations in Spanish
-        chats: 'Chats',
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {

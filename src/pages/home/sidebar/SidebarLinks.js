@@ -138,7 +138,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         type: CONST.BREADCRUMB_TYPE.ROOT,
                     },
                     {
-                        text: translate('breadcrumbs.chats'),
+                        text: translate('common.chats'),
                     },
                 ]}
                 style={[styles.mb5, styles.mh5]}

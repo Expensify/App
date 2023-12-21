@@ -120,6 +120,7 @@ export default {
         magicCode: 'Magic code',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
+        chats: 'Chats',
         profile: 'Profile',
         referral: 'Referral',
         payments: 'Payments',
@@ -1994,9 +1995,6 @@ export default {
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
         transactionDate: 'Transaction date',
-    },
-    breadcrumbs: {
-        chats: 'Chats',
     },
     referralProgram: {
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
