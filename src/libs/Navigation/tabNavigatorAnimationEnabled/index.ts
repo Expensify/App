@@ -1,3 +1,3 @@
-const tabNavigatorAnimationEnabled = true;
+const tabNavigatorAnimationEnabled = false;
 
 export default tabNavigatorAnimationEnabled;

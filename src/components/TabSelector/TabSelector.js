@@ -5,7 +5,7 @@ import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {TabNavigatorAnimationEnabled} from '@libs/Navigation/OnyxTabNavigator';
+import tabNavigatorAnimationEnabled from '@libs/Navigation/tabNavigatorAnimationEnabled';
 import CONST from '@src/CONST';
 import TabSelectorItem from './TabSelectorItem';
 
@@ -81,7 +81,7 @@ function TabSelector({state, navigation, onTabPress}) {
                         title={title}
                         onPress={onPress}
                         isFocused={isFocused}
-                        animationEnabled={TabNavigatorAnimationEnabled}
+                        animationEnabled={tabNavigatorAnimationEnabled}
                     />
                 );
             }),

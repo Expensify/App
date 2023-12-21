@@ -67,5 +67,3 @@ export default withOnyx<OnyxTabNavigatorProps, OnyxTabNavigatorOnyxProps>({
         key: ({id}) => `${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`,
     },
 })(OnyxTabNavigator);
-
-export {TabNavigatorAnimationEnabled};
