@@ -12,8 +12,10 @@ type HeaderEmoji = {
     code: string;
 };
 
-type PickerEmojis = Array<Emoji | HeaderEmoji>;
+type PickerEmoji = Emoji | HeaderEmoji;
+
+type PickerEmojis = PickerEmoji[];
 
 type EmojisList = Record<string, {keywords: string[]; name?: string}>;
 
-export type {Emoji, HeaderEmoji, EmojisList, PickerEmojis};
+export type {Emoji, HeaderEmoji, EmojisList, PickerEmojis, PickerEmoji};
