@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +24,7 @@ import Modal from './Modal';
 import Text from './Text';
 import withNavigation from './withNavigation';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Session info for the currently logged in user. */
@@ -46,6 +47,12 @@ function PurposeForUsingExpensifyModal(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const theme = useTheme();
+    const focusableElementRef = useRef(); // Used to set focus position on modal opened
+
+    useEffect(() => {
+        if (!isModalOpen || !focusableElementRef.current) { return; }
+        focusableElementRef.current.focus();
+    }, [isModalOpen]);
 
     useEffect(() => {
         const navigationState = props.navigation.getState();
@@ -170,6 +177,14 @@ function PurposeForUsingExpensifyModal(props) {
             innerContainerStyle={styles.pt0}
             shouldShowBackdrop
         >
+            {/* Invisible focusable button to set modal focus position */}
+            <PressableWithoutFeedback
+                ref={focusableElementRef}
+                onPress={() => {}}
+                style={{ width: 1, height: 1, opacity: 0, position: 'absolute', zIndex: -1 }}
+                accessible={false} // Make it non-interactive for accessibility tools
+            />
+
             <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
                 <Lottie
                     source={LottieAnimations.Hands}
