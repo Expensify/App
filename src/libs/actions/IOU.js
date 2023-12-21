@@ -2126,6 +2126,9 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
 
+        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
+        const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
             oneOnOneChatReport,
             oneOnOneIOUReport,
@@ -2139,6 +2142,8 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             {},
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
+            optimisticTransactionThread,
+            optimisticCreatedActionForTransactionThread,
         );
 
         splits.push({
