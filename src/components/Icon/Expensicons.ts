@@ -52,6 +52,7 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
+import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
@@ -185,6 +186,7 @@ export {
     EmptyStateAttachReceipt,
     Exclamation,
     Exit,
+    ExpensifyAppIcon,
     ExpensifyCard,
     ExpensifyWordmark,
     ExpensifyFooterLogo,

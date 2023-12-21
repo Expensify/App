@@ -15,6 +15,7 @@ import {View} from 'react-native';
 import {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import BottomTabBar from './BottomTabBar';
+import TopBar from './TopBar';
 
 type CustomNavigatorProps = DefaultNavigatorOptions<ParamListBase, StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap> & {
     initialRouteName: string;
@@ -67,6 +68,7 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
 
     return (
         <View style={{flex: 1}}>
+            <TopBar />
             <NavigationContent>
                 <StackView
                     // eslint-disable-next-line react/jsx-props-no-spreading

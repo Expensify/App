@@ -162,6 +162,9 @@ const propTypes = {
 
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress: PropTypes.bool,
+
+    /** Is this menu item in the settings pane */
+    isPaneMenu: PropTypes.bool,
 };
 
 export default propTypes;

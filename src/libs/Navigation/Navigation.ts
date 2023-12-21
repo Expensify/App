@@ -196,6 +196,14 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
 }
 
 /**
+ * Close the full screen modal.
+ */
+function closeFullScreen() {
+    const rootState = navigationRef.getRootState();
+    navigationRef.dispatch({...StackActions.pop(), target: rootState.key});
+}
+
+/**
  * Update route params for the specified route.
  */
 function setParams(params: Record<string, unknown>, routeKey: string) {
@@ -307,6 +315,7 @@ export default {
     getRouteNameFromStateEvent,
     getTopmostReportActionId,
     waitForProtectedRoutes,
+    closeFullScreen,
 };
 
 export {navigationRef};
