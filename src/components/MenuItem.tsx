@@ -531,7 +531,7 @@ function MenuItem(
                                 {badgeText && (
                                     <Badge
                                         text={badgeText}
-                                        badgeStyles={[styles.alignSelfCenter, brickRoadIndicator ? styles.mr2 : undefined, focused || isHovered || pressed ? styles.hoveredButton : {}]}
+                                        badgeStyles={[styles.alignSelfCenter, brickRoadIndicator ? styles.mr2 : undefined, focused || isHovered || pressed ? styles.buttonHoveredBG : {}]}
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}

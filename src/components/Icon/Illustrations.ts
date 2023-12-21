@@ -35,6 +35,7 @@ import ConciergeNew from '@assets/images/simple-illustrations/simple-illustratio
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
+import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
@@ -60,6 +61,7 @@ export {
     ConciergeExclamation,
     CreditCardsBlue,
     EmailAddress,
+    HotDogStand,
     InvoiceOrange,
     JewelBoxBlue,
     JewelBoxGreen,
