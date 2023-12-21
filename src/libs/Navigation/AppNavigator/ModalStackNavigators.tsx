@@ -61,6 +61,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
                         key={name}
                         name={name}
                         getComponent={(screens as Required<Screens>)[name as Screen]}
+                        initialParams={{isInRHP: true} as TStackParams[string]}
                     />
                 ))}
             </ModalStackNavigator.Navigator>
