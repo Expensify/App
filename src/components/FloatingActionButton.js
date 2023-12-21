@@ -1,15 +1,14 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import {Platform} from 'react-native';
+import {Platform, View} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 AnimatedPath.displayName = 'AnimatedPath';
