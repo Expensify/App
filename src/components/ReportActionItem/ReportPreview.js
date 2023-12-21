@@ -14,6 +14,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -120,6 +121,7 @@ const defaultProps = {
 function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
 
     const managerID = props.iouReport.managerID || 0;
@@ -244,17 +246,7 @@ function ReportPreview(props) {
                     <View style={styles.reportPreviewBoxBody}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text
-                                    style={[
-                                        styles.textLabelSupporting,
-                                        styles.mb1,
-                                        {
-                                            lineHeight: variables.lineHeightXXLarge,
-                                        },
-                                    ]}
-                                >
-                                    {getPreviewMessage()}
-                                </Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, getLineHeightStyle(variables.lineHeightXXLarge)]}>{getPreviewMessage()}</Text>
                             </View>
                             {!iouSettled && hasErrors && (
                                 <Icon
