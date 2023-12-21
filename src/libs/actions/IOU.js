@@ -837,7 +837,7 @@ function createDistanceRequest(report, participant, comment, created, category, 
 
 /**
  * @param {String} transactionID
- * @param {Number} transactionThreadReportID
+ * @param {String} transactionThreadReportID
  * @param {Object} transactionChanges
  * @param {String} [transactionChanges.created] Present when updated the date field
  * @param {Boolean} onlyIncludeChangedFields
@@ -1017,7 +1017,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
  * Updates the created date of a money request
  *
  * @param {String} transactionID
- * @param {Number} transactionThreadReportID
+ * @param {String} transactionThreadReportID
  * @param {String} val
  */
 function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
@@ -1032,7 +1032,7 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
  * Edits an existing distance request
  *
  * @param {String} transactionID
- * @param {Number} transactionThreadReportID
+ * @param {String} transactionThreadReportID
  * @param {Object} transactionChanges
  * @param {String} [transactionChanges.created]
  * @param {Number} [transactionChanges.amount]
@@ -2242,7 +2242,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
 
 /**
  * @param {object} transaction
- * @param {Number} transactionThreadReportID
+ * @param {String} transactionThreadReportID
  * @param {Object} transactionChanges
  */
 function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges) {
@@ -2257,7 +2257,7 @@ function editMoneyRequest(transaction, transactionThreadReportID, transactionCha
  * Updates the amount and currency fields of a money request
  *
  * @param {String} transactionID
- * @param {Number} transactionThreadReportID
+ * @param {String} transactionThreadReportID
  * @param {String} currency
  * @param {Number} amount
  */
