@@ -25,9 +25,11 @@ import PlaidData from './PlaidData';
 import Policy from './Policy';
 import PolicyCategory, {PolicyCategories} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
+import PolicyReportField from './PolicyReportField';
 import PolicyTag, {PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
+import RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import RecentWaypoint from './RecentWaypoint';
 import ReimbursementAccount from './ReimbursementAccount';
@@ -126,4 +128,6 @@ export type {
     WalletTerms,
     WalletTransfer,
     ReportUserIsTyping,
+    PolicyReportField,
+    RecentlyUsedReportFields,
 };
