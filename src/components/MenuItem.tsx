@@ -4,10 +4,10 @@ import {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'reac
 import {AnimatedStyle} from 'react-native-reanimated';
 import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
