@@ -1,19 +1,22 @@
 import {setYear} from 'date-fns';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import InputWrapper from '@components/Form/InputWrapper';
 import * as Expensicons from '@components/Icon/Expensicons';
+import refPropTypes from '@components/refPropTypes';
 import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 
 const propTypes = {
+    /** React ref being forwarded to the DatePicker input */
+    forwardedRef: refPropTypes,
+
     /**
      * The datepicker supports any value that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
@@ -34,13 +37,18 @@ const propTypes = {
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
 
+    /** A function that is passed by FormWrapper */
+    onInputChange: PropTypes.func.isRequired,
+
+    /** A function that is passed by FormWrapper */
+    onTouched: PropTypes.func.isRequired,
+
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
     /** ID of the wrapping form */
     formID: PropTypes.string,
 
-    ...withLocalizePropTypes,
     ...baseTextInputPropTypes,
 };
 
@@ -54,6 +62,7 @@ const datePickerDefaultProps = {
 };
 
 function DatePicker({
+    forwardedRef,
     containerStyles,
     defaultValue,
     disabled,
@@ -66,13 +75,23 @@ function DatePicker({
     onInputChange,
     onTouched,
     placeholder,
-    translate,
     value,
     shouldSaveDraft,
     formID,
 }) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
+
+    const onSelected = (newValue) => {
+        if (_.isFunction(onTouched)) {
+            onTouched();
+        }
+        if (_.isFunction(onInputChange)) {
+            onInputChange(newValue);
+        }
+        setSelectedDate(newValue);
+    };
 
     useEffect(() => {
         // Value is provided to input via props and onChange never fires. We have to save draft manually.
@@ -87,29 +106,18 @@ function DatePicker({
         setSelectedDate(value);
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    useEffect(() => {
-        if (_.isFunction(onTouched)) {
-            onTouched();
-        }
-        if (_.isFunction(onInputChange)) {
-            onInputChange(selectedDate);
-        }
-        // To keep behavior from class component state update callback, we want to run effect only when the selected date is changed.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedDate]);
-
     return (
         <View style={styles.datePickerRoot}>
             <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
-                <InputWrapper
-                    InputComponent={TextInput}
+                <TextInput
+                    ref={forwardedRef}
                     inputID={inputID}
                     forceActiveLabel
                     icon={Expensicons.Calendar}
                     label={label}
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
-                    value={value || selectedDate || ''}
+                    value={selectedDate}
                     placeholder={placeholder || translate('common.dateFormat')}
                     errorText={errorText}
                     containerStyles={containerStyles}
@@ -124,7 +132,7 @@ function DatePicker({
                     minDate={minDate}
                     maxDate={maxDate}
                     value={selectedDate}
-                    onSelected={setSelectedDate}
+                    onSelected={onSelected}
                 />
             </View>
         </View>
@@ -135,4 +143,14 @@ DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = datePickerDefaultProps;
 DatePicker.displayName = 'DatePicker';
 
-export default withLocalize(DatePicker);
+const DatePickerWithRef = forwardRef((props, ref) => (
+    <DatePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
+
+DatePickerWithRef.displayName = 'DatePickerWithRef';
+
+export default DatePickerWithRef;

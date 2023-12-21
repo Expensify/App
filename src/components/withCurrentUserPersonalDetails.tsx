@@ -37,7 +37,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRe
         const accountID = props.session?.accountID ?? 0;
         const accountPersonalDetails = personalDetails?.[accountID];
         const currentUserPersonalDetails: CurrentUserPersonalDetails = useMemo(
-            () => (accountPersonalDetails ? {...accountPersonalDetails, accountID} : {}),
+            () => (accountPersonalDetails ? {...accountPersonalDetails, accountID} : {}) as CurrentUserPersonalDetails,
             [accountPersonalDetails, accountID],
         );
         return (

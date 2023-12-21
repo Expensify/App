@@ -4,6 +4,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,7 +68,8 @@ function DateOfBirth({reimbursementAccount, reimbursementAccountDraft, onNext, i
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={personalInfoDobKey}
                 label={translate('common.dob')}
