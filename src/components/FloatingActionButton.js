@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
+AnimatedPath.displayName = 'AnimatedPath';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
