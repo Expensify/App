@@ -1,11 +1,16 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import MenuItemList from '@components/MenuItemList';
+import menuItemPropTypes from '@components/menuItemPropTypes';
+import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Icon from './Icon';
-import MenuItemList from './MenuItemList';
-import menuItemPropTypes from './menuItemPropTypes';
-import Text from './Text';
+import IconSection from './IconSection';
+
+const CARD_LAYOUT = {
+    ICON_ON_TOP: 'iconOnTop',
+    ICON_ON_RIGHT: 'iconOnRight',
+};
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
@@ -23,6 +28,10 @@ const propTypes = {
     /** Icon component */
     IconComponent: PropTypes.func,
 
+    /** Card layout that affects icon positioning, margins, sizes. */
+    // eslint-disable-next-line rulesdir/prefer-underscore-method
+    cardLayout: PropTypes.oneOf(Object.values(CARD_LAYOUT)),
+
     /** Contents to display inside the section */
     children: PropTypes.node,
 
@@ -38,6 +47,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     subtitleStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Whether the subtitle should have a muted style */
+    subtitleMuted: PropTypes.bool,
+
     /** Customize the Section container */
     // eslint-disable-next-line react/forbid-prop-types
     childrenStyles: PropTypes.arrayOf(PropTypes.object),
@@ -52,38 +64,45 @@ const defaultProps = {
     children: null,
     icon: null,
     IconComponent: null,
+    cardLayout: CARD_LAYOUT.ICON_ON_RIGHT,
     containerStyles: [],
     iconContainerStyles: [],
     titleStyles: [],
     subtitleStyles: [],
+    subtitleMuted: false,
     childrenStyles: [],
     subtitle: null,
 };
 
-function Section({children, childrenStyles, containerStyles, icon, IconComponent, iconContainerStyles, menuItems, subtitle, subtitleStyles, title, titleStyles}) {
+function Section({children, childrenStyles, containerStyles, icon, IconComponent, cardLayout, iconContainerStyles, menuItems, subtitle, subtitleStyles, subtitleMuted, title, titleStyles}) {
     const styles = useThemeStyles();
+
     return (
         <>
             <View style={[styles.pageWrapper, styles.cardSection, ...containerStyles]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, ...titleStyles]}>
+                {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
+                    <IconSection
+                        icon={icon}
+                        IconComponent={IconComponent}
+                        iconContainerStyles={[...iconContainerStyles, styles.alignSelfStart, styles.mb3]}
+                    />
+                )}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1, ...titleStyles]}>
                     <View style={[styles.flexShrink1]}>
                         <Text style={[styles.textHeadline, styles.cardSectionTitle]}>{title}</Text>
                     </View>
-                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd, ...iconContainerStyles]}>
-                        {Boolean(icon) && (
-                            <Icon
-                                src={icon}
-                                height={68}
-                                width={68}
-                            />
-                        )}
-                        {Boolean(IconComponent) && <IconComponent />}
-                    </View>
+                    {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
+                        <IconSection
+                            icon={icon}
+                            IconComponent={IconComponent}
+                            iconContainerStyles={iconContainerStyles}
+                        />
+                    )}
                 </View>
 
                 {Boolean(subtitle) && (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt4, ...subtitleStyles]}>
-                        <Text style={styles.textNormal}>{subtitle}</Text>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP ? [styles.mt1, styles.mh1] : styles.mt4, ...subtitleStyles]}>
+                        <Text style={[styles.textNormal, subtitleMuted && styles.colorMuted]}>{subtitle}</Text>
                     </View>
                 )}
 
@@ -94,9 +113,9 @@ function Section({children, childrenStyles, containerStyles, icon, IconComponent
         </>
     );
 }
-
 Section.displayName = 'Section';
 Section.propTypes = propTypes;
 Section.defaultProps = defaultProps;
 
+export {CARD_LAYOUT};
 export default Section;
