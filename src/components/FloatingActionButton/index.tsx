@@ -56,13 +56,8 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role}: Flo
                 <AnimatedPressable
                     ref={(el) => {
                         fabPressable.current = el;
-                        if (!buttonRef) {
-                            return;
-                        }
-                        if (typeof buttonRef === 'function') {
-                            buttonRef(el);
-                        }
-                        if (typeof buttonRef === 'object') {
+
+                        if (buttonRef && 'current' in buttonRef) {
                             buttonRef.current = el;
                         }
                     }}
