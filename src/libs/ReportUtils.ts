@@ -426,6 +426,21 @@ function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHA
 }
 
 /**
+ * Get the report given a reportID
+ */
+function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    if (!allReports) {
+        return {};
+    }
+
+    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
+}
+
+/**
  * Returns the parentReport if the given report is a thread.
  */
 function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
@@ -1010,21 +1025,6 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
         !isIOUReport(report) &&
         participantAccountIDs.length === 1
     );
-}
-
-/**
- * Get the report given a reportID
- */
-function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
-    /**
-     * Using typical string concatenation here due to performance issues
-     * with template literals.
-     */
-    if (!allReports) {
-        return {};
-    }
-
-    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
 }
 
 /**
