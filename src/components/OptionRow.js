@@ -76,8 +76,9 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported: PropTypes.bool,
 
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    /** Key used internally by React */
     keyForList: PropTypes.string,
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
 };
