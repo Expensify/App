@@ -187,6 +187,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
                 animationOut = 'slideOutDown';
+                shouldAddTopSafeAreaMargin = true;
                 break;
             case CONST.MODAL.MODAL_TYPE.POPOVER:
                 modalStyle = {
