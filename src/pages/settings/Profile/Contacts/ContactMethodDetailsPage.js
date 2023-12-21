@@ -221,7 +221,7 @@ class ContactMethodDetailsPage extends Component {
      * @param {Boolean} isOpen
      */
     toggleDeleteModal(isOpen) {
-        if (canUseTouchScreen()) {
+        if (canUseTouchScreen() && isOpen) {
             InteractionManager.runAfterInteractions(() => {
                 this.setState({isDeleteModalOpen: isOpen});
             });
