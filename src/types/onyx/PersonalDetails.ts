@@ -73,7 +73,7 @@ type PersonalDetails = {
     status?: string;
 };
 
-type PersonalDetailsList = Record<string, PersonalDetails | null>;
+type PersonalDetailsList = Record<string, PersonalDetails>;
 
 export default PersonalDetails;
 
