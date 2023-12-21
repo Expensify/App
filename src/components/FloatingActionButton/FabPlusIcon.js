@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
+import {Platform} from 'react-native';
 import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
 import useTheme from '@hooks/useTheme';
@@ -51,8 +52,8 @@ function FabPlusIcon({isActive}) {
                 fill,
             };
         },
-        [],
-        adapter,
+        undefined,
+        Platform.OS === 'web' ? undefined : adapter,
     );
 
     return (
