@@ -275,7 +275,7 @@ function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction
     if (id) {
         index = array.findIndex((obj) => obj.reportActionID === id);
     } else {
-        index = 0;
+        index = array.findIndex((obj) => obj.pendingAction !== 'add');
     }
 
     if (index === -1) {
@@ -285,13 +285,13 @@ function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction
     let startIndex = index;
     let endIndex = index;
 
-    // Move down the list and compare reportActionID with previousReportActionID
+    // Move up the list and compare reportActionID with previousReportActionID
     while (endIndex < array.length - 1 && array[endIndex].previousReportActionID === array[endIndex + 1].reportActionID) {
         endIndex++;
     }
 
     // Move up the list and compare previousReportActionID with reportActionID
-    while (startIndex > 0 && array[startIndex].reportActionID === array[startIndex - 1].previousReportActionID) {
+    while (startIndex > 0 && array[startIndex].reportActionID === array[startIndex - 1].previousReportActionID || array[startIndex - 1]?.pendingAction === 'add' ) {
         startIndex--;
     }
 
