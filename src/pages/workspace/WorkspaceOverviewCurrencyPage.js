@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -68,11 +68,9 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
 
     const headerMessage = searchText.trim() && !currencyItems.length ? translate('common.noResultsFound') : '';
 
-    const onBackButtonPress = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)), [policy.id]);
-
     const onSelectCurrency = (item) => {
         Policy.updateGeneralSettings(policy.id, policy.name, item.keyForList);
-        Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id));
+        Navigation.goBack();
     };
 
     return (
@@ -87,7 +85,7 @@ function WorkspaceSettingsCurrencyPage({currencyList, policy, isLoadingReportDat
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
-                    onBackButtonPress={onBackButtonPress}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
 
                 <SelectionList

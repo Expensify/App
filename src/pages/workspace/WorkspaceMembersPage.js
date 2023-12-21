@@ -430,7 +430,7 @@ function WorkspaceMembersPage(props) {
                     title={props.translate('workspace.common.members')}
                     onBackButtonPress={() => {
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+                        Navigation.goBack();
                     }}
                     shouldShowBackButton={isSmallScreenWidth}
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
