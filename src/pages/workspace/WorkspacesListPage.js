@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FeatureList from '@components/FeatureList';
-import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
 import LottieAnimations from '@components/LottieAnimations';
@@ -13,6 +12,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -109,6 +109,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
 function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -170,7 +171,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
                 iconFill: theme.textLight,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                fallbackIcon: illustrations.FallbackWorkspaceAvatar,
                 brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
@@ -179,7 +180,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
+    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers, illustrations.FallbackWorkspaceAvatar]);
 
     return (
         <IllustratedHeaderPageLayout

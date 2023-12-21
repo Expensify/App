@@ -1,13 +1,10 @@
 import {ImageSourcePropType} from 'react-native';
-import {SvgProps} from 'react-native-svg';
 import {AvatarSource} from '@libs/UserUtils';
 
-type ImageOrSvgProps = ImageSourcePropType | React.FC<SvgProps>;
-
 type IllustrationsType = {
-    EmptyStateBackgroundImage: ImageOrSvgProps;
-    ExampleCheckES: ImageOrSvgProps;
-    ExampleCheckEN: ImageOrSvgProps;
+    EmptyStateBackgroundImage: ImageSourcePropType;
+    ExampleCheckES: ImageSourcePropType;
+    ExampleCheckEN: ImageSourcePropType;
     FallbackAvatar: AvatarSource;
     FallbackWorkspaceAvatar: AvatarSource;
 };

@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
@@ -58,6 +59,7 @@ const defaultProps = {
 
 function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const {translate} = useLocalize();
 
     const formattedCurrency = !_.isEmpty(policy) && !_.isEmpty(currencyList) ? `${policy.outputCurrency} - ${currencyList[policy.outputCurrency].symbol}` : '';
@@ -118,14 +120,14 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                                 containerStyles={styles.avatarLarge}
                                 imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                 source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                fallbackIcon={illustrations.FallbackWorkspaceAvatar}
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 name={policyName}
                                 type={CONST.ICON_TYPE_WORKSPACE}
                             />
                         )}
                         type={CONST.ICON_TYPE_WORKSPACE}
-                        fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                        fallbackIcon={illustrations.FallbackWorkspaceAvatar}
                         style={[styles.mb3]}
                         anchorPosition={styles.createMenuPositionProfile(windowWidth)}
                         anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}

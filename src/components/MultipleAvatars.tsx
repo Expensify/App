@@ -12,8 +12,6 @@ import Avatar from './Avatar';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import UserDetailsTooltip from './UserDetailsTooltip';
-import illustrations from '@styles/theme/illustrations/themes/dark';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 
 type MultipleAvatarsProps = {
     /** Array of avatar URLs or icons */
@@ -83,7 +81,6 @@ function MultipleAvatars({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useThemeIllustrations();
 
     const avatarSizeToStylesMap: AvatarSizeToStylesMap = useMemo(
         () => ({
