@@ -29,14 +29,7 @@ type SubscriptAvatarProps = {
     showTooltip?: boolean;
 };
 
-function SubscriptAvatar({
-    mainAvatar = {} as Icon,
-    secondaryAvatar = {} as Icon,
-    size = CONST.AVATAR_SIZE.DEFAULT,
-    backgroundColor,
-    noMargin = false,
-    showTooltip = true,
-}: SubscriptAvatarProps) {
+function SubscriptAvatar({mainAvatar, secondaryAvatar, size = CONST.AVATAR_SIZE.DEFAULT, backgroundColor, noMargin = false, showTooltip = true}: SubscriptAvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -48,23 +41,23 @@ function SubscriptAvatar({
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={mainAvatar.id ?? -1}
+                accountID={mainAvatar?.id ?? -1}
                 icon={mainAvatar}
             >
                 <View>
                     <Avatar
                         containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size || CONST.AVATAR_SIZE.DEFAULT))}
-                        source={mainAvatar.source}
+                        source={mainAvatar?.source}
                         size={size}
-                        name={mainAvatar.name}
-                        type={mainAvatar.type}
-                        fallbackIcon={mainAvatar.fallbackIcon}
+                        name={mainAvatar?.name}
+                        type={mainAvatar?.type}
+                        fallbackIcon={mainAvatar?.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={secondaryAvatar.id ?? -1}
+                accountID={secondaryAvatar?.id ?? -1}
                 icon={secondaryAvatar}
             >
                 <View
@@ -78,12 +71,12 @@ function SubscriptAvatar({
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
                             StyleUtils.getBorderColorStyle(backgroundColor ?? theme.componentBG),
                         ]}
-                        source={secondaryAvatar.source}
+                        source={secondaryAvatar?.source}
                         size={isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT}
                         fill={theme.iconSuccessFill}
-                        name={secondaryAvatar.name}
-                        type={secondaryAvatar.type}
-                        fallbackIcon={secondaryAvatar.fallbackIcon}
+                        name={secondaryAvatar?.name}
+                        type={secondaryAvatar?.type}
+                        fallbackIcon={secondaryAvatar?.fallbackIcon}
                     />
                 </View>
             </UserDetailsTooltip>

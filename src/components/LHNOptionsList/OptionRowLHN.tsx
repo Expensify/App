@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {GestureResponderEvent, StyleProp, StyleSheet, TextInput, View, ViewStyle} from 'react-native';
+import {GestureResponderEvent, StyleSheet, TextInput, View, ViewStyle} from 'react-native';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import {OptionRowLHNProps} from './types';
 
-function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem = null, viewMode = 'default', style}: OptionRowLHNProps) {
+function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style}: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -67,10 +67,10 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const contentContainerStyles =
         viewMode === CONST.OPTION_MODE.COMPACT ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(
+    const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         viewMode === CONST.OPTION_MODE.COMPACT
-            ? ([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter] as StyleProp<ViewStyle>)
-            : ([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter] as StyleProp<ViewStyle>),
+            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
@@ -121,7 +121,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
-            errors={optionItem.allReportErrors ?? undefined}
+            errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
             needsOffscreenAlphaCompositing
         >
@@ -170,7 +170,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {(optionItem.icons?.length ?? 0) > 0 &&
+                                {optionItem.icons?.length &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}

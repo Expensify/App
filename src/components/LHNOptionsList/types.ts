@@ -8,6 +8,8 @@ import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
+type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
+
 type LHNOptionsListOnyxProps = {
     /** The policy which the user has access to and which the report could be tied to */
     policy: OnyxCollection<Policy>;
@@ -44,7 +46,7 @@ type CustomLHNOptionsListProps = {
     onSelectRow: (reportID: string) => void;
 
     /** Toggle between compact and default view of the option */
-    optionMode: ValueOf<typeof CONST.OPTION_MODE>;
+    optionMode: OptionMode;
 
     /** Whether to allow option focus or not */
     shouldDisableFocusOptions?: boolean;
@@ -91,9 +93,9 @@ type OptionRowLHNProps = {
     reportID: string;
     isFocused?: boolean;
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
-    viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
+    viewMode?: OptionMode;
     style?: StyleProp<TextStyle>;
-    optionItem?: OptionData | null;
+    optionItem?: OptionData;
 };
 
 type RenderItemProps = {item: string};

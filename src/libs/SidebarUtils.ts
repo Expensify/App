@@ -245,7 +245,7 @@ function getOptionData(
 
     const result: ReportUtils.OptionData = {
         alternateText: null,
-        allReportErrors: null,
+        allReportErrors: undefined,
         brickRoadIndicator: null,
         tooltipText: null,
         subtitle: null,
@@ -277,7 +277,7 @@ function getOptionData(
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
-    result.parentReportAction = parentReportAction ?? undefined;
+    result.parentReportAction = parentReportAction;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isExpenseRequest = ReportUtils.isExpenseRequest(report);

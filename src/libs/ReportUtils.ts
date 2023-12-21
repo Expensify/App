@@ -313,7 +313,7 @@ type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronou
 
 type OptionData = {
     alternateText?: string | null;
-    allReportErrors?: Errors | null;
+    allReportErrors?: Errors;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
     tooltipText?: string | null;
     subtitle?: string | null;
@@ -335,7 +335,7 @@ type OptionData = {
     isAllowedToComment?: boolean | null;
     isThread?: boolean | null;
     isTaskReport?: boolean | null;
-    parentReportAction?: ReportAction;
+    parentReportAction?: OnyxEntry<ReportAction>;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
     descriptiveText?: string;
 } & Report;
