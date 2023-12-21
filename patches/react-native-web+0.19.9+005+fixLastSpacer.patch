@@ -22,8 +22,8 @@ index faeb323..68d740a 100644
        var spacerKey = this._getSpacerKey(!horizontal);
        var renderRegions = this.state.renderMask.enumerateRegions();
 -      var lastSpacer = findLastWhere(renderRegions, r => r.isSpacer);
-+      const lastRegion = renderRegions[renderRegions.length - 1];
-+      const lastSpacer = lastRegion?.isSpacer ? lastRegion : null;
++      var lastRegion = renderRegions[renderRegions.length - 1];
++      var lastSpacer = lastRegion?.isSpacer ? lastRegion : null;
        for (var _iterator = _createForOfIteratorHelperLoose(renderRegions), _step; !(_step = _iterator()).done;) {
          var section = _step.value;
          if (section.isSpacer) {
