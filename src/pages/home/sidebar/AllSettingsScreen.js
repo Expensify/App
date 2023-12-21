@@ -103,7 +103,7 @@ function AllSettingsScreen() {
     const accountMenuItems = useMemo(() => getMenuItemsSection(menuItemsData), [menuItemsData, getMenuItemsSection]);
 
     return (
-        <View style={styles.w100}>
+        <>
             <Breadcrumbs
                 breadcrumbs={[
                     {
@@ -113,10 +113,10 @@ function AllSettingsScreen() {
                         text: translate('common.settings'),
                     },
                 ]}
-                style={[styles.mb2, styles.mh5]}
+                style={[styles.mb5, styles.mh5]}
             />
             {accountMenuItems}
-        </View>
+        </>
     );
 }
 

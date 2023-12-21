@@ -141,9 +141,9 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         text: translate('breadcrumbs.chats'),
                     },
                 ]}
-                style={[styles.mb2, styles.mh5]}
+                style={[styles.mb5, styles.mh5]}
             />
-            <View style={[styles.pRelative, styles.flex1, styles.pt3]}>
+            <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
                     contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}
