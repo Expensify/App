@@ -9,6 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
+import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -58,6 +59,7 @@ function PurposeForUsingExpensifyModal(props) {
             return;
         }
         Welcome.show({routes, showEngagementModal: () => setIsModalOpen(true)});
+        setIsModalOpen(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -162,19 +164,32 @@ function PurposeForUsingExpensifyModal(props) {
         },
     ];
 
+    let containerStyle;
+    let lottieContainerStyle;
+    let lottieStyle;
+    if (isSmallScreenWidth) {
+        containerStyle = {...styles.pt0, ...styles.flex1, marginTop: variables.contentHeaderHeight};
+        lottieContainerStyle = [StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor), styles.flex1];
+        lottieStyle = {width: undefined, ...styles.h100, ...styles.alignSelfCenter};
+    } else {
+        containerStyle = styles.pt0;
+        lottieContainerStyle = StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor);
+        lottieStyle = styles.w100;
+    }
+
     return (
         <Modal
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isModalOpen}
             onClose={closeModal}
-            innerContainerStyle={styles.pt0}
+            innerContainerStyle={containerStyle}
             shouldUseCustomBackdrop={!isSmallScreenWidth}
         >
-            <View style={StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor)}>
+            <View style={lottieContainerStyle}>
                 <Lottie
                     source={LottieAnimations.Hands}
-                    style={styles.w100}
-                    webStyle={styles.w100}
+                    style={lottieStyle}
+                    webStyle={lottieStyle}
                     autoPlay
                     loop
                 />
