@@ -105,3 +105,4 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar = {}, size = CONST.AV
 SubscriptAvatar.displayName = 'SubscriptAvatar';
 
 export default memo(SubscriptAvatar);
+export type {SubAvatar};

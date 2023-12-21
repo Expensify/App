@@ -1,8 +1,8 @@
 import {ForwardedRef} from 'react';
 import {SectionList, SectionListProps} from 'react-native';
 
-type ForwardedSectionList = {
-    (props: SectionListProps<SectionList>, ref: ForwardedRef<SectionList>): React.ReactNode;
+type ForwardedSectionList<ItemT, SectionT> = {
+    (props: SectionListProps<ItemT, SectionT>, ref: ForwardedRef<SectionList<ItemT, SectionT>>): React.ReactNode;
     displayName: string;
 };
 
