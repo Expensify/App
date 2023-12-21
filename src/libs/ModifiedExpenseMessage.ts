@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PolicyTags, ReportAction} from '@src/types/onyx';
@@ -93,12 +93,12 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
  * If we change this function be sure to update the backend as well.
  */
-function getForReportAction(reportAction: ReportAction): string {
-    if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+function getForReportAction(reportAction: OnyxEntry<ReportAction>): string {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = ReportUtils.getReportPolicyID(reportAction.reportID) ?? '';
+    const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
+    const policyID = ReportUtils.getReportPolicyID(reportAction?.reportID) ?? '';
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
     const policyTagListName = PolicyUtils.getTagListName(policyTags) || Localize.translateLocal('common.tag');
 
