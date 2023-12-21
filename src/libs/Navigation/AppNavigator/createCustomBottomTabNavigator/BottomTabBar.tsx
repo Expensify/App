@@ -3,7 +3,9 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
+import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
+import Tooltip from '@components/Tooltip';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
@@ -17,6 +19,7 @@ import SCREENS from '@src/SCREENS';
 function BottomTabBar() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
@@ -28,33 +31,37 @@ function BottomTabBar() {
 
     return (
         <View style={styles.bottomTabBarContainer}>
-            <PressableWithFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.HOME);
-                }}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel="Chats"
-                style={[styles.touchableButtonImage]}
-            >
-                <Icon
-                    src={Expensicons.ChatBubble}
-                    fill={currentTabName === SCREENS.HOME ? theme.iconMenu : undefined}
-                />
-            </PressableWithFeedback>
+            <Tooltip text={translate('breadcrumbs.chats')}>
+                <PressableWithFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.HOME);
+                    }}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('breadcrumbs.chats')}
+                    style={[styles.touchableButtonImage]}
+                >
+                    <Icon
+                        src={Expensicons.ChatBubble}
+                        fill={currentTabName === SCREENS.HOME ? theme.iconMenu : undefined}
+                    />
+                </PressableWithFeedback>
+            </Tooltip>
             <BottomTabBarFloatingActionButton />
-            <PressableWithFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.ALL_SETTINGS);
-                }}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel="Settings"
-                style={[styles.touchableButtonImage]}
-            >
-                <Icon
-                    src={Expensicons.Gear}
-                    fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : undefined}
-                />
-            </PressableWithFeedback>
+            <Tooltip text={translate('common.settings')}>
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.ALL_SETTINGS);
+                    }}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.settings')}
+                    style={[styles.touchableButtonImage]}
+                >
+                    <Icon
+                        src={Expensicons.Gear}
+                        fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : undefined}
+                    />
+                </PressableWithoutFeedback>
+            </Tooltip>
         </View>
     );
 }
