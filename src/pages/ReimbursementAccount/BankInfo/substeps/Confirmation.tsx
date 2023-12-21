@@ -86,8 +86,8 @@ function Confirmation({reimbursementAccount = ReimbursementAccountProps.reimburs
                         </View>
                     )}
                     {setupType === CONST.BANK_ACCOUNT.SUBSTEP.PLAID && (
+                        // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
                         <MenuItem
-                            // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
                             interactive={false}
                             icon={Expensicons.Bank}
                             iconStyles={[styles.confirmBankInfoCompanyIcon]}
@@ -98,10 +98,9 @@ function Confirmation({reimbursementAccount = ReimbursementAccountProps.reimburs
                         />
                     )}
                     <Text style={[styles.confirmBankInfoText, styles.mb4]}>{translate('bankAccount.thisBankAccount')}</Text>
-
                     <MenuItem
-                        // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
                         icon={Expensicons.Bank}
+                        // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
                         titleStyle={[styles.confirmBankInfoText]}
                         title={translate('bankAccount.connectDifferentAccount')}
                         onPress={handleConnectDifferentAccount}
