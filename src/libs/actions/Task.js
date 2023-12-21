@@ -720,6 +720,11 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
 
+    // Determine if we should remove the task completely if there are no other visible actions on it
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessage(taskReportID).lastMessageText;
+    const shouldDeleteTask = !lastMessageText || lastMessageText.length === 0;
+
+
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -821,6 +826,10 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     ];
 
     API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, successData, failureData});
+
+    if (shouldDeleteTask) {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID));
+    }
 }
 
 /**
