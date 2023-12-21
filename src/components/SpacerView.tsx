@@ -1,34 +1,25 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import usePrevious from '@hooks/usePrevious';
-import useStyleUtils from '@hooks/useStyleUtils';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 
-const propTypes = {
+type SpacerViewProps = {
     /**
      * Should we show the spacer
      */
-    shouldShow: PropTypes.bool.isRequired,
+    shouldShow: boolean;
 
     /**
      * Array of style objects
-     * @default []
      */
-    style: stylePropTypes,
+    style?: StyleProp<ViewStyle>;
 };
 
-const defaultProps = {
-    style: [],
-};
-
-function SpacerView({shouldShow = true, style = []}) {
-    const StyleUtils = useStyleUtils();
-    const marginVertical = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL);
-    const borderBottomWidth = useSharedValue(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH);
+function SpacerView({shouldShow, style}: SpacerViewProps) {
+    const marginVertical = useSharedValue<number>(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_MARGIN_VERTICAL : CONST.HORIZONTAL_SPACER.HIDDEN_MARGIN_VERTICAL);
+    const borderBottomWidth = useSharedValue<number>(shouldShow ? CONST.HORIZONTAL_SPACER.DEFAULT_BORDER_BOTTOM_WIDTH : CONST.HORIZONTAL_SPACER.HIDDEN_BORDER_BOTTOM_WIDTH);
     const prevShouldShow = usePrevious(shouldShow);
-
     const duration = CONST.ANIMATED_TRANSITION;
     const animatedStyles = useAnimatedStyle(() => ({
         borderBottomWidth: withTiming(borderBottomWidth.value, {duration}),
@@ -50,10 +41,9 @@ function SpacerView({shouldShow = true, style = []}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only need to trigger when shouldShow prop is changed
     }, [shouldShow, prevShouldShow]);
 
-    return <Animated.View style={[animatedStyles, ...StyleUtils.parseStyleAsArray(style)]} />;
+    return <Animated.View style={[animatedStyles, style]} />;
 }
 
 SpacerView.displayName = 'SpacerView';
-SpacerView.propTypes = propTypes;
-SpacerView.defaultProps = defaultProps;
+
 export default SpacerView;
