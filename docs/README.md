@@ -65,6 +65,71 @@ The [docs](https://github.com/Expensify/App/tree/main/docs) folder will contain 
 
 More details about the Jekyll project structure can be found [here](https://jekyllrb.com/docs/structure/). Note that all html files in this project support the use of the [liquid template language](https://shopify.github.io/liquid/).
 
+# Terminology
+- **Platform**: Expensify Classic and New Expensify are the two platforms. They are shown on the homepage.
+  - **Hub**: A hub is a collection of related articles. It comprises of:
+    - **Article**: The document that explains some feature.
+    - **Subcategory**: A narrower collection of related articles.
+
+To put it all together, this is the mental model that you should have.
+
+- Expensify Classic (Platform)
+  - Getting Started (Hub)
+    - Invite Members (Article)
+    - Security (Article)
+    - Playbooks (Subcategory)
+      - Small business guide (Article)
+      - Big business guide (Article)
+
+# How to create a new hub
+Let's assume that we want to create a new hub called Billing and Subscriptions inside the platform New Expensify.
+
+1. Open `docs/_data/_routes.yml`
+2. Under New Expensify add
+```
+    - href: billing-and-subscriptions
+      title: Billing & Subscriptions
+      icon: /assets/images/subscription.svg
+      description: Adjust billing...
+```
+3. Use an existing icon, or a new one by adding it to `docs/assets/images/`
+
+
+Link the hub.
+1. Go to `docs/new-expensify/hubs`
+2. Create a new folder using the hub name `billing-and-subscriptions`
+3. Inside the newly created folder, create `index.html` with the following content.
+```
+---
+layout: default
+title: Billing & Subscriptions
+---
+
+{% include hub.html %}
+``` 
+
+Add articles.
+1. Go to `docs/articles/new-expensify`
+2. Create a new folder with the hub name `billing-and-subscriptions`
+
+You are now ready to start adding articles and subcategories inside the hub 🎉
+
+# How to delete an existing hub
+Let's assume we want to delete the hub `integrations` inside the platform Expensify Classic.
+1. Open `docs/_data/_routes.yml`
+2. Find the hub integrations and delete its href, icon, title and description.
+3. Go to `docs/expensify-classic/hubs/`
+4. Delete the folder with your hub name and all its contents. eg: `integrations/`
+
+Delete all articles for the hub
+1. Go to `docs/articles/expensify-classic/`
+2. Delete the folder with your hub name and all its contents. eg: `integrations/`
+
+# How to rename a hub
+
+# How to change icon of a hub
+
+
 # How to add a new Article
 
 ## Add content
@@ -94,4 +159,6 @@ Next, run the command `npm run createDocsRoutes` to add the article to `_data/ro
 If you have added a new hub, make sure to update the `_routes.yml` with the folder name, title, icon and description of the hub.
 
 # How the site is deployed
-This site is hosted on GitHub Pages. GitHub Pages has a built-in Jekyll integration, and we have it configured such that whenever code is merged to main, GitHub will automatically build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/
+This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run. 
+
+It will generate routes.yml using the script `createDocsRoutes`, build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/
