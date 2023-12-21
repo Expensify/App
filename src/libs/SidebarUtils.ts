@@ -271,8 +271,10 @@ function getOptionData(
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
     };
-    const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
-    const personalDetail = participantPersonalDetailList[0] ?? {};
+    const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails)).filter(
+        Boolean,
+    ) as PersonalDetails[];
+    const personalDetail = participantPersonalDetailList[0];
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
