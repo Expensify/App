@@ -99,6 +99,7 @@ function LoginForm(props) {
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
+    const isLoading = useRef(false);
 
     const {translate} = props;
 
@@ -168,6 +169,7 @@ function LoginForm(props) {
         if (props.network.isOffline || props.account.isLoading) {
             return;
         }
+        isLoading.current = true;
 
         // If account was closed and have success message in Onyx, we clear it here
         if (!_.isEmpty(props.closeAccount.success)) {
@@ -223,13 +225,15 @@ function LoginForm(props) {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
-
+        if (props.account.isLoading === false) {
+            isLoading.current = false;
+        }
         // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
         if (!input.current || prevIsVisible || !props.isVisible) {
             return;
         }
         input.current.focus();
-    }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
+    }, [props.blurOnSubmit, props.isVisible, prevIsVisible, props.account.isLoading]);
 
     useImperativeHandle(props.innerRef, () => ({
         isInputFocused() {
