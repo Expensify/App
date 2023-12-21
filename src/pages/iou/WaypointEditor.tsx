@@ -28,8 +28,8 @@ import {Waypoint} from '@src/types/onyx/Transaction';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type Location = {
-    lat: number;
-    lng: number;
+    lat?: number;
+    lng?: number;
 };
 
 type Geometry = {
@@ -123,10 +123,7 @@ function WaypointEditor({
         // Therefore, we're going to save the waypoint as just the address, and the lat/long will be filled in on the backend
         if (isOffline && waypointValue) {
             const waypoint = {
-                lat: -1,
-                lng: -1,
                 address: waypointValue,
-                name: undefined,
             };
             saveWaypoint(waypoint);
         }
@@ -143,8 +140,8 @@ function WaypointEditor({
 
     const selectWaypoint = (values: Waypoint) => {
         const waypoint = {
-            lat: values.lat ?? -1,
-            lng: values.lng ?? -1,
+            lat: values.lat,
+            lng: values.lng,
             address: values.address ?? '',
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             name: values.name,

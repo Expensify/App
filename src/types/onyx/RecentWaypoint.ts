@@ -6,10 +6,10 @@ type RecentWaypoint = {
     address: string;
 
     /** The lattitude of the waypoint */
-    lat: number;
+    lat?: number;
 
     /** The longitude of the waypoint */
-    lng: number;
+    lng?: number;
 };
 
 export default RecentWaypoint;
