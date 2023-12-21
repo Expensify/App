@@ -140,12 +140,6 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 // In case the same tag has been selected, reset the tag.
                 updatedTag = '';
             }
-
-            // If the value hasn't changed, don't request to save changes on the server and just close the modal
-            if (updatedTag === transactionTag) {
-                Navigation.dismissModal();
-                return;
-            }
             IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag);
             Navigation.dismissModal();
         },
