@@ -18,23 +18,25 @@ Onyx.connect({
 });
 
 /**
- * @param policyReport
+ * @param report
  * @returns BrickRoad for the policy passed as a param
  */
-const getBrickRoadForPolicy = (policyReport: Report): BrickRoad => {
-    const policyReportAction = ReportActionsUtils.getAllReportActions(policyReport.reportID);
-    const reportErrors = OptionsListUtils.getAllReportErrors(policyReport, policyReportAction);
+const getBrickRoadForPolicy = (report: Report): BrickRoad => {
+    const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+    const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     const doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     if (doesReportContainErrors) {
         return CONST.BRICK_ROAD.RBR;
     }
+
+    // To determine if the report requires attention from the current user, we need to load the parent report action
     let itemParentReportAction = {};
-    if (policyReport.parentReportID) {
-        const itemParentReportActions = ReportActionsUtils.getAllReportActions(policyReport.parentReportID);
-        itemParentReportAction = policyReport.parentReportActionID ? itemParentReportActions[policyReport.parentReportActionID] : {};
+    if (report.parentReportID) {
+        const itemParentReportActions = ReportActionsUtils.getAllReportActions(report.parentReportID);
+        itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : {};
     }
-    const optionFromPolicyReport = {...policyReport, isUnread: ReportUtils.isUnread(policyReport), isUnreadWithMention: ReportUtils.isUnreadWithMention(policyReport)};
-    const shouldShowGreenDotIndicator = ReportUtils.requiresAttentionFromCurrentUser(optionFromPolicyReport, itemParentReportAction);
+    const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};
+    const shouldShowGreenDotIndicator = ReportUtils.requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
     return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD.GBR : undefined;
 };
 
@@ -55,13 +57,13 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
         if (!policyID || !policyReport || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD.RBR) {
             return;
         }
-        const policyBrickRoad = getBrickRoadForPolicy(policyReport);
+        const workspaceBrickRoad = getBrickRoadForPolicy(policyReport);
 
-        if (!policyBrickRoad && !!workspacesBrickRoadsMap[policyID]) {
+        if (!workspaceBrickRoad && !!workspacesBrickRoadsMap[policyID]) {
             return;
         }
 
-        workspacesBrickRoadsMap[policyID] = policyBrickRoad;
+        workspacesBrickRoadsMap[policyID] = workspaceBrickRoad;
     });
 
     return workspacesBrickRoadsMap;
