@@ -69,7 +69,5 @@ jobs:
       
       - name: Reindex google search
         if: ${{ github.event_name == 'push' }}
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: 'https://www.google.com/ping?sitemap=https://help.expensify.com/sitemap.xml'
-          method: 'GET'
+        run : |
+          curl "https://www.google.com/ping?sitemap=https://help.expensify.com/sitemap.xml"
