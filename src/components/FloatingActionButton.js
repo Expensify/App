@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {Animated, Easing, View} from 'react-native';
 import compose from '@libs/compose';
+import CheckForPreviousReportActionIDClean from '@libs/migrations/CheckForPreviousReportActionIDClean';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -100,7 +101,9 @@ class FloatingActionButton extends PureComponent {
                             this.fabPressable.blur();
                             this.props.onPress(e);
                         }}
-                        onLongPress={() => {}}
+                        onLongPress={() => {
+                          CheckForPreviousReportActionIDClean();
+                        }}
                         style={[this.props.themeStyles.floatingActionButton, this.props.StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
