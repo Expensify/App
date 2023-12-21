@@ -71,6 +71,7 @@ const propTypes = {
 
     /** The list of transaction violations */
     transactionViolations: transactionViolationsPropType,
+
     ...withCurrentReportIDPropTypes,
 };
 
