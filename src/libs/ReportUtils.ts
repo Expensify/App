@@ -3095,7 +3095,7 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string, fieldEd
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: emailCreatingAction,
+                text: emailEditingTask,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,

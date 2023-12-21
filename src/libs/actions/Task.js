@@ -441,7 +441,7 @@ function editTask(report, {title, description}) {
 
 function editTaskAssignee(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail, 'assignee', assigneeEmail);
     const reportName = report.reportName.trim();
 
     let assigneeChatReportOnyxData;
