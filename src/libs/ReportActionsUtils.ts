@@ -275,7 +275,7 @@ function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction
     if (id) {
         index = array.findIndex((obj) => obj.reportActionID === id);
     } else {
-        index = array.findIndex((obj) => obj.pendingAction !== 'add');
+        index = array.findIndex((obj) => obj.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     }
 
     if (index === -1) {
@@ -285,13 +285,22 @@ function getRangeFromArrayByID(array: ReportAction[], id?: string): ReportAction
     let startIndex = index;
     let endIndex = index;
 
-    // Move up the list and compare reportActionID with previousReportActionID
+    // Iterate forwards through the array, starting from endIndex. This loop checks the continuity of actions by:
+    // 1. Comparing the current item's previousReportActionID with the next item's reportActionID.
+    //    This ensures that we are moving in a sequence of related actions from newer to older.
     while (endIndex < array.length - 1 && array[endIndex].previousReportActionID === array[endIndex + 1].reportActionID) {
         endIndex++;
     }
 
-    // Move up the list and compare previousReportActionID with reportActionID
-    while (startIndex > 0 && array[startIndex].reportActionID === array[startIndex - 1].previousReportActionID || array[startIndex - 1]?.pendingAction === 'add' ) {
+    // Iterate backwards through the array, starting from startIndex. This loop has two main checks:
+    // 1. It compares the current item's reportActionID with the previous item's previousReportActionID.
+    //    This is to ensure continuity in a sequence of actions.
+    // 2. If the first condition fails, it then checks if the previous item has a pendingAction of 'add'.
+    //    This additional check is to include recently sent messages that might not yet be part of the established sequence.
+    while (
+        (startIndex > 0 && array[startIndex].reportActionID === array[startIndex - 1].previousReportActionID) ||
+        array[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+    ) {
         startIndex--;
     }
 
