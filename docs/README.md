@@ -130,17 +130,32 @@ Delete all articles for the hub
 # How to change icon of a hub
 
 # How to create a new subcategory
+Creating a new subcategory is as easy as creating a new folder. For example, if we want to create a new subcategory `HR Integrations` for the hub `Integrations` and platform `Expensify Classic`
+1. Go to `docs/articles/expensify-classic/integrations`
+2. Create a new folder `hr-integrations`
+
+You can now begin adding articles inside the subcategory `hr-integrations/`.
 
 # How to add a new Article
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `/articles`. For example, if the article belongs in the `Send money` hub and `Workspaces` section, then copy the template into `articles/send-money/workspaces` directory. Next, rename the copy with the name of the article title, i.e. [The-Free-Plan.md](https://github.com/Expensify/App/blob/main/docs/articles/send-money/The-Free-Plan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
+Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Expensify Card` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensiyfy-classic/expensify-card` directory. 
+
+Next, rename the copy with the name of the article title, i.e. `Perks-Of-The-Card.md` (you can use dashes for spaces in the file name if it's needed). The dashes will be removed in the generated site page.
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
 ## Add images
-TODO
+1. Drag and drop your image inside `docs/assets/images/`
+2. Use the image in your article by adding the markdown `![Image description here]({{site.url}}/assets/images/your_image_name_here.png){:width="100%"}`
+
+- Note to replace `your_image_name_here` with the name of image that you uploaded.
+- Note to replace `Image description here`  with an apt description of the image.
+
+If you're unfamiliar with github branches, PRs and confused how to add images and article in the same PR, head to this [slack thread 🧵](https://expensify.slack.com/archives/C02QSAC6BJ8/p1699632298177679?thread_ts=1699576284.768909&cid=C02QSAC6BJ8) in `#expensifyhelp`.
+
+
 
 ## Add meta-description tags for SEO
 
@@ -156,11 +171,6 @@ image: (Optional) URL to an image associated with the post, page, or document (e
 
 Just update the content for each variable accordingly or remove it if the information is not available. More details [here](https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md#usage).
 
-## Add the new page to routes.yml
-
-Next, run the command `npm run createDocsRoutes` to add the article to `_data/routes.yml`. Note that hubs contain one or more articles, which may or may not be grouped into sections with other related articles. All articles grouped under a section will be under the same subfolder in the hub folder.
-
-If you have added a new hub, make sure to update the `_routes.yml` with the folder name, title, icon and description of the hub.
 
 # How the site is deployed
 This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run. 
