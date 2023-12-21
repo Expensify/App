@@ -32,7 +32,7 @@ function BottomTabBar() {
                 onPress={() => {
                     Navigation.navigate(ROUTES.HOME);
                 }}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 accessibilityLabel="Chats"
             >
                 <Icon
@@ -45,7 +45,7 @@ function BottomTabBar() {
                 onPress={() => {
                     Navigation.navigate(ROUTES.ALL_SETTINGS);
                 }}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 accessibilityLabel="Settings"
             >
                 <Icon
