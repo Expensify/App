@@ -939,7 +939,13 @@ function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
  */
 function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): boolean {
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return transactions.length > 0 && transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
+
+    // Early return false in case not having any transaction
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
+    return transactions.every((transaction) => TransactionUtils.isDistanceRequest(transaction));
 }
 
 /**
