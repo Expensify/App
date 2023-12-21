@@ -1,38 +1,29 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
-const propTypes = {
-    /** The on press method */
-    onPress: PropTypes.func,
-
-    /** Which provider you are using to sign in */
-    provider: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    onPress: () => {},
-};
+import {TranslationPaths} from '@src/languages/types';
 
 const providerData = {
     [CONST.SIGN_IN_METHOD.APPLE]: {
         icon: Expensicons.AppleLogo,
-        accessibilityLabel: 'common.signInWithApple',
+        accessibilityLabel: 'common.signInWithApple' as TranslationPaths,
     },
     [CONST.SIGN_IN_METHOD.GOOGLE]: {
         icon: Expensicons.GoogleLogo,
-        accessibilityLabel: 'common.signInWithGoogle',
+        accessibilityLabel: 'common.signInWithGoogle' as TranslationPaths,
     },
 };
 
-function IconButton({onPress, translate, provider}) {
+type IconButtonProps = WithLocalizeProps & {
+    onPress: () => void;
+    provider: keyof typeof providerData;
+};
+
+function IconButton({onPress, provider, translate}: IconButtonProps) {
     const styles = useThemeStyles();
     return (
         <PressableWithoutFeedback
@@ -51,7 +42,5 @@ function IconButton({onPress, translate, provider}) {
 }
 
 IconButton.displayName = 'IconButton';
-IconButton.propTypes = propTypes;
-IconButton.defaultProps = defaultProps;
 
 export default withLocalize(IconButton);

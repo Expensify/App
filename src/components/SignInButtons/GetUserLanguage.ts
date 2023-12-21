@@ -5,7 +5,7 @@ const localeCodes = {
 
 const GetUserLanguage = () => {
     const userLanguage = navigator.language || navigator.userLanguage;
-    const languageCode = userLanguage.split('-')[0];
+    const languageCode = userLanguage.split('-')[0] as keyof typeof localeCodes;
     return localeCodes[languageCode] || 'en_US';
 };
 

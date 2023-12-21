@@ -43,7 +43,7 @@ function googleSignInRequest() {
 
 /**
  * Google Sign In button for iOS.
- * @returns {React.Component}
+ * @returns React Component
  */
 function GoogleSignIn() {
     return (
