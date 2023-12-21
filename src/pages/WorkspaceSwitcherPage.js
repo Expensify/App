@@ -18,6 +18,9 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Icon from '@components/Icon';
+import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -39,7 +42,7 @@ const propTypes = {
             pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         }),
     ),
-    activeWorkspaceID: PropTypes.arrayOf([PropTypes.undefined, PropTypes.string]),
+    activeWorkspaceID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -47,12 +50,16 @@ const defaultProps = {
     activeWorkspaceID: undefined,
 };
 
+const MINIMUM_WORKSPACES_TO_SHOW_SEARCH = 8;
+const EXPENSIFY_TITLE = 'Expensify'
+
 function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [selectedOption, setSelectedOption] = useState();
     const [searchTerm, setSearchTerm] = useState('');
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const getIndicatorTypeForPolicy = useCallback(
         // TO DO: Wait for missing logic to be implemented in other PR
@@ -81,7 +88,6 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     }, []);
 
     const onChangeText = useCallback((newSearchTerm) => {
-        // TO DO: Handle searching logic
         setSearchTerm(newSearchTerm);
     }, []);
 
@@ -102,28 +108,31 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                         },
                     ],
                     boldStyle: hasUnreadData(policy.id),
+                    keyForList: policy.id,
                 }))
                 .sortBy((policy) => policy.text.toLowerCase())
                 .value(),
         [policies, isOffline, getIndicatorTypeForPolicy, hasUnreadData],
     );
 
+    const filteredUserWorkspaces = useMemo(() => _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().startsWith(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);
+
     const usersWorkspacesSectionData = useMemo(
         () => ({
-            data: usersWorkspaces,
+            data: filteredUserWorkspaces,
             shouldShow: true,
             indexOffset: 0,
         }),
-        [usersWorkspaces],
+        [filteredUserWorkspaces],
     );
 
     const everythingSection = useMemo(() => {
         const option = {
-            text: 'Expensify',
+            text: EXPENSIFY_TITLE,
             icons: [
                 {
                     source: Expensicons.ExpensifyAppIcon,
-                    name: 'Expensify',
+                    name: EXPENSIFY_TITLE,
                     type: CONST.ICON_TYPE_AVATAR,
                 },
             ],
@@ -166,30 +175,40 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
         styles.mh4,
         theme.textSupporting,
     ]);
-
-    const inputCallbackRef = useAutoFocusInput();
+ 
     const workspacesSection = useMemo(
         () => (
             <>
-                <View style={[styles.mh4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+                <View style={[styles.mh4, styles.mt2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd, ...(usersWorkspaces.length > 0 ? [styles.mb1] : [styles.mb3])]}>
+                    <View>
+
                     <Text
                         style={[styles.mt3, styles.label]}
                         color={theme.textSupporting}
-                    >
+                        >
                         Workspaces
                     </Text>
+                        </View>
+                    <PressableWithFeedback role={CONST.ROLE.BUTTON}>
+                    {({hovered}) => (
+                        <Icon
+                            src={Expensicons.Plus}
+                            width={12}
+                            height={12}
+additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2, hovered && styles.buttonHoveredBG]}
+                        />
+                    )}
+                </PressableWithFeedback>
                 </View>
-                {/* TO DO: Display breadcrumb */}
-                {usersWorkspacesSectionData.data.length === 0 && <View />}
-                <OptionsSelector
+
+                {usersWorkspaces.length > 0 ? <OptionsSelector
                     ref={inputCallbackRef}
                     sections={[usersWorkspacesSectionData]}
                     value={searchTerm}
-                    shouldShowTextInput={usersWorkspacesSectionData.data.length > 8}
+                    shouldShowTextInput={usersWorkspaces.length < MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
                     onChangeText={onChangeText}
                     selectedOptions={selectedOption ? [selectedOption] : []}
                     onSelectRow={selectPolicy}
-                    boldStyle
                     shouldPreventDefaultFocusOnSelectRow
                     highlightSelectedOptions
                     shouldShowOptions
@@ -199,27 +218,10 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                     shouldShowSubscript={false}
                     showTitleTooltip={false}
                     contentContainerStyles={[styles.pt0, styles.mt0]}
-                />
+                /> : <WorkspaceCardCreateAWorkspace/>}
             </>
         ),
-        [
-            inputCallbackRef,
-            onChangeText,
-            searchTerm,
-            selectPolicy,
-            selectedOption,
-            styles.alignItemsCenter,
-            styles.flexRow,
-            styles.justifyContentBetween,
-            styles.label,
-            styles.mb1,
-            styles.mh4,
-            styles.mt0,
-            styles.mt3,
-            styles.pt0,
-            theme.textSupporting,
-            usersWorkspacesSectionData,
-        ],
+        [inputCallbackRef, onChangeText, searchTerm, selectPolicy, selectedOption, styles.alignItemsEnd, styles.borderRadiusNormal, styles.buttonDefaultBG, styles.buttonHoveredBG, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb1, styles.mb3, styles.mh4, styles.mt0, styles.mt2, styles.mt3, styles.p2, styles.pt0, theme.textSupporting, usersWorkspaces.length, usersWorkspacesSectionData],
     );
 
     useEffect(() => {
