@@ -5,7 +5,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import * as IOU from '@userActions/IOU';
+import * as IOU from './IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, Transaction} from '@src/types/onyx';
