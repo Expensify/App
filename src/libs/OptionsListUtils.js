@@ -1063,7 +1063,7 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
 
 /**
  * Represents the data for a single tax rate.
- * 
+ *
  * @typedef {Object} TaxData
  * @property {string} name - The name of the tax rate.
  * @property {string} value - The value of the tax rate.
@@ -1071,12 +1071,12 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
  * @property {string} actualName - The actual name of the tax rate.
  * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
  */
- 
- /**
+
+/**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
  * @param {PolicyTaxRates} policyTaxRates - The original tax rates object.
- * @returns {Array<Object>} The transformed tax rates object.
+ * @returns {Object.<string, TaxData>} The transformed tax rates object.
  */
 function transformedTaxRates(policyTaxRates) {
     const defaultTaxKey = policyTaxRates.defaultExternalID;

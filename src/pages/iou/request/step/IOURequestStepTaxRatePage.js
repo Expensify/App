@@ -48,7 +48,7 @@ const defaultProps = {
 const calculateTaxAmount = (taxRates, selectedTaxRate, amount) => {
     const percentage = _.find(OptionsListUtils.transformedTaxRates(taxRates), (taxRate) => taxRate.name === selectedTaxRate).value;
     const divisor = percentage.slice(0, -1) / 100 + 1;
-    return parseInt(Math.round(amount - (amount / divisor)), 10) / 100;
+    return parseInt(Math.round(amount - amount / divisor), 10) / 100;
 };
 
 function IOURequestStepTaxRatePage({
