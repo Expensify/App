@@ -129,6 +129,7 @@ Delete all articles for the hub
 
 # How to change icon of a hub
 
+# How to create a new subcategory
 
 # How to add a new Article
 
@@ -137,6 +138,9 @@ Delete all articles for the hub
 Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `/articles`. For example, if the article belongs in the `Send money` hub and `Workspaces` section, then copy the template into `articles/send-money/workspaces` directory. Next, rename the copy with the name of the article title, i.e. [The-Free-Plan.md](https://github.com/Expensify/App/blob/main/docs/articles/send-money/The-Free-Plan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
+
+## Add images
+TODO
 
 ## Add meta-description tags for SEO
 
