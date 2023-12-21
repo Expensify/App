@@ -1,12 +1,12 @@
 import type {ContentStyle} from '@shopify/flash-list';
 import type {RefObject} from 'react';
-import {type StyleProp, View, type ViewStyle} from 'react-native';
+import {type StyleProp, TextStyle, View, type ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 type LHNOptionsListOnyxProps = {
     /** The policy which the user has access to and which the report could be tied to */
@@ -19,7 +19,7 @@ type LHNOptionsListOnyxProps = {
     reportActions: OnyxCollection<ReportActions>;
 
     /** Indicates which locale the user currently has selected */
-    preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
+    preferredLocale: OnyxEntry<Locale>;
 
     /** List of users' personal details */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -60,7 +60,7 @@ type OptionRowLHNDataProps = {
     personalDetails: PersonalDetailsList;
 
     /** The preferred language for the app */
-    preferredLocale: OnyxEntry<ValueOf<typeof CONST.LOCALES>>;
+    preferredLocale: OnyxEntry<Locale>;
 
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
@@ -74,12 +74,16 @@ type OptionRowLHNDataProps = {
     /** The transaction from the parent report action */
     transaction: OnyxEntry<Transaction>;
 
+    /** Comment added to report */
     comment: string;
 
+    /** The receipt transaction from the parent report action */
     receiptTransactions: OnyxCollection<Transaction>;
 
+    /** The reportID of the report */
     reportID: string;
 
+    /** Array of report actions for this report */
     reportActions: OnyxEntry<ReportActions>;
 };
 
@@ -88,7 +92,7 @@ type OptionRowLHNProps = {
     isFocused?: boolean;
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
     viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
-    style?: ViewStyle | ViewStyle[];
+    style?: StyleProp<TextStyle>;
     optionItem?: OptionData | null;
 };
 

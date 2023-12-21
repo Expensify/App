@@ -231,7 +231,7 @@ type ActorDetails = {
 function getOptionData(
     report: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
-    personalDetails: PersonalDetailsList,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: OnyxEntry<Policy>,
     parentReportAction: OnyxEntry<ReportAction>,
