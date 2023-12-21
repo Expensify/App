@@ -724,7 +724,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     const lastMessageText = ReportActionsUtils.getLastVisibleMessage(taskReportID).lastMessageText;
     const shouldDeleteTask = !lastMessageText || lastMessageText.length === 0;
 
-
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
