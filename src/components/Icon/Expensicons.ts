@@ -86,6 +86,7 @@ import Menu from '@assets/images/menu.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import Monitor from '@assets/images/monitor.svg';
+import NewExpensify from '@assets/images/new-expensify.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -221,6 +222,7 @@ export {
     MoneyBag,
     MoneyCircle,
     Monitor,
+    NewExpensify,
     NewWindow,
     NewWorkspace,
     Offline,
