@@ -67,4 +67,7 @@ export default PropTypes.shape({
 
     /** Field-specific pending states for offline UI status */
     pendingFields: PropTypes.objectOf(PropTypes.string),
+
+    /** Custom fields attached to the report */
+    reportFields: PropTypes.objectOf(PropTypes.string),
 });

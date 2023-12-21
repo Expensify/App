@@ -620,6 +620,7 @@ function ReportActionItem(props) {
                 <OfflineWithFeedback pendingAction={props.action.pendingAction}>
                     <MoneyReportView
                         report={props.report}
+                        policyReportFields={props.policyReportFields}
                         shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                     />
                 </OfflineWithFeedback>
@@ -765,6 +766,10 @@ export default compose(
             },
             initialValue: {},
         },
+        policyReportFields: {
+            key: ({report}) => report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined,
+            initialValue: [],
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
             initialValue: {},
@@ -800,6 +805,8 @@ export default compose(
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine &&
             lodashGet(prevProps.report, 'total', 0) === lodashGet(nextProps.report, 'total', 0) &&
             lodashGet(prevProps.report, 'nonReimbursableTotal', 0) === lodashGet(nextProps.report, 'nonReimbursableTotal', 0) &&
-            prevProps.linkedReportActionID === nextProps.linkedReportActionID,
+            prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
+            _.isEqual(prevProps.policyReportFields, nextProps.policyReportFields) &&
+            _.isEqual(prevProps.report.reportFields, nextProps.report.reportFields),
     ),
 );
