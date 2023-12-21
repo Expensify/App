@@ -2023,12 +2023,12 @@ export default {
         copyReferralLink: 'Copy invite link',
     },
     purposeForExpensify: {
-        track: 'Track my business expenses to file taxes',
-        submit: 'Submit expenses to my employer to get paid back',
+        track: 'Track business spend for taxes',
+        submit: 'Get paid back by my employer',
         business: "Manage my team's expenses",
-        chatSplit: 'Chat and split expenses with friends',
+        chatSplit: 'Chat and split bills with friends',
         welcomeMessage: 'Welcome to Expensify',
-        welcomeSubtitle: "What's your main purpose for using Expensify?",
+        welcomeSubtitle: 'What would you like to do?',
     },
     violations: {
         allTagLevelsRequired: 'dummy.violations.allTagLevelsRequired',

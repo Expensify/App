@@ -2510,12 +2510,12 @@ export default {
         copyReferralLink: 'Copiar enlace de invitación',
     },
     purposeForExpensify: {
-        track: 'Track my business expenses to file taxes',
-        submit: 'Submit expenses to my employer to get paid back',
-        business: "Manage my team's expenses",
-        chatSplit: 'Chat and split expenses with friends',
-        welcomeMessage: 'Welcome to Expensify',
-        welcomeSubtitle: "What's your main purpose for using Expensify?",
+        track: 'Seguimiento de los gastos de empresa para fines fiscales' ,
+        submit: 'Reclamar gastos a mi empleador',
+        business: 'Gestionar los gastos de mi equipo',
+        chatSplit: 'Chatea y divide gastos con tus amigos',
+        welcomeMessage: 'Bienvenido a Expensify',
+        welcomeSubtitle: '¿Qué te gustaría hacer?',
     },
     violations: {
         allTagLevelsRequired: 'dummy.violations.allTagLevelsRequired',
