@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import React from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -57,6 +57,10 @@ function ChooseSSOOrMagicCode({credentials, account, setIsUsingMagicCode}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
+
+    useEffect(() => {
+        Keyboard.dismiss();
+    }, []);
 
     return (
         <>
