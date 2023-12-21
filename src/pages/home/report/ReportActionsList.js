@@ -2,6 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -16,16 +17,15 @@ import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
-import ListBoundaryLoader from '@pages/home/report/ListBoundaryLoader/ListBoundaryLoader';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
 import Visibility from '@libs/Visibility';
 import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import DeviceEventListenerRef from './DeviceEventListenerRef';
+import FloatingMessageCounter from './FloatingMessageCounter';
+import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
+import reportActionPropTypes from './reportActionPropTypes';
+import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -144,6 +144,8 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
+    const unreadActionSubscription = useRef(null);
+    const readNewestActionSubscription = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -229,15 +231,13 @@ function ReportActionsList({
         };
 
         // Listen to specific reportID for unread event and set the marker to new message
-        const unreadActionSubscription = DeviceEventListenerRef.use('unreadAction');
-        unreadActionSubscription.add(report.reportID, (newLastReadTime) => {
+        unreadActionSubscription.current = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        const readNewestActionSubscription = DeviceEventListenerRef.use('readNewestAction');
         // Listen to specific reportID for read newest action event and reset the marker
-        readNewestActionSubscription.add(report.reportID, (newLastReadTime) => {
+        readNewestActionSubscription.current = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(0);
         });
@@ -245,8 +245,8 @@ function ReportActionsList({
         return () => {
             // If the reportID changes, we reset the userActiveSince to null, we need to do it because
             // this component doesn't unmount when the reportID changes
-            unreadActionSubscription.remove();
-            readNewestActionSubscription.remove();
+            unreadActionSubscription.current.remove();
+            readNewestActionSubscription.current.remove();
         };
     }, [report.reportID]);
 
