@@ -302,7 +302,10 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
+    policyID,
 ) {
+    const isPolicyAdmin = ReportUtils.getPolicy(policyID).role === CONST.POLICY.ROLE.ADMIN;
+
     const optimisticData = [
         {
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -313,6 +316,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
+                ...(isPolicyAdmin ? {hasOutstandingChildRequest: true} : {}),
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
@@ -459,6 +463,7 @@ function buildOnyxDataForMoneyRequest(
                 iouReportID: chatReport.iouReportID,
                 lastReadTime: chatReport.lastReadTime,
                 pendingFields: null,
+                ...(isPolicyAdmin ? {hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest} : {}),
                 ...(isNewChatReport
                     ? {
                           errorFields: {
@@ -752,6 +757,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
         isNewIOUReport,
+        participant.policyID,
     );
 
     return {
@@ -1430,6 +1436,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             optimisticPolicyRecentlyUsedTags,
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
+            participant.policyID,
         );
 
         const individualSplit = {
@@ -1955,6 +1962,7 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             {},
             isNewOneOnOneChatReport,
             shouldCreateNewOneOnOneIOUReport,
+            participant.policyID,
         );
 
         splits.push({
