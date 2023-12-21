@@ -4,13 +4,13 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import * as ReportUtils from '@libs/ReportUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 
 type AvatarProps = {
@@ -54,13 +54,14 @@ function Avatar({
     containerStyles,
     size = CONST.AVATAR_SIZE.DEFAULT,
     fill,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon = undefined,
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useThemeIllustrations();
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
@@ -80,7 +81,7 @@ function Avatar({
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill ?? theme.icon;
-    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon ?? illustrations.FallbackAvatar;
 
     const avatarSource = imageError ? fallbackAvatar : source;
 

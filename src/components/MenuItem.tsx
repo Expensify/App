@@ -7,6 +7,7 @@ import {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
@@ -246,7 +247,7 @@ function MenuItem(
         iconWidth,
         iconHeight,
         iconStyles,
-        fallbackIcon = Expensicons.FallbackAvatar,
+        fallbackIcon = undefined,
         shouldShowTitleIcon = false,
         titleIcon,
         shouldShowRightIcon = false,
@@ -289,6 +290,7 @@ function MenuItem(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useThemeIllustrations();
     const combinedStyle = StyleUtils.combineStyles(style ?? {}, styles.popoverMenuItem);
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = useState('');
@@ -437,7 +439,7 @@ function MenuItem(
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                     source={icon as AvatarSource}
-                                                    fallbackIcon={fallbackIcon}
+                                                    fallbackIcon={fallbackIcon ?? illustrations.FallbackAvatar}
                                                     name={title}
                                                     type={CONST.ICON_TYPE_WORKSPACE}
                                                 />
@@ -446,7 +448,7 @@ function MenuItem(
                                                 <Avatar
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     source={icon as AvatarSource}
-                                                    fallbackIcon={fallbackIcon}
+                                                    fallbackIcon={fallbackIcon ?? illustrations.FallbackAvatar}
                                                     size={avatarSize}
                                                 />
                                             )}

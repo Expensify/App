@@ -6,6 +6,7 @@ import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
@@ -104,7 +105,7 @@ const defaultProps = {
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
-    fallbackIcon: Expensicons.FallbackAvatar,
+    fallbackIcon: undefined,
     type: CONST.ICON_TYPE_AVATAR,
     editorMaskImage: undefined,
     errorRowStyles: [],
@@ -144,6 +145,7 @@ function AvatarWithImagePicker({
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [errorData, setErrorData] = useState({
         validationError: null,
@@ -308,7 +310,7 @@ function AvatarWithImagePicker({
                                         containerStyles={styles.avatarLarge}
                                         imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                         source={source}
-                                        fallbackIcon={fallbackIcon}
+                                        fallbackIcon={fallbackIcon || illustrations.FallbackAvatar}
                                         size={size}
                                         type={type}
                                     />
@@ -331,7 +333,7 @@ function AvatarWithImagePicker({
                     headerTitle={headerTitle}
                     source={previewSource}
                     originalFileName={originalFileName}
-                    fallbackSource={fallbackIcon}
+                    fallbackSource={fallbackIcon || illustrations.FallbackAvatar}
                 >
                     {({show}) => (
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>

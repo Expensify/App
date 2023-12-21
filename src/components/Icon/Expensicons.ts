@@ -5,14 +5,9 @@ import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
-import AdminRoomAvatar from '@assets/images/avatars/admin-room.svg';
-import AnnounceRoomAvatar from '@assets/images/avatars/announce-room.svg';
 import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
-import DeletedRoomAvatar from '@assets/images/avatars/deleted-room.svg';
-import DomainRoomAvatar from '@assets/images/avatars/domain-room.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
-import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Bell from '@assets/images/bell.svg';
@@ -132,11 +127,8 @@ import Zoom from '@assets/images/zoom.svg';
 import LoungeAccess from './svgs/LoungeAccessIcon';
 
 export {
-    ActiveRoomAvatar,
     AddReaction,
-    AdminRoomAvatar,
     Android,
-    AnnounceRoomAvatar,
     Apple,
     AppleLogo,
     ArrowRight,
@@ -167,9 +159,7 @@ export {
     Connect,
     Copy,
     CreditCard,
-    DeletedRoomAvatar,
     Document,
-    DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
     DownArrow,
