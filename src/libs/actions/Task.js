@@ -366,14 +366,19 @@ function reopenTask(taskReport) {
  * @param {Object} editedTask
  */
 function editTask(report, {title, description}) {
-    // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
-
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title || report.reportName).trim();
 
     // Description can be unset, so we default to an empty string if so
     const reportDescription = (!_.isUndefined(description) ? description : lodashGet(report, 'description', '')).trim();
+
+    let editTaskReportAction = null;
+    // Determine what changed
+    if (title && title.trim() !== report.reportName.trim()) {
+        editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail, 'title', reportName);
+    } else if (!_.isUndefined(description) && description.trim() !== lodashGet(report, 'description', '').trim()) {
+        editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail, 'description', reportDescription);
+    }
 
     const optimisticData = [
         {

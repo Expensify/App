@@ -3072,7 +3072,20 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
 /**
  * Returns the necessary reportAction onyx data to indicate that a task report has been edited
  */
-function buildOptimisticEditedTaskReportAction(emailEditingTask: string): OptimisticEditedTaskReportAction {
+function buildOptimisticEditedTaskReportAction(emailEditingTask: string, fieldEdited: 'title'|'description'|'assignee', newValue: string|null): OptimisticEditedTaskReportAction {
+    
+    let messageText = '';
+
+    if (fieldEdited === 'assignee') {
+        if (newValue) {
+            messageText = `assigned the task to ${newValue}`;
+        } else {
+            messageText = 'removed the assignee';
+        }
+    } else {
+        messageText = `updated the ${fieldEdited} to ${newValue}`;
+    }
+
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
@@ -3082,12 +3095,12 @@ function buildOptimisticEditedTaskReportAction(emailEditingTask: string): Optimi
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: emailEditingTask,
+                text: emailCreatingAction,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'normal',
-                text: ' edited this task',
+                text: ` ${messageText}`,
             },
         ],
         person: [
