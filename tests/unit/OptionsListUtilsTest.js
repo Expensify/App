@@ -7,7 +7,7 @@ import * as ReportUtils from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-fdescribe('OptionsListUtils', () => {
+describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
     const REPORTS = {
         1: {

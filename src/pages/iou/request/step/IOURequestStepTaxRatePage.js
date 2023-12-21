@@ -47,8 +47,8 @@ const defaultProps = {
 // this is the formulae to calculate tax
 const calculateTaxAmount = (taxRates, selectedTaxRate, amount) => {
     const percentage = _.find(OptionsListUtils.transformedTaxRates(taxRates), (taxRate) => taxRate.name === selectedTaxRate).value;
-    const divisor = percentage.slice(0, -1) / 100 + 1; // slice to remove % at the end; converts "10%" to "10"
-    return parseInt(Math.round(amount - amount / divisor), 10) / 100; // returns The expense amount of transaction
+    const divisor = percentage.slice(0, -1) / 100 + 1;
+    return parseInt(Math.round(amount - (amount / divisor)), 10) / 100;
 };
 
 function IOURequestStepTaxRatePage({
