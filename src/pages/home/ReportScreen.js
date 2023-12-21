@@ -260,7 +260,7 @@ function ReportScreen({
 
         // Report ID will be empty when the reports collection is empty.
         // This could happen when we are loading the collection for the first time after logging in.
-        if (!ReportUtils.isValidReportIDFromPath(reportIDFromPath)) {
+        if (!reportIDFromPath) {
             return;
         }
 
