@@ -2510,7 +2510,7 @@ export default {
         copyReferralLink: 'Copiar enlace de invitación',
     },
     purposeForExpensify: {
-        track: 'Seguimiento de los gastos de empresa para fines fiscales' ,
+        track: 'Seguimiento de los gastos de empresa para fines fiscales',
         submit: 'Reclamar gastos a mi empleador',
         business: 'Gestionar los gastos de mi equipo',
         chatSplit: 'Chatea y divide gastos con tus amigos',

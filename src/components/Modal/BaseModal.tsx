@@ -9,11 +9,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
+import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import BaseModalProps from './types';
 
 function BaseModal(
@@ -203,7 +203,7 @@ function BaseModal(
             statusBarTranslucent={statusBarTranslucent}
             onLayout={onLayout}
             avoidKeyboard={avoidKeyboard}
-            customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress}/> : undefined}
+            customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
         >
             <View
                 style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
