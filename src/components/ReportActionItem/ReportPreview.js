@@ -210,7 +210,11 @@ function ReportPreview(props) {
         const unsubscribeOnyxTransaction = onyxSubscribe({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
-            callback: () => {
+            callback: (allTransactions) => {
+                if (_.isEmpty(allTransactions)) {
+                    return;
+                }
+                
                 sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
                 setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID));
                 setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
