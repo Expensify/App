@@ -10,7 +10,6 @@ const PushNotification: PushNotificationType = {
     onSelected: () => {},
     TYPE: NotificationType,
     clearNotifications: () => {},
-    clearReportNotifications: () => {},
 };
 
 export default PushNotification;
