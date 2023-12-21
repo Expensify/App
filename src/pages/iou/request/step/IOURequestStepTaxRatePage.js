@@ -44,7 +44,6 @@ const defaultProps = {
     transaction: {},
 };
 
-// this is the formulae to calculate tax
 const calculateAmount = (taxRates, selectedTaxRate, amount) => {
     const percentage = _.find(OptionsListUtils.transformedTaxRates(taxRates), (taxRate) => taxRate.name === selectedTaxRate).value;
     const divisor = percentage.slice(0, -1) / 100 + 1; // slice to remove % at the end; converts "10%" to "10"
