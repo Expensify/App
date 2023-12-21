@@ -142,7 +142,7 @@ function addPersonalAddressForDraft(personalAddress: {requestorAddressStreet?: s
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: Omit<PlaidBankAccount, 'isSavings' | 'addressName' | 'mask'>) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
     type ConnectBankAccountWithPlaidParams = {

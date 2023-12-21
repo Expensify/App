@@ -1,51 +1,47 @@
 import {useIsFocused} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import Form from '@components/Form';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {PlaidData, ReimbursementAccountDraft, ReimbursementAccount as TReimbursementAccount} from '@src/types/onyx';
 
-const propTypes = {
+type PlaidOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<TReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 
     /** Contains plaid data */
-    plaidData: PlaidDataProps.plaidDataPropTypes,
-
-    ...subStepPropTypes,
+    plaidData: OnyxEntry<PlaidData>;
 };
+
+type PlaidProps = PlaidOnyxProps & SubStepProps;
 
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-    plaidData: PlaidDataProps.plaidDataDefaultProps,
-};
-
-function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}) {
+function Plaid({
+    reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccountDraft,
+    onNext,
+    plaidData = PlaidDataProps.plaidDataDefaultProps,
+}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
 
-    const validate = useCallback((values) => {
-        const errorFields = {};
+    const validate = useCallback((values: {acceptTerms: boolean}) => {
+        const errorFields: Record<string, string> = {};
         if (!values.acceptTerms) {
             errorFields.acceptTerms = 'common.error.acceptTerms';
         }
@@ -54,7 +50,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, []);
 
     useEffect(() => {
-        const plaidBankAccounts = lodashGet(plaidData, 'bankAccounts', []);
+        const plaidBankAccounts = plaidData?.bankAccounts ?? [];
         if (isFocused || plaidBankAccounts.length) {
             return;
         }
@@ -62,28 +58,27 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, [isFocused, plaidData]);
 
     const handleNextPress = useCallback(() => {
-        const selectedPlaidBankAccount = _.findWhere(lodashGet(plaidData, 'bankAccounts', []), {
-            plaidAccountID: lodashGet(reimbursementAccountDraft, 'plaidAccountID', ''),
-        });
+        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === reimbursementAccountDraft?.plaidAccountID) ?? null;
 
         const bankAccountData = {
-            [bankInfoStepKeys.ROUTING_NUMBER]: selectedPlaidBankAccount.routingNumber,
-            [bankInfoStepKeys.ACCOUNT_NUMBER]: selectedPlaidBankAccount.accountNumber,
-            [bankInfoStepKeys.PLAID_MASK]: selectedPlaidBankAccount.mask,
-            [bankInfoStepKeys.IS_SAVINGS]: selectedPlaidBankAccount.isSavings,
-            [bankInfoStepKeys.BANK_NAME]: lodashGet(plaidData, 'bankName', ''),
-            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount.plaidAccountID,
-            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: lodashGet(plaidData, 'plaidAccessToken', ''),
+            [bankInfoStepKeys.ROUTING_NUMBER]: selectedPlaidBankAccount?.routingNumber,
+            [bankInfoStepKeys.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.accountNumber,
+            [bankInfoStepKeys.PLAID_MASK]: selectedPlaidBankAccount?.mask,
+            [bankInfoStepKeys.IS_SAVINGS]: selectedPlaidBankAccount?.isSavings,
+            [bankInfoStepKeys.BANK_NAME]: plaidData?.bankName ?? '',
+            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.plaidAccountID,
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: plaidData?.plaidAccessToken ?? '',
         };
 
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
         onNext();
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = Number(getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID, 0));
-    const selectedPlaidAccountID = lodashGet(reimbursementAccountDraft, 'plaidAccountID', '');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
+    const selectedPlaidAccountID = reimbursementAccountDraft?.plaidAccountID ?? '';
 
     return (
+        // @ts-expect-error TODO: remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TS
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             validate={validate}
@@ -91,11 +86,11 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
             scrollContextEnabled
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
-            isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts'))}
+            isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && (plaidData?.bankAccounts ?? []).length > 0}
         >
             <AddPlaidBankAccount
                 text={translate('bankAccount.plaidBodyCopy')}
-                onSelect={(plaidAccountID) => {
+                onSelect={(plaidAccountID: string) => {
                     ReimbursementAccount.updateReimbursementAccountDraft({plaidAccountID});
                 }}
                 plaidData={plaidData}
@@ -110,10 +105,8 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
 }
 
 Plaid.displayName = 'Plaid';
-Plaid.defaultProps = defaultProps;
-Plaid.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<PlaidProps, PlaidOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

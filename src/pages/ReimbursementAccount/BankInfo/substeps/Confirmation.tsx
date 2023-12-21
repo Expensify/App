@@ -1,7 +1,7 @@
-import lodashGet from 'lodash/get';
 import React, {useMemo} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
@@ -9,46 +9,39 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccountDraft, ReimbursementAccount as TReimbursementAccount} from '@src/types/onyx';
 
-const propTypes = {
+type ConfirmationOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<TReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    ...subStepPropTypes,
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-};
+type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
-function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}) {
+function Confirmation({reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps, reimbursementAccountDraft = {}, onNext}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const isLoading = lodashGet(reimbursementAccount, 'isLoading', false);
-    const setupType = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'subStep');
-    const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    const isLoading = reimbursementAccount?.isLoading ?? false;
+    const setupType = reimbursementAccount?.achData?.subStep ?? '';
+    const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
+    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
     const handleConnectDifferentAccount = () => {
         const bankAccountData = {
@@ -66,6 +59,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
     };
 
     return (
+        // @ts-expect-error TODO: remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS
         <ScreenWrapper
             testID={Confirmation.displayName}
             style={[styles.pt0]}
@@ -93,17 +87,20 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
                     )}
                     {setupType === CONST.BANK_ACCOUNT.SUBSTEP.PLAID && (
                         <MenuItem
+                            // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
                             interactive={false}
                             icon={Expensicons.Bank}
                             iconStyles={[styles.confirmBankInfoCompanyIcon]}
                             iconFill={theme.iconHovered}
                             wrapperStyle={[styles.pl0, styles.mb6]}
                             title={values[bankInfoStepKeys.BANK_NAME]}
-                            description={`${translate('bankAccount.accountEnding')} ${values[bankInfoStepKeys.ACCOUNT_NUMBER].slice(-4)}`}
+                            description={`${translate('bankAccount.accountEnding')} ${(values[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '').slice(-4)}`}
                         />
                     )}
                     <Text style={[styles.confirmBankInfoText, styles.mb4]}>{translate('bankAccount.thisBankAccount')}</Text>
+
                     <MenuItem
+                        // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
                         icon={Expensicons.Bank}
                         titleStyle={[styles.confirmBankInfoText]}
                         title={translate('bankAccount.connectDifferentAccount')}
@@ -117,7 +114,7 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
                             type="error"
-                            messages={{0: error}}
+                            messages={{error}}
                         />
                     )}
                     <Button
@@ -135,10 +132,8 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
 }
 
 Confirmation.displayName = 'Confirmation';
-Confirmation.defaultProps = defaultProps;
-Confirmation.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
