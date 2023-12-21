@@ -211,7 +211,10 @@ function ReportPreview(props) {
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
             callback: (allTransactions) => {
-
+                if (_.isEmpty(allTransactions)) {
+                    return;
+                }
+                
                 sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
                 setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID));
                 setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
