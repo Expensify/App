@@ -556,8 +556,8 @@ function sortReportsByLastRead(reports: OnyxCollection<Report>, reportsMetadata:
             (report) => !!report?.reportID && !!(reportsMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime)
         )
         .sort((a, b) => {
-            const aTime = new Date((reportsMetadata && a && reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a.reportID}`]?.lastVisitTime) ?? a?.lastReadTime ?? '');
-            const bTime = new Date((reportsMetadata && b && reportsMetadata[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b.reportID}`]?.lastVisitTime) ?? b?.lastReadTime ?? '');
+            const aTime = new Date(reportsMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
+            const bTime = new Date(reportsMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
 
             return aTime.valueOf() - bTime.valueOf();
         });
