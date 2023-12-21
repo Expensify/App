@@ -148,7 +148,7 @@ export default [
             const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
             return (
-                !isWhisperAction &&
+                (!isWhisperAction || isIOUAction || isReportPreviewAction) &&
                 (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) &&
                 !ReportUtils.isThreadFirstChat(reportAction, reportID)
             );
