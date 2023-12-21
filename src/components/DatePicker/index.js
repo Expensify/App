@@ -3,7 +3,6 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import InputWrapper from '@components/Form/InputWrapper';
 import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
 import TextInput from '@components/TextInput';
@@ -110,9 +109,8 @@ function DatePicker({
     return (
         <View style={styles.datePickerRoot}>
             <View style={[isSmallScreenWidth ? styles.flex2 : {}, styles.pointerEventsNone]}>
-                <InputWrapper
+                <TextInput
                     ref={forwardedRef}
-                    InputComponent={TextInput}
                     inputID={inputID}
                     forceActiveLabel
                     icon={Expensicons.Calendar}

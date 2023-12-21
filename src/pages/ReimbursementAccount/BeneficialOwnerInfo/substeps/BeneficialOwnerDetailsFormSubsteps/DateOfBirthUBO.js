@@ -5,6 +5,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -65,7 +66,8 @@ function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficia
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadline, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheDateOfBirthOfTheOwner')}</Text>
-            <DatePicker
+            <InputWrapper
+                InputComponent={DatePicker}
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 inputID={dobInputID}
                 label={translate('common.dob')}
