@@ -26,6 +26,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
@@ -102,29 +103,7 @@ const propTypes = {
     isWhisper: PropTypes.bool,
 
     /** All of the transaction violations */
-    transactionViolations: PropTypes.shape({
-        violations: PropTypes.arrayOf(
-            PropTypes.shape({
-                /** The transaction ID */
-                transactionID: PropTypes.number,
-
-                /** The transaction violation type */
-                type: PropTypes.string,
-
-                /** The transaction violation message */
-                message: PropTypes.string,
-
-                /** The transaction violation data */
-                data: PropTypes.shape({
-                    /** The transaction violation data field */
-                    field: PropTypes.string,
-
-                    /** The transaction violation data value */
-                    value: PropTypes.string,
-                }),
-            }),
-        ),
-    }),
+    transactionViolations: transactionViolationsPropType,
 
     ...withLocalizePropTypes,
 };
