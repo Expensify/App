@@ -82,7 +82,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS]: undefined;
-    [SCREENS.SETTINGS.PROFILE.STATUS_SET]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
+    [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.INITIAL]: undefined;
     [SCREENS.WORKSPACE.SETTINGS]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
@@ -372,8 +374,8 @@ type PublicScreensParamList = {
         validateCode: string;
     };
     [SCREENS.UNLINK_LOGIN]: {
-        accountID: string;
-        validateCode: string;
+        accountID?: string;
+        validateCode?: string;
     };
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;

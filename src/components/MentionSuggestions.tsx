@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getStyledTextArray from '@libs/GetStyledTextArray';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';

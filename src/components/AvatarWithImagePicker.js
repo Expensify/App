@@ -4,12 +4,12 @@ import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import stylePropTypes from '@styles/stylePropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
@@ -297,7 +297,7 @@ function AvatarWithImagePicker({
                     <Tooltip text={translate('avatarWithImagePicker.editImage')}>
                         <PressableWithoutFeedback
                             onPress={() => setIsMenuVisible((prev) => !prev)}
-                            role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={translate('avatarWithImagePicker.editImage')}
                             disabled={isAvatarCropModalOpen}
                             ref={anchorRef}
