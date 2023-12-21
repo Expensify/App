@@ -140,9 +140,9 @@ You can now begin adding articles inside the subcategory `hr-integrations/`.
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Expensify Card` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensiyfy-classic/expensify-card` directory. 
+Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Bank Accounts` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensiyfy-classic/bank-accounts` directory.
 
-Next, rename the copy with the name of the article title, i.e. `Perks-Of-The-Card.md` (you can use dashes for spaces in the file name if it's needed). The dashes will be removed in the generated site page.
+Next, rename the copy with the name of the article title, i.e. `Connect-ANZ.md` (you can use dashes for spaces in the file name if it's needed). The dashes will be removed in the generated site page.
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
 
@@ -154,8 +154,6 @@ The sections of the article will be filled and nested automatically in the LHN, 
 - Note to replace `Image description here`  with an apt description of the image.
 
 If you're unfamiliar with github branches, PRs and confused how to add images and article in the same PR, head to this [slack thread 🧵](https://expensify.slack.com/archives/C02QSAC6BJ8/p1699632298177679?thread_ts=1699576284.768909&cid=C02QSAC6BJ8) in `#expensifyhelp`.
-
-
 
 ## Add meta-description tags for SEO
 
@@ -171,8 +169,7 @@ image: (Optional) URL to an image associated with the post, page, or document (e
 
 Just update the content for each variable accordingly or remove it if the information is not available. More details [here](https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md#usage).
 
-
 # How the site is deployed
-This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run. 
+This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run.
 
 It will generate routes.yml using the script `createDocsRoutes`, build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/
