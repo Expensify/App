@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -73,21 +74,23 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <Text style={[styles.textHeadline, styles.ph5, styles.mb6]}>{translate('bankAccount.letsDoubleCheck')}</Text>
-                <View style={[styles.confirmBankInfoCard]}>
+                <View style={[styles.cardSection]}>
                     {setupType === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL && (
-                        <View style={[styles.mb5]}>
+                        <View style={[styles.mb5, styles.flexRow, styles.alignItemsCenter]}>
                             <Icon
                                 src={Expensicons.Bank}
-                                additionalStyles={[styles.confirmBankInfoCompanyIcon, styles.mb5]}
+                                additionalStyles={[styles.confirmBankInfoCompanyIcon, styles.mr3]}
                                 fill={theme.iconHovered}
                             />
-                            <View style={[styles.mb3]}>
-                                <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.routingNumber')}</Text>
-                                <Text style={styles.confirmBankInfoNumber}>{values[bankInfoStepKeys.ROUTING_NUMBER]}</Text>
-                            </View>
                             <View>
-                                <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.accountNumber')}</Text>
-                                <Text style={styles.confirmBankInfoNumber}>{values[bankInfoStepKeys.ACCOUNT_NUMBER]}</Text>
+                                <View style={[styles.mb3]}>
+                                    <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.routingNumber')}</Text>
+                                    <Text style={styles.confirmBankInfoNumber}>{values[bankInfoStepKeys.ROUTING_NUMBER]}</Text>
+                                </View>
+                                <View>
+                                    <Text style={[styles.mutedTextLabel, styles.mb1]}>{translate('bankAccount.accountNumber')}</Text>
+                                    <Text style={styles.confirmBankInfoNumber}>{values[bankInfoStepKeys.ACCOUNT_NUMBER]}</Text>
+                                </View>
                             </View>
                         </View>
                     )}
@@ -105,7 +108,6 @@ function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext})
                     <Text style={[styles.confirmBankInfoText, styles.mb4]}>{translate('bankAccount.thisBankAccount')}</Text>
                     <MenuItem
                         icon={Expensicons.Bank}
-                        titleStyle={[styles.confirmBankInfoText]}
                         title={translate('bankAccount.connectDifferentAccount')}
                         onPress={handleConnectDifferentAccount}
                         shouldShowRightIcon
