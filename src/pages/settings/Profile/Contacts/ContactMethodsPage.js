@@ -60,7 +60,7 @@ const defaultProps = {
 function ContactMethodsPage(props) {
     const styles = useThemeStyles();
     const loginNames = _.keys(props.loginList);
-    const navigateBackTo = lodashGet(props.route, 'params.backTo', ROUTES.SETTINGS_PROFILE);
+    const navigateBackTo = lodashGet(props.route, 'params.backTo', '');
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
     // The default contact method is determined by checking against the session email (the current login).
