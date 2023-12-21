@@ -54,6 +54,7 @@ const defaultProps = {
     errorLabelStyles: [],
     numPages: null,
     listStyle: undefined,
+    password: undefined,
 };
 
 const WebPDFDocument = memo(
