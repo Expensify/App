@@ -2,6 +2,7 @@ import {act, fireEvent, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
+import _ from 'underscore';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
@@ -121,8 +122,7 @@ const createAddListenerMock = () => {
             transitionEndListeners.push(callback);
         }
         return () => {
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
-            transitionEndListeners.filter((cb) => cb !== callback);
+            _.filter(transitionEndListeners, (cb) => cb !== callback);
         };
     });
 
@@ -156,6 +156,13 @@ const runs = CONST.PERFORMANCE_TESTS.RUNS;
 test('[ReportScreen] should render ReportScreen with composer interactions', () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
+        /**
+         * First make sure ReportScreen is mounted, so that we can trigger
+         * the transitionEnd event manually.
+         *
+         * If we don't do that, then the transitionEnd event will be triggered
+         * before the ReportScreen is mounted, and the test will fail.
+         */
         await screen.findByTestId('ReportScreen');
 
         await act(triggerTransitionEnd);
@@ -192,9 +199,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
     const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '1'}};
 
-    const navigation = {
-        addListener,
-    };
+    const navigation = {addListener};
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -224,6 +229,13 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
 test('[ReportScreen] should press of the report item', () => {
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
+        /**
+         * First make sure ReportScreen is mounted, so that we can trigger
+         * the transitionEnd event manually.
+         *
+         * If we don't do that, then the transitionEnd event will be triggered
+         * before the ReportScreen is mounted, and the test will fail.
+         */
         await screen.findByTestId('ReportScreen');
 
         await act(triggerTransitionEnd);
@@ -252,9 +264,7 @@ test('[ReportScreen] should press of the report item', () => {
     const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '2'}};
 
-    const navigation = {
-        addListener,
-    };
+    const navigation = {addListener};
 
     return waitForBatchedUpdates()
         .then(() =>
