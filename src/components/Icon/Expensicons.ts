@@ -6,8 +6,6 @@ import ArrowRight from '@assets/images/arrow-right.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsUpDown from '@assets/images/arrows-updown.svg';
 import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
-import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
-import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Bell from '@assets/images/bell.svg';
@@ -179,8 +177,6 @@ export {
     Expand,
     Eye,
     EyeDisabled,
-    FallbackAvatar,
-    FallbackWorkspaceAvatar,
     Flag,
     FlagLevelOne,
     FlagLevelTwo,
