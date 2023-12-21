@@ -253,19 +253,18 @@ function WorkspaceInitialPage(props) {
                             errorRowStyles={[styles.ph5, styles.pv2]}
                         >
                             <View style={[styles.mh3, styles.flex1]}>
-                                <View style={[styles.mh5, styles.pv5, styles.justifyContentBetween]}>
-                                    <Breadcrumbs
-                                        breadcrumbs={[
-                                            {
-                                                type: CONST.BREADCRUMB_TYPE.STRONG,
-                                                text: policyName,
-                                            },
-                                            {
-                                                text: translate('common.settings'),
-                                            },
-                                        ]}
-                                    />
-                                </View>
+                                <Breadcrumbs
+                                    breadcrumbs={[
+                                        {
+                                            type: CONST.BREADCRUMB_TYPE.STRONG,
+                                            text: policyName,
+                                        },
+                                        {
+                                            text: translate('common.settings'),
+                                        },
+                                    ]}
+                                    style={[styles.mb2, styles.mh5]}
+                                />
                                 {/*
                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                    In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.

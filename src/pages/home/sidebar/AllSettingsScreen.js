@@ -104,18 +104,17 @@ function AllSettingsScreen() {
 
     return (
         <View style={styles.w100}>
-            <View style={[styles.ph5, styles.pv5, styles.justifyContentBetween]}>
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            type: CONST.BREADCRUMB_TYPE.ROOT,
-                        },
-                        {
-                            text: translate('common.settings'),
-                        },
-                    ]}
-                />
-            </View>
+            <Breadcrumbs
+                breadcrumbs={[
+                    {
+                        type: CONST.BREADCRUMB_TYPE.ROOT,
+                    },
+                    {
+                        text: translate('common.settings'),
+                    },
+                ]}
+                style={[styles.mb2, styles.mh5]}
+            />
             {accountMenuItems}
         </View>
     );

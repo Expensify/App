@@ -132,18 +132,17 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     return (
         <View style={[styles.flex1, styles.h100]}>
-            <View style={[styles.ph5, styles.pv3, styles.justifyContentBetween]}>
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            type: CONST.BREADCRUMB_TYPE.ROOT,
-                        },
-                        {
-                            text: translate('breadcrumbs.chats'),
-                        },
-                    ]}
-                />
-            </View>
+            <Breadcrumbs
+                breadcrumbs={[
+                    {
+                        type: CONST.BREADCRUMB_TYPE.ROOT,
+                    },
+                    {
+                        text: translate('breadcrumbs.chats'),
+                    },
+                ]}
+                style={[styles.mb2, styles.mh5]}
+            />
             <View style={[styles.pRelative, styles.flex1, styles.pt3]}>
                 <LHNOptionsList
                     style={styles.flex1}
