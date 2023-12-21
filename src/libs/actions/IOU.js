@@ -934,13 +934,11 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     }
 
     // Optimistically modify the transaction
-    const optimisticTransaction = onlyIncludeChangedFields ? _.pick(updatedTransaction, _.keys(transactionChanges)) : updatedTransaction;
     optimisticData.push({
-        // We need to use SET method to save updated waypoint instead MERGE method to avoid wrong update of waypoints. More detail: https://github.com/Expensify/App/issues/30290#issuecomment-1778957070
-        onyxMethod: Onyx.METHOD.SET,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...optimisticTransaction,
+            ...updatedTransaction,
             pendingFields,
             isLoading: _.has(transactionChanges, 'waypoints'),
             errorFields: null,
