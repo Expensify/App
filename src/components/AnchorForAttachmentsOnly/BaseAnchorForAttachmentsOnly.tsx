@@ -1,6 +1,5 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
@@ -10,37 +9,28 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultProps as anchorForAttachmentsOnlyDefaultProps, propTypes as anchorForAttachmentsOnlyPropTypes} from './anchorForAttachmentsOnlyPropTypes';
+import {Download as OnyxDownload} from '@src/types/onyx';
+import AnchorForAttachmentsOnlyProps from './AnchorForAttachmentsOnlyTypes';
 
-const propTypes = {
+type BaseAnchorForAttachmentsOnlyPropsWithOnyx = {
+    download: OnyxEntry<OnyxDownload>;
+};
+
+type BaseAnchorForAttachmentsOnlyProps = {
     /** Press in handler for the link */
-    onPressIn: PropTypes.func,
-
+    onPressIn?: () => void;
     /** Press out handler for the link */
-    onPressOut: PropTypes.func,
+    onPressOut?: () => void;
+} & AnchorForAttachmentsOnlyProps &
+    BaseAnchorForAttachmentsOnlyPropsWithOnyx;
 
-    /** If a file download is happening */
-    download: PropTypes.shape({
-        isDownloading: PropTypes.bool.isRequired,
-    }),
-
-    ...anchorForAttachmentsOnlyPropTypes,
-};
-
-const defaultProps = {
-    onPressIn: undefined,
-    onPressOut: undefined,
-    download: {isDownloading: false},
-    ...anchorForAttachmentsOnlyDefaultProps,
-};
-
-function BaseAnchorForAttachmentsOnly(props) {
+function BaseAnchorForAttachmentsOnly(props: BaseAnchorForAttachmentsOnlyProps) {
     const sourceURL = props.source;
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
-    const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+    const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
     const fileName = props.displayName;
 
-    const isDownloading = props.download && props.download.isDownloading;
+    const isDownloading = props.download?.isDownloading;
 
     return (
         <ShowContextMenuContext.Consumer>
@@ -56,11 +46,13 @@ function BaseAnchorForAttachmentsOnly(props) {
                     }}
                     onPressIn={props.onPressIn}
                     onPressOut={props.onPressOut}
+                    // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     accessibilityLabel={fileName}
                     role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
+                        // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
                         source={sourceURLWithAuth}
                         file={{name: fileName}}
                         shouldShowDownloadIcon
@@ -73,13 +65,11 @@ function BaseAnchorForAttachmentsOnly(props) {
 }
 
 BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
-BaseAnchorForAttachmentsOnly.propTypes = propTypes;
-BaseAnchorForAttachmentsOnly.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withOnyx<BaseAnchorForAttachmentsOnlyProps, BaseAnchorForAttachmentsOnlyPropsWithOnyx>({
     download: {
         key: ({source}) => {
-            const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+            const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
             return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
         },
     },
