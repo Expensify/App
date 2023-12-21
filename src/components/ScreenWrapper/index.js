@@ -39,6 +39,7 @@ const ScreenWrapper = React.forwardRef(
             shouldDismissKeyboardBeforeClose,
             onEntryTransitionEnd,
             testID,
+
             /**
              * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
              * when the screen transition ends.
