@@ -4,7 +4,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-// TODO: remove when ReportActionContextMenu file migration https://github.com/Expensify/App/pull/32670 is merged
+// TODO: Remove this once AnchorForCommentsOnly (https://github.com/Expensify/App/issues/25135) is migrated to TypeScript.
 type ReportActionContextMenu = Record<string, unknown>;
 
 type PickerRefElement = TextInput | ReportActionContextMenu | null;
