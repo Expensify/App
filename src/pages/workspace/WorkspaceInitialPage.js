@@ -263,7 +263,7 @@ function WorkspaceInitialPage(props) {
                                             text: translate('common.settings'),
                                         },
                                     ]}
-                                    style={[styles.mb2, styles.mh5]}
+                                    style={[styles.pb2, styles.ph5]}
                                 />
                                 {/*
                    Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.

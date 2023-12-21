@@ -141,7 +141,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         text: translate('common.chats'),
                     },
                 ]}
-                style={[styles.mb5, styles.mh5]}
+                style={[styles.pb5, styles.ph5]}
             />
             <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList

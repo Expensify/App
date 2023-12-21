@@ -113,7 +113,7 @@ function AllSettingsScreen() {
                         text: translate('common.settings'),
                     },
                 ]}
-                style={[styles.mb5, styles.mh5]}
+                style={[styles.pb5, styles.ph5]}
             />
             {accountMenuItems}
         </>
