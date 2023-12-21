@@ -27,19 +27,21 @@ function Overlay({onPress, isModalOnTheLeft = false}: OverlayProps) {
              we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
              everything behaves normally like one big pressable */}
                 <PressableWithoutFeedback
-                    style={styles.draggableTopBar}
+                    style={[styles.draggableTopBar, styles.boxShadowNone]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
                     nativeID={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
+                    tabIndex={-1}
                 />
                 <PressableWithoutFeedback
-                    style={styles.flex1}
+                    style={[styles.flex1, styles.boxShadowNone]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
                     noDragArea
                     nativeID={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
+                    tabIndex={-1}
                 />
             </View>
         </Animated.View>

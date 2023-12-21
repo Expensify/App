@@ -62,8 +62,8 @@ type BaseModalProps = WindowDimensionsProps &
          * */
         hideModalContentWhileAnimating?: boolean;
 
-        /** Should we show the background overlay around the modal */
-        shouldShowBackdrop?: boolean;
+        /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+        shouldUseCustomBackdrop?: boolean;
     };
 
 export default BaseModalProps;
