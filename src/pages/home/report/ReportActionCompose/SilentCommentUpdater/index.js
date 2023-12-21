@@ -52,7 +52,6 @@ function SilentCommentUpdater({comment, commentRef, report, value, updateComment
     useEffect(() => {
         // Value state does not have the same value as comment props when the comment gets changed from another tab.
         // In this case, we should synchronize the value between tabs.
-
         const shouldSyncComment = prevCommentProp !== comment && value !== comment;
 
         // As the report IDs change, make sure to update the composer comment as we need to make sure
