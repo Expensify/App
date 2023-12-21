@@ -75,7 +75,7 @@ const propTypes = {
 const defaultProps = {
     recentWaypoints: [],
     transaction: {},
-    userLocation: {},
+    userLocation: undefined,
 };
 
 function IOURequestStepWaypoint({
