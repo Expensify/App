@@ -11,7 +11,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Text from './Text';
@@ -71,6 +70,7 @@ function ReportWelcomeText(props) {
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs);
+    const additionalText = _.map(moneyRequestOptions, (item) => props.translate(`reportActionsView.iouTypes.${item}`)).join(', ');
 
     return (
         <>
@@ -130,9 +130,7 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
-                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
-                )}
+                {!!additionalText && <Text>{props.translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
             </Text>
         </>
     );
