@@ -1,40 +1,37 @@
 import React, {useCallback} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ExampleCheckImage from '@pages/ReimbursementAccount/ExampleCheck';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ReimbursementAccount} from '@src/types/onyx';
 
-const propTypes = {
+type ManualOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
-    ...subStepPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-};
+type ManualProps = ManualOnyxProps & SubStepProps;
+
+type FormValues = {routingNumber: string; accountNumber: string};
 
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
-function Manual({reimbursementAccount, onNext}) {
+function Manual({reimbursementAccount, onNext}: ManualProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultValues = {
-        [bankInfoStepKeys.ROUTING_NUMBER]: getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.ROUTING_NUMBER),
-        [bankInfoStepKeys.ACCOUNT_NUMBER]: getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.ACCOUNT_NUMBER),
+    const defaultValues: FormValues = {
+        [bankInfoStepKeys.ROUTING_NUMBER]: reimbursementAccount?.achData?.[bankInfoStepKeys.ROUTING_NUMBER] ?? '',
+        [bankInfoStepKeys.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '',
     };
 
     /**
@@ -42,10 +39,10 @@ function Manual({reimbursementAccount, onNext}) {
      * @returns {Object}
      */
     const validate = useCallback(
-        (values) => {
+        (values: FormValues) => {
             const requiredFields = [bankInfoStepKeys.ROUTING_NUMBER, bankInfoStepKeys.ACCOUNT_NUMBER];
             const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
-            const routingNumber = values.routingNumber && values.routingNumber.trim();
+            const routingNumber = values.routingNumber?.trim();
 
             if (
                 values.accountNumber &&
@@ -65,9 +62,10 @@ function Manual({reimbursementAccount, onNext}) {
         [translate],
     );
 
-    const shouldDisableInputs = Boolean(getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID));
+    const shouldDisableInputs = Boolean(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '');
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             onSubmit={onNext}
@@ -80,8 +78,9 @@ function Manual({reimbursementAccount, onNext}) {
             <Text style={[styles.mb5, styles.textLabel]}>{translate('bankAccount.checkHelpLine')}</Text>
             <ExampleCheckImage />
             <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
-                inputID="routingNumber"
+                inputID={bankInfoStepKeys.ROUTING_NUMBER}
                 label={translate('bankAccount.routingNumber')}
                 aria-label={translate('bankAccount.routingNumber')}
                 role={CONST.ROLE.PRESENTATION}
@@ -92,8 +91,9 @@ function Manual({reimbursementAccount, onNext}) {
                 shouldUseDefaultValue={shouldDisableInputs}
             />
             <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
-                inputID="accountNumber"
+                inputID={bankInfoStepKeys.ACCOUNT_NUMBER}
                 containerStyles={[styles.mt4]}
                 label={translate('bankAccount.accountNumber')}
                 aria-label={translate('bankAccount.accountNumber')}
@@ -108,11 +108,9 @@ function Manual({reimbursementAccount, onNext}) {
     );
 }
 
-Manual.propTypes = propTypes;
-Manual.defaultProps = defaultProps;
 Manual.displayName = 'Manual';
 
-export default withOnyx({
+export default withOnyx<ManualProps, ManualOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

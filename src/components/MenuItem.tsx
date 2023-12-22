@@ -84,7 +84,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         titleStyle?: ViewStyle;
 
         /** Any adjustments to style when menu item is hovered or pressed */
-        hoverAndPressStyle: StyleProp<AnimatedStyle<ViewStyle>>;
+        hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
         /** Additional styles to style the description text below the title */
         descriptionTextStyle?: StyleProp<TextStyle>;
@@ -174,7 +174,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         isSelected?: boolean;
 
         /** Prop to identify if we should load avatars vertically instead of diagonally */
-        shouldStackHorizontally: boolean;
+        shouldStackHorizontally?: boolean;
 
         /** Prop to represent the size of the avatar images to be shown */
         avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
@@ -219,10 +219,10 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         furtherDetails?: string;
 
         /** The function that should be called when this component is LongPressed or right-clicked. */
-        onSecondaryInteraction: () => void;
+        onSecondaryInteraction?: () => void;
 
         /** Array of objects that map display names to their corresponding tooltip */
-        titleWithTooltips: DisplayNameWithTooltip[];
+        titleWithTooltips?: DisplayNameWithTooltip[];
     };
 
 function MenuItem(

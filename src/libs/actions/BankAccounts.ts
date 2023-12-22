@@ -41,6 +41,8 @@ type ReimbursementAccountStep = BankAccountStep | '';
 
 type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
+type PlaidBankAccountToConnect = Omit<PlaidBankAccount, 'isSavings' | 'addressName' | 'mask'>;
+
 function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
@@ -142,7 +144,7 @@ function addPersonalAddressForDraft(personalAddress: {requestorAddressStreet?: s
 /**
  * Submit Bank Account step with Plaid data so php can perform some checks.
  */
-function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccount) {
+function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAccount: PlaidBankAccountToConnect) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
     type ConnectBankAccountWithPlaidParams = {
