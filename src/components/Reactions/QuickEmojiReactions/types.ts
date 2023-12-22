@@ -1,13 +1,10 @@
-import {TextInput} from 'react-native';
+import {TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-// TODO: Remove this once AnchorForCommentsOnly (https://github.com/Expensify/App/issues/25135) is migrated to TypeScript.
-type ReportActionContextMenu = Record<string, unknown>;
-
-type PickerRefElement = TextInput | ReportActionContextMenu | null;
+type PickerRefElement = TextInput | View | null | undefined;
 
 type OpenPickerCallback = (element: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
 
@@ -55,12 +52,4 @@ type QuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
     closeContextMenu: (callback: CloseContextMenuCallback) => void;
 };
 
-export type {
-    BaseQuickEmojiReactionsProps,
-    BaseQuickEmojiReactionsOnyxProps,
-    QuickEmojiReactionsProps,
-    OpenPickerCallback,
-    CloseContextMenuCallback,
-    ReportActionContextMenu,
-    PickerRefElement,
-};
+export type {BaseQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps, QuickEmojiReactionsProps, OpenPickerCallback, CloseContextMenuCallback, PickerRefElement};

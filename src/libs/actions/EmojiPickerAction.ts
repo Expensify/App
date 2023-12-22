@@ -2,7 +2,7 @@ import React from 'react';
 import {TextInput, View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import type {CloseContextMenuCallback, ReportActionContextMenu} from '@components/Reactions/QuickEmojiReactions/types';
+import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
 import CONST from '@src/CONST';
 
 type AnchorOrigin = {
@@ -10,7 +10,7 @@ type AnchorOrigin = {
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
 };
 
-type EmojiPopoverAnchor = View | HTMLDivElement | ReportActionContextMenu | TextInput | null;
+type EmojiPopoverAnchor = View | HTMLDivElement | TextInput | null;
 
 type OnWillShowPicker = (callback: CloseContextMenuCallback) => void;
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import {GestureResponderEvent, Text as RNText} from 'react-native';
+import React, {RefObject} from 'react';
+import {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -39,6 +39,7 @@ type ReportActionContextMenu = {
     instanceID: string;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
+    contentRef: RefObject<View>;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
