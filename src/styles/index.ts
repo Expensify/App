@@ -3139,7 +3139,6 @@ const styles = (theme: ThemeColors) =>
             color: colors.productDark800,
             fontSize: 13,
             lineHeight: 16,
-            width: '100%',
         },
 
         threeDotsPopoverOffset: (windowWidth: number) =>
