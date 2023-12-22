@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -38,7 +38,8 @@ function BottomTabBar() {
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.chats')}
-                    style={[styles.touchableButtonImage]}
+                    wrapperStyle={styles.flexGrow1}
+                    style={styles.bottomTabBarItem}
                 >
                     <Icon
                         src={Expensicons.ChatBubble}
@@ -46,21 +47,24 @@ function BottomTabBar() {
                     />
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabBarFloatingActionButton />
+            <View style={styles.flexGrow1}>
+                <BottomTabBarFloatingActionButton />
+            </View>
             <Tooltip text={translate('common.settings')}>
-                <PressableWithoutFeedback
+                <PressableWithFeedback
                     onPress={() => {
                         Navigation.navigate(ROUTES.ALL_SETTINGS);
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.settings')}
-                    style={[styles.touchableButtonImage]}
+                    wrapperStyle={styles.flexGrow1}
+                    style={styles.bottomTabBarItem}
                 >
                     <Icon
                         src={Expensicons.Gear}
                         fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : undefined}
                     />
-                </PressableWithoutFeedback>
+                </PressableWithFeedback>
             </Tooltip>
         </View>
     );
