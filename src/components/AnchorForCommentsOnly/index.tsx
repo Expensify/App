@@ -1,10 +1,10 @@
 import React from 'react';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
+import type {AnchorForCommentsOnlyProps} from './types';
 
-function AnchorForCommentsOnly(props) {
+function AnchorForCommentsOnly(props: AnchorForCommentsOnlyProps) {
     return (
         <BaseAnchorForCommentsOnly
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -15,8 +15,6 @@ function AnchorForCommentsOnly(props) {
     );
 }
 
-AnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes.propTypes;
-AnchorForCommentsOnly.defaultProps = anchorForCommentsOnlyPropTypes.defaultProps;
 AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
 
 export default AnchorForCommentsOnly;
