@@ -613,6 +613,7 @@ export default {
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
             atLeastTwoDifferentWaypoints: 'Por favor introduce al menos dos direcciones diferentes',
             splitBillMultipleParticipantsErrorMessage: 'Solo puedes dividir una cuenta entre un único espacio de trabajo o con usuarios individuales. Por favor actualiza tu selección.',
+            invalidMerchant: 'Por favor ingrese un comerciante correcto.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',

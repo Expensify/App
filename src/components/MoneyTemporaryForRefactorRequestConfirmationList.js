@@ -309,9 +309,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
+        if (shouldDisplayMerchantError) {
+            setFormError('iou.error.invalidMerchant');
+            return;
+        }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, shouldDisplayMerchantError]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -481,6 +485,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
+            if (shouldDisplayMerchantError) {
+                return;
+            }
 
             if (iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
@@ -509,7 +516,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, isEditingSplitBill, iouType, isDistanceRequest, isDistanceRequestWithoutRoute, iouCurrencyCode, iouAmount, transaction],
+        [
+            selectedParticipants,
+            shouldDisplayMerchantError,
+            iouType,
+            onSendMoney,
+            iouCurrencyCode,
+            isDistanceRequest,
+            isDistanceRequestWithoutRoute,
+            iouAmount,
+            isEditingSplitBill,
+            transaction,
+            onConfirm,
+        ],
     );
 
     const footerContent = useMemo(() => {
@@ -518,7 +537,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0 || shouldDisplayMerchantError;
+        const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -562,21 +581,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 {button}
             </>
         );
-    }, [
-        isReadOnly,
-        iouType,
-        selectedParticipants.length,
-        shouldDisplayMerchantError,
-        confirm,
-        bankAccountRoute,
-        iouCurrencyCode,
-        policyID,
-        splitOrRequestOptions,
-        formError,
-        styles.ph1,
-        styles.mb2,
-        translate,
-    ]);
+    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, translate]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
     return (
@@ -655,6 +660,28 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 interactive={!isReadOnly}
                 numberOfLinesTitle={2}
             />
+            {shouldDisplayMerchantError && (
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!isReadOnly}
+                    title={isMerchantEmpty ? '' : iouMerchant}
+                    description={translate('common.merchant')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (isEditingSplitBill) {
+                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    brickRoadIndicator={
+                        shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
+                    }
+                    error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.fieldRequired') : ''}
+                />
+            )}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
@@ -706,7 +733,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             interactive={!isReadOnly}
                         />
                     )}
-                    {shouldShowMerchant && (
+                    {!shouldDisplayMerchantError && shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={isMerchantEmpty ? '' : iouMerchant}
@@ -722,8 +749,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={
+                                shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
+                            }
+                            error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.fieldRequired') : ''}
                         />
                     )}
                     {shouldShowCategories && (
