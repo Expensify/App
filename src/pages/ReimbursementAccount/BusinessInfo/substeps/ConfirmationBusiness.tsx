@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
@@ -9,36 +9,20 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
+import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-const propTypes = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    ...subStepPropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-};
+import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-const validate = (values) => {
+const validate = (values: OnyxCommon.Errors) => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS]);
 
     if (!values.hasNoConnectionToCannabis) {
@@ -48,7 +32,17 @@ const validate = (values) => {
     return errors;
 };
 
-function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}) {
+type ConfirmationBusinessOnyxProps = {
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+};
+
+type ConfirmationBusinessProps = {
+    reimbursementAccount: ReimbursementAccount;
+    reimbursementAccountDraft: ReimbursementAccountDraft;
+} & SubStepProps;
+
+function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -56,9 +50,10 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
 
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
-    const defaultCheckboxState = getDefaultValueForReimbursementAccountField(reimbursementAccount, businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS, false);
+    const defaultCheckboxState = reimbursementAccountDraft[businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
 
     return (
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript
         <ScreenWrapper
             testID={ConfirmationBusiness.displayName}
             style={[styles.pt0]}
@@ -124,12 +119,13 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.incorporationState')}
-                    title={translate(`allStates.${values[businessInfoStepKeys.INCORPORATION_STATE]}.stateName`)}
+                    title={translate(`allStates.${values[businessInfoStepKeys.INCORPORATION_STATE]}.stateName` as TranslationPaths)}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(7);
                     }}
                 />
+                {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript */}
                 <FormProvider
                     formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                     validate={validate}
@@ -163,7 +159,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
                             type="error"
-                            messages={{0: error}}
+                            messages={{error}}
                         />
                     )}
                 </View>
@@ -172,11 +168,9 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
     );
 }
 
-ConfirmationBusiness.propTypes = propTypes;
-ConfirmationBusiness.defaultProps = defaultProps;
 ConfirmationBusiness.displayName = 'ConfirmationBusiness';
 
-export default withOnyx({
+export default withOnyx<ConfirmationBusinessProps, ConfirmationBusinessOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

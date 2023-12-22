@@ -1,40 +1,38 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
 import Picker from '@components/Picker';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-const propTypes = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
-    ...subStepPropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccount: reimbursementAccountDefaultProps,
-};
+import {ReimbursementAccount} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 const companyIncorporationTypeKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_TYPE;
 
-const validate = (values) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationTypeKey]);
+const validate = (values: OnyxCommon.Errors) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationTypeKey]);
 
-function TypeBusiness({reimbursementAccount, onNext, isEditing}) {
+type TypeBusinessOnyxProps = {
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+};
+
+type TypeBusinessProps = {
+    reimbursementAccount: ReimbursementAccount;
+} & SubStepProps;
+
+function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultIncorporationType = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationTypeKey, '');
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
@@ -47,8 +45,9 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}) {
             <Picker
                 inputID={companyIncorporationTypeKey}
                 label={translate('businessInfoStep.companyType')}
-                items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}`)}))}
+                items={Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}`)}))}
                 placeholder={{value: '', label: '-'}}
+                // @ts-expect-error TODO: Remove this once Picker (https://github.com/Expensify/App/issues/25091) is migrated to TypeScript
                 defaultValue={defaultIncorporationType}
                 shouldSaveDraft
             />
@@ -56,11 +55,9 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}) {
     );
 }
 
-TypeBusiness.propTypes = propTypes;
-TypeBusiness.defaultProps = defaultProps;
 TypeBusiness.displayName = 'TypeBusiness';
 
-export default withOnyx({
+export default withOnyx<TypeBusinessProps, TypeBusinessOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

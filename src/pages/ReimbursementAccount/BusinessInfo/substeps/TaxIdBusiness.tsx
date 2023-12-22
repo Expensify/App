@@ -1,31 +1,22 @@
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import Form from '@components/Form';
+import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import {reimbursementAccountDefaultProps, reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-const propTypes = {
-    /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
-    ...subStepPropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccount: reimbursementAccountDefaultProps,
-};
+import {ReimbursementAccount} from '@src/types/onyx';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 const companyTaxIdKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_TAX_ID;
 
-const validate = (values) => {
+const validate = (values: OnyxCommon.Errors) => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [companyTaxIdKey]);
 
     if (values.companyTaxID && !ValidationUtils.isValidTaxID(values.companyTaxID)) {
@@ -35,7 +26,15 @@ const validate = (values) => {
     return errors;
 };
 
-function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
+type TaxIdBusinessOnyxProps = {
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+};
+
+type TaxIdBusinessProps = {
+    reimbursementAccount: ReimbursementAccount;
+} & SubStepProps;
+
+function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -46,6 +45,7 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
     const shouldDisableCompanyTaxID = Boolean(bankAccountID && defaultCompanyTaxId);
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
@@ -55,28 +55,28 @@ function TaxIdBusiness({reimbursementAccount, onNext, isEditing}) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={styles.textHeadline}>{translate('businessInfoStep.enterYourCompanysTaxIdNumber')}</Text>
-            <TextInput
+            <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
+                InputComponent={TextInput}
                 inputID={companyTaxIdKey}
                 label={translate('businessInfoStep.taxIDNumber')}
                 aria-label={translate('businessInfoStep.taxIDNumber')}
                 role={CONST.ROLE.PRESENTATION}
-                containerStyles={[styles.mt4]}
+                defaultValue={defaultCompanyTaxId}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 disabled={shouldDisableCompanyTaxID}
-                placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
-                defaultValue={defaultCompanyTaxId}
                 shouldSaveDraft
                 shouldUseDefaultValue={shouldDisableCompanyTaxID}
+                containerStyles={[styles.mt4]}
+                placeholder={translate('businessInfoStep.taxIDNumberPlaceholder')}
             />
         </Form>
     );
 }
 
-TaxIdBusiness.propTypes = propTypes;
-TaxIdBusiness.defaultProps = defaultProps;
 TaxIdBusiness.displayName = 'TaxIdBusiness';
 
-export default withOnyx({
+export default withOnyx<TaxIdBusinessProps, TaxIdBusinessOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

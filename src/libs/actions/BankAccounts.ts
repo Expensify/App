@@ -131,7 +131,9 @@ function addBusinessWebsiteForDraft(website: string) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {website});
 }
 
-function addBusinessAddressForDraft(businessAddress: {addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string}) {
+type AddBusinessAddressForDraftProps = {addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string};
+
+function addBusinessAddressForDraft(businessAddress: AddBusinessAddressForDraftProps) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, businessAddress);
 }
 
@@ -486,3 +488,5 @@ export {
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
 };
+
+export type {AddBusinessAddressForDraftProps};
