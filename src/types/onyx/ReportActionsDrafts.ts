@@ -1,3 +1,7 @@
-type ReportActionsDrafts = Record<string, string>;
+type ReportActionsDraft = {
+    message: string;
+};
+
+type ReportActionsDrafts = Record<string, ReportActionsDraft>;
 
 export default ReportActionsDrafts;

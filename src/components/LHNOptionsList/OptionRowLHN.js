@@ -135,7 +135,7 @@ function OptionRowLHN(props) {
             props.reportID,
             '0',
             props.reportID,
-            '',
+            undefined,
             () => {},
             () => setIsContextMenuActive(false),
             false,
