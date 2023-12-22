@@ -112,7 +112,7 @@ function IOURequestStepParticipants({
         >
             <MoneyRequestParticipantsSelector
                 ref={(el) => (optionsSelectorRef.current = el)}
-                participants={participants}
+                participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
