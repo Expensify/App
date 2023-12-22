@@ -10,7 +10,6 @@ import useSubStep from '@hooks/useSubStep';
 import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
@@ -38,7 +37,7 @@ const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual, Confir
 const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
-function BankInfo({reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps, reimbursementAccountDraft = {}, plaidLinkToken = ''}: BankInfoProps) {
+function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken}: BankInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -97,7 +96,7 @@ function BankInfo({reimbursementAccount = ReimbursementAccountProps.reimbursemen
     };
 
     return (
-        // @ts-expect-error TODO: remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper testID={BankInfo.displayName}>
             <HeaderWithBackButton
                 shouldShowBackButton={!(setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && screenIndex === 0)}

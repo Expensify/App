@@ -13,27 +13,26 @@ import {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReimbursementAccountDraft, ReimbursementAccount as TReimbursementAccount} from '@src/types/onyx';
+import * as OnyxTypes from '@src/types/onyx';
 
 type ConfirmationOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<TReimbursementAccount>;
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<OnyxTypes.ReimbursementAccountDraft>;
 };
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
-function Confirmation({reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps, reimbursementAccountDraft = {}, onNext}: ConfirmationProps) {
+function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -59,7 +58,7 @@ function Confirmation({reimbursementAccount = ReimbursementAccountProps.reimburs
     };
 
     return (
-        // @ts-expect-error TODO: remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={Confirmation.displayName}
             style={[styles.pt0]}
@@ -86,10 +85,10 @@ function Confirmation({reimbursementAccount = ReimbursementAccountProps.reimburs
                         </View>
                     )}
                     {setupType === CONST.BANK_ACCOUNT.SUBSTEP.PLAID && (
-                        // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
                         <MenuItem
                             interactive={false}
                             icon={Expensicons.Bank}
+                            iconType={CONST.ICON_TYPE_ICON}
                             iconStyles={[styles.confirmBankInfoCompanyIcon]}
                             iconFill={theme.iconHovered}
                             wrapperStyle={[styles.pl0, styles.mb6]}
@@ -100,8 +99,8 @@ function Confirmation({reimbursementAccount = ReimbursementAccountProps.reimburs
                     <Text style={[styles.confirmBankInfoText, styles.mb4]}>{translate('bankAccount.thisBankAccount')}</Text>
                     <MenuItem
                         icon={Expensicons.Bank}
-                        // @ts-expect-error TODO: remove this once MenuItem (https://github.com/Expensify/App/issues/25144) is migrated to TS
-                        titleStyle={[styles.confirmBankInfoText]}
+                        iconType={CONST.ICON_TYPE_ICON}
+                        titleStyle={styles.confirmBankInfoText}
                         title={translate('bankAccount.connectDifferentAccount')}
                         onPress={handleConnectDifferentAccount}
                         shouldShowRightIcon

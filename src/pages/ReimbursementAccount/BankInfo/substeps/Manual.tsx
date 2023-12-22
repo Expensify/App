@@ -10,7 +10,6 @@ import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import ExampleCheckImage from '@pages/ReimbursementAccount/ExampleCheck';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount} from '@src/types/onyx';
@@ -26,7 +25,7 @@ type FormValues = {routingNumber: string; accountNumber: string};
 
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
-function Manual({reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps, onNext}: ManualProps) {
+function Manual({reimbursementAccount, onNext}: ManualProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -66,7 +65,7 @@ function Manual({reimbursementAccount = ReimbursementAccountProps.reimbursementA
     const shouldDisableInputs = Boolean(reimbursementAccount?.achData?.bankAccountID ?? '');
 
     return (
-        // @ts-expect-error TODO: remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TS
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <FormProvider
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             onSubmit={onNext}
@@ -79,7 +78,7 @@ function Manual({reimbursementAccount = ReimbursementAccountProps.reimbursementA
             <Text style={[styles.mb5, styles.textLabel]}>{translate('bankAccount.checkHelpLine')}</Text>
             <ExampleCheckImage />
             <InputWrapper
-                // @ts-expect-error TODO: remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TS
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="routingNumber"
                 label={translate('bankAccount.routingNumber')}
@@ -92,7 +91,7 @@ function Manual({reimbursementAccount = ReimbursementAccountProps.reimbursementA
                 shouldUseDefaultValue={shouldDisableInputs}
             />
             <InputWrapper
-                // @ts-expect-error TODO: remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TS
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}

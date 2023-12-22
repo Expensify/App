@@ -7,41 +7,39 @@ import Form from '@components/Form';
 import useLocalize from '@hooks/useLocalize';
 import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PlaidData, ReimbursementAccountDraft, ReimbursementAccount as TReimbursementAccount} from '@src/types/onyx';
+import * as OnyxTypes from '@src/types/onyx';
+import {Errors} from '@src/types/onyx/OnyxCommon';
 
 type PlaidOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: OnyxEntry<TReimbursementAccount>;
+    reimbursementAccount: OnyxEntry<OnyxTypes.ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+    reimbursementAccountDraft: OnyxEntry<OnyxTypes.ReimbursementAccountDraft>;
 
     /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
+    plaidData: OnyxEntry<OnyxTypes.PlaidData>;
 };
 
 type PlaidProps = PlaidOnyxProps & SubStepProps;
 
+type ValuesToValidate = {
+    acceptTerms: boolean;
+};
+
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
 
-function Plaid({
-    reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft,
-    onNext,
-    plaidData = PlaidDataProps.plaidDataDefaultProps,
-}: PlaidProps) {
+function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidData}: PlaidProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
 
-    const validate = useCallback((values: {acceptTerms: boolean}) => {
-        const errorFields: Record<string, string> = {};
+    const validate = useCallback((values: ValuesToValidate): Errors => {
+        const errorFields: Errors = {};
         if (!values.acceptTerms) {
             errorFields.acceptTerms = 'common.error.acceptTerms';
         }
@@ -78,7 +76,7 @@ function Plaid({
     const selectedPlaidAccountID = reimbursementAccountDraft?.plaidAccountID ?? '';
 
     return (
-        // @ts-expect-error TODO: remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TS
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             validate={validate}
