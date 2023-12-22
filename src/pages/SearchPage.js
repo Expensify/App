@@ -222,7 +222,7 @@ class SearchPage extends Component {
                                 headerMessage={headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady && !isSectionsEmpty(sections)}
+                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady && (!isSectionsEmpty(sections) || this.state.searchValue.length)}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 textInputAlert={
                                     this.props.network.isOffline ? `${this.props.translate('common.youAppearToBeOffline')} ${this.props.translate('search.resultsAreLimited')}` : ''
