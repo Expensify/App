@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import * as UserUtils from '@libs/UserUtils';
 import Avatar from './Avatar';
 import AvatarSkeleton from './AvatarSkeleton';
-import * as Expensicons from './Icon/Expensicons';
 import Indicator from './Indicator';
 import Tooltip from './Tooltip';
 
@@ -22,8 +22,9 @@ type AvatarWithIndicatorProps = {
     isLoading?: boolean;
 };
 
-function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensicons.FallbackAvatar, isLoading = true}: AvatarWithIndicatorProps) {
+function AvatarWithIndicator({source, tooltipText = '', fallbackIcon, isLoading = true}: AvatarWithIndicatorProps) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
 
     return (
         <Tooltip text={tooltipText}>
@@ -34,7 +35,7 @@ function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensico
                     <>
                         <Avatar
                             source={UserUtils.getSmallSizeAvatar(source)}
-                            fallbackIcon={fallbackIcon}
+                            fallbackIcon={fallbackIcon ?? illustrations.FallbackAvatar}
                         />
                         <Indicator />
                     </>

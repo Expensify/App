@@ -1270,13 +1270,13 @@ function getIcons(
     policy: OnyxEntry<Policy> = null,
 ): Icon[] {
     if (isEmptyObject(report)) {
-        const fallbackIcon: Icon = {
-            source: defaultIcon ?? Expensicons.FallbackAvatar,
+        const emptyIcon: Icon = {
+            source: defaultIcon ?? '',
             type: CONST.ICON_TYPE_AVATAR,
             name: defaultName,
             id: defaultAccountID,
         };
-        return [fallbackIcon];
+        return [emptyIcon];
     }
     if (isExpenseRequest(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
