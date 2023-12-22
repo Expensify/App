@@ -4315,7 +4315,7 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
- * Check whether should display thread reply
+ * Checks if thread replies should be displayed
  */
 function shouldDisplayThreadReplies(reportAction: ReportAction, reportID: string): boolean {
     const hasReplies = (reportAction.childVisibleActionCount ?? 0) > 0;
