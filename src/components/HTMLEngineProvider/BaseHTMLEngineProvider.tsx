@@ -1,27 +1,19 @@
-import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import {defaultHTMLElementModels, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
-import _ from 'underscore';
+import {TextProps} from 'react-native';
+import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import singleFontFamily from '@styles/utils/fontFamily/singleFontFamily';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
+import HTMLEngineProviderProps from './types';
 
-const propTypes = {
+type BaseHTMLEngineProviderProps = HTMLEngineProviderProps & {
     /** Whether text elements should be selectable */
-    textSelectable: PropTypes.bool,
+    textSelectable?: boolean;
 
     /** Handle line breaks according to the HTML standard (default on web)  */
-    enableExperimentalBRCollapsing: PropTypes.bool,
-
-    children: PropTypes.node,
-};
-
-const defaultProps = {
-    textSelectable: false,
-    children: null,
-    enableExperimentalBRCollapsing: false,
+    enableExperimentalBRCollapsing?: boolean;
 };
 
 // We are using the explicit composite architecture for performance gains.
@@ -29,52 +21,62 @@ const defaultProps = {
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
-function BaseHTMLEngineProvider(props) {
+function BaseHTMLEngineProvider({textSelectable = false, children = null, enableExperimentalBRCollapsing = false}: BaseHTMLEngineProviderProps) {
     const styles = useThemeStyles();
 
     // Declare nonstandard tags and their content model here
+    /* eslint-disable @typescript-eslint/naming-convention */
     const customHTMLElementModels = useMemo(
         () => ({
-            edited: defaultHTMLElementModels.span.extend({
+            edited: HTMLElementModel.fromCustomModel({
                 tagName: 'edited',
+                contentModel: HTMLContentModel.textual,
             }),
-            'alert-text': defaultHTMLElementModels.div.extend({
+            'alert-text': HTMLElementModel.fromCustomModel({
                 tagName: 'alert-text',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
             }),
-            'muted-text': defaultHTMLElementModels.div.extend({
+            'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
             }),
-            comment: defaultHTMLElementModels.div.extend({
+            comment: HTMLElementModel.fromCustomModel({
                 tagName: 'comment',
                 mixedUAStyles: {whiteSpace: 'pre'},
+                contentModel: HTMLContentModel.block,
             }),
-            'email-comment': defaultHTMLElementModels.div.extend({
+            'email-comment': HTMLElementModel.fromCustomModel({
                 tagName: 'email-comment',
                 mixedUAStyles: {whiteSpace: 'normal'},
+                contentModel: HTMLContentModel.block,
             }),
-            strong: defaultHTMLElementModels.span.extend({
+            strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
                 mixedUAStyles: {whiteSpace: 'pre'},
+                contentModel: HTMLContentModel.textual,
             }),
-            'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
-            'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
-            'next-steps': defaultHTMLElementModels.span.extend({
+            'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
+            'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
+            'next-steps': HTMLElementModel.fromCustomModel({
                 tagName: 'next-steps',
                 mixedUAStyles: {...styles.textLabelSupporting},
+                contentModel: HTMLContentModel.textual,
             }),
-            'next-steps-email': defaultHTMLElementModels.span.extend({tagName: 'next-steps-email'}),
-            video: defaultHTMLElementModels.div.extend({
+            'next-steps-email': HTMLElementModel.fromCustomModel({tagName: 'next-steps-email', contentModel: HTMLContentModel.textual}),
+            video: HTMLElementModel.fromCustomModel({
                 tagName: 'video',
                 mixedUAStyles: {whiteSpace: 'pre'},
+                contentModel: HTMLContentModel.block,
             }),
         }),
         [styles.colorMuted, styles.formError, styles.mb0, styles.textLabelSupporting],
     );
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [props.textSelectable]);
+    const defaultTextProps: TextProps = useMemo(() => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [textSelectable]);
     const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
     return (
         <TRenderEngineProvider
@@ -82,7 +84,7 @@ function BaseHTMLEngineProvider(props) {
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
-            systemFonts={_.values(singleFontFamily)}
+            systemFonts={Object.values(singleFontFamily)}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),
@@ -91,18 +93,17 @@ function BaseHTMLEngineProvider(props) {
             <RenderHTMLConfigProvider
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
+                // @ts-expect-error TODO: Remove this once HTMLRenderers (https://github.com/Expensify/App/issues/25154) is migrated to TypeScript.
                 renderers={htmlRenderers}
                 computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
-                enableExperimentalBRCollapsing={props.enableExperimentalBRCollapsing}
+                enableExperimentalBRCollapsing={enableExperimentalBRCollapsing}
             >
-                {props.children}
+                {children}
             </RenderHTMLConfigProvider>
         </TRenderEngineProvider>
     );
 }
 
 BaseHTMLEngineProvider.displayName = 'BaseHTMLEngineProvider';
-BaseHTMLEngineProvider.propTypes = propTypes;
-BaseHTMLEngineProvider.defaultProps = defaultProps;
 
 export default BaseHTMLEngineProvider;
