@@ -163,13 +163,16 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = (option) => {
-        onParticipantsAdded([
-            {
-                ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
-                selected: true,
-            },
-        ]);
-        onFinish();
+        onParticipantsAdded(
+            [
+                {
+                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
+                    selected: true,
+                },
+            ],
+            false,
+        );
+        onFinish(false);
     };
 
     /**
@@ -208,7 +211,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 ];
             }
 
-            onParticipantsAdded(newSelectedOptions);
+            onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0);
         },
         [participants, onParticipantsAdded],
     );
@@ -276,7 +279,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             return;
         }
 
-        onFinish();
+        onFinish(true);
     }, [shouldShowSplitBillErrorMessage, onFinish]);
 
     const footerContent = (
@@ -315,7 +318,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 boldStyle
                 shouldShowConfirmButton={shouldShowSplitBillErrorMessage && isAllowedToSplit}
                 confirmButtonText={translate('iou.addToSplit')}
-                onConfirmSelection={onFinish}
+                onConfirmSelection={() => onFinish(true)}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}

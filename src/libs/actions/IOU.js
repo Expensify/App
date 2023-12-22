@@ -23,6 +23,7 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -167,6 +168,19 @@ function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, io
  */
 function clearMoneyRequest(transactionID) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+/**
+ * @param {Object[]} routes
+ * @param {String} newIouType
+ */
+function updateMoneyRequestTypeParams(routes, newIouType) {
+    routes.forEach((route) => {
+        if (route.name !== SCREENS.MONEY_REQUEST.CREATE && route.name !== SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS) {
+            return;
+        }
+        Navigation.setParams({iouType: newIouType}, route.key);
+    });
 }
 
 /**
@@ -3481,6 +3495,7 @@ export {
     resetMoneyRequestTag,
     resetMoneyRequestTag_temporaryForRefactor,
     clearMoneyRequest,
+    updateMoneyRequestTypeParams,
     setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory_temporaryForRefactor,
