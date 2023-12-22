@@ -87,12 +87,15 @@ function IOURequestStepParticipants({
         [reportID, transactionID, iouType],
     );
 
-    const goToNextStep = useCallback(() => {
-        const nextStepIOUType = numberOfParticipants.current === 1 ? iouType : CONST.IOU.TYPE.SPLIT;
-        IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
-        IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
-    }, [iouType, transactionID, reportID]);
+    const goToNextStep = useCallback(
+        (isSplit) => {
+            const nextStepIOUType = !isSplit && iouType !== CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.REQUEST : iouType;
+            IOU.resetMoneyRequestTag_temporaryForRefactor(transactionID);
+            IOU.resetMoneyRequestCategory_temporaryForRefactor(transactionID);
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(nextStepIOUType, transactionID, selectedReportID.current || reportID));
+        },
+        [iouType, transactionID, reportID],
+    );
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
