@@ -184,7 +184,7 @@ function AddressSearch({
             language: preferredLocale,
             types: resultTypes,
             components: isLimitedToUSA ? 'country:us' : undefined,
-            locationbias: locationBias || 'ipbias',
+            ...(locationBias && {locationbias: locationBias}),
         }),
         [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
     );
