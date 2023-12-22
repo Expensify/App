@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import dateAdd from 'date-fns/add';
+import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
@@ -18,6 +20,8 @@ const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
+const MAX_DATE = dateAdd(new Date(), {years: 1});
+const MIN_DATE = dateSubtract(new Date(), {years: 20});
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
@@ -103,6 +107,8 @@ const CONST = {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
         MAX_YEAR: CURRENT_YEAR + 100,
+        MAX_DATE,
+        MIN_DATE,
     },
 
     DATE_BIRTH: {
@@ -588,6 +594,9 @@ const CONST = {
                 },
             },
         },
+        CANCEL_PAYMENT_REASONS: {
+            ADMIN: 'CANCEL_REASON_ADMIN',
+        },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
             ACCOUNT_CLOSED: 'accountClosed',
@@ -710,7 +719,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
-        SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3033,6 +3042,14 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    /** Context menu types */
+    CONTEXT_MENU_TYPES: {
+        LINK: 'LINK',
+        REPORT_ACTION: 'REPORT_ACTION',
+        EMAIL: 'EMAIL',
+        REPORT: 'REPORT',
     },
 } as const;
 

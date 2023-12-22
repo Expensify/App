@@ -19,6 +19,9 @@ const propTypes = {
     /** Report for this action */
     report: reportPropTypes.isRequired,
 
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: PropTypes.bool.isRequired,
+
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
 
@@ -30,8 +33,6 @@ const propTypes = {
 
     /** Linked report action ID */
     linkedReportActionID: PropTypes.string,
-
-    displayAsGroup: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
