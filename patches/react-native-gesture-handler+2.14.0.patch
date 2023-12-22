@@ -1,0 +1,82 @@
+diff --git a/node_modules/react-native-gesture-handler/lib/commonjs/web/handlers/FlingGestureHandler.js b/node_modules/react-native-gesture-handler/lib/commonjs/web/handlers/FlingGestureHandler.js
+index 0a43a8f..751b4fa 100644
+--- a/node_modules/react-native-gesture-handler/lib/commonjs/web/handlers/FlingGestureHandler.js
++++ b/node_modules/react-native-gesture-handler/lib/commonjs/web/handlers/FlingGestureHandler.js
+@@ -16,7 +16,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
+ function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+ 
+ const DEFAULT_MAX_DURATION_MS = 800;
+-const DEFAULT_MIN_ACCEPTABLE_DELTA = 160;
++const DEFAULT_MIN_ACCEPTABLE_DELTA = 35;
+ const DEFAULT_DIRECTION = _constants.Direction.RIGHT;
+ const DEFAULT_NUMBER_OF_TOUCHES_REQUIRED = 1;
+ 
+@@ -141,13 +141,12 @@ class FlingGestureHandler extends _GestureHandler.default {
+   }
+ 
+   onUp(event) {
+-    this.tracker.removeFromTracker(event.pointerId);
+-
+     if (this.currentState !== _State.State.BEGAN) {
+       return;
+     }
+ 
+     this.endFling();
++    this.tracker.removeFromTracker(event.pointerId);
+   }
+ 
+   activate(force) {
+diff --git a/node_modules/react-native-gesture-handler/lib/module/web/handlers/FlingGestureHandler.js b/node_modules/react-native-gesture-handler/lib/module/web/handlers/FlingGestureHandler.js
+index b6dbc26..69843cb 100644
+--- a/node_modules/react-native-gesture-handler/lib/module/web/handlers/FlingGestureHandler.js
++++ b/node_modules/react-native-gesture-handler/lib/module/web/handlers/FlingGestureHandler.js
+@@ -4,7 +4,7 @@ import { State } from '../../State';
+ import { Direction } from '../constants';
+ import GestureHandler from './GestureHandler';
+ const DEFAULT_MAX_DURATION_MS = 800;
+-const DEFAULT_MIN_ACCEPTABLE_DELTA = 160;
++const DEFAULT_MIN_ACCEPTABLE_DELTA = 35;
+ const DEFAULT_DIRECTION = Direction.RIGHT;
+ const DEFAULT_NUMBER_OF_TOUCHES_REQUIRED = 1;
+ export default class FlingGestureHandler extends GestureHandler {
+@@ -128,13 +128,12 @@ export default class FlingGestureHandler extends GestureHandler {
+   }
+ 
+   onUp(event) {
+-    this.tracker.removeFromTracker(event.pointerId);
+-
+     if (this.currentState !== State.BEGAN) {
+       return;
+     }
+ 
+     this.endFling();
++    this.tracker.removeFromTracker(event.pointerId);
+   }
+ 
+   activate(force) {
+diff --git a/node_modules/react-native-gesture-handler/src/web/handlers/FlingGestureHandler.ts b/node_modules/react-native-gesture-handler/src/web/handlers/FlingGestureHandler.ts
+index 0c2a117..929c0c7 100644
+--- a/node_modules/react-native-gesture-handler/src/web/handlers/FlingGestureHandler.ts
++++ b/node_modules/react-native-gesture-handler/src/web/handlers/FlingGestureHandler.ts
+@@ -5,7 +5,7 @@ import { AdaptedEvent, Config } from '../interfaces';
+ import GestureHandler from './GestureHandler';
+ 
+ const DEFAULT_MAX_DURATION_MS = 800;
+-const DEFAULT_MIN_ACCEPTABLE_DELTA = 160;
++const DEFAULT_MIN_ACCEPTABLE_DELTA = 35;
+ const DEFAULT_DIRECTION = Direction.RIGHT;
+ const DEFAULT_NUMBER_OF_TOUCHES_REQUIRED = 1;
+ 
+@@ -141,11 +141,11 @@ export default class FlingGestureHandler extends GestureHandler {
+   }
+ 
+   private onUp(event: AdaptedEvent): void {
+-    this.tracker.removeFromTracker(event.pointerId);
+     if (this.currentState !== State.BEGAN) {
+       return;
+     }
+     this.endFling();
++    this.tracker.removeFromTracker(event.pointerId);
+   }
+ 
+   public activate(force?: boolean): void {
