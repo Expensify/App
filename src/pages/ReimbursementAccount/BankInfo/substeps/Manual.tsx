@@ -30,8 +30,8 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
     const styles = useThemeStyles();
 
     const defaultValues: FormValues = {
-        [bankInfoStepKeys.ROUTING_NUMBER]: reimbursementAccount?.achData?.routingNumber ?? '',
-        [bankInfoStepKeys.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.accountNumber ?? '',
+        [bankInfoStepKeys.ROUTING_NUMBER]: reimbursementAccount?.achData?.[bankInfoStepKeys.ROUTING_NUMBER] ?? '',
+        [bankInfoStepKeys.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '',
     };
 
     /**
@@ -62,7 +62,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
         [translate],
     );
 
-    const shouldDisableInputs = Boolean(reimbursementAccount?.achData?.bankAccountID ?? '');
+    const shouldDisableInputs = Boolean(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '');
 
     return (
         // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.

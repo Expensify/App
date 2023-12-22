@@ -56,24 +56,24 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
     }, [isFocused, plaidData]);
 
     const handleNextPress = useCallback(() => {
-        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === reimbursementAccountDraft?.plaidAccountID) ?? null;
+        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === reimbursementAccountDraft?.[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? null);
 
         const bankAccountData = {
-            [bankInfoStepKeys.ROUTING_NUMBER]: selectedPlaidBankAccount?.routingNumber,
-            [bankInfoStepKeys.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.accountNumber,
+            [bankInfoStepKeys.ROUTING_NUMBER]: selectedPlaidBankAccount?.[bankInfoStepKeys.ROUTING_NUMBER],
+            [bankInfoStepKeys.ACCOUNT_NUMBER]: selectedPlaidBankAccount?.[bankInfoStepKeys.ACCOUNT_NUMBER],
             [bankInfoStepKeys.PLAID_MASK]: selectedPlaidBankAccount?.mask,
-            [bankInfoStepKeys.IS_SAVINGS]: selectedPlaidBankAccount?.isSavings,
-            [bankInfoStepKeys.BANK_NAME]: plaidData?.bankName ?? '',
-            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.plaidAccountID,
-            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: plaidData?.plaidAccessToken ?? '',
+            [bankInfoStepKeys.IS_SAVINGS]: selectedPlaidBankAccount?.[bankInfoStepKeys.IS_SAVINGS],
+            [bankInfoStepKeys.BANK_NAME]: plaidData?.[bankInfoStepKeys.BANK_NAME] ?? '',
+            [bankInfoStepKeys.PLAID_ACCOUNT_ID]: selectedPlaidBankAccount?.[bankInfoStepKeys.PLAID_ACCOUNT_ID],
+            [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: plaidData?.[bankInfoStepKeys.PLAID_ACCESS_TOKEN] ?? '',
         };
 
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
         onNext();
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
-    const selectedPlaidAccountID = reimbursementAccountDraft?.plaidAccountID ?? '';
+    const bankAccountID = Number(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '0');
+    const selectedPlaidAccountID = reimbursementAccountDraft?.[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '';
 
     return (
         // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.

@@ -54,13 +54,13 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     const submit = useCallback(() => {
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             BankAccounts.connectBankAccountManually(
-                Number(reimbursementAccount?.achData?.bankAccountID ?? '0'),
+                Number(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '0'),
                 values[bankInfoStepKeys.ACCOUNT_NUMBER],
                 values[bankInfoStepKeys.ROUTING_NUMBER],
                 values[bankInfoStepKeys.PLAID_MASK],
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-            BankAccounts.connectBankAccountWithPlaid(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {
+            BankAccounts.connectBankAccountWithPlaid(Number(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '0'), {
                 [bankInfoStepKeys.ROUTING_NUMBER]: values[bankInfoStepKeys.ROUTING_NUMBER] ?? '',
                 [bankInfoStepKeys.ACCOUNT_NUMBER]: values[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '',
                 [bankInfoStepKeys.BANK_NAME]: values[bankInfoStepKeys.BANK_NAME] ?? '',
@@ -81,7 +81,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
             return;
         }
 
-        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values[bankInfoStepKeys.BANK_NAME] !== '' && !redirectedFromPlaidToManual) {
+        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
             setRedirectedFromPlaidToManual(true);
             moveTo(0);
         }
