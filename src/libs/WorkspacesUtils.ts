@@ -73,11 +73,11 @@ function getWorkspacesBrickRoads(): Record<string, BrickRoad> {
  * @returns a map where the keys are policyIDs and the values are truthy booleans if policy has unread content
  */
 function getWorkspacesUnreadStatuses(): Record<string, boolean> {
-    if(!allReports) {
+    if (!allReports) {
         return {};
     }
 
-    const workspacesUnreadStatuses: Record<string, boolean> = {}
+    const workspacesUnreadStatuses: Record<string, boolean> = {};
 
     Object.keys(allReports).forEach((report) => {
         const policyID = allReports?.[report]?.policyID;
@@ -88,13 +88,12 @@ function getWorkspacesUnreadStatuses(): Record<string, boolean> {
 
         const unreadStatus = ReportUtils.isUnread(policyReport);
 
-        if(unreadStatus) {
+        if (unreadStatus) {
             workspacesUnreadStatuses[policyID] = true;
-        }
-        else {
+        } else {
             workspacesUnreadStatuses[policyID] = false;
         }
-    })
+    });
 
     return workspacesUnreadStatuses;
 }

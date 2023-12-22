@@ -16,16 +16,16 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getWorkspacesBrickRoads, getWorkspacesUnreadStatuses} from '@libs/WorkspacesUtils';
+import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 import ROUTES from '@src/ROUTES';
-import * as App from '@userActions/App';
-import Navigation from '@libs/Navigation/Navigation';
+import SCREENS from '@src/SCREENS';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
 const propTypes = {
@@ -71,31 +71,34 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
     const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
 
-    const getIndicatorTypeForPolicy = useCallback((policyId) => {
-        if (policyId && policyId !== activeWorkspaceID) {
-            return brickRoadsForPolicies[policyId];
-        }
+    const getIndicatorTypeForPolicy = useCallback(
+        (policyId) => {
+            if (policyId && policyId !== activeWorkspaceID) {
+                return brickRoadsForPolicies[policyId];
+            }
 
-        if(_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.RBR)) {
-            return CONST.BRICK_ROAD.RBR;
-        }
+            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.RBR)) {
+                return CONST.BRICK_ROAD.RBR;
+            }
 
-        if(_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.GBR)) {
-            return CONST.BRICK_ROAD.GBR;
-        }
+            if (_.values(brickRoadsForPolicies).includes(CONST.BRICK_ROAD.GBR)) {
+                return CONST.BRICK_ROAD.GBR;
+            }
 
-        return undefined
-    }, [activeWorkspaceID, brickRoadsForPolicies]);
+            return undefined;
+        },
+        [activeWorkspaceID, brickRoadsForPolicies],
+    );
 
     const hasUnreadData = useCallback(
         // TO DO: Implement checking if policy has some unread data
         // eslint-disable-next-line no-unused-vars
         (policyId) => {
-            if(policyId) {
+            if (policyId) {
                 return unreadStatusesForPolicies[policyId];
             }
-            
-            return _.some(_.values(unreadStatusesForPolicies), (status) => status)
+
+            return _.some(_.values(unreadStatusesForPolicies), (status) => status);
         },
         [unreadStatusesForPolicies],
     );
@@ -214,7 +217,12 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                             {translate('common.workspaces')}
                         </Text>
                     </View>
-                    <PressableWithFeedback role={CONST.ROLE.BUTTON} onPress={() => {App.createWorkspaceWithPolicyDraftAndNavigateToIt()}}>
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        onPress={() => {
+                            App.createWorkspaceWithPolicyDraftAndNavigateToIt();
+                        }}
+                    >
                         {({hovered}) => (
                             <Icon
                                 src={Expensicons.Plus}
@@ -231,7 +239,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                         ref={inputCallbackRef}
                         sections={[usersWorkspacesSectionData]}
                         value={searchTerm}
-                        shouldShowTextInput={usersWorkspaces.length < MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
+                        shouldShowTextInput={usersWorkspaces.length >= MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
                         onChangeText={onChangeText}
                         selectedOptions={selectedOption ? [selectedOption] : []}
                         onSelectRow={selectPolicy}

@@ -20,7 +20,9 @@ function WorkspaceCardCreateAWorkspace() {
             containerStyles={[styles.highlightBG]}
         >
             <Button
-                onPress={() => {App.createWorkspaceWithPolicyDraftAndNavigateToIt()}}
+                onPress={() => {
+                    App.createWorkspaceWithPolicyDraftAndNavigateToIt();
+                }}
                 text={translate('workspace.emptyWorkspace.createAWorkspaceCTA')}
                 style={styles.mt5}
                 success
