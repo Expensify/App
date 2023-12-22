@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -136,7 +137,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                 }))
                 .sortBy((policy) => policy.text.toLowerCase())
                 .value(),
-        [policies, isOffline, getIndicatorTypeForPolicy, hasUnreadData],
+        [policies, getIndicatorTypeForPolicy, hasUnreadData],
     );
 
     const filteredUserWorkspaces = useMemo(() => _.filter(usersWorkspaces, (policy) => policy.text.toLowerCase().startsWith(searchTerm.toLowerCase())), [searchTerm, usersWorkspaces]);

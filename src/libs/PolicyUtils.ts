@@ -90,7 +90,6 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolea
     return (
         !!policy &&
         policy?.isPolicyExpenseChatEnabled &&
-        policy?.role === CONST.POLICY.ROLE.ADMIN &&
         (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
