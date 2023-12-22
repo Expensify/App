@@ -594,6 +594,9 @@ const CONST = {
                 },
             },
         },
+        CANCEL_PAYMENT_REASONS: {
+            ADMIN: 'CANCEL_REASON_ADMIN',
+        },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
             ACCOUNT_CLOSED: 'accountClosed',
@@ -3039,6 +3042,14 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    /** Context menu types */
+    CONTEXT_MENU_TYPES: {
+        LINK: 'LINK',
+        REPORT_ACTION: 'REPORT_ACTION',
+        EMAIL: 'EMAIL',
+        REPORT: 'REPORT',
     },
 } as const;
 

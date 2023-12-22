@@ -16,7 +16,6 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
-import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
@@ -88,7 +87,7 @@ function AboutPage(props) {
             iconRight: item.iconRight,
             onPress: item.action,
             shouldShowRightIcon: true,
-            onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
+            onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: Boolean(item.link),
         }));
