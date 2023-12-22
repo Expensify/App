@@ -59,7 +59,7 @@ Here’s how to set it up:
 Once this is done, you are all set to begin the process of enabling the Expensify Card. Not just for you, but if you have a co-founder, you can also issue them a card.
 
 ## Step 5: Get the Expensify Card
-If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, it earns you up to 2% cash back (up to 4% in your first 3 months!), and they are all stored in your team’s workspace. It’s easy to apply and it takes minutes!
+If you linked your business bank account in the previous step, you are immediately eligible for the Expensify Card. The Expensify Card is included with your Free Plan workspace, it earns you up to 2% cash back, and they are all stored in your team’s workspace. It’s easy to apply, and it takes minutes!
 
 Here’s how to enable the Expensify Card:
 
@@ -71,7 +71,9 @@ Here’s how to enable the Expensify Card:
 6. Set a SmartLimit > $0
 7. We’ll also ask you for your mailing address to send you a physical Expensify Card
 
-You’ll be issued a virtual card that you can use immediately, however, in 1-3 business days your Expensify Card will arrive. You can use the Expensify Card anywhere Visa is accepted.
+You’ll be issued a virtual card that you can use immediately, and in 1-3 business days, your Expensify Card will arrive. You can use the Expensify Card anywhere Visa is accepted.
+
+In addition to physical and virtual cards, you can issue Unlimited Virtual Cards with a fixed or monthly limit for specific company purchases (ex., Marketing purchases, Advertising, Travel, etc).
 
 ## Step 6: View and Pay Bills
 Whether it’s online services or vendors you work with to grow your project, you likely have bills to pay. And now that you have your business bank account linked, you can easily pay bills directly from Expensify. Seeing as these are project-related expenses, we’ll capture them for you for future reference directly within your project’s workspace.

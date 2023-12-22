@@ -89,7 +89,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the RightModalNavigator and the last route on the root navigator is not RightModalNavigator then push
-        } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rootState.routes.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        } else if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && rootState?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
         }
     }
@@ -102,11 +102,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // Which would break the user navigation history
             if (!isActiveRoute && type === CONST.NAVIGATION.ACTION_TYPE.PUSH) {
                 minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-            }
-            // There are situations when the user is trying to access a route which he has no access to
-            // So we want to redirect him to the right one and replace the one he tried to access
-            if (type === CONST.NAVIGATION.ACTION_TYPE.REPLACE) {
-                minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
             }
             root.dispatch(minimalAction);
             return;

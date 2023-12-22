@@ -3,10 +3,11 @@ import {splitBoxModelStyle} from 'react-native-render-html';
 import _ from 'underscore';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 
 function CodeRenderer(props) {
+    const StyleUtils = useStyleUtils();
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
