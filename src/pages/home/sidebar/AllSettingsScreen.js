@@ -12,7 +12,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
 
 function AllSettingsScreen() {
     const styles = useThemeStyles();
@@ -32,7 +32,7 @@ function AllSettingsScreen() {
                 {
                     translationKey: 'common.workspaces',
                     icon: Expensicons.Building,
-                    routeName: SCREENS.SETTINGS.WORKSPACES,
+                    routeName: ROUTES.SETTINGS_WORKSPACES,
                 },
                 {
                     translationKey: 'allSettingsScreen.subscriptions',
