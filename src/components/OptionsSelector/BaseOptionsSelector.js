@@ -649,6 +649,7 @@ class BaseOptionsSelector extends Component {
                                 src={Info}
                                 height={20}
                                 width={20}
+                                fill={this.props.theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </View>
