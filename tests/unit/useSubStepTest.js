@@ -1,5 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
-import useSubStep from '../../src/hooks/useSubStep';
+import useSubStep from '@hooks/useSubStep';
 
 function MockSubStepComponent() {}
 function MockSubStepComponent2() {}

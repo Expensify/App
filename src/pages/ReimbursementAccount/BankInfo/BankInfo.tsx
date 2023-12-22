@@ -1,56 +1,50 @@
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import Confirmation from './substeps/Confirmation';
 import Manual from './substeps/Manual';
 import Plaid from './substeps/Plaid';
 
-const propTypes = {
+type BankInfoOnyxProps = {
     /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken: PropTypes.string,
+    plaidLinkToken: OnyxEntry<string>;
 
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 
-const defaultProps = {
-    plaidLinkToken: '',
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-};
+type BankInfoProps = BankInfoOnyxProps;
 
 const bankInfoStepKeys = CONST.BANK_ACCOUNT.BANK_INFO_STEP.INPUT_KEY;
-const manualSubsteps = [Manual, Confirmation];
-const plaidSubsteps = [Plaid, Confirmation];
+const manualSubsteps: Array<React.ComponentType<SubStepProps>> = [Manual, Confirmation];
+const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
-function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken}) {
+function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkToken}: BankInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [redirectedFromPlaidToManual, setRedirectedFromPlaidToManual] = React.useState(false);
-    const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(bankInfoStepKeys, reimbursementAccountDraft ?? {}, reimbursementAccount ?? {}), [reimbursementAccount, reimbursementAccountDraft]);
 
-    let setupType = getDefaultValueForReimbursementAccountField(reimbursementAccount, 'subStep');
+    let setupType = reimbursementAccount?.achData?.subStep ?? '';
 
     const shouldReinitializePlaidLink = plaidLinkToken && receivedRedirectURI && setupType !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
@@ -60,20 +54,18 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     const submit = useCallback(() => {
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             BankAccounts.connectBankAccountManually(
-                Number(getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID, '0')),
+                Number(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '0'),
                 values[bankInfoStepKeys.ACCOUNT_NUMBER],
                 values[bankInfoStepKeys.ROUTING_NUMBER],
                 values[bankInfoStepKeys.PLAID_MASK],
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-            BankAccounts.connectBankAccountWithPlaid(Number(getDefaultValueForReimbursementAccountField(reimbursementAccount, bankInfoStepKeys.BANK_ACCOUNT_ID, '0')), {
-                [bankInfoStepKeys.ROUTING_NUMBER]: values[bankInfoStepKeys.ROUTING_NUMBER],
-                [bankInfoStepKeys.ACCOUNT_NUMBER]: values[bankInfoStepKeys.ACCOUNT_NUMBER],
-                [bankInfoStepKeys.PLAID_MASK]: values[bankInfoStepKeys.PLAID_MASK],
-                [bankInfoStepKeys.IS_SAVINGS]: values[bankInfoStepKeys.IS_SAVINGS],
-                [bankInfoStepKeys.BANK_NAME]: values[bankInfoStepKeys.BANK_NAME],
-                [bankInfoStepKeys.PLAID_ACCOUNT_ID]: values[bankInfoStepKeys.PLAID_ACCOUNT_ID],
-                [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: values[bankInfoStepKeys.PLAID_ACCESS_TOKEN],
+            BankAccounts.connectBankAccountWithPlaid(Number(reimbursementAccount?.achData?.[bankInfoStepKeys.BANK_ACCOUNT_ID] ?? '0'), {
+                [bankInfoStepKeys.ROUTING_NUMBER]: values[bankInfoStepKeys.ROUTING_NUMBER] ?? '',
+                [bankInfoStepKeys.ACCOUNT_NUMBER]: values[bankInfoStepKeys.ACCOUNT_NUMBER] ?? '',
+                [bankInfoStepKeys.BANK_NAME]: values[bankInfoStepKeys.BANK_NAME] ?? '',
+                [bankInfoStepKeys.PLAID_ACCOUNT_ID]: values[bankInfoStepKeys.PLAID_ACCOUNT_ID] ?? '',
+                [bankInfoStepKeys.PLAID_ACCESS_TOKEN]: values[bankInfoStepKeys.PLAID_ACCESS_TOKEN] ?? '',
             });
         }
     }, [reimbursementAccount, setupType, values]);
@@ -89,7 +81,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
             return;
         }
 
-        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values[bankInfoStepKeys.BANK_NAME] !== '' && !redirectedFromPlaidToManual) {
+        if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
             setRedirectedFromPlaidToManual(true);
             moveTo(0);
         }
@@ -97,7 +89,6 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            // TODO replace it with navigation to ReimbursementAccountPage once base is updated
             BankAccounts.setBankAccountSubStep(null);
         } else {
             prevScreen();
@@ -105,6 +96,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     };
 
     return (
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper testID={BankInfo.displayName}>
             <HeaderWithBackButton
                 shouldShowBackButton={!(setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && screenIndex === 0)}
@@ -126,11 +118,9 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
     );
 }
 
-BankInfo.propTypes = propTypes;
-BankInfo.defaultProps = defaultProps;
 BankInfo.displayName = 'BankInfo';
 
-export default withOnyx({
+export default withOnyx<BankInfoProps, BankInfoOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
