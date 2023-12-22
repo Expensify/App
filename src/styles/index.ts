@@ -2895,6 +2895,7 @@ const styles = (theme: ThemeColors) =>
         peopleBadge: {
             backgroundColor: theme.icon,
             ...spacing.ph3,
+            ...spacing.ml3,
         },
 
         peopleBadgeText: {
@@ -3685,11 +3686,16 @@ const styles = (theme: ThemeColors) =>
                 color: isSelected ? theme.text : theme.textSupporting,
             } satisfies TextStyle),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
-        tabOpacity: (hovered: boolean, isFocused: boolean, activeOpacityValue: number, inactiveOpacityValue: number) => ({
+        tabOpacity: (
+            hovered: boolean,
+            isFocused: boolean,
+            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        ) => ({
             opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
         }),
 

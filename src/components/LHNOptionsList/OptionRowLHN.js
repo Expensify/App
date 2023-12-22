@@ -25,7 +25,6 @@ import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 
@@ -129,7 +128,7 @@ function OptionRowLHN(props) {
         }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
+            CONST.CONTEXT_MENU_TYPES.REPORT,
             event,
             '',
             popoverAnchor,
