@@ -496,8 +496,8 @@ function isTaskReport(report: OnyxEntry<Report>): boolean {
  * Checks if a task has been cancelled
  * When a task is deleted, the parentReportAction is updated to have a isDeletedParentAction deleted flag
  * This is because when you delete a task, we still allow you to chat on the report itself
- * There's another situation where you don't have access to the parentReportAction (because it was created in a chat
- * you don't have access to) In this case, we have added the key to the report itself
+ * There's another situation where you don't have access to the parentReportAction (because it was created in a chat you don't have access to)
+ * In this case, we have added the key to the report itself
  */
 function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
     if (isNotEmptyObject(parentReportAction) && (parentReportAction?.message?.[0]?.isDeletedParentAction ?? false)) {
@@ -3442,8 +3442,7 @@ function shouldReportBeInOptionList(
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, money
- * request, room, and policy expense chat.
+ * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, money request, room, and policy expense chat.
  */
 function getChatByParticipants(newParticipantList: number[]): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
@@ -3546,8 +3545,7 @@ function shouldShowFlagComment(reportAction: OnyxEntry<ReportAction>, report: On
 }
 
 /**
- * @param sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only
- *     those that should be visible
+ * @param sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
  */
 function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFilteredReportActions: ReportAction[]): string {
     if (!isUnread(report)) {
