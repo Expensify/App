@@ -24,6 +24,7 @@ type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
 };
+type OriginalMessageSource = 'Chronos' | 'email' | 'ios' | 'android' | 'web' | '';
 
 type IOUDetails = {
     amount: number;
@@ -42,8 +43,13 @@ type IOUMessage = {
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    cancellationReason?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
+};
+
+type ReimbursementDeQueuedMessage = {
+    cancellationReason: string;
 };
 
 type OriginalMessageIOU = {
@@ -95,6 +101,7 @@ type OriginalMessageAddComment = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
     originalMessage: {
         html: string;
+        source?: OriginalMessageSource;
         lastModified?: string;
         taskReportID?: string;
         edits?: string[];
@@ -252,4 +259,17 @@ type OriginalMessage =
     | OriginalMessageMoved;
 
 export default OriginalMessage;
-export type {ChronosOOOEvent, Decision, Reaction, ActionName, IOUMessage, Closed, OriginalMessageActionName, ChangeLog, OriginalMessageIOU, OriginalMessageCreated};
+export type {
+    ChronosOOOEvent,
+    Decision,
+    Reaction,
+    ActionName,
+    IOUMessage,
+    ReimbursementDeQueuedMessage,
+    Closed,
+    OriginalMessageActionName,
+    ChangeLog,
+    OriginalMessageIOU,
+    OriginalMessageCreated,
+    OriginalMessageAddComment,
+};

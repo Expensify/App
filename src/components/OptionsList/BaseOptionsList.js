@@ -208,6 +208,7 @@ const BaseOptionsList = forwardRef(
 
             return (
                 <OptionRow
+                    keyForList={item.keyForList}
                     option={item}
                     showTitleTooltip={showTitleTooltip}
                     hoverStyle={optionHoveredStyle}
