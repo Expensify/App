@@ -1,9 +1,7 @@
-import lodashGet from 'lodash/get';
-import lodashIsNil from 'lodash/isNil';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
+import {SvgProps} from 'react-native-svg';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,53 +9,46 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {MapboxAccessToken, Transaction} from '@src/types/onyx';
+import {WaypointCollection} from '@src/types/onyx/Transaction';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
+import {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
-import transactionPropTypes from './transactionPropTypes';
 
-const propTypes = {
-    /** Transaction that stores the distance request data */
-    transaction: transactionPropTypes,
-
+type ConfirmedRoutePropsOnyxProps = {
     /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: PropTypes.shape({
-        /** Temporary token for Mapbox API */
-        token: PropTypes.string,
-
-        /** Time when the token will expire in ISO 8601 */
-        expiration: PropTypes.string,
-    }),
+    mapboxAccessToken: OnyxEntry<MapboxAccessToken>;
 };
 
-const defaultProps = {
-    transaction: {},
-    mapboxAccessToken: {
-        token: '',
-    },
+type ConfirmedRouteProps = {
+    /** Transaction that stores the distance request data */
+    transaction: Transaction;
+    /** Data about Mapbox token for calling Mapbox API */
+    mapboxAccessToken: MapboxAccessToken;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction}) {
+function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
-    const {route0: route} = transaction.routes || {};
-    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const coordinates = lodashGet(route, 'geometry.coordinates', []);
+    const route = transaction.routes?.route0 ?? {geometry: {coordinates: []}};
+    const waypoints = transaction.comment?.waypoints ?? {};
+    const coordinates = route.geometry?.coordinates ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
 
     const getWaypointMarkers = useCallback(
-        (waypointsData) => {
-            const numberOfWaypoints = _.size(waypointsData);
+        (waypointsData: WaypointCollection): Array<WayPoint | undefined> => {
+            const numberOfWaypoints = Object.keys(waypointsData).length;
             const lastWaypointIndex = numberOfWaypoints - 1;
 
-            return _.filter(
-                _.map(waypointsData, (waypoint, key) => {
-                    if (!waypoint || lodashIsNil(waypoint.lat) || lodashIsNil(waypoint.lng)) {
+            return Object.entries(waypointsData)
+                .map(([key, waypoint]) => {
+                    if (!waypoint?.lat || !waypoint?.lng) {
                         return;
                     }
 
                     const index = TransactionUtils.getWaypointIndex(key);
-                    let MarkerComponent;
+                    let MarkerComponent: React.FC<SvgProps>;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
@@ -68,7 +59,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
 
                     return {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat],
+                        coordinate: [waypoint.lng, waypoint.lat] as [number, number],
                         markerComponent: () => (
                             <MarkerComponent
                                 width={CONST.MAP_MARKER_SIZE}
@@ -77,9 +68,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                             />
                         ),
                     };
-                }),
-                (waypoint) => waypoint,
-            );
+                })
+                .filter((waypoint) => !!waypoint);
         },
         [theme],
     );
@@ -88,19 +78,21 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
 
     useEffect(() => {
         MapboxToken.init();
-        return MapboxToken.stop;
+        return () => {
+            MapboxToken.stop();
+        };
     }, []);
 
     return (
         <>
-            {!isOffline && Boolean(mapboxAccessToken.token) ? (
+            {!isOffline && mapboxAccessToken.token ? (
                 <DistanceMapView
                     accessToken={mapboxAccessToken.token}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
                     initialState={{
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: lodashGet(waypointMarkers, [0, 'coordinate'], CONST.MAPBOX.DEFAULT_COORDINATE),
+                        location: (waypointMarkers[0]?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE) as number[],
                     }}
                     directionCoordinates={coordinates}
                     style={[styles.mapView, styles.br4]}
@@ -114,12 +106,10 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     );
 }
 
-export default withOnyx({
+export default withOnyx<ConfirmedRouteProps, ConfirmedRoutePropsOnyxProps>({
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },
 })(ConfirmedRoute);
 
 ConfirmedRoute.displayName = 'ConfirmedRoute';
-ConfirmedRoute.propTypes = propTypes;
-ConfirmedRoute.defaultProps = defaultProps;

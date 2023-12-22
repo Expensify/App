@@ -27,7 +27,7 @@ const propTypes = {
         PropTypes.shape({
             id: PropTypes.string,
             coordinate: PropTypes.arrayOf(PropTypes.number),
-            markerComponent: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
+            markerComponent: PropTypes.elementType,
         }),
     ),
 
