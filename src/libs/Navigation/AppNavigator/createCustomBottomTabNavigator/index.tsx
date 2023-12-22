@@ -12,6 +12,7 @@ import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import ScreenWrapper from '@components/ScreenWrapper';
 import {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import BottomTabBar from './BottomTabBar';
@@ -67,19 +68,21 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
     const stateToRender = getStateToRender(state);
 
     return (
-        <View style={{flex: 1}}>
-            <TopBar />
-            <NavigationContent>
-                <StackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={stateToRender}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-            <BottomTabBar />
-        </View>
+        <ScreenWrapper testID={CustomBottomTabNavigator.displayName}>
+            <View style={{flex: 1}}>
+                <TopBar />
+                <NavigationContent>
+                    <StackView
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                        state={stateToRender}
+                        descriptors={descriptors}
+                        navigation={navigation}
+                    />
+                </NavigationContent>
+                <BottomTabBar />
+            </View>
+        </ScreenWrapper>
     );
 }
 
