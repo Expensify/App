@@ -115,7 +115,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
                     shouldShowBackButton={isSmallScreenWidth}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
                     shouldShowBorderBottom
                 />
                 {shouldUseScrollView ? (

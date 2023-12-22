@@ -112,7 +112,7 @@ function setLocale(locale: Locale) {
 
 function setLocaleAndNavigate(locale: Locale) {
     setLocale(locale);
-    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack();
 }
 
 function setSidebarLoaded() {
