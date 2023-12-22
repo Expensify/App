@@ -144,8 +144,6 @@ function ReportActionsList({
     const route = useRoute();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
-    const unreadActionSubscription = useRef(null);
-    const readNewestActionSubscription = useRef(null);
 
     const markerInit = () => {
         if (!cacheUnreadMarkers.has(report.reportID)) {
@@ -231,22 +229,20 @@ function ReportActionsList({
         };
 
         // Listen to specific reportID for unread event and set the marker to new message
-        unreadActionSubscription.current = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
         // Listen to specific reportID for read newest action event and reset the marker
-        readNewestActionSubscription.current = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(0);
         });
 
         return () => {
-            // If the reportID changes, we reset the userActiveSince to null, we need to do it because
-            // this component doesn't unmount when the reportID changes
-            unreadActionSubscription.current.remove();
-            readNewestActionSubscription.current.remove();
+            unreadActionSubscription.remove();
+            readNewestActionSubscription.remove();
         };
     }, [report.reportID]);
 
