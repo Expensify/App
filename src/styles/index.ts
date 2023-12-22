@@ -3118,7 +3118,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchPressable: {
-            height: 40,
+            height: variables.componentSizeNormal,
         },
 
         searchContainer: {
