@@ -72,7 +72,6 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         badgeText?: string;
 
         /** Used to apply offline styles to child text components */
-        // style?: ViewStyle | ViewStyle[];
         style?: StyleProp<ViewStyle>;
 
         /** Any additional styles to apply */

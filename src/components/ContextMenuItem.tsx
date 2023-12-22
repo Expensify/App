@@ -38,13 +38,13 @@ type ContextMenuItemProps = {
     isFocused?: boolean;
 };
 
-type ContextMenuItemRef = {
+type ContextMenuItemHandle = {
     triggerPressAndUpdateSuccess?: () => void;
 };
 
 function ContextMenuItem(
     {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false}: ContextMenuItemProps,
-    ref: ForwardedRef<ContextMenuItemRef>,
+    ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
