@@ -37,6 +37,7 @@ import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
+import { PopoverContext } from '@components/PopoverProvider';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -103,6 +104,7 @@ function ComposerWithSuggestions({
     // For testing
     children,
 }) {
+    const {isOpen: isPopoverOpen} = React.useContext(PopoverContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -399,8 +401,11 @@ function ComposerWithSuggestions({
      * @memberof ReportActionCompose
      */
     const focus = useCallback((shouldDelay = false) => {
+        if (isPopoverOpen) {
+            return;
+        }
         focusComposerWithDelay(textInputRef.current)(shouldDelay);
-    }, []);
+    }, [isPopoverOpen]);
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
