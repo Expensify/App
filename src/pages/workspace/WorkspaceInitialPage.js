@@ -12,6 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -30,6 +31,7 @@ import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -65,6 +67,7 @@ function WorkspaceInitialPage(props) {
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
+    const activeRoute = useActiveRoute();
 
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -144,38 +147,45 @@ function WorkspaceInitialPage(props) {
             icon: Expensicons.Home,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id)))),
             brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            routeName: SCREENS.WORKSPACE.OVERVIEW,
         },
         {
             translationKey: 'workspace.common.card',
             icon: Expensicons.ExpensifyCard,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policy.id)))),
+            routeName: SCREENS.WORKSPACE.CARD,
         },
         {
             translationKey: 'workspace.common.reimburse',
             icon: Expensicons.Receipt,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policy.id)))),
             error: hasCustomUnitsError,
+            routeName: SCREENS.WORKSPACE.REIMBURSE,
         },
         {
             translationKey: 'workspace.common.bills',
             icon: Expensicons.Bill,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policy.id)))),
+            routeName: SCREENS.WORKSPACE.BILLS,
         },
         {
             translationKey: 'workspace.common.invoices',
             icon: Expensicons.Invoice,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policy.id)))),
+            routeName: SCREENS.WORKSPACE.INVOICES,
         },
         {
             translationKey: 'workspace.common.travel',
             icon: Expensicons.Luggage,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policy.id)))),
+            routeName: SCREENS.WORKSPACE.TRAVEL,
         },
         {
             translationKey: 'workspace.common.members',
             icon: Expensicons.Users,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id)))),
             brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
+            routeName: SCREENS.WORKSPACE.MEMBERS,
         },
         {
             translationKey: 'workspace.common.bankAccount',
@@ -279,6 +289,7 @@ function WorkspaceInitialPage(props) {
                                         onPress={item.action}
                                         brickRoadIndicator={item.brickRoadIndicator}
                                         wrapperStyle={styles.sectionMenuItem}
+                                        focused={activeRoute && activeRoute.startsWith(item.routeName)}
                                     />
                                 ))}
                             </View>
