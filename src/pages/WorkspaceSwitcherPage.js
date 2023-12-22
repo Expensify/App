@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Icon from '@components/Icon';
+import useLocalize from '@hooks/useLocalize';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
 const propTypes = {
@@ -60,6 +61,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const [selectedOption, setSelectedOption] = useState();
     const [searchTerm, setSearchTerm] = useState('');
     const {inputCallbackRef} = useAutoFocusInput();
+    const {translate} = useLocalize();
 
     const getIndicatorTypeForPolicy = useCallback(
         // TO DO: Wait for missing logic to be implemented in other PR
@@ -147,7 +149,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                         style={styles.label}
                         color={theme.textSupporting}
                     >
-                        Everything
+                        {translate('workspace.switcher.everythingSection')}
                     </Text>
                 </View>
                 <View>
@@ -162,19 +164,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                 </View>
             </>
         );
-    }, [
-        activeWorkspaceID,
-        getIndicatorTypeForPolicy,
-        hasUnreadData,
-        selectPolicy,
-        styles.alignItemsCenter,
-        styles.flexRow,
-        styles.justifyContentBetween,
-        styles.label,
-        styles.mb3,
-        styles.mh4,
-        theme.textSupporting,
-    ]);
+    }, [activeWorkspaceID, getIndicatorTypeForPolicy, hasUnreadData, selectPolicy, styles.alignItemsCenter, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb3, styles.mh4, theme.textSupporting, translate]);
  
     const workspacesSection = useMemo(
         () => (
@@ -186,7 +176,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                         style={[styles.mt3, styles.label]}
                         color={theme.textSupporting}
                         >
-                        Workspaces
+                        {translate('common.workspaces')}
                     </Text>
                         </View>
                     <PressableWithFeedback role={CONST.ROLE.BUTTON}>
@@ -221,7 +211,7 @@ additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2,
                 /> : <WorkspaceCardCreateAWorkspace/>}
             </>
         ),
-        [inputCallbackRef, onChangeText, searchTerm, selectPolicy, selectedOption, styles.alignItemsEnd, styles.borderRadiusNormal, styles.buttonDefaultBG, styles.buttonHoveredBG, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb1, styles.mb3, styles.mh4, styles.mt0, styles.mt2, styles.mt3, styles.p2, styles.pt0, theme.textSupporting, usersWorkspaces.length, usersWorkspacesSectionData],
+        [inputCallbackRef, onChangeText, searchTerm, selectPolicy, selectedOption, styles.alignItemsEnd, styles.borderRadiusNormal, styles.buttonDefaultBG, styles.buttonHoveredBG, styles.flexRow, styles.justifyContentBetween, styles.label, styles.mb1, styles.mb3, styles.mh4, styles.mt0, styles.mt2, styles.mt3, styles.p2, styles.pt0, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData],
     );
 
     useEffect(() => {
@@ -234,7 +224,7 @@ additionalStyles={[styles.buttonDefaultBG, styles.borderRadiusNormal, styles.p2,
 
     return (
         <HeaderPageLayout
-            title="Choose a workspace"
+            title={translate('workspace.switcher.headerTitle')}
             backgroundColor={theme.PAGE_THEMES[SCREENS.WORKSPACE_SWITCHER.ROOT].backgroundColor}
         >
             {everythingSection}
