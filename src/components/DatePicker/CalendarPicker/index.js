@@ -124,7 +124,6 @@ class CalendarPicker extends React.PureComponent {
             }
 
             return {
-                ...prev,
                 currentDateView: prevMonth,
                 years: newYears,
             };
@@ -147,7 +146,6 @@ class CalendarPicker extends React.PureComponent {
             }
 
             return {
-                ...prev,
                 currentDateView: nextMonth,
                 years: newYears,
             };
