@@ -52,6 +52,9 @@ type Message = {
 
     /** ID of a task report */
     taskReportID?: string;
+
+    /** Reason pf payment cancellation */
+    cancellationReason?: string;
 };
 
 type ImageMetadata = {
@@ -63,6 +66,9 @@ type ImageMetadata = {
 
     /**  The URL of the image. */
     url?: string;
+
+    /**  The type of the image. */
+    type?: string;
 };
 
 type LinkMetadata = {
@@ -197,4 +203,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata};
