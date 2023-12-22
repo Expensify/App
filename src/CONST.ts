@@ -593,6 +593,7 @@ const CONST = {
                     JOIN_ROOM: 'JOINROOM',
                 },
             },
+            DISABLE_THREAD: ['CREATED'],
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',

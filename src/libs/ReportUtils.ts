@@ -4212,6 +4212,36 @@ function navigateToPrivateNotes(report: Report, session: Session) {
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
 }
 
+/**
+ * Check whether we should disable thread for whisper action
+ */
+function shouldDisableThreadForWhisperAction(reportAction: ReportAction) {
+    const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+    const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
+    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+    return isWhisperAction && !isReportPreviewAction && !isIOUAction;
+}
+
+/**
+ * Disable reply in thread action if:
+ *
+ * - The action name is in the list of disable thread list
+ * - The action is split bill action
+ * - The action is deleted action and don't have the thread
+ * - The action is whisper action and not is report preview or IOU action
+ */
+function shouldDisableThread(reportAction: ReportAction) {
+    const disableThreadActions: string[] = [...CONST.REPORT.ACTIONS.DISABLE_THREAD];
+    const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
+    const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
+    return (
+        disableThreadActions.includes(reportAction.actionName) ||
+        isSplitBillAction ||
+        (isDeletedAction && !reportAction.childVisibleActionCount) ||
+        shouldDisableThreadForWhisperAction(reportAction)
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4384,6 +4414,7 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    shouldDisableThread,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};

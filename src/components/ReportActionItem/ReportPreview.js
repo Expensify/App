@@ -214,7 +214,6 @@ function ReportPreview(props) {
     const shouldShowApproveButton = useMemo(() => {
         if (!isGroupPolicy) {
             return false;
-            
         }
         return isCurrentUserManager && !isDraftExpenseReport && !isApproved && !iouSettled;
     }, [isGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
