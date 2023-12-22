@@ -1,3 +1,5 @@
+import lodashGet from 'lodash/get';
+
 const MAX_IMG_DIMENSIONS = 512;
 
 /**
@@ -52,7 +54,7 @@ function isChildOfNode(tnode, predicate) {
  * @returns {Boolean}
  */
 function isChildOfComment(tnode) {
-    return isChildOfNode(tnode, (node) => isCommentTag(node.domNode.name));
+    return isChildOfNode(tnode, (node) => isCommentTag(lodashGet(node, 'domNode.name', '')));
 }
 
 /**
@@ -62,7 +64,7 @@ function isChildOfComment(tnode) {
  * @returns {Boolean}
  */
 function isChildOfH1(tnode) {
-    return isChildOfNode(tnode, (node) => node.domNode.name.toLowerCase() === 'h1');
+    return isChildOfNode(tnode, (node) => lodashGet(node, 'domNode.name', '').toLowerCase() === 'h1');
 }
 
 export {computeEmbeddedMaxWidth, isChildOfComment, isCommentTag, isChildOfH1};

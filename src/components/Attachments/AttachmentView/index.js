@@ -12,13 +12,12 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import compose from '@libs/compose';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
-import cursor from '@styles/utilities/cursor';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentViewImage from './AttachmentViewImage';
@@ -64,7 +63,6 @@ function AttachmentView({
     source,
     file,
     isAuthTokenRequired,
-    isUsedInCarousel,
     onPress,
     shouldShowLoadingSpinnerIcon,
     shouldShowDownloadIcon,
@@ -73,11 +71,18 @@ function AttachmentView({
     onToggleKeyboard,
     translate,
     isFocused,
+    isUsedInCarousel,
+    isSingleCarouselItem,
+    carouselItemIndex,
+    carouselActiveItemIndex,
+    isUsedInAttachmentModal,
     isWorkspaceAvatar,
     fallbackSource,
     transaction,
-    isUsedInAttachmentModal,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const [imageError, setImageError] = useState(false);
 
@@ -122,21 +127,27 @@ function AttachmentView({
     if ((_.isString(source) && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
+        // We need the following View component on android native
+        // So that the event will propagate properly and
+        // the Password protected preview will be shown for pdf attachement we are about to send.
         return (
-            <AttachmentViewPdf
-                source={source}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                encryptedSourceUrl={encryptedSourceUrl}
-                isUsedInCarousel={isUsedInCarousel}
-                isFocused={isFocused}
-                onPress={onPress}
-                onScaleChanged={onScaleChanged}
-                onToggleKeyboard={onToggleKeyboard}
-                onLoadComplete={() => !loadComplete && setLoadComplete(true)}
-                errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [cursor.cursorAuto]}
-                style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
-            />
+            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
+                <AttachmentViewPdf
+                    source={source}
+                    file={file}
+                    isFocused={isFocused}
+                    isAuthTokenRequired={isAuthTokenRequired}
+                    encryptedSourceUrl={encryptedSourceUrl}
+                    carouselItemIndex={carouselItemIndex}
+                    carouselActiveItemIndex={carouselActiveItemIndex}
+                    onPress={onPress}
+                    onScaleChanged={onScaleChanged}
+                    onToggleKeyboard={onToggleKeyboard}
+                    onLoadComplete={() => !loadComplete && setLoadComplete(true)}
+                    errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
+                    style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                />
+            </View>
         );
     }
 
@@ -154,9 +165,12 @@ function AttachmentView({
                 source={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
-                isUsedInCarousel={isUsedInCarousel}
                 loadComplete={loadComplete}
                 isFocused={isFocused}
+                isUsedInCarousel={isUsedInCarousel}
+                isSingleCarouselItem={isSingleCarouselItem}
+                carouselItemIndex={carouselItemIndex}
+                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
@@ -170,14 +184,20 @@ function AttachmentView({
     return (
         <View style={[styles.defaultAttachmentView, ...containerStyles]}>
             <View style={styles.mr2}>
-                <Icon src={Expensicons.Paperclip} />
+                <Icon
+                    fill={theme.icon}
+                    src={Expensicons.Paperclip}
+                />
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
-                        <Icon src={Expensicons.Download} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.Download}
+                        />
                     </View>
                 </Tooltip>
             )}
@@ -186,7 +206,7 @@ function AttachmentView({
                     <Tooltip text={translate('common.downloading')}>
                         <ActivityIndicator
                             size="small"
-                            color={themeColors.textSupporting}
+                            color={theme.textSupporting}
                         />
                     </Tooltip>
                 </View>

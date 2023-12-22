@@ -7,9 +7,9 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
 import {baseListItemPropTypes} from './selectionListPropTypes';
@@ -24,7 +24,11 @@ function BaseListItem({
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
+    keyForList,
 }) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isUserItem = lodashGet(item, 'icons.length', 0) > 0;
     const ListItem = isUserItem ? UserListItem : RadioListItem;
@@ -40,11 +44,12 @@ function BaseListItem({
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
                 accessibilityLabel={item.text}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
                 hoverStyle={styles.hoveredComponentBG}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                testID={keyForList}
             >
                 <View
                     style={[
@@ -71,7 +76,7 @@ function BaseListItem({
                                 {item.isSelected && (
                                     <Icon
                                         src={Expensicons.Checkmark}
-                                        fill={themeColors.textLight}
+                                        fill={theme.textLight}
                                         height={14}
                                         width={14}
                                     />
@@ -81,7 +86,13 @@ function BaseListItem({
                     )}
                     <ListItem
                         item={item}
-                        isFocused={isFocused}
+                        textStyles={[
+                            styles.optionDisplayName,
+                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            isUserItem || item.isSelected ? styles.sidebarLinkTextBold : null,
+                            styles.pre,
+                        ]}
+                        alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                         isDisabled={isDisabled}
                         onSelectRow={onSelectRow}
                         showTooltip={showTooltip}
@@ -94,7 +105,7 @@ function BaseListItem({
                             <View>
                                 <Icon
                                     src={Expensicons.Checkmark}
-                                    fill={themeColors.success}
+                                    fill={theme.success}
                                 />
                             </View>
                         </View>

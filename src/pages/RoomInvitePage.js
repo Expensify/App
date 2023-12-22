@@ -10,14 +10,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +62,7 @@ const defaultProps = {
 };
 
 function RoomInvitePage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState([]);
@@ -69,17 +70,7 @@ function RoomInvitePage(props) {
     const [userToInvite, setUserToInvite] = useState(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(() => [...lodashGet(props.report, 'participants', []), ...CONST.EXPENSIFY_EMAILS], [props.report]);
-
-    useEffect(() => {
-        // Kick the user out if they tried to navigate to this via the URL
-        if (Permissions.canUsePolicyRooms(props.betas)) {
-            return;
-        }
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'participantAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], [props.report]);
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);

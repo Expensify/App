@@ -11,10 +11,10 @@ import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
-import styles from '@styles/styles';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -54,9 +54,6 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
@@ -74,7 +71,6 @@ const defaultProps = {
     onHideCreateMenu: () => {},
     onShowCreateMenu: () => {},
     allPolicies: {},
-    betas: [],
     isLoading: false,
     innerRef: null,
     demoInfo: {},
@@ -87,6 +83,7 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function FloatingActionButtonAndPopover(props) {
+    const styles = useThemeStyles();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
     const anchorRef = useRef(null);
@@ -132,8 +129,8 @@ function FloatingActionButtonAndPopover(props) {
             if (!isCreateMenuActive) {
                 return;
             }
-            props.onHideCreateMenu();
             setIsCreateMenuActive(false);
+            props.onHideCreateMenu();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [isCreateMenuActive],
@@ -186,7 +183,7 @@ function FloatingActionButtonAndPopover(props) {
         <View>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive}
+                isVisible={isCreateMenuActive && (!props.isSmallScreenWidth || props.isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(props.windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!props.isSmallScreenWidth}
@@ -199,22 +196,27 @@ function FloatingActionButtonAndPopover(props) {
                     {
                         icon: Expensicons.MoneyCircle,
                         text: props.translate('iou.requestMoney'),
-                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST)),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                Navigation.navigate(
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.TYPE.REQUEST, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, ReportUtils.generateReportID()),
+                                ),
+                            ),
                     },
                     {
                         icon: Expensicons.Send,
                         text: props.translate('iou.sendMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND)),
                     },
-                    ...(Permissions.canUseTasks(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Task,
-                                  text: props.translate('newTaskPage.assignTask'),
-                                  onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
-                              },
-                          ]
-                        : []),
+                    ...[
+                        {
+                            icon: Expensicons.Task,
+                            text: props.translate('newTaskPage.assignTask'),
+                            onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                        },
+                    ],
                     {
                         icon: Expensicons.Heart,
                         text: props.translate('sidebarScreen.saveTheWorld'),
@@ -223,6 +225,8 @@ function FloatingActionButtonAndPopover(props) {
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
+                                  displayInDefaultIconColor: true,
+                                  contentFit: 'contain',
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
                                   iconHeight: 40,
@@ -238,7 +242,7 @@ function FloatingActionButtonAndPopover(props) {
             />
             <FloatingActionButton
                 accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
                 onPress={() => {
@@ -276,9 +280,6 @@ export default compose(
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
         isLoading: {
             key: ONYXKEYS.IS_LOADING_APP,

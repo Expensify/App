@@ -5,19 +5,19 @@ import _ from 'underscore';
 import Logo from '@assets/images/new-expensify.svg';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
-import {CONTEXT_MENU_TYPES} from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -41,6 +41,7 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
+    const styles = useThemeStyles();
     const {translate} = props;
     const popoverAnchor = useRef(null);
     const waitForNavigate = useWaitForNavigation();
@@ -87,7 +88,7 @@ function AboutPage(props) {
             iconRight: item.iconRight,
             onPress: item.action,
             shouldShowRightIcon: true,
-            onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
+            onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: Boolean(item.link),
         }));
@@ -106,9 +107,11 @@ function AboutPage(props) {
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>
-                            <View style={styles.pageWrapper}>
+                            <View style={[styles.pageWrapper, styles.pv3]}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <Logo
+                                    <ImageSVG
+                                        contentFit="contain"
+                                        src={Logo}
                                         height={80}
                                         width={80}
                                     />

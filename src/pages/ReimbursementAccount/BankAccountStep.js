@@ -15,12 +15,14 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,6 +66,8 @@ const defaultProps = {
 };
 
 function BankAccountStep(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     let subStep = lodashGet(props.reimbursementAccount, 'achData.subStep', '');
     const shouldReinitializePlaidLink = props.plaidLinkOAuthToken && props.receivedRedirectURI && subStep !== CONST.BANK_ACCOUNT.SUBSTEP.MANUAL;
     if (shouldReinitializePlaidLink) {
@@ -157,9 +161,19 @@ function BankAccountStep(props) {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                             <Icon
                                 src={Expensicons.Exclamation}
-                                fill={themeColors.danger}
+                                fill={theme.danger}
                             />
-                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>{props.translate('bankAccount.validateAccountError')}</Text>
+
+                            <Text style={[styles.mutedTextLabel, styles.ml4, styles.flex1]}>
+                                {props.translate('bankAccount.validateAccountError.phrase1')}
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={Session.signOutAndRedirectToSignIn}
+                                >
+                                    {props.translate('bankAccount.validateAccountError.phrase2')}
+                                </TextLink>
+                                .
+                            </Text>
                         </View>
                     )}
                     <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
@@ -175,7 +189,7 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    fill={themeColors.link}
+                                    fill={theme.link}
                                 />
                             </View>
                         </PressableWithoutFeedback>

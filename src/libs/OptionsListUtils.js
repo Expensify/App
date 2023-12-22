@@ -13,11 +13,13 @@ import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
+import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -152,7 +154,7 @@ function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}
  * Returns the personal details for an array of accountIDs
  *
  * @param {Array} accountIDs
- * @param {Object} personalDetails
+ * @param {Object | null} personalDetails
  * @returns {Object} – keys of the object are emails, values are PersonalDetails objects.
  */
 function getPersonalDetailsForAccountIDs(accountIDs, personalDetails) {
@@ -350,13 +352,15 @@ function getAllReportErrors(report, reportActions) {
     if (parentReportAction.actorAccountID === currentUserAccountID && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = lodashGet(parentReportAction, ['originalMessage', 'IOUTransactionID'], '');
         const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
-        if (TransactionUtils.hasMissingSmartscanFields(transaction)) {
+        if (TransactionUtils.hasMissingSmartscanFields(transaction) && !ReportUtils.isSettled(transaction.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.hasMissingSmartscanFields(report.reportID)) {
+        if (ReportUtils.hasMissingSmartscanFields(report.reportID) && !ReportUtils.isSettled(report.reportID)) {
             _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
         }
+    } else if (ReportUtils.hasSmartscanError(_.values(reportActions))) {
+        _.extend(reportActionErrors, {smartscan: ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage')});
     }
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
@@ -378,10 +382,7 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
-    const lastReportAction = _.find(
-        allSortedReportActions[report.reportID],
-        (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    );
+    const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
@@ -390,22 +391,24 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
+        const lastIOUMoneyReportAction = _.find(
             allSortedReportActions[iouReport.reportID],
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReportAction, true, ReportUtils.isChatReport(report));
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
+    } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
@@ -413,20 +416,10 @@ function getLastMessageTextForReport(report) {
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
     ) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
+    } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
+        lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-
-        // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove
-        // then set the last message text to the text of the latest visible action that is not a whisper or the report creation message.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
-        if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            const latestVisibleAction =
-                _.find(
-                    allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action) && !ReportActionUtils.isCreatedAction(action),
-                ) || {};
-            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-        }
     }
     return lastMessageTextFromReport;
 }
@@ -464,7 +457,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         searchText: null,
         isDefaultRoom: false,
         isPinned: false,
-        hasOutstandingIOU: false,
         isWaitingOnBankAccount: false,
         iouReportID: null,
         isIOUReportOwner: null,
@@ -511,7 +503,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
-        result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
 
@@ -528,15 +519,15 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(lastActorDetails, 'displayName')),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
 
-        if (result.isChatRoom || result.isPolicyExpenseChat) {
-            result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
-        } else if (result.isMoneyRequestReport) {
+        if (result.isThread || result.isMoneyRequestReport) {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        } else if (result.isChatRoom || result.isPolicyExpenseChat) {
+            result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
@@ -544,7 +535,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         }
         reportName = ReportUtils.getReportName(report);
     } else {
-        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]);
+        reportName = ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         result.keyForList = String(accountIDs[0]);
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
@@ -745,6 +736,21 @@ function sortCategories(categories) {
 }
 
 /**
+ * Sorts tags alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} tags
+ * @returns {Array<Object>}
+ */
+function sortTags(tags) {
+    const sortedTags = _.chain(tags)
+        .values()
+        .sortBy((tag) => tag.name)
+        .value();
+
+    return sortedTags;
+}
+
+/**
  * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
@@ -922,7 +928,7 @@ function getTagsOptions(tags) {
 /**
  * Build the section list for tags
  *
- * @param {Object[]} tags
+ * @param {Object[]} rawTags
  * @param {String} tags[].name
  * @param {Boolean} tags[].enabled
  * @param {String[]} recentlyUsedTags
@@ -932,9 +938,16 @@ function getTagsOptions(tags) {
  * @param {Number} maxRecentReportsToShow
  * @returns {Array<Object>}
  */
-function getTagListSections(tags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
+function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchInputValue, maxRecentReportsToShow) {
     const tagSections = [];
-    const enabledTags = _.filter(tags, (tag) => tag.enabled);
+    const tags = _.map(rawTags, (tag) => {
+        // This is to remove unnecessary escaping backslash in tag name sent from backend.
+        const tagName = tag.name && tag.name.replace(/\\{1,2}:/g, ':');
+
+        return {...tag, name: tagName};
+    });
+    const sortedTags = sortTags(tags);
+    const enabledTags = _.filter(sortedTags, (tag) => tag.enabled);
     const numberOfTags = _.size(enabledTags);
     let indexOffset = 0;
 
@@ -1201,7 +1214,7 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
-    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
+    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login) && !detail.isOptimisticPersonalDetail);
     let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
         createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
@@ -1215,7 +1228,7 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude = [{login: currentUserLogin}];
+    const optionsToExclude = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1235,6 +1248,11 @@ function getOptions(
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
                 break;
+            }
+
+            // Skip notifications@expensify.com
+            if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
+                continue;
             }
 
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
@@ -1374,7 +1392,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: _.filter(personalDetailsOptions, (personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
+        personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,

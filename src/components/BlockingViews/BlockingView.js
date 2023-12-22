@@ -3,17 +3,17 @@ import React from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 
 const propTypes = {
     /** Expensicon for the page */
-    icon: PropTypes.func.isRequired,
+    icon: sourcePropTypes.isRequired,
 
     /** Color for the icon (should be from theme) */
     iconColor: PropTypes.string,
@@ -44,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iconColor: themeColors.offline,
+    iconColor: null,
     subtitle: '',
     shouldShowLink: false,
     linkKey: 'notFound.goBackHome',
@@ -55,6 +55,7 @@ const defaultProps = {
 };
 
 function BlockingView(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     function renderContent() {
         return (

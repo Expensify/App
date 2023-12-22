@@ -8,11 +8,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -55,6 +55,8 @@ const defaultProps = {
  * @returns {JSX.Element}
  */
 function MiniQuickEmojiReactions(props) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const ref = useRef();
 
     const openEmojiPicker = () => {

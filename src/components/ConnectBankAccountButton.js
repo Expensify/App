@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
@@ -30,6 +30,7 @@ const defaultProps = {
 };
 
 function ConnectBankAccountButton(props) {
+    const styles = useThemeStyles();
     const activeRoute = Navigation.getActiveRouteWithoutParams();
     return props.network.isOffline ? (
         <View style={props.style}>

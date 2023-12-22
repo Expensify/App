@@ -99,7 +99,6 @@ describe('OptionsListUtils', () => {
             participantAccountIDs: [8],
             reportName: 'Mister Sinister',
             iouReportID: 100,
-            hasOutstandingIOU: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
 
@@ -1077,14 +1076,8 @@ describe('OptionsListUtils', () => {
                 title: '',
                 shouldShow: false,
                 indexOffset: 0,
+                // data sorted alphabetically by name
                 data: [
-                    {
-                        text: 'Medical',
-                        keyForList: 'Medical',
-                        searchText: 'Medical',
-                        tooltipText: 'Medical',
-                        isDisabled: false,
-                    },
                     {
                         text: 'Accounting',
                         keyForList: 'Accounting',
@@ -1097,6 +1090,13 @@ describe('OptionsListUtils', () => {
                         keyForList: 'HR',
                         searchText: 'HR',
                         tooltipText: 'HR',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Medical',
+                        keyForList: 'Medical',
+                        searchText: 'Medical',
+                        tooltipText: 'Medical',
                         isDisabled: false,
                     },
                 ],
@@ -1205,6 +1205,7 @@ describe('OptionsListUtils', () => {
                 title: 'All',
                 shouldShow: true,
                 indexOffset: 2,
+                // data sorted alphabetically by name
                 data: [
                     {
                         text: 'Accounting',
@@ -1214,10 +1215,17 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'HR',
-                        keyForList: 'HR',
-                        searchText: 'HR',
-                        tooltipText: 'HR',
+                        text: 'Benefits',
+                        keyForList: 'Benefits',
+                        searchText: 'Benefits',
+                        tooltipText: 'Benefits',
+                        isDisabled: false,
+                    },
+                    {
+                        text: 'Cleaning',
+                        keyForList: 'Cleaning',
+                        searchText: 'Cleaning',
+                        tooltipText: 'Cleaning',
                         isDisabled: false,
                     },
                     {
@@ -1228,10 +1236,10 @@ describe('OptionsListUtils', () => {
                         isDisabled: false,
                     },
                     {
-                        text: 'Cleaning',
-                        keyForList: 'Cleaning',
-                        searchText: 'Cleaning',
-                        tooltipText: 'Cleaning',
+                        text: 'HR',
+                        keyForList: 'HR',
+                        searchText: 'HR',
+                        tooltipText: 'HR',
                         isDisabled: false,
                     },
                     {
@@ -1246,13 +1254,6 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Taxes',
                         searchText: 'Taxes',
                         tooltipText: 'Taxes',
-                        isDisabled: false,
-                    },
-                    {
-                        text: 'Benefits',
-                        keyForList: 'Benefits',
-                        searchText: 'Benefits',
-                        tooltipText: 'Benefits',
                         isDisabled: false,
                     },
                 ],

@@ -8,5 +8,5 @@ outputs:
   PREVIOUS_VERSION:
     description: The previous semver version of the application, according to the SEMVER_LEVEL provided
 runs:
-  using: 'node16'
+  using: 'node20'
   main: './index.js'

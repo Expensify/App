@@ -1,20 +1,19 @@
 import {Parser as HtmlParser} from 'htmlparser2';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 
 /**
  * Constructs the initial component state from report actions
- * @param {Object} report
- * @param {Array} reportActions
+ * @param {Object} parentReportAction
+ * @param {Object} reportActions
+ * @param {Object} transaction
  * @returns {Array}
  */
-function extractAttachmentsFromReport(report, reportActions) {
-    const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
+function extractAttachmentsFromReport(parentReportAction, reportActions) {
+    const actions = [parentReportAction, ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     const attachments = [];
 
     const htmlParser = new HtmlParser({
@@ -24,14 +23,16 @@ function extractAttachmentsFromReport(report, reportActions) {
             }
 
             const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+            const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
+            const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
 
             // By iterating actions in chronological order and prepending each attachment
             // we ensure correct order of attachments even across actions with multiple attachments.
             attachments.unshift({
                 reportActionID: attribs['data-id'],
-                source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
+                source,
                 isAuthTokenRequired: Boolean(expensifySource),
-                file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
+                file: {name: fileName},
                 isReceipt: false,
                 hasBeenFlagged: attribs['data-flagged'] === 'true',
             });
@@ -39,31 +40,8 @@ function extractAttachmentsFromReport(report, reportActions) {
     });
 
     _.forEach(actions, (action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key) || ReportActionsUtils.isMoneyRequestAction(action)) {
             return;
-        }
-
-        // We're handling receipts differently here because receipt images are not
-        // part of the report action message, the images are constructed client-side
-        if (ReportActionsUtils.isMoneyRequestAction(action)) {
-            const transactionID = lodashGet(action, ['originalMessage', 'IOUTransactionID']);
-            if (!transactionID) {
-                return;
-            }
-
-            const transaction = TransactionUtils.getTransaction(transactionID);
-            if (TransactionUtils.hasReceipt(transaction)) {
-                const {image} = ReceiptUtils.getThumbnailAndImageURIs(transaction);
-                const isLocalFile = typeof image === 'string' && (image.startsWith('blob:') || image.startsWith('file:'));
-                attachments.unshift({
-                    source: tryResolveUrlFromApiRoot(image),
-                    isAuthTokenRequired: !isLocalFile,
-                    file: {name: transaction.filename},
-                    isReceipt: true,
-                    transactionID,
-                });
-                return;
-            }
         }
 
         const decision = _.get(action, ['message', 0, 'moderationDecision', 'decision'], '');

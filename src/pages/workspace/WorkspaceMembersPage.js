@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -18,6 +19,7 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
@@ -27,11 +29,11 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
-import styles from '@styles/styles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -73,6 +75,7 @@ const defaultProps = {
 };
 
 function WorkspaceMembersPage(props) {
+    const styles = useThemeStyles();
     const [selectedEmployees, setSelectedEmployees] = useState([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
@@ -83,6 +86,14 @@ function WorkspaceMembersPage(props) {
     const textInputRef = useRef(null);
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
+
+    const isFocusedScreen = useIsFocused();
+
+    useEffect(() => {
+        setSearchValue(SearchInputManager.searchInput);
+    }, [isFocusedScreen]);
+
+    useEffect(() => () => (SearchInputManager.searchInput = ''), []);
 
     /**
      * Get filtered personalDetails list with current policyMembers
@@ -465,7 +476,10 @@ function WorkspaceMembersPage(props) {
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
                             textInputValue={searchValue}
-                            onChangeText={setSearchValue}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchValue(value);
+                            }}
                             headerMessage={getHeaderMessage()}
                             headerContent={getHeaderContent()}
                             onSelectRow={(item) => toggleUser(item.accountID)}

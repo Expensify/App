@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -59,10 +59,11 @@ function SuggestionEmoji({
     forwardedRef,
     resetKeyboardInput,
     measureParentContainer,
+    isComposerFocused,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
-    const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu;
+    const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
@@ -165,13 +166,13 @@ function SuggestionEmoji({
             const nextState = {
                 suggestedEmojis: [],
                 colonIndex,
-                shouldShowEmojiSuggestionMenu: false,
+                shouldShowSuggestionMenu: false,
             };
             const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, preferredLocale);
 
             if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
                 nextState.suggestedEmojis = newSuggestedEmojis;
-                nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
+                nextState.shouldShowSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
             }
 
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
@@ -179,6 +180,13 @@ function SuggestionEmoji({
         },
         [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
+
+    useEffect(() => {
+        if (!isComposerFocused) {
+            return;
+        }
+        calculateEmojiSuggestion(selection.end);
+    }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const onSelectionChange = useCallback(
         (e) => {
@@ -201,6 +209,10 @@ function SuggestionEmoji({
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
+    const resetEmojiSuggestions = useCallback(() => {
+        setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
+    }, []);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -220,11 +232,11 @@ function SuggestionEmoji({
 
     return (
         <EmojiSuggestions
-            onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
+            onClose={resetEmojiSuggestions}
             highlightedEmojiIndex={highlightedEmojiIndex}
             emojis={suggestionValues.suggestedEmojis}
             comment={value}
-            updateComment={(newComment) => setValue(newComment)}
+            updateComment={setValue}
             colonIndex={suggestionValues.colonIndex}
             prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
             onSelect={insertSelectedEmoji}

@@ -8,9 +8,9 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import UnorderedList from '@components/UnorderedList';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
-import styles from '@styles/styles';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +27,7 @@ const defaultProps = {
 };
 
 function WorkspaceCardVBANoECardView(props) {
+    const styles = useThemeStyles();
     return (
         <>
             <Section

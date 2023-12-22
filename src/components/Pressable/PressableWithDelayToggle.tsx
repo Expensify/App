@@ -1,17 +1,17 @@
 /* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
-import React, {ForwardedRef, forwardRef} from 'react';
-import {Text as RNText, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {SvgProps} from 'react-native-svg';
+import React, {forwardRef} from 'react';
+import {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
-import PressableProps from './GenericPressable/types';
+import IconAsset from '@src/types/utils/IconAsset';
+import PressableProps, {PressableRef} from './GenericPressable/types';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
 
 type PressableWithDelayToggleProps = PressableProps & {
@@ -19,7 +19,7 @@ type PressableWithDelayToggleProps = PressableProps & {
     text: string;
 
     /** The text to display once the pressable is pressed */
-    textChecked: string;
+    textChecked?: string;
 
     /** The tooltip text to display */
     tooltipText: string;
@@ -37,10 +37,10 @@ type PressableWithDelayToggleProps = PressableProps & {
     iconStyles?: StyleProp<ViewStyle>;
 
     /** The icon to display */
-    icon?: React.FC<SvgProps>;
+    icon?: IconAsset;
 
     /** The icon to display once the pressable is pressed */
-    iconChecked?: React.FC<SvgProps>;
+    iconChecked?: IconAsset;
 
     /**
      * Should be set to `true` if this component is being rendered inline in
@@ -48,6 +48,7 @@ type PressableWithDelayToggleProps = PressableProps & {
      * vertical text alignment of non-Text elements
      */
     inline?: boolean;
+    accessibilityRole?: string;
 };
 
 function PressableWithDelayToggle(
@@ -63,9 +64,12 @@ function PressableWithDelayToggle(
         textStyles,
         iconStyles,
         icon,
+        accessibilityRole,
     }: PressableWithDelayToggleProps,
-    ref: ForwardedRef<RNText | View>,
+    ref: PressableRef,
 ) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
 
     const updatePressState = () => {
@@ -99,11 +103,11 @@ function PressableWithDelayToggle(
             onPress={updatePressState}
             accessibilityLabel={tooltipTexts}
             suppressHighlighting={inline ? true : undefined}
+            accessibilityRole={accessibilityRole}
         >
             <>
                 {inline && labelText}
                 <Tooltip
-                    containerStyles={[styles.flexRow]}
                     text={tooltipTexts}
                     shouldRender
                 >
@@ -120,7 +124,7 @@ function PressableWithDelayToggle(
                                     <Icon
                                         src={!isActive ? iconChecked : icon}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                        style={iconStyles}
+                                        additionalStyles={iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         inline={inline}

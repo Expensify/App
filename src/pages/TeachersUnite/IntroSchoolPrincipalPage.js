@@ -13,10 +13,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +36,7 @@ const defaultProps = {
 };
 
 function IntroSchoolPrincipalPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
 
@@ -78,6 +80,9 @@ function IntroSchoolPrincipalPage(props) {
             if (!_.isEmpty(values.partnerUserID) && !Str.isValidEmail(values.partnerUserID)) {
                 ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
             }
+            if (!_.isEmpty(values.partnerUserID) && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
+                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+            }
 
             return errors;
         },
@@ -109,7 +114,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="firstName"
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -121,7 +126,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="lastName"
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
@@ -133,7 +138,7 @@ function IntroSchoolPrincipalPage(props) {
                         name="partnerUserID"
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
                     />

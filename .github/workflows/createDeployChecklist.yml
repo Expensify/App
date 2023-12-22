@@ -1,0 +1,20 @@
+name: Create or update deploy checklist
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  createChecklist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Create or update deploy checklist
+        uses: ./.github/actions/javascript/createOrUpdateStagingDeploy
+        with:
+          GITHUB_TOKEN: ${{ github.token }}

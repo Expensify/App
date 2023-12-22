@@ -15,18 +15,23 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Timing from '@libs/actions/Timing';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportMetadataPropTypes from '@pages/reportMetadataPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -99,9 +104,7 @@ const propTypes = {
 const defaultProps = {
     isSidebarLoaded: false,
     reportActions: [],
-    report: {
-        hasOutstandingIOU: false,
-    },
+    report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
@@ -126,8 +129,12 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    // // The reportID is used inside a collection key and should not be empty, as an empty reportID will result in the entire collection being returned.
-    return String(lodashGet(route, 'params.reportID', null));
+    // The report ID is used in an onyx key. If it's an empty string, onyx will return
+    // a collection instead of an individual report.
+    // We can't use the default value functionality of `lodash.get()` because it only
+    // provides a default value on `undefined`, and will return an empty string.
+    // Placing the default value outside of `lodash.get()` is intentional.
+    return String(lodashGet(route, 'params.reportID') || 0);
 }
 
 function ReportScreen({
@@ -147,8 +154,10 @@ function ReportScreen({
     userLeavingStatus,
     currentReportID,
 }) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {isOffline} = useNetwork();
 
     const firstRenderRef = useRef(true);
     const flatListRef = useRef();
@@ -157,13 +166,23 @@ function ReportScreen({
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
+    const [scrollPosition, setScrollPosition] = useState({});
+
+    const wasReportAccessibleRef = useRef(false);
+    if (firstRenderRef.current) {
+        Timing.start(CONST.TIMING.CHAT_RENDER);
+        Performance.markStart(CONST.TIMING.CHAT_RENDER);
+    }
 
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- need to re-filter the report actions when network status changes
+    const filteredReportActions = useMemo(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true), [isOffline, reportActions]);
+
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
-    const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;
+    const isLoadingInitialReportActions = _.isEmpty(filteredReportActions) && reportMetadata.isLoadingInitialReportActions;
 
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
 
@@ -178,6 +197,13 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+
+    useEffect(() => {
+        if (!report || !report.reportID || shouldHideReport) {
+            return;
+        }
+        wasReportAccessibleRef.current = true;
+    }, [shouldHideReport, report]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
@@ -273,7 +299,22 @@ function ReportScreen({
         [route],
     );
 
+    // Clear notifications for the current report when it's opened and re-focused
+    const clearNotifications = useCallback(() => {
+        // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
+        if (!isTopMostReportId) {
+            return;
+        }
+
+        clearReportNotifications(report.reportID);
+    }, [report.reportID, isTopMostReportId]);
+    useEffect(clearNotifications, [clearNotifications]);
+    useAppFocusEvent(clearNotifications);
+
     useEffect(() => {
+        Timing.end(CONST.TIMING.CHAT_RENDER);
+        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
+
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
@@ -308,7 +349,8 @@ function ReportScreen({
                 prevOnyxReportID === routeReportID &&
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID)))
+                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
+            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && _.isEmpty(report))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -333,7 +375,19 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID]);
+    }, [
+        route,
+        report,
+        errors,
+        fetchReportIfNeeded,
+        prevReport.reportID,
+        prevUserLeavingStatus,
+        userLeavingStatus,
+        prevReport.statusNum,
+        prevReport.parentReportID,
+        prevReport.chatType,
+        prevReport,
+    ]);
 
     useEffect(() => {
         if (!ReportUtils.isValidReportIDFromPath(reportID)) {
@@ -362,12 +416,22 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingInitialReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        () =>
+            (!wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !reportMetadata.isLoadingInitialReportActions &&
+                !isLoading &&
+                !userLeavingStatus) ||
+            shouldHideReport,
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 
+    const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
+
     return (
-        <ActionListContext.Provider value={flatListRef}>
+        <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
                 <ScreenWrapper
                     style={screenWrapperStyle}
@@ -416,7 +480,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={reportActions}
+                                        reportActions={filteredReportActions}
                                         report={report}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
@@ -427,14 +491,14 @@ function ReportScreen({
                                 )}
 
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                                    If we prevent rendering the report while they are loading then
-                                    we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                     If we prevent rendering the report while they are loading then
+                     we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
                                 {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportActions={reportActions}
+                                        reportActions={filteredReportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
@@ -469,7 +533,6 @@ export default compose(
             reportActions: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                 canEvict: false,
-                selector: ReportActionsUtils.getSortedReportActionsForDisplay,
             },
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,

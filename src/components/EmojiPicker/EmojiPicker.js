@@ -4,10 +4,10 @@ import {Dimensions} from 'react-native';
 import _ from 'underscore';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
@@ -21,6 +21,8 @@ const propTypes = {
 };
 
 const EmojiPicker = forwardRef((props, ref) => {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
@@ -134,6 +136,9 @@ const EmojiPicker = forwardRef((props, ref) => {
             });
         });
         return () => {
+            if (!emojiPopoverDimensionListener) {
+                return;
+            }
             emojiPopoverDimensionListener.remove();
         };
     }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);
@@ -164,7 +169,6 @@ const EmojiPicker = forwardRef((props, ref) => {
             outerStyle={StyleUtils.getOuterModalStyle(windowHeight, props.viewportOffsetTop)}
             innerContainerStyle={styles.popoverInnerContainer}
             avoidKeyboard
-            shouldUseTargetLocation
         >
             <EmojiPickerMenu
                 onEmojiSelected={selectEmoji}

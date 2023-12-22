@@ -1,7 +1,7 @@
-import {ActionListContextType} from '@pages/home/ReportScreenContext';
+import {FlatListRefType} from '@pages/home/ReportScreenContext';
 
 type ReportScrollManagerData = {
-    ref: ActionListContextType;
+    ref: FlatListRefType;
     scrollToIndex: (index: number, isEditing?: boolean) => void;
     scrollToBottom: () => void;
 };

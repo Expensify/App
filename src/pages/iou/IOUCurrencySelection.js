@@ -157,20 +157,29 @@ function IOUCurrencySelection(props) {
             onEntryTransitionEnd={() => optionsSelectorRef.current && optionsSelectorRef.current.focus()}
             testID={IOUCurrencySelection.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('common.selectCurrency')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
-            />
-            <SelectionList
-                sections={sections}
-                textInputLabel={translate('common.search')}
-                textInputValue={searchValue}
-                onChangeText={setSearchValue}
-                onSelectRow={confirmCurrencySelection}
-                headerMessage={headerMessage}
-                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                showScrollIndicator
-            />
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('common.selectCurrency')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID))}
+                    />
+                    <SelectionList
+                        sections={sections}
+                        textInputLabel={translate('common.search')}
+                        textInputValue={searchValue}
+                        onChangeText={setSearchValue}
+                        onSelectRow={(option) => {
+                            if (!didScreenTransitionEnd) {
+                                return;
+                            }
+                            confirmCurrencySelection(option);
+                        }}
+                        headerMessage={headerMessage}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        showScrollIndicator
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }

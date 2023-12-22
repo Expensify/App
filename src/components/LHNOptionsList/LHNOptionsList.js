@@ -1,17 +1,20 @@
+import {FlashList} from '@shopify/flash-list';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import participantPropTypes from '@components/participantPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
+import stylePropTypes from '@styles/stylePropTypes';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,12 +22,10 @@ import OptionRowLHNData from './OptionRowLHNData';
 
 const propTypes = {
     /** Wrapper style for the section list */
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: stylePropTypes,
 
     /** Extra styles for the section list container */
-    // eslint-disable-next-line react/forbid-prop-types
-    contentContainerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
+    contentContainerStyles: stylePropTypes.isRequired,
 
     /** Sections for the section list */
     data: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -68,7 +69,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    style: styles.flex1,
+    style: undefined,
     shouldDisableFocusOptions: false,
     reportActions: {},
     reports: {},
@@ -80,7 +81,7 @@ const defaultProps = {
     ...withCurrentReportIDDefaultProps,
 };
 
-const keyExtractor = (item) => item;
+const keyExtractor = (item) => `report_${item}`;
 
 function LHNOptionsList({
     style,
@@ -98,28 +99,7 @@ function LHNOptionsList({
     draftComments,
     currentReportID,
 }) {
-    /**
-     * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
-     * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
-     * lists.
-     *
-     * @param {Array} itemData - This is the same as the data we pass into the component
-     * @param {Number} index the current item's index in the set of data
-     *
-     * @returns {Object}
-     */
-    const getItemLayout = useCallback(
-        (itemData, index) => {
-            const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-            return {
-                length: optionHeight,
-                offset: index * optionHeight,
-                index,
-            };
-        },
-        [optionMode],
-    );
-
+    const styles = useThemeStyles();
     /**
      * Function which renders a row in the list
      *
@@ -138,7 +118,9 @@ function LHNOptionsList({
             const transactionID = lodashGet(itemParentReportAction, ['originalMessage', 'IOUTransactionID'], '');
             const itemTransaction = transactionID ? transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] : {};
             const itemComment = draftComments[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] || '';
-            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(itemFullReport.participantAccountIDs, personalDetails);
+            const participants = [...ReportUtils.getParticipantsIDs(itemFullReport), itemFullReport.ownerAccountID];
+
+            const participantsPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
 
             return (
                 <OptionRowLHNData
@@ -162,21 +144,18 @@ function LHNOptionsList({
     );
 
     return (
-        <View style={style}>
-            <FlatList
+        <View style={style || styles.flex1}>
+            <FlashList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
                 contentContainerStyle={contentContainerStyles}
-                showsVerticalScrollIndicator={false}
                 data={data}
                 testID="lhn-options-list"
                 keyExtractor={keyExtractor}
-                stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
-                getItemLayout={getItemLayout}
-                initialNumToRender={20}
-                maxToRenderPerBatch={5}
-                windowSize={5}
+                estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
+                extraData={[currentReportID]}
+                showsVerticalScrollIndicator={false}
             />
         </View>
     );

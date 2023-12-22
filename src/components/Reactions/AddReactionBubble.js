@@ -7,9 +7,9 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
@@ -54,6 +54,8 @@ const defaultProps = {
 };
 
 function AddReactionBubble(props) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const ref = useRef();
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -98,7 +100,7 @@ function AddReactionBubble(props) {
                     e.preventDefault();
                 }}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -106,8 +108,8 @@ function AddReactionBubble(props) {
                 {({hovered, pressed}) => (
                     <>
                         {/* This (invisible) text will make the view have the same size as a regular
-                            emoji reaction. We make the text invisible and put the
-                            icon on top of it. */}
+               emoji reaction. We make the text invisible and put the
+               icon on top of it. */}
                         <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon

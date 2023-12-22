@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
@@ -53,6 +53,7 @@ const defaultProps = {
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, linkKey, onBackButtonPress, shouldShowLink, shouldShowBackButton, onLinkPress}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     if (shouldShow) {
         return (

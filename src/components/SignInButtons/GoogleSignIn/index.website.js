@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -32,6 +32,7 @@ const signIn = (response) => {
  * @returns {React.Component}
  */
 function GoogleSignIn({translate, isDesktopFlow}) {
+    const styles = useThemeStyles();
     const loadScript = useCallback(() => {
         const google = window.google;
         if (google) {
@@ -75,7 +76,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         <View style={styles.googlePillButtonContainer}>
             <div
                 id={desktopId}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
             />
         </View>
@@ -83,7 +84,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
         <View style={[styles.googleButtonContainer, styles.willChangeTransform]}>
             <div
                 id={mainId}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
             />
         </View>

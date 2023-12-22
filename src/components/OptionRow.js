@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
@@ -76,13 +76,15 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported: PropTypes.bool,
 
+    /** Key used internally by React */
+    keyForList: PropTypes.string,
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    hoverStyle: styles.sidebarLinkHover,
+    hoverStyle: undefined,
     showSelectedState: false,
     shouldShowSelectedStateAsButton: false,
     selectedStateButtonText: 'Select',
@@ -99,9 +101,13 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
     shouldPreventDefaultFocusOnSelectRow: false,
+    keyForList: undefined,
 };
 
 function OptionRow(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const pressableRef = useRef(null);
     const [isDisabled, setIsDisabled] = useState(props.isDisabled);
 
@@ -132,17 +138,19 @@ function OptionRow(props) {
     );
     const contentContainerStyles = [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]);
-    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor ? props.hoverStyle.backgroundColor : props.backgroundColor;
+    const hoveredBackgroundColor =
+        (props.hoverStyle || styles.sidebarLinkHover) && (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            ? (props.hoverStyle || styles.sidebarLinkHover).backgroundColor
+            : props.backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
-    const defaultSubscriptSize = props.option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
         (props.option.participantsList || (props.option.accountID ? [props.option] : [])).slice(0, 10),
         isMultipleParticipant,
     );
-    let subscriptColor = themeColors.appBG;
+    let subscriptColor = theme.appBG;
     if (props.optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
     }
@@ -157,6 +165,7 @@ function OptionRow(props) {
             <Hoverable>
                 {(hovered) => (
                     <PressableWithFeedback
+                        testID={props.keyForList}
                         ref={(el) => (pressableRef.current = el)}
                         onPress={(e) => {
                             if (!props.onSelectRow) {
@@ -181,16 +190,16 @@ function OptionRow(props) {
                             styles.alignItemsCenter,
                             styles.justifyContentBetween,
                             styles.sidebarLink,
+                            !props.isDisabled && styles.cursorPointer,
                             props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                             props.optionIsFocused ? styles.sidebarLinkActive : null,
                             props.shouldHaveOptionSeparator && styles.borderTop,
                             !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
-                            props.isSelected && props.highlightSelected && styles.optionRowSelected,
                         ]}
                         accessibilityLabel={props.option.text}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
-                        hoverStyle={props.hoverStyle}
+                        hoverStyle={!props.optionIsFocused ? props.hoverStyle || styles.sidebarLinkHover : undefined}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
                         onMouseDown={props.shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                     >
@@ -202,7 +211,7 @@ function OptionRow(props) {
                                             mainAvatar={props.option.icons[0]}
                                             secondaryAvatar={props.option.icons[1]}
                                             backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
-                                            size={defaultSubscriptSize}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -246,7 +255,7 @@ function OptionRow(props) {
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
                                             src={Expensicons.DotIndicator}
-                                            fill={themeColors.danger}
+                                            fill={theme.danger}
                                         />
                                     </View>
                                 )}
@@ -258,12 +267,13 @@ function OptionRow(props) {
                                                 text={props.selectedStateButtonText}
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 small
+                                                shouldUseDefaultHover={false}
                                             />
                                         ) : (
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                role={CONST.ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
                                                 <SelectCircle isChecked={props.isSelected} />
@@ -275,7 +285,7 @@ function OptionRow(props) {
                                     <View style={styles.defaultCheckmarkWrapper}>
                                         <Icon
                                             src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
+                                            fill={theme.iconSuccessFill}
                                         />
                                     </View>
                                 )}
@@ -316,7 +326,7 @@ export default React.memo(
         prevProps.showSelectedState === nextProps.showSelectedState &&
         prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        !_.isEqual(prevProps.option.icons, nextProps.option.icons) &&
+        _.isEqual(prevProps.option.icons, nextProps.option.icons) &&
         prevProps.optionIsFocused === nextProps.optionIsFocused &&
         prevProps.option.text === nextProps.option.text &&
         prevProps.option.alternateText === nextProps.option.alternateText &&

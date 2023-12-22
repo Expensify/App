@@ -2,14 +2,17 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
+import compose from '@libs/compose';
 import CONST from '@src/CONST';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
+import withTheme, {withThemePropTypes} from './withTheme';
+import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
 const propTypes = {
     /** Whether to animate the skeleton view */
     shouldAnimate: PropTypes.bool,
+    ...withThemeStylesPropTypes,
+    ...withThemePropTypes,
 };
 
 const defaultTypes = {
@@ -60,9 +63,9 @@ class OptionsListSkeletonView extends React.Component {
                     key={`skeletonViewItems${i}`}
                     animate={this.props.shouldAnimate}
                     height={CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}
-                    backgroundColor={themeColors.skeletonLHNIn}
-                    foregroundColor={themeColors.skeletonLHNOut}
-                    style={styles.mr5}
+                    backgroundColor={this.props.theme.skeletonLHNIn}
+                    foregroundColor={this.props.theme.skeletonLHNOut}
+                    style={this.props.themeStyles.mr5}
                 >
                     <Circle
                         cx="40"
@@ -93,7 +96,7 @@ class OptionsListSkeletonView extends React.Component {
     render() {
         return (
             <View
-                style={[styles.flex1, styles.overflowHidden]}
+                style={[this.props.themeStyles.flex1, this.props.themeStyles.overflowHidden]}
                 onLayout={(event) => {
                     const numItems = Math.ceil(event.nativeEvent.layout.height / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT);
                     this.generateSkeletonViewItems(numItems);
@@ -108,4 +111,4 @@ class OptionsListSkeletonView extends React.Component {
 OptionsListSkeletonView.propTypes = propTypes;
 OptionsListSkeletonView.defaultProps = defaultTypes;
 
-export default OptionsListSkeletonView;
+export default compose(withThemeStyles, withTheme)(OptionsListSkeletonView);

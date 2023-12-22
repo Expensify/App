@@ -10,9 +10,9 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
-import themeColors from '@styles/themes/default';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -46,6 +46,8 @@ const defaultProps = {
 };
 
 function LogInWithShortLivedAuthTokenPage(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -87,6 +89,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
                     <Icon
                         width={200}
                         height={164}
+                        fill={theme.icon}
                         src={Illustrations.RocketBlue}
                     />
                 </View>
@@ -109,7 +112,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
                 <Icon
                     width={154}
                     height={34}
-                    fill={themeColors.success}
+                    fill={theme.success}
                     src={Expensicons.ExpensifyWordmark}
                 />
             </View>
@@ -123,5 +126,4 @@ LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
-    session: {key: ONYXKEYS.SESSION},
 })(LogInWithShortLivedAuthTokenPage);
