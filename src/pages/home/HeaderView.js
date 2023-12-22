@@ -136,7 +136,7 @@ function HeaderView(props) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
-                onSelected: Session.checkIfActionIsAllowed(() => Task.cancelTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
+                onSelected: Session.checkIfActionIsAllowed(() => Task.deleteTask(props.report.reportID, props.report.reportName, props.report.stateNum, props.report.statusNum)),
             });
         }
     }

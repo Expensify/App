@@ -712,7 +712,7 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {number} originalStateNum
  * @param {number} originalStatusNum
  */
-function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
+function deleteTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `deleted task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
@@ -720,9 +720,8 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
 
-    // Determine if we should remove the task completely if there are no other visible actions on it
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessage(taskReportID).lastMessageText;
-    const shouldDeleteTask = !lastMessageText || lastMessageText.length === 0;
+    // We only want to prevent closing if there are comments that are not 
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(taskReportID);
 
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: {
@@ -826,7 +825,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
 
     API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, successData, failureData});
 
-    if (shouldDeleteTask) {
+    if (shouldDeleteTaskReport) {
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID));
     }
 }
@@ -935,7 +934,7 @@ export {
     clearOutTaskInfoAndNavigate,
     getAssignee,
     getShareDestination,
-    cancelTask,
+    deleteTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     clearTaskErrors,
