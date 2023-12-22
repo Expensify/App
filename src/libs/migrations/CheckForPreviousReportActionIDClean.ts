@@ -2,7 +2,7 @@ import Onyx, {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as OnyxTypes from '@src/types/onyx';
 
-function getReportActionsFromOnyxClean(): Promise<OnyxCollection<OnyxTypes.ReportActions>> {
+function getReportActionsFromOnyx(): Promise<OnyxCollection<OnyxTypes.ReportActions>> {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,

@@ -16,6 +16,7 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+// import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -100,6 +101,7 @@ function getReportActionID(route) {
 const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMessage) => {
     const [edgeID, setEdgeID] = useState(linkedID);
     const [listID, setListID] = useState(1);
+    const isFirstRender = useRef(true);
 
     const index = useMemo(() => {
         if (!linkedID) {
@@ -110,6 +112,7 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
     }, [messageArray, linkedID, edgeID]);
 
     useMemo(() => {
+        isFirstRender.current = true;
         setEdgeID('');
     }, [route, linkedID]);
 
@@ -117,9 +120,9 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
         if (!linkedID || index === -1) {
             return messageArray;
         }
-
-        if (linkedID && !edgeID) {
+        if ((linkedID && !edgeID) || (linkedID && isFirstRender.current)) {
             setListID((i) => i + 1);
+            isFirstRender.current = false;
             return messageArray.slice(index, messageArray.length);
         } else if (linkedID && edgeID) {
             const amountOfItemsBeforeLinkedOne = 10;
@@ -163,9 +166,13 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const {reportActionID} = getReportActionID(route);
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
+    const contentListHeight = useRef(0);
+    const layoutListHeight = useRef(0);
+    const isInitial = useRef(true);
+    // const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
+    // const {windowHeight} = useWindowDimensions();
 
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
@@ -174,6 +181,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
 
     const isFocused = useIsFocused();
     const reportID = props.report.reportID;
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -191,10 +199,12 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         [props.isLoadingNewerReportActions, props.isLoadingInitialReportActions, reportID, newestReportAction],
     );
 
-    const {cattedArray: reportActions, fetchFunc, linkedIdIndex, listID} = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route, isLoadingLinkedMessage);
+    const {cattedArray: reportActions, fetchFunc, linkedIdIndex, listID} = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route);
 
     const hasNewestReportAction = lodashGet(reportActions[0], 'isNewestReportAction');
     const newestReportAction = lodashGet(reportActions, '[0]');
+    const oldestReportAction = _.last(reportActions);
+    const isWeReachedTheOldestAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     /**
      * @returns {Boolean}
@@ -211,6 +221,9 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     };
 
     useEffect(() => {
+        if (reportActionID) {
+            return;
+        }
         openReportIfNecessary();
 
         InteractionManager.runAfterInteractions(() => {
@@ -282,6 +295,10 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
         }
     }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
+    const onContentSizeChange = useCallback((w, h) => {
+        contentListHeight.current = h;
+    }, []);
+
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
@@ -292,10 +309,8 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             return;
         }
 
-        const oldestReportAction = _.last(reportActions);
-
         // Don't load more chats if we're already at the beginning of the chat history
-        if (!oldestReportAction || oldestReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (!oldestReportAction || isWeReachedTheOldestAction) {
             return;
         }
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
@@ -306,32 +321,47 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const handleLoadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         ({distanceFromStart}) => {
-            if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction) || (!reportActionID && !hasNewestReportAction)) {
+            // const shouldFirstlyLoadOlderActions = Number(layoutListHeight.current) > Number(contentListHeight.current);
+            // const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
+            // const SPACER = 30;
+            // const MIN_PREDEFINED_PADDING = 16;
+            // const isListSmallerThanScreen = windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current;
+            // const isListEmpty = contentListHeight.current === MIN_PREDEFINED_PADDING;
+            // const shouldFirstlyLoadOlderActions = !isWeReachedTheOldestAction && isListSmallerThanScreen
+            // const shouldFirstlyLoadOlderActions = !isListSmallerThanScreen
+            if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isInitial.current) || (!reportActionID && !hasNewestReportAction)) {
                 fetchFunc({firstReportActionID, distanceFromStart});
             }
+            isInitial.current = false;
         },
+        // [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID, windowHeight, isWeReachedTheOldestAction],
         [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID],
     );
 
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = () => {
-        if (didLayout.current) {
-            return;
-        }
+    const recordTimeToMeasureItemLayout = useCallback(
+        (e) => {
+            layoutListHeight.current = e.nativeEvent.layout.height;
 
-        didLayout.current = true;
-        Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+            if (didLayout.current) {
+                return;
+            }
 
-        // Capture the init measurement only once not per each chat switch as the value gets overwritten
-        if (!ReportActionsView.initMeasured) {
-            Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
-            ReportActionsView.initMeasured = true;
-        } else {
-            Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
-        }
-    };
+            didLayout.current = true;
+            Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActions ? CONST.TIMING.WARM : CONST.TIMING.COLD);
+
+            // Capture the init measurement only once not per each chat switch as the value gets overwritten
+            if (!ReportActionsView.initMeasured) {
+                Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
+                ReportActionsView.initMeasured = true;
+            } else {
+                Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
+            }
+        },
+        [hasCachedActions],
+    );
 
     // Comments have not loaded at all yet do nothing
     if (!_.size(reportActions)) {
@@ -354,6 +384,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
                 reportScrollManager={reportScrollManager}
                 policy={props.policy}
                 listID={listID}
+                onContentSizeChange={onContentSizeChange}
             />
             <PopoverReactionList ref={reactionListRef} />
         </>

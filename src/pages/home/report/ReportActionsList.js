@@ -12,6 +12,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
@@ -139,6 +140,7 @@ function ReportActionsList({
     isComposerFullSize,
     reportScrollManager,
     listID,
+    onContentSizeChange,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -440,6 +442,12 @@ function ReportActionsList({
         },
         [onLayout],
     );
+    const onContentSizeChangeInner = useCallback(
+        (w, h) => {
+          onContentSizeChange(w,h)
+        },
+        [onContentSizeChange],
+    );
 
     const listHeaderComponent = useCallback(() => {
         if (!isOffline && !hasHeaderRendered.current) {
@@ -471,7 +479,8 @@ function ReportActionsList({
                     renderItem={renderItem}
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
-                    initialNumToRender={initialNumToRender}
+                    // initialNumToRender={initialNumToRender}
+                    initialNumToRender={50}
                     onEndReached={loadOlderChats}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChats}
@@ -480,6 +489,7 @@ function ReportActionsList({
                     ListHeaderComponent={listHeaderComponent}
                     keyboardShouldPersistTaps="handled"
                     onLayout={onLayoutInner}
+                    onContentSizeChange={onContentSizeChangeInner}
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={() => {}}
                     extraData={extraData}
