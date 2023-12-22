@@ -2,10 +2,10 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useMemo} from 'react';
 import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithStaticOverride';
+import DomUtils from '@libs/DomUtils';
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
 import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
-import DomUtils from '@libs/DomUtils';
 
 const propTypes = {
     /** Rendered child component */
@@ -22,7 +22,7 @@ function ThemeProvider({children, theme: staticThemePreference}: ThemeProviderPr
     const theme = useMemo(() => themes[themePreference], [themePreference]);
 
     useEffect(() => {
-        DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input')
+        DomUtils.addCSS(DomUtils.getAutofilledInputStyle(theme.text), 'autofill-input');
     }, [theme.text]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;

@@ -3,35 +3,37 @@ import GetActiveElement from './types';
 const getActiveElement: GetActiveElement = () => document.activeElement;
 
 const addCSS = (css: string, styleId: string) => {
-    var head = document.getElementsByTagName('head')[0];
-    var existingStyle = document.getElementById(styleId);
+    const existingStyle = document.getElementById(styleId);
 
     if (existingStyle) {
-        // If style tag with the specified ID exists, update its content
-        if (existingStyle.styleSheet) {   // IE
-            existingStyle.styleSheet.cssText = css;
-        } else {                          // the world
+        if ('styleSheet' in existingStyle) {
+            // Supports IE8 and below
+            (existingStyle.styleSheet as any).cssText = css;
+        } else {
             existingStyle.innerHTML = css;
         }
     } else {
-        // If style tag doesn't exist, create a new one
-        var s = document.createElement('style');
-        s.setAttribute("id", styleId);
-        s.setAttribute('type', 'text/css');
+        const styleElement = document.createElement('style');
+        styleElement.setAttribute('id', styleId);
+        styleElement.setAttribute('type', 'text/css');
 
-        if (s.styleSheet) {   // IE
-            s.styleSheet.cssText = css;
-        } else {              // the world
-            s.appendChild(document.createTextNode(css));
+        if ('styleSheet' in styleElement) {
+            // Supports IE8 and below
+            (styleElement.styleSheet as any).cssText = css;
+        } else {
+            styleElement.appendChild(document.createTextNode(css));
         }
 
-        head.appendChild(s);
+        const head = document.getElementsByTagName('head')[0];
+        head.appendChild(styleElement);
     }
-}
+};
 
-/* Customizes the background and text colors for autofill inputs in Chrome */
-/* Chrome on iOS does not support the autofill pseudo class because it is a non-standard webkit feature.
-We should rely on the chrome-autofilled property being added to the input when users use auto-fill */
+/**
+ * Customizes the background and text colors for autofill inputs in Chrome
+ * Chrome on iOS does not support the autofill pseudo class because it is a non-standard webkit feature.
+ * We should rely on the chrome-autofilled property being added to the input when users use auto-fill
+ */
 const getAutofilledInputStyle = (inputTextColor: string) => `
     input[chrome-autofilled],
     input[chrome-autofilled]:hover,
