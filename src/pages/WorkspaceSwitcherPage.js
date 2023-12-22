@@ -22,7 +22,9 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
 import * as App from '@userActions/App';
+import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
 const propTypes = {
@@ -106,6 +108,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
         } else {
             setSelectedOption(undefined);
         }
+        Navigation.navigate(ROUTES.HOME);
     }, []);
 
     const onChangeText = useCallback((newSearchTerm) => {
