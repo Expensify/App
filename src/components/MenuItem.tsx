@@ -55,7 +55,7 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
     icon: AvatarSource;
 };
@@ -72,7 +72,8 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         badgeText?: string;
 
         /** Used to apply offline styles to child text components */
-        style?: ViewStyle | ViewStyle[];
+        // style?: ViewStyle | ViewStyle[];
+        style?: StyleProp<ViewStyle>;
 
         /** Any additional styles to apply */
         wrapperStyle?: StyleProp<ViewStyle>;
@@ -289,7 +290,7 @@ function MenuItem(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const combinedStyle = StyleUtils.combineStyles(style ?? {}, styles.popoverMenuItem);
+    const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = useState('');
     const titleRef = useRef('');

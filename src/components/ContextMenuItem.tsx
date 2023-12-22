@@ -1,23 +1,23 @@
-import React, {ForwardedRef, forwardRef, ReactNode, useImperativeHandle} from 'react';
+import React, {ForwardedRef, forwardRef, useImperativeHandle} from 'react';
+import {SvgProps} from 'react-native-svg';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import CONST from '@src/CONST';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import Icon, {SrcProps} from './Icon';
+import Icon from './Icon';
 import MenuItem from './MenuItem';
 
 type ContextMenuItemProps = {
     /** Icon Component */
-    icon: (props: SrcProps) => ReactNode;
+    icon: React.FC<SvgProps>;
 
     /** Text to display */
     text: string;
 
     /** Icon to show when interaction was successful */
-    successIcon?: (props: SrcProps) => ReactNode;
+    successIcon?: React.FC<SvgProps>;
 
     /** Text to show when interaction was successful */
     successText?: string;
@@ -38,9 +38,13 @@ type ContextMenuItemProps = {
     isFocused?: boolean;
 };
 
+type ContextMenuItemRef = {
+    triggerPressAndUpdateSuccess?: () => void;
+};
+
 function ContextMenuItem(
     {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false}: ContextMenuItemProps,
-    ref: ForwardedRef<unknown>,
+    ref: ForwardedRef<ContextMenuItemRef>,
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -56,7 +60,7 @@ function ContextMenuItem(
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (successIcon || successText) {
+        if (!!successIcon || successText) {
             setThrottledButtonInactive();
         }
     };
@@ -93,7 +97,6 @@ function ContextMenuItem(
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
             interactive
-            iconType={CONST.ICON_TYPE_ICON}
         />
     );
 }
