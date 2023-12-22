@@ -23,11 +23,9 @@ type ConfirmedRoutePropsOnyxProps = {
     mapboxAccessToken: OnyxEntry<MapboxAccessToken>;
 };
 
-type ConfirmedRouteProps = {
+type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     /** Transaction that stores the distance request data */
     transaction: Transaction;
-    /** Data about Mapbox token for calling Mapbox API */
-    mapboxAccessToken: MapboxAccessToken;
 };
 
 function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
@@ -88,7 +86,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
 
     return (
         <>
-            {!isOffline && mapboxAccessToken.token ? (
+            {!isOffline && mapboxAccessToken?.token ? (
                 <DistanceMapView
                     accessToken={mapboxAccessToken.token}
                     mapPadding={CONST.MAP_PADDING}
