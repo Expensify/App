@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -24,7 +24,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
+import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
 import SettlementButton from './SettlementButton';
@@ -74,9 +76,9 @@ const defaultProps = {
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -89,6 +91,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
+    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+
+    const cancelPayment = useCallback(() => {
+        IOU.cancelPayment(moneyRequestReport, chatReport);
+        setIsConfirmModalVisible(false);
+    }, [moneyRequestReport, chatReport]);
+
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
@@ -109,6 +118,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
+    if (isPayer && isSettled) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: 'Cancel payment',
+            onSelected: () => setIsConfirmModalVisible(true),
+        });
+    }
     if (!ReportUtils.isArchivedRoom(chatReport)) {
         threeDotsMenuItems.push({
             icon: ZoomIcon,
@@ -206,6 +222,16 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     </View>
                 )}
             </View>
+            <ConfirmModal
+                title={translate('iou.cancelPayment')}
+                isVisible={isConfirmModalVisible}
+                onConfirm={cancelPayment}
+                onCancel={() => setIsConfirmModalVisible(false)}
+                prompt={translate('iou.cancelPaymentConfirmation')}
+                confirmText={translate('iou.cancelPayment')}
+                cancelText={translate('common.dismiss')}
+                danger
+            />
         </View>
     );
 }
