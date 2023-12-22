@@ -101,7 +101,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         root = current;
     }
 
-    const rootState = root.getState() as NavigationState<RootStackParamList>;
+    const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(path) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
