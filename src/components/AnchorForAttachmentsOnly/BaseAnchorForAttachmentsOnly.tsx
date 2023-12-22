@@ -13,6 +13,7 @@ import {Download as OnyxDownload} from '@src/types/onyx';
 import AnchorForAttachmentsOnlyProps from './AnchorForAttachmentsOnlyTypes';
 
 type BaseAnchorForAttachmentsOnlyPropsWithOnyx = {
+    /** If a file download is happening */
     download: OnyxEntry<OnyxDownload>;
 };
 
