@@ -17,7 +17,7 @@ function PopoverReportActionContextMenu(_props, ref) {
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef('');
+    const reportActionDraftMessageRef = useRef(undefined);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -226,7 +226,7 @@ function PopoverReportActionContextMenu(_props, ref) {
         }
 
         selectionRef.current = '';
-        reportActionDraftMessageRef.current = '';
+        reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
     };
 
