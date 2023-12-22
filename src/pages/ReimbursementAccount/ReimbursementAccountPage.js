@@ -28,12 +28,12 @@ import ROUTES from '@src/ROUTES';
 import ACHContractStep from './ACHContractStep';
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
+import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import ContinueBankAccountSetup from './ContinueBankAccountSetup';
-import EnableStep from './EnableStep';
+import EnableBankAccount from './EnableBankAccount/EnableBankAccount';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import RequestorStep from './RequestorStep';
-import ValidationStep from './ValidationStep';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -521,19 +521,18 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION) {
         return (
-            <ValidationStep
+            <ConnectBankAccount
                 reimbursementAccount={reimbursementAccount}
                 onBackButtonPress={goBack}
-                policyID={policyID}
+                account={account}
             />
         );
     }
 
     if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
         return (
-            <EnableStep
+            <EnableBankAccount
                 reimbursementAccount={reimbursementAccount}
-                policyName={policyName}
                 onBackButtonPress={goBack}
             />
         );

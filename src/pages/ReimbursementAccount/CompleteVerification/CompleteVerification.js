@@ -25,8 +25,11 @@ const propTypes = {
     /** The draft values of the bank account being setup */
     reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
 
-    /** Changes variable responsible for displaying step 4 or 5 */
-    setIsBeneficialOwnerInfoSet: PropTypes.func.isRequired,
+    /** Handles back button press */
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -35,29 +38,33 @@ const defaultProps = {
 };
 
 const BODY_CONTENT = [ConfirmAgreements];
-const PERSONAL_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
+const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
+const BENEFICIAL_OWNER_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
 
-// This is a mocked step to showcase full transition between steps - will be removed with next PR
-const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, setIsBeneficialOwnerInfoSet}, ref) => {
+const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}, ref) => {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = useMemo(() => getSubstepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, PERSONAL_INFO_STEP_KEYS.BANK_ACCOUNT_ID, 0),
+            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, COMPLETE_VERIFICATION_KEYS.BANK_ACCOUNT_ID, 0),
             ...values,
         };
+        const beneficialOwnersStepValues = getSubstepValues(BENEFICIAL_OWNER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
 
-        BankAccounts.updatePersonalInformationForBankAccount(payload);
-    }, [reimbursementAccount, values]);
+        BankAccounts.updateBeneficialOwnersForBankAccount({
+            ...beneficialOwnersStepValues,
+            ...payload,
+        });
+    }, [reimbursementAccount, reimbursementAccountDraft, values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
-            setIsBeneficialOwnerInfoSet(false);
+            onBackButtonPress();
         } else {
             prevScreen();
         }
@@ -74,6 +81,8 @@ const CompleteVerification = forwardRef(({reimbursementAccount, reimbursementAcc
             <HeaderWithBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('completeVerificationStep.completeVerification')}
+                shouldShowCloseButton
+                onCloseButtonPress={onCloseButtonPress}
             />
             <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
