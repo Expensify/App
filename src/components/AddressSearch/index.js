@@ -111,7 +111,7 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    /** location bias based on rectangular format */
+    /** Location bias for querying search results. */
     locationBias: PropTypes.string,
 
     ...withLocalizePropTypes,
