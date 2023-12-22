@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
+import {ImageSourcePropType} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
 import {SvgProps} from 'react-native-svg';
@@ -13,6 +14,7 @@ import {MapboxAccessToken, Transaction} from '@src/types/onyx';
 import {WaypointCollection} from '@src/types/onyx/Transaction';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
+import ImageSVG from './ImageSVG';
 import {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
 
@@ -48,7 +50,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                     }
 
                     const index = TransactionUtils.getWaypointIndex(key);
-                    let MarkerComponent: React.FC<SvgProps>;
+                    let MarkerComponent: React.FC<SvgProps> | ImageSourcePropType;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
@@ -61,7 +63,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat] as [number, number],
                         markerComponent: () => (
-                            <MarkerComponent
+                            <ImageSVG
+                                src={MarkerComponent}
                                 width={CONST.MAP_MARKER_SIZE}
                                 height={CONST.MAP_MARKER_SIZE}
                                 fill={theme.icon}
