@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -61,6 +62,7 @@ function IOURequestStartPage({
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const routes = useNavigationState((state) => state.routes);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -103,10 +105,13 @@ function IOURequestStartPage({
             if (newIouType === previousIOURequestType) {
                 return;
             }
+            if (iouType === CONST.IOU.TYPE.SPLIT) {
+                IOU.updateMoneyRequestTypeParams(routes, CONST.IOU.TYPE.REQUEST);
+            }
             IOU.startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, newIouType);
             transactionRequestType.current = newIouType;
         },
-        [previousIOURequestType, reportID, isFromGlobalCreate],
+        [previousIOURequestType, reportID, isFromGlobalCreate, iouType, routes],
     );
 
     if (!transaction.transactionID) {
