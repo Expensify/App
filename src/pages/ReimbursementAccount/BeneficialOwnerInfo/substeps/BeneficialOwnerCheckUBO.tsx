@@ -8,8 +8,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type BeneficialOwnerCheckUBOProps = {
+    /** The title of the question */
     title: string;
+
+    /** The default value of the radio button */
     defaultValue: boolean;
+
+    /** Callback when the value is selected */
     onSelectedValue: (value: boolean) => void;
 };
 

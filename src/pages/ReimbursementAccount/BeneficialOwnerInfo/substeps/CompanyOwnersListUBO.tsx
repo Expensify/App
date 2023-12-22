@@ -1,9 +1,7 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import Button from '@components/Button';
+import Button, {ButtonProps} from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -12,63 +10,74 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import BankAccount from '@libs/models/BankAccount';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 
-const propTypes = {
+const reimbursementAccountDefault = {
+    achData: {
+        state: BankAccount.STATE.SETUP,
+    },
+    isLoading: false,
+    errorFields: {},
+    errors: {},
+    maxAttemptsReached: false,
+    shouldShowResetModal: false,
+};
+
+type CompanyOwnersListUBOProps = {
     /** Method called when user confirms data */
-    handleUBOsConfirmation: PropTypes.func.isRequired,
+    handleUBOsConfirmation: ButtonProps['onPress'];
 
     /** Method called when user presses on one of UBOs to edit its data */
-    handleUBOEdit: PropTypes.func.isRequired,
+    handleUBOEdit: (value: string) => void;
 
     /** List of UBO keys */
-    beneficialOwnerKeys: PropTypes.arrayOf(PropTypes.string).isRequired,
+    beneficialOwnerKeys: string[];
 
     /** Info is user UBO */
-    isUserUBO: PropTypes.bool.isRequired,
+    isUserUBO: boolean;
 
     /** Info about other existing UBOs */
-    isAnyoneElseUBO: PropTypes.bool.isRequired,
+    isAnyoneElseUBO: boolean;
 
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount?: ReimbursementAccount;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+    reimbursementAccountDraft?: ReimbursementAccountDraft;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-};
-
-const BENEFICIAL_OWNER_DATA_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const REQUESTOR_PERSONAL_INFO_KEYS = CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY;
 
-function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, isAnyoneElseUBO, isUserUBO, handleUBOsConfirmation, beneficialOwnerKeys, handleUBOEdit}) {
+function CompanyOwnersListUBO({
+    reimbursementAccount = reimbursementAccountDefault,
+    reimbursementAccountDraft,
+    isAnyoneElseUBO,
+    isUserUBO,
+    handleUBOsConfirmation,
+    beneficialOwnerKeys,
+    handleUBOEdit,
+}: CompanyOwnersListUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, {}, reimbursementAccount);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
-    const renderExtraBeneficialOwners = () =>
-        _.map(beneficialOwnerKeys, (ownerKey) => {
+    const extraBeneficialOwners =
+        isAnyoneElseUBO &&
+        beneficialOwnerKeys.map((ownerKey) => {
             const beneficialOwnerData = getValuesForBeneficialOwner(ownerKey, reimbursementAccountDraft);
 
             return (
                 <MenuItem
                     key={ownerKey}
-                    title={`${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.FIRST_NAME]} ${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.LAST_NAME]}`}
-                    description={`${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.STREET]}, ${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.CITY]}, ${
-                        beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.STATE]
-                    } ${beneficialOwnerData[BENEFICIAL_OWNER_DATA_KEYS.ZIP_CODE]}`}
+                    title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
+                    description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
                     wrapperStyle={[styles.ph0]}
                     icon={Expensicons.FallbackAvatar}
                     onPress={() => {
@@ -95,10 +104,8 @@ function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, 
                     <Text style={[styles.textLabelSupporting, styles.pv1]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                     {isUserUBO && (
                         <MenuItem
-                            title={`${requestorData[REQUESTOR_PERSONAL_INFO_KEYS.FIRST_NAME]} ${requestorData[REQUESTOR_PERSONAL_INFO_KEYS.LAST_NAME]}`}
-                            description={`${requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STREET]}, ${requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.CITY]}, ${
-                                requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.STATE]
-                            } ${requestorData[CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.INPUT_KEY.ZIP_CODE]}`}
+                            title={`${requestorData.firstName} ${requestorData.lastName}`}
+                            description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
                             wrapperStyle={[styles.ph0]}
                             icon={Expensicons.FallbackAvatar}
                             iconWidth={40}
@@ -107,7 +114,7 @@ function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, 
                             shouldShowRightIcon={false}
                         />
                     )}
-                    {isAnyoneElseUBO && renderExtraBeneficialOwners()}
+                    {extraBeneficialOwners}
                 </View>
 
                 <View style={[styles.ph5, styles.mtAuto]}>
@@ -115,7 +122,7 @@ function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, 
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
                             type="error"
-                            messages={{0: error}}
+                            messages={{error}}
                         />
                     )}
                 </View>
@@ -130,8 +137,6 @@ function CompanyOwnersListUBO({reimbursementAccount, reimbursementAccountDraft, 
     );
 }
 
-CompanyOwnersListUBO.propTypes = propTypes;
-CompanyOwnersListUBO.defaultProps = defaultProps;
 CompanyOwnersListUBO.displayName = 'CompanyOwnersListUBO';
 
 export default withOnyx({

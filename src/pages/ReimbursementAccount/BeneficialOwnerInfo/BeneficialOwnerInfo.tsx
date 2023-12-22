@@ -45,7 +45,7 @@ const MAX_NUMBER_OF_UBOS = 4;
 function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress, setIsBeneficialOwnerInfoSet}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const companyName = reimbursementAccount?.achData.companyName ?? '';
+    const companyName = reimbursementAccount?.achData?.companyName ?? '';
     const defaultValues = {
         ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
         hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
