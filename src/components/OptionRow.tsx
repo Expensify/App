@@ -78,6 +78,9 @@ type OptionRowProps = {
 
     /** Hovered background color */
     backgroundColor?: string;
+
+    /** Key used internally by React */
+    keyForList?: string;
 };
 
 function OptionRow({
@@ -86,6 +89,7 @@ function OptionRow({
     style,
     hoverStyle,
     selectedStateButtonText,
+    keyForList,
     isDisabled: isOptionDisabled = false,
     isMultilineSupported = false,
     shouldShowSelectedStateAsButton = false,
@@ -158,6 +162,7 @@ function OptionRow({
             <Hoverable>
                 {(hovered) => (
                     <PressableWithFeedback
+                        testID={keyForList}
                         ref={pressableRef}
                         onPress={(e) => {
                             if (!onSelectRow) {

@@ -254,6 +254,8 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
+        POLICY_REPORT_FIELDS: 'policyReportFields_',
+        POLICY_RECENTLY_USED_REPORT_FIELDS: 'policyRecentlyUsedReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
@@ -443,6 +445,8 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
+    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportField;
+    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
@@ -460,6 +464,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;

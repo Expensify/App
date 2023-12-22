@@ -156,6 +156,9 @@ type Report = {
     participantsList?: PersonalDetails[];
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
+
+    /** If the report contains reportFields, save the field id and its value */
+    reportFields?: Record<string, string>;
 };
 
 export default Report;

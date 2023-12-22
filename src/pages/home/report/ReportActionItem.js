@@ -37,7 +37,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import ControlSelection from '@libs/ControlSelection';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
@@ -61,7 +60,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -274,7 +272,7 @@ function ReportActionItem(props) {
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
-                ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
                 popoverAnchorRef,
@@ -423,10 +421,7 @@ function ReportActionItem(props) {
                 </ReportActionItemBasicMessage>
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(personalDetails, [props.report.ownerAccountID, 'displayName']));
-            const amount = CurrencyUtils.convertToDisplayString(props.report.total, props.report.currency);
-
-            children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
+            children = <ReportActionItemBasicMessage message={ReportUtils.getReimbursementDeQueuedActionMessage(props.action, props.report)} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
             children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
         } else {
