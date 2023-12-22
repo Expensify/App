@@ -2791,6 +2791,9 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
+    const optimisticTransactionThread = ReportUtils.buildTransactionThread(optimisticIOUReportAction, optimisticIOUReport.reportID);
+    const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+
     // First, add data that will be used in all cases
     const optimisticChatReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -2810,6 +2813,13 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
     };
+
+    const optimisticTransactionThreadData = {
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
+        value: optimisticTransactionThread,
+    };
+
     const optimisticIOUReportActionsData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
@@ -2825,6 +2835,14 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [reportPreviewAction.reportActionID]: reportPreviewAction,
+        },
+    };
+
+    const optimisticTransactionThreadReportActionsData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+        value: {
+            [optimisticCreatedActionForTransactionThread.reportActionID]: optimisticCreatedActionForTransactionThread,
         },
     };
 
@@ -2848,6 +2866,15 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+            value: {
+                [optimisticCreatedActionForTransactionThread.reportActionID]: {
                     pendingAction: null,
                 },
             },
@@ -2929,7 +2956,15 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         });
     }
 
-    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticChatReportActionsData, optimisticIOUReportActionsData, optimisticTransactionData];
+    const optimisticData = [
+        optimisticChatReportData,
+        optimisticIOUReportData,
+        optimisticChatReportActionsData,
+        optimisticIOUReportActionsData,
+        optimisticTransactionData,
+        optimisticTransactionThreadData,
+        optimisticTransactionThreadReportActionsData,
+    ];
     if (!_.isEmpty(optimisticPersonalDetailListData)) {
         optimisticData.push(optimisticPersonalDetailListData);
     }
