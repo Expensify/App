@@ -1,57 +1,47 @@
-import PropTypes from 'prop-types';
-import React, {forwardRef, useImperativeHandle} from 'react';
+import React, {ForwardedRef, forwardRef, ReactNode, useImperativeHandle} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
+import CONST from '@src/CONST';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import Icon from './Icon';
+import Icon, {SrcProps} from './Icon';
 import MenuItem from './MenuItem';
 
-const propTypes = {
+type ContextMenuItemProps = {
     /** Icon Component */
-    icon: PropTypes.elementType.isRequired,
+    icon: (props: SrcProps) => ReactNode;
 
     /** Text to display */
-    text: PropTypes.string.isRequired,
+    text: string;
 
     /** Icon to show when interaction was successful */
-    successIcon: PropTypes.elementType,
+    successIcon?: (props: SrcProps) => ReactNode;
 
     /** Text to show when interaction was successful */
-    successText: PropTypes.string,
+    successText?: string;
 
     /** Whether to show the mini menu */
-    isMini: PropTypes.bool,
+    isMini?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onPress: PropTypes.func.isRequired,
+    onPress: () => void;
 
     /** A description text to show under the title */
-    description: PropTypes.string,
+    description?: string;
 
     /** The action accept for anonymous user or not */
-    isAnonymousAction: PropTypes.bool,
+    isAnonymousAction?: boolean;
 
     /** Whether the menu item is focused or not */
-    isFocused: PropTypes.bool,
-
-    /** Forwarded ref to ContextMenuItem */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    isFocused?: boolean;
 };
 
-const defaultProps = {
-    isMini: false,
-    successIcon: null,
-    successText: '',
-    description: '',
-    isAnonymousAction: false,
-    isFocused: false,
-    innerRef: null,
-};
-
-function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
+function ContextMenuItem(
+    {onPress, successIcon, successText = '', icon, text, isMini = false, description = '', isAnonymousAction = false, isFocused = false}: ContextMenuItemProps,
+    ref: ForwardedRef<unknown>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
@@ -65,12 +55,13 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
 
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (successIcon || successText) {
             setThrottledButtonInactive();
         }
     };
 
-    useImperativeHandle(innerRef, () => ({triggerPressAndUpdateSuccess}));
+    useImperativeHandle(ref, () => ({triggerPressAndUpdateSuccess}));
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
@@ -101,23 +92,12 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
-            interactive={isThrottledButtonActive}
+            interactive
+            iconType={CONST.ICON_TYPE_ICON}
         />
     );
 }
 
-ContextMenuItem.propTypes = propTypes;
-ContextMenuItem.defaultProps = defaultProps;
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-const ContextMenuItemWithRef = forwardRef((props, ref) => (
-    <ContextMenuItem
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-ContextMenuItemWithRef.displayName = 'ContextMenuItemWithRef';
-
-export default ContextMenuItemWithRef;
+export default forwardRef(ContextMenuItem);
