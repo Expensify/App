@@ -122,7 +122,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const resetMinutes = () => {
         setMinute('00');
         setSelectionMinute({start: 0, end: 0});
-        focusHourInputOnLastCharacter();
     };
 
     // This function receive value from hour input and validate it
@@ -145,6 +144,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         let newSelection = selectionHour.start;
 
         if (selectionHour.start === 0 && selectionHour.end === 0) {
+            // The cursor is at the start of hours
             // When the user is entering text, the filteredText consists of three numbers
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
             if (formattedText > 12 && formattedText <= 24) {
@@ -160,7 +160,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newSelection = 1;
             }
         } else if (selectionHour.start === 1 && selectionHour.end === 1) {
-            // The cursor is at the second position.
+            // The cursor is in-between the digits
             const formattedText = `${filteredText[0]}${filteredText[1]}`;
 
             if (filteredText.length < 2) {
@@ -181,13 +181,20 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newSelection = 2;
             }
         } else if (filteredText.length <= 1 && filteredText < 2) {
+            /*
+             The filtered text is either 0 or 1. We must check the length of the filtered text to avoid incorrectly handling e.g. "01" as "1"
+             We are either replacing hours with a single digit, or removing the last digit.
+             In both cases, we should append 0 to the remaining value.
+            */
             newHour = `${filteredText}0`;
             newSelection = 1;
         } else if (filteredText > 12 && filteredText <= 24) {
+            // We are replacing hours with a value between 12 and 24. Switch AM to PM
             newHour = String(filteredText - 12).padStart(2, '0');
             newSelection = 2;
             setAmPmValue(CONST.TIME_PERIOD.PM);
         } else if (filteredText.length <= 2) {
+            // We are replacing hours with a value either 2-11, or 24+. Minimize the value to 12 and prepend 0 if needed
             newHour = String(Math.min(filteredText, 12)).padStart(2, '0');
             newSelection = 2;
         }
@@ -219,7 +226,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         let newSelection = selectionMinute.start;
 
         if (selectionMinute.start === 0 && selectionMinute.end === 0) {
-            // The cursor is at the start.
+            // The cursor is at the start of minutes
             const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
             if (filteredText[0] >= 6) {
                 newMinute = `0${formattedText[1]}`;
@@ -229,9 +236,9 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newSelection = 1;
             }
         } else if (selectionMinute.start === 1 && selectionMinute.end === 1) {
-            // The cursor is at the second position.
-            // If we remove a value, prepend 0.
+            // The cursor is in-between the digits
             if (filteredText.length < 2) {
+                // If we remove a value, prepend 0.
                 newMinute = `0${filteredText}`;
                 newSelection = 0;
                 setSelectionHour({start: 2, end: 2});
@@ -241,9 +248,15 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newSelection = 2;
             }
         } else if (filteredText.length <= 1 && filteredText <= 5) {
+            /*
+             The filtered text is from 0 to 5. We must check the length of the filtered text to avoid incorrectly handling e.g. "01" as "1"
+             We are either replacing minutes with a single digit, or removing the last digit.
+             In both cases, we should append 0 to the remaining value.
+            */
             newMinute = `${filteredText}0`;
             newSelection = 1;
         } else if (filteredText.length <= 2) {
+            // We are replacing minutes with a value of 6+. Minimize the value to 59 and prepend 0 if needed
             newMinute = String(Math.min(filteredText, 59)).padStart(2, '0');
             newSelection = 2;
         }
