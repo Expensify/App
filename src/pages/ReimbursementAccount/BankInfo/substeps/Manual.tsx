@@ -80,7 +80,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
-                inputID="routingNumber"
+                inputID={bankInfoStepKeys.ROUTING_NUMBER}
                 label={translate('bankAccount.routingNumber')}
                 aria-label={translate('bankAccount.routingNumber')}
                 role={CONST.ROLE.PRESENTATION}
@@ -93,7 +93,7 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
             <InputWrapper
                 // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript.
                 InputComponent={TextInput}
-                inputID="accountNumber"
+                inputID={bankInfoStepKeys.ACCOUNT_NUMBER}
                 containerStyles={[styles.mt4]}
                 label={translate('bankAccount.accountNumber')}
                 aria-label={translate('bankAccount.accountNumber')}
