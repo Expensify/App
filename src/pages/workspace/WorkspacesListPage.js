@@ -3,7 +3,9 @@ import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
+import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
 import FeatureList from '@components/FeatureList';
+import HeaderPageLayout from '@components/HeaderPageLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
@@ -182,31 +184,63 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
 
     return (
-        <IllustratedHeaderPageLayout
-            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
-            illustration={LottieAnimations.WorkspacePlanet}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
-            title={translate('common.workspaces')}
-            shouldUseCentralPaneView
-            footer={
-                <Button
-                    accessibilityLabel={translate('workspace.new.newWorkspace')}
-                    success
-                    text={translate('workspace.new.newWorkspace')}
-                    onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
-                />
-            }
-        >
+        <>
             {_.isEmpty(workspaces) ? (
-                <FeatureList
-                    menuItems={workspaceFeatures}
-                    headline="workspace.emptyWorkspace.title"
-                    description="workspace.emptyWorkspace.subtitle"
-                />
+                <IllustratedHeaderPageLayout
+                    backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                    illustration={LottieAnimations.WorkspacePlanet}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
+                    title={translate('common.workspaces')}
+                    shouldUseCentralPaneView
+                    footer={
+                        <Button
+                            accessibilityLabel={translate('workspace.new.newWorkspace')}
+                            success
+                            text={translate('workspace.new.newWorkspace')}
+                            onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                        />
+                    }
+                >
+                    {_.isEmpty(workspaces) ? (
+                        <FeatureList
+                            menuItems={workspaceFeatures}
+                            headline="workspace.emptyWorkspace.title"
+                            description="workspace.emptyWorkspace.subtitle"
+                        />
+                    ) : (
+                        _.map(workspaces, (item, index) => getMenuItem(item, index))
+                    )}
+                </IllustratedHeaderPageLayout>
             ) : (
-                _.map(workspaces, (item, index) => getMenuItem(item, index))
+                <HeaderPageLayout
+                    title={translate('initialSettingsPage.accountSettings')}
+                    headerContent={<CurrentUserPersonalDetailsSkeletonView avatarSize={CONST.AVATAR_SIZE.XLARGE} />}
+                    headerContainerStyles={[styles.justifyContentCenter]}
+                    onBackButtonPress={() => Navigation.closeFullScreen()}
+                    backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ROOT].backgroundColor}
+                    childrenContainerStyles={[styles.m0, styles.p0]}
+                >
+                    {_.map(workspaces, (item, index) => getMenuItem(item, index))}
+                </HeaderPageLayout>
+                // <IllustratedHeaderPageLayout
+                //     backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.WORKSPACES].backgroundColor}
+                //     illustration={LottieAnimations.WorkspacePlanet}
+                //     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
+                //     title={translate('common.workspaces')}
+                //     shouldUseCentralPaneView
+                //     footer={
+                //         <Button
+                //             accessibilityLabel={translate('workspace.new.newWorkspace')}
+                //             success
+                //             text={translate('workspace.new.newWorkspace')}
+                //             onPress={() => App.createWorkspaceWithPolicyDraftAndNavigateToIt()}
+                //         />
+                //     }
+                // >
+                //     {_.map(workspaces, (item, index) => getMenuItem(item, index))}
+                // </IllustratedHeaderPageLayout>
             )}
-        </IllustratedHeaderPageLayout>
+        </>
     );
 }
 
