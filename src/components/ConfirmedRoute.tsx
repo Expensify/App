@@ -86,9 +86,9 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
 
     return (
         <>
-            {!isOffline && mapboxAccessToken?.token ? (
+            {!isOffline && Boolean(mapboxAccessToken?.token) ? (
                 <DistanceMapView
-                    accessToken={mapboxAccessToken.token}
+                    accessToken={mapboxAccessToken?.token ?? ''}
                     mapPadding={CONST.MAP_PADDING}
                     pitchEnabled={false}
                     initialState={{
