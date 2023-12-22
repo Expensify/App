@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -21,9 +22,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
-    /** To indicate that the screen transaction has ended */
-    didScreenTransitionEnd: PropTypes.bool.isRequired,
-
     /** The users are not eligible for invitation */
     excludedUsers: PropTypes.arrayOf(PropTypes.string),
 
@@ -38,6 +36,9 @@ const propTypes = {
 
     /** Whether to show the alert text */
     shouldShowAlertPrompt: PropTypes.bool,
+
+    /** Whether to force loading placeholder */
+    showLoadingPlaceholder: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -46,10 +47,11 @@ const defaultProps = {
     excludedUsers: [],
     name: '',
     shouldShowAlertPrompt: false,
+    showLoadingPlaceholder: false,
 };
 
 function MemberInviteList(props) {
-    const {excludedUsers, betas, didScreenTransitionEnd, name, inviteUsers, shouldShowAlertPrompt, confirmButtonText} = props;
+    const {excludedUsers, betas, name, shouldShowAlertPrompt, confirmButtonText, showLoadingPlaceholder} = props;
     const {translate} = useLocalize();
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
@@ -97,7 +99,7 @@ function MemberInviteList(props) {
         return sections;
     };
 
-    const sections = didScreenTransitionEnd ? getSections() : [];
+    const sections = showLoadingPlaceholder ? [] : getSections();
 
     useEffect(() => {
         setSearchTerm(SearchInputManager.searchInput);
@@ -147,6 +149,24 @@ function MemberInviteList(props) {
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
     }, [excludedUsers, translate, searchTerm, userToInvite, personalDetails.length, name]);
 
+    const inviteUsers = (selectedUsers) => {
+        if (selectedUsers.length <= 0) {
+            return;
+        }
+
+        const selectedEmailsToAccountIDs = {};
+        _.each(selectedUsers, (option) => {
+            const login = option.login || '';
+            const accountID = lodashGet(option, 'accountID', '');
+            if (!login.toLowerCase().trim() || !accountID) {
+                return;
+            }
+            selectedEmailsToAccountIDs[login] = Number(accountID);
+        });
+
+        props.inviteUsers(selectedEmailsToAccountIDs);
+    };
+
     return (
         <>
             <SelectionList
@@ -160,7 +180,7 @@ function MemberInviteList(props) {
                 onConfirm={() => inviteUsers(selectedOptions)}
                 showScrollIndicator
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
-                showLoadingPlaceholder={!didScreenTransitionEnd || !OptionsListUtils.isPersonalDetailsReady(personalDetails)}
+                showLoadingPlaceholder={showLoadingPlaceholder || !OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
             />
             <View style={[styles.flexShrink0]}>
                 <FormAlertWithSubmitButton

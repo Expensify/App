@@ -71,31 +71,8 @@ function WorkspaceInvitePage(props) {
 
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
 
-    const validate = (selectedMembersSize) => {
-        const errors = {};
-        if (selectedMembersSize <= 0) {
-            errors.noUserSelected = true;
-        }
-
-        Policy.setWorkspaceErrors(props.route.params.policyID, errors);
-        return _.size(errors) <= 0;
-    };
-
-    const inviteUsers = (selectedUsers) => {
-        if (!validate(selectedUsers.length)) {
-            return;
-        }
-
-        const invitedEmailsToAccountIDs = {};
-        _.each(selectedUsers, (option) => {
-            const login = option.login || '';
-            const accountID = lodashGet(option, 'accountID', '');
-            if (!login.toLowerCase().trim() || !accountID) {
-                return;
-            }
-            invitedEmailsToAccountIDs[login] = Number(accountID);
-        });
-        Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, invitedEmailsToAccountIDs);
+    const inviteUsers = (selectedEmailsToAccountIDs) => {
+        Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, selectedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(props.route.params.policyID));
     };
 
@@ -126,12 +103,12 @@ function WorkspaceInvitePage(props) {
                         }}
                     />
                     <MemberInviteList
-                        didScreenTransitionEnd={didScreenTransitionEnd}
                         inviteUsers={inviteUsers}
                         excludedUsers={excludedUsers}
                         name={policyName}
                         confirmButtonText={translate('common.next')}
-                        shouldShowAlertProm={shouldShowAlertPrompt}
+                        shouldShowAlertPrompt={shouldShowAlertPrompt}
+                        showLoadingPlaceholder={!didScreenTransitionEnd}
                     />
                 </FullPageNotFoundView>
             )}
