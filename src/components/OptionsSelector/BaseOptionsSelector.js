@@ -203,8 +203,9 @@ function BaseOptionsSelector(props) {
         [props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, value.length, props.canSelectMultipleOptions, props.selectedOptions.length],
     );
 
-    const selectFocusedOption = useCallback(() => {
-        const focusedOption = allOptions[focusedIndex];
+    const selectFocusedOption = useCallback((e) => {
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
+        const focusedOption = focusedItemKey ? _.find(allOptions, (option) => option.keyForList === focusedItemKey) : allOptions[focusedIndex];
 
         if (!focusedOption || !isFocused) {
             return;

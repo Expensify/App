@@ -45,18 +45,10 @@ const defaultProps = {
 
 function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
     const [searchValue, setSearchValue] = useState('');
-    const [searchOptions, setSearchOptions] = useState(() => {
-        const {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
-        } = OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas);
-
-        return {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
-        };
+    const [searchOptions, setSearchOptions] = useState({
+        recentReports: {},
+        personalDetails: {},
+        userToInvite: {},
     });
 
     const {isOffline} = useNetwork();
