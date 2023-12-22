@@ -95,7 +95,6 @@ function IOURequestStepWaypoint({
     const {isOffline} = useNetwork();
     const textInput = useRef(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
-    const directionCoordinates = lodashGet(transaction, 'routes.route0.geometry.coordinates', []);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
 
@@ -113,7 +112,7 @@ function IOURequestStepWaypoint({
         }
     }, [parsedWaypointIndex, waypointCount]);
 
-    // Construct the rectangular boundary based on user location, waypoints and direction coordinates
+    // Construct the rectangular boundary based on user location and waypoints
     const locationBias = useMemo(() => {
         // If there are no filled wayPoints and if user's current location cannot be retrieved,
         // it is futile to arrive at a biased location. Let's return
@@ -141,13 +140,6 @@ function IOURequestStepWaypoint({
             (lat) => lat,
         );
 
-        // We will get direction coordinates when user is adding a stop after filling the Start and Finish waypoints.
-        // Include direction coordinates when available.
-        if (_.size(directionCoordinates) > 0) {
-            longitudes.push(..._.map(directionCoordinates, (coordinate) => coordinate[0]));
-            latitudes.push(..._.map(directionCoordinates, (coordinate) => coordinate[1]));
-        }
-
         // When no filled waypoints are available but the current location of the user is available,
         // let us consider the current user's location to construct a rectangular bound
         if (filledWaypointCount === 0 && !_.isEmpty(userLocation)) {
@@ -170,7 +162,7 @@ function IOURequestStepWaypoint({
         // Format: rectangle:south,west|north,east
         const rectFormat = `rectangle:${south},${west}|${north},${east}`;
         return rectFormat;
-    }, [userLocation, directionCoordinates, filledWaypointCount, allWaypoints]);
+    }, [userLocation, filledWaypointCount, allWaypoints]);
 
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     // Hide the menu when there is only start and finish waypoint
