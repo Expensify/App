@@ -273,7 +273,7 @@ function ReportActionItemMessageEdit(props) {
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
             debouncedSaveDraft(_.escape(newDraft));
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
