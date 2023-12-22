@@ -3038,8 +3038,8 @@ const CONST = {
         CAROUSEL: 3,
     },
     BRICK_ROAD: {
-        GBR: 'GBR',
-        RBR: 'RBR',
+        GBR: 'info',
+        RBR: 'error',
     },
 } as const;
 

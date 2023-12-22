@@ -263,7 +263,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             },
                             [SCREENS.WORKSPACE.NAME]: ROUTES.WORKSPACE_NAME.route,
                         },
-                    }, 
+                    },
                     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: {
                         screens: {
                             [SCREENS.PRIVATE_NOTES.VIEW]: ROUTES.PRIVATE_NOTES_VIEW.route,
