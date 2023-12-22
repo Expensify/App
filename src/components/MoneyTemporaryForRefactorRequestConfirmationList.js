@@ -565,7 +565,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     return (
         <OptionsSelector
             sections={optionSelectorSections}
-            value=""
             onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
