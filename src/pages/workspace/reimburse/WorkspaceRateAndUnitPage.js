@@ -23,7 +23,6 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...policyPropTypes,
@@ -76,7 +75,7 @@ function WorkspaceRateAndUnitPage(props) {
     const submit = (values) => {
         saveUnitAndRate(values.unit, values.rate);
         Keyboard.dismiss();
-        Navigation.goBack(ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id));
+        Navigation.goBack();
     };
 
     const validate = (values) => {
@@ -102,7 +101,6 @@ function WorkspaceRateAndUnitPage(props) {
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
             shouldSkipVBBACall
-            backButtonRoute={ROUTES.WORKSPACE_REIMBURSE.getRoute(props.policy.id)}
         >
             {() => (
                 <FormProvider

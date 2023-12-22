@@ -16,7 +16,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 
 const propTypes = {
@@ -39,7 +38,7 @@ function WorkspaceNamePage({policy}) {
 
             Policy.updateGeneralSettings(policy.id, values.name.trim(), policy.outputCurrency);
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id));
+            Navigation.goBack();
         },
         [policy.id, policy.isPolicyUpdating, policy.outputCurrency],
     );
@@ -67,7 +66,7 @@ function WorkspaceNamePage({policy}) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.editor.nameInputLabel')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id))}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}

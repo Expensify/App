@@ -20,7 +20,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -79,7 +78,7 @@ function DisplayNamePage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('displayNamePage.headerTitle')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {props.isLoadingApp ? (
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
