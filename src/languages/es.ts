@@ -1531,7 +1531,7 @@ export default {
             description: 'Las salas son un gran lugar para discutir y trabajar con varias personas. Para comenzar a colaborar, cree o únase a un espacio de trabajo',
         },
         switcher: {
-            headerTitle: 'Elegir un espacio de trabajo',
+            headerTitle: 'Elige un espacio de trabajo',
             everythingSection: 'Todo',
         },
         new: {
