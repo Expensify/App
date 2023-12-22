@@ -8,6 +8,7 @@ const addCSS = (css: string, styleId: string) => {
     if (existingStyle) {
         if ('styleSheet' in existingStyle) {
             // Supports IE8 and below
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (existingStyle.styleSheet as any).cssText = css;
         } else {
             existingStyle.innerHTML = css;
@@ -19,6 +20,7 @@ const addCSS = (css: string, styleId: string) => {
 
         if ('styleSheet' in styleElement) {
             // Supports IE8 and below
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (styleElement.styleSheet as any).cssText = css;
         } else {
             styleElement.appendChild(document.createTextNode(css));
