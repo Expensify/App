@@ -22,6 +22,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import * as App from '@userActions/App';
 import WorkspaceCardCreateAWorkspace from './workspace/card/WorkspaceCardCreateAWorkspace';
 
 const propTypes = {
@@ -64,8 +65,8 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
 
-    const brickRoadsForPolicies = getWorkspacesBrickRoads();
-    const unreadStatusesForPolicies = getWorkspacesUnreadStatuses();
+    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
+    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
 
     const getIndicatorTypeForPolicy = useCallback((policyId) => {
         if (policyId && policyId !== activeWorkspaceID) {
@@ -209,7 +210,7 @@ function WorkspaceSwitcherPage({policies, activeWorkspaceID}) {
                             {translate('common.workspaces')}
                         </Text>
                     </View>
-                    <PressableWithFeedback role={CONST.ROLE.BUTTON}>
+                    <PressableWithFeedback role={CONST.ROLE.BUTTON} onPress={() => {App.createWorkspaceWithPolicyDraftAndNavigateToIt()}}>
                         {({hovered}) => (
                             <Icon
                                 src={Expensicons.Plus}
