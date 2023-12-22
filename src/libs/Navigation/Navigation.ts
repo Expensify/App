@@ -96,9 +96,9 @@ function getActiveRoute(): string {
     if (!currentRoute?.name) {
         return '';
     }
-    
-    if(currentRoute?.path){
-       return currentRoute.path;
+
+    if (currentRoute?.path) {
+        return currentRoute.path;
     }
 
     const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
@@ -121,7 +121,7 @@ function getActiveRoute(): string {
  */
 function isActiveRoute(routePath: Route): boolean {
     // On web, we remove First forward slash from the URL before matching
-    return getActiveRoute().startsWith('/') ?  getActiveRoute().substring(1) === routePath : getActiveRoute() === routePath ;
+    return getActiveRoute().startsWith('/') ? getActiveRoute().substring(1) === routePath : getActiveRoute() === routePath;
 }
 
 /**
