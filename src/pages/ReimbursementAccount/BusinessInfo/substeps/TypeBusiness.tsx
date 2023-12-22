@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
+import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -45,7 +46,7 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
             <Picker
                 inputID={companyIncorporationTypeKey}
                 label={translate('businessInfoStep.companyType')}
-                items={Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}`)}))}
+                items={Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}` as TranslationPaths)}))}
                 placeholder={{value: '', label: '-'}}
                 // @ts-expect-error TODO: Remove this once Picker (https://github.com/Expensify/App/issues/25091) is migrated to TypeScript
                 defaultValue={defaultIncorporationType}
