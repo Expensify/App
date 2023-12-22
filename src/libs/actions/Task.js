@@ -720,7 +720,7 @@ function deleteTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
 
-    // We only want to prevent closing if there are comments that are not 
+    // If the task report is the last visible action in the parent report, we should navigate back to the parent report
     const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(taskReportID);
 
     const optimisticReportActions = {
