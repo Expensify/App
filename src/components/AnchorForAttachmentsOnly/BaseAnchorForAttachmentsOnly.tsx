@@ -16,27 +16,27 @@ type BaseAnchorForAttachmentsOnlyPropsWithOnyx = {
     download: OnyxEntry<OnyxDownload>;
 };
 
-type BaseAnchorForAttachmentsOnlyProps = {
-    /** Press in handler for the link */
-    onPressIn?: () => void;
-    /** Press out handler for the link */
-    onPressOut?: () => void;
-} & AnchorForAttachmentsOnlyProps &
-    BaseAnchorForAttachmentsOnlyPropsWithOnyx;
+type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps &
+    BaseAnchorForAttachmentsOnlyPropsWithOnyx & {
+        /** Press in handler for the link */
+        onPressIn?: () => void;
+        /** Press out handler for the link */
+        onPressOut?: () => void;
+    };
 
-function BaseAnchorForAttachmentsOnly(props: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceURL = props.source;
+function BaseAnchorForAttachmentsOnly({style, source, displayName, download, onPressIn, onPressOut}: BaseAnchorForAttachmentsOnlyProps) {
+    const sourceURL = source;
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
     const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-    const fileName = props.displayName;
+    const fileName = displayName;
 
-    const isDownloading = props.download?.isDownloading;
+    const isDownloading = download?.isDownloading ?? false;
 
     return (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <PressableWithoutFeedback
-                    style={props.style}
+                    style={style}
                     onPress={() => {
                         if (isDownloading) {
                             return;
@@ -44,8 +44,8 @@ function BaseAnchorForAttachmentsOnly(props: BaseAnchorForAttachmentsOnlyProps) 
                         Download.setDownload(sourceID, true);
                         fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
                     }}
-                    onPressIn={props.onPressIn}
-                    onPressOut={props.onPressOut}
+                    onPressIn={onPressIn}
+                    onPressOut={onPressOut}
                     // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     accessibilityLabel={fileName}
