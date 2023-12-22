@@ -2,9 +2,11 @@ import {StyleProp, ViewStyle} from 'react-native';
 
 type AnchorForAttachmentsOnlyProps = {
     /** The URL of the attachment */
-    source: string;
+    source?: string;
+
     /** Filename for attachments. */
-    displayName: string;
+    displayName?: string;
+
     /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 };

@@ -2,14 +2,13 @@ import React from 'react';
 import ControlSelection from '@libs/ControlSelection';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseAnchorForAttachmentsOnly from './BaseAnchorForAttachmentsOnly';
-import AnchorForAttachmentsOnlyProps from './AnchorForAttachmentsOnlyTypes';
+import AnchorForAttachmentsOnlyProps from './types';
 
-function AnchorForAttachmentsOnly({source, displayName, style}: AnchorForAttachmentsOnlyProps) {
+function AnchorForAttachmentsOnly(props: AnchorForAttachmentsOnlyProps) {
     return (
         <BaseAnchorForAttachmentsOnly
-            source={source}
-            displayName={displayName}
-            style={style}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
             onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
         />

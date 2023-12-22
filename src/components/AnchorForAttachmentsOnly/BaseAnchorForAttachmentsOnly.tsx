@@ -10,22 +10,23 @@ import * as Download from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Download as OnyxDownload} from '@src/types/onyx';
-import AnchorForAttachmentsOnlyProps from './AnchorForAttachmentsOnlyTypes';
+import AnchorForAttachmentsOnlyProps from './types';
 
-type BaseAnchorForAttachmentsOnlyPropsWithOnyx = {
+type BaseAnchorForAttachmentsOnlyOnyxProps = {
     /** If a file download is happening */
     download: OnyxEntry<OnyxDownload>;
 };
 
 type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps &
-    BaseAnchorForAttachmentsOnlyPropsWithOnyx & {
+    BaseAnchorForAttachmentsOnlyOnyxProps & {
         /** Press in handler for the link */
         onPressIn?: () => void;
+
         /** Press out handler for the link */
         onPressOut?: () => void;
     };
 
-function BaseAnchorForAttachmentsOnly({style, source, displayName, download, onPressIn, onPressOut}: BaseAnchorForAttachmentsOnlyProps) {
+function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', download, onPressIn, onPressOut}: BaseAnchorForAttachmentsOnlyProps) {
     const sourceURL = source;
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
     const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
@@ -67,10 +68,10 @@ function BaseAnchorForAttachmentsOnly({style, source, displayName, download, onP
 
 BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 
-export default withOnyx<BaseAnchorForAttachmentsOnlyProps, BaseAnchorForAttachmentsOnlyPropsWithOnyx>({
+export default withOnyx<BaseAnchorForAttachmentsOnlyProps, BaseAnchorForAttachmentsOnlyOnyxProps>({
     download: {
         key: ({source}) => {
-            const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+            const sourceID = (source?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
             return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
         },
     },
