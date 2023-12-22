@@ -47,9 +47,7 @@ function BottomTabBar() {
                     />
                 </PressableWithFeedback>
             </Tooltip>
-            <View style={styles.flexGrow1}>
-                <BottomTabBarFloatingActionButton />
-            </View>
+            <BottomTabBarFloatingActionButton />
             <Tooltip text={translate('common.settings')}>
                 <PressableWithFeedback
                     onPress={() => {

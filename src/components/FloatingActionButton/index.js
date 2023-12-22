@@ -1,11 +1,14 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import FabPlusIcon from './FabPlusIcon';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
@@ -26,11 +29,11 @@ const propTypes = {
 };
 
 const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
+    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const fabPressable = useRef(null);
     const animatedValue = useSharedValue(isActive ? 1 : 0);
+    const fabPressable = useRef(null);
     const buttonRef = ref;
 
     useEffect(() => {
@@ -50,28 +53,38 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
         };
     });
 
+    const toggleFabAction = () => {
+        // Drop focus to avoid blue focus ring.
+        fabPressable.current.blur();
+        onPress();
+    };
+
     return (
         <Tooltip text={translate('common.new')}>
-            <AnimatedPressable
-                ref={(el) => {
-                    fabPressable.current = el;
-                    if (buttonRef) {
-                        buttonRef.current = el;
-                    }
-                }}
-                accessibilityLabel={accessibilityLabel}
-                role={role}
-                pressDimmingValue={1}
-                onPress={(e) => {
-                    // Drop focus to avoid blue focus ring.
-                    fabPressable.current.blur();
-                    onPress(e);
-                }}
-                onLongPress={() => {}}
-                style={[styles.floatingActionButton, animatedStyle]}
+            <PressableWithoutFeedback
+                role={CONST.ROLE.BUTTON}
+                style={[styles.h100]}
+                onPress={toggleFabAction}
             >
-                <FabPlusIcon isActive={isActive} />
-            </AnimatedPressable>
+                <View style={[styles.bottomTabBarItem]}>
+                    <AnimatedPressable
+                        ref={(el) => {
+                            fabPressable.current = el;
+                            if (buttonRef) {
+                                buttonRef.current = el;
+                            }
+                        }}
+                        accessibilityLabel={accessibilityLabel}
+                        role={role}
+                        pressDimmingValue={1}
+                        onPress={toggleFabAction}
+                        onLongPress={() => {}}
+                        style={[styles.floatingActionButton, animatedStyle]}
+                    >
+                        <FabPlusIcon isActive={isActive} />
+                    </AnimatedPressable>
+                </View>
+            </PressableWithoutFeedback>
         </Tooltip>
     );
 });
