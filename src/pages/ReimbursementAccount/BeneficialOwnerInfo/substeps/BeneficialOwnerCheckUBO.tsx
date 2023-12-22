@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React, {useMemo, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import RadioButtons from '@components/RadioButtons';
@@ -8,18 +7,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const propTypes = {
-    /** The title of the question */
-    title: PropTypes.string.isRequired,
-
-    /** The default value of the radio button */
-    defaultValue: PropTypes.bool.isRequired,
-
-    /** Callback when the value is selected */
-    onSelectedValue: PropTypes.func.isRequired,
+type BeneficialOwnerCheckUBOProps = {
+    title: string;
+    defaultValue: boolean;
+    onSelectedValue: (value: boolean) => void;
 };
 
-function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}) {
+function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: BeneficialOwnerCheckUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(defaultValue);
@@ -67,7 +61,6 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}) {
     );
 }
 
-BeneficialOwnerCheckUBO.propTypes = propTypes;
 BeneficialOwnerCheckUBO.displayName = 'BeneficialOwnerCheckUBO';
 
 export default BeneficialOwnerCheckUBO;
