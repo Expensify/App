@@ -19,9 +19,7 @@ function getBankIconAsset(bankNameKey: BankNameKey, isCard: boolean): IconAsset 
     // The purpose is to avoid importing these at the app startup stage.
     // Depending on whether 'isCard' is true, it selects either a card icon or a bank icon.
     const iconMappings = {
-        [CONST.BANK_NAMES.EXPENSIFY]: isCard
-            ? (require('@assets/images/cardicons/expensify-card-dark.svg') as IconAsset)
-            : (require('@assets/images/bankicons/expensify.svg') as IconAsset),
+        [CONST.BANK_NAMES.EXPENSIFY]: isCard ? (require('@assets/images/cardicons/expensify-card-dark.svg') as IconAsset) : (require('@assets/images/bankicons/expensify.svg') as IconAsset),
         [CONST.BANK_NAMES.AMERICAN_EXPRESS]: isCard
             ? (require('@assets/images/cardicons/american-express.svg') as IconAsset)
             : (require('@assets/images/bankicons/american-express.svg') as IconAsset),
@@ -29,25 +27,15 @@ function getBankIconAsset(bankNameKey: BankNameKey, isCard: boolean): IconAsset 
             ? (require('@assets/images/cardicons/bank-of-america.svg') as IconAsset)
             : (require('@assets/images/bankicons/bank-of-america.svg') as IconAsset),
         [CONST.BANK_NAMES.BB_T]: isCard ? (require('@assets/images/cardicons/bb-t.svg') as IconAsset) : (require('@assets/images/bankicons/bb-t.svg') as IconAsset),
-        [CONST.BANK_NAMES.CAPITAL_ONE]: isCard
-            ? (require('@assets/images/cardicons/capital-one.svg') as IconAsset)
-            : (require('@assets/images/bankicons/capital-one.svg') as IconAsset),
+        [CONST.BANK_NAMES.CAPITAL_ONE]: isCard ? (require('@assets/images/cardicons/capital-one.svg') as IconAsset) : (require('@assets/images/bankicons/capital-one.svg') as IconAsset),
         [CONST.BANK_NAMES.CHASE]: isCard ? (require('@assets/images/cardicons/chase.svg') as IconAsset) : (require('@assets/images/bankicons/chase.svg') as IconAsset),
         [CONST.BANK_NAMES.CHARLES_SCHWAB]: isCard
             ? (require('@assets/images/cardicons/charles-schwab.svg') as IconAsset)
             : (require('@assets/images/bankicons/charles-schwab.svg') as IconAsset),
-        [CONST.BANK_NAMES.CITIBANK]: isCard
-            ? (require('@assets/images/cardicons/citibank.svg') as IconAsset)
-            : (require('@assets/images/bankicons/citibank.svg') as IconAsset),
-        [CONST.BANK_NAMES.CITIZENS_BANK]: isCard
-            ? (require('@assets/images/cardicons/citizens.svg') as IconAsset)
-            : (require('@assets/images/bankicons/citizens-bank.svg') as IconAsset),
-        [CONST.BANK_NAMES.DISCOVER]: isCard
-            ? (require('@assets/images/cardicons/discover.svg') as IconAsset)
-            : (require('@assets/images/bankicons/discover.svg') as IconAsset),
-        [CONST.BANK_NAMES.FIDELITY]: isCard
-            ? (require('@assets/images/cardicons/fidelity.svg') as IconAsset)
-            : (require('@assets/images/bankicons/fidelity.svg') as IconAsset),
+        [CONST.BANK_NAMES.CITIBANK]: isCard ? (require('@assets/images/cardicons/citibank.svg') as IconAsset) : (require('@assets/images/bankicons/citibank.svg') as IconAsset),
+        [CONST.BANK_NAMES.CITIZENS_BANK]: isCard ? (require('@assets/images/cardicons/citizens.svg') as IconAsset) : (require('@assets/images/bankicons/citizens-bank.svg') as IconAsset),
+        [CONST.BANK_NAMES.DISCOVER]: isCard ? (require('@assets/images/cardicons/discover.svg') as IconAsset) : (require('@assets/images/bankicons/discover.svg') as IconAsset),
+        [CONST.BANK_NAMES.FIDELITY]: isCard ? (require('@assets/images/cardicons/fidelity.svg') as IconAsset) : (require('@assets/images/bankicons/fidelity.svg') as IconAsset),
         [CONST.BANK_NAMES.GENERIC_BANK]: isCard
             ? (require('@assets/images/cardicons/generic-bank-card.svg') as IconAsset)
             : (require('@assets/images/bankicons/generic-bank-account.svg') as IconAsset),
@@ -61,12 +49,8 @@ function getBankIconAsset(bankNameKey: BankNameKey, isCard: boolean): IconAsset 
             ? (require('@assets/images/cardicons/navy-federal-credit-union.svg') as IconAsset)
             : (require('@assets/images/bankicons/navy-federal-credit-union.svg') as IconAsset),
         [CONST.BANK_NAMES.PNC]: isCard ? (require('@assets/images/cardicons/pnc.svg') as IconAsset) : (require('@assets/images/bankicons/pnc.svg') as IconAsset),
-        [CONST.BANK_NAMES.REGIONS_BANK]: isCard
-            ? (require('@assets/images/cardicons/regions-bank.svg') as IconAsset)
-            : (require('@assets/images/bankicons/regions-bank.svg') as IconAsset),
-        [CONST.BANK_NAMES.SUNTRUST]: isCard
-            ? (require('@assets/images/cardicons/suntrust.svg') as IconAsset)
-            : (require('@assets/images/bankicons/suntrust.svg') as IconAsset),
+        [CONST.BANK_NAMES.REGIONS_BANK]: isCard ? (require('@assets/images/cardicons/regions-bank.svg') as IconAsset) : (require('@assets/images/bankicons/regions-bank.svg') as IconAsset),
+        [CONST.BANK_NAMES.SUNTRUST]: isCard ? (require('@assets/images/cardicons/suntrust.svg') as IconAsset) : (require('@assets/images/bankicons/suntrust.svg') as IconAsset),
         [CONST.BANK_NAMES.TD_BANK]: isCard ? (require('@assets/images/cardicons/td-bank.svg') as IconAsset) : (require('@assets/images/bankicons/td-bank.svg') as IconAsset),
         [CONST.BANK_NAMES.US_BANK]: isCard ? (require('@assets/images/cardicons/us-bank.svg') as IconAsset) : (require('@assets/images/bankicons/us-bank.svg') as IconAsset),
         [CONST.BANK_NAMES.USAA]: isCard ? (require('@assets/images/cardicons/usaa.svg') as IconAsset) : (require('@assets/images/bankicons/usaa.svg') as IconAsset),
