@@ -4134,7 +4134,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         interactiveStepHeaderLockedStepButton: {
-            borderColor: colors.darkBorders,
+            borderColor: colors.productDark400,
         },
 
         interactiveStepHeaderStepText: {
@@ -4154,7 +4154,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         interactiveStepHeaderLockedStepLine: {
-            backgroundColor: colors.darkBorders,
+            backgroundColor: colors.productDark400,
         },
         confirmBankInfoCard: {
             backgroundColor: colors.green800,
@@ -4168,7 +4168,7 @@ const styles = (theme: ThemeColors) =>
         confirmBankInfoText: {
             fontSize: variables.fontSizeNormal,
             fontFamily: fontFamily.EXP_NEUE,
-            color: colors.white,
+            color: theme.text,
         },
         confirmBankInfoCompanyIcon: {
             height: 40,
@@ -4187,7 +4187,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.MONOSPACE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
-            color: colors.productDark900,
+            color: theme.text,
             textAlignVertical: 'center',
         },
         colorSchemeStyle: (colorScheme: ColorScheme) => ({colorScheme}),

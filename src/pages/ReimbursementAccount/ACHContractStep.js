@@ -13,9 +13,15 @@ const propTypes = {
 
 function ACHContractStep({onBackButtonPress, onCloseButtonPress}) {
     const [isBeneficialOwnerInfoSet, setIsBeneficialOwnerInfoSet] = useState(false);
+    const handleCompleteVerificationBackButtonPress = () => setIsBeneficialOwnerInfoSet(false);
 
     if (isBeneficialOwnerInfoSet) {
-        return <CompleteVerification setIsBeneficialOwnerInfoSet={setIsBeneficialOwnerInfoSet} />;
+        return (
+            <CompleteVerification
+                onBackButtonPress={handleCompleteVerificationBackButtonPress}
+                onCloseButtonPress={onCloseButtonPress}
+            />
+        );
     }
 
     return (
