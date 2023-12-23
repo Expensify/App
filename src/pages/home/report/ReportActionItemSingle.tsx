@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -12,7 +11,7 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,88 +20,86 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import reportPropTypes from '@pages/reportPropTypes';
-import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Report, ReportAction} from '@src/types/onyx';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import reportActionPropTypes from './reportActionPropTypes';
 
-const propTypes = {
+type ReportActionItemSingleProps = {
     /** All the data of the action */
-    action: PropTypes.shape(reportActionPropTypes).isRequired,
+    action: ReportAction;
 
     /** Styles for the outermost View */
-    wrapperStyle: stylePropTypes,
+    wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Children view component for this action item */
-    children: PropTypes.node.isRequired,
+    children: ChildrenProps;
 
     /** Report for this action */
-    report: reportPropTypes,
+    report: Report;
 
     /** IOU Report for this action, if any */
-    iouReport: reportPropTypes,
+    iouReport: Report;
 
     /** Show header for action */
-    showHeader: PropTypes.bool,
+    showHeader: boolean;
 
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-    shouldShowSubscriptAvatar: PropTypes.bool,
+    shouldShowSubscriptAvatar: boolean;
 
     /** If the message has been flagged for moderation */
-    hasBeenFlagged: PropTypes.bool,
+    hasBeenFlagged: boolean;
 
     /** If the action is being hovered */
-    isHovered: PropTypes.bool,
-
-    ...withLocalizePropTypes,
+    isHovered: boolean;
 };
 
-const defaultProps = {
-    wrapperStyle: undefined,
-    showHeader: true,
-    shouldShowSubscriptAvatar: false,
-    hasBeenFlagged: false,
-    report: undefined,
-    iouReport: undefined,
-    isHovered: false,
-};
-
-const showUserDetails = (accountID) => {
+const showUserDetails = (accountID: string) => {
     Navigation.navigate(ROUTES.PROFILE.getRoute(accountID));
 };
 
-const showWorkspaceDetails = (reportID) => {
+const showWorkspaceDetails = (reportID: string) => {
     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
 };
 
-function ReportActionItemSingle(props) {
+function ReportActionItemSingle({
+    action,
+    children,
+    wrapperStyle,
+    showHeader = true,
+    shouldShowSubscriptAvatar = false,
+    hasBeenFlagged = false,
+    report,
+    iouReport,
+    isHovered = false,
+}: ReportActionItemSingleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const actorAccountID = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport ? props.iouReport.managerID : props.action.actorAccountID;
+    const actorAccountID = action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport ? iouReport.managerID : action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID] || {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] || {};
     let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const displayAllActors = useMemo(() => props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport, [props.action.actionName, props.iouReport]);
-    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && (!actorAccountID || displayAllActors);
-    let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
+    const displayAllActors = useMemo(() => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport, [action.actionName, iouReport]);
+    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors);
+    let avatarSource = UserUtils.getAvatar(avatar ?? '', actorAccountID);
 
     if (isWorkspaceActor) {
-        displayName = ReportUtils.getPolicyName(props.report);
+        displayName = ReportUtils.getPolicyName(report);
         actorHint = displayName;
-        avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
-    } else if (props.action.delegateAccountID && personalDetails[props.action.delegateAccountID]) {
+        avatarSource = ReportUtils.getWorkspaceAvatar(report);
+    } else if (action.delegateAccountID && personalDetails[action.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
-        const delegateDetails = personalDetails[props.action.delegateAccountID];
-        const delegateDisplayName = delegateDetails.displayName;
-        actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
+        const delegateDetails = personalDetails[action.delegateAccountID];
+        const delegateDisplayName = delegateDetails?.displayName;
+        actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
-        avatarSource = UserUtils.getAvatar(delegateDetails.avatar, props.action.delegateAccountID);
+        avatarSource = UserUtils.getAvatar(delegateDetails?.avatar ?? '', Number(action.delegateAccountID));
     }
 
     // If this is a report preview, display names and avatars of both people involved
@@ -110,38 +107,38 @@ function ReportActionItemSingle(props) {
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-        const secondaryAccountId = props.iouReport.ownerAccountID === actorAccountID ? props.iouReport.managerID : props.iouReport.ownerAccountID;
-        const secondaryUserDetails = personalDetails[secondaryAccountId] || {};
+        const secondaryAccountId = iouReport.ownerAccountID === actorAccountID ? iouReport.managerID : iouReport.ownerAccountID;
+        const secondaryUserDetails = personalDetails[secondaryAccountId ?? -1] || {};
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserDetails.avatar, secondaryAccountId),
+            source: UserUtils.getAvatar(secondaryUserDetails.avatar ?? '', secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName,
             id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
-        const avatarIconIndex = props.report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(props.report) ? 0 : 1;
-        const reportIcons = ReportUtils.getIcons(props.report, {});
+        const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
+        const reportIcons = ReportUtils.getIcons(report, {});
 
         secondaryAvatar = reportIcons[avatarIconIndex];
     }
-    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: isWorkspaceActor ? '' : actorAccountID};
+    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName ?? '', id: isWorkspaceActor ? '' : actorAccountID};
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName
-        ? [
+        ?? [
               {
                   type: 'TEXT',
                   text: displayName,
               },
           ]
-        : props.action.person;
+        ?? action.person ?? {};
 
-    const reportID = props.report && props.report.reportID;
-    const iouReportID = props.iouReport && props.iouReport.reportID;
+    const reportID = report && report.reportID;
+    const iouReportID = iouReport && iouReport.reportID;
 
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
@@ -152,15 +149,15 @@ function ReportActionItemSingle(props) {
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
-            showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
+            showUserDetails(action.delegateAccountID ?? String(actorAccountID) ?? -1);
         }
-    }, [isWorkspaceActor, reportID, actorAccountID, props.action.delegateAccountID, iouReportID, displayAllActors]);
+    }, [isWorkspaceActor, reportID, actorAccountID, action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () =>
             actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
-            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)),
-        [props.action, isWorkspaceActor, actorAccountID],
+            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(Number(action.delegateAccountID ?? actorAccountID) ?? -1)),
+        [action, isWorkspaceActor, actorAccountID],
     );
 
     const getAvatar = () => {
@@ -170,17 +167,17 @@ function ReportActionItemSingle(props) {
                     icons={[icon, secondaryAvatar]}
                     isInReportAction
                     shouldShowTooltip
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
+                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(theme.appBG), isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined]}
                 />
             );
         }
-        if (props.shouldShowSubscriptAvatar) {
+        if (shouldShowSubscriptAvatar) {
             return (
                 <SubscriptAvatar
                     mainAvatar={icon}
                     secondaryAvatar={secondaryAvatar}
                     mainTooltip={actorHint}
-                    secondaryTooltip={ReportUtils.getPolicyName(props.report)}
+                    secondaryTooltip={ReportUtils.getPolicyName(report)}
                     noMargin
                 />
             );
@@ -188,7 +185,7 @@ function ReportActionItemSingle(props) {
         return (
             <UserDetailsTooltip
                 accountID={actorAccountID}
-                delegateAccountID={props.action.delegateAccountID}
+                delegateAccountID={action.delegateAccountID}
                 icon={icon}
             >
                 <View>
@@ -209,7 +206,7 @@ function ReportActionItemSingle(props) {
     const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
 
     return (
-        <View style={[styles.chatItem, props.wrapperStyle]}>
+        <View style={[styles.chatItem, wrapperStyle]}>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
@@ -222,7 +219,7 @@ function ReportActionItemSingle(props) {
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
-                {props.showHeader ? (
+                {showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
                         <PressableWithoutFeedback
                             style={[styles.flexShrink1, styles.mr1]}
@@ -235,10 +232,10 @@ function ReportActionItemSingle(props) {
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
-                                    key={`person-${props.action.reportActionID}-${index}`}
+                                    key={`person-${action.reportActionID}-${index}`}
                                     accountID={actorAccountID}
                                     fragment={fragment}
-                                    delegateAccountID={props.action.delegateAccountID}
+                                    delegateAccountID={action.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
                                 />
@@ -249,20 +246,18 @@ function ReportActionItemSingle(props) {
                                 <Text
                                     style={styles.userReportStatusEmoji}
                                     numberOfLines={1}
-                                >{`${status.emojiCode}`}</Text>
+                                >{`${status?.emojiCode}`}</Text>
                             </Tooltip>
                         )}
-                        <ReportActionItemDate created={props.action.created} />
+                        <ReportActionItemDate created={action.created} />
                     </View>
                 ) : null}
-                <View style={props.hasBeenFlagged ? styles.blockquote : {}}>{props.children}</View>
+                <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>
     );
 }
 
-ReportActionItemSingle.propTypes = propTypes;
-ReportActionItemSingle.defaultProps = defaultProps;
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
-export default withLocalize(ReportActionItemSingle);
+export default ReportActionItemSingle;
