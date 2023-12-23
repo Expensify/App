@@ -41,6 +41,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     useAnimatedReaction(
         () => statusBarAnimation.value,
         (current, previous) => {
+            console.log('reaction');
+
             // Do not run if either of the animated value is null
             // or previous animated value is greater than or equal to the current one
             if (previous === null || current === null || current <= previous) {
@@ -52,6 +54,9 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     );
 
     const listenerCount = useRef(0);
+
+    // Updates the status bar style and background color depending on the current route and theme
+    // This callback is triggered everytime the route changes or the theme changes
     const updateStatusBarStyle = useCallback(
         (listenerId?: number) => {
             // Check if this function is either called through the current navigation listener or the general useEffect which listens for theme changes.
@@ -112,15 +117,6 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
         navigationRef.addListener('state', listener);
         return () => navigationRef.removeListener('state', listener);
     }, [isDisabled, theme.appBG, updateStatusBarStyle]);
-
-    // Update the status bar style everytime the theme changes
-    useEffect(() => {
-        if (isDisabled) {
-            return;
-        }
-
-        updateStatusBarStyle();
-    }, [isDisabled, theme, updateStatusBarStyle]);
 
     // Update the global background (on web) everytime the theme changes.
     // The background of the html element needs to be updated, otherwise you will see a big contrast when resizing the window or when the keyboard is open on iOS web.
