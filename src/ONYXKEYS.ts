@@ -254,6 +254,8 @@ const ONYXKEYS = {
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
+        POLICY_REPORT_FIELDS: 'policyReportFields_',
+        POLICY_RECENTLY_USED_REPORT_FIELDS: 'policyRecentlyUsedReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
@@ -334,10 +336,10 @@ const ONYXKEYS = {
         WAYPOINT_FORM_DRAFT: 'waypointFormDraft',
         SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
         SETTINGS_STATUS_SET_FORM_DRAFT: 'settingsStatusSetFormDraft',
-        SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
-        SETTINGS_STATUS_CLEAR_AFTER_FORM_DRAFT: 'settingsStatusClearAfterFormDraft',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT: 'settingsStatusSetClearAfterFormDraft',
+        SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
+        SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         PRIVATE_NOTES_FORM_DRAFT: 'privateNotesFormDraft',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
@@ -373,7 +375,7 @@ type OnyxValues = {
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.CUSTOM_STATUS_DRAFT]: OnyxTypes.CustomStatusDraft;
     [ONYXKEYS.INPUT_FOCUSED]: boolean;
-    [ONYXKEYS.PERSONAL_DETAILS_LIST]: Record<string, OnyxTypes.PersonalDetails>;
+    [ONYXKEYS.PERSONAL_DETAILS_LIST]: OnyxTypes.PersonalDetailsList;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.CURRENCY_LIST]: Record<string, OnyxTypes.Currency>;
@@ -383,7 +385,7 @@ type OnyxValues = {
     [ONYXKEYS.COUNTRY]: string;
     [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
-    [ONYXKEYS.LOGIN_LIST]: Record<string, OnyxTypes.Login>;
+    [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
@@ -403,8 +405,8 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
-    [ONYXKEYS.BANK_ACCOUNT_LIST]: Record<string, OnyxTypes.BankAccount>;
-    [ONYXKEYS.FUND_LIST]: Record<string, OnyxTypes.Fund>;
+    [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes.BankAccountList;
+    [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
     [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
@@ -440,9 +442,11 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategory;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTags;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
+    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportField;
+    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
@@ -460,6 +464,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
@@ -508,8 +513,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.WAYPOINT_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_AFTER_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_AFTER_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: OnyxTypes.Form;

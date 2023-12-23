@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import {isEmpty} from 'lodash';
@@ -6,9 +5,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
-import React from 'react';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
@@ -16,14 +13,15 @@ import CONST from '@src/CONST';
 import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyTags, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
 import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import IconAsset from '@src/types/utils/IconAsset';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -176,6 +174,11 @@ type OptimisticApprovedReportAction = Pick<
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
+>;
+
+type OptimisticCancelPaymentReportAction = Pick<
+    ReportAction,
+    'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticEditedTaskReportAction = Pick<
@@ -352,6 +355,8 @@ let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
 
+const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -402,21 +407,6 @@ Onyx.connect({
     callback: (value) => (loginList = value),
 });
 
-let allPolicyTags: Record<string, PolicyTags | null> = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-
-        allPolicyTags = value;
-    },
-});
-
 let allTransactions: OnyxCollection<Transaction> = {};
 
 Onyx.connect({
@@ -429,10 +419,6 @@ Onyx.connect({
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => transaction));
     },
 });
-
-function getPolicyTags(policyID: string) {
-    return allPolicyTags[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
 
 function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined {
     return report?.chatType;
@@ -946,7 +932,7 @@ function hasOnlyDistanceRequestTransactions(iouReportID: string | undefined): bo
  * If the report is a thread and has a chat type set, it is a workspace chat.
  */
 function isWorkspaceThread(report: OnyxEntry<Report>): boolean {
-    return isThread(report) && !isDM(report);
+    return isThread(report) && isChatReport(report) && !isDM(report);
 }
 
 /**
@@ -1192,7 +1178,7 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
 /**
  * Helper method to return the default avatar associated with the given login
  */
-function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
+function getDefaultWorkspaceAvatar(workspaceName?: string): IconAsset {
     if (!workspaceName) {
         return defaultWorkspaceAvatars.WorkspaceBuilding;
     }
@@ -1209,9 +1195,27 @@ function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatar;
 }
 
+/**
+ * Helper method to return the default avatar testID associated with the given login
+ */
+function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
+    if (!workspaceName) {
+        return defaultAvatarBuildingIconTestID;
+    }
+
+    // Remove all chars not A-Z or 0-9 including underscore
+    const alphaNumeric = workspaceName
+        .normalize('NFD')
+        .replace(/[^0-9a-z]/gi, '')
+        .toLowerCase();
+
+    return !alphaNumeric ? defaultAvatarBuildingIconTestID : `SvgDefaultAvatar_${alphaNumeric[0]} Icon`;
+}
+
 function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar ?? getDefaultWorkspaceAvatar(workspaceName);
+    const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar ?? '';
+    return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
 }
 
 /**
@@ -1457,12 +1461,12 @@ function getDisplayNamesWithTooltips(
 
     return personalDetailsListArray
         .map((user) => {
-            const accountID = Number(user.accountID);
+            const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
-            let pronouns = user.pronouns;
+            let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
                 const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
                 pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}` as TranslationPaths);
@@ -1471,7 +1475,7 @@ function getDisplayNamesWithTooltips(
             return {
                 displayName,
                 avatar,
-                login: user.login ?? '',
+                login: user?.login ?? '',
                 accountID,
                 pronouns,
             };
@@ -1536,10 +1540,13 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): string {
+function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>): string {
+    const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
+    const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
+    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
+        return Localize.translateLocal('iou.adminCanceledRequest', {amount});
+    }
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
-    const amount = CurrencyUtils.convertToDisplayString(report?.total ?? 0, report?.currency);
-
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
 }
 
@@ -1812,6 +1819,10 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
         return true;
     }
 
+    if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+        return false;
+    }
+
     const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
 
     if (!moneyRequestReportID) {
@@ -1953,7 +1964,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction>): string
  * @param [reportAction] This can be either a report preview action or the IOU action
  */
 function getReportPreviewMessage(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | EmptyObject,
     reportAction: OnyxEntry<ReportAction> | EmptyObject = {},
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
@@ -2029,140 +2040,6 @@ function getReportPreviewMessage(
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
-}
-
-/**
- * Get the proper message schema for modified expense message.
- */
-
-function getProperSchemaForModifiedExpenseMessage(newValue: string, oldValue: string, valueName: string, valueInQuotes: boolean, shouldConvertToLowercase = true): string {
-    const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
-    const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
-    const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
-
-    if (!oldValue) {
-        return Localize.translateLocal('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
-    }
-    if (!newValue) {
-        return Localize.translateLocal('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
-    }
-    return Localize.translateLocal('iou.updatedTheRequest', {valueName: displayValueName, newValueToDisplay, oldValueToDisplay});
-}
-
-/**
- * Get the proper message schema for modified distance message.
- */
-function getProperSchemaForModifiedDistanceMessage(newDistance: string, oldDistance: string, newAmount: string, oldAmount: string): string {
-    if (!oldDistance) {
-        return Localize.translateLocal('iou.setTheDistance', {newDistanceToDisplay: newDistance, newAmountToDisplay: newAmount});
-    }
-    return Localize.translateLocal('iou.updatedTheDistance', {
-        newDistanceToDisplay: newDistance,
-        oldDistanceToDisplay: oldDistance,
-        newAmountToDisplay: newAmount,
-        oldAmountToDisplay: oldAmount,
-    });
-}
-
-/**
- * Get the report action message when expense has been modified.
- *
- * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
- * If we change this function be sure to update the backend as well.
- */
-function getModifiedExpenseMessage(reportAction: OnyxEntry<ReportAction>): string | undefined {
-    const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
-    if (isEmptyObject(reportActionOriginalMessage)) {
-        return Localize.translateLocal('iou.changedTheRequest');
-    }
-    const reportID = reportAction?.reportID ?? '';
-    const policyID = getReport(reportID)?.policyID ?? '';
-    const policyTags = getPolicyTags(policyID);
-    const policyTag = PolicyUtils.getTag(policyTags);
-    const policyTagListName = policyTag?.name ?? Localize.translateLocal('common.tag');
-
-    const hasModifiedAmount =
-        reportActionOriginalMessage &&
-        'oldAmount' in reportActionOriginalMessage &&
-        'oldCurrency' in reportActionOriginalMessage &&
-        'amount' in reportActionOriginalMessage &&
-        'currency' in reportActionOriginalMessage;
-
-    const hasModifiedMerchant = reportActionOriginalMessage && 'oldMerchant' in reportActionOriginalMessage && 'merchant' in reportActionOriginalMessage;
-    if (hasModifiedAmount) {
-        const oldCurrency = reportActionOriginalMessage?.oldCurrency;
-        const oldAmount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency ?? '');
-
-        const currency = reportActionOriginalMessage?.currency;
-        const amount = CurrencyUtils.convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
-
-        // Only Distance edits should modify amount and merchant (which stores distance) in a single transaction.
-        // We check the merchant is in distance format (includes @) as a sanity check
-        if (hasModifiedMerchant && reportActionOriginalMessage?.merchant?.includes('@')) {
-            return getProperSchemaForModifiedDistanceMessage(reportActionOriginalMessage?.merchant, reportActionOriginalMessage?.oldMerchant ?? '', amount, oldAmount);
-        }
-
-        return getProperSchemaForModifiedExpenseMessage(amount, oldAmount, Localize.translateLocal('iou.amount'), false);
-    }
-
-    const hasModifiedComment = reportActionOriginalMessage && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
-    if (hasModifiedComment) {
-        return getProperSchemaForModifiedExpenseMessage(
-            reportActionOriginalMessage?.newComment ?? '',
-            reportActionOriginalMessage?.oldComment ?? '',
-            Localize.translateLocal('common.description'),
-            true,
-        );
-    }
-
-    const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
-    if (hasModifiedCreated) {
-        // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ?? 0);
-        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
-
-        return getProperSchemaForModifiedExpenseMessage(reportActionOriginalMessage?.created ?? '', formattedOldCreated?.toString?.(), Localize.translateLocal('common.date'), false);
-    }
-
-    if (hasModifiedMerchant) {
-        return getProperSchemaForModifiedExpenseMessage(
-            reportActionOriginalMessage?.merchant ?? '',
-            reportActionOriginalMessage?.oldMerchant ?? '',
-            Localize.translateLocal('common.merchant'),
-            true,
-        );
-    }
-
-    const hasModifiedCategory = reportActionOriginalMessage && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
-    if (hasModifiedCategory) {
-        return getProperSchemaForModifiedExpenseMessage(
-            reportActionOriginalMessage?.category ?? '',
-            reportActionOriginalMessage?.oldCategory ?? '',
-            Localize.translateLocal('common.category'),
-            true,
-        );
-    }
-
-    const hasModifiedTag = reportActionOriginalMessage && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
-    if (hasModifiedTag) {
-        return getProperSchemaForModifiedExpenseMessage(
-            reportActionOriginalMessage.tag ?? '',
-            reportActionOriginalMessage.oldTag ?? '',
-            policyTagListName,
-            true,
-            policyTagListName === Localize.translateLocal('common.tag'),
-        );
-    }
-
-    const hasModifiedBillable = reportActionOriginalMessage && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
-    if (hasModifiedBillable) {
-        return getProperSchemaForModifiedExpenseMessage(
-            reportActionOriginalMessage?.billable ?? '',
-            reportActionOriginalMessage?.oldBillable ?? '',
-            Localize.translateLocal('iou.request'),
-            true,
-        );
-    }
 }
 
 /**
@@ -2904,6 +2781,38 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
+ *
+ */
+function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: '',
+            },
+        ],
+        originalMessage: {
+            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+        },
         person: [
             {
                 style: 'strong',
@@ -3677,8 +3586,8 @@ function getRouteFromLink(url: string | null): string {
 
     // Get the reportID from URL
     let route = url;
+    const localWebAndroidRegEx = /^(https:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
     linkingConfig.prefixes.forEach((prefix) => {
-        const localWebAndroidRegEx = /^(http:\/\/([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3}))/;
         if (route.startsWith(prefix)) {
             route = route.replace(prefix, '');
         } else if (localWebAndroidRegEx.test(route)) {
@@ -3734,6 +3643,13 @@ function getReportIDFromLink(url: string | null): string {
         return '';
     }
     return reportID;
+}
+
+/**
+ * Get the report policyID given a reportID
+ */
+function getReportPolicyID(reportID?: string): string | undefined {
+    return getReport(reportID)?.policyID;
 }
 
 /**
@@ -4368,6 +4284,7 @@ export {
     getReport,
     getReportNotificationPreference,
     getReportIDFromLink,
+    getReportPolicyID,
     getRouteFromLink,
     getDeletedParentActionMessageForChatReport,
     getLastVisibleMessage,
@@ -4386,6 +4303,7 @@ export {
     buildOptimisticApprovedReportAction,
     buildOptimisticMovedReportAction,
     buildOptimisticSubmittedReportAction,
+    buildOptimisticCancelPaymentReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
@@ -4422,6 +4340,7 @@ export {
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
     getDefaultWorkspaceAvatar,
+    getDefaultWorkspaceAvatarTestID,
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
@@ -4443,7 +4362,6 @@ export {
     getParentReport,
     getRootParentReport,
     getReportPreviewMessage,
-    getModifiedExpenseMessage,
     canUserPerformWriteAction,
     getOriginalReportID,
     canAccessReport,
@@ -4487,4 +4405,4 @@ export {
     shouldAutoFocusOnKeyPress,
 };
 
-export type {OptionData, OptimisticChatReport};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};

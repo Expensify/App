@@ -1,8 +1,8 @@
 import React from 'react';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -8,12 +8,15 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -80,6 +83,9 @@ const propTypes = {
         // eslint-disable-next-line react/forbid-prop-types
         current: PropTypes.object,
     }).isRequired,
+
+    /** Whether or not the screen is focused */
+    isFocused: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -110,7 +116,9 @@ function AttachmentPickerWithMenuItems({
     onAddActionPressed,
     onItemSelected,
     actionButtonRef,
+    isFocused,
 }) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -166,6 +174,24 @@ function AttachmentPickerWithMenuItems({
         onMenuClosed();
     };
 
+    const prevIsFocused = usePrevious(isFocused);
+
+    /**
+     * Check if current screen is inactive and previous screen is active.
+     * Used to close already opened popover menu when any other page is opened over current page.
+     *
+     * @return {Boolean}
+     */
+    const didScreenBecomeInactive = useCallback(() => !isFocused && prevIsFocused, [isFocused, prevIsFocused]);
+
+    // When the navigation is focused, we want to close the popover menu.
+    useEffect(() => {
+        if (!didScreenBecomeInactive() || !isMenuVisible) {
+            return;
+        }
+        setMenuVisibility(false);
+    }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
+
     return (
         <AttachmentPicker>
             {({openPicker}) => {
@@ -205,10 +231,13 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
-                                        <Icon src={Expensicons.Collapse} />
+                                        <Icon
+                                            fill={theme.icon}
+                                            src={Expensicons.Collapse}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -224,10 +253,13 @@ function AttachmentPickerWithMenuItems({
                                         onMouseDown={(e) => e.preventDefault()}
                                         style={styles.composerSizeButton}
                                         disabled={isBlockedFromConcierge || disabled}
-                                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
-                                        <Icon src={Expensicons.Expand} />
+                                        <Icon
+                                            fill={theme.icon}
+                                            src={Expensicons.Expand}
+                                        />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -236,6 +268,9 @@ function AttachmentPickerWithMenuItems({
                                     ref={actionButtonRef}
                                     onPress={(e) => {
                                         e.preventDefault();
+                                        if (!isFocused) {
+                                            return;
+                                        }
                                         onAddActionPressed();
 
                                         // Drop focus to avoid blue focus ring.
@@ -244,16 +279,19 @@ function AttachmentPickerWithMenuItems({
                                     }}
                                     style={styles.composerSizeButton}
                                     disabled={isBlockedFromConcierge || disabled}
-                                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
-                                    <Icon src={Expensicons.Plus} />
+                                    <Icon
+                                        fill={theme.icon}
+                                        src={Expensicons.Plus}
+                                    />
                                 </PressableWithFeedback>
                             </Tooltip>
                         </View>
                         <PopoverMenu
                             animationInTiming={CONST.ANIMATION_IN_TIMING}
-                            isVisible={isMenuVisible}
+                            isVisible={isMenuVisible && isFocused}
                             onClose={onPopoverMenuClose}
                             onItemSelected={(item, index) => {
                                 setMenuVisibility(false);
@@ -283,4 +321,4 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default AttachmentPickerWithMenuItems;
+export default withNavigationFocus(AttachmentPickerWithMenuItems);

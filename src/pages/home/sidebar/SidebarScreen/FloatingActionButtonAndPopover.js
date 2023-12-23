@@ -11,10 +11,10 @@ import withNavigation from '@components/withNavigation';
 import withNavigationFocus from '@components/withNavigationFocus';
 import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -225,6 +225,8 @@ function FloatingActionButtonAndPopover(props) {
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
+                                  displayInDefaultIconColor: true,
+                                  contentFit: 'contain',
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
                                   iconHeight: 40,
@@ -240,7 +242,7 @@ function FloatingActionButtonAndPopover(props) {
             />
             <FloatingActionButton
                 accessibilityLabel={props.translate('sidebarScreen.fabNewChatExplained')}
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
                 isActive={isCreateMenuActive}
                 ref={anchorRef}
                 onPress={() => {
