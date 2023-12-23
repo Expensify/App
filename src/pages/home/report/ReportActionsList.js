@@ -383,7 +383,7 @@ function ReportActionsList({
                 index={index}
                 report={report}
                 linkedReportActionID={linkedReportActionID}
-                sortedReportActions={sortedReportActions}
+                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
