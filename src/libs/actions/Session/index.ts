@@ -195,16 +195,7 @@ function resendValidateCode(login = credentials.login) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                loadingForm: null,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -220,7 +211,7 @@ function resendValidateCode(login = credentials.login) {
 
     const params: RequestNewValidateCodeParams = {email: login};
 
-    API.write('RequestNewValidateCode', params, {optimisticData, successData, failureData});
+    API.write('RequestNewValidateCode', params, {optimisticData, finallyData});
 }
 
 type OnyxData = {
