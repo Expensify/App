@@ -153,7 +153,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin]);
+    }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
