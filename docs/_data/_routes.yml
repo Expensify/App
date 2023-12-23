@@ -12,7 +12,7 @@ platforms:
     description: "Your account settings look like this:"
     image: /assets/images/settings-old-dot.svg
   
-    # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
+    # Hubs are comprised of subcategories and articles. Subcategories contain multiple related articles, but there can be standalone articles as well
     hubs:
       - href: getting-started
         title: Getting Started
@@ -31,7 +31,7 @@ platforms:
 
       - href: billing-and-subscriptions
         title: Billing & Subscriptions
-        icon: /assets/images/money-wings.svg
+        icon: /assets/images/subscription-annual.svg
         description: Here is where you can review Expensify's billing and subscription options, plan types, and payment methods.
 
       - href: expense-and-report-features
@@ -71,7 +71,7 @@ platforms:
       
       - href: send-payments
         title: Send Payments
-        icon: /assets/images/money-wings.svg
+        icon: /assets/images/send-money.svg
         description: Uncover step-by-step guidance on sending direct reimbursements to employees, paying an invoice to a vendor, and utilizing third-party payment options.
       
       - href: workspace-and-domain-settings
@@ -105,7 +105,7 @@ platforms:
       
       - href: billing-and-plan-types
         title: Billing & Plan Types
-        icon: /assets/images/money-wings.svg
+        icon: /assets/images/subscription-annual.svg
         description: Here is where you can review Expensify's billing and subscription options, plan types, and payment methods.
       
       - href: expensify-card
