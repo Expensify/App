@@ -980,6 +980,7 @@ const CONST = {
         },
     },
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    SKELETON_VIEW_HEIGHT_THRESHOLD: 0.3,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',

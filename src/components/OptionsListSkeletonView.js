@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import compose from '@libs/compose';
 import CONST from '@src/CONST';
@@ -22,8 +22,11 @@ const defaultTypes = {
 class OptionsListSkeletonView extends React.Component {
     constructor(props) {
         super(props);
+        const numItems = Math.ceil(
+            Dimensions.get('window').height * CONST.SKELETON_VIEW_HEIGHT_THRESHOLD / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT
+        );
         this.state = {
-            skeletonViewItems: [],
+            skeletonViewItems: this.generateSkeletonViewItems(numItems),
         };
     }
 
