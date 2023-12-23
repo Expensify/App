@@ -46,7 +46,7 @@ If you have a validated domain, you can set a limit for multiple members by sett
 
 The Company Cards page will act as a hub to view all employees who have been issued a card and where you can view and edit the individual card limits. You’ll also be able to see anyone who has requested a card but doesn’t have one yet.
 
-# FAQ
+{% include faq-begin.md %}
 
 ## Are there foreign transaction fees?
 
@@ -65,3 +65,5 @@ The Expensify Card is a free corporate card, and no fees are associated with it.
 As long as the verified bank account used to apply for the Expensify Card is a US bank account, your cardholders can be anywhere in the world.
 
 Otherwise, the Expensify Card is not available for customers using non-US banks. With that said, launching international support is a top priority for us. Let us know if you’re interested in contacting support, and we’ll reach out as soon as the Expensify Card is available outside the United States.
+
+{% include faq-end.md %}
