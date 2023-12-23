@@ -47,7 +47,7 @@ function referTeachersUniteVolunteer(partnerUserID, firstName, lastName, policyI
     API.write(
         'ReferTeachersUniteVolunteer',
         {
-            publicRoomReportID,
+            reportID: publicRoomReportID,
             firstName,
             lastName,
             partnerUserID,
