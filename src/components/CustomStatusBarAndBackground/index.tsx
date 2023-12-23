@@ -41,8 +41,6 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     useAnimatedReaction(
         () => statusBarAnimation.value,
         (current, previous) => {
-            console.log('reaction');
-
             // Do not run if either of the animated value is null
             // or previous animated value is greater than or equal to the current one
             if (previous === null || current === null || current <= previous) {
