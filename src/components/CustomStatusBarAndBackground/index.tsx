@@ -100,7 +100,7 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     );
 
     // Add navigation state listeners to update the status bar every time the route changes
-    // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properyl
+    // We have to pass a count as the listener id, because "react-navigation" somehow doesn't remove listeners properly
     useEffect(() => {
         if (isDisabled) {
             return;
