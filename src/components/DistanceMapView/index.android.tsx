@@ -1,18 +1,15 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import {StyleSheet, View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MapView from '@components/MapView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as distanceMapViewPropTypes from './distanceMapViewPropTypes';
+import DistanceMapViewProps from './types';
 
-function DistanceMapView(props) {
+function DistanceMapView({accessToken, style, userLocation, directionCoordinates, initialState, mapPadding, pitchEnabled, styleURL, waypoints, overlayStyle}: DistanceMapViewProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -20,8 +17,15 @@ function DistanceMapView(props) {
     return (
         <>
             <MapView
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {..._.omit(props, 'overlayStyle')}
+                accessToken={accessToken}
+                style={style}
+                userLocation={userLocation}
+                directionCoordinates={directionCoordinates}
+                initialState={initialState}
+                mapPadding={mapPadding}
+                pitchEnabled={pitchEnabled}
+                styleURL={styleURL}
+                waypoints={waypoints}
                 onMapReady={() => {
                     if (isMapReady) {
                         return;
@@ -30,7 +34,7 @@ function DistanceMapView(props) {
                 }}
             />
             {!isMapReady && (
-                <View style={StyleUtils.combineStyles(styles.mapViewOverlay, props.overlayStyle)}>
+                <View style={StyleSheet.flatten([styles.mapViewOverlay, overlayStyle])}>
                     <BlockingView
                         icon={Expensicons.EmptyStateRoutePending}
                         title={translate('distance.mapPending.title')}
@@ -43,8 +47,6 @@ function DistanceMapView(props) {
     );
 }
 
-DistanceMapView.propTypes = distanceMapViewPropTypes.propTypes;
-DistanceMapView.defaultProps = distanceMapViewPropTypes.defaultProps;
 DistanceMapView.displayName = 'DistanceMapView';
 
 export default DistanceMapView;
