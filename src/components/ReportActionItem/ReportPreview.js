@@ -216,7 +216,7 @@ function ReportPreview(props) {
                 }
 
                 sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID));
+                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
                 setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
                 setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
             },

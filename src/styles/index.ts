@@ -1892,7 +1892,6 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
             justifyContent: 'center',
-            width: '100%',
         },
 
         emojiSkinToneTitle: {
@@ -1913,12 +1912,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiItem: {
-            width: '12.5%',
+            width: '100%',
             textAlign: 'center',
             borderRadius: 8,
             paddingTop: 2,
             paddingBottom: 2,
             height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+            flexShrink: 1,
             ...userSelect.userSelectNone,
         },
 
@@ -2902,6 +2902,7 @@ const styles = (theme: ThemeColors) =>
         peopleBadge: {
             backgroundColor: theme.icon,
             ...spacing.ph3,
+            ...spacing.ml3,
         },
 
         peopleBadgeText: {
@@ -3692,11 +3693,16 @@ const styles = (theme: ThemeColors) =>
                 color: isSelected ? theme.text : theme.textSupporting,
             } satisfies TextStyle),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
-        tabOpacity: (hovered: boolean, isFocused: boolean, activeOpacityValue: number, inactiveOpacityValue: number) => ({
+        tabOpacity: (
+            hovered: boolean,
+            isFocused: boolean,
+            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        ) => ({
             opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
         }),
 

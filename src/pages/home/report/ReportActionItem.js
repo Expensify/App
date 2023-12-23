@@ -701,6 +701,7 @@ function ReportActionItem(props) {
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
                                         <View style={[styles.pl6, styles.mr3]}>
                                             <Icon
+                                                fill={theme.icon}
                                                 src={Expensicons.Eye}
                                                 small
                                             />
