@@ -38,10 +38,10 @@ const EmojiPicker = forwardRef((props, ref) => {
 
     /**
      * Get the popover anchor ref
-     * 
+     *
      * emojiPopoverAnchorRef contains either null or the ref object of the anchor element.
      * { current: { current: anchorElement } }
-     * 
+     *
      * Don't directly get the ref from emojiPopoverAnchorRef, instead use getEmojiPopoverAnchor()
      */
     const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current || emojiPopoverAnchorRef, []);
