@@ -66,9 +66,6 @@ const propTypes = {
     /** The report metadata loading states */
     reportMetadata: reportMetadataPropTypes,
 
-    /** Array of report actions for this report */
-    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
@@ -104,7 +101,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    sortedReportActions: [],
+    // sortedReportActions: [],
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
@@ -181,9 +178,9 @@ function ReportScreen({
 
     const reportActions = useMemo(() => {
         if (allReportActions?.length === 0) return [];
-        const sorterReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true);
-        const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sorterReportActions, reportActionID);
-        const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
+        const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions);
+        const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
+        const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions, true);
         return reportActionsWithoutDeleted;
     }, [reportActionID, allReportActions, isOffline]);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -198,7 +195,6 @@ function ReportScreen({
 
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(reportActions) && reportMetadata.isLoadingInitialReportActions;

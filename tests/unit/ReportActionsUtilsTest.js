@@ -239,7 +239,7 @@ describe('ReportActionsUtils', () => {
                 ];
 
                 const resultWithoutNewestFlag = ReportActionsUtils.getSortedReportActionsForDisplay(input);
-                const resultWithNewestFlag = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+                const resultWithNewestFlag = ReportActionsUtils.getReportActionsWithoutRemoved(input, true);
                 input.pop();
                 // Mark the newest report action as the newest report action
                 resultWithoutNewestFlag[0] = {
