@@ -1,7 +1,7 @@
 import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Environment from '@libs/Environment/Environment';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import pkg from '../../package.json';
 import Badge from './Badge';

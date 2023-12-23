@@ -5,10 +5,10 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -77,7 +77,7 @@ function ImageRenderer(props) {
                             ReportUtils.isArchivedRoom(report),
                         )
                     }
-                    role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 >
                     <ThumbnailImage

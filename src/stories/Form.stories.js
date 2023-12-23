@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
+import {defaultStyles} from '@styles/index';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 
@@ -47,7 +47,7 @@ function Template(args) {
             <View>
                 <InputWrapper
                     InputComponent={TextInput}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     accessibilityLabel="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
@@ -56,30 +56,30 @@ function Template(args) {
             </View>
             <InputWrapper
                 InputComponent={TextInput}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 label="Account number"
                 accessibilityLabel="Account number"
                 inputID="accountNumber"
-                containerStyles={[styles.mt4]}
+                containerStyles={[defaultStyles.mt4]}
             />
             <InputWrapper
                 InputComponent={AddressSearch}
                 label="Street"
                 inputID="street"
-                containerStyles={[styles.mt4]}
+                containerStyles={[defaultStyles.mt4]}
                 hint="No PO box"
             />
             <DatePicker
                 inputID="dob"
                 label="Date of Birth"
-                containerStyles={[styles.mt4]}
+                containerStyles={[defaultStyles.mt4]}
             />
             <View>
                 <InputWrapper
                     InputComponent={Picker}
                     label="Fruit"
                     inputID="pickFruit"
-                    containerStyles={[styles.mt4]}
+                    containerStyles={[defaultStyles.mt4]}
                     shouldSaveDraft
                     items={[
                         {
@@ -101,7 +101,7 @@ function Template(args) {
                 InputComponent={Picker}
                 label="Another Fruit"
                 inputID="pickAnotherFruit"
-                containerStyles={[styles.mt4]}
+                containerStyles={[defaultStyles.mt4]}
                 items={[
                     {
                         label: 'Select a Fruit',
@@ -117,7 +117,7 @@ function Template(args) {
                     },
                 ]}
             />
-            <View style={styles.mt4}>
+            <View style={defaultStyles.mt4}>
                 <InputWrapper
                     InputComponent={StatePicker}
                     inputID="state"
@@ -127,7 +127,7 @@ function Template(args) {
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 inputID="checkbox"
-                style={[styles.mb4, styles.mt5]}
+                style={[defaultStyles.mb4, defaultStyles.mt5]}
                 LabelComponent={() => <Text>I accept the Expensify Terms of Service</Text>}
             />
         </FormProvider>
@@ -153,7 +153,7 @@ function WithNativeEventHandler(args) {
         <FormProvider {...args}>
             <InputWrapper
                 InputComponent={TextInput}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 accessibilityLabel="Routing number"
                 label="Routing number"
                 inputID="routingNumber"

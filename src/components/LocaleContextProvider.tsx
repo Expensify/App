@@ -36,7 +36,7 @@ type LocaleContextProps = {
     datetimeToRelative: (datetime: string) => string;
 
     /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase: boolean) => string;
+    datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
 
     /** Updates date-fns internal locale */
     updateLocale: () => void;

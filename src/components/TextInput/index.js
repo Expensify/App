@@ -1,9 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
-import useThemeStyles from '@styles/useThemeStyles';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './BaseTextInput/baseTextInputPropTypes';
 import * as styleConst from './styleConst';

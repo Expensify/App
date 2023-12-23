@@ -1,5 +1,5 @@
 import {CardStyleInterpolators, StackNavigationOptions} from '@react-navigation/stack';
-import {ThemeStyles} from '@styles/styles';
+import {ThemeStyles} from '@styles/index';
 
 /**
  * RHP stack navigator screen options generator function

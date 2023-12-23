@@ -3,7 +3,7 @@ import React, {ForwardedRef, forwardRef} from 'react';
 import {View} from 'react-native';
 import DotLottieAnimation from '@components/LottieAnimations/types';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type Props = {
     source: DotLottieAnimation;

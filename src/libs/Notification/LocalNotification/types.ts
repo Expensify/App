@@ -1,4 +1,5 @@
 import {ImageSourcePropType} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import {Report, ReportAction} from '@src/types/onyx';
 
 type PushParams = {
@@ -11,7 +12,7 @@ type PushParams = {
 };
 
 type ReportCommentParams = {
-    report: Report;
+    report: OnyxEntry<Report>;
     reportAction: ReportAction;
     onClick: () => void;
 };

@@ -13,11 +13,11 @@ import {withNetwork} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +103,7 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                         originalFileName={policy.originalFileName}
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(policy, 'pendingFields.generalSettings')}>
-                        <View style={[styles.mt4]}>
+                        <View style={[styles.mt4, styles.mhn5]}>
                             <MenuItemWithTopDescription
                                 title={policy.name}
                                 description={translate('workspace.editor.nameInputLabel')}

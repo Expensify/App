@@ -6,7 +6,7 @@ import _ from 'underscore';
 import DatePicker from '@components/DatePicker';
 import InputWrapper from '@components/Form/InputWrapper';
 import TextInput from '@components/TextInput';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import AddressForm from './AddressForm';
 
@@ -149,7 +149,7 @@ function IdentityForm(props) {
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.firstName')}`}
                         aria-label={props.translate('common.firstName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         value={props.values.firstName}
                         defaultValue={props.defaultValues.firstName}
                         onChangeText={(value) => props.onFieldChange({firstName: value})}
@@ -163,7 +163,7 @@ function IdentityForm(props) {
                         shouldSaveDraft={props.shouldSaveDraft}
                         label={`${props.translate('common.lastName')}`}
                         aria-label={props.translate('common.lastName')}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         value={props.values.lastName}
                         defaultValue={props.defaultValues.lastName}
                         onChangeText={(value) => props.onFieldChange({lastName: value})}
@@ -189,7 +189,7 @@ function IdentityForm(props) {
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={`${props.translate('common.ssnLast4')}`}
                 aria-label={props.translate('common.ssnLast4')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 containerStyles={[styles.mt4]}
                 inputMode={CONST.INPUT_MODE.NUMERIC}
                 defaultValue={props.defaultValues.ssnLast4}

@@ -4,9 +4,9 @@ import React from 'react';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** All the data of the action */

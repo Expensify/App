@@ -8,7 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import TextInput from '@components/TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '@components/TextInput/BaseTextInput/baseTextInputPropTypes';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 
@@ -76,7 +76,7 @@ function DatePicker({containerStyles, defaultValue, disabled, errorText, inputID
                     icon={Expensicons.Calendar}
                     label={label}
                     accessibilityLabel={label}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     value={value || selectedDate || ''}
                     placeholder={placeholder || translate('common.dateFormat')}
                     errorText={errorText}

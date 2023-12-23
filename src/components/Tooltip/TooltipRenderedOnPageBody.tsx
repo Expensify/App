@@ -2,8 +2,8 @@ import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'reac
 import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
+import useStyleUtils from '@hooks/useStyleUtils';
 import Log from '@libs/Log';
-import useStyleUtils from '@styles/useStyleUtils';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
 import TooltipProps from './types';
