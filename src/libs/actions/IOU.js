@@ -548,7 +548,6 @@ function buildOnyxDataForMoneyRequest(
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Boolean} [billable]
- * @param {Object} [policy]
  * @returns {Object} data
  * @returns {String} data.payerEmail
  * @returns {Object} data.iouReport
@@ -1050,7 +1049,6 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
  * @param {String} [category]
  * @param {String} [tag]
  * @param {Boolean} [billable]
- * @param {Object} [policy]
  */
 function requestMoney(
     report,
