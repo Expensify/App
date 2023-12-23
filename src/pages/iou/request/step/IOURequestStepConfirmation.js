@@ -160,10 +160,9 @@ function IOURequestStepConfirmation({
                 transaction.category,
                 transaction.tag,
                 transaction.billable,
-                policy,
             );
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, policy],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID],
     );
 
     /**
