@@ -4,6 +4,7 @@ import Response from './Response';
 type OnyxData = {
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
+    finallyData?: OnyxUpdate[];
     optimisticData?: OnyxUpdate[];
 };
 

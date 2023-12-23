@@ -34,6 +34,7 @@ type OnyxData = {
     optimisticData?: OnyxUpdate[];
     successData?: OnyxUpdate[];
     failureData?: OnyxUpdate[];
+    finallyData?: OnyxUpdate[];
 };
 
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
