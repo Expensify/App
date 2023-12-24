@@ -145,7 +145,7 @@ function Hoverable(
     // Expose inner ref to parent through outerRef. This enable us to use ref both in parent and child.
     useImperativeHandle<HTMLElement | null, HTMLElement | null>(outerRef, () => ref.current, []);
 
-    const child = useMemo(() => React.Children.only(mapChildren(children as ReactElement, isHovered)), [children, isHovered]);
+    const child = useMemo(() => React.Children.only(mapChildren(children, isHovered)), [children, isHovered]);
 
     const enableHoveredOnMouseEnter = useCallback(
         (event: MouseEvent) => {

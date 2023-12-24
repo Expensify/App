@@ -9,6 +9,7 @@ import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -26,6 +27,7 @@ const propTypes = {
 };
 
 function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     if (!locationErrorCode) {
@@ -67,7 +69,10 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
-                        <Icon src={Expensicons.Close} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.Close}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
             </View>
