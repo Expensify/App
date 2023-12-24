@@ -1,5 +1,4 @@
 import {ValueOf} from 'type-fest';
-import ClearReportNotifications from '@libs/Notification/clearReportNotifications/types';
 import NotificationType, {NotificationDataMap} from './NotificationType';
 
 type Init = () => void;
@@ -17,7 +16,6 @@ type PushNotification = {
     onSelected: OnSelected;
     TYPE: typeof NotificationType;
     clearNotifications: ClearNotifications;
-    clearReportNotifications: ClearReportNotifications;
 };
 
 export default PushNotification;
