@@ -12,7 +12,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ApiUtils from '@libs/ApiUtils';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -20,7 +19,6 @@ import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import CurrentLocationButton from './CurrentLocationButton';
-import getListViewHeight from './getListViewHeight';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 
 /**
@@ -42,14 +40,8 @@ function isPlaceMatchForSearch(search, place) {
     if (!place) {
         return false;
     }
-    let result = false;
-    if (place.name) {
-        result = _.some(search.split(' '), (searchTerm) => searchTerm && place.name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
-    }
-    if (place.description) {
-        result = result || _.some(search.split(' '), (searchTerm) => searchTerm && place.description.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
-    }
-    return result;
+    const fullSearchSentence = `${place.name ? place.name : ''} ${place.location ? place.location : ''}`;
+    return _.every(search.split(' '), (searchTerm) => !searchTerm || (searchTerm && fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase())));
 }
 
 // The error that's being thrown below will be ignored until we fork the
@@ -198,11 +190,10 @@ function AddressSearch({
     const StyleUtils = useStyleUtils();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
+    const [isFocused, setIsFocused] = useState(true);
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
     const [locationErrorCode, setLocationErrorCode] = useState(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
-    const {windowHeight} = useWindowDimensions();
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const containerRef = useRef();
     const query = useMemo(
@@ -422,11 +413,8 @@ function AddressSearch({
     }, [network.isOffline, predefinedPlaces, searchValue]);
 
     const listEmptyComponent = useCallback(
-        () =>
-            network.isOffline || !isTyping ? null : (
-                <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>
-            ),
-        [network.isOffline, isTyping, styles, translate],
+        () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
+        [isTyping, styles, translate],
     );
 
     const listLoader = useCallback(
@@ -553,18 +541,19 @@ function AddressSearch({
                             textInputContainer: [styles.flexColumn],
                             listView: [
                                 StyleUtils.getGoogleListViewStyle(displayListViewBorder),
+                                styles.overflowAuto,
                                 styles.borderLeft,
                                 styles.borderRight,
-                                getListViewHeight(windowHeight, locationErrorCode, network.isOffline),
+                                styles.flexGrow0,
                                 !isFocused && {height: 0},
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
-                            container: [styles.overflowHidden],
+                            container: [isFocused ? styles.flex1 : styles.flexGrow0, styles.overflowAuto, {maxHeight: '100%'}],
                         }}
                         numberOfLines={2}
-                        isRowScrollable={false}
+                        isRowScrollable
                         listHoverColor={theme.border}
                         listUnderlayColor={theme.buttonPressedBG}
                         onLayout={(event) => {
@@ -586,11 +575,13 @@ function AddressSearch({
                             )
                         }
                         placeholder=""
-                    />
-                    <LocationErrorMessage
-                        onClose={() => setLocationErrorCode(null)}
-                        locationErrorCode={locationErrorCode}
-                    />
+                        listViewDisplayed
+                    >
+                        <LocationErrorMessage
+                            onClose={() => setLocationErrorCode(null)}
+                            locationErrorCode={locationErrorCode}
+                        />
+                    </GooglePlacesAutocomplete>
                 </View>
             </ScrollView>
             {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}

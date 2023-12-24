@@ -26,7 +26,6 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import getAddressFormHeight from './getAddressFormHeight';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -76,7 +75,7 @@ function IOURequestStepWaypoint({
     transaction,
 }) {
     const styles = useThemeStyles();
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
@@ -208,8 +207,7 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5]}
-                    scrollViewStyles={[styles.overflowHidden]}
+                    style={[styles.flexGrow1, styles.mh5, styles.overflowHidden, {maxHeight: 'calc(100vh - 65px)'}]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
@@ -217,9 +215,9 @@ function IOURequestStepWaypoint({
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
-                    submitButtonStyles={[styles.flexGrow0]}
+                    submitButtonStyles={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 >
-                    <View style={[getAddressFormHeight(windowHeight, isOffline && isSmallScreenWidth)]}>
+                    <View style={[styles.flex1, styles.overflowHidden]}>
                         <InputWrapperWithRef
                             InputComponent={AddressSearch}
                             canUseCurrentLocation
@@ -266,7 +264,7 @@ export default compose(
             // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
             // that the google autocomplete component expects for it's "predefined places" feature.
             selector: (waypoints) =>
-                _.map(waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINT_NUMBER) : [], (waypoint) => ({
+                _.map(waypoints ? waypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER) : [], (waypoint) => ({
                     name: waypoint.name,
                     description: waypoint.address,
                     geometry: {
