@@ -123,17 +123,17 @@ function ReportActionItemSingle({
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport.ownerAccountID === actorAccountID ? iouReport.managerID : iouReport.ownerAccountID;
-        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
+        const secondaryUserAvatar = secondaryAccountId ? personalDetails?.[secondaryAccountId]?.avatar ?? {} : {};
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserAvatar ?? '', secondaryAccountId),
+            source: UserUtils.getAvatar(secondaryUserAvatar, secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
             name: secondaryDisplayName ?? '',
             id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
-        const avatarIconIndex = report.isOwnPolicyExpenseChat ?? ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
+        const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
         secondaryAvatar = reportIcons[avatarIconIndex];
@@ -176,7 +176,7 @@ function ReportActionItemSingle({
     }, [isWorkspaceActor, reportID, actorAccountID, action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
-        () => actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ?? (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(Number(action.delegateAccountID ?? actorAccountID) ?? -1)),
+        () => actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS || (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(Number(action.delegateAccountID ?? actorAccountID) ?? -1)),
         [action, isWorkspaceActor, actorAccountID],
     );
 
