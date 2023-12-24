@@ -133,6 +133,7 @@ function ReportActionItemSingle({
             id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
