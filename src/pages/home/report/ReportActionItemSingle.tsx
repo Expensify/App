@@ -1,7 +1,5 @@
-import lodashGet from 'lodash/get';
 import React, {useCallback, useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
-import _ from 'underscore';
 import Avatar from '@components/Avatar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -23,7 +21,7 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import {AvatarType} from '@src/types/onyx/OnyxCommon';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -35,7 +33,7 @@ type ReportActionItemSingleProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Children view component for this action item */
-    children: ChildrenProps;
+    children: React.ReactNode;
 
     /** Report for this action */
     report: Report;
@@ -54,6 +52,23 @@ type ReportActionItemSingleProps = {
 
     /** If the action is being hovered */
     isHovered: boolean;
+};
+
+type SubAvatar = {
+    /** Avatar source to display */
+    source: UserUtils.AvatarSource;
+
+    /** Denotes whether it is an avatar or a workspace avatar */
+    type: AvatarType;
+
+    /** Owner of the avatar. If user, displayName. If workspace, policy name */
+    name: string;
+
+    /** Avatar id */
+    id?: number | string;
+
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    fallbackIcon?: UserUtils.AvatarSource;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -79,13 +94,13 @@ function ReportActionItemSingle({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const actorAccountID = action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport ? iouReport.managerID : action.actorAccountID;
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] || {};
-    let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
+    let actorHint = (login ?? displayName ?? '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport, [action.actionName, iouReport]);
-    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors);
+    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID ?? displayAllActors);
     let avatarSource = UserUtils.getAvatar(avatar ?? '', actorAccountID);
 
     if (isWorkspaceActor) {
@@ -103,42 +118,49 @@ function ReportActionItemSingle({
     }
 
     // If this is a report preview, display names and avatars of both people involved
-    let secondaryAvatar = {};
+    let secondaryAvatar: SubAvatar;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport.ownerAccountID === actorAccountID ? iouReport.managerID : iouReport.ownerAccountID;
-        const secondaryUserDetails = personalDetails[secondaryAccountId ?? -1] || {};
+        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
-            source: UserUtils.getAvatar(secondaryUserDetails.avatar ?? '', secondaryAccountId),
+            source: UserUtils.getAvatar(secondaryUserAvatar ?? '', secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
-            name: secondaryDisplayName,
+            name: secondaryDisplayName ?? '',
             id: secondaryAccountId,
         };
     } else if (!isWorkspaceActor) {
-        const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
+        const avatarIconIndex = report.isOwnPolicyExpenseChat ?? ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
         const reportIcons = ReportUtils.getIcons(report, {});
 
         secondaryAvatar = reportIcons[avatarIconIndex];
+    } else {
+        secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
-    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName ?? '', id: isWorkspaceActor ? '' : actorAccountID};
+    const icon = {
+        source: avatarSource,
+        type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
+        name: primaryDisplayName ?? '',
+        id: isWorkspaceActor ? '' : actorAccountID,
+    };
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName
-        ?? [
+        ? [
               {
                   type: 'TEXT',
                   text: displayName,
               },
           ]
-        ?? action.person ?? {};
+        : action.person;
 
-    const reportID = report && report.reportID;
-    const iouReportID = iouReport && iouReport.reportID;
+    const reportID = report?.reportID;
+    const iouReportID = iouReport?.reportID;
 
     const showActorDetails = useCallback(() => {
         if (isWorkspaceActor) {
@@ -154,9 +176,7 @@ function ReportActionItemSingle({
     }, [isWorkspaceActor, reportID, actorAccountID, action.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
-        () =>
-            actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ||
-            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(Number(action.delegateAccountID ?? actorAccountID) ?? -1)),
+        () => actorAccountID === CONST.ACCOUNT_ID.NOTIFICATIONS ?? (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(Number(action.delegateAccountID ?? actorAccountID) ?? -1)),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -176,8 +196,6 @@ function ReportActionItemSingle({
                 <SubscriptAvatar
                     mainAvatar={icon}
                     secondaryAvatar={secondaryAvatar}
-                    mainTooltip={actorHint}
-                    secondaryTooltip={ReportUtils.getPolicyName(report)}
                     noMargin
                 />
             );
@@ -200,9 +218,9 @@ function ReportActionItemSingle({
             </UserDetailsTooltip>
         );
     };
-    const hasEmojiStatus = !displayAllActors && status && status.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(lodashGet(status, 'clearAfter'));
-    const statusText = lodashGet(status, 'text', '');
+    const hasEmojiStatus = !displayAllActors && status?.emojiCode;
+    const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
+    const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
 
     return (
@@ -216,7 +234,7 @@ function ReportActionItemSingle({
                 accessibilityLabel={actorHint}
                 role={CONST.ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>{getAvatar()}</OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingFields?.avatar}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (
@@ -230,7 +248,7 @@ function ReportActionItemSingle({
                             accessibilityLabel={actorHint}
                             role={CONST.ROLE.BUTTON}
                         >
-                            {_.map(personArray, (fragment, index) => (
+                            {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${action.reportActionID}-${index}`}
                                     accountID={actorAccountID}
