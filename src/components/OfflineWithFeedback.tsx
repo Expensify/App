@@ -18,7 +18,7 @@ import MessagesRow from './MessagesRow';
 
 type OfflineWithFeedbackProps = ChildrenProps & {
     /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction | null;
+    pendingAction: OnyxCommon.PendingAction | null;
 
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
