@@ -190,7 +190,7 @@ function AddressSearch({
     const StyleUtils = useStyleUtils();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
-    const [isFocused, setIsFocused] = useState(true);
+    const [isFocused, setIsFocused] = useState(false);
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
     const [locationErrorCode, setLocationErrorCode] = useState(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
