@@ -222,18 +222,22 @@ function LoginForm(props) {
     }, []);
 
     useEffect(() => {
+        if (props.account.isLoading !== false) {
+            return;
+        }
+        isLoading.current = false;
+    }, [props.account.isLoading]);
+
+    useEffect(() => {
         if (props.blurOnSubmit) {
             input.current.blur();
-        }
-        if (props.account.isLoading === false) {
-            isLoading.current = false;
         }
         // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
         if (!input.current || prevIsVisible || !props.isVisible) {
             return;
         }
         input.current.focus();
-    }, [props.blurOnSubmit, props.isVisible, prevIsVisible, props.account.isLoading]);
+    }, [props.blurOnSubmit, props.isVisible, prevIsVisible]);
 
     useImperativeHandle(props.innerRef, () => ({
         isInputFocused() {
