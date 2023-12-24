@@ -88,4 +88,4 @@ type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone, PersonalDetailsList};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList};
