@@ -183,6 +183,7 @@ function LoginForm(props) {
         }
 
         if (!validate(login)) {
+            isLoading.current = false;
             return;
         }
 
@@ -232,6 +233,7 @@ function LoginForm(props) {
         if (props.blurOnSubmit) {
             input.current.blur();
         }
+        
         // Only focus the input if the form becomes visible again, to prevent the keyboard from automatically opening on touchscreen devices after signing out
         if (!input.current || prevIsVisible || !props.isVisible) {
             return;
