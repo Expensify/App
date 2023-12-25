@@ -47,9 +47,6 @@ const propTypes = {
     /** The report object for the thread report */
     report: reportPropTypes,
 
-    /** The parent report object for the thread report */
-    parentReport: reportPropTypes,
-
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
@@ -65,14 +62,13 @@ const propTypes = {
 
 const defaultProps = {
     report: {},
-    parentReport: {},
     policyCategories: {},
     policyTags: {},
     parentReportActions: {},
     transaction: {},
 };
 
-function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, route, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -104,7 +100,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, fieldToEdit)) {
             return;
         }
 
@@ -112,7 +108,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit]);
+    }, [parentReportAction, transaction, fieldToEdit]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -283,9 +279,6 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
-        },
-        parentReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
         },
         parentReportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,

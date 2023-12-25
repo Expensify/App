@@ -486,7 +486,8 @@ function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 /**
  * Checks if a report is an IOU report.
  */
-function isIOUReport(report: OnyxEntry<Report>): boolean {
+function isIOUReport(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.type === CONST.REPORT.TYPE.IOU;
 }
 
@@ -542,7 +543,8 @@ function isReportManager(report: OnyxEntry<Report>): boolean {
 /**
  * Checks if the supplied report has been approved
  */
-function isReportApproved(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject): boolean {
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS.APPROVED;
 }
 
@@ -759,8 +761,15 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if report is still being processed
  */
-function isProcessingReport(report: OnyxEntry<Report>): boolean {
+function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && report?.statusNum === CONST.REPORT.STATUS.SUBMITTED;
+}
+
+/**
+ * Returns true if report is still open
+ */
+function isOpenReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
@@ -1806,8 +1815,11 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  * - in case of expense report
  *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
+ *
+ *    This is used in conjuction with canEditRestrictedField to control editing of specific fields like amount, currency, created, and receipt.
+ *    On its own, it only controls allowing/disallowing navigating to the editing pages or showing/hiding the 'Edit' icon on report actions
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = ''): boolean {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1830,44 +1842,58 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
     }
 
     const moneyRequestReport = getReport(String(moneyRequestReportID));
-    const isReportSettled = isSettled(moneyRequestReport?.reportID);
-    const isApproved = isReportApproved(moneyRequestReport);
-    const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
+    const policy = getPolicy(moneyRequestReport?.policyID ?? '');
+    const isAdmin = isExpenseReport(moneyRequestReport) && policy.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
-    if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
-        return false;
-    }
-
-    if (isAdmin) {
+    // Admin & managers can always allow coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
+    if ((isAdmin || isManager) && !isOpenReport(moneyRequestReport)) {
         return true;
     }
 
-    return !isApproved && !isReportSettled && isRequestor;
+    // We allow editing of PROCESSING reports in Free policies, but not in paid policie (yet)
+    if (policy.type === CONST.POLICY.TYPE.FREE) {
+        return isRequestor && isProcessingReport(moneyRequestReport);
+    }
+
+    return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
 }
 
-/**
- * Checks if the current user can edit the provided property of a money request
- *
- */
-function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, reportID: string, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, transaction: Transaction, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
     // A list of fields that cannot be edited by anyone, once a money request has been settled
-    const nonEditableFieldsWhenSettled: string[] = [
+    const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
         CONST.EDIT_REQUEST_FIELD.CURRENCY,
+        CONST.EDIT_REQUEST_FIELD.MERCHANT,
         CONST.EDIT_REQUEST_FIELD.DATE,
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
     ];
 
-    // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
-        return false; // User doesn't have permission to edit
+    if (!canEditMoneyRequest(reportAction)) {
+        return false;
     }
 
-    // Checks if the report is settled
-    // Checks if the provided property is a restricted one
-    return !isSettled(reportID) || !nonEditableFieldsWhenSettled.includes(fieldToEdit);
+    if (!restrictedFields.includes(fieldToEdit)) {
+        return true;
+    }
+
+    const reportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+    if (isSettled(reportID) || isReportApproved(reportID)) {
+        return false;
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) {
+        return !TransactionUtils.isCardTransaction(transaction);
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
+        const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+        return !TransactionUtils.isDistanceRequest(transaction) && isRequestor;
+    }
+
+    return true;
 }
 
 /**

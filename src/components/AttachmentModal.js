@@ -19,7 +19,6 @@ import fileDownload from '@libs/fileDownload';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -95,6 +94,9 @@ const propTypes = {
 
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment: PropTypes.bool,
+
+    /** Whether the receipt can be replaced */
+    canEditReceipt: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -113,6 +115,7 @@ const defaultProps = {
     onCarouselAttachmentChange: () => {},
     isWorkspaceAvatar: false,
     isReceiptAttachment: false,
+    canEditReceipt: false,
 };
 
 function AttachmentModal(props) {
@@ -365,12 +368,8 @@ function AttachmentModal(props) {
             return [];
         }
         const menuItems = [];
-        const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
 
-        const canEdit =
-            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT) &&
-            !TransactionUtils.isDistanceRequest(props.transaction);
-        if (canEdit) {
+        if (props.canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Camera,
                 text: props.translate('common.replace'),
@@ -385,7 +384,7 @@ function AttachmentModal(props) {
             text: props.translate('common.download'),
             onSelected: () => downloadAttachment(source),
         });
-        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && canEdit) {
+        if (TransactionUtils.hasReceipt(props.transaction) && !TransactionUtils.isReceiptBeingScanned(props.transaction) && props.canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('receipt.deleteReceipt'),
