@@ -121,7 +121,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     if (isPayer && isSettled) {
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
-            text: 'Cancel payment',
+            text: translate('iou.cancelPayment'),
             onSelected: () => setIsConfirmModalVisible(true),
         });
     }
