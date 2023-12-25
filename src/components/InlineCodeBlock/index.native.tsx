@@ -15,7 +15,6 @@ function InlineCodeBlock<TComponent extends TText>({TDefaultRenderer, defaultRen
             <WrappedText
                 textStyles={textStyle}
                 wordStyles={[boxModelStyle, styles.codeWordStyle]}
-                fontSize={fontSize}
             >
                 {defaultRendererProps.tnode.data}
             </WrappedText>

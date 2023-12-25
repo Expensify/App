@@ -2762,6 +2762,10 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 5,
         },
 
+        codePlainTextStyle: {
+            ...codeStyles.codePlainTextStyle,
+        },
+
         fullScreenLoading: {
             backgroundColor: theme.componentBG,
             opacity: 0.8,

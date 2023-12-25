@@ -1,9 +1,7 @@
 import React, {Fragment} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -15,9 +13,6 @@ type WrappedTextProps = ChildrenProps & {
      * Style for each individual word (token) in the text. Note that a token can also include whitespace characters between words.
      */
     wordStyles?: StyleProp<ViewStyle>;
-
-    /** The size of the text */
-    fontSize?: number;
 };
 
 /**
@@ -40,12 +35,11 @@ function getTextMatrix(text: string): string[][] {
  * Validates if the text contains any emoji
  */
 function containsEmoji(text: string): boolean {
-    return CONST.REGEX.EMOJIS.test(text);
+    return CONST.REGEX.EMOJI.test(text);
 }
 
-function WrappedText({children, wordStyles, textStyles, fontSize = variables.fontSizeNormal}: WrappedTextProps) {
+function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     if (typeof children !== 'string') {
         return null;
@@ -58,21 +52,18 @@ function WrappedText({children, wordStyles, textStyles, fontSize = variables.fon
             // eslint-disable-next-line react/no-array-index-key
             key={`${rowText[0]}-${rowIndex}`}
         >
-            {rowText.map((colText, colIndex) => {
-                const lineHeight = StyleUtils.getCodeLineHeight(containsEmoji(colText), fontSize);
-                return (
-                    // Outer View is important to vertically center the Text
-                    <View
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={`${colText}-${colIndex}`}
-                        style={styles.codeWordWrapper}
-                    >
-                        <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
-                            <Text style={[textStyles, lineHeight ? {lineHeight} : {}]}>{colText}</Text>
-                        </View>
+            {rowText.map((colText, colIndex) => (
+                // Outer View is important to vertically center the Text
+                <View
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${colText}-${colIndex}`}
+                    style={styles.codeWordWrapper}
+                >
+                    <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
+                        <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>{colText}</Text>
                     </View>
-                );
-            })}
+                </View>
+            ))}
         </Fragment>
     ));
 }

@@ -537,13 +537,6 @@ function getCodeFontSize(isInsideH1: boolean) {
 }
 
 /**
- * Returns the line height for the HTML code tag renderer.
- */
-function getCodeLineHeight(isEmojiChunk: boolean, fontSize: number): number {
-    return isEmojiChunk ? 0 : fontSize;
-}
-
-/**
  * Gives the width for Emoji picker Widget
  */
 function getEmojiPickerStyle(isSmallScreenWidth: boolean): ViewStyle {
@@ -1058,7 +1051,6 @@ const staticStyleUtils = {
     getEmojiReactionBubbleTextStyle,
     getFontFamilyMonospace,
     getCodeFontSize,
-    getCodeLineHeight,
     getFontSizeStyle,
     getLineHeightStyle,
     getMenuItemTextContainerStyle,

@@ -43,7 +43,6 @@ function CodeRenderer(props) {
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}
             key={props.key}
-            fontSize={fontSize}
         />
     );
 }
