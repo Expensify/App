@@ -2,14 +2,15 @@ import React from 'react';
 import {Linking} from 'react-native';
 import CONST from '@src/CONST';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
-import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
+import LocationErrorMessagePropTypes from './types';
 
 /** Opens expensify help site in a new browser tab */
-const navigateToExpensifyHelpSite = () => {
+const navigateToExpensifyHelpSite = (): void => {
     Linking.openURL(CONST.NEWHELP_URL);
 };
 
-function LocationErrorMessage(props) {
+function LocationErrorMessage(props: LocationErrorMessagePropTypes) {
+    
     return (
         <BaseLocationErrorMessage
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -20,6 +21,4 @@ function LocationErrorMessage(props) {
 }
 
 LocationErrorMessage.displayName = 'LocationErrorMessage';
-LocationErrorMessage.propTypes = locationErrorMessagePropTypes.propTypes;
-LocationErrorMessage.defaultProps = locationErrorMessagePropTypes.defaultProps;
 export default LocationErrorMessage;
