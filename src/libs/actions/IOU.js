@@ -1131,14 +1131,14 @@ function requestMoney(
  * @param {Number} amount - always in the smallest unit of the currency
  * @param {String} comment
  * @param {String} currency
+ * @param {String} merchant
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
- * @param {String} merchant
  *
  * @return {Object}
  */
-function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '', merchant) {
+function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1156,7 +1156,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         '',
         '',
         '',
-        merchant,
+        merchant || Localize.translateLocal('iou.request'),
         undefined,
         undefined,
         undefined,
@@ -1357,7 +1357,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             '',
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
-            merchant,
+            merchant || Localize.translateLocal('iou.request'),
             undefined,
             undefined,
             undefined,
@@ -1476,12 +1476,12 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
+ * @param {String} merchant
  * @param {String} category
  * @param {String} tag
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
- * @param {String} merchant
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, existingSplitChatReportID = '', merchant) {
+function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1489,10 +1489,10 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         amount,
         comment,
         currency,
+        merchant,
         category,
         tag,
         existingSplitChatReportID,
-        merchant,
     );
     API.write(
         'SplitBill',
@@ -1525,12 +1525,13 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {Number} amount - always in smallest currency unit
  * @param {String} comment
  * @param {String} currency
+ * @param {String} merchant
  * @param {String} category
  * @param {String} tag
- * @param {String} merchant
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, merchant) {
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, category, tag, '', merchant);
+function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag) {
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag);
+
     API.write(
         'SplitBillAndOpenReport',
         {
@@ -1538,9 +1539,9 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
             amount,
             splits: JSON.stringify(splits),
             currency,
+            merchant,
             comment,
             category,
-            merchant,
             tag,
             transactionID: splitData.transactionID,
             reportActionID: splitData.reportActionID,
@@ -1562,10 +1563,12 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
  * @param {String} currentUserLogin
  * @param {Number} currentUserAccountID
  * @param {String} comment
+ * @param {String} category
+ * @param {String} tag
  * @param {Object} receipt
  * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, receipt, existingSplitChatReportID = '') {
+function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, category, tag, receipt, existingSplitChatReportID = '') {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
     const existingSplitChatReport =
@@ -1774,6 +1777,8 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             splits: JSON.stringify(splits),
             receipt,
             comment,
+            category,
+            tag,
             isFromGroupDM: !existingSplitChatReport,
             ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         },
@@ -1981,6 +1986,8 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
         created: transactionCreated,
         merchant: transactionMerchant,
         comment: transactionComment,
+        category: transactionCategory,
+        tag: transactionTag,
     } = ReportUtils.getTransactionDetails(updatedTransaction);
 
     API.write(
@@ -1992,6 +1999,8 @@ function completeSplitBill(chatReportID, reportAction, updatedTransaction, sessi
             created: transactionCreated,
             merchant: transactionMerchant,
             comment: transactionComment,
+            category: transactionCategory,
+            tag: transactionTag,
             splits: JSON.stringify(splits),
         },
         {optimisticData, successData, failureData},
