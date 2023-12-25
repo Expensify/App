@@ -851,7 +851,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
+            shouldShow: false,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
