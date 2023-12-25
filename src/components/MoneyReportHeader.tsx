@@ -1,91 +1,67 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import GoogleMeetIcon from '@assets/images/google-meet.svg';
 import ZoomIcon from '@assets/images/zoom-icon.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
-import nextStepPropTypes from '@pages/nextStepPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
-import * as Session from '@userActions/Session';
+import * as UserSession from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetails, Policy, Report, ReportNextStep, Session} from '@src/types/onyx';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import participantPropTypes from './participantPropTypes';
 import SettlementButton from './SettlementButton';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
-const propTypes = {
+type MoneyReportHeaderOnyxProps = {
+    chatReport: OnyxEntry<Report>;
+    nextStep: OnyxEntry<ReportNextStep>;
+    session: OnyxEntry<Session>;
+}
+
+type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The report currently being looked at */
-    report: iouReportPropTypes.isRequired,
+    report: Report;
 
     /** The policy tied to the money request report */
-    policy: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-
-        /** Type of the policy */
-        type: PropTypes.string,
-
-        /** The role of the current user in the policy */
-        role: PropTypes.string,
-    }),
+    policy: Policy;
 
     /** The chat report this report is linked to */
-    chatReport: reportPropTypes,
+    chatReport: Report;
 
     /** The next step for the report */
-    nextStep: nextStepPropTypes,
+    nextStep: ReportNextStep;
 
     /** Personal details so we can get the ones for the report participants */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PersonalDetails
 
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }),
-
-    ...windowDimensionsPropTypes,
+    /** UserSession info for the currently logged in user. */
+    session: Session;
 };
 
-const defaultProps = {
-    chatReport: {},
-    nextStep: {},
-    session: {
-        email: null,
-    },
-    policy: {},
-};
-
-function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
-    const {windowWidth} = useWindowDimensions();
+function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const policyType = lodashGet(policy, 'type');
-    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
+    const policyType = policy?.type;
+    const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isGroupPolicy = _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType);
-    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
+    const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
     const isPayer = isGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isManager)
@@ -129,14 +105,14 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         threeDotsMenuItems.push({
             icon: ZoomIcon,
             text: translate('videoChatButtonAndMenu.zoom'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
+            onSelected: UserSession.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
             }),
         });
         threeDotsMenuItems.push({
             icon: GoogleMeetIcon,
             text: translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
+            onSelected: UserSession.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
             }),
         });
@@ -237,20 +213,15 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
 }
 
 MoneyReportHeader.displayName = 'MoneyReportHeader';
-MoneyReportHeader.propTypes = propTypes;
-MoneyReportHeader.defaultProps = defaultProps;
 
-export default compose(
-    withWindowDimensions,
-    withOnyx({
-        chatReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
-        },
-        nextStep: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
-)(MoneyReportHeader);
+export default withOnyx<MoneyReportHeaderProps, MoneyReportHeaderOnyxProps>({
+    chatReport: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
+    },
+    nextStep: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(MoneyReportHeader);
