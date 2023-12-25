@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -7,26 +6,20 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
+import LocationErrorMessagePropTypes from './types';
 
-const propTypes = {
+type BaseLocationErrorMessageProps = LocationErrorMessagePropTypes & WithLocalizeProps & {
     /** A callback that runs when 'allow location permission' link is pressed */
-    onAllowLocationLinkPress: PropTypes.func.isRequired,
-
-    // eslint-disable-next-line react/forbid-foreign-prop-types
-    ...locationErrorMessagePropTypes.propTypes,
-
-    /* Onyx Props */
-    ...withLocalizePropTypes,
+    onAllowLocationLinkPress: () => void;
 };
 
-function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}) {
+function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}: BaseLocationErrorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -59,7 +52,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>
                 )}
-            </View>
+                            </View>
             <View>
                 <Tooltip text={translate('common.close')}>
                     <PressableWithoutFeedback
@@ -81,6 +74,4 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
 }
 
 BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
-BaseLocationErrorMessage.propTypes = propTypes;
-BaseLocationErrorMessage.defaultProps = locationErrorMessagePropTypes.defaultProps;
 export default withLocalize(BaseLocationErrorMessage);
