@@ -143,7 +143,7 @@ function MemberInviteList(props) {
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue).toLowerCase())) {
+        if (!userToInvite && excludedUsers.includes(searchValue)) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);

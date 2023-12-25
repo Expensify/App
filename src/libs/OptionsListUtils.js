@@ -1,4 +1,5 @@
 /* eslint-disable no-continue */
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
@@ -16,7 +17,6 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as PhoneNumber from './PhoneNumber';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -116,7 +116,7 @@ Onyx.connect({
  * @return {String}
  */
 function addSMSDomainIfPhoneNumber(login) {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(login);
+    const parsedPhoneNumber = parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
         return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
     }
@@ -1133,7 +1133,7 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
@@ -1300,7 +1300,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login))) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -1634,7 +1634,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
+    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
