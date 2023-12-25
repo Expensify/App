@@ -117,7 +117,6 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditAmount = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.AMOUNT), [transaction, parentReportAction]);
-    console.log('can edit amount', canEditAmount);
     const canEditMerchant = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.MERCHANT), [transaction, parentReportAction]);
     const canEditDate = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.DATE), [transaction, parentReportAction]);
     const canEditReceipt = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.RECEIPT), [transaction, parentReportAction]);
