@@ -1,3 +1,4 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -19,7 +20,6 @@ import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
