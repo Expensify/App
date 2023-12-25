@@ -5,7 +5,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import Map, {MapRef, Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -52,6 +52,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
+        const hasAskedForLocationPermission = useRef(false);
 
         useFocusEffect(
             useCallback(() => {
@@ -59,6 +60,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
+                if (hasAskedForLocationPermission.current) {
+                    return;
+                }
+
+                hasAskedForLocationPermission.current = true;
                 getCurrentPosition(
                     (params) => {
                         const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
@@ -66,14 +72,15 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         setUserLocation(currentCoords);
                     },
                     () => {
-                        if (cachedUserLocation) {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        if (cachedUserLocation || !initialState) {
                             return;
                         }
 
                         setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
                     },
                 );
-            }, [cachedUserLocation, isOffline, initialState.location]),
+            }, [cachedUserLocation, initialState, isOffline]),
         );
 
         // Determines if map can be panned to user's detected
@@ -183,7 +190,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                                 latitude: currentPosition?.latitude,
                                 zoom: initialState.zoom,
                             }}
-                            style={StyleUtils.getTextColorStyle(theme.mapAttributionText) as React.CSSProperties}
+                            style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
                             mapStyle={styleURL}
                         >
                             {waypoints?.map(({coordinate, markerComponent, id}) => {
