@@ -24,7 +24,6 @@ import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import setSelection from '@libs/setSelection';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import {defaultProps as optionsSelectorDefaultProps, propTypes as optionsSelectorPropTypes} from './optionsSelectorPropTypes';
 
 const propTypes = {
@@ -48,6 +47,9 @@ const propTypes = {
 
     /** Referral content type */
     referralContentType: PropTypes.string,
+
+    /** Referral route */
+    referralRoute: PropTypes.string,
 
     ...optionsSelectorPropTypes,
     ...withLocalizePropTypes,
@@ -621,7 +623,7 @@ class BaseOptionsSelector extends Component {
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
                         <PressableWithoutFeedback
                             onPress={() => {
-                                Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(this.props.referralContentType));
+                                Navigation.navigate(this.props.referralRoute);
                             }}
                             style={[
                                 this.props.themeStyles.p5,

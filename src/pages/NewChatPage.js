@@ -22,6 +22,7 @@ import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
@@ -253,6 +254,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             shouldShowConfirmButton
                             shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
+                            referralRoute={ROUTES.REFERRAL_DETAILS_MODAL_START_CHAT.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT)}
                             confirmButtonText={selectedOptions.length > 1 ? translate('newChatPage.createGroup') : translate('newChatPage.createChat')}
                             textInputAlert={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                             onConfirmSelection={createGroup}

@@ -235,6 +235,11 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
+    REFERRAL_DETAILS_MONEY_REQUEST: 'Referral_Details_Money_Request',
+    REFERRAL_DETAILS_START_CHAT: 'Referral_Details_Start_Chat',
+    REFERRAL_DETAILS_SEND_MONEY: 'Referral_Details_Send_Money',
+    REFERRAL_DETAILS_REFER_FRIEND: 'Referral_Details_Refer_Friend',
+    REFERRAL_DETAILS_SHARE_CODE: 'Referral_Details_Share_Code',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
 } as const;
 

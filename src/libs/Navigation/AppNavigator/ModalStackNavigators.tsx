@@ -277,6 +277,11 @@ const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParam
 
 const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
+    [SCREENS.REFERRAL_DETAILS_MONEY_REQUEST]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
+    [SCREENS.REFERRAL_DETAILS_START_CHAT]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
+    [SCREENS.REFERRAL_DETAILS_SEND_MONEY]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
+    [SCREENS.REFERRAL_DETAILS_REFER_FRIEND]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
+    [SCREENS.REFERRAL_DETAILS_SHARE_CODE]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
 });
 
 export {

@@ -20,6 +20,7 @@ import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -63,6 +64,12 @@ const propTypes = {
     /** Whether we are searching for reports in the server */
     isSearchingForReports: PropTypes.bool,
 
+    /** The report ID of the IOU */
+    reportID: PropTypes.string.isRequired,
+
+    /** The ID of the transaction being configured */
+    transactionID: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -89,6 +96,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     iouType,
     iouRequestType,
     isSearchingForReports,
+    reportID,
+    transactionID,
 }) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
@@ -321,6 +330,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 shouldShowOptions={isOptionsDataReady}
                 shouldShowReferralCTA
                 referralContentType={iouType === 'send' ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST}
+                referralRoute={
+                    iouType === 'send'
+                        ? ROUTES.REFERRAL_DETAILS_MODAL_SEND_MONEY.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY)
+                        : ROUTES.REFERRAL_DETAILS_MODAL_REQUEST.getRoute(transactionID, reportID, CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST)
+                }
                 shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
                 shouldDelayFocus
                 footerContent={isAllowedToSplit && footerContent}

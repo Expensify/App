@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import ContextMenuItem from '@components/ContextMenuItem';
@@ -15,9 +14,11 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
 
@@ -25,6 +26,10 @@ const propTypes = {
     /** Navigation route context info provided by react navigation */
     route: PropTypes.shape({
         params: PropTypes.shape({
+            /** The ID of the transaction being configured */
+            transactionID: PropTypes.string,
+            /** The report ID of the IOU */
+            reportID: PropTypes.string,
             /** The type of the content from where CTA was called */
             contentType: PropTypes.string,
         }),
@@ -48,6 +53,7 @@ function ReferralDetailsPage({route, account}) {
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
+    const {transactionID, reportID} = route.params;
 
     if (!_.includes(_.values(CONST.REFERRAL_PROGRAM.CONTENT_TYPES), contentType)) {
         contentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
@@ -58,6 +64,18 @@ function ReferralDetailsPage({route, account}) {
     const isShareCode = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE;
     const shouldShowClipboard = contentType === CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND || isShareCode;
     const referralLink = `${CONST.REFERRAL_PROGRAM.LINK}/?thanks=${encodeURIComponent(account.primaryLogin)}`;
+
+    function getFallbackRoute() {
+        const fallbackRoutes = {
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID),
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SEND),
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: ROUTES.NEW_CHAT,
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: ROUTES.SEARCH,
+            [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: ROUTES.SETTINGS_SHARE_CODE,
+        };
+
+        return fallbackRoutes[contentType];
+    }
 
     return (
         <HeaderPageLayout
@@ -71,6 +89,7 @@ function ReferralDetailsPage({route, account}) {
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.REFERRAL].backgroundColor}
+            onBackButtonPress={() => Navigation.navigate(getFallbackRoute())}
         >
             <Text style={[styles.textHeadline, styles.mb3, styles.mt3, styles.ph4]}>{contentHeader}</Text>
             <Text style={[styles.inlineSystemMessage, styles.ml0, styles.mb6, styles.ph4]}>{contentBody}</Text>

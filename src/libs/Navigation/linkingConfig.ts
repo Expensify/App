@@ -487,6 +487,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     [SCREENS.RIGHT_MODAL.REFERRAL]: {
                         screens: {
                             [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                            [SCREENS.REFERRAL_DETAILS_MONEY_REQUEST]: ROUTES.REFERRAL_DETAILS_MODAL_REQUEST.route,
+                            [SCREENS.REFERRAL_DETAILS_START_CHAT]: ROUTES.REFERRAL_DETAILS_MODAL_START_CHAT.route,
+                            [SCREENS.REFERRAL_DETAILS_SEND_MONEY]: ROUTES.REFERRAL_DETAILS_MODAL_SEND_MONEY.route,
+                            [SCREENS.REFERRAL_DETAILS_REFER_FRIEND]: ROUTES.REFERRAL_DETAILS_MODAL_REFER_FRIEND.route,
+                            [SCREENS.REFERRAL_DETAILS_SHARE_CODE]: ROUTES.REFERRAL_DETAILS_MODAL_SHARE_CODE.route,
                         },
                     },
                 },

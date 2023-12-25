@@ -95,6 +95,8 @@ function IOURequestStepParticipants({
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
+                reportID={reportID}
+                transactionID={transactionID}
                 iouRequestType={iouRequestType}
             />
         </StepScreenWrapper>

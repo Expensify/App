@@ -463,6 +463,26 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string) => `referral/${contentType}` as const,
     },
+    REFERRAL_DETAILS_MODAL_REQUEST: {
+        route: 'create/request/participants/:transactionID/:reportID/referral/:contentType',
+        getRoute: (transactionID: string, reportID: string, contentType: string) => `create/request/participants/${transactionID}/${reportID}/referral/${contentType}` as const,
+    },
+    REFERRAL_DETAILS_MODAL_START_CHAT: {
+        route: 'new/referral/:contentType',
+        getRoute: (contentType: string) => `new/referral/${contentType}` as const,
+    },
+    REFERRAL_DETAILS_MODAL_SEND_MONEY: {
+        route: 'send/new/participants/referral/:contentType',
+        getRoute: (contentType: string) => `send/new/participants/referral/${contentType}` as const,
+    },
+    REFERRAL_DETAILS_MODAL_REFER_FRIEND: {
+        route: 'search/referral/:contentType',
+        getRoute: (contentType: string) => `search/referral/${contentType}` as const,
+    },
+    REFERRAL_DETAILS_MODAL_SHARE_CODE: {
+        route: 'settings/shareCode/referral/:contentType',
+        getRoute: (contentType: string) => `settings/shareCode/referral/${contentType}` as const,
+    },
 
     // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
     SAASTR: 'saastr',
