@@ -87,7 +87,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
-    const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
+    const isMoreContentShown = shouldShowNextSteps ?? (shouldShowAnyButton && isSmallScreenWidth);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
     if (isPayer && isSettled) {
@@ -136,7 +136,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                         <SettlementButton
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
-                            chatReportID={chatReport.reportID}
+                            chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
                             onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
@@ -152,7 +152,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     <View style={styles.pv2}>
                         <Button
                             medium
-                            success={chatReport.isOwnPolicyExpenseChat}
+                            success={chatReport?.isOwnPolicyExpenseChat}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
@@ -181,7 +181,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     <View style={[styles.ph5, styles.pb2]}>
                         <Button
                             medium
-                            success={chatReport.isOwnPolicyExpenseChat}
+                            success={chatReport?.isOwnPolicyExpenseChat}
                             text={translate('common.submit')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
