@@ -176,8 +176,8 @@ function IOURequestStepWaypoint({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
-            shouldEnableMaxHeight
             testID={IOURequestStepWaypoint.displayName}
+            style={[styles.overflowHidden]}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -207,7 +207,7 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.overflowHidden, {maxHeight: windowHeight - 65}]}
+                    style={[styles.flexGrow1, styles.mh5, {maxHeight: windowHeight - 65}]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
@@ -215,7 +215,8 @@ function IOURequestStepWaypoint({
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
-                    submitButtonStyles={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                    submitButtonStyles={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.justifyContentStart]}
+                    scrollViewStyles={[styles.overflowHidden]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         <InputWrapperWithRef

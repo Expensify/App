@@ -1,14 +1,14 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Keyboard, LogBox, ScrollView, Text, View } from 'react-native';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import _ from 'underscore';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import networkPropTypes from '@components/networkPropTypes';
-import {withNetwork} from '@components/OnyxProvider';
+import { withNetwork } from '@components/OnyxProvider';
 import TextInput from '@components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withLocalize, { withLocalizePropTypes } from '@components/withLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -139,8 +139,8 @@ const propTypes = {
 const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
-    onBlur: () => {},
-    onPress: () => {},
+    onBlur: () => { },
+    onPress: () => { },
     errorText: '',
     hint: '',
     value: undefined,
@@ -190,7 +190,7 @@ function AddressSearch({
     const StyleUtils = useStyleUtils();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
+    const [isFocused, setIsFocused] = useState(true);
     const [searchValue, setSearchValue] = useState(value || defaultValue || '');
     const [locationErrorCode, setLocationErrorCode] = useState(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
@@ -250,7 +250,7 @@ function AddressSearch({
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
-        const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
+        const { administrative_area_level_1: longStateName } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             administrative_area_level_1: 'long_name',
         });
 
@@ -482,7 +482,7 @@ function AddressSearch({
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: network.isOffline ? null : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces&proxyUrl='}),
+                            url: network.isOffline ? null : ApiUtils.getCommandURL({ command: 'Proxy_GooglePlaces&proxyUrl=' }),
                         }}
                         textInputProps={{
                             InputComp: TextInput,
@@ -525,7 +525,7 @@ function AddressSearch({
                                 if (inputID) {
                                     onInputChange(text);
                                 } else {
-                                    onInputChange({street: text});
+                                    onInputChange({ street: text });
                                 }
 
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
@@ -544,13 +544,12 @@ function AddressSearch({
                                 styles.overflowAuto,
                                 styles.borderLeft,
                                 styles.borderRight,
-                                styles.flexGrow0,
-                                !isFocused && {height: 0},
+                                !isFocused && { height: 0 },
                             ],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
-                            container: [isFocused ? styles.flex1 : styles.flexGrow0, styles.overflowAuto, {maxHeight: '100%'}],
+                            container: [{ maxHeight: '100%' }],
                         }}
                         numberOfLines={2}
                         isRowScrollable
@@ -577,10 +576,10 @@ function AddressSearch({
                         placeholder=""
                         listViewDisplayed
                     >
-                        <LocationErrorMessage
-                            onClose={() => setLocationErrorCode(null)}
-                            locationErrorCode={locationErrorCode}
-                        />
+                    <LocationErrorMessage
+                        onClose={() => setLocationErrorCode(null)}
+                        locationErrorCode={locationErrorCode}
+                    />
                     </GooglePlacesAutocomplete>
                 </View>
             </ScrollView>

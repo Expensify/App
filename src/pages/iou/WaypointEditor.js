@@ -180,7 +180,6 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => textInput.current && textInput.current.focus()}
-            shouldEnableMaxHeight
             testID={WaypointEditor.displayName}
             style={[styles.overflowHidden]}
         >
@@ -212,7 +211,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, styles.overflowHidden, {maxHeight: windowHeight - 65}]}
+                    style={[styles.flexGrow1, styles.mh5, {maxHeight: windowHeight - 65}]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
@@ -221,6 +220,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
                     submitButtonStyles={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                    scrollViewStyles={[styles.overflowHidden]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         <InputWrapper
