@@ -93,18 +93,9 @@ function getDistanceFromPathInRootNavigator(path: string): number {
 /** Returns the current active route */
 function getActiveRoute(): string {
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    if (!currentRoute?.name) {
-        return '';
-    }
 
     if (currentRoute?.path) {
         return currentRoute.path;
-    }
-
-    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
-
-    if (routeFromState) {
-        return routeFromState;
     }
 
     return '';
