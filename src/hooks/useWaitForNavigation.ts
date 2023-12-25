@@ -1,15 +1,15 @@
 import {useNavigation} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 
+type UseWaitForNavigation = (navigate: () => void) => () => Promise<void>;
+
 /**
  * Returns a promise that resolves when navigation finishes.
  * Only use when navigating by react-navigation
- *
- * @returns {function}
  */
-export default function useWaitForNavigation() {
+export default function useWaitForNavigation(): UseWaitForNavigation {
     const navigation = useNavigation();
-    const resolvePromises = useRef([]);
+    const resolvePromises = useRef<Array<() => void>>([]);
 
     useEffect(() => {
         const unsubscribeBlur = navigation.addListener('blur', () => {
@@ -24,9 +24,9 @@ export default function useWaitForNavigation() {
         };
     }, [navigation]);
 
-    return (navigate) => () => {
+    return (navigate: () => void) => () => {
         navigate();
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             resolvePromises.current.push(resolve);
         });
     };
