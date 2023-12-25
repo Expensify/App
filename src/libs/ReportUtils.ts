@@ -1880,7 +1880,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, trans
     }
 
     const reportID = reportAction?.originalMessage?.IOUReportID ?? 0;
-    if (isSettled(reportID) || isReportApproved(reportID)) {
+    if (isSettled(String(reportID)) || isReportApproved(String(reportID))) {
         return false;
     }
 

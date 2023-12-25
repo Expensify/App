@@ -123,7 +123,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const canEditDistance = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.DISTANCE), [transaction, parentReportAction]);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
 
     // Fetches only the first tag, for now
     const policyTag = PolicyUtils.getTag(policyTags);
