@@ -119,6 +119,15 @@ Onyx.connect({
     },
 });
 
+let nextSteps = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.NEXT_STEP,
+    waitForCollectionCallback: true,
+    callback: (val) => {
+        nextSteps = val || {};
+    },
+});
+
 /**
  * Initialize money request info
  * @param {String} reportID to attach the transaction to
@@ -925,13 +934,11 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     }
 
     // Optimistically modify the transaction
-    const optimisticTransaction = onlyIncludeChangedFields ? _.pick(updatedTransaction, _.keys(transactionChanges)) : updatedTransaction;
     optimisticData.push({
-        // We need to use SET method to save updated waypoint instead MERGE method to avoid wrong update of waypoints. More detail: https://github.com/Expensify/App/issues/30290#issuecomment-1778957070
-        onyxMethod: Onyx.METHOD.SET,
+        onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
-            ...optimisticTransaction,
+            ...updatedTransaction,
             pendingFields,
             isLoading: _.has(transactionChanges, 'waypoints'),
             errorFields: null,
@@ -2760,6 +2767,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
     }
 
+    const currentNextStep = lodashGet(nextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`, null);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2825,6 +2834,19 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             },
         },
     ];
+
+    if (!_.isNull(currentNextStep)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: currentNextStep,
+        });
+    }
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
@@ -2896,6 +2918,8 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
 }
 
 function approveMoneyRequest(expenseReport) {
+    const currentNextStep = lodashGet(nextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
 
     const optimisticReportActionsData = {
@@ -2945,6 +2969,19 @@ function approveMoneyRequest(expenseReport) {
         },
     ];
 
+    if (!_.isNull(currentNextStep)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        });
+    }
+
     API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
 
@@ -2952,6 +2989,8 @@ function approveMoneyRequest(expenseReport) {
  * @param {Object} expenseReport
  */
 function submitReport(expenseReport) {
+    const currentNextStep = lodashGet(nextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
 
@@ -3037,12 +3076,127 @@ function submitReport(expenseReport) {
             : []),
     ];
 
+    if (!_.isNull(currentNextStep)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: currentNextStep,
+        });
+    }
+
     API.write(
         'SubmitReport',
         {
             reportID: expenseReport.reportID,
             managerAccountID: expenseReport.managerID,
             reportActionID: optimisticSubmittedReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+}
+
+/**
+ * @param {Object} expenseReport
+ * @param {Object} chatReport
+ */
+function cancelPayment(expenseReport, chatReport) {
+    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction();
+    const policy = ReportUtils.getPolicy(chatReport.policyID);
+    const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: {
+                    ...optimisticReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                ...expenseReport,
+                lastMessageText: lodashGet(optimisticReportAction, 'message.0.text', ''),
+                lastMessageHtml: lodashGet(optimisticReportAction, 'message.0.html', ''),
+                state: isFree ? CONST.REPORT.STATE.SUBMITTED : CONST.REPORT.STATE.OPEN,
+                stateNum: isFree ? CONST.REPORT.STATE_NUM.PROCESSING : CONST.REPORT.STATE.OPEN,
+                statusNum: isFree ? CONST.REPORT.STATUS.SUBMITTED : CONST.REPORT.STATE.OPEN,
+            },
+        },
+        ...(chatReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          ...chatReport,
+                          hasOutstandingIOU: true,
+                          hasOutstandingChildRequest: true,
+                          iouReportID: expenseReport.reportID,
+                      },
+                  },
+              ]
+            : []),
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [expenseReport.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                statusNum: CONST.REPORT.STATUS.REIMBURSED,
+            },
+        },
+        ...(chatReport.reportID
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          hasOutstandingIOU: false,
+                          hasOutstandingChildRequest: false,
+                          iouReportID: 0,
+                      },
+                  },
+              ]
+            : []),
+    ];
+
+    API.write(
+        'CancelPayment',
+        {
+            reportID: expenseReport.reportID,
+            managerAccountID: expenseReport.managerID,
+            reportActionID: optimisticReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
@@ -3364,4 +3518,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    cancelPayment,
 };
