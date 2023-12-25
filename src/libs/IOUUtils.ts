@@ -41,10 +41,10 @@ function navigateToStartStepIfScanFileCannotBeRead(
     const onFailure = () => {
         if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-            return 
+            return;
         }
-        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID)
-    }
+        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    };
     FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure);
 }
 
