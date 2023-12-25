@@ -851,7 +851,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
+            shouldShow: true,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
@@ -862,7 +862,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
     const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
     const numberOfVisibleCategories = selectedOptions.length + filteredCategories.length;
-    
+
     if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
         categorySections.push({
             // "All" section when items amount less than the threshold
