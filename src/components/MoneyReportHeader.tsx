@@ -26,8 +26,13 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import SettlementButton from './SettlementButton';
 
 type MoneyReportHeaderOnyxProps = {
+    /** The chat report this report is linked to */
     chatReport: OnyxEntry<Report>;
+
+    /** The next step for the report */
     nextStep: OnyxEntry<ReportNextStep>;
+
+    /** UserSession info for the currently logged in user. */
     session: OnyxEntry<Session>;
 }
 
@@ -38,17 +43,8 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The policy tied to the money request report */
     policy: Policy;
 
-    /** The chat report this report is linked to */
-    chatReport: Report;
-
-    /** The next step for the report */
-    nextStep: ReportNextStep;
-
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PersonalDetails
-
-    /** UserSession info for the currently logged in user. */
-    session: Session;
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
