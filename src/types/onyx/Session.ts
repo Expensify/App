@@ -27,6 +27,9 @@ type Session = {
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors;
+
+    /** User signed in with short lived token */
+    signedInWithShortLivedAuthToken?: boolean;
 };
 
 export default Session;

@@ -8,8 +8,7 @@ declare global {
 
     // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     interface File {
-        source?: string;
-
-        uri?: string;
+        source: string;
+        uri: string;
     }
 }

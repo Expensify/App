@@ -1,6 +1,6 @@
 import React, {ReactElement} from 'react';
 import {StyleProp, TextStyle, View} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import EnvironmentBadge from './EnvironmentBadge';
 import Text from './Text';
 

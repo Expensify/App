@@ -1,8 +1,8 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import useStyleUtils from '@hooks/useStyleUtils';
 import StatusBar from '@libs/StatusBar';
-import * as StyleUtils from '@styles/StyleUtils';
 import SafeAreaConsumerProps from './types';
 
 /**
@@ -10,6 +10,8 @@ import SafeAreaConsumerProps from './types';
  * may need not just the insets, but the computed styles so we save a few lines of code with this.
  */
 function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
+    const StyleUtils = useStyleUtils();
+
     return (
         <SafeAreaInsetsContext.Consumer>
             {(insets) => {

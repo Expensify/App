@@ -5,12 +5,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
@@ -26,8 +25,8 @@ const defaultProps = {
 };
 
 function EmojiPickerButtonDropdown(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
@@ -48,12 +47,12 @@ function EmojiPickerButtonDropdown(props) {
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
                 ref={emojiPopoverAnchor}
-                style={styles.emojiPickerButtonDropdown}
+                style={[styles.emojiPickerButtonDropdown, props.style]}
                 disabled={props.isDisabled}
                 onPress={onPress}
                 id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
-                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                role={CONST.ROLE.BUTTON}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
@@ -66,7 +65,7 @@ function EmojiPickerButtonDropdown(props) {
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
                                 src={Expensicons.ArrowRight}
-                                fill={StyleUtils.getIconFillColor(theme, getButtonState(hovered, pressed))}
+                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
                     </View>

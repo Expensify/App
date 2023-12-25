@@ -3,11 +3,11 @@ import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import Button from './Button';
 import DisplayNames from './DisplayNames';
@@ -76,6 +76,8 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported: PropTypes.bool,
 
+    /** Key used internally by React */
+    keyForList: PropTypes.string,
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -99,11 +101,13 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
     shouldPreventDefaultFocusOnSelectRow: false,
+    keyForList: undefined,
 };
 
 function OptionRow(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const pressableRef = useRef(null);
     const [isDisabled, setIsDisabled] = useState(props.isDisabled);
 
@@ -140,7 +144,6 @@ function OptionRow(props) {
             : props.backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
-    const defaultSubscriptSize = props.option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -162,6 +165,7 @@ function OptionRow(props) {
             <Hoverable>
                 {(hovered) => (
                     <PressableWithFeedback
+                        testID={props.keyForList}
                         ref={(el) => (pressableRef.current = el)}
                         onPress={(e) => {
                             if (!props.onSelectRow) {
@@ -193,9 +197,9 @@ function OptionRow(props) {
                             !props.onSelectRow && !props.isDisabled ? styles.cursorDefault : null,
                         ]}
                         accessibilityLabel={props.option.text}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
-                        hoverStyle={props.hoverStyle || styles.sidebarLinkHover}
+                        hoverStyle={!props.optionIsFocused ? props.hoverStyle || styles.sidebarLinkHover : undefined}
                         needsOffscreenAlphaCompositing={lodashGet(props.option, 'icons.length', 0) >= 2}
                         onMouseDown={props.shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                     >
@@ -207,7 +211,7 @@ function OptionRow(props) {
                                             mainAvatar={props.option.icons[0]}
                                             secondaryAvatar={props.option.icons[1]}
                                             backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
-                                            size={defaultSubscriptSize}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -263,12 +267,13 @@ function OptionRow(props) {
                                                 text={props.selectedStateButtonText}
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 small
+                                                shouldUseDefaultHover={false}
                                             />
                                         ) : (
                                             <PressableWithFeedback
                                                 onPress={() => props.onSelectedStatePressed(props.option)}
                                                 disabled={isDisabled}
-                                                role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                role={CONST.ROLE.CHECKBOX}
                                                 accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                             >
                                                 <SelectCircle isChecked={props.isSelected} />
@@ -321,7 +326,7 @@ export default React.memo(
         prevProps.showSelectedState === nextProps.showSelectedState &&
         prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        !_.isEqual(prevProps.option.icons, nextProps.option.icons) &&
+        _.isEqual(prevProps.option.icons, nextProps.option.icons) &&
         prevProps.optionIsFocused === nextProps.optionIsFocused &&
         prevProps.option.text === nextProps.option.text &&
         prevProps.option.alternateText === nextProps.option.alternateText &&
