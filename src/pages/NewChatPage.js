@@ -13,7 +13,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import compose from '@libs/compose';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
@@ -248,7 +248,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}
                             boldStyle
-                            shouldPreventDefaultFocusOnSelectRow={!Browser.isMobile()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             shouldShowOptions={isOptionsDataReady}
                             shouldShowConfirmButton
                             shouldShowReferralCTA
