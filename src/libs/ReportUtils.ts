@@ -3634,7 +3634,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
-function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[]): boolean {
+function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
     // User cannot request money in chat thread or in task report or in chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
@@ -3664,7 +3664,11 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
     // User can request money in any IOU report, unless paid, but user can only request money in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
-        return ((isExpenseReport(report) && isOwnPolicyExpenseChat) || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
+        const isOwnExpenseReport = isExpenseReport(report) && isOwnPolicyExpenseChat;
+        if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
+            return isDraftExpenseReport(report);
+        }
+        return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
     }
 
     // In case of policy expense chat, users can only request money from their own policy expense chat
@@ -3689,7 +3693,7 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3715,7 +3719,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    if (canRequestMoney(report, otherParticipants)) {
+    if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.REQUEST];
     }
 
@@ -3872,12 +3876,12 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null
 /**
  * Check if the report can create the request with type is iouType
  */
-function canCreateRequest(report: OnyxEntry<Report>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
+function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     if (!canUserPerformWriteAction(report)) {
         return false;
     }
-    return getMoneyRequestOptions(report, participantAccountIDs).includes(iouType);
+    return getMoneyRequestOptions(report, policy, participantAccountIDs).includes(iouType);
 }
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {
