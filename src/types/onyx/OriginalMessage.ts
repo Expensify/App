@@ -43,13 +43,8 @@ type IOUMessage = {
     participantAccountIDs?: number[];
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     paymentType?: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
-    cancellationReason?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
-};
-
-type ReimbursementDeQueuedMessage = {
-    cancellationReason: string;
 };
 
 type OriginalMessageIOU = {
@@ -265,7 +260,6 @@ export type {
     Reaction,
     ActionName,
     IOUMessage,
-    ReimbursementDeQueuedMessage,
     Closed,
     OriginalMessageActionName,
     ChangeLog,
