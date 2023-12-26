@@ -212,7 +212,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight)]}
+                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline && windowWidth < 800)]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}

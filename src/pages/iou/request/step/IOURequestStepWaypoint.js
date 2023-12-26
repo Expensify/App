@@ -208,7 +208,7 @@ function IOURequestStepWaypoint({
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline)]}
+                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight, isOffline && windowWidth < 800)]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
