@@ -358,7 +358,7 @@ function AttachmentModal(props) {
         setIsModalOpen(true);
     }, []);
 
-    const sourceForAttachmentView = props.source || source;
+    const sourceForAttachmentView = source || props.source;
 
     const threeDotsMenuItems = useMemo(() => {
         if (!props.isReceiptAttachment || !props.parentReport || !props.parentReportActions) {
