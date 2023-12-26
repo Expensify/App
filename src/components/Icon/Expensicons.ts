@@ -54,7 +54,7 @@ import Expand from '@assets/images/expand.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
-import ExpensifyCard from '@assets/images/expensifycard.svg';
+import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Flag from '@assets/images/flag.svg';
