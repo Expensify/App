@@ -68,6 +68,51 @@ describe('generateMonthMatrix', () => {
         expect(generateMonthMatrix(2022, 11)).toEqual(expected);
     });
 
+    it('returns the correct matrix for January 2025', () => {
+        const expected = [
+            [null, null, 1, 2, 3, 4, 5],
+            [6, 7, 8, 9, 10, 11, 12],
+            [13, 14, 15, 16, 17, 18, 19],
+            [20, 21, 22, 23, 24, 25, 26],
+            [27, 28, 29, 30, 31, null, null],
+        ];
+        expect(generateMonthMatrix(2025, 0)).toEqual(expected);
+    });
+
+    it('returns the correct matrix for February 2025', () => {
+        const expected = [
+            [null, null, null, null, null, 1, 2],
+            [3, 4, 5, 6, 7, 8, 9],
+            [10, 11, 12, 13, 14, 15, 16],
+            [17, 18, 19, 20, 21, 22, 23],
+            [24, 25, 26, 27, 28, null, null],
+        ];
+        expect(generateMonthMatrix(2025, 1)).toEqual(expected);
+    });
+
+    it('returns the correct matrix for June 2025', () => {
+        const expected = [
+            [null, null, null, null, null, null, 1],
+            [2, 3, 4, 5, 6, 7, 8],
+            [9, 10, 11, 12, 13, 14, 15],
+            [16, 17, 18, 19, 20, 21, 22],
+            [23, 24, 25, 26, 27, 28, 29],
+            [30, null, null, null, null, null, null],
+        ];
+        expect(generateMonthMatrix(2025, 5)).toEqual(expected);
+    });
+
+    it('returns the correct matrix for December 2025', () => {
+        const expected = [
+            [1, 2, 3, 4, 5, 6, 7],
+            [8, 9, 10, 11, 12, 13, 14],
+            [15, 16, 17, 18, 19, 20, 21],
+            [22, 23, 24, 25, 26, 27, 28],
+            [29, 30, 31, null, null, null, null],
+        ];
+        expect(generateMonthMatrix(2025, 11)).toEqual(expected);
+    });
+
     it('throws an error if month is less than 0', () => {
         expect(() => generateMonthMatrix(2022, -1)).toThrow();
     });
