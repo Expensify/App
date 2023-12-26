@@ -3,7 +3,7 @@ import React from 'react';
 import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type OverlayProps = {
@@ -27,14 +27,14 @@ function Overlay({onPress}: OverlayProps) {
                     style={styles.draggableTopBar}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     nativeID={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
                 />
                 <PressableWithoutFeedback
                     style={styles.flex1}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     noDragArea
                     nativeID={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
                 />

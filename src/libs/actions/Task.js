@@ -6,7 +6,6 @@ import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
-import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -750,7 +749,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
-                updateReportInLHN: true,
                 isDeletedParentAction: true,
             },
         },
@@ -868,9 +866,11 @@ function getTaskOwnerAccountID(taskReport) {
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  * @param {Object} taskReport
  * @param {Number} sessionAccountID
+ * @param {String} policyRole
+ *
  * @returns {Boolean}
  */
-function canModifyTask(taskReport, sessionAccountID) {
+function canModifyTask(taskReport, sessionAccountID, policyRole = '') {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -879,10 +879,15 @@ function canModifyTask(taskReport, sessionAccountID) {
         return true;
     }
 
+    const parentReport = ReportUtils.getParentReport(taskReport);
+
+    if (policyRole && (ReportUtils.isChatRoom(parentReport) || ReportUtils.isPolicyExpenseChat(parentReport)) && policyRole !== CONST.POLICY.ROLE.ADMIN) {
+        return false;
+    }
+
     // If you don't have access to the task report (maybe haven't opened it yet), check if you can access the parent report
     // - If the parent report is an #admins only room
     // - If you are a policy admin
-    const parentReport = ReportUtils.getParentReport(taskReport);
     return ReportUtils.isAllowedToComment(parentReport);
 }
 
@@ -908,35 +913,6 @@ function clearTaskErrors(reportID) {
     });
 }
 
-/**
- * @param {string} actionName
- * @param {string} reportID
- * @param {boolean} isCreateTaskAction
- * @returns {string}
- */
-function getTaskReportActionMessage(actionName, reportID, isCreateTaskAction) {
-    const report = ReportUtils.getReport(reportID);
-    if (isCreateTaskAction) {
-        return `task for ${report.reportName}`;
-    }
-    let taskStatusText = '';
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
-            taskStatusText = Localize.translateLocal('task.messages.completed');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
-            taskStatusText = Localize.translateLocal('task.messages.canceled');
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
-            taskStatusText = Localize.translateLocal('task.messages.reopened');
-            break;
-        default:
-            taskStatusText = Localize.translateLocal('task.task');
-    }
-
-    return `${taskStatusText}`;
-}
-
 export {
     createTaskAndNavigate,
     editTask,
@@ -958,5 +934,4 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    getTaskReportActionMessage,
 };

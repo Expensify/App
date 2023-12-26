@@ -10,11 +10,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
-import useThemeStyles from '@styles/useThemeStyles';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,7 +73,7 @@ function NewTaskDescriptionPage(props) {
                             inputID="taskDescription"
                             label={props.translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
                                 inputCallbackRef(el);
                                 updateMultilineInputRange(el);

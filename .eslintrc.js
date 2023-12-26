@@ -19,6 +19,11 @@ const restrictedImportPaths = [
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
     },
+    {
+        name: 'react',
+        importNames: ['CSSProperties'],
+        message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -174,6 +179,7 @@ module.exports = {
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',
                 'react/require-default-props': 'off',
+                'react/prop-types': 'off',
                 'no-restricted-syntax': [
                     'error',
                     {
