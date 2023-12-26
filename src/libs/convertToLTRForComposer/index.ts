@@ -30,4 +30,9 @@ const convertToLTRForComposer: ConvertToLTRForComposer = (text) => {
     // Add the LTR marker to the beginning of the text.
     return `${CONST.UNICODE.LTR}${text}`;
 };
+
+const moveCursorToEndOfLine = (commentLength: number) => commentLength;
+
+export {moveCursorToEndOfLine};
+
 export default convertToLTRForComposer;
