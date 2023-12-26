@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
+import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
 import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -174,11 +174,6 @@ type OptimisticApprovedReportAction = Pick<
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
->;
-
-type OptimisticCancelPaymentReportAction = Pick<
-    ReportAction,
-    'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticEditedTaskReportAction = Pick<
@@ -1540,13 +1535,10 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>): string {
-    const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
-    const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
-    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        return Localize.translateLocal('iou.adminCanceledRequest', {amount});
-    }
+function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): string {
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
+    const amount = CurrencyUtils.convertToDisplayString(report?.total ?? 0, report?.currency);
+
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
 }
 
@@ -2781,38 +2773,6 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
         isAttachment: false,
         originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, Math.abs(amount), '', currency),
-        person: [
-            {
-                style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: NumberUtils.rand64(),
-        shouldShow: true,
-        created: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
-}
-
-/**
- * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
- *
- */
-function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentReportAction {
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: '',
-            },
-        ],
-        originalMessage: {
-            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-        },
         person: [
             {
                 style: 'strong',
@@ -4303,7 +4263,6 @@ export {
     buildOptimisticApprovedReportAction,
     buildOptimisticMovedReportAction,
     buildOptimisticSubmittedReportAction,
-    buildOptimisticCancelPaymentReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,

@@ -2,7 +2,6 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {
     AddressLineParams,
-    AdminCanceledRequestParams,
     AlreadySignedInParams,
     AmountEachParams,
     ApprovedAmountParams,
@@ -97,7 +96,6 @@ type AllCountries = Record<keyof typeof CONST.ALL_COUNTRIES, string>;
 export default {
     common: {
         cancel: 'Cancel',
-        dismiss: 'Dismiss',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -551,8 +549,6 @@ export default {
         requestMoney: 'Request money',
         sendMoney: 'Send money',
         pay: 'Pay',
-        cancelPayment: 'Cancel payment',
-        cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
         pending: 'Pending',
         canceled: 'Canceled',
@@ -571,7 +567,7 @@ export default {
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: 'Pay elsewhere',
-        nextSteps: 'Next Steps',
+        nextStep: 'Next Steps',
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
         requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -589,7 +585,6 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        adminCanceledRequest: ({amount}: AdminCanceledRequestParams) => `The ${amount} payment has been cancelled by the admin.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `Canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -1436,7 +1431,7 @@ export default {
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation".',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51.',
         reviewingInfo: "Thanks! We're reviewing your information, and will be in touch shortly. Please check your chat with Concierge ",
-        forNextSteps: ' for next steps to finish setting up your bank account.',
+        forNextStep: ' for next steps to finish setting up your bank account.',
         letsChatCTA: "Yes, let's chat",
         letsChatText: 'Thanks for doing that. We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: "Let's chat!",
