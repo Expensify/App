@@ -1,4 +1,3 @@
-import {isEmpty} from 'lodash';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
