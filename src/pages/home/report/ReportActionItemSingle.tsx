@@ -58,7 +58,7 @@ type SubAvatar = {
     /** Avatar source to display */
     source: UserUtils.AvatarSource;
 
-    /** Denotes whether it is an avatar or a workspace avatar */
+    /** Denotes whether it is a user avatar or a workspace avatar */
     type: AvatarType;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
