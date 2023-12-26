@@ -11,6 +11,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import * as Modal from '@userActions/Modal';
+import CONST from '@src/CONST';
 
 function Popover(props) {
     const styles = useThemeStyles();
@@ -107,9 +108,11 @@ function Popover(props) {
     restoreFocusTypeRef.current = props.restoreFocusType;
     const handleDismissContent = () => {
         ComposerFocusManager.tryRestoreFocusAfterClosedCompletely(modalId, restoreFocusTypeRef.current);
-        // PopoverWithMeasuredContent delays the mounting of this popover, so here we also need to defer the restoration.
-        // In a follow-up PR, we can also consider how to improve the former.
-        setImmediate(() => ComposerFocusManager.setReadyToFocus(modalId));
+
+        // On the web platform, because there is no overlay, modal can be closed and opened instantly and randomly,
+        // this will cause the input box to gain and lose focus instantly while the subsequent modal is opened.
+        // The RESTORE_FOCUS_TYPE cannot address this randomness case, so we have to delay the refocusing here.
+        setTimeout(() => ComposerFocusManager.setReadyToFocus(modalId), CONST.ANIMATION_IN_TIMING);
     };
 
     if (!props.isVisible) {

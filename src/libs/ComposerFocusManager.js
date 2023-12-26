@@ -1,3 +1,4 @@
+/* eslint-disable es/no-optional-chaining */
 import {TextInput} from 'react-native';
 import _ from 'underscore';
 import CONST from '@src/CONST';
@@ -8,18 +9,21 @@ function getActiveInput() {
     return TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField();
 }
 
+/**
+ * On web platform, if the modal is displayed by a click, the blur event is fired before the modal appears,
+ * so we need to cache the focused input in the pointerdown handler, which is fired before the blur event.
+ */
 function saveFocusedInput() {
-    const activeInput = getActiveInput();
-    if (activeInput) {
-        focusedInput = activeInput;
-    }
+    focusedInput = getActiveInput();
 }
 
+/**
+ * If a click does not display the modal, we also should clear the cached value to avoid potential issues.
+ */
 function clearFocusedInput() {
     if (!focusedInput) {
         return;
     }
-
     // we have to use timeout because of measureLayout
     setTimeout(() => (focusedInput = null), CONST.ANIMATION_IN_TIMING);
 }
@@ -42,6 +46,11 @@ global.demo = new Proxy(
     },
 );
 
+/**
+ * When a TextInput is unmounted, we also should release the reference here to avoid potential issues.
+ *
+ * @param {TextInput | Falsy} input
+ */
 function releaseInput(input) {
     if (!input) {
         return;
@@ -61,9 +70,17 @@ function getId() {
     return uniqueModalId++;
 }
 
-function saveFocusState(id, container) {
+/**
+ * Cache the focus state before the modal appears.
+ *
+ * @param {Number} id
+ * @param {HTMLElement} container
+ */
+function saveFocusState(id, container = undefined) {
+    const activeInput = getActiveInput();
+
     // For popoverWithoutOverlay, react calls autofocus before useEffect.
-    const input = focusedInput || getActiveInput();
+    const input = focusedInput || activeInput;
     focusedInput = null;
     if (activeModals.indexOf(id) < 0) {
         activeModals.push(id);
@@ -80,7 +97,7 @@ function saveFocusState(id, container) {
 }
 
 /**
- * If we intentionally clicked on another input box, there is no need to restore focus.
+ * On web platform, if we intentionally click on another input box, there is no need to restore focus.
  * But if we are closing the RHP, we can ignore the focused input.
  *
  * @param {TextInput} input
@@ -98,6 +115,13 @@ function focus(input, shouldIgnoreFocused = false) {
     input.focus();
 }
 
+/**
+ * Restore the focus state after the modal is dismissed.
+ *
+ * @param {Number} id
+ * @param {String} type
+ * @param {Boolean} shouldIgnoreFocused
+ */
 function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, shouldIgnoreFocused = false) {
     // TODO:del
     console.debug(`restore ${id}, type is ${type}, active modals are`, activeModals.join());
@@ -149,16 +173,21 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, sh
     }
 
     // find the topmost one
-    const [lastKey, lastInput] = _.last([...focusMap]);
+    const [lastId, lastInput] = _.last([...focusMap]);
     if (!lastInput) {
         // TODO:del
         console.error('no, impossible');
         return;
     }
+    if (activeModals.indexOf(lastId) >= 0) {
+        // TODO:del
+        console.debug('the previous modal is still active');
+        return;
+    }
     // TODO:del
-    console.debug('oh, try to restore topmost');
+    console.debug('ok, try to restore topmost');
     focus(lastInput, shouldIgnoreFocused);
-    focusMap.delete(lastKey);
+    focusMap.delete(lastId);
 }
 
 function resetReadyToFocus(id) {

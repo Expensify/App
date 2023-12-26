@@ -95,6 +95,8 @@ function GenericPressable(
 
     const onPressHandler = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
+            ComposerFocusManager.clearFocusedInput();
+
             if (isDisabled) {
                 return;
             }
@@ -108,8 +110,6 @@ function GenericPressable(
                 ref.current?.blur();
             }
             onPress(event);
-
-            ComposerFocusManager.clearFocusedInput();
 
             Accessibility.moveAccessibilityFocus(nextFocusRef);
         },
