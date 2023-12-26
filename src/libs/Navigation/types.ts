@@ -400,16 +400,9 @@ type AuthScreensParamList = {
         reportID: string;
         source: string;
     };
-    [CONST.DEMO_PAGES.SAASTR]: {
-        name: string;
-    };
-    [CONST.DEMO_PAGES.SBE]: {
-        name: string;
-    };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-    [CONST.DEMO_PAGES.MONEY2020]: undefined;
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;
