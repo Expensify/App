@@ -120,6 +120,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             styles.flex1,
             styles.mentionSuggestionsDisplayName,
             styles.mentionSuggestionsHandle,
+            theme.success,
             StyleUtils,
         ],
     );
