@@ -318,9 +318,9 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
-            const participantAccountIDs = report.participantAccountIDs || [];
-            for (let i = 0; i < participantAccountIDs.length; i++) {
-                const accountID = participantAccountIDs[i];
+            const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs || [];
+            for (let i = 0; i < visibleChatMemberAccountIDs.length; i++) {
+                const accountID = visibleChatMemberAccountIDs[i];
 
                 if (allPersonalDetails[accountID] && allPersonalDetails[accountID].login) {
                     searchTerms = searchTerms.concat(allPersonalDetails[accountID].login);
@@ -566,7 +566,7 @@ function getPolicyExpenseReportOption(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
 
     const option = createOption(
-        expenseReport.participantAccountIDs,
+        expenseReport.visibleChatMemberAccountIDs,
         allPersonalDetails,
         expenseReport,
         {},
