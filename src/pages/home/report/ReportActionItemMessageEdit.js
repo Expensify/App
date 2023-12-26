@@ -400,7 +400,10 @@ function ReportActionItemMessageEdit(props) {
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
                             >
-                                <Icon src={Expensicons.Close} />
+                                <Icon
+                                    fill={theme.icon}
+                                    src={Expensicons.Close}
+                                />
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>

@@ -24,7 +24,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
             <View style={styles.moneyRequestHeaderStatusBarBadge}>
-                <Text style={[styles.textLabel, styles.textMicroBold]}>{translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextSteps')}</Text>
+                <Text style={[styles.textLabel, styles.textMicroBold]}>{translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}</Text>
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
                 <RenderHTML html={messageContent} />

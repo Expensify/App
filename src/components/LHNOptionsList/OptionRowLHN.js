@@ -297,7 +297,11 @@ function OptionRowLHN(props) {
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
-                                    <Icon src={Expensicons.Pencil} />
+                                    <Icon
+                                        testID="Pencil Icon"
+                                        fill={theme.icon}
+                                        src={Expensicons.Pencil}
+                                    />
                                 </View>
                             )}
                             {!shouldShowGreenDotIndicator && !hasBrickError && optionItem.isPinned && (
@@ -305,7 +309,11 @@ function OptionRowLHN(props) {
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
-                                    <Icon src={Expensicons.Pin} />
+                                    <Icon
+                                        testID="Pin Icon"
+                                        fill={theme.icon}
+                                        src={Expensicons.Pin}
+                                    />
                                 </View>
                             )}
                         </View>
