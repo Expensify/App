@@ -19,7 +19,7 @@ const secureNgrokURL = Url.addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL
 const secureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
-const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
+const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : newExpensifyURL;
 const googleGeolocationAPIKey = get(Config, 'GOOGLE_GEOLOCATION_API_KEY', 'AIzaSyBqg6bMvQU7cPWDKhhzpYqJrTEnSorpiLI');
 
 // Throw errors on dev if config variables are not set correctly
