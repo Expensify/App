@@ -14,6 +14,7 @@ import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -56,6 +57,24 @@ function ReportWelcomeMessagePage(props) {
         setWelcomeMessage(value);
     }, []);
 
+    /**
+     * @param {Object} values
+     * @param {String} values.title
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.welcomeMessage.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'welcomeMessage', [
+                'common.error.characterLimitExceedCounter',
+                {length: values.welcomeMessage.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT},
+            ]);
+        }
+
+        return errors;
+    }, []);
+
     const submitForm = useCallback(() => {
         Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
     }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
@@ -91,6 +110,7 @@ function ReportWelcomeMessagePage(props) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
+                    validate={validate}
                     submitButtonText={props.translate('common.save')}
                     enabledWhenOffline
                 >

@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +28,21 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
+
+    /**
+     * @param {Object} values
+     * @param {String} values.title
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.comment.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'comment', ['common.error.characterLimitExceedCounter', {length: values.comment.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT}]);
+        }
+
+        return errors;
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -55,6 +71,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                 onSubmit={onSubmit}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >

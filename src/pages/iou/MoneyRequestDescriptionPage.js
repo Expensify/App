@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as IOU from '@libs/actions/IOU';
 import * as Browser from '@libs/Browser';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -96,6 +97,24 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
     }
 
     /**
+     * @param {Object} values
+     * @param {String} values.title
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.moneyRequestComment.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
+                'common.error.characterLimitExceedCounter',
+                {length: values.moneyRequestComment.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT},
+            ]);
+        }
+
+        return errors;
+    }, []);
+
+    /**
      * Sets the money request comment by saving it to Onyx.
      *
      * @param {Object} value
@@ -121,6 +140,7 @@ function MoneyRequestDescriptionPage({iou, route, selectedTab}) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
                     onSubmit={(value) => updateComment(value)}
+                    validate={validate}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >

@@ -18,6 +18,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -81,10 +82,10 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
 
         if (!ValidationUtils.isRequiredFulfilled(name)) {
             errors.name = 'workspace.editor.nameIsRequiredError';
-        } else if ([...name].length > CONST.WORKSPACE_NAME_CHARACTER_LIMIT) {
+        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
-            errors.name = 'workspace.editor.nameIsTooLongError';
+            ErrorUtils.addErrorMessage(errors, 'name', ['common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;
@@ -148,7 +149,6 @@ function WorkspaceSettingsPage({policy, currencyList, windowWidth, route}) {
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             defaultValue={policy.name}
-                            maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                             containerStyles={[styles.mt4]}
                             spellCheck={false}
                         />

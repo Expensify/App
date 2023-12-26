@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -49,7 +50,20 @@ const defaultProps = {
 const parser = new ExpensiMark();
 function TaskDescriptionPage(props) {
     const styles = useThemeStyles();
-    const validate = useCallback(() => ({}), []);
+
+    /**
+     * @param {Object} values - form input values passed by the Form component
+     * @returns {Boolean}
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (values.description.length > CONST.SUPPORTING_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.SUPPORTING_CHARACTER_LIMIT}]);
+        }
+
+        return errors;
+    }, []);
 
     const submit = useCallback(
         (values) => {
