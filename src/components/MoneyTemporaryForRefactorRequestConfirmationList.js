@@ -25,6 +25,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import usePermissions from '@hooks/usePermissions';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import categoryPropTypes from './categoryPropTypes';
@@ -239,6 +240,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const {canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -722,6 +724,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
+                            rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -736,6 +739,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
+                            rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowBillable && (
