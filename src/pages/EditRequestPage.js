@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';

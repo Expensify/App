@@ -85,7 +85,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
-    const parentReportAction = parentReportActions[report.parentReportActionID] || {};
+    const parentReportAction = useMemo(() => parentReportActions[report.parentReportActionID] || {}, [parentReportActions, report.parentReportActionID]);
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
