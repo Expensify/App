@@ -127,76 +127,73 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     // This function receive value from hour input and validate it
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text) => {
-        if (_.isEmpty(text)) {
+        const trimmedText = text.trim();
+
+        if (_.isEmpty(trimmedText)) {
             resetHours();
             return;
         }
 
-        const isOnlyNumericValue = /^\d+$/.test(text.trim());
+        const isOnlyNumericValue = /^\d+$/.test(trimmedText);
         if (!isOnlyNumericValue) {
             return;
         }
 
-        // Remove non-numeric characters.
-        const filteredText = text.replace(/[^0-9]/g, '');
-
-        let newHour = hours;
-        let newSelection = selectionHour.start;
+        let newHour;
+        let newSelection;
 
         if (selectionHour.start === 0 && selectionHour.end === 0) {
             // The cursor is at the start of hours
-            // When the user is entering text, the filteredText consists of three numbers
-            const formattedText = `${filteredText[0]}${filteredText[2] || 0}`;
-            if (formattedText > 12 && formattedText <= 24) {
-                // The hour is between 12 and 24 – switch AM to PM.
-                newHour = String(formattedText - 12).padStart(2, '0');
-                newSelection = 2;
-                setAmPmValue(CONST.TIME_PERIOD.PM);
-            } else if (formattedText > 24) {
-                newHour = `0${formattedText[1]}`;
-                newSelection = 2;
-            } else {
-                newHour = `${formattedText[0]}${formattedText[1]}`;
+            const firstDigit = trimmedText[0];
+            const secondDigit = trimmedText[2];
+
+            if (firstDigit <= 1) {
+                /*
+                 The first entered digit is 0 or 1.
+                 If the first digit is 0, we can safely append the second digit.
+                 If the first digit is 1, we must check the second digit to ensure it is not greater than 2, amd replace it with 0 otherwise.
+                */
+                newHour = `${firstDigit}${firstDigit === "1" && secondDigit > 1 ? 0 : secondDigit}`;
                 newSelection = 1;
+            } else {
+                /*
+                 The first entered digit is 2-9.
+                 We should replace the whole value by prepending 0 to the entered digit.
+                */
+                newHour = `0${firstDigit}`;
+                newSelection = 2;
             }
         } else if (selectionHour.start === 1 && selectionHour.end === 1) {
             // The cursor is in-between the digits
-            const formattedText = `${filteredText[0]}${filteredText[1]}`;
-
-            if (filteredText.length < 2) {
-                // If we remove a value, prepend 0.
-                newHour = `0${filteredText}`;
+            if (trimmedText.length < 2) {
+                // We have removed the first digit. Replace it with 0 and move the cursor to the start.
+                newHour = `0${trimmedText}`;
                 newSelection = 0;
-                // If the second digit is > 2, replace the hour with 0 and the second digit.
-            } else if (formattedText > 12 && formattedText <= 24) {
-                newHour = String(formattedText - 12).padStart(2, '0');
-                newSelection = 2;
-                setAmPmValue(CONST.TIME_PERIOD.PM);
-            } else if (formattedText > 24) {
-                newHour = `0${filteredText[1]}`;
-                newSelection = 2;
             } else {
-                newHour = `${filteredText[0]}${filteredText[1]}`;
-                setHours(newHour);
+                newHour = `${trimmedText[0]}${trimmedText[1] || 0}`;
                 newSelection = 2;
             }
-        } else if (filteredText.length <= 1 && filteredText < 2) {
+        } else if (trimmedText.length <= 1 && trimmedText <= 1) {
             /*
-             The filtered text is either 0 or 1. We must check the length of the filtered text to avoid incorrectly handling e.g. "01" as "1"
+             The trimmed text is either 0 or 1.
              We are either replacing hours with a single digit, or removing the last digit.
              In both cases, we should append 0 to the remaining value.
+             Note: we must check the length of the filtered text to avoid incorrectly handling e.g. "01" as "1".
             */
-            newHour = `${filteredText}0`;
+            newHour = `${trimmedText}0`;
             newSelection = 1;
-        } else if (filteredText > 12 && filteredText <= 24) {
-            // We are replacing hours with a value between 12 and 24. Switch AM to PM
-            newHour = String(filteredText - 12).padStart(2, '0');
+        } else {
+            newHour = trimmedText;
             newSelection = 2;
+        }
+
+        if (newHour > 24) {
+            newHour = hours;
+        } else if (newHour > 12) {
+            newHour = String(newHour - 12).padStart(2, '0');
             setAmPmValue(CONST.TIME_PERIOD.PM);
-        } else if (filteredText.length <= 2) {
-            // We are replacing hours with a value either 2-11, or 24+. Minimize the value to 12 and prepend 0 if needed
-            newHour = String(Math.min(filteredText, 12)).padStart(2, '0');
-            newSelection = 2;
+        } else {
+            newHour = newHour.padStart(2, '0');
         }
 
         setHours(newHour);
