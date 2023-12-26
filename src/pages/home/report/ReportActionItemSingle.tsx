@@ -67,7 +67,7 @@ type SubAvatar = {
     /** Avatar id */
     id?: number | string;
 
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL */
     fallbackIcon?: UserUtils.AvatarSource;
 };
 
