@@ -140,9 +140,6 @@ const propTypes = {
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether the money request is a scan request */
-    isScanRequest: PropTypes.bool,
-
     /** Whether we're editing a split bill */
     isEditingSplitBill: PropTypes.bool,
 
@@ -191,7 +188,6 @@ const defaultProps = {
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
-    isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
 };
@@ -215,7 +211,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     isEditingSplitBill,
     isPolicyExpenseChat,
     isReadOnly,
-    isScanRequest,
     listStyles,
     mileageRate,
     onConfirm,
@@ -244,8 +239,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
 
-    const isSplitWithScan = isTypeSplit && isScanRequest;
-
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
@@ -259,9 +252,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // Do not hide fields in case of send money request
     const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
 
-    // In Send Money flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
-    const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
-    const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !isDistanceRequest && !isSplitWithScan;
+    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
+    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(policyTags);

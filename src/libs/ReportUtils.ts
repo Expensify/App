@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
+import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {Status} from '@src/types/onyx/PersonalDetails';
 import {NotificationPreference} from '@src/types/onyx/Report';
 import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -175,11 +175,6 @@ type OptimisticApprovedReportAction = Pick<
 type OptimisticSubmittedReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachment' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
->;
-
-type OptimisticCancelPaymentReportAction = Pick<
-    ReportAction,
-    'actionName' | 'actorAccountID' | 'message' | 'originalMessage' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
 >;
 
 type OptimisticEditedTaskReportAction = Pick<
@@ -1541,13 +1536,10 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 /**
  * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
  */
-function getReimbursementDeQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>): string {
-    const amount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report?.currency);
-    const originalMessage = reportAction?.originalMessage as ReimbursementDeQueuedMessage | undefined;
-    if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN) {
-        return Localize.translateLocal('iou.adminCanceledRequest', {amount});
-    }
+function getReimbursementDeQueuedActionMessage(report: OnyxEntry<Report>): string {
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, true) ?? '';
+    const amount = CurrencyUtils.convertToDisplayString(report?.total ?? 0, report?.currency);
+
     return Localize.translateLocal('iou.canceledRequest', {submitterDisplayName, amount});
 }
 
@@ -2797,38 +2789,6 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
 }
 
 /**
- * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
- *
- */
-function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentReportAction {
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
-        actorAccountID: currentUserAccountID,
-        message: [
-            {
-                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-                text: '',
-            },
-        ],
-        originalMessage: {
-            cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
-        },
-        person: [
-            {
-                style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? currentUserEmail,
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: NumberUtils.rand64(),
-        shouldShow: true,
-        created: DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
-}
-
-/**
  * Builds an optimistic report preview action with a randomly generated reportActionID.
  *
  * @param chatReport
@@ -3675,7 +3635,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
-function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[]): boolean {
+function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
     // User cannot request money in chat thread or in task report or in chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
@@ -3705,7 +3665,11 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
     // User can request money in any IOU report, unless paid, but user can only request money in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
-        return ((isExpenseReport(report) && isOwnPolicyExpenseChat) || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
+        const isOwnExpenseReport = isExpenseReport(report) && isOwnPolicyExpenseChat;
+        if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
+            return isDraftExpenseReport(report);
+        }
+        return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
     }
 
     // In case of policy expense chat, users can only request money from their own policy expense chat
@@ -3730,7 +3694,7 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3756,7 +3720,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    if (canRequestMoney(report, otherParticipants)) {
+    if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.REQUEST];
     }
 
@@ -3913,12 +3877,12 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null
 /**
  * Check if the report can create the request with type is iouType
  */
-function canCreateRequest(report: OnyxEntry<Report>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
+function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     if (!canUserPerformWriteAction(report)) {
         return false;
     }
-    return getMoneyRequestOptions(report, participantAccountIDs).includes(iouType);
+    return getMoneyRequestOptions(report, policy, participantAccountIDs).includes(iouType);
 }
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {
@@ -4304,7 +4268,6 @@ export {
     buildOptimisticApprovedReportAction,
     buildOptimisticMovedReportAction,
     buildOptimisticSubmittedReportAction,
-    buildOptimisticCancelPaymentReportAction,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
