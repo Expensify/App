@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -336,7 +337,7 @@ export default compose(
     withNavigationFocus,
     withOnyx({
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
         },
     }),
 )(AttachmentPickerWithMenuItems);
