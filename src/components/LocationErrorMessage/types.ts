@@ -1,6 +1,6 @@
 type LocationErrorMessagePropTypes = {
     /** A callback that runs when close icon is pressed */
-    
+
     onClose: () => void;
     /**
      * The location error code from onyx
@@ -10,6 +10,6 @@ type LocationErrorMessagePropTypes = {
      * - code 3 = location fetch timeout
      */
     locationErrorCode?: -1 | 1 | 2 | 3;
-}
+};
 
 export default LocationErrorMessagePropTypes;

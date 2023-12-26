@@ -14,10 +14,11 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import LocationErrorMessagePropTypes from './types';
 
-type BaseLocationErrorMessageProps = LocationErrorMessagePropTypes & WithLocalizeProps & {
-    /** A callback that runs when 'allow location permission' link is pressed */
-    onAllowLocationLinkPress: () => void;
-};
+type BaseLocationErrorMessageProps = LocationErrorMessagePropTypes &
+    WithLocalizeProps & {
+        /** A callback that runs when 'allow location permission' link is pressed */
+        onAllowLocationLinkPress: () => void;
+    };
 
 function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}: BaseLocationErrorMessageProps) {
     const theme = useTheme();
@@ -52,7 +53,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                 ) : (
                     <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>
                 )}
-                            </View>
+            </View>
             <View>
                 <Tooltip text={translate('common.close')}>
                     <PressableWithoutFeedback
