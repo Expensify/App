@@ -39,9 +39,9 @@ export default {
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
-    avatarSizeMidSubscript: 18,
+    avatarSizeMidSubscript: 16,
     avatarSizeMentionIcon: 16,
-    avatarSizeSmallSubscript: 14,
+    avatarSizeSmallSubscript: 12,
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     fontSizeOnlyEmojis: 30,
@@ -193,6 +193,4 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
-
-    lhpBorderRadius: 24,
 } as const;

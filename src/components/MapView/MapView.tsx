@@ -29,6 +29,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [isIdle, setIsIdle] = useState(false);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+        const hasAskedForLocationPermission = useRef(false);
 
         useFocusEffect(
             useCallback(() => {
@@ -36,6 +37,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
+                if (hasAskedForLocationPermission.current) {
+                    return;
+                }
+
+                hasAskedForLocationPermission.current = true;
                 getCurrentPosition(
                     (params) => {
                         const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
