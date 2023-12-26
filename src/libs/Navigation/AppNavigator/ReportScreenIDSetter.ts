@@ -17,7 +17,7 @@ type ReportScreenIDSetterComponentProps = {
     /** Whether user is a new user */
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>;
 
-    reportsMetadata: OnyxCollection<ReportMetadata>;
+    reportMetadata: OnyxCollection<ReportMetadata>;
 };
 
 type ReportScreenIDSetterProps = ReportScreenIDSetterComponentProps & ReportScreenWrapperProps;
@@ -31,14 +31,14 @@ const getLastAccessedReportID = (
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>,
     openOnAdminRoom: boolean,
-    reportsMetadata: OnyxCollection<ReportMetadata>,
+    reportMetadata: OnyxCollection<ReportMetadata>,
 ): string | undefined => {
-    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom, reportsMetadata);
+    const lastReport = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms, policies, !!isFirstTimeNewExpensifyUser, openOnAdminRoom, reportMetadata);
     return lastReport?.reportID;
 };
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
-function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTimeNewExpensifyUser = false, reportsMetadata}: ReportScreenIDSetterProps) {
+function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTimeNewExpensifyUser = false, reportMetadata}: ReportScreenIDSetterProps) {
     const {canUseDefaultRooms} = usePermissions();
     useEffect(() => {
         // Don't update if there is a reportID in the params already
@@ -48,7 +48,7 @@ function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTime
         }
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
-        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, !!reports?.params?.openOnAdminRoom, reportsMetadata);
+        const reportID = getLastAccessedReportID(reports, !canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, !!reports?.params?.openOnAdminRoom, reportMetadata);
 
         // It's possible that reports aren't fully loaded yet
         // in that case the reportID is undefined
@@ -57,7 +57,7 @@ function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTime
         } else {
             App.confirmReadyToOpenApp();
         }
-    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reportsMetadata]);
+    }, [route, navigation, reports, canUseDefaultRooms, policies, isFirstTimeNewExpensifyUser, reportMetadata]);
 
     // The ReportScreen without the reportID set will display a skeleton
     // until the reportID is loaded and set in the route param
@@ -79,7 +79,7 @@ export default withOnyx<ReportScreenIDSetterProps, ReportScreenIDSetterComponent
         key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         initialValue: false,
     },
-    reportsMetadata: {
+    reportMetadata: {
         key: ONYXKEYS.COLLECTION.REPORT_METADATA,
         allowStaleData: true,
     },

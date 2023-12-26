@@ -8,7 +8,7 @@ type ReportMetadata = {
     /** Flag to check if the report actions data are loading */
     isLoadingInitialReportActions?: boolean;
 
-    /** The time of the last visit of the report */
+    /** The time when user last visited the report */
     lastVisitTime?: string;
 };
 
