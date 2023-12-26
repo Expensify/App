@@ -10,8 +10,6 @@ const navigateToExpensifyHelpSite = (): void => {
 };
 
 function LocationErrorMessage(props: LocationErrorMessagePropTypes) {
-    console.log('testing ', props);
-
     return (
         <BaseLocationErrorMessage
             // eslint-disable-next-line react/jsx-props-no-spreading
