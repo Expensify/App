@@ -313,7 +313,7 @@ describe('test workflow testBuild', () => {
                     'Configure AWS Credentials',
                     'Configure AWS Credentials',
                     'WEB',
-                    ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'],
+                    ['aws-access-key-id', 'aws-secret-access-key', 'aws-region'],
                     [],
                     {},
                     {},
