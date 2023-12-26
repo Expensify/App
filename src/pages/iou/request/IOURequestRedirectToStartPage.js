@@ -26,6 +26,9 @@ function IOURequestRedirectToStartPage({
         params: {iouType, iouRequestType},
     },
 }) {
+    // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
+    Navigation.dismissModal();
+
     // Redirect the person to the right start page using a rendom reportID
     const optimisticReportID = ReportUtils.generateReportID();
     if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
