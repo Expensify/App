@@ -25,6 +25,7 @@ import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import getAddressFormHeight from './request/step/getAddressFormHeight';
 
 const propTypes = {
     /** Route params */
@@ -211,7 +212,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     danger
                 />
                 <FormProvider
-                    style={[styles.flexGrow1, styles.mh5, {maxHeight: windowHeight - 65}]}
+                    style={[styles.flexGrow1, styles.mh5, getAddressFormHeight(windowHeight)]}
                     formID={ONYXKEYS.FORMS.WAYPOINT_FORM}
                     enabledWhenOffline
                     validate={validate}
@@ -219,7 +220,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     shouldValidateOnChange={false}
                     shouldValidateOnBlur={false}
                     submitButtonText={translate('common.save')}
-                    submitButtonStyles={[styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                    submitButtonStyles={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentStart]}
                     scrollViewStyles={[styles.overflowHidden]}
                 >
                     <View style={[styles.flex1, styles.overflowHidden]}>
