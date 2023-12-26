@@ -42,6 +42,7 @@ type AvatarSize = {width: number};
 
 type WorkspaceColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
 type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
+type TextColorStyle = {color: string};
 
 export type {
     AllStyles,
@@ -56,4 +57,5 @@ export type {
     AvatarSize,
     WorkspaceColorStyle,
     EreceiptColorStyle,
+    TextColorStyle,
 };
