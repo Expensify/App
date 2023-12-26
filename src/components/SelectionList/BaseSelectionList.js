@@ -302,8 +302,6 @@ function BaseSelectionList({
         const normalizedIndex = index + lodashGet(section, 'indexOffset', 0);
         const isDisabled = section.isDisabled || item.isDisabled;
         const isItemFocused = !isDisabled && focusedIndex === normalizedIndex;
-        // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const showTooltip = normalizedIndex < 10;
 
         return (
             <BaseListItem
@@ -311,7 +309,6 @@ function BaseSelectionList({
                 isFocused={isItemFocused}
                 isDisabled={isDisabled}
                 isHide={!maxToRenderPerBatch}
-                showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
                 onSelectRow={() => selectRow(item, true)}
                 disableIsFocusStyle={disableInitialFocusOptionStyle}

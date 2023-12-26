@@ -16,9 +16,6 @@ const commonListItemPropTypes = {
     /** Whether this item is disabled */
     isDisabled: PropTypes.bool,
 
-    /** Whether this item should show Tooltip */
-    showTooltip: PropTypes.bool.isRequired,
-
     /** Whether to use the Checkbox (multiple selection) instead of the Checkmark (single selection) */
     canSelectMultiple: PropTypes.bool,
 
