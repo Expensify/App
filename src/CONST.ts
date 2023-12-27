@@ -1297,6 +1297,12 @@ const CONST = {
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
     },
 
+    LAYOUT_WIDTH: {
+        WIDE: 'wide',
+        NARROW: 'narrow',
+        NONE: 'none',
+    },
+
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',

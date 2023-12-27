@@ -296,7 +296,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        mentionSuggestionsHandle: {
+        textSupporting: {
             color: theme.textSupporting,
         },
 
@@ -1147,6 +1147,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         noOutline: addOutlineWidth(theme, {}, 0),
+
+        labelStrong: {
+            fontFamily: fontFamily.EXP_NEUE,
+            fontWeight: 'bold',
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
 
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -2872,6 +2879,14 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             right: -4,
             bottom: -4,
+        },
+
+        workspaceOwnerAvatarWrapper: {
+            margin: 6,
+        },
+
+        workspaceTypeWrapper: {
+            margin: 3,
         },
 
         autoGrowHeightMultilineInput: {
