@@ -97,6 +97,9 @@ const propTypes = {
     /** Should the list be read only, and not editable? */
     isReadOnly: PropTypes.bool,
 
+    /** Whether the money request is a scan request */
+    isScanRequest: PropTypes.bool,
+
     /** Depending on expense report or personal IOU report, respective bank account route */
     bankAccountRoute: PropTypes.string,
 
@@ -211,6 +214,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     isEditingSplitBill,
     isPolicyExpenseChat,
     isReadOnly,
+    isScanRequest,
     listStyles,
     mileageRate,
     onConfirm,
