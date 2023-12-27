@@ -18,7 +18,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
-import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+import convertToLTRForComposer, {moveCursorToEndOfLine} from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -108,6 +108,7 @@ function ComposerWithSuggestions({
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
+    const composerIsEmpty = useRef(true);
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
     const [value, setValue] = useState(() => {
@@ -223,18 +224,33 @@ function ComposerWithSuggestions({
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
-            const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
+
+            let newCommentConvertedToLTR = newComment;
+            const prevComment = commentRef.current;
+
+            // This prevent the double execution of setting input value that could affect the place holder and could send an empty message or draft messages in android
+            if (prevComment !== newComment) {
+                newCommentConvertedToLTR = convertToLTRForComposer(newCommentConvertedToLTR, composerIsEmpty.current);
+                setValue(newCommentConvertedToLTR);
+                moveCursorToEndOfLine(newComment.length, setSelection);
+                composerIsEmpty.current = false;
+            }
+
+            const isNewCommentEmpty = !!newCommentConvertedToLTR.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!prevComment.match(/^(\s)*$/);
 
             /** Only update isCommentEmpty state if it's different from previous one */
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
+                if (isNewCommentEmpty) {
+                    composerIsEmpty.current = true;
+                }
             }
+
             emojisPresentBefore.current = emojis;
-            setValue(newCommentConverted);
+
             if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
+                const position = Math.max(selection.end + (newComment.length - prevComment.length), cursorPosition || 0);
                 setSelection({
                     start: position,
                     end: position,
@@ -242,22 +258,22 @@ function ComposerWithSuggestions({
             }
 
             // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
+            if (prevComment.length === 0 && newCommentConvertedToLTR.length !== 0) {
                 Report.setReportWithDraft(reportID, true);
             }
 
             // The draft has been deleted.
-            if (newCommentConverted.length === 0) {
+            if (newCommentConvertedToLTR.length === 0) {
                 Report.setReportWithDraft(reportID, false);
             }
 
-            commentRef.current = newCommentConverted;
+            commentRef.current = newCommentConvertedToLTR;
             if (shouldDebounceSaveComment) {
-                debouncedSaveReportComment(reportID, newCommentConverted);
+                debouncedSaveReportComment(reportID, newCommentConvertedToLTR);
             } else {
-                Report.saveReportComment(reportID, newCommentConverted || '');
+                Report.saveReportComment(reportID, newCommentConvertedToLTR || '');
             }
-            if (newCommentConverted) {
+            if (newCommentConvertedToLTR) {
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
@@ -271,6 +287,7 @@ function ComposerWithSuggestions({
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
             selection.end,
+            composerIsEmpty,
         ],
     );
 

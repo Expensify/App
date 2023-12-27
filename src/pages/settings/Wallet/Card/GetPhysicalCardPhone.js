@@ -1,3 +1,4 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -7,7 +8,6 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FormUtils from '@libs/FormUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

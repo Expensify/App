@@ -807,6 +807,7 @@ describe('actions/IOU', () => {
              */
             const amount = 400;
             const comment = 'Yes, I am splitting a bill for $4 USD';
+            const merchant = 'Yema Kitchen';
             let carlosChatReport = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -923,6 +924,7 @@ describe('actions/IOU', () => {
                         amount,
                         comment,
                         CONST.CURRENCY.USD,
+                        merchant,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -1102,10 +1104,10 @@ describe('actions/IOU', () => {
                                     expect(vitTransaction.comment.comment).toBe(comment);
                                     expect(groupTransaction.comment.comment).toBe(comment);
 
-                                    expect(carlosTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(julesTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(vitTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(groupTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(carlosTransaction.merchant).toBe(merchant);
+                                    expect(julesTransaction.merchant).toBe(merchant);
+                                    expect(vitTransaction.merchant).toBe(merchant);
+                                    expect(groupTransaction.merchant).toBe(merchant);
 
                                     expect(carlosTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
                                     expect(julesTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
