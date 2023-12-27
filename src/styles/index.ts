@@ -1415,12 +1415,6 @@ const styles = (theme: ThemeColors) =>
             height: variables.lineHeightSizeh1,
         },
 
-        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                ...modalNavigatorContainer(isSmallScreenWidth),
-                left: 0,
-            } satisfies ViewStyle),
-
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
@@ -1640,15 +1634,14 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
+        overlayStyles: (current: OverlayStylesParams) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                // The overlay must also cover borderRadius of the LHP component
-                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
+                left: -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
+                right: 0,
                 backgroundColor: theme.overlay,
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -1892,7 +1885,6 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
             justifyContent: 'center',
-            width: '100%',
         },
 
         emojiSkinToneTitle: {
@@ -1913,12 +1905,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiItem: {
-            width: '12.5%',
+            width: '100%',
             textAlign: 'center',
             borderRadius: 8,
             paddingTop: 2,
             paddingBottom: 2,
             height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+            flexShrink: 1,
             ...userSelect.userSelectNone,
         },
 
@@ -2902,6 +2895,7 @@ const styles = (theme: ThemeColors) =>
         peopleBadge: {
             backgroundColor: theme.icon,
             ...spacing.ph3,
+            ...spacing.ml3,
         },
 
         peopleBadgeText: {
@@ -3692,11 +3686,16 @@ const styles = (theme: ThemeColors) =>
                 color: isSelected ? theme.text : theme.textSupporting,
             } satisfies TextStyle),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
-        tabOpacity: (hovered: boolean, isFocused: boolean, activeOpacityValue: number, inactiveOpacityValue: number) => ({
+        tabOpacity: (
+            hovered: boolean,
+            isFocused: boolean,
+            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        ) => ({
             opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
         }),
 
@@ -3787,8 +3786,7 @@ const styles = (theme: ThemeColors) =>
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },

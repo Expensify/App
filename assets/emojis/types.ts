@@ -1,4 +1,4 @@
-import {SvgProps} from 'react-native-svg';
+import IconAsset from '@src/types/utils/IconAsset';
 
 type Emoji = {
     code: string;
@@ -8,7 +8,7 @@ type Emoji = {
 
 type HeaderEmoji = {
     header: true;
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
     code: string;
 };
 

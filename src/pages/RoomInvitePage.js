@@ -70,13 +70,7 @@ function RoomInvitePage(props) {
     const [userToInvite, setUserToInvite] = useState(null);
 
     // Any existing participants and Expensify emails should not be eligible for invitation
-    const excludedUsers = useMemo(
-        () =>
-            _.map([...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'participantAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], (participant) =>
-                OptionsListUtils.addSMSDomainIfPhoneNumber(participant),
-            ),
-        [props.report],
-    );
+    const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(lodashGet(props.report, 'participantAccountIDs', [])), ...CONST.EXPENSIFY_EMAILS], [props.report]);
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
@@ -185,7 +179,7 @@ function RoomInvitePage(props) {
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue).toLowerCase())) {
+        if (!userToInvite && excludedUsers.includes(searchValue)) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);

@@ -33,7 +33,10 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
                     >
-                        <Icon src={Expensicons.BackArrow} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.BackArrow}
+                        />
                     </PressableWithFeedback>
                 )}
                 <SkeletonViewContentLoader

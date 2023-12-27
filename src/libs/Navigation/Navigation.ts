@@ -1,17 +1,18 @@
-import {findFocusedRoute} from '@react-navigation/core';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {Route} from '@src/ROUTES';
-import {PROTECTED_SCREENS} from '@src/SCREENS';
-import originalDismissModal from './dismissModal';
+import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
+import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import {StateOrRoute} from './types';
+import {StackNavigationAction, StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -43,9 +44,6 @@ const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopm
 // Re-exporting the getTopmostReportActionID here to fill in default value for state. The getTopmostReportActionID isn't defined in this file to avoid cyclic dependencies.
 const getTopmostReportActionId = (state = navigationRef.getState()) => originalGetTopmostReportActionId(state);
 
-// Re-exporting the dismissModal here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
-const dismissModal = (targetReportId = '', ref = navigationRef) => originalDismissModal(targetReportId, ref);
-
 /** Method for finding on which index in stack we are. */
 function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number | undefined {
     if ('routes' in stateOrRoute && stateOrRoute.routes) {
@@ -58,7 +56,7 @@ function getActiveRouteIndex(stateOrRoute: StateOrRoute, index?: number): number
         return getActiveRouteIndex(childActiveRoute, stateOrRoute.state.index ?? 0);
     }
 
-    if ('name' in stateOrRoute && (stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || stateOrRoute.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR)) {
+    if ('name' in stateOrRoute && stateOrRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return 0;
     }
 
@@ -162,8 +160,8 @@ function goBack(fallbackRoute: Route, shouldEnforceFallback = false, shouldPopTo
     if (isFirstRouteInNavigator) {
         const rootState = navigationRef.getRootState();
         const lastRoute = rootState.routes.at(-1);
-        // If the user comes from a different flow (there is more than one route in ModalNavigator) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
-        if ((lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute?.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR) && (lastRoute.state?.index ?? 0) > 0) {
+        // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
+        if (lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && (lastRoute.state?.index ?? 0) > 0) {
             navigationRef.current.goBack();
             return;
         }
@@ -200,6 +198,45 @@ function setParams(params: Record<string, unknown>, routeKey: string) {
         ...CommonActions.setParams(params),
         source: routeKey,
     });
+}
+
+/**
+ * Dismisses the last modal stack if there is any
+ *
+ * @param targetReportID - The reportID to navigate to after dismissing the modal
+ */
+function dismissModal(targetReportID?: string) {
+    if (!canNavigate('dismissModal')) {
+        return;
+    }
+    const rootState = navigationRef.getRootState();
+    const lastRoute = rootState.routes.at(-1);
+    switch (lastRoute?.name) {
+        case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
+        case SCREENS.NOT_FOUND:
+        case SCREENS.REPORT_ATTACHMENTS:
+            // if we are not in the target report, we need to navigate to it after dismissing the modal
+            if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
+                const state = getStateFromPath(ROUTES.REPORT_WITH_ID.getRoute(targetReportID));
+
+                const action: StackNavigationAction = getActionFromState(state, linkingConfig.config);
+                if (action) {
+                    action.type = 'REPLACE';
+                    navigationRef.current?.dispatch(action);
+                }
+                // If not-found page is in the route stack, we need to close it
+            } else if (targetReportID && rootState.routes.some((route) => route.name === SCREENS.NOT_FOUND)) {
+                const lastRouteIndex = rootState.routes.length - 1;
+                const centralRouteIndex = findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                navigationRef.current?.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
+            } else {
+                navigationRef.current?.dispatch({...StackActions.pop(), target: rootState.key});
+            }
+            break;
+        default: {
+            Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
+        }
+    }
 }
 
 /**
