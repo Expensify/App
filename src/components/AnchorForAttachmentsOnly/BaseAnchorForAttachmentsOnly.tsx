@@ -27,10 +27,8 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps &
     };
 
 function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', download, onPressIn, onPressOut}: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceURL = source;
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
-    const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-    const fileName = displayName;
+    const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
+    const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
     const isDownloading = download?.isDownloading ?? false;
 
@@ -44,19 +42,19 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', dow
                             return;
                         }
                         Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, fileName).then(() => Download.setDownload(sourceID, false));
+                        fileDownload(sourceURLWithAuth, displayName).then(() => Download.setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
                     // @ts-expect-error TODO: Remove this once ShowContextMenuContext (https://github.com/Expensify/App/issues/24980) is migrated to TypeScript.
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                    accessibilityLabel={fileName}
+                    accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
                         // @ts-expect-error TODO: Remove this once AttachmentView (https://github.com/Expensify/App/issues/25150) is migrated to TypeScript.
                         source={sourceURLWithAuth}
-                        file={{name: fileName}}
+                        file={{name: displayName}}
                         shouldShowDownloadIcon
                         shouldShowLoadingSpinnerIcon={isDownloading}
                     />
