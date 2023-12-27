@@ -56,7 +56,7 @@ function OptionsListSkeletonView({shouldAnimate = true}: OptionsListSkeletonView
                         width={lineWidth}
                         height="8"
                     />
-                </SkeletonViewContentLoader>
+                </SkeletonViewContentLoader>,
             );
         }
         return items;
