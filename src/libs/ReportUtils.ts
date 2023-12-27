@@ -4229,8 +4229,9 @@ function shouldDisableThreadForWhisperAction(reportAction: ReportAction) {
  * - The action is split bill action
  * - The action is deleted action and don't have the thread
  * - The action is whisper action and not is report preview or IOU action
+ * - The action is the thread first chat
  */
-function shouldDisableThread(reportAction: ReportAction) {
+function shouldDisableThread(reportAction: ReportAction, reportID: string) {
     const disableThreadActions: string[] = [...CONST.REPORT.ACTIONS.DISABLE_THREAD];
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
@@ -4238,7 +4239,8 @@ function shouldDisableThread(reportAction: ReportAction) {
         disableThreadActions.includes(reportAction.actionName) ||
         isSplitBillAction ||
         (isDeletedAction && !reportAction.childVisibleActionCount) ||
-        shouldDisableThreadForWhisperAction(reportAction)
+        shouldDisableThreadForWhisperAction(reportAction) ||
+        isThreadFirstChat(reportAction, reportID)
     );
 }
 

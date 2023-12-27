@@ -134,7 +134,7 @@ export default [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
-            return !ReportUtils.shouldDisableThread(reportAction) && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            return !ReportUtils.shouldDisableThread(reportAction, reportID);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
