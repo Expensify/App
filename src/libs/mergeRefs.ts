@@ -2,7 +2,6 @@ import {LegacyRef, MutableRefObject, RefCallback} from 'react';
 
 /**
  * Assigns element reference to multiple refs.
- * Source: https://github.com/gregberge/react-merge-refs/blob/main/src/index.tsx
  * @param refs The ref object or function arguments.
  */
 export default function mergeRefs<T = unknown>(...refs: Array<MutableRefObject<T> | LegacyRef<T> | undefined | null>): RefCallback<T> {
