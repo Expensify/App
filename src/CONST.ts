@@ -549,6 +549,7 @@ const CONST = {
                     INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
                     INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
+                    REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
@@ -1294,6 +1295,12 @@ const CONST = {
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
+    },
+
+    LAYOUT_WIDTH: {
+        WIDE: 'wide',
+        NARROW: 'narrow',
+        NONE: 'none',
     },
 
     ICON_TYPE_ICON: 'icon',
