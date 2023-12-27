@@ -30,9 +30,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
 
-            // Demo routes
-            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
-
             // Sidebar
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,
@@ -44,15 +41,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
-            [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
-                screens: {
-                    [SCREENS.LEFT_MODAL.SEARCH]: {
-                        screens: {
-                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
-                        },
-                    },
-                },
-            },
+
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
                     [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -347,6 +336,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.I_KNOW_A_TEACHER]: ROUTES.I_KNOW_A_TEACHER,
                             [SCREENS.INTRO_SCHOOL_PRINCIPAL]: ROUTES.INTRO_SCHOOL_PRINCIPAL,
                             [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
+                        },
+                    },
+                    [SCREENS.RIGHT_MODAL.SEARCH]: {
+                        screens: {
+                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
                         },
                     },
                     [SCREENS.RIGHT_MODAL.DETAILS]: {

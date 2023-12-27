@@ -33,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
+import Log from './Log';
 
 type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
 type TimePeriod = 'AM' | 'PM';
@@ -91,7 +92,16 @@ function setLocale(localeString: Locale) {
 function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
-        return utcToZonedTime(new Date(), currentSelectedTimezone);
+        const res = utcToZonedTime(new Date(), currentSelectedTimezone);
+        if (Number.isNaN(res.getTime())) {
+            Log.warn('DateUtils.getLocalDateFromDatetime: utcToZonedTime returned an invalid date. Returning current date.', {
+                locale,
+                datetime,
+                currentSelectedTimezone,
+            });
+            return new Date();
+        }
+        return res;
     }
     const parsedDatetime = new Date(`${datetime}Z`);
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
