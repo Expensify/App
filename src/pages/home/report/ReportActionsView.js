@@ -16,7 +16,7 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
-// import useWindowDimensions from '@hooks/useWindowDimensions';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -100,7 +100,7 @@ function getReportActionID(route) {
 
 const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMessage) => {
     const [edgeID, setEdgeID] = useState(linkedID);
-    const [listID, setListID] = useState(1);
+    const [listID, setListID] = useState(() => Math.round(Math.random() * 100));
     const isFirstRender = useRef(true);
 
     const index = useMemo(() => {
@@ -116,21 +116,18 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
         setEdgeID('');
     }, [route, linkedID]);
 
+
     const cattedArray = useMemo(() => {
         if (!linkedID || index === -1) {
             return messageArray;
         }
-        if ((linkedID && !edgeID) || (linkedID && isFirstRender.current)) {
+        if (isFirstRender.current) {
             setListID((i) => i + 1);
-            isFirstRender.current = false;
             return messageArray.slice(index, messageArray.length);
-        } else if (linkedID && edgeID) {
+        } else if (edgeID) {
             const amountOfItemsBeforeLinkedOne = 10;
             const newStartIndex = index >= amountOfItemsBeforeLinkedOne ? index - amountOfItemsBeforeLinkedOne : 0;
-            if (index) {
-                return messageArray.slice(newStartIndex, messageArray.length);
-            }
-            return messageArray;
+            return messageArray.slice(newStartIndex, messageArray.length);
         }
         return messageArray;
     }, [linkedID, messageArray, edgeID, index, isLoadingLinkedMessage]);
@@ -145,7 +142,14 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
                 fetchFn({distanceFromStart});
             }
 
-            setEdgeID(firstReportActionID);
+            if (isFirstRender.current) {
+                isFirstRender.current = false;
+                InteractionManager.runAfterInteractions(() => {
+                    setEdgeID(firstReportActionID);
+                });
+            } else {
+                setEdgeID(firstReportActionID);
+            }
         },
         [setEdgeID, fetchFn, hasMoreCashed],
     );
@@ -169,10 +173,9 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const contentListHeight = useRef(0);
     const layoutListHeight = useRef(0);
     const isInitial = useRef(true);
-    // const isLoadingLinkedMessage = !!reportActionID && props.isLoadingInitialReportActions;
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
-    // const {windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
 
     const prevNetworkRef = useRef(props.network);
     const prevAuthTokenType = usePrevious(props.session.authTokenType);
@@ -201,7 +204,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
 
     const {cattedArray: reportActions, fetchFunc, linkedIdIndex, listID} = useHandleList(reportActionID, allReportActions, throttledLoadNewerChats, route);
 
-    const hasNewestReportAction = lodashGet(reportActions[0], 'isNewestReportAction');
+    const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
     const oldestReportAction = _.last(reportActions);
     const isWeReachedTheOldestAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -321,21 +324,19 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const handleLoadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
         ({distanceFromStart}) => {
-            // const shouldFirstlyLoadOlderActions = Number(layoutListHeight.current) > Number(contentListHeight.current);
-            // const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
-            // const SPACER = 30;
-            // const MIN_PREDEFINED_PADDING = 16;
-            // const isListSmallerThanScreen = windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current;
-            // const isListEmpty = contentListHeight.current === MIN_PREDEFINED_PADDING;
-            // const shouldFirstlyLoadOlderActions = !isWeReachedTheOldestAction && isListSmallerThanScreen
-            // const shouldFirstlyLoadOlderActions = !isListSmallerThanScreen
-            if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isInitial.current) || (!reportActionID && !hasNewestReportAction)) {
+            const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
+            const SPACER = 30;
+            const isContentSmallerThanList = windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current;
+
+            if (
+                (reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isInitial.current && !isContentSmallerThanList) ||
+                (!reportActionID && !hasNewestReportAction && !isContentSmallerThanList)
+            ) {
                 fetchFunc({firstReportActionID, distanceFromStart});
             }
             isInitial.current = false;
         },
-        // [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID, windowHeight, isWeReachedTheOldestAction],
-        [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID],
+        [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID, windowHeight],
     );
 
     /**
