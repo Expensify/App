@@ -424,7 +424,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH1: {
@@ -1586,7 +1586,7 @@ const styles = (theme: ThemeColors) =>
         optionDisplayName: {
             fontFamily: fontFamily.EXP_NEUE,
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
             ...whiteSpace.noWrap,
         },
 
