@@ -54,7 +54,7 @@ function MiniQuickEmojiReactions({
             (emojiCode, emojiObject) => {
                 onEmojiSelected(emojiObject, emojiReactions);
             },
-            ref.current,
+            ref,
             undefined,
             () => {},
             reportAction.reportActionID,

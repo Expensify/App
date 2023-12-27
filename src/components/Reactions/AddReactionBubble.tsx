@@ -60,7 +60,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 (emojiCode, emojiObject) => {
                     onSelectEmoji(emojiObject);
                 },
-                refParam ?? ref.current,
+                refParam ?? ref,
                 anchorOrigin,
                 onWillShowPicker,
                 reportAction.reportActionID,
