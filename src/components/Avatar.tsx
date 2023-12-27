@@ -48,6 +48,9 @@ type AvatarProps = {
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
+
+    /** Icon should be displayed in its own color */
+    displayInDefaultIconColor?: boolean;
 };
 
 function Avatar({
@@ -61,6 +64,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
+    displayInDefaultIconColor = false,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -98,7 +102,7 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? theme.offline : iconFillColor}
+                        fill={displayInDefaultIconColor ? undefined : (imageError ? theme.offline : iconFillColor)}
                         additionalStyles={[
                             StyleUtils.getAvatarBorderStyle(size, type),
                             isWorkspace && StyleUtils.getDefaultWorkspaceAvatarColor(name),
