@@ -5,6 +5,7 @@ import _ from 'underscore';
 import Logo from '@assets/images/new-expensify.svg';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -108,7 +109,9 @@ function AboutPage(props) {
                         <View style={[styles.flex1]}>
                             <View style={[styles.pageWrapper, styles.pv3]}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <Logo
+                                    <ImageSVG
+                                        contentFit="contain"
+                                        src={Logo}
                                         height={80}
                                         width={80}
                                     />
