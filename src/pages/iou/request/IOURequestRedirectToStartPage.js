@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import {useEffect} from 'react';
+import React, {useEffect} from 'react';
 import _ from 'underscore';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -25,7 +26,14 @@ function IOURequestRedirectToStartPage({
         params: {iouType, iouRequestType},
     },
 }) {
+    const isIouTypeValid = _.values(CONST.IOU.TYPE).indexOf(iouType) > -1;
+    const isIouRequestTypeValid = _.values(CONST.IOU.REQUEST_TYPE).indexOf(iouRequestType) > -1;
+
     useEffect(() => {
+        if (!isIouTypeValid || !isIouRequestTypeValid) {
+            return;
+        }
+
         // Dismiss this modal because the redirects below will open a new modal and there shouldn't be two modals stacked on top of each other.
         Navigation.dismissModal();
 
@@ -42,6 +50,11 @@ function IOURequestRedirectToStartPage({
         // This useEffect should only run on mount which is why there are no dependencies being passed in the second parameter
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    if (!isIouTypeValid || !isIouRequestTypeValid) {
+        return <FullPageNotFoundView shouldShow />;
+    }
+
     return null;
 }
 
