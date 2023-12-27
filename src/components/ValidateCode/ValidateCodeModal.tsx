@@ -39,6 +39,7 @@ function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalPro
                     <Icon
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
+                        fill={theme.icon}
                         src={Illustrations.MagicCode}
                     />
                 </View>
