@@ -2030,9 +2030,9 @@ describe('OptionsListUtils', () => {
                         isDisabled: undefined,
                         // creates a data option.
                         data: {
-                            actualName: 'Tax exempt 1',
+                            name: 'Tax exempt 1',
                             code: 'CODE1',
-                            name: 'Tax exempt 1 (0%) • Default',
+                            modifiedName: 'Tax exempt 1 (0%) • Default',
                             value: '0%',
                         },
                     },
@@ -2043,9 +2043,9 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Tax option 3 (5%)',
                         isDisabled: undefined,
                         data: {
-                            actualName: 'Tax option 3',
+                            name: 'Tax option 3',
                             code: 'CODE3',
-                            name: 'Tax option 3 (5%)',
+                            modifiedName: 'Tax option 3 (5%)',
                             value: '5%',
                         },
                     },
@@ -2056,9 +2056,9 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
                         data: {
-                            actualName: 'Tax rate 2',
+                            name: 'Tax rate 2',
                             code: 'CODE2',
-                            name: 'Tax rate 2 (3%)',
+                            modifiedName: 'Tax rate 2 (3%)',
                             value: '3%',
                         },
                     },
@@ -2080,9 +2080,9 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
                         data: {
-                            actualName: 'Tax rate 2',
+                            name: 'Tax rate 2',
                             code: 'CODE2',
-                            name: 'Tax rate 2 (3%)',
+                            modifiedName: 'Tax rate 2 (3%)',
                             value: '3%',
                         },
                     },
