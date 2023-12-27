@@ -94,13 +94,16 @@ function RoomInvitePage(props) {
         let indexOffset = 0;
 
         // Filter all options that is a part of the search term or in the personal details
-        const filterSelectedOptions = _.filter(selectedOptions, (option) => {
-            const accountID = lodashGet(option, 'accountID', null);
-            const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+        let filterSelectedOptions = selectedOptions;
+        if (searchTerm !== '') {
+            filterSelectedOptions = _.filter(selectedOptions, (option) => {
+                const accountID = lodashGet(option, 'accountID', null);
+                const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
 
-            const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
-            return isPartOfSearchTerm || isOptionInPersonalDetails;
-        });
+                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
+            });
+        }
 
         sections.push({
             title: undefined,
