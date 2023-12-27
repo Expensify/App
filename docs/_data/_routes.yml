@@ -12,7 +12,7 @@ platforms:
     description: "Your account settings look like this:"
     image: /assets/images/settings-old-dot.svg
   
-    # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
+    # Hubs are comprised of subcategories and articles. Subcategories contain multiple related articles, but there can be standalone articles as well
     hubs:
       - href: getting-started
         title: Getting Started

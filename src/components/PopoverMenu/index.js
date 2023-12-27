@@ -107,11 +107,13 @@ function PopoverMenu(props) {
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}
+                        contentFit={item.contentFit}
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
+                        displayInDefaultIconColor={item.displayInDefaultIconColor}
                     />
                 ))}
             </View>

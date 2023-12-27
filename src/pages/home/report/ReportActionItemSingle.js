@@ -206,7 +206,7 @@ function ReportActionItemSingle(props) {
     const hasEmojiStatus = !displayAllActors && status && status.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(lodashGet(status, 'clearAfter'));
     const statusText = lodashGet(status, 'text', '');
-    const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
+    const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
     return (
         <View style={[styles.chatItem, props.wrapperStyle]}>
