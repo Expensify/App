@@ -6,7 +6,7 @@ import convertToLTR from '@libs/convertToLTR';
 import singleFontFamily from '@styles/utils/fontFamily/singleFontFamily';
 import * as HTMLEngineUtils from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
-import HTMLEngineProviderProps from './types';
+import {HTMLEngineProviderProps} from './types';
 
 type BaseHTMLEngineProviderProps = HTMLEngineProviderProps & {
     /** Whether text elements should be selectable */
@@ -21,7 +21,7 @@ type BaseHTMLEngineProviderProps = HTMLEngineProviderProps & {
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
-function BaseHTMLEngineProvider({textSelectable = false, children = null, enableExperimentalBRCollapsing = false}: BaseHTMLEngineProviderProps) {
+function BaseHTMLEngineProvider({textSelectable = false, children, enableExperimentalBRCollapsing = false}: BaseHTMLEngineProviderProps) {
     const styles = useThemeStyles();
 
     // Declare nonstandard tags and their content model here

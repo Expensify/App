@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
-import HTMLEngineProviderProps from './types';
+import {HTMLEngineProviderProps} from './types';
 
 function HTMLEngineProvider({debug = false, children = null}: HTMLEngineProviderProps) {
     return (
