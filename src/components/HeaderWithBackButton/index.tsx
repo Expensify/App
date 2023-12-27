@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
-    iconFill = null,
+    iconFill,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -94,7 +94,7 @@ function HeaderWithBackButton({
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
-                                fill={iconFill || theme.icon}
+                                fill={iconFill ?? theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </Tooltip>
@@ -152,7 +152,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.QuestionMark}
-                                    fill={iconFill || theme.icon}
+                                    fill={iconFill ?? theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -177,7 +177,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Close}
-                                    fill={iconFill || theme.icon}
+                                    fill={iconFill ?? theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
