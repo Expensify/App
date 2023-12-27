@@ -1,7 +1,6 @@
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -18,12 +17,12 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import {ReportCommentParams} from '@libs/Notification/LocalNotification/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -1822,17 +1821,19 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     }
 
     Log.info('[LocalNotification] Creating notification');
-    const report = allReports?.[reportID] ?? null;
 
-    const notificationParams: ReportCommentParams = {
-        report,
-        reportAction,
-        onClick: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID)),
-    };
+    const report = allReports?.[reportID] ?? null;
+    if (!report) {
+        Log.hmmm("[LocalNotification] couldn't show report action notification because the report wasn't found", {reportID, reportActionID: reportAction.reportActionID});
+        return;
+    }
+
+    const onClick = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-        LocalNotification.showModifiedExpenseNotification(notificationParams);
+        LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
     } else {
-        LocalNotification.showCommentNotification(notificationParams);
+        LocalNotification.showCommentNotification(report, reportAction, onClick);
     }
 
     notifyNewAction(reportID, reportAction.actorAccountID, reportAction.reportActionID);
@@ -2025,6 +2026,10 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                 // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
                 // which is already called when AuthScreens mounts.
                 if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                    return;
+                }
+
+                if (shouldSkipDeepLinkNavigation(route)) {
                     return;
                 }
 
@@ -2495,8 +2500,6 @@ function searchForReports(searchInput: string) {
     API.read('SearchForReports', parameters, {successData, failureData});
 }
 
-const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME, {leading: false});
-
 function searchInServer(searchInput: string) {
     if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
@@ -2507,7 +2510,7 @@ function searchInServer(searchInput: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    debouncedSearchInServer(searchInput);
+    searchForReports(searchInput);
 }
 
 function clearNewRoomFormError() {

@@ -1,7 +1,7 @@
 package com.expensify.chat
 
+import android.content.res.Configuration
 import android.database.CursorWindow
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
 import com.facebook.react.PackageList
@@ -13,9 +13,11 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.soloader.SoLoader
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import expo.modules.ApplicationLifecycleDispatcher
+import expo.modules.ReactNativeHostWrapper
 
 class MainApplication : MultiDexApplication(), ReactApplication {
-    override val reactNativeHost: ReactNativeHost = object : DefaultReactNativeHost(this) {
+    override val reactNativeHost: ReactNativeHost = object : ReactNativeHostWrapper(this, DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG
 
         override fun getPackages(): List<ReactPackage> {
@@ -28,19 +30,17 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             return packages
         }
 
-        override fun getJSMainModuleName() = "index"
+        override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
 
         override val isNewArchEnabled: Boolean
             get() = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
         override val isHermesEnabled: Boolean
             get() = BuildConfig.IS_HERMES_ENABLED
-    }
+    })
 
     override fun onCreate() {
         super.onCreate()
 
-        // Use night (dark) mode so native UI defaults to dark theme.
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         SoLoader.init(this,  /* native exopackage */false)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // If you opted-in for the New Architecture, we load the native entry point for this app.
@@ -67,5 +67,11 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        ApplicationLifecycleDispatcher.onApplicationCreate(this);
+    }
+
+    fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig!!)
+        ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
     }
 }

@@ -1,5 +1,7 @@
 package com.expensify.chat
 
+import expo.modules.ReactActivityDelegateWrapper;
+
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.KeyEvent
@@ -23,11 +25,11 @@ class MainActivity : ReactActivity() {
      * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
      * (aka React 18) with two boolean flags.
      */
-    override fun createReactActivityDelegate() = DefaultReactActivityDelegate(
+    override fun createReactActivityDelegate() = ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, DefaultReactActivityDelegate(
         this,
         mainComponentName,  // If you opted-in for the New Architecture, we enable the Fabric Renderer.
         fabricEnabled
-    )
+    ))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         BootSplash.init(this)
