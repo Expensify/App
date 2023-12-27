@@ -8,24 +8,17 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceMapViewProps from './types';
 
-function DistanceMapView({accessToken, style, userLocation, directionCoordinates, initialState, mapPadding, pitchEnabled, styleURL, waypoints, overlayStyle}: DistanceMapViewProps) {
+function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
     const styles = useThemeStyles();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
+    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <>
             <MapView
-                accessToken={accessToken}
-                style={style}
-                userLocation={userLocation}
-                directionCoordinates={directionCoordinates}
-                initialState={initialState}
-                mapPadding={mapPadding}
-                pitchEnabled={pitchEnabled}
-                styleURL={styleURL}
-                waypoints={waypoints}
+                {...rest}
                 onMapReady={() => {
                     if (isMapReady) {
                         return;
