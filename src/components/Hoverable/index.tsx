@@ -1,5 +1,5 @@
 import React, {ForwardedRef, forwardRef, MutableRefObject, ReactElement, RefAttributes, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import HoverableProps from './types';
@@ -41,16 +41,41 @@ function assignRef(ref: ((instance: HTMLElement | null) => void) | MutableRefObj
     }
 }
 
+type UseHoveredReturnType = [boolean, (newValue: boolean) => void];
+function useHovered(initialValue: boolean, runHoverAfterInteraction: boolean): UseHoveredReturnType {
+    const [state, setState] = useState(initialValue);
+
+    const interceptedSetState = useCallback((newValue: boolean) => {
+        if (runHoverAfterInteraction) {
+            InteractionManager.runAfterInteractions(() => {
+                setState(newValue);
+            });
+        } else {
+            setState(newValue);
+        }
+    }, []);
+    return [state, interceptedSetState];
+}
+
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,
  * because nesting Pressables causes issues where the hovered state of the child cannot be easily propagated to the
  * parent. https://github.com/necolas/react-native-web/issues/1875
  */
 function Hoverable(
-    {disabled = false, onHoverIn = () => {}, onHoverOut = () => {}, onMouseEnter = () => {}, onMouseLeave = () => {}, children, shouldHandleScroll = false}: HoverableProps,
+    {
+        disabled = false,
+        onHoverIn = () => {},
+        onHoverOut = () => {},
+        onMouseEnter = () => {},
+        onMouseLeave = () => {},
+        children,
+        shouldHandleScroll = false,
+        runHoverAfterInteraction = false,
+    }: HoverableProps,
     outerRef: ForwardedRef<HTMLElement>,
 ) {
-    const [isHovered, setIsHovered] = useState(false);
+    const [isHovered, setIsHovered] = useHovered(false, runHoverAfterInteraction);
 
     const isScrolling = useRef(false);
     const isHoveredRef = useRef(false);
