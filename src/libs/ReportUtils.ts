@@ -7,7 +7,6 @@ import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
-import type {SrcProps} from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
@@ -312,7 +311,7 @@ type OptimisticIOUReport = Pick<
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
 type CustomIcon = {
-    src: (props: SrcProps) => React.ReactNode;
+    src: IconAsset;
     color?: string;
 };
 
