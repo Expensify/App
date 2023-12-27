@@ -14,10 +14,10 @@ function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return (
         <>
             <MapView
+                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 onMapReady={() => {
                     if (isMapReady) {
