@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -13,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -115,28 +114,31 @@ function FlagCommentPage(props) {
         },
     ];
 
-    const getActionToFlag = useCallback(() => {
-        let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
+    // The report action that gets flagged is either the report action that was passed in via the route params
+    // or the parent report action if the report action is a thread, since threads can't be flagged themselves.
+    const reportActionToFlag = useRef(null);
+    useEffect(() => {
+        reportActionToFlag.current = props.reportActions[`${props.route.params.reportActionID}`];
 
-        // Handle threads if needed
-        if (reportAction === undefined || reportAction.reportActionID === undefined) {
-            reportAction = ReportActionsUtils.getParentReportAction(props.report);
+        // If the reportActionToFlag is not a thread, then return early
+        if (reportActionToFlag.current && reportActionToFlag.current.reportActionID !== undefined) {
+            return;
         }
 
-        return reportAction;
-    }, [props.report, props.reportActions, props.route.params.reportActionID]);
+        // If the reportActionToFlag is a thread, then the action to flag is the parent report action
+        reportActionToFlag.current = props.parentReportActions[`${props.report.parentReportActionID}`];
+    }, [props.report, props.reportActions, props.route.params.reportActionID, props.parentReportActions]);
 
     const flagComment = (severity) => {
         let reportID = getReportID(props.route);
-        const reportAction = getActionToFlag();
 
         // Handle threads if needed
-        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === ReportActionsUtils.getParentReportAction(props.report).reportActionID) {
-            reportID = ReportUtils.getParentReport(props.report).reportID;
+        if (ReportUtils.isChatThread(props.report) && reportActionToFlag.current.reportActionID === props.report.parentReportActionID) {
+            reportID = props.report.parentReportID;
         }
 
-        if (ReportUtils.canFlagReportAction(reportAction, reportID)) {
-            Report.flagComment(reportID, reportAction, severity);
+        if (ReportUtils.canFlagReportAction(reportActionToFlag.current, reportID)) {
+            Report.flagComment(reportID, reportActionToFlag.current, severity);
         }
 
         Navigation.dismissModal();
@@ -161,7 +163,7 @@ function FlagCommentPage(props) {
             testID={FlagCommentPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
+                <FullPageNotFoundView shouldShow={!ReportUtils.shouldShowFlagComment(reportActionToFlag.current, props.report)}>
                     <HeaderWithBackButton
                         title={props.translate('reportActionContextMenu.flagAsOffensive')}
                         shouldNavigateToTopMostReport
