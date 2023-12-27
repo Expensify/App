@@ -677,6 +677,7 @@ function ReportActionItem(props) {
         >
             <Hoverable
                 shouldHandleScroll
+                runHoverAfterInteraction
                 disabled={Boolean(props.draftMessage)}
             >
                 {(hovered) => (
