@@ -238,12 +238,12 @@ class PDFView extends Component {
         const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
+        const pdfContainerStyle = [styles.PDFView, styles.noSelect, this.props.style];
         // If we're requesting a password then we need to hide - but still render -
         // the PDF component.
-        const pdfContainerStyle =
-            this.state.password === PDFViewConstants.REQUIRED_PASSWORD_MISSING || this.state.isCheckingPassword
-                ? [styles.PDFView, styles.noSelect, this.props.style, styles.invisible]
-                : [styles.PDFView, styles.noSelect, this.props.style];
+        if (this.state.password === PDFViewConstants.REQUIRED_PASSWORD_MISSING || this.state.isCheckingPassword) {
+            pdfContainerStyle.push(styles.invisible);
+        }
 
         const estimatedItemSize = this.calculatePageHeight(0);
 
