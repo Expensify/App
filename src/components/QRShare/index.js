@@ -2,6 +2,7 @@ import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
+import ImageSVG from '@components/ImageSVG';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
@@ -35,10 +36,10 @@ function QRShare({innerRef, url, title, subtitle, logo, logoRatio, logoMarginRat
             onLayout={onLayout}
         >
             <View style={styles.expensifyQrLogo}>
-                <ExpensifyWordmark
+                <ImageSVG
+                    contentFit="contain"
+                    src={ExpensifyWordmark}
                     fill={theme.QRLogo}
-                    width="100%"
-                    height="100%"
                 />
             </View>
 

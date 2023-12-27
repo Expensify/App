@@ -74,6 +74,9 @@ type Policy = {
     /** The scheduled submit frequency set up on the this policy */
     autoReportingFrequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
+    /** The accountID of manager who the employee submits their expenses to on paid policies */
+    submitsTo?: number;
+
     /** The employee list of the policy */
     employeeList?: [];
 };

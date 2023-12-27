@@ -5,9 +5,7 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
-import React from 'react';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
@@ -23,6 +21,7 @@ import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAc
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import IconAsset from '@src/types/utils/IconAsset';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -350,6 +349,8 @@ type OnyxDataTaskAssigneeChat = {
 let currentUserEmail: string | undefined;
 let currentUserAccountID: number | undefined;
 let isAnonymousUser = false;
+
+const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -1172,7 +1173,7 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
 /**
  * Helper method to return the default avatar associated with the given login
  */
-function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
+function getDefaultWorkspaceAvatar(workspaceName?: string): IconAsset {
     if (!workspaceName) {
         return defaultWorkspaceAvatars.WorkspaceBuilding;
     }
@@ -1187,6 +1188,23 @@ function getDefaultWorkspaceAvatar(workspaceName?: string): React.FC<SvgProps> {
     const defaultWorkspaceAvatar = defaultWorkspaceAvatars[workspace];
 
     return !alphaNumeric ? defaultWorkspaceAvatars.WorkspaceBuilding : defaultWorkspaceAvatar;
+}
+
+/**
+ * Helper method to return the default avatar testID associated with the given login
+ */
+function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
+    if (!workspaceName) {
+        return defaultAvatarBuildingIconTestID;
+    }
+
+    // Remove all chars not A-Z or 0-9 including underscore
+    const alphaNumeric = workspaceName
+        .normalize('NFD')
+        .replace(/[^0-9a-z]/gi, '')
+        .toLowerCase();
+
+    return !alphaNumeric ? defaultAvatarBuildingIconTestID : `SvgDefaultAvatar_${alphaNumeric[0]} Icon`;
 }
 
 function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
@@ -3635,7 +3653,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
-function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[]): boolean {
+function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
     // User cannot request money in chat thread or in task report or in chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
@@ -3665,7 +3683,11 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
     // User can request money in any IOU report, unless paid, but user can only request money in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
-        return ((isExpenseReport(report) && isOwnPolicyExpenseChat) || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
+        const isOwnExpenseReport = isExpenseReport(report) && isOwnPolicyExpenseChat;
+        if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
+            return isDraftExpenseReport(report);
+        }
+        return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
     }
 
     // In case of policy expense chat, users can only request money from their own policy expense chat
@@ -3690,7 +3712,7 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3716,7 +3738,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    if (canRequestMoney(report, otherParticipants)) {
+    if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.REQUEST];
     }
 
@@ -3873,12 +3895,12 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null
 /**
  * Check if the report can create the request with type is iouType
  */
-function canCreateRequest(report: OnyxEntry<Report>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
+function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     if (!canUserPerformWriteAction(report)) {
         return false;
     }
-    return getMoneyRequestOptions(report, participantAccountIDs).includes(iouType);
+    return getMoneyRequestOptions(report, policy, participantAccountIDs).includes(iouType);
 }
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {
@@ -4300,6 +4322,7 @@ export {
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
     getDefaultWorkspaceAvatar,
+    getDefaultWorkspaceAvatarTestID,
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
