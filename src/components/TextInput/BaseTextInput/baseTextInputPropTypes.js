@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import translatableTextPropTypes from '@components/translatableTextPropTypes';
 
 const propTypes = {
@@ -21,7 +22,7 @@ const propTypes = {
     errorText: translatableTextPropTypes,
 
     /** Icon to display in right side of text input */
-    icon: PropTypes.func,
+    icon: sourcePropTypes,
 
     /** Customize the TextInput container */
     textInputContainerStyles: PropTypes.arrayOf(PropTypes.object),

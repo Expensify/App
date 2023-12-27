@@ -1,6 +1,6 @@
 import {fireEvent, render, within} from '@testing-library/react-native';
 import {addMonths, addYears, subYears} from 'date-fns';
-import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
+import CalendarPicker from '../../src/components/DatePicker/CalendarPicker';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 

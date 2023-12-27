@@ -7,7 +7,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import StateSelectorModal from './StateSelectorModal';
 
 const propTypes = {

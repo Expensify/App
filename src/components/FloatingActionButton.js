@@ -2,12 +2,12 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {Animated, Easing, View} from 'react-native';
 import compose from '@libs/compose';
-import * as StyleUtils from '@styles/StyleUtils';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withStyleUtils, {withStyleUtilsPropTypes} from './withStyleUtils';
 import withTheme, {withThemePropTypes} from './withTheme';
 import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
@@ -28,8 +28,9 @@ const propTypes = {
     buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     ...withLocalizePropTypes,
-    ...withThemeStylesPropTypes,
     ...withThemePropTypes,
+    ...withThemeStylesPropTypes,
+    ...withStyleUtilsPropTypes,
 };
 
 const defaultProps = {
@@ -100,7 +101,7 @@ class FloatingActionButton extends PureComponent {
                             this.props.onPress(e);
                         }}
                         onLongPress={() => {}}
-                        style={[this.props.themeStyles.floatingActionButton, StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
+                        style={[this.props.themeStyles.floatingActionButton, this.props.StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
                     >
                         <AnimatedIcon
                             src={Expensicons.Plus}
@@ -128,4 +129,4 @@ const FloatingActionButtonWithLocalizeWithRef = React.forwardRef((props, ref) =>
 
 FloatingActionButtonWithLocalizeWithRef.displayName = 'FloatingActionButtonWithLocalizeWithRef';
 
-export default compose(withThemeStyles, withTheme)(FloatingActionButtonWithLocalizeWithRef);
+export default compose(withThemeStyles, withTheme, withStyleUtils)(FloatingActionButtonWithLocalizeWithRef);

@@ -11,17 +11,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchInputManager from './SearchInputManager';
 import {policyDefaultProps, policyPropTypes} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -75,6 +76,10 @@ function WorkspaceInvitePage(props) {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     };
+
+    useEffect(() => {
+        setSearchTerm(SearchInputManager.searchInput);
+    }, []);
 
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
@@ -256,7 +261,10 @@ function WorkspaceInvitePage(props) {
                             sections={sections}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
+                            onChangeText={(value) => {
+                                SearchInputManager.searchInput = value;
+                                setSearchTerm(value);
+                            }}
                             headerMessage={headerMessage}
                             onSelectRow={toggleOption}
                             onConfirm={inviteUser}

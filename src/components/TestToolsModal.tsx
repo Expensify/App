@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
