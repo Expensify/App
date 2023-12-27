@@ -13,6 +13,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -417,4 +418,5 @@ export default compose(
         session: {key: ONYXKEYS.SESSION},
     }),
     withNetwork(),
+    withToggleVisibilityView,
 )(BaseValidateCodeForm);
