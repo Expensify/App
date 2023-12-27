@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -26,8 +27,8 @@ function IOURequestRedirectToStartPage({
         params: {iouType, iouRequestType},
     },
 }) {
-    const isIouTypeValid = _.values(CONST.IOU.TYPE).indexOf(iouType) > -1;
-    const isIouRequestTypeValid = _.values(CONST.IOU.REQUEST_TYPE).indexOf(iouRequestType) > -1;
+    const isIouTypeValid = _.values(CONST.IOU.TYPE).includes(iouType);
+    const isIouRequestTypeValid = _.values(CONST.IOU.REQUEST_TYPE).includes(iouRequestType);
 
     useEffect(() => {
         if (!isIouTypeValid || !isIouRequestTypeValid) {
@@ -52,7 +53,11 @@ function IOURequestRedirectToStartPage({
     }, []);
 
     if (!isIouTypeValid || !isIouRequestTypeValid) {
-        return <FullPageNotFoundView shouldShow />;
+        return (
+            <ScreenWrapper testID={IOURequestRedirectToStartPage.displayName}>
+                <FullPageNotFoundView shouldShow />
+            </ScreenWrapper>
+        );
     }
 
     return null;
