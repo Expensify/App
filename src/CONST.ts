@@ -549,6 +549,7 @@ const CONST = {
                     INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
                     INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
+                    REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
@@ -593,9 +594,6 @@ const CONST = {
                     JOIN_ROOM: 'JOINROOM',
                 },
             },
-        },
-        CANCEL_PAYMENT_REASONS: {
-            ADMIN: 'CANCEL_REASON_ADMIN',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -2936,11 +2934,6 @@ const CONST = {
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
     TAG_LIST_THRESHOLD: 8,
-    DEMO_PAGES: {
-        SAASTR: 'SaaStrDemoSetup',
-        SBE: 'SbeDemoSetup',
-        MONEY2020: 'Money2020DemoSetup',
-    },
     COLON: ':',
     MAPBOX: {
         PADDING: 50,

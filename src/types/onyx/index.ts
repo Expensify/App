@@ -7,7 +7,6 @@ import Card from './Card';
 import Credentials from './Credentials';
 import Currency from './Currency';
 import CustomStatusDraft from './CustomStatusDraft';
-import DemoInfo from './DemoInfo';
 import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -71,7 +70,6 @@ export type {
     Currency,
     CustomStatusDraft,
     DateOfBirthForm,
-    DemoInfo,
     Download,
     Form,
     FrequentlyUsedEmoji,
