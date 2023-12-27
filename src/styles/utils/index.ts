@@ -18,7 +18,6 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import spacing from './spacing';
 import {
     AllStyles,
     AvatarSize,
@@ -847,15 +846,14 @@ function displayIfTrue(condition: boolean): ViewStyle {
 /**
  * Gets the correct height for emoji picker list based on screen dimensions
  */
-function getEmojiPickerListHeight(hasAdditionalSpace: boolean, windowHeight: number): ViewStyle {
+function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight: number): ViewStyle {
     const style = {
-        ...spacing.ph4,
-        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+        height: isRenderingShortcutRow ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
     };
 
     if (windowHeight) {
         // dimensions of content above the emoji picker list
-        const dimensions = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
+        const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
         return {
             ...style,
             maxHeight: windowHeight - dimensions,

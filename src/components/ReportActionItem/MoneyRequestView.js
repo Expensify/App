@@ -117,6 +117,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditAmount = canEdit && !isSettled && !isCardTransaction;
+    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, moneyRequestReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -191,7 +192,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
+                {!hasReceipt && canEditReceipt && !isSettled && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
