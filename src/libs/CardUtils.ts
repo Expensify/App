@@ -1,5 +1,6 @@
 import lodash from 'lodash';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx/lib/types';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,11 +73,11 @@ function getYearFromExpirationDateString(expirationDateString: string) {
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
-function getDomainCards(cardList: Record<string, Card>) {
+function getDomainCards(cardList: OnyxCollection<Card>) {
     // Check for domainName to filter out personal credit cards.
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-    const activeCards = lodash.filter(cardList, (card) => !!card.domainName && (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<Card['state']>).includes(card.state));
-    return lodash.groupBy(activeCards, (card) => card.domainName);
+    const activeCards = lodash.filter(cardList, (card) => !!card?.domainName && (CONST.EXPENSIFY_CARD.ACTIVE_STATES as ReadonlyArray<OnyxTypes.Card['state']>).includes(card.state));
+    return lodash.groupBy(activeCards, (card) => card?.domainName);
 }
 
 /**

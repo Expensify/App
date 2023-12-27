@@ -218,8 +218,8 @@ function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): Ava
 /**
  * Gets the secondary phone login number
  */
-function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | undefined {
-    const parsedLoginList = Object.keys(loginList).map((login) => Str.removeSMSDomain(login));
+function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined {
+    const parsedLoginList = Object.keys(loginList ?? {}).map((login) => Str.removeSMSDomain(login));
     return parsedLoginList.find((login) => Str.isValidPhone(login));
 }
 

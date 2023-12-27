@@ -1,57 +1,49 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import FormUtils from '@libs/FormUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
-const propTypes = {
-    /* Onyx Props */
+type OnValidateResult = {
+    phoneNumber?: string;
+};
+
+type GetPhysicalCardPhoneOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: PropTypes.shape({
-        phoneNumber: PropTypes.string,
-    }),
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** domain passed via route /settings/wallet/card/:domain */
-            domain: PropTypes.string,
-        }),
-    }).isRequired,
+    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
 };
 
-const defaultProps = {
-    draftValues: {
-        phoneNumber: '',
-    },
-};
+type GetPhysicalCardPhoneProps = GetPhysicalCardPhoneOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
 
 function GetPhysicalCardPhone({
-    draftValues: {phoneNumber},
     route: {
         params: {domain},
     },
-}) {
+    draftValues,
+}: GetPhysicalCardPhoneProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const onValidate = (values) => {
-        const errors = {};
+    const {phoneNumber} = draftValues ?? {};
 
-        if (!(parsePhoneNumber(values.phoneNumber).possible && Str.isValidPhone(values.phoneNumber))) {
+    const onValidate = (values: OnyxEntry<GetPhysicalCardForm>): OnValidateResult => {
+        const errors: OnValidateResult = {};
+
+        if (!(parsePhoneNumber(values?.phoneNumber ?? '').possible && Str.isValidPhone(values?.phoneNumber ?? ''))) {
             errors.phoneNumber = 'common.error.phoneNumber';
-        } else if (_.isEmpty(values.phoneNumber)) {
+        } else if (!values?.phoneNumber) {
             errors.phoneNumber = 'common.error.fieldRequired';
         }
 
@@ -68,6 +60,7 @@ function GetPhysicalCardPhone({
             onValidate={onValidate}
         >
             <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="phoneNumber"
                 name="phoneNumber"
@@ -82,12 +75,10 @@ function GetPhysicalCardPhone({
     );
 }
 
-GetPhysicalCardPhone.defaultProps = defaultProps;
 GetPhysicalCardPhone.displayName = 'GetPhysicalCardPhone';
-GetPhysicalCardPhone.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<GetPhysicalCardPhoneProps, GetPhysicalCardPhoneOnyxProps>({
     draftValues: {
-        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
+        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
     },
 })(GetPhysicalCardPhone);

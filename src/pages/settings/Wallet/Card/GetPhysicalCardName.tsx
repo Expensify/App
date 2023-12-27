@@ -1,63 +1,55 @@
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import FormUtils from '@libs/FormUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
-const propTypes = {
-    /* Onyx Props */
+type OnValidateResult = {
+    legalFirstName?: string;
+    legalLastName?: string;
+};
+
+type GetPhysicalCardNameOnyxProps = {
     /** Draft values used by the get physical card form */
-    draftValues: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-    }),
-
-    /** Route from navigation */
-    route: PropTypes.shape({
-        /** Params from the route */
-        params: PropTypes.shape({
-            /** domain passed via route /settings/wallet/card/:domain */
-            domain: PropTypes.string,
-        }),
-    }).isRequired,
+    draftValues: OnyxEntry<GetPhysicalCardForm | undefined>;
 };
 
-const defaultProps = {
-    draftValues: {
-        legalFirstName: '',
-        legalLastName: '',
-    },
-};
+type GetPhysicalCardNameProps = GetPhysicalCardNameOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME>;
 
 function GetPhysicalCardName({
-    draftValues: {legalFirstName, legalLastName},
+    draftValues,
     route: {
         params: {domain},
     },
-}) {
+}: GetPhysicalCardNameProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const onValidate = (values) => {
-        const errors = {};
 
-        if (!ValidationUtils.isValidLegalName(values.legalFirstName)) {
+    const {legalFirstName, legalLastName} = draftValues ?? {};
+
+    const onValidate = (values: OnyxEntry<GetPhysicalCardForm>): OnValidateResult => {
+        const errors: OnValidateResult = {};
+
+        if (values?.legalFirstName && !ValidationUtils.isValidLegalName(values.legalFirstName)) {
             errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
-        } else if (_.isEmpty(values.legalFirstName)) {
+        } else if (!values?.legalFirstName) {
             errors.legalFirstName = 'common.error.fieldRequired';
         }
 
-        if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
+        if (values?.legalLastName && !ValidationUtils.isValidLegalName(values.legalLastName)) {
             errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
-        } else if (_.isEmpty(values.legalLastName)) {
+        } else if (!values?.legalLastName) {
             errors.legalLastName = 'common.error.fieldRequired';
         }
 
@@ -74,6 +66,7 @@ function GetPhysicalCardName({
             onValidate={onValidate}
         >
             <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="legalFirstName"
                 name="legalFirstName"
@@ -85,7 +78,8 @@ function GetPhysicalCardName({
                 containerStyles={[styles.mh5]}
                 shouldSaveDraft
             />
-            <InputWrapper
+             <InputWrapper
+                // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/25109) is migrated to TypeScript.
                 InputComponent={TextInput}
                 inputID="legalLastName"
                 name="legalLastName"
@@ -101,12 +95,10 @@ function GetPhysicalCardName({
     );
 }
 
-GetPhysicalCardName.defaultProps = defaultProps;
 GetPhysicalCardName.displayName = 'GetPhysicalCardName';
-GetPhysicalCardName.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<GetPhysicalCardNameProps, GetPhysicalCardNameOnyxProps>({
     draftValues: {
-        key: FormUtils.getDraftKey(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM),
+        key: ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM_DRAFT,
     },
 })(GetPhysicalCardName);

@@ -10,6 +10,7 @@ type PrivatePersonalDetails = {
     legalFirstName?: string;
     legalLastName?: string;
     dob?: string;
+    phoneNumber?: string;
 
     /** User's home address */
     address?: Address;
