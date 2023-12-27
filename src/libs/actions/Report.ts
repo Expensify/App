@@ -942,10 +942,8 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
 
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
-        if (current.actorAccountID !== currentUserAccountID) {
-            if (!latest || current.created > latest.created) {
-                return current;
-            }
+        if (current.actorAccountID !== currentUserAccountID && (!latest || current.created > latest.created)) {
+            return current;
         }
         return latest;
     }, null);
