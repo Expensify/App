@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
@@ -15,7 +16,7 @@ function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyTaxRatesCount = OptionsListUtils.getEnabledTaxRateCount(policyTaxRates.taxes);
+    const policyTaxRatesCount = TransactionUtils.getEnabledTaxRateCount(policyTaxRates.taxes);
     const isTaxRatesCountBelowThreshold = policyTaxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;

@@ -644,17 +644,6 @@ function getEnabledCategoriesCount(options) {
 }
 
 /**
- * Calculates count of all tax enabled options
- *
- * @param {Object[]} options - an initial strings array
- * @param {Boolean} options[].isDisabled - a flag to enable/disable option in a list
- * @returns {Number}
- */
-function getEnabledTaxRateCount(options) {
-    return _.filter(options, (option) => !option.isDisabled).length;
-}
-
-/**
  * Verifies that there is at least one enabled option
  *
  * @param {Object[]} options - an initial strings array
@@ -1062,33 +1051,25 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
 }
 
 /**
- * Represents the original tax rates object.
- *
- * @typedef {Object} PolicyTaxRates
- * @property {Object.<string, TaxData>} taxes - Object containing tax rates with their codes.
- */
-
-/**
  * Represents the data for a single tax rate.
  *
- * @typedef {Object} TaxData
  * @property {string} name - The name of the tax rate.
  * @property {string} value - The value of the tax rate.
  * @property {string} code - The code associated with the tax rate.
- * @property {string} actualName - The actual name of the tax rate.
+ * @property {string} modifiedName - This contains the tax name and tax value as one name
  * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
  */
 
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
- * @param {PolicyTaxRates} policyTaxRates - The original tax rates object.
- * @returns {Object.<string, TaxData>} The transformed tax rates object.
+ * @param {Object} policyTaxRates - The original tax rates object.
+ * @returns {Object.<string, Object.<string, policyTaxRates>>} The transformed tax rates object.
  */
 function transformedTaxRates(policyTaxRates) {
     const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const getName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, name: getName(data, code), actualName: data.name}]));
+    const getModifiedName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
 
@@ -1115,10 +1096,10 @@ function sortTaxRates(taxRates) {
  */
 function getTaxRatesOptions(taxRates) {
     return _.map(taxRates, (taxRate) => ({
-        text: taxRate.name,
+        text: taxRate.modifiedName,
         keyForList: taxRate.code,
-        searchText: taxRate.name,
-        tooltipText: taxRate.name,
+        searchText: taxRate.modifiedName,
+        tooltipText: taxRate.modifiedName,
         isDisabled: taxRate.isDisabled,
         data: taxRate,
     }));
@@ -1162,7 +1143,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     }
 
     if (!_.isEmpty(searchInputValue)) {
-        const searchTaxRates = _.filter(enabledTaxRates, (taxRate) => taxRate.name.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const searchTaxRates = _.filter(enabledTaxRates, (taxRate) => taxRate.modifiedName.toLowerCase().includes(searchInputValue.toLowerCase()));
 
         policyRatesSections.push({
             // "Search" section
@@ -1192,7 +1173,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
 
     if (!_.isEmpty(selectedOptions)) {
         const selectedTaxRatesOptions = _.map(selectedOptions, (option) => {
-            const taxRateObject = _.find(taxes, (taxRate) => taxRate.name === option.name);
+            const taxRateObject = _.find(taxes, (taxRate) => taxRate.modifiedName === option.name);
 
             return {
                 name: option.name,
@@ -1961,7 +1942,6 @@ export {
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
     getEnabledCategoriesCount,
-    getEnabledTaxRateCount,
     hasEnabledOptions,
     sortCategories,
     getCategoryOptionTree,

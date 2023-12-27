@@ -12,6 +12,7 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,11 +45,9 @@ const defaultProps = {
     transaction: {},
 };
 
-// this is the formulae to calculate tax
-const calculateTaxAmount = (taxRates, selectedTaxRate, amount) => {
-    const percentage = _.find(OptionsListUtils.transformedTaxRates(taxRates), (taxRate) => taxRate.name === selectedTaxRate).value;
-    const divisor = percentage.slice(0, -1) / 100 + 1;
-    return parseInt(Math.round(amount - amount / divisor), 10) / 100;
+const getTaxAmount = (taxRates, selectedTaxRate, amount) => {
+    const percentage = _.find(OptionsListUtils.transformedTaxRates(taxRates), (taxRate) => taxRate.modifiedName === selectedTaxRate).value;
+    return TransactionUtils.calculateTaxAmount(percentage, amount);
 };
 
 function IOURequestStepTaxRatePage({
@@ -65,7 +64,7 @@ function IOURequestStepTaxRatePage({
     }
 
     const updateTaxRates = (taxes) => {
-        const taxAmount = calculateTaxAmount(policyTaxRates, taxes.text, transaction.amount);
+        const taxAmount = getTaxAmount(policyTaxRates, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
         IOU.setMoneyRequestTaxRate(transaction.transactionID, taxes);
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);

@@ -6,6 +6,7 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRequestType} from '@libs/TransactionUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
@@ -31,6 +32,11 @@ const propTypes = {
 const defaultProps = {
     report: {},
     transaction: {},
+};
+
+const getTaxAmount = (transaction, amount) => {
+    const percentage = (transaction.taxRate && transaction.taxRate.data.value) || '';
+    return TransactionUtils.calculateTaxAmount(percentage, amount);
 };
 
 function IOURequestStepAmount({
@@ -72,6 +78,13 @@ function IOURequestStepAmount({
      */
     const navigateToNextPage = ({amount}) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+        if (backTo) {
+            const taxAmount = getTaxAmount(transaction, amountInSmallestCurrencyUnits);
+            const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
+            IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
+        }
+
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
