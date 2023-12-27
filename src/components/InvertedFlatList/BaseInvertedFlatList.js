@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {forwardRef, useRef, useEffect} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import FlatList from '@components/FlatList';
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
