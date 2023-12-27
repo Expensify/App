@@ -16,14 +16,18 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Timing from '@libs/actions/Timing';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
+import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
+import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
@@ -165,6 +169,12 @@ function ReportScreen({
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
 
+    const wasReportAccessibleRef = useRef(false);
+    if (firstRenderRef.current) {
+        Timing.start(CONST.TIMING.CHAT_RENDER);
+        Performance.markStart(CONST.TIMING.CHAT_RENDER);
+    }
+
     const reportID = getReportID(route);
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -188,6 +198,13 @@ function ReportScreen({
 
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
+
+    useEffect(() => {
+        if (!report || !report.reportID || shouldHideReport) {
+            return;
+        }
+        wasReportAccessibleRef.current = true;
+    }, [shouldHideReport, report]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
@@ -283,7 +300,22 @@ function ReportScreen({
         [route],
     );
 
+    // Clear notifications for the current report when it's opened and re-focused
+    const clearNotifications = useCallback(() => {
+        // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
+        if (!isTopMostReportId) {
+            return;
+        }
+
+        clearReportNotifications(report.reportID);
+    }, [report.reportID, isTopMostReportId]);
+    useEffect(clearNotifications, [clearNotifications]);
+    useAppFocusEvent(clearNotifications);
+
     useEffect(() => {
+        Timing.end(CONST.TIMING.CHAT_RENDER);
+        Performance.markEnd(CONST.TIMING.CHAT_RENDER);
+
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
         return () => {
@@ -318,7 +350,8 @@ function ReportScreen({
                 prevOnyxReportID === routeReportID &&
                 !onyxReportID &&
                 prevReport.statusNum === CONST.REPORT.STATUS.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM)))
+                (report.statusNum === CONST.REPORT.STATUS.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
+            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport)) && _.isEmpty(report))
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -343,7 +376,19 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
-    }, [route, report, errors, fetchReportIfNeeded, prevReport.reportID, prevUserLeavingStatus, userLeavingStatus, prevReport.statusNum, prevReport.parentReportID, prevReport.chatType]);
+    }, [
+        route,
+        report,
+        errors,
+        fetchReportIfNeeded,
+        prevReport.reportID,
+        prevUserLeavingStatus,
+        userLeavingStatus,
+        prevReport.statusNum,
+        prevReport.parentReportID,
+        prevReport.chatType,
+        prevReport,
+    ]);
 
     useEffect(() => {
         if (!ReportUtils.isValidReportIDFromPath(reportID)) {
@@ -372,7 +417,15 @@ function ReportScreen({
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
-        () => (!firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata.isLoadingInitialReportActions && !isLoading && !userLeavingStatus) || shouldHideReport,
+        () =>
+            (!wasReportAccessibleRef.current &&
+                !firstRenderRef.current &&
+                !report.reportID &&
+                !isOptimisticDelete &&
+                !reportMetadata.isLoadingInitialReportActions &&
+                !isLoading &&
+                !userLeavingStatus) ||
+            shouldHideReport,
         [report, reportMetadata, isLoading, shouldHideReport, isOptimisticDelete, userLeavingStatus],
     );
 

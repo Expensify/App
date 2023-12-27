@@ -33,6 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
+import Log from './Log';
 
 type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
 type TimePeriod = 'AM' | 'PM';
@@ -88,10 +89,19 @@ function setLocale(localeString: Locale) {
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
  */
-function getLocalDateFromDatetime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
+function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
     setLocale(locale);
     if (!datetime) {
-        return utcToZonedTime(new Date(), currentSelectedTimezone);
+        const res = utcToZonedTime(new Date(), currentSelectedTimezone);
+        if (Number.isNaN(res.getTime())) {
+            Log.warn('DateUtils.getLocalDateFromDatetime: utcToZonedTime returned an invalid date. Returning current date.', {
+                locale,
+                datetime,
+                currentSelectedTimezone,
+            });
+            return new Date();
+        }
+        return res;
     }
     const parsedDatetime = new Date(`${datetime}Z`);
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
@@ -209,7 +219,7 @@ function datetimeToRelative(locale: Locale, datetime: string): string {
  * @param selectedTimezone
  * @returns
  */
-function getZoneAbbreviation(datetime: string, selectedTimezone: SelectedTimezone): string {
+function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone): string {
     return formatInTimeZone(datetime, selectedTimezone, 'zzz');
 }
 
@@ -236,7 +246,7 @@ function formatToDayOfWeek(datetime: string): string {
  *
  * @returns 2:30 PM
  */
-function formatToLocalTime(datetime: string): string {
+function formatToLocalTime(datetime: string | Date): string {
     return format(new Date(datetime), CONST.DATE.LOCAL_TIME_FORMAT);
 }
 

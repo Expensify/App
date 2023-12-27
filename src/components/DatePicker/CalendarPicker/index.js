@@ -236,7 +236,7 @@ class CalendarPicker extends React.PureComponent {
                                         <View
                                             style={[
                                                 this.props.themeStyles.calendarDayContainer,
-                                                isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
+                                                isSelected ? this.props.themeStyles.buttonDefaultBG : {},
                                                 !isDisabled ? this.props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >

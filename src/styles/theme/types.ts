@@ -69,7 +69,6 @@ type ThemeColors = {
     dropUIBG: Color;
     receiptDropUIBG: Color;
     checkBox: Color;
-    pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
