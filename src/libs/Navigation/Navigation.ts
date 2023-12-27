@@ -115,8 +115,10 @@ function getActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    // On web, we remove First forward slash from the URL before matching
-    return getActiveRoute().startsWith('/') ? getActiveRoute().substring(1) === routePath : getActiveRoute() === routePath;
+    let activeRoute = getActiveRoute();
+    activeRoute = activeRoute.charAt(0) === '/' ? activeRoute.substring(1) : activeRoute;
+
+    return activeRoute === routePath;
 }
 
 /**
