@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {ForwardedRef, useCallback} from 'react';
 import {ActivityIndicator, GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {SvgProps} from 'react-native-svg';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -9,11 +8,12 @@ import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
+import IconAsset from '@src/types/utils/IconAsset';
 import validateSubmitShortcut from './validateSubmitShortcut';
 
 type ButtonWithText = {
@@ -24,7 +24,7 @@ type ButtonWithText = {
     shouldShowRightIcon?: boolean;
 
     /** The icon asset to display to the left of the text */
-    icon?: React.FC<SvgProps> | null;
+    icon?: IconAsset | null;
 };
 
 type ButtonProps = (ButtonWithText | ChildrenProps) & {
@@ -32,7 +32,7 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     allowBubble?: boolean;
 
     /** The icon asset to display to the right of the text */
-    iconRight?: React.FC<SvgProps>;
+    iconRight?: IconAsset;
 
     /** The fill color to pass into the icon. */
     iconFill?: string;
@@ -106,6 +106,9 @@ type ButtonProps = (ButtonWithText | ChildrenProps) & {
     /** Should enable the haptic feedback? */
     shouldEnableHapticFeedback?: boolean;
 
+    /** Should disable the long press? */
+    isLongPressDisabled?: boolean;
+
     /** Id to use for this button */
     id?: string;
 
@@ -149,6 +152,7 @@ function Button(
         shouldRemoveRightBorderRadius = false,
         shouldRemoveLeftBorderRadius = false,
         shouldEnableHapticFeedback = false,
+        isLongPressDisabled = false,
 
         id = '',
         accessibilityLabel = '',
@@ -199,7 +203,7 @@ function Button(
                     large && styles.buttonLargeText,
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
-                    icon && styles.textAlignLeft,
+                    Boolean(icon) && styles.textAlignLeft,
                     textStyles,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -255,6 +259,9 @@ function Button(
                 return onPress(event);
             }}
             onLongPress={(event) => {
+                if (isLongPressDisabled) {
+                    return;
+                }
                 if (shouldEnableHapticFeedback) {
                     HapticFeedback.longPress();
                 }

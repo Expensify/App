@@ -375,7 +375,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
-    const isPending = !!reportAction.pendingAction;
+    const isPending = !!reportAction.pendingAction && !(!isNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
@@ -735,7 +735,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
         .map((messageElement) => {
             switch (messageElement.kind) {
                 case 'userMention':
-                    return `<mention-user accountID=${messageElement.accountID}></mention-user>`;
+                    return `<mention-user accountID=${messageElement.accountID}>${messageElement.content}</mention-user>`;
                 case 'roomReference':
                     return `<a href="${environmentURL}/r/${messageElement.roomID}" target="_blank">${messageElement.roomName}</a>`;
                 default:

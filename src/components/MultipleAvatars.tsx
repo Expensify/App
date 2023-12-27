@@ -1,10 +1,10 @@
 import React, {memo, useMemo} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -152,7 +152,6 @@ function MultipleAvatars({
                     <Avatar
                         source={icons[0].source}
                         size={size}
-                        fill={theme.iconSuccessFill}
                         name={icons[0].name}
                         type={icons[0].type}
                         fallbackIcon={icons[0].fallbackIcon}
@@ -203,7 +202,6 @@ function MultipleAvatars({
                                             StyleUtils.getAvatarBorderWidth(size),
                                         ]}
                                         source={icon.source ?? fallbackIcon}
-                                        fill={theme.iconSuccessFill}
                                         size={size}
                                         name={icon.name}
                                         type={icon.type}
@@ -267,7 +265,6 @@ function MultipleAvatars({
                             <View>
                                 <Avatar
                                     source={icons[0].source ?? fallbackIcon}
-                                    fill={theme.iconSuccessFill}
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={icons[0].name}
@@ -288,7 +285,6 @@ function MultipleAvatars({
                                     <View>
                                         <Avatar
                                             source={icons[1].source ?? fallbackIcon}
-                                            fill={theme.iconSuccessFill}
                                             size={avatarSize}
                                             imageStyles={[singleAvatarStyle]}
                                             name={icons[1].name}

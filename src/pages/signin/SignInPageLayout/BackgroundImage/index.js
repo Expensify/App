@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
 import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import defaultPropTypes from './propTypes';
 
 const defaultProps = {
