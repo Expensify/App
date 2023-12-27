@@ -12,7 +12,7 @@ declare module '*.svg' {
     import React from 'react';
     import {SvgProps} from 'react-native-svg';
 
-    const content: React.FC<SvgProps>;
+    const content: React.FC<SvgProps> | import('react-native').ImageSourcePropType;
     export default content;
 }
 

@@ -11,6 +11,7 @@ import Tooltip from '@components/Tooltip';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -21,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
-    iconFill,
+    iconFill = null,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -55,6 +56,7 @@ function HeaderWithBackButton({
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
 }: HeaderWithBackButtonProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -92,7 +94,7 @@ function HeaderWithBackButton({
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
-                                fill={iconFill}
+                                fill={iconFill || theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </Tooltip>
@@ -150,7 +152,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.QuestionMark}
-                                    fill={iconFill}
+                                    fill={iconFill || theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -175,7 +177,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Close}
-                                    fill={iconFill}
+                                    fill={iconFill || theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
