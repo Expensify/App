@@ -26,7 +26,7 @@ type SectionProps = ChildrenProps & {
     /** The icon to display along with the title */
     icon?: IconAsset;
 
-    /** Card layout that affects icon positioning, margins, sizes. */
+    /** Card layout that affects icon positioning, margins, sizes */
     cardLayout?: ValueOf<typeof CARD_LAYOUT>;
 
     /** Whether the subtitle should have a muted style */

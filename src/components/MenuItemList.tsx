@@ -5,9 +5,11 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import CONST from '@src/CONST';
 import MenuItem, {MenuItemProps} from './MenuItem';
 
+type MenuItemLink = string | (() => Promise<string>);
+
 type MenuItemWithLink = MenuItemProps & {
     /** The link to open when the menu item is clicked */
-    link: string | (() => Promise<string>);
+    link: MenuItemLink;
 };
 
 type MenuItemListProps = {
@@ -19,16 +21,16 @@ type MenuItemListProps = {
 };
 
 function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuItemListProps) {
-    const popoverAnchor = useRef<View | null>(null);
+    const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
 
     /**
      * Handle the secondary interaction for a menu item.
      *
      * @param link the menu item link or function to get the link
-     * @param e the interaction event
+     * @param event the interaction event
      */
-    const secondaryInteraction = (link: MenuItemWithLink['link'], event: GestureResponderEvent | MouseEvent) => {
+    const secondaryInteraction = (link: MenuItemLink, event: GestureResponderEvent | MouseEvent) => {
         if (typeof link === 'function') {
             link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
         } else if (link) {
@@ -38,23 +40,18 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false}: MenuIt
 
     return (
         <>
-            {menuItems.map((menuItemProps) => {
-                const onPress = menuItemProps.onPress ?? (() => {});
-
-                return (
-                    <MenuItem
-                        key={menuItemProps.title}
-                        onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
-                        ref={popoverAnchor}
-                        shouldBlockSelection={!!menuItemProps.link}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...menuItemProps}
-                        disabled={menuItemProps.disabled ?? isExecuting}
-                        onPress={shouldUseSingleExecution ? singleExecution(onPress) : onPress}
-                        interactive
-                    />
-                );
-            })}
+            {menuItems.map((menuItemProps) => (
+                <MenuItem
+                    key={menuItemProps.title}
+                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    ref={popoverAnchor}
+                    shouldBlockSelection={!!menuItemProps.link}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...menuItemProps}
+                    disabled={!!menuItemProps.disabled || isExecuting}
+                    onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                />
+            ))}
         </>
     );
 }
