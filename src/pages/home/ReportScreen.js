@@ -39,7 +39,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import HeaderView from './HeaderView';
-import reportActionPropTypes from './report/reportActionPropTypes';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
@@ -180,7 +179,7 @@ function ReportScreen({
         if (allReportActions?.length === 0) return [];
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions);
         const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
-        const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions, true);
+        const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
         return reportActionsWithoutDeleted;
     }, [reportActionID, allReportActions, isOffline]);
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -490,7 +489,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {isReportReadyForDisplay && !isLoading && (
+                                {isReportReadyForDisplay && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}

@@ -566,19 +566,11 @@ function getSortedReportActionsForDisplay(reportActions: ReportActions | null): 
     return getSortedReportActions(baseURLAdjustedReportActions, true);
 }
 
-function getReportActionsWithoutRemoved(reportActions: ReportAction[] | null, shouldMarkTheFirstItemAsNewest = false): ReportAction[] {
+function getReportActionsWithoutRemoved(reportActions: ReportAction[] | null): ReportAction[] {
     if (!reportActions) {
         return [];
     }
-    const filtered = reportActions.filter((item) => shouldReportActionBeVisible(item, item.reportActionID));
-
-    if (shouldMarkTheFirstItemAsNewest && filtered?.length > 0) {
-        filtered[0] = {
-            ...filtered[0],
-            isNewestReportAction: true,
-        };
-    }
-    return filtered;
+    return reportActions.filter((item) => shouldReportActionBeVisible(item, item.reportActionID));
 }
 
 /**
