@@ -116,7 +116,14 @@ const TESTBUILD__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK = utils.createMock
     IS_PODFILE_SAME_AS_MANIFEST: false,
 });
 const TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Install cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command'], []);
-const TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt profile', 'Decrypt profile', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
+const TESTBUILD__IOS__DECRYPT_ADHOC_PROFILE__STEP_MOCK = utils.createMockStep('Decrypt AdHoc profile', 'Decrypt AdHoc profile', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
+const TESTBUILD__IOS__DECRYPT_ADHOC_NSE_PROFILE__STEP_MOCK = utils.createMockStep(
+    'Decrypt AdHoc Notification Service profile',
+    'Decrypt AdHoc Notification Service profile',
+    'IOS',
+    [],
+    ['LARGE_SECRET_PASSPHRASE'],
+);
 const TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK = utils.createMockStep('Decrypt certificate', 'Decrypt certificate', 'IOS', [], ['LARGE_SECRET_PASSPHRASE']);
 const TESTBUILD__IOS__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK = utils.createMockStep(
     'Configure AWS Credentials',
@@ -137,7 +144,8 @@ const TESTBUILD__IOS__STEP_MOCKS = [
     TESTBUILD__IOS__CACHE_POD_DEPENDENCIES__STEP_MOCK,
     TESTBUILD__IOS__COMPARE_PODFILE_AND_MANIFEST__STEP_MOCK,
     TESTBUILD__IOS__INSTALL_COCOAPODS__STEP_MOCK,
-    TESTBUILD__IOS__DECRYPT_PROFILE__STEP_MOCK,
+    TESTBUILD__IOS__DECRYPT_ADHOC_PROFILE__STEP_MOCK,
+    TESTBUILD__IOS__DECRYPT_ADHOC_NSE_PROFILE__STEP_MOCK,
     TESTBUILD__IOS__DECRYPT_CERTIFICATE__STEP_MOCK,
     TESTBUILD__IOS__CONFIGURE_AWS_CREDENTIALS__STEP_MOCK,
     TESTBUILD__IOS__RUN_FASTLANE__STEP_MOCK,

@@ -39,16 +39,32 @@ const ScreenWrapper = React.forwardRef(
             shouldDismissKeyboardBeforeClose,
             onEntryTransitionEnd,
             testID,
+
+            /**
+             * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
+             * when the screen transition ends.
+             *
+             * This is required because transitionEnd event doesn't trigger in the testing environment.
+             */
+            navigation: navigationProp,
         },
         ref,
     ) => {
+        /**
+         * We are only passing navigation as prop from
+         * ReportScreenWrapper -> ReportScreen -> ScreenWrapper
+         *
+         * so in other places where ScreenWrapper is used, we need to
+         * fallback to useNavigation.
+         */
+        const navigationFallback = useNavigation();
+        const navigation = navigationProp || navigationFallback;
         const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
         const {initialHeight} = useInitialDimensions();
         const styles = useThemeStyles();
         const keyboardState = useKeyboardState();
         const {isDevelopment} = useEnvironment();
         const {isOffline} = useNetwork();
-        const navigation = useNavigation();
         const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
         const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
         const minHeight = shouldEnableMinHeight && !Browser.isSafari() ? initialHeight : undefined;
