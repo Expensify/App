@@ -5,7 +5,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 ## How does Reassure work?
 
 - Reassure builds on the existing React Testing Library setup and adds a performance measurement functionality. It's intended to be used on local machine and on a remote server as part of your continuous integration setup.
-- To make sure the results are reliable and consistent, Reassure runstests twice – once for the current branch and once for the base branch.
+- To make sure the results are reliable and consistent, Reassure runs tests twice – once for the current branch and once for the base branch.
 
 ## Performance Testing Strategy (`measurePerformance`)
 
