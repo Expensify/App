@@ -1,3 +1,4 @@
+import type {ImageContentFit} from 'expo-image';
 import React, {RefObject, useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
@@ -34,6 +35,12 @@ type PopoverMenuItem = {
 
     /** Icon Height */
     iconHeight?: number;
+
+    /** Icon should be displayed in its own color */
+    displayInDefaultIconColor?: boolean;
+
+    /** Determines how the icon should be resized to fit its container */
+    contentFit?: ImageContentFit;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming'>;
@@ -151,11 +158,13 @@ function PopoverMenu({
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}
+                        contentFit={item.contentFit}
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
+                        displayInDefaultIconColor={item.displayInDefaultIconColor}
                     />
                 ))}
             </View>
