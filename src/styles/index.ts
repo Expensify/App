@@ -424,7 +424,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXXLarge,
+            lineHeight: variables.lineHeightXXLarge,
         },
 
         textHeadlineH1: {
@@ -1606,7 +1606,7 @@ const styles = (theme: ThemeColors) =>
 
         optionAlternateText: {
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         optionAlternateTextCompact: {
