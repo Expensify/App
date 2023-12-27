@@ -67,7 +67,7 @@ function FormAlertWrapper({
                 {` ${translate('common.inTheFormBeforeContinuing')}.`}
             </Text>
         );
-    } else if (isMessageHtml) {
+    } else if (isMessageHtml && typeof message === 'string') {
         content = <RenderHTML html={`<alert-text>${message}</alert-text>`} />;
     }
 
