@@ -94,7 +94,6 @@ function BaseOptionsList({
         // Build the flat array
         for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
             const section = sections[sectionIndex];
-
             // Add the section header
             const sectionHeaderHeight = section.title && !hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
             flatArray.push({length: sectionHeaderHeight, offset});

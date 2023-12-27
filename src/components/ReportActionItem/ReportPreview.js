@@ -216,7 +216,7 @@ function ReportPreview(props) {
                 }
 
                 sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
-                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID));
+                setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
                 setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
                 setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
             },
@@ -295,7 +295,7 @@ function ReportPreview(props) {
                         {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
                             <View style={styles.flexRow}>
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
                                 </View>
                             </View>
                         )}
