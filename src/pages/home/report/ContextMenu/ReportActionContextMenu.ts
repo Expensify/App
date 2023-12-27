@@ -1,5 +1,5 @@
 import React from 'react';
-import {GestureResponderEvent, Text as RNText} from 'react-native';
+import {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -17,7 +17,7 @@ type ShowContextMenu = (
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: RNText | null,
+    contextMenuAnchor: View | RNText | null,
     reportID?: string,
     reportActionID?: string,
     originalReportID?: string,
@@ -94,7 +94,7 @@ function showContextMenu(
     type: ContextMenuType,
     event: GestureResponderEvent | MouseEvent,
     selection: string,
-    contextMenuAnchor: RNText | null,
+    contextMenuAnchor: View | RNText | null,
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',

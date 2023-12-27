@@ -220,7 +220,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         furtherDetails?: string;
 
         /** The function that should be called when this component is LongPressed or right-clicked. */
-        onSecondaryInteraction: () => void;
+        onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
         /** Array of objects that map display names to their corresponding tooltip */
         titleWithTooltips: DisplayNameWithTooltip[];
