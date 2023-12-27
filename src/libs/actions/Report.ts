@@ -336,6 +336,7 @@ function addActions(reportID: string, text = '', file?: File) {
         reportComment?: string;
         file?: File;
         timezone?: string;
+        shouldAllowActionableMentionWhispers?: boolean;
     };
 
     const parameters: AddCommentOrAttachementParameters = {
@@ -344,6 +345,7 @@ function addActions(reportID: string, text = '', file?: File) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
+        shouldAllowActionableMentionWhispers: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -2520,6 +2522,47 @@ function clearNewRoomFormError() {
     });
 }
 
+function resolveMentionWhisper(reportId: string, reportActionID: string, resolution: ValueOf<typeof CONST.REPORT.RESOLUTIONS>) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportActionID]: {
+                    originalMessage: {
+                        resolution,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    type ResolveMentionWhisperParameters = {
+        reportActionID: string;
+        resolution: ValueOf<typeof CONST.REPORT.RESOLUTIONS>;
+    };
+
+    const parameters: ResolveMentionWhisperParameters = {
+        reportActionID,
+        resolution,
+    };
+    API.write('ResolveActionableMentionWhisper', parameters, {optimisticData, failureData});
+}
+
 export {
     searchInServer,
     addComment,
@@ -2582,4 +2625,5 @@ export {
     savePrivateNotesDraft,
     getDraftPrivateNote,
     clearNewRoomFormError,
+    resolveMentionWhisper,
 };

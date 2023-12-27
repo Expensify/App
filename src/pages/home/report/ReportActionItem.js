@@ -17,6 +17,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
+import ActionItemButttons from '@components/ReportActionItem/ActionItemButttons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
@@ -466,6 +467,23 @@ function ReportActionItem(props) {
                                         {isHidden ? props.translate('moderation.revealMessage') : props.translate('moderation.hideMessage')}
                                     </Text>
                                 </Button>
+                            )}
+                            {lodashGet(props, 'action.actionName', '') === CONST.REPORT.ACTIONS.TYPE.MENTIONWHISPER && !lodashGet(props, 'action.originalMessage.resolution', null) && (
+                                <ActionItemButttons
+                                    items={[
+                                        {
+                                            text: props.translate('actionableWhisperItems.invite'),
+                                            key: 'invite',
+                                            onPress: () => Report.resolveMentionWhisper(props.report.reportID, props.action.reportActionID, CONST.REPORT.RESOLUTIONS.INVITE),
+                                            isPrimary: true,
+                                        },
+                                        {
+                                            text: props.translate('actionableWhisperItems.nothing'),
+                                            key: 'nothing',
+                                            onPress: () => Report.resolveMentionWhisper(props.report.reportID, props.action.reportActionID, CONST.REPORT.RESOLUTIONS.NOTHING),
+                                        },
+                                    ]}
+                                />
                             )}
                         </View>
                     ) : (
