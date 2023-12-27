@@ -2,11 +2,13 @@ import React, {ReactNode} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import Header from './Header';
-import Icon, {type SrcProps} from './Icon';
+import Icon from './Icon';
 import Text from './Text';
 
 type ConfirmContentProps = {
@@ -41,7 +43,7 @@ type ConfirmContentProps = {
     shouldShowCancelButton?: boolean;
 
     /** Icon to display above the title */
-    iconSource?: (props: SrcProps) => React.ReactNode;
+    iconSource?: IconAsset;
 
     /** Whether to center the icon / text content */
     shouldCenterContent?: boolean;
@@ -83,6 +85,7 @@ function ConfirmContent({
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const theme = useTheme();
     const {isOffline} = useNetwork();
 
     const isCentered = shouldCenterContent;
@@ -94,6 +97,7 @@ function ConfirmContent({
                     <View style={[styles.flexRow, styles.mb3]}>
                         <Icon
                             src={iconSource}
+                            fill={theme.icon}
                             width={variables.appModalAppIconSize}
                             height={variables.appModalAppIconSize}
                             additionalStyles={iconAdditionalStyles}
