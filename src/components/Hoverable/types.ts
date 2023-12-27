@@ -21,6 +21,9 @@ type HoverableProps = {
 
     /** Decides whether to handle the scroll behaviour to show hover once the scroll ends */
     shouldHandleScroll?: boolean;
+
+    /** Call setHovered(true) with runAfterInteraction */
+    runHoverAfterInteraction?: boolean;
 };
 
 export default HoverableProps;
