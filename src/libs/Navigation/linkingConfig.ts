@@ -7,7 +7,15 @@ import SCREENS from '@src/SCREENS';
 import {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
-    prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'https://dev.new.expensify.com', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
+    prefixes: [
+        'app://-/',
+        'new-expensify://',
+        'https://www.expensify.cash',
+        'https://staging.expensify.cash',
+        'https://dev.new.expensify.com',
+        CONST.NEW_EXPENSIFY_URL,
+        CONST.STAGING_NEW_EXPENSIFY_URL,
+    ],
     config: {
         initialRouteName: SCREENS.HOME,
         screens: {
@@ -21,9 +29,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
-
-            // Demo routes
-            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -206,9 +211,14 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 path: ROUTES.SETTINGS_STATUS,
                                 exact: true,
                             },
-                            [SCREENS.SETTINGS.PROFILE.STATUS_SET]: {
-                                path: ROUTES.SETTINGS_STATUS_SET,
-                                exact: true,
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE,
+                            },
+                            [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
+                                path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                             },
                             [SCREENS.WORKSPACE.INITIAL]: {
                                 path: ROUTES.WORKSPACE_INITIAL.route,

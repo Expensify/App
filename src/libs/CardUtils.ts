@@ -107,4 +107,23 @@ function findPhysicalCard(cards: Card[]) {
     return cards.find((card) => !card.isVirtual);
 }
 
-export {isExpensifyCard, isCorporateCard, getDomainCards, getMonthFromExpirationDateString, getYearFromExpirationDateString, maskCard, getCardDescription, findPhysicalCard};
+/**
+ * Checks if any of the cards in the list have detected fraud
+ *
+ * @param cardList - collection of assigned cards
+ */
+function hasDetectedFraud(cardList: Record<string, OnyxTypes.Card>): boolean {
+    return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
+}
+
+export {
+    isExpensifyCard,
+    isCorporateCard,
+    getDomainCards,
+    getMonthFromExpirationDateString,
+    getYearFromExpirationDateString,
+    maskCard,
+    getCardDescription,
+    findPhysicalCard,
+    hasDetectedFraud,
+};

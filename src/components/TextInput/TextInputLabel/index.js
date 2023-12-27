@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated} from 'react-native';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {defaultProps, propTypes} from './TextInputLabelPropTypes';
 
@@ -19,7 +19,7 @@ function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
     return (
         <Animated.Text
             ref={labelRef}
-            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+            role={CONST.ROLE.PRESENTATION}
             style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(labelTranslateY, 0, labelScale), styles.pointerEventsNone]}
         >
             {label}

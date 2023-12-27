@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getStyledTextArray from '@libs/GetStyledTextArray';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
@@ -31,7 +31,7 @@ type MentionSuggestionsProps = {
     /** Array of suggested mentions */
     mentions: Mention[];
 
-    /** Fired when the user selects an mention */
+    /** Fired when the user selects a mention */
     onSelect: () => void;
 
     /** Mention prefix that follows the @ sign  */
@@ -42,7 +42,7 @@ type MentionSuggestionsProps = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isMentionPickerLarge: boolean;
 
-    /** Meaures the parent container's position and dimensions. */
+    /** Measures the parent container's position and dimensions. */
     measureParentContainer: () => void;
 };
 

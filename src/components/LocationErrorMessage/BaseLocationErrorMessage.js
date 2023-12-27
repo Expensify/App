@@ -8,9 +8,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import colors from '@styles/colors';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import * as locationErrorMessagePropTypes from './locationErrorMessagePropTypes';
 
@@ -26,6 +27,7 @@ const propTypes = {
 };
 
 function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     if (!locationErrorCode) {
@@ -64,10 +66,13 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         onPress={onClose}
                         onMouseDown={(e) => e.preventDefault()}
                         style={[styles.touchableButtonImage]}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
                     >
-                        <Icon src={Expensicons.Close} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.Close}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
             </View>
