@@ -1,25 +1,10 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+import IOURequestStepRoutePropTypes from './request/step/IOURequestStepRoutePropTypes';
 import IOURequestStepWaypoint from './request/step/IOURequestStepWaypoint';
 
 const propTypes = {
-    /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** Thread reportID */
-            threadReportID: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-            /** ID of the transaction being edited */
-            transactionID: PropTypes.string,
-
-            /** Index of the waypoint being edited */
-            waypointIndex: PropTypes.string,
-        }),
-    }),
-};
-
-const defaultProps = {
-    route: {},
+    /** Navigation route context info provided by react navigation */
+    route: IOURequestStepRoutePropTypes.isRequired,
 };
 
 function MoneyRequestEditWaypointPage({route}) {
@@ -28,5 +13,4 @@ function MoneyRequestEditWaypointPage({route}) {
 
 MoneyRequestEditWaypointPage.displayName = 'MoneyRequestEditWaypointPage';
 MoneyRequestEditWaypointPage.propTypes = propTypes;
-MoneyRequestEditWaypointPage.defaultProps = defaultProps;
 export default MoneyRequestEditWaypointPage;
