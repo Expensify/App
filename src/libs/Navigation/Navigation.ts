@@ -114,8 +114,9 @@ function getActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    // We remove First forward slash from the URL before matching
-    return getActiveRoute().substring(1) === routePath.replace(/\/{2,}/g, '/').replace(/\/$/, '');
+    // We remove First forward slash from the URL
+    // And redundant (consecutive and trailing) slashes from path before matching
+    return getActiveRoute().substring(1) === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (_, p1) => (p1 ? '/' : ''));
 }
 
 /**
