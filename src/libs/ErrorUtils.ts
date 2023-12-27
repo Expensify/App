@@ -111,7 +111,7 @@ function getErrorMessagesWithTranslationData(errors: Localize.MaybePhraseKey | E
     if (typeof errors === 'string' || Array.isArray(errors)) {
         const [message, variables] = Array.isArray(errors) ? errors : [errors];
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        return {'0': [message as string, {...variables, isTranslated: true}]};
+        return {'0': [message ?? '', {...variables, isTranslated: true}]};
     }
 
     return mapKeys(errors, (message) => [message, {isTranslated: true}]);
