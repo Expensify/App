@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {MutableRefObject} from 'react';
 import {TextInput, View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -10,7 +10,7 @@ type AnchorOrigin = {
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
 };
 
-type EmojiPopoverAnchor = View | HTMLDivElement | TextInput | null;
+type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | null>;
 
 type OnWillShowPicker = (callback: CloseContextMenuCallback) => void;
 
@@ -19,9 +19,9 @@ type OnModalHideValue = () => void;
 // TODO: Move this type to src/components/EmojiPicker/EmojiPicker.js once it is converted to TS
 type EmojiPickerRef = {
     showEmojiPicker: (
-        onModalHideValue?: OnModalHideValue,
-        onEmojiSelectedValue?: OnEmojiSelected,
-        emojiPopoverAnchor?: EmojiPopoverAnchor,
+        onModalHideValue: OnModalHideValue,
+        onEmojiSelectedValue: OnEmojiSelected,
+        emojiPopoverAnchor: EmojiPopoverAnchor,
         anchorOrigin?: AnchorOrigin,
         onWillShow?: OnWillShowPicker,
         id?: string,
@@ -48,9 +48,9 @@ const emojiPickerRef = React.createRef<EmojiPickerRef>();
  * @param id - Unique id for EmojiPicker
  */
 function showEmojiPicker(
-    onModalHide: OnModalHideValue = () => {},
-    onEmojiSelected: OnEmojiSelected = () => {},
-    emojiPopoverAnchor: EmojiPopoverAnchor = null,
+    onModalHide: OnModalHideValue,
+    onEmojiSelected: OnEmojiSelected,
+    emojiPopoverAnchor: EmojiPopoverAnchor,
     anchorOrigin?: AnchorOrigin,
     onWillShow: OnWillShowPicker = () => {},
     id?: string,

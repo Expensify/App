@@ -1,12 +1,13 @@
+import {RefObject} from 'react';
 import {TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-type PickerRefElement = TextInput | View | null | undefined;
+type PickerRefElement = RefObject<TextInput | View>;
 
-type OpenPickerCallback = (element: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
+type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
 
 type CloseContextMenuCallback = () => void;
 
