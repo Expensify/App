@@ -3,7 +3,6 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import ImageSVG from '@components/ImageSVG';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -27,9 +26,7 @@ function ReceiptDropUI({onDrop, receiptImageTopPosition}) {
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={styles.receiptImageWrapper(receiptImageTopPosition)}>
-                    <ImageSVG
-                        src={ReceiptUpload}
-                        contentFit="contain"
+                    <ReceiptUpload
                         width={CONST.RECEIPT.ICON_SIZE}
                         height={CONST.RECEIPT.ICON_SIZE}
                     />

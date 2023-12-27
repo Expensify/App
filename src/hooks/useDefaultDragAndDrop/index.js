@@ -1,22 +1,16 @@
 import {useEffect} from 'react';
-import UseDefaultDragAndDrop from './types';
 
-const useDefaultDragAndDrop: UseDefaultDragAndDrop = () => {
+export default function useDefaultDragAndDrop() {
     useEffect(() => {
-        const dropDragListener = (event: DragEvent) => {
+        const dropDragListener = (event) => {
             event.preventDefault();
-
-            if (event.dataTransfer) {
-                // eslint-disable-next-line no-param-reassign
-                event.dataTransfer.dropEffect = 'none';
-            }
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.dropEffect = 'none';
         };
-
         document.addEventListener('dragover', dropDragListener);
         document.addEventListener('dragenter', dropDragListener);
         document.addEventListener('dragleave', dropDragListener);
         document.addEventListener('drop', dropDragListener);
-
         return () => {
             document.removeEventListener('dragover', dropDragListener);
             document.removeEventListener('dragenter', dropDragListener);
@@ -24,6 +18,4 @@ const useDefaultDragAndDrop: UseDefaultDragAndDrop = () => {
             document.removeEventListener('drop', dropDragListener);
         };
     }, []);
-};
-
-export default useDefaultDragAndDrop;
+}

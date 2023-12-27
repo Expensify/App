@@ -11,6 +11,7 @@ import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import type {AuthScreensParamList} from '@navigation/types';
+import DemoSetupPage from '@pages/DemoSetupPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -49,6 +50,9 @@ type AuthScreensProps = {
 
     /** The last Onyx update ID was applied to the client */
     lastUpdateIDAppliedToClient: OnyxEntry<number>;
+
+    /** Information about any currently running demos */
+    demoInfo: OnyxEntry<OnyxTypes.DemoInfo>;
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
@@ -126,7 +130,7 @@ const modalScreenListeners = {
     },
 };
 
-function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
+function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoomID, demoInfo, isUsingMemoryOnlyKeys = false}: AuthScreensProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles);
@@ -185,6 +189,10 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
 
         App.redirectThirdPartyDesktopSignIn();
 
+        // Check if we should be running any demos immediately after signing in.
+        if (demoInfo?.money2020?.isBeginningDemo) {
+            Navigation.navigate(ROUTES.MONEY2020, CONST.NAVIGATION.TYPE.FORCED_UP);
+        }
         if (lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
             Report.openLastOpenedPublicRoom(lastOpenedPublicRoomID);
@@ -276,6 +284,21 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     getComponent={loadConciergePage}
                 />
                 <RootStack.Screen
+                    name={CONST.DEMO_PAGES.SAASTR}
+                    options={defaultScreenOptions}
+                    component={DemoSetupPage}
+                />
+                <RootStack.Screen
+                    name={CONST.DEMO_PAGES.SBE}
+                    options={defaultScreenOptions}
+                    component={DemoSetupPage}
+                />
+                <RootStack.Screen
+                    name={CONST.DEMO_PAGES.MONEY2020}
+                    options={defaultScreenOptions}
+                    component={DemoSetupPage}
+                />
+                <RootStack.Screen
                     name={SCREENS.REPORT_ATTACHMENTS}
                     options={{
                         headerShown: false,
@@ -321,5 +344,8 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     },
     lastUpdateIDAppliedToClient: {
         key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    },
+    demoInfo: {
+        key: ONYXKEYS.DEMO_INFO,
     },
 })(AuthScreensMemoized);

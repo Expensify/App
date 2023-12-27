@@ -94,13 +94,12 @@ function BasePicker<TPickerValue>(
         // eslint-disable-next-line react/display-name
         return () => (
             <Icon
-                fill={theme.icon}
                 src={Expensicons.DownArrow}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles, theme.icon]);
+    }, [icon, size, styles]);
 
     useImperativeHandle(ref, () => ({
         /**

@@ -228,8 +228,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         initializeAmount(backendAmount);
 
-        onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, currency, initializeAmount]);
+        onSubmitButtonPress(currentAmount);
+    }, [onSubmitButtonPress, currentAmount, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.

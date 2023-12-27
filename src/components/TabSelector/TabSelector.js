@@ -1,38 +1,42 @@
-import {MaterialTopTabNavigationHelpers} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import {TabNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {Animated} from 'react-native';
+import PropTypes from 'prop-types';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {RootStackParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
 import TabSelectorItem from './TabSelectorItem';
 
-type TabSelectorProps = {
+const propTypes = {
     /* Navigation state provided by React Navigation */
-    state: TabNavigationState<RootStackParamList>;
+    // eslint-disable-next-line react/forbid-prop-types
+    state: PropTypes.object.isRequired,
 
     /* Navigation functions provided by React Navigation */
-    navigation: MaterialTopTabNavigationHelpers;
+    navigation: PropTypes.shape({
+        navigate: PropTypes.func.isRequired,
+        emit: PropTypes.func.isRequired,
+    }).isRequired,
 
     /* Callback fired when tab is pressed */
-    onTabPress?: (name: string) => void;
+    onTabPress: PropTypes.func,
 
     /* AnimatedValue for the position of the screen while swiping */
-    position: Animated.AnimatedInterpolation<number | string>;
+    position: PropTypes.shape({
+        interpolate: PropTypes.func.isRequired,
+    }),
 };
 
-type IconAndTitle = {
-    icon: IconAsset;
-    title: string;
+const defaultProps = {
+    onTabPress: () => {},
+    position: {
+        interpolate: () => {},
+    },
 };
 
-function getIconAndTitle(route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+const getIconAndTitle = (route, translate) => {
     switch (route) {
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
@@ -47,9 +51,9 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
-}
+};
 
-function getOpacity(position: Animated.AnimatedInterpolation<number>, routesLength: number, tabIndex: number, active: boolean, affectedTabs: number[]) {
+const getOpacity = (position, routesLength, tabIndex, active, affectedTabs) => {
     const activeValue = active ? 1 : 0;
     const inactiveValue = active ? 0 : 1;
 
@@ -58,13 +62,13 @@ function getOpacity(position: Animated.AnimatedInterpolation<number>, routesLeng
 
         return position.interpolate({
             inputRange,
-            outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
+            outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? activeValue : inactiveValue)),
         });
     }
     return activeValue;
-}
+};
 
-function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSelectorProps) {
+function TabSelector({state, navigation, onTabPress, position}) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -72,13 +76,13 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
     const getBackgroundColor = useCallback(
-        (routesLength: number, tabIndex: number, affectedTabs: number[]) => {
+        (routesLength, tabIndex, affectedTabs) => {
             if (routesLength > 1) {
                 const inputRange = Array.from({length: routesLength}, (v, i) => i);
 
                 return position.interpolate({
                     inputRange,
-                    outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
+                    outputRange: _.map(inputRange, (i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
                 });
             }
             return theme.border;
@@ -86,7 +90,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
         [theme, position],
     );
 
-    useEffect(() => {
+    React.useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
         setTimeout(() => {
             setAffectedAnimatedTabs(defaultAffectedAnimatedTabs);
@@ -95,15 +99,15 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
 
     return (
         <View style={styles.tabSelector}>
-            {state.routes.map((route, index) => {
+            {_.map(state.routes, (route, index) => {
                 const activeOpacity = getOpacity(position, state.routes.length, index, true, affectedAnimatedTabs);
                 const inactiveOpacity = getOpacity(position, state.routes.length, index, false, affectedAnimatedTabs);
                 const backgroundColor = getBackgroundColor(state.routes.length, index, affectedAnimatedTabs);
-                const isActive = index === state.index;
+                const isFocused = index === state.index;
                 const {icon, title} = getIconAndTitle(route.name, translate);
 
                 const onPress = () => {
-                    if (isActive) {
+                    if (isFocused) {
                         return;
                     }
 
@@ -117,7 +121,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
 
                     if (!event.defaultPrevented) {
                         // The `merge: true` option makes sure that the params inside the tab screen are preserved
-                        navigation.navigate({key: route.key, merge: true});
+                        navigation.navigate({name: route.name, merge: true});
                     }
 
                     onTabPress(route.name);
@@ -132,7 +136,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
-                        isActive={isActive}
+                        isFocused={isFocused}
                     />
                 );
             })}
@@ -140,6 +144,8 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
     );
 }
 
+TabSelector.propTypes = propTypes;
+TabSelector.defaultProps = defaultProps;
 TabSelector.displayName = 'TabSelector';
 
 export default TabSelector;

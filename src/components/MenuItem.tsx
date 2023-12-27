@@ -1,8 +1,8 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {ImageContentFit} from 'expo-image';
-import React, {ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
+import React, {FC, ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
 import {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {AnimatedStyle} from 'react-native-reanimated';
+import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,14 +17,13 @@ import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import {Icon as IconType} from '@src/types/onyx/OnyxCommon';
-import IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
 import {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
-import Icon from './Icon';
+import Icon, {SrcProps} from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import MultipleAvatars from './MultipleAvatars';
@@ -52,7 +51,7 @@ type IconProps = {
     iconType: typeof CONST.ICON_TYPE_ICON;
 
     /** Icon to display on the left side of component */
-    icon: IconAsset;
+    icon: (props: SrcProps) => ReactNode;
 };
 
 type AvatarProps = {
@@ -94,7 +93,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         iconFill?: string;
 
         /** Secondary icon to display on the left side of component, right of the icon */
-        secondaryIcon?: IconAsset;
+        secondaryIcon?: (props: SrcProps) => React.ReactNode;
 
         /** The fill color to pass into the secondary icon. */
         secondaryIconFill?: string;
@@ -109,22 +108,22 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         iconStyles?: StyleProp<ViewStyle>;
 
         /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-        fallbackIcon?: IconAsset;
+        fallbackIcon?: FC<SvgProps>;
 
         /** An icon to display under the main item */
-        furtherDetailsIcon?: IconAsset;
+        furtherDetailsIcon?: (props: SrcProps) => ReactNode;
 
         /** Boolean whether to display the title right icon */
         shouldShowTitleIcon?: boolean;
 
         /** Icon to display at right side of title */
-        titleIcon?: IconAsset;
+        titleIcon?: (props: SrcProps) => ReactNode;
 
         /** Boolean whether to display the right icon */
         shouldShowRightIcon?: boolean;
 
         /** Overrides the icon for shouldShowRightIcon */
-        iconRight?: IconAsset;
+        iconRight?: (props: SrcProps) => ReactNode;
 
         /** Should render component on the right */
         shouldShowRightComponent?: boolean;
@@ -224,12 +223,6 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
 
         /** Array of objects that map display names to their corresponding tooltip */
         titleWithTooltips: DisplayNameWithTooltip[];
-
-        /** Icon should be displayed in its own color */
-        displayInDefaultIconColor?: boolean;
-
-        /** Determines how the icon should be resized to fit its container */
-        contentFit?: ImageContentFit;
     };
 
 function MenuItem(
@@ -290,8 +283,6 @@ function MenuItem(
         shouldCheckActionAllowedOnPress = true,
         onSecondaryInteraction,
         titleWithTooltips,
-        displayInDefaultIconColor = false,
-        contentFit = 'cover',
     }: MenuItemProps,
     ref: ForwardedRef<View>,
 ) {
@@ -420,7 +411,7 @@ function MenuItem(
                                         <MultipleAvatars
                                             isHovered={isHovered}
                                             isPressed={pressed}
-                                            icons={icon as IconType[]}
+                                            icons={icon}
                                             size={avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
@@ -433,17 +424,12 @@ function MenuItem(
                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
                                             {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
-                                                    contentFit={contentFit}
                                                     hovered={isHovered}
                                                     pressed={pressed}
                                                     src={icon}
                                                     width={iconWidth}
                                                     height={iconHeight}
-                                                    fill={
-                                                        displayInDefaultIconColor
-                                                            ? undefined
-                                                            : iconFill ?? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)
-                                                    }
+                                                    fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true)}
                                                 />
                                             )}
                                             {icon && iconType === CONST.ICON_TYPE_WORKSPACE && (
@@ -469,7 +455,6 @@ function MenuItem(
                                     {secondaryIcon && (
                                         <View style={[styles.popoverMenuIcon, iconStyles]}>
                                             <Icon
-                                                contentFit={contentFit}
                                                 src={secondaryIcon}
                                                 width={iconWidth}
                                                 height={iconHeight}
@@ -529,7 +514,6 @@ function MenuItem(
                                                     src={furtherDetailsIcon}
                                                     height={variables.iconSizeNormal}
                                                     width={variables.iconSizeNormal}
-                                                    fill={theme.icon}
                                                     inline
                                                 />
                                                 <Text

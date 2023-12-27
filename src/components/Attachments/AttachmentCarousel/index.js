@@ -6,7 +6,6 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -29,7 +28,6 @@ const viewabilityConfig = {
 };
 
 function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
@@ -158,7 +156,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
-                    iconColor={theme.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}

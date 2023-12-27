@@ -9,7 +9,6 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -188,14 +187,11 @@ function IOURequestStepScan({
         >
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Hand}
+                    <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={styles.pb5}
+                        style={[styles.pb5]}
                     />
-
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     <Button
@@ -288,9 +284,7 @@ function IOURequestStepScan({
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
                 >
-                    <ImageSVG
-                        contentFit="contain"
-                        src={Shutter}
+                    <Shutter
                         width={CONST.RECEIPT.SHUTTER_SIZE}
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />

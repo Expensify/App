@@ -7,18 +7,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
-import sourcePropTypes from './Image/sourcePropTypes';
 import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */
-    icon: sourcePropTypes.isRequired,
+    icon: PropTypes.elementType.isRequired,
 
     /** Text to display */
     text: PropTypes.string.isRequired,
 
     /** Icon to show when interaction was successful */
-    successIcon: sourcePropTypes,
+    successIcon: PropTypes.elementType,
 
     /** Text to show when interaction was successful */
     successText: PropTypes.string,

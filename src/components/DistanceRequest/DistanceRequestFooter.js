@@ -8,7 +8,6 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -84,8 +83,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat],
                         markerComponent: () => (
-                            <ImageSVG
-                                src={MarkerComponent}
+                            <MarkerComponent
                                 width={CONST.MAP_MARKER_SIZE}
                                 height={CONST.MAP_MARKER_SIZE}
                                 fill={theme.icon}

@@ -1,11 +1,12 @@
 import {useEffect, useState} from 'react';
-import UseActiveElement from './types';
 
 /**
  * Listens for the focusin and focusout events and sets the DOM activeElement to the state.
  * On native, we just return null.
+ *
+ * @return {Element} the active element in the DOM
  */
-const useActiveElement: UseActiveElement = () => {
+export default function useActiveElement() {
     const [active, setActive] = useState(document.activeElement);
 
     const handleFocusIn = () => {
@@ -27,6 +28,4 @@ const useActiveElement: UseActiveElement = () => {
     }, []);
 
     return active;
-};
-
-export default useActiveElement;
+}

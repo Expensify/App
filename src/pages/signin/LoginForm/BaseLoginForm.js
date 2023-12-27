@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -25,6 +24,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -99,7 +99,6 @@ function LoginForm(props) {
     const prevIsVisible = usePrevious(props.isVisible);
     const firstBlurred = useRef(false);
     const isFocused = useIsFocused();
-    const isLoading = useRef(false);
 
     const {translate} = props;
 
@@ -166,10 +165,9 @@ function LoginForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        if (props.network.isOffline || props.account.isLoading || isLoading.current) {
+        if (props.network.isOffline || props.account.isLoading) {
             return;
         }
-        isLoading.current = true;
 
         // If account was closed and have success message in Onyx, we clear it here
         if (!_.isEmpty(props.closeAccount.success)) {
@@ -183,7 +181,6 @@ function LoginForm(props) {
         }
 
         if (!validate(login)) {
-            isLoading.current = false;
             return;
         }
 
@@ -221,13 +218,6 @@ function LoginForm(props) {
         return () => clearTimeout(focusTimeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
-
-    useEffect(() => {
-        if (props.account.isLoading !== false) {
-            return;
-        }
-        isLoading.current = false;
-    }, [props.account.isLoading]);
 
     useEffect(() => {
         if (props.blurOnSubmit) {

@@ -12,7 +12,7 @@ function parseMessage(messages: Message[] | undefined) {
         let content = Str.safeEscape(part.text);
 
         if (isEmail) {
-            tagType = 'next-step-email';
+            tagType = 'next-steps-email';
             content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
         }
 
@@ -24,7 +24,7 @@ function parseMessage(messages: Message[] | undefined) {
         .replace(/%Expenses/g, 'These expenses')
         .replace(/%tobe/g, 'are');
 
-    return `<next-step>${formattedHtml}</next-step>`;
+    return `<next-steps>${formattedHtml}</next-steps>`;
 }
 
 // eslint-disable-next-line import/prefer-default-export

@@ -2,18 +2,18 @@ import React from 'react';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type NextStepEmailRendererProps = {
+type NextStepsEmailRendererProps = {
     tnode: {
         data: string;
     };
 };
 
-function NextStepEmailRenderer({tnode}: NextStepEmailRendererProps) {
+function NextStepsEmailRenderer({tnode}: NextStepsEmailRendererProps) {
     const styles = useThemeStyles();
 
     return <Text style={[styles.breakWord, styles.textLabelSupporting, styles.textStrong]}>{tnode.data}</Text>;
 }
 
-NextStepEmailRenderer.displayName = 'NextStepEmailRenderer';
+NextStepsEmailRenderer.displayName = 'NextStepsEmailRenderer';
 
-export default NextStepEmailRenderer;
+export default NextStepsEmailRenderer;

@@ -243,9 +243,8 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         utils.createStepAssertion('Setup Node', true, null, 'WEB', 'Setting up Node'),
         utils.createStepAssertion('Setup Cloudflare CLI', true, null, 'WEB', 'Setting up Cloudflare CLI'),
         utils.createStepAssertion('Configure AWS Credentials', true, null, 'WEB', 'Configuring AWS credentials', [
-            {key: 'aws-access-key-id', value: '***'},
-            {key: 'aws-secret-access-key', value: '***'},
-            {key: 'aws-region', value: 'us-east-1'},
+            {key: 'AWS_ACCESS_KEY_ID', value: '***'},
+            {key: 'AWS_SECRET_ACCESS_KEY', value: '***'},
         ]),
     ];
     if (isProduction) {

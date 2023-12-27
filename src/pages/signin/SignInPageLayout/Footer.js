@@ -5,7 +5,6 @@ import _ from 'underscore';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
@@ -164,10 +163,7 @@ function Footer(props) {
             <View style={footerWrapper}>
                 {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
-                        <ImageSVG
-                            src={SignInGradient}
-                            height="100%"
-                        />
+                        <SignInGradient height="100%" />
                     </View>
                 ) : null}
                 <View style={pageFooterWrapper}>
@@ -210,10 +206,9 @@ function Footer(props) {
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
-                            <ImageSVG src={Expensicons.ExpensifyFooterLogo} />
+                            <Expensicons.ExpensifyFooterLogo />
                         ) : (
-                            <ImageSVG
-                                src={Expensicons.ExpensifyFooterLogoVertical}
+                            <Expensicons.ExpensifyFooterLogoVertical
                                 height={variables.verticalLogoHeight}
                                 width={variables.verticalLogoWidth}
                             />

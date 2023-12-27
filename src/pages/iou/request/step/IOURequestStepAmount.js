@@ -68,10 +68,10 @@ function IOURequestStepAmount({
     };
 
     /**
-     * @param {Number} amount
+     * @param {Number} currentAmount
      */
-    const navigateToNextPage = ({amount}) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+    const navigateToNextPage = (currentAmount) => {
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (backTo) {

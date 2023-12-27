@@ -66,7 +66,7 @@ function MiniQuickEmojiReactions(props) {
             (emojiCode, emojiObject) => {
                 props.onEmojiSelected(emojiObject, props.emojiReactions);
             },
-            ref,
+            ref.current,
             undefined,
             () => {},
             props.reportAction.reportActionID,

@@ -14,7 +14,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
@@ -57,12 +56,10 @@ function DistanceEReceipt({transaction}) {
                 contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}
             >
                 <View style={styles.eReceiptPanel}>
-                    <ImageSVG
-                        src={EReceiptBackground}
+                    <EReceiptBackground
                         style={styles.eReceiptBackground}
                         pointerEvents="none"
                     />
-
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
                         {isOffline || !thumbnailSource ? (
                             <PendingMapView />

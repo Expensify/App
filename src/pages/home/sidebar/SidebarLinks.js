@@ -7,7 +7,6 @@ import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import ImageSVG from '@components/ImageSVG';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -158,12 +157,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             >
                 <Header
                     title={
-                        <ImageSVG
-                            src={LogoComponent}
+                        <LogoComponent
+                            fill={theme.text}
                             width={variables.lhnLogoWidth}
                             height={variables.lhnLogoHeight}
-                            fill={theme.text}
-                            contentFit="contain"
                         />
                     }
                     role={CONST.ROLE.PRESENTATION}
@@ -176,10 +173,7 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
-                        <Icon
-                            fill={theme.icon}
-                            src={Expensicons.MagnifyingGlass}
-                        />
+                        <Icon src={Expensicons.MagnifyingGlass} />
                     </PressableWithoutFeedback>
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />

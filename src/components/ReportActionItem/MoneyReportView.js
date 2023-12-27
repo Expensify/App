@@ -1,54 +1,51 @@
+import PropTypes from 'prop-types';
 import React from 'react';
-import {StyleProp, TextStyle, View} from 'react-native';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
+import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
-import type {Report} from '@src/types/onyx';
 
-type MoneyReportViewProps = {
+const propTypes = {
     /** The report currently being looked at */
-    report: Report;
+    report: reportPropTypes.isRequired,
 
     /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean;
+    shouldShowHorizontalRule: PropTypes.bool.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
-function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProps) {
+function MoneyReportView(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const isSettled = ReportUtils.isSettled(report.reportID);
+    const isSettled = ReportUtils.isSettled(props.report.reportID);
 
-    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(report);
+    const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.report);
 
     const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend;
-    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency, ReportUtils.hasOnlyDistanceRequestTransactions(report.reportID));
-    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
-    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
+    const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, props.report.currency, ReportUtils.hasOnlyDistanceRequestTransactions(props.report.reportID));
+    const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, props.report.currency);
+    const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, props.report.currency);
 
-    const subAmountTextStyles: StyleProp<TextStyle> = [
-        styles.taskTitleMenuItem,
-        styles.alignSelfCenter,
-        StyleUtils.getFontSizeStyle(variables.fontSizeh1),
-        StyleUtils.getColorStyle(theme.textSupporting),
-    ];
+    const subAmountTextStyles = [styles.taskTitleMenuItem, styles.alignSelfCenter, StyleUtils.getFontSizeStyle(variables.fontSizeh1), StyleUtils.getColorStyle(theme.textSupporting)];
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true)]}>
+        <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth, true)]}>
             <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
+            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth, true)]}>
                 <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                     <View style={[styles.flex1, styles.justifyContentCenter]}>
                         <Text
@@ -75,7 +72,7 @@ function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProp
                         </Text>
                     </View>
                 </View>
-                {Boolean(shouldShowBreakdown) && (
+                {shouldShowBreakdown ? (
                     <>
                         <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                             <View style={[styles.flex1, styles.justifyContentCenter]}>
@@ -114,16 +111,17 @@ function MoneyReportView({report, shouldShowHorizontalRule}: MoneyReportViewProp
                             </View>
                         </View>
                     </>
-                )}
+                ) : undefined}
                 <SpacerView
-                    shouldShow={shouldShowHorizontalRule}
-                    style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
+                    shouldShow={props.shouldShowHorizontalRule}
+                    style={[props.shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
                 />
             </View>
         </View>
     );
 }
 
+MoneyReportView.propTypes = propTypes;
 MoneyReportView.displayName = 'MoneyReportView';
 
-export default MoneyReportView;
+export default withWindowDimensions(MoneyReportView);

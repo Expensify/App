@@ -6,7 +6,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
@@ -18,12 +17,10 @@ const propTypes = {
 };
 
 function PDFInfoMessage(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     return (
         <View style={styles.alignItemsCenter}>
             <Icon
-                fill={theme.icon}
                 src={Expensicons.EyeDisabled}
                 width={variables.iconSizeSuperLarge}
                 height={variables.iconSizeSuperLarge}

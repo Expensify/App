@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 import MenuItemList from '@components/MenuItemList';
 import menuItemPropTypes from '@components/menuItemPropTypes';
 import Text from '@components/Text';
@@ -24,7 +23,7 @@ const propTypes = {
     subtitle: PropTypes.string,
 
     /** The icon to display along with the title */
-    icon: sourcePropTypes,
+    icon: PropTypes.func,
 
     /** Icon component */
     IconComponent: PropTypes.func,

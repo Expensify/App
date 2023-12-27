@@ -1,7 +1,5 @@
-const _ = require('underscore');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
-const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 /**
@@ -35,12 +33,7 @@ function getTestBuildMessage() {
 | ${androidQRCode}  | ${iOSQRCode}  |
 | Desktop :computer: | Web :spider_web: |
 | ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |
-
----
-
-:eyes: [View the workflow run that generated this build](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) :eyes:
-`;
+| ${desktopQRCode}  | ${webQRCode}  |`;
 
     return message;
 }
@@ -52,44 +45,20 @@ function getTestBuildMessage() {
  * @param {String} message
  * @returns {Promise<void>}
  */
-async function commentPR(PR, message) {
+function commentPR(PR, message) {
     console.log(`Posting test build comment on #${PR}`);
-    try {
-        await GithubUtils.createComment(context.repo.repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
-    } catch (err) {
-        console.log(`Unable to write comment on #${PR} 😞`);
-        core.setFailed(err.message);
-    }
+    return GithubUtils.createComment(context.repo.repo, PR, message)
+        .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
+        .catch((err) => {
+            console.log(`Unable to write comment on #${PR} 😞`);
+            core.setFailed(err.message);
+        });
 }
 
-async function run() {
+const run = function () {
     const PR_NUMBER = core.getInput('PR_NUMBER', {required: true});
-    const comments = await GithubUtils.paginate(
-        GithubUtils.octokit.issues.listComments,
-        {
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            issue_number: PR_NUMBER,
-            per_page: 100,
-        },
-        (response) => response.data,
-    );
-    const testBuildComment = _.find(comments, (comment) => comment.body.startsWith(':test_tube::test_tube: Use the links below to test this adhoc build'));
-    if (testBuildComment) {
-        console.log('Found previous build comment, hiding it', testBuildComment);
-        await GithubUtils.graphql(`
-            mutation {
-              minimizeComment(input: {classifier: OUTDATED, subjectId: "${testBuildComment.node_id}"}) {
-                minimizedComment {
-                  minimizedReason
-                }
-              }
-            }
-        `);
-    }
-    await commentPR(PR_NUMBER, getTestBuildMessage());
-}
+    return commentPR(PR_NUMBER, getTestBuildMessage()).then(() => Promise.resolve());
+};
 
 if (require.main === module) {
     run();

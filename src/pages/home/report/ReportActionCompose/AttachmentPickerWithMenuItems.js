@@ -1,8 +1,6 @@
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -13,18 +11,15 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withNavigationFocus from '@components/withNavigationFocus';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
@@ -36,12 +31,6 @@ const propTypes = {
         /** Whether or not the report is in the process of being created */
         loading: PropTypes.bool,
     }).isRequired,
-
-    /** The policy tied to the report */
-    policy: PropTypes.shape({
-        /** Type of the policy */
-        type: PropTypes.string,
-    }),
 
     /** The personal details of everyone in the report */
     reportParticipantIDs: PropTypes.arrayOf(PropTypes.number),
@@ -100,7 +89,6 @@ const propTypes = {
 
 const defaultProps = {
     reportParticipantIDs: [],
-    policy: {},
 };
 
 /**
@@ -111,7 +99,6 @@ const defaultProps = {
  */
 function AttachmentPickerWithMenuItems({
     report,
-    policy,
     reportParticipantIDs,
     displayFileInModal,
     isFullComposerAvailable,
@@ -130,7 +117,6 @@ function AttachmentPickerWithMenuItems({
     actionButtonRef,
     isFocused,
 }) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
@@ -158,10 +144,10 @@ function AttachmentPickerWithMenuItems({
             },
         };
 
-        return _.map(ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs), (option) => ({
+        return _.map(ReportUtils.getMoneyRequestOptions(report, reportParticipantIDs), (option) => ({
             ...options[option],
         }));
-    }, [report, policy, reportParticipantIDs, translate]);
+    }, [report, reportParticipantIDs, translate]);
 
     /**
      * Determines if we can show the task option
@@ -246,10 +232,7 @@ function AttachmentPickerWithMenuItems({
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.collapse')}
                                     >
-                                        <Icon
-                                            fill={theme.icon}
-                                            src={Expensicons.Collapse}
-                                        />
+                                        <Icon src={Expensicons.Collapse} />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -268,10 +251,7 @@ function AttachmentPickerWithMenuItems({
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('reportActionCompose.expand')}
                                     >
-                                        <Icon
-                                            fill={theme.icon}
-                                            src={Expensicons.Expand}
-                                        />
+                                        <Icon src={Expensicons.Expand} />
                                     </PressableWithFeedback>
                                 </Tooltip>
                             )}
@@ -294,10 +274,7 @@ function AttachmentPickerWithMenuItems({
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('reportActionCompose.addAction')}
                                 >
-                                    <Icon
-                                        fill={theme.icon}
-                                        src={Expensicons.Plus}
-                                    />
+                                    <Icon src={Expensicons.Plus} />
                                 </PressableWithFeedback>
                             </Tooltip>
                         </View>
@@ -333,11 +310,4 @@ AttachmentPickerWithMenuItems.propTypes = propTypes;
 AttachmentPickerWithMenuItems.defaultProps = defaultProps;
 AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
-export default compose(
-    withNavigationFocus,
-    withOnyx({
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
-        },
-    }),
-)(AttachmentPickerWithMenuItems);
+export default withNavigationFocus(AttachmentPickerWithMenuItems);

@@ -1,11 +1,11 @@
 import {ViewStyle} from 'react-native';
-import IconAsset from '@src/types/utils/IconAsset';
+import {SvgProps} from 'react-native-svg';
 import BankAccount from './BankAccount';
 import Fund from './Fund';
 
 type PaymentMethod = (BankAccount | Fund) & {
     description: string;
-    icon: IconAsset;
+    icon: React.FC<SvgProps>;
     iconSize?: number;
     iconHeight?: number;
     iconWidth?: number;

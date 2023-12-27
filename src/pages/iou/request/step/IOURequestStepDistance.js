@@ -144,7 +144,8 @@ function IOURequestStepDistance({
 
             const newWaypoints = {};
             _.each(data, (waypoint, index) => {
-                newWaypoints[`waypoint${index}`] = lodashGet(waypoints, waypoint, {});
+                const newWaypoint = lodashGet(waypoints, waypoint, {});
+                newWaypoints[`waypoint${index}`] = _.isEmpty(newWaypoint) ? null : newWaypoint;
             });
 
             setOptimisticWaypoints(newWaypoints);

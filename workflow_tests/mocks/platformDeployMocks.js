@@ -176,9 +176,8 @@ const PLATFORM_DEPLOY__WEB__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout
 const PLATFORM_DEPLOY__WEB__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'WEB');
 const PLATFORM_DEPLOY__WEB__CLOUDFLARE__STEP_MOCK = utils.createMockStep('Setup Cloudflare CLI', 'Setting up Cloudflare CLI', 'WEB');
 const PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK = utils.createMockStep('Configure AWS Credentials', 'Configuring AWS credentials', 'WEB', [
-    'aws-access-key-id',
-    'aws-secret-access-key',
-    'aws-region',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY',
 ]);
 const PLATFORM_DEPLOY__WEB__BUILD_PRODUCTION__STEP_MOCK = utils.createMockStep('Build web for production', 'Building web for production', 'WEB');
 const PLATFORM_DEPLOY__WEB__BUILD_STAGING__STEP_MOCK = utils.createMockStep('Build web for staging', 'Building web for staging', 'WEB');

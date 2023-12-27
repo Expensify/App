@@ -3,7 +3,6 @@ import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from
 import {ScrollView, View} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SignInGradient from '@assets/images/home-fade-gradient.svg';
-import ImageSVG from '@components/ImageSVG';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -131,8 +130,7 @@ function SignInPageLayout(props) {
                             </View>
                             <View>
                                 <View style={[styles.t0, styles.l0, styles.h100, styles.pAbsolute, styles.signInPageGradient]}>
-                                    <ImageSVG
-                                        src={SignInGradient}
+                                    <SignInGradient
                                         height="100%"
                                         preserveAspectRatio="none"
                                     />

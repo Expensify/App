@@ -4,12 +4,10 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
@@ -20,7 +18,7 @@ const propTypes = {
     iconTooltip: PropTypes.string,
 
     /** icon for the popup trigger */
-    icon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
     /** Any additional styles to pass to the icon container. */
     // eslint-disable-next-line react/forbid-prop-types
@@ -75,7 +73,6 @@ const defaultProps = {
 };
 
 function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
@@ -119,7 +116,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                     >
                         <Icon
                             src={icon}
-                            fill={iconFill || theme.icon}
+                            fill={iconFill}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>

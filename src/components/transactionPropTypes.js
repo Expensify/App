@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '@src/CONST';
-import sourcePropTypes from './Image/sourcePropTypes';
 
 export default PropTypes.shape({
     /** The transaction id */
@@ -75,7 +74,7 @@ export default PropTypes.shape({
     /** The receipt object associated with the transaction */
     receipt: PropTypes.shape({
         receiptID: PropTypes.number,
-        source: PropTypes.oneOfType([PropTypes.number, PropTypes.string, sourcePropTypes]),
+        source: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
         state: PropTypes.string,
     }),
 

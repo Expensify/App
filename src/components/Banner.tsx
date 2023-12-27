@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import CONST from '@src/CONST';
@@ -41,7 +40,6 @@ type BannerProps = {
 };
 
 function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -91,10 +89,7 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                                     role={CONST.ROLE.BUTTON}
                                     accessibilityLabel={translate('common.close')}
                                 >
-                                    <Icon
-                                        src={Expensicons.Close}
-                                        fill={theme.icon}
-                                    />
+                                    <Icon src={Expensicons.Close} />
                                 </PressableWithFeedback>
                             </Tooltip>
                         )}

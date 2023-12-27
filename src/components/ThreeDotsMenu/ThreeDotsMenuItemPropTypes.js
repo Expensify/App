@@ -1,9 +1,8 @@
 import PropTypes from 'prop-types';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 
 const menuItemProps = PropTypes.arrayOf(
     PropTypes.shape({
-        icon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
+        icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
         text: PropTypes.string,
         onPress: PropTypes.func,
     }),

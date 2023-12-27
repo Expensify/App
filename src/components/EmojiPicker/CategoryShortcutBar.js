@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CategoryShortcutButton from './CategoryShortcutButton';
 
@@ -15,7 +14,7 @@ const propTypes = {
         PropTypes.shape({
             code: PropTypes.string.isRequired,
             index: PropTypes.number.isRequired,
-            icon: sourcePropTypes.isRequired,
+            icon: PropTypes.func.isRequired,
         }),
     ).isRequired,
 };

@@ -1,19 +1,28 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {Animated, StyleSheet, Text, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type TabLabelProps = {
+const propTypes = {
     /** Title of the tab */
-    title?: string;
+    title: PropTypes.string,
 
-    /** Animated opacity value while the label is in inactive state */
-    inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
+    /** Animated opacity value while the label is inactive state */
+    // eslint-disable-next-line
+    inactiveOpacity: PropTypes.any,
 
     /** Animated opacity value while the label is in active state */
-    activeOpacity?: number | Animated.AnimatedInterpolation<number>;
+    // eslint-disable-next-line
+    activeOpacity: PropTypes.any,
 };
 
-function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1}: TabLabelProps) {
+const defaultProps = {
+    title: '',
+    inactiveOpacity: 1,
+    activeOpacity: 0,
+};
+
+function TabLabel({title, activeOpacity, inactiveOpacity}) {
     const styles = useThemeStyles();
     return (
         <View>
@@ -27,6 +36,8 @@ function TabLabel({title = '', activeOpacity = 0, inactiveOpacity = 1}: TabLabel
     );
 }
 
+TabLabel.propTypes = propTypes;
+TabLabel.defaultProps = defaultProps;
 TabLabel.displayName = 'TabLabel';
 
 export default TabLabel;
