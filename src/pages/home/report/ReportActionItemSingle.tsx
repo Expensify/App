@@ -222,7 +222,7 @@ function ReportActionItemSingle({
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
-    const statusTooltipText = formattedDate ? `${statusText} (${formattedDate})` : statusText;
+    const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
     return (
         <View style={[styles.chatItem, wrapperStyle]}>
