@@ -1,13 +1,12 @@
 import React from 'react';
-import withWindowDimensions from '@components/withWindowDimensions';
-import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
-import HTMLEngineProviderProps from './types';
+import {HTMLEngineProviderProps} from './types';
 
-type HTMLEngineProviderWithWindowDimensionsProps = HTMLEngineProviderProps & WindowDimensionsProps;
+function HTMLEngineProvider({debug = false, children = null}: HTMLEngineProviderProps) {
+    const {isSmallScreenWidth} = useWindowDimensions();
 
-function HTMLEngineProvider({debug = false, children = null, isSmallScreenWidth}: HTMLEngineProviderWithWindowDimensionsProps) {
     return (
         <BaseHTMLEngineProvider
             debug={debug}
@@ -20,4 +19,4 @@ function HTMLEngineProvider({debug = false, children = null, isSmallScreenWidth}
 
 HTMLEngineProvider.displayName = 'HTMLEngineProvider';
 
-export default withWindowDimensions(HTMLEngineProvider);
+export default HTMLEngineProvider;
