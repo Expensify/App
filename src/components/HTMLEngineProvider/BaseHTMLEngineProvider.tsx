@@ -59,12 +59,12 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
-            'next-steps': HTMLElementModel.fromCustomModel({
-                tagName: 'next-steps',
+            'next-step': HTMLElementModel.fromCustomModel({
+                tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting},
                 contentModel: HTMLContentModel.textual,
             }),
-            'next-steps-email': HTMLElementModel.fromCustomModel({tagName: 'next-steps-email', contentModel: HTMLContentModel.textual}),
+            'next-step-email': HTMLElementModel.fromCustomModel({tagName: 'next-step-email', contentModel: HTMLContentModel.textual}),
             video: HTMLElementModel.fromCustomModel({
                 tagName: 'video',
                 mixedUAStyles: {whiteSpace: 'pre'},
