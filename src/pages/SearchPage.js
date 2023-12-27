@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -93,8 +93,6 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
         });
     }, [reports, personalDetails, searchValue, betas]);
 
-    const debouncedUpdateOptions = useMemo(() => _.debounce(updateOptions, 75), [updateOptions]);
-
     /**
      * Cancel the interaction task when the component unmounts
      */
@@ -123,7 +121,7 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
             return;
         }
 
-        debouncedUpdateOptions();
+        updateOptions();
         // Ignoring the rule intentionally, we want to run the code only when search Value changes to prevent additional runs.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchValue]);
@@ -212,12 +210,11 @@ function SearchPage({betas, personalDetails, reports, isSearchingForReports}) {
                         <OptionsSelector
                             sections={sections}
                             onSelectRow={selectReport}
-                            value={searchValue}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
                             hideSectionHeaders
                             showTitleTooltip
-                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady && (!isSectionsEmpty(sections) || searchValue.length)}
+                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady && (!isSectionsEmpty(sections) || !!searchValue.length)}
                             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             shouldShowReferralCTA
                             referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND}

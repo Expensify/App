@@ -3,17 +3,17 @@ import React from 'react';
 import {View} from 'react-native';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 
 const propTypes = {
     /** Expensicon for the page */
-    icon: PropTypes.func.isRequired,
+    icon: sourcePropTypes.isRequired,
 
     /** Color for the icon (should be from theme) */
     iconColor: PropTypes.string,
@@ -44,7 +44,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    iconColor: undefined,
+    iconColor: null,
     subtitle: '',
     shouldShowLink: false,
     linkKey: 'notFound.goBackHome',
@@ -55,7 +55,6 @@ const defaultProps = {
 };
 
 function BlockingView(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     function renderContent() {
@@ -81,7 +80,7 @@ function BlockingView(props) {
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
                 src={props.icon}
-                fill={props.iconColor || theme.offline}
+                fill={props.iconColor}
                 width={props.iconWidth}
                 height={props.iconHeight}
             />
