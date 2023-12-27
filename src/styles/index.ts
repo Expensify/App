@@ -424,7 +424,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH1: {
@@ -1579,7 +1579,7 @@ const styles = (theme: ThemeColors) =>
         optionDisplayName: {
             fontFamily: fontFamily.EXP_NEUE,
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             ...whiteSpace.noWrap,
         },
 
@@ -1599,7 +1599,7 @@ const styles = (theme: ThemeColors) =>
 
         optionAlternateText: {
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
         },
 
         optionAlternateTextCompact: {
@@ -1727,7 +1727,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: fontWeightBold,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             ...wordBreak.breakWord,
         },
 
@@ -3684,6 +3684,7 @@ const styles = (theme: ThemeColors) =>
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
+                lineHeight: 14,
             } satisfies TextStyle),
 
         tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
