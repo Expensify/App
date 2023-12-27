@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
@@ -15,6 +14,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
@@ -40,7 +40,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     layoutWidth?: ValueOf<typeof CONST.LAYOUT_WIDTH>;
 };
 
-const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
+const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.FREE:
             return Illustrations.HandCard;
