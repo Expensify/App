@@ -1,20 +1,18 @@
 import React from 'react';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
-import {defaultProps, propTypes} from './htmlEnginePropTypes';
+import {HTMLEngineProviderProps} from './types';
 
-function HTMLEngineProvider(props) {
+function HTMLEngineProvider({debug = false, children = null}: HTMLEngineProviderProps) {
     return (
         <BaseHTMLEngineProvider
-            debug={props.debug}
+            debug={debug}
             enableExperimentalBRCollapsing
         >
-            {props.children}
+            {children}
         </BaseHTMLEngineProvider>
     );
 }
 
 HTMLEngineProvider.displayName = 'HTMLEngineProvider';
-HTMLEngineProvider.propTypes = propTypes;
-HTMLEngineProvider.defaultProps = defaultProps;
 
 export default HTMLEngineProvider;
