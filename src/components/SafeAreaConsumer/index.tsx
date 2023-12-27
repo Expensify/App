@@ -1,7 +1,7 @@
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import useStyleUtils from '@styles/useStyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
 import SafeAreaConsumerProps from './types';
 
 /**

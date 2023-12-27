@@ -4,10 +4,10 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './tagPickerPropTypes';
@@ -70,7 +70,6 @@ function TagPicker({selectedTag, tag, policyTags, policyRecentlyUsedTags, should
             highlightSelectedOptions
             isRowMultilineSupported
             shouldShowTextInput={shouldShowTextInput}
-            value={searchValue}
             // Focus the first option when searching
             focusedIndex={0}
             // Focus the selected option on first load
