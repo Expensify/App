@@ -2,6 +2,7 @@ import React, {ReactNode} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {MaybePhraseKey} from '@libs/Localize';
 import Network from '@src/types/onyx/Network';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
@@ -26,7 +27,7 @@ type FormAlertWrapperProps = {
     isMessageHtml?: boolean;
 
     /** Error message to display above button */
-    message?: string;
+    message?: MaybePhraseKey;
 
     /** Props to detect online status */
     network: Network;

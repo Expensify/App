@@ -8,10 +8,11 @@ import ROUTES from '@src/ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import refPropTypes from './refPropTypes';
+import translatableTextPropTypes from './translatableTextPropTypes';
 
 const propTypes = {
     /** Form error text. e.g when no country is selected */
-    errorText: PropTypes.string,
+    errorText: translatableTextPropTypes,
 
     /** Callback called when the country changes. */
     onInputChange: PropTypes.func.isRequired,

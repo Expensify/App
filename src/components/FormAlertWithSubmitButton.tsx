@@ -1,12 +1,13 @@
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {MaybePhraseKey} from '@libs/Localize';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
 
 type FormAlertWithSubmitButtonProps = {
     /** Error message to display above button */
-    message?: string;
+    message?: MaybePhraseKey;
 
     /** Whether the button is disabled */
     isDisabled?: boolean;

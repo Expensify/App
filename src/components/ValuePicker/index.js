@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
+import translatableTextPropTypes from '@components/translatableTextPropTypes';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -12,7 +13,7 @@ import ValueSelectorModal from './ValueSelectorModal';
 
 const propTypes = {
     /** Form Error description */
-    errorText: PropTypes.string,
+    errorText: translatableTextPropTypes,
 
     /** Item to display */
     value: PropTypes.string,

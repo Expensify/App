@@ -14,6 +14,7 @@ import networkPropTypes from './networkPropTypes';
 import {withNetwork} from './OnyxProvider';
 import Text from './Text';
 import TextInput from './TextInput';
+import translatableTextPropTypes from './translatableTextPropTypes';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -34,7 +35,7 @@ const propTypes = {
     shouldDelayFocus: PropTypes.bool,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: translatableTextPropTypes,
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code', 'off']).isRequired,

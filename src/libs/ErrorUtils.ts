@@ -56,9 +56,7 @@ type OnyxDataWithErrors = {
     errors?: Errors;
 };
 
-type TranslationData = [string, Record<string, unknown>] | string;
-
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): TranslationData {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Localize.MaybePhraseKey {
     const errors = onyxData.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
@@ -74,7 +72,7 @@ type OnyxDataWithErrorFields = {
     errorFields?: ErrorFields;
 };
 
-function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, TranslationData> {
+function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, Localize.MaybePhraseKey> {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -86,7 +84,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     return {[key]: [errorsForField[key], {isTranslated: true}]};
 }
 
-function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, TranslationData> {
+function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, Localize.MaybePhraseKey> {
     const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
@@ -98,15 +96,14 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
     return {[key]: [errorsForField[key], {isTranslated: true}]};
 }
 
-type ErrorsList = Record<string, string | [string, {isTranslated: boolean}]>;
-type ErrorsListWithTranslationData = Record<string | number, string | TranslationData>;
+type ErrorsList = Record<string | number, Localize.MaybePhraseKey>;
 
 /**
  * Method used to attach already translated message with isTranslated: true property
  * @param errors - An object containing current errors in the form
  * @returns Errors in the form of {timestamp: [message, {isTranslated: true}]}
  */
-function getErrorMessagesWithTranslationData(errors: TranslationData | ErrorsList): ErrorsListWithTranslationData {
+function getErrorMessagesWithTranslationData(errors: Localize.MaybePhraseKey | ErrorsList): ErrorsList {
     if (isEmpty(errors)) {
         return {};
     }
@@ -114,7 +111,7 @@ function getErrorMessagesWithTranslationData(errors: TranslationData | ErrorsLis
     if (typeof errors === 'string' || Array.isArray(errors)) {
         const [message, variables] = Array.isArray(errors) ? errors : [errors];
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        return {0: [message, {...variables, isTranslated: true}]};
+        return {0: [message as string, {...variables, isTranslated: true}]};
     }
 
     return mapKeys(errors, (message) => [message, {isTranslated: true}]);
