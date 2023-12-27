@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import WaypointEditor from './WaypointEditor';
+import IOURequestStepWaypoint from './request/step/IOURequestStepWaypoint';
 
 const propTypes = {
     /** The transactionID of this request */
@@ -34,7 +34,7 @@ const defaultProps = {
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that WaypointEditor can subscribe to the transaction.
 function NewDistanceRequestWaypointEditorPage({transactionID, route}) {
     return (
-        <WaypointEditor
+        <IOURequestStepWaypoint
             // Put the transactionID into the route params so that WaypointEdit behaves the same when creating a new waypoint
             // or editing an existing waypoint.
             route={{

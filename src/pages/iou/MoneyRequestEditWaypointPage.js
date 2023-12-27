@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import WaypointEditor from './WaypointEditor';
+import IOURequestStepWaypoint from './request/step/IOURequestStepWaypoint';
 
 const propTypes = {
     /** Route params */
@@ -23,7 +23,7 @@ const defaultProps = {
 };
 
 function MoneyRequestEditWaypointPage({route}) {
-    return <WaypointEditor route={route} />;
+    return <IOURequestStepWaypoint route={route} />;
 }
 
 MoneyRequestEditWaypointPage.displayName = 'MoneyRequestEditWaypointPage';
