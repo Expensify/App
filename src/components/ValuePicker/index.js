@@ -29,6 +29,9 @@ const propTypes = {
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
 
+    /** Text to display under the main menu item */
+    furtherDetails: PropTypes.string,
+
     /** A ref to forward to MenuItemWithTopDescription */
     forwardedRef: refPropTypes,
 };
@@ -40,6 +43,7 @@ const defaultProps = {
     items: {},
     forwardedRef: undefined,
     errorText: '',
+    furtherDetails: undefined,
     onInputChange: () => {},
 };
 
