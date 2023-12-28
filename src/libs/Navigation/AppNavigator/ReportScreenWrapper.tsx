@@ -12,8 +12,11 @@ function ReportScreenWrapper({route, navigation}: ReportScreenWrapperProps) {
     // until the reportID is loaded and set in the route param
     return (
         <>
-            {/* @ts-expect-error Error will be resolved after ReportScreen migration to TypeScript */}
-            <ReportScreen route={route} />
+            <ReportScreen
+                // @ts-expect-error Error will be resolved after ReportScreen migration to TypeScript
+                route={route}
+                navigation={navigation}
+            />
             <ReportScreenIDSetter
                 route={route}
                 navigation={navigation}
