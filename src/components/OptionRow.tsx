@@ -162,7 +162,7 @@ function OptionRow({
             <Hoverable>
                 {(hovered) => (
                     <PressableWithFeedback
-                        testID={keyForList}
+                        nativeID={keyForList}
                         ref={pressableRef}
                         onPress={(e) => {
                             if (!onSelectRow) {
