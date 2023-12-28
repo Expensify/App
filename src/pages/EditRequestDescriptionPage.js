@@ -27,7 +27,6 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
-    console.log('Test');
 
     useFocusEffect(
         useCallback(() => {
