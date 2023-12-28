@@ -11,9 +11,9 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -102,7 +102,7 @@ function BankAccountManualStep(props) {
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
                     aria-label={translate('bankAccount.routingNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     defaultValue={props.getDefaultStateForField('routingNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}
@@ -115,7 +115,7 @@ function BankAccountManualStep(props) {
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
                     aria-label={translate('bankAccount.accountNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     defaultValue={props.getDefaultStateForField('accountNumber', '')}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableInputs}

@@ -1,23 +1,24 @@
 import PropTypes from 'prop-types';
 import React, {forwardRef, useImperativeHandle} from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
+import sourcePropTypes from './Image/sourcePropTypes';
 import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */
-    icon: PropTypes.elementType.isRequired,
+    icon: sourcePropTypes.isRequired,
 
     /** Text to display */
     text: PropTypes.string.isRequired,
 
     /** Icon to show when interaction was successful */
-    successIcon: PropTypes.elementType,
+    successIcon: sourcePropTypes,
 
     /** Text to show when interaction was successful */
     successText: PropTypes.string,
@@ -97,7 +98,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             wrapperStyle={styles.pr9}
             success={!isThrottledButtonActive}
             description={description}
-            descriptionTextStyle={styles.breakAll}
+            descriptionTextStyle={styles.breakWord}
             style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}

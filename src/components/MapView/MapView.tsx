@@ -3,10 +3,10 @@ import Mapbox, {MapState, MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import setUserLocation from '@libs/actions/UserLocation';
 import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -29,6 +29,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [isIdle, setIsIdle] = useState(false);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+        const hasAskedForLocationPermission = useRef(false);
 
         useFocusEffect(
             useCallback(() => {
@@ -36,6 +37,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
+                if (hasAskedForLocationPermission.current) {
+                    return;
+                }
+
+                hasAskedForLocationPermission.current = true;
                 getCurrentPosition(
                     (params) => {
                         const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
