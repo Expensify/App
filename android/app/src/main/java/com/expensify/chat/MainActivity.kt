@@ -1,6 +1,6 @@
 package com.expensify.chat
 
-import expo.modules.ReactActivityDelegateWrapper;
+import expo.modules.ReactActivityDelegateWrapper
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
