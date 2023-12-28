@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
@@ -20,7 +21,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
 import withPolicy from '@pages/workspace/withPolicy';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -159,7 +159,7 @@ function getRouteForCurrentStep(currentStep) {
 }
 
 function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, policy, account, isLoadingApp, session, plaidLinkToken, plaidCurrentEvent, reimbursementAccountDraft}) {
-    /**  
+    /**
         The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         user left off. This view will refer to the achData as the single source of truth to determine which route to
         display. We can also specify a specific route to navigate to via route params when the component first
@@ -235,7 +235,7 @@ function ReimbursementAccountPage({reimbursementAccount, route, onfidoToken, pol
         return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], getStepToOpenFromRouteParams(route));
     }
 
-    /** 
+    /**
         When this page is first opened, `reimbursementAccount` prop might not yet be fully loaded from Onyx
         or could be partially loaded such that `reimbursementAccount.achData.currentStep` is unavailable.
         Calculating `shouldShowContinueSetupButton` immediately on initial render doesn't make sense as

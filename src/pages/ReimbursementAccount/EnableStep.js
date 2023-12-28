@@ -15,10 +15,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import userPropTypes from '@pages/settings/userPropTypes';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as BankAccounts from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
@@ -87,6 +87,7 @@ function EnableStep(props) {
                             iconWidth={iconSize}
                             iconHeight={iconSize}
                             interactive={false}
+                            displayInDefaultIconColor
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                         />
                         <Text style={[styles.mv3]}>
