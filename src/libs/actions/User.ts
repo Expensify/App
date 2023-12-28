@@ -36,7 +36,7 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxPersonalDetails | Record<string, never> = {};
+let myPersonalDetails: OnyxPersonalDetails | Record<string, never> | null = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -537,7 +537,7 @@ function subscribeToUserEvents() {
 /**
  * Sync preferredSkinTone with Onyx and Server
  */
-function updatePreferredSkinTone(skinTone: string) {
+function updatePreferredSkinTone(skinTone: number) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -547,7 +547,7 @@ function updatePreferredSkinTone(skinTone: string) {
     ];
 
     type UpdatePreferredEmojiSkinToneParams = {
-        value: string;
+        value: number;
     };
 
     const parameters: UpdatePreferredEmojiSkinToneParams = {value: skinTone};
