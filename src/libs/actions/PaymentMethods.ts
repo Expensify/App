@@ -1,7 +1,9 @@
-import {createRef} from 'react';
+import {createRef, MutableRefObject, SyntheticEvent} from 'react';
+import {NativeTouchEvent} from 'react-native';
 import Onyx, {OnyxUpdate} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
 import {ValueOf} from 'type-fest';
+import {TransferMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,13 +15,13 @@ import PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
 type KYCWallRef = {
-    continueAction?: () => void;
+    continueAction?: (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => void;
 };
 
 /**
  * Sets up a ref to an instance of the KYC Wall component.
  */
-const kycWallRef = createRef<KYCWallRef>();
+const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
