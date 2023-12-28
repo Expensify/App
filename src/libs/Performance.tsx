@@ -14,7 +14,7 @@ type WrappedComponentConfig = {id: string};
 
 type PerformanceEntriesCallback = (entry: PerformanceEntry) => void;
 
-type Phase = 'mount' | 'update';
+type Phase = 'mount' | 'update' | 'nested-update';
 
 type WithRenderTraceHOC = <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>) => React.ComponentType<P & React.RefAttributes<unknown>>;
 
