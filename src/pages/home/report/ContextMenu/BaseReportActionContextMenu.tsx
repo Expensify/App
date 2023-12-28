@@ -8,15 +8,15 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useStyleUtils from '@styles/useStyleUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Beta, ReportActions} from '@src/types/onyx';
 import ContextMenuActions from './ContextMenuActions';
 import {hideContextMenu} from './ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES, GenericReportActionContextMenuProps} from './types';
+import {GenericReportActionContextMenuProps} from './types';
 
 type BaseReportActionContextMenuOnyxProps = {
     /** Beta features list */
@@ -29,7 +29,7 @@ type BaseReportActionContextMenuOnyxProps = {
 type BaseReportActionContextMenuProps = GenericReportActionContextMenuProps &
     BaseReportActionContextMenuOnyxProps & {
         /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
-        type?: ValueOf<typeof CONTEXT_MENU_TYPES>;
+        type?: ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
         /** Target node which is the target of ContentMenu */
         anchor: any;
@@ -51,7 +51,7 @@ type BaseReportActionContextMenuProps = GenericReportActionContextMenuProps &
     };
 
 function BaseReportActionContextMenu({
-    type = CONTEXT_MENU_TYPES.REPORT_ACTION,
+    type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor = null,
     contentRef = null,
     isChronosReport = false,

@@ -1,8 +1,8 @@
 import React from 'react';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import CONST from '@src/CONST';
 import ReportAction from '@src/types/onyx/ReportAction';
 
 const ShowContextMenuContext = React.createContext({
@@ -30,7 +30,7 @@ function showContextMenuForReport(event: Event, anchor: HTMLElement, reportID: s
     }
 
     ReportActionContextMenu.showContextMenu(
-        ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+        CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
         '',
         anchor,

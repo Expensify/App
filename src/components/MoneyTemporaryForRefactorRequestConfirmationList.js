@@ -7,6 +7,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -19,8 +21,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,9 +140,6 @@ const propTypes = {
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether the money request is a scan request */
-    isScanRequest: PropTypes.bool,
-
     /** Whether we're editing a split bill */
     isEditingSplitBill: PropTypes.bool,
 
@@ -191,7 +188,6 @@ const defaultProps = {
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
-    isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
 };
@@ -215,7 +211,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     isEditingSplitBill,
     isPolicyExpenseChat,
     isReadOnly,
-    isScanRequest,
     listStyles,
     mileageRate,
     onConfirm,
@@ -231,7 +226,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     receiptPath,
     reportActionID,
     reportID,
-    selectedParticipants,
+    selectedParticipants: pickedParticipants,
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
@@ -243,8 +238,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-
-    const isSplitWithScan = isTypeSplit && isScanRequest;
 
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -259,9 +252,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // Do not hide fields in case of send money request
     const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
 
-    // In Send Money flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
-    const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
-    const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !isDistanceRequest && !isSplitWithScan;
+    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
+    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
@@ -358,7 +350,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         ];
     }, [isTypeSplit, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithoutRoute, translate]);
 
-    const selectedParticipantsFiltered = useMemo(() => _.filter(selectedParticipants, (participant) => participant.selected), [selectedParticipants]);
+    const selectedParticipants = useMemo(() => _.filter(pickedParticipants, (participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails || currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
     const userCanModifyParticipants = useRef(!isReadOnly && canModifyParticipants && hasMultipleParticipants);
     useEffect(() => {
@@ -368,9 +360,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(selectedParticipantsFiltered, (participant) => !participant.selected);
+        const unselectedParticipants = _.filter(pickedParticipants, (participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipantsFiltered);
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
 
             if (!userCanModifyParticipants.current) {
@@ -380,7 +372,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 }));
             }
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipantsFiltered.length, iouAmount, iouCurrencyCode, true);
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 personalDetailsOfPayee,
                 iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
@@ -402,7 +394,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 },
             );
         } else {
-            const formattedSelectedParticipants = _.map(selectedParticipantsFiltered, (participant) => ({
+            const formattedSelectedParticipants = _.map(selectedParticipants, (participant) => ({
                 ...participant,
                 isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
             }));
@@ -415,7 +407,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
         return sections;
     }, [
-        selectedParticipantsFiltered,
+        selectedParticipants,
+        pickedParticipants,
         hasMultipleParticipants,
         iouAmount,
         iouCurrencyCode,
@@ -430,8 +423,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipantsFiltered, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee)];
-    }, [selectedParticipantsFiltered, hasMultipleParticipants, personalDetailsOfPayee]);
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee)];
+    }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee]);
 
     useEffect(() => {
         if (!isDistanceRequest) {
@@ -474,7 +467,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod) => {
-            if (_.isEmpty(selectedParticipantsFiltered)) {
+            if (_.isEmpty(selectedParticipants)) {
                 return;
             }
 
@@ -502,10 +495,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 }
 
                 setDidConfirm(true);
-                onConfirm(selectedParticipantsFiltered);
+                onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipantsFiltered, onSendMoney, onConfirm, isEditingSplitBill, iouType, isDistanceRequest, isDistanceRequestWithoutRoute, iouCurrencyCode, iouAmount, transaction],
+        [selectedParticipants, onSendMoney, onConfirm, isEditingSplitBill, iouType, isDistanceRequest, isDistanceRequestWithoutRoute, iouCurrencyCode, iouAmount, transaction],
     );
 
     const footerContent = useMemo(() => {
@@ -514,7 +507,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipantsFiltered.length === 0;
+        const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -558,13 +551,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 {button}
             </>
         );
-    }, [confirm, bankAccountRoute, iouCurrencyCode, iouType, isReadOnly, policyID, selectedParticipantsFiltered, splitOrRequestOptions, translate, formError, styles.ph1, styles.mb2]);
+    }, [confirm, bankAccountRoute, iouCurrencyCode, iouType, isReadOnly, policyID, selectedParticipants, splitOrRequestOptions, translate, formError, styles.ph1, styles.mb2]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
     return (
         <OptionsSelector
             sections={optionSelectorSections}
-            value=""
             onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}

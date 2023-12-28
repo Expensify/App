@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import participantPropTypes from '@components/participantPropTypes';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Timers from '@libs/Timers';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
