@@ -89,10 +89,6 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
 
 /**
  * Build message fragment for the created property when this value was changed
- * @param setFragments
- * @param removalFragments
- * @param changeFragments
- * @param [reportActionOriginalMessage]
  */
 function buildMessageFragmentForCreated(setFragments: string[], removalFragments: string[], changeFragments: string[], reportActionOriginalMessage?: ExpenseOriginalMessage) {
     const {created, oldCreated} = reportActionOriginalMessage ?? {};
