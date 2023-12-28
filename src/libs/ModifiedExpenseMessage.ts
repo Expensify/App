@@ -1,9 +1,9 @@
-import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PolicyTags, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
@@ -88,6 +88,26 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
 }
 
 /**
+ * Build message fragment for the created property when this value was changed
+ * @param setFragments
+ * @param removalFragments
+ * @param changeFragments
+ * @param [reportActionOriginalMessage]
+ */
+function buildMessageFragmentForCreated(setFragments: string[], removalFragments: string[], changeFragments: string[], reportActionOriginalMessage?: ExpenseOriginalMessage) {
+    const {created, oldCreated} = reportActionOriginalMessage ?? {};
+
+    if (!oldCreated || !created) {
+        return;
+    }
+
+    // Take only the YYYY-MM-DD value as the original date includes timestamp
+    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+
+    buildMessageFragmentForValue(created, formattedOldCreated, Localize.translateLocal('common.date'), false, setFragments, removalFragments, changeFragments);
+}
+
+/**
  * Get the report action message when expense has been modified.
  *
  * ModifiedExpense::getNewDotComment in Web-Expensify should match this.
@@ -143,21 +163,7 @@ function getForReportAction(reportAction: ReportAction): string {
         );
     }
 
-    const hasModifiedCreated = reportActionOriginalMessage && 'oldCreated' in reportActionOriginalMessage && 'created' in reportActionOriginalMessage;
-    if (hasModifiedCreated) {
-        // Take only the YYYY-MM-DD value as the original date includes timestamp
-        let formattedOldCreated: Date | string = new Date(reportActionOriginalMessage?.oldCreated ? reportActionOriginalMessage.oldCreated : 0);
-        formattedOldCreated = format(formattedOldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        buildMessageFragmentForValue(
-            reportActionOriginalMessage?.created ?? '',
-            formattedOldCreated,
-            Localize.translateLocal('common.date'),
-            false,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
-    }
+    buildMessageFragmentForCreated(setFragments, removalFragments, changeFragments, reportActionOriginalMessage);
 
     if (hasModifiedMerchant) {
         buildMessageFragmentForValue(
