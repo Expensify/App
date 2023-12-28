@@ -300,7 +300,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Cloudflare CLI
-        run: pip3 install cloudflare
+        run: pip3 install cloudflare==2.14.3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -337,13 +337,13 @@ jobs:
 
       - name: Purge production Cloudflare cache
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --delete hosts='["new.expensify.com"]' /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --delete hosts=["new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
       - name: Purge staging Cloudflare cache
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: /home/runner/.local/bin/cli4 --delete hosts='["staging.new.expensify.com"]' /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: /home/runner/.local/bin/cli4 --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
