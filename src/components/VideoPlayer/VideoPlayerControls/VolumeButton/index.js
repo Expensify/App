@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, {memo, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
 import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
 import IconButton from '@components/VideoPlayer/IconButton';
@@ -54,11 +54,16 @@ function VolumeButton({style, small}) {
             runOnJS(setIsSliderBeingUsed)(false);
         });
 
-    const progressBarStyle = useAnimatedStyle(() => {
+    const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.value * 100}%`}));
+
+    const updateIcon = (vol) => {
+        setVolumeIcon({icon: getVolumeIcon(vol)});
+    };
+
+    useDerivedValue(() => {
         runOnJS(updateVolume)(volume.value);
-        runOnJS(setVolumeIcon)({icon: getVolumeIcon(volume.value)});
-        return {height: `${volume.value * 100}%`};
-    });
+        runOnJS(updateIcon)(volume.value);
+    }, [volume]);
 
     return (
         <Hoverable>
