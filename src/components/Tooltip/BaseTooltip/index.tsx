@@ -1,5 +1,5 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import React, {ForwardedRef, forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {ForwardedRef, forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
@@ -10,7 +10,6 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import StringUtils from '@libs/StringUtils';
-import {getFirstValue} from '@libs/ValueUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -185,16 +184,14 @@ function Tooltip(
         setIsVisible(false);
     }, []);
 
-    const child = useMemo(() => getFirstValue(children), [children]);
-
     const updateTargetPositionOnMouseEnter = useCallback(
         (e: MouseEvent) => {
             updateTargetAndMousePosition(e);
-            if (child.props.onMouseEnter) {
-                child.props.onMouseEnter(e);
+            if (children.props.onMouseEnter) {
+                children.props.onMouseEnter(e);
             }
         },
-        [child, updateTargetAndMousePosition],
+        [children, updateTargetAndMousePosition],
     );
 
     // Skip the tooltip and return the children if the text is empty,
@@ -234,7 +231,7 @@ function Tooltip(
                     onHoverOut={hideTooltip}
                     shouldHandleScroll={shouldHandleScroll}
                 >
-                    {React.cloneElement(child, {
+                    {React.cloneElement(children, {
                         onMouseEnter: updateTargetPositionOnMouseEnter,
                     })}
                 </Hoverable>

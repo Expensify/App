@@ -96,8 +96,8 @@ function OfflineWithFeedback({
      * This method applies the strikethrough to all the children passed recursively
      */
     const applyStrikeThrough = useCallback(
-        (childrenProp: React.ReactNode): React.ReactNode =>
-            React.Children.map(childrenProp, (child) => {
+        (childrenProp: React.ReactNode): React.ReactNode => {
+            const strikedThroughChildren = React.Children.map(childrenProp, (child) => {
                 if (!React.isValidElement(child)) {
                     return child;
                 }
@@ -111,7 +111,15 @@ function OfflineWithFeedback({
                 }
 
                 return React.cloneElement(child, props);
-            }),
+            });
+
+            // If we only have one child, we want to return it as is, not as an array
+            if (Array.isArray(strikedThroughChildren) && strikedThroughChildren.length === 1) {
+                return strikedThroughChildren[0];
+            }
+
+            return strikedThroughChildren;
+        },
         [StyleUtils, styles],
     );
 
