@@ -1,7 +1,7 @@
 import {StyleProp, ViewStyle} from 'react-native';
-import {ComponentProps} from '@components/MapView/types';
+import type {MapViewProps} from '@components/MapView/MapViewTypes';
 
-type DistanceMapViewProps = ComponentProps & {
+type DistanceMapViewProps = MapViewProps & {
     overlayStyle: StyleProp<ViewStyle>;
 };
 
