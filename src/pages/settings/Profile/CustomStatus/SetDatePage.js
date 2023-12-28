@@ -75,9 +75,6 @@ SetDatePage.displayName = 'SetDatePage';
 export default compose(
     withLocalize,
     withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
         customStatus: {
             key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
         },

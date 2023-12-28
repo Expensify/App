@@ -33,9 +33,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.WORKSPACE_AVATAR]: ROUTES.WORKSPACE_AVATAR.route,
             [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
 
-            // Demo routes
-            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
-
             // Sidebar
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,

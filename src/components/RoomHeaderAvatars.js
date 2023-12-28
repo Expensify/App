@@ -3,7 +3,6 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -24,6 +23,7 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
+<<<<<<< HEAD
     const navigateToAvatarPage = (icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE) {
             Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(props.reportID));
@@ -33,6 +33,8 @@ function RoomHeaderAvatars(props) {
     };
 
     const theme = useTheme();
+=======
+>>>>>>> main
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     if (!props.icons.length) {
@@ -50,7 +52,6 @@ function RoomHeaderAvatars(props) {
                 <Avatar
                     source={props.icons[0].source}
                     imageStyles={[styles.avatarLarge]}
-                    fill={theme.iconSuccessFill}
                     size={CONST.AVATAR_SIZE.LARGE}
                     name={props.icons[0].name}
                     type={props.icons[0].type}
@@ -82,6 +83,7 @@ function RoomHeaderAvatars(props) {
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                             accessibilityLabel={icon.name}
                         >
+<<<<<<< HEAD
                             <Avatar
                                 source={icon.source}
                                 fill={theme.iconSuccessFill}
@@ -92,6 +94,26 @@ function RoomHeaderAvatars(props) {
                                 fallbackIcon={icon.fallbackIcon}
                             />
                         </PressableWithoutFocus>
+=======
+                            {({show}) => (
+                                <PressableWithoutFocus
+                                    style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
+                                    onPress={show}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                    accessibilityLabel={icon.name}
+                                >
+                                    <Avatar
+                                        source={icon.source}
+                                        size={CONST.AVATAR_SIZE.LARGE}
+                                        containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
+                                        name={icon.name}
+                                        type={icon.type}
+                                        fallbackIcon={icon.fallbackIcon}
+                                    />
+                                </PressableWithoutFocus>
+                            )}
+                        </AttachmentModal>
+>>>>>>> main
                         {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.icons.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View

@@ -5,7 +5,7 @@ import {PixelRatio} from 'react-native';
  * method always returns the defaultValue (first param). When the device font size increases/decreases, the PixelRatio.getFontScale() value increases/decreases as well.
  * This means that if you have text and its 'fontSize' is 19, the device font size changed to the 5th level on the iOS slider and the actual fontSize is 19 * PixelRatio.getFontScale()
  * = 19 * 1.11 = 21.09. Since we are disallowing font scaling we need to calculate it manually. We calculate it with: PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue :
- * defaultValue * PixelRatio getFontScale() This means that the fontSize is increased/decreased when the device font size changes up to maxValue (second param)
+ * defaultValue * PixelRatio.getFontScale() This means that the fontSize is increased/decreased when the device font size changes up to maxValue (second param)
  */
 function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number {
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
@@ -39,9 +39,9 @@ export default {
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
-    avatarSizeMidSubscript: 18,
+    avatarSizeMidSubscript: 16,
     avatarSizeMentionIcon: 16,
-    avatarSizeSmallSubscript: 14,
+    avatarSizeSmallSubscript: 12,
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     fontSizeOnlyEmojis: 30,
@@ -138,11 +138,12 @@ export default {
     signInLogoHeight: 34,
     signInLogoWidth: 120,
     signInLogoWidthLargeScreen: 144,
+    signInLogoHeightLargeScreen: 108,
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
-    lhnLogoWidth: 108,
-    lhnLogoHeight: 28,
+    lhnLogoWidth: 95.09,
+    lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
     modalContentMaxWidth: 360,
     listItemHeightNormal: 64,
@@ -177,6 +178,7 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
+    workspaceTypeIconWidth: 34,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
