@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
+import {ValueOf} from 'type-fest';
 import _ from 'underscore';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
@@ -27,9 +28,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
+import {Comment} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
+
+type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 let betas: OnyxTypes.Beta[] = [];
 Onyx.connect({
@@ -135,15 +139,16 @@ Onyx.connect({
 
 /**
  * Initialize money request info
- * @param {String} reportID to attach the transaction to
- * @param {Boolean} isFromGlobalCreate
- * @param {String} [iouRequestType] one of manual/scan/distance
+ * @param reportID to attach the transaction to
+ * @param isFromGlobalCreate
+ * @param [iouRequestType] one of manual/scan/distance
  */
-function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- currentDate can be an empty string
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
-    const comment = {};
+    const comment: Comment = {};
 
     // Add initial empty waypoints when starting a distance request
     if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
@@ -221,14 +226,14 @@ function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, sour
 
 /**
  * Reset money request info from the store with its initial value
- * @param {String} id
  */
 function resetMoneyRequestInfo(id = '') {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- currentDate can be an empty string
     const created = currentDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
-        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        currency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
         comment: '',
         participants: [],
         merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,

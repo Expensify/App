@@ -98,7 +98,9 @@ type Transaction = {
     originalCurrency?: string;
 };
 
-type TransactionDraft = Partial<Transaction>;
+type TransactionDraft = Partial<Transaction> & {
+    isFromGlobalCreate?: boolean;
+};
 
 export default Transaction;
 export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionDraft};
