@@ -212,6 +212,20 @@ class GithubUtils {
     }
 
     /**
+     * Get the graphql instance from internal octokit.
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get graphql() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.graphql;
+        }
+        this.initOctokit();
+        return this.internalOctokit.graphql;
+    }
+
+    /**
      * Either give an existing instance of Octokit paginate or create a new one
      *
      * @readonly

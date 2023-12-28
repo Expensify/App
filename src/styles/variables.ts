@@ -178,6 +178,7 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
+    workspaceTypeIconWidth: 34,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -193,6 +194,4 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
-
-    lhpBorderRadius: 24,
 } as const;

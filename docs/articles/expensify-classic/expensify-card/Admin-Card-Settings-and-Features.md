@@ -5,7 +5,7 @@ description: An in-depth look into the Expensify Card program's admin controls a
 
 # Overview
 
-The Expensify Card offers a range of settings and functionality to customize how admins manage expenses and card usage in Expensify. To start, we'll lay out the best way to make these options work for you.
+The Expensify Visa® Commercial Card offers a range of settings and functionality to customize how admins manage expenses and card usage in Expensify. To start, we'll lay out the best way to make these options work for you.
 
 Set Smart Limits to control card spend. Smart Limits are spend limits that can be set for individual cards or specific groups. Once a given Smart Limit is reached, the card is temporarily disabled until expenses are approved.
 
@@ -150,7 +150,7 @@ Here are some reasons an Expensify Card transaction might be declined:
 
 # FAQ 
 ## What happens when I reject an Expensify Card expense?
-Rejecting an Expensify Card expense from an Expensify report will simply allow it to be reported on a different report. You cannot undo a credit card charge.
+Rejecting an Expensify Card expense from an Expensify report will simply allow it to be reported on a different report. 
 
 If an Expensify Card expense needs to be rejected, you can reject the report or the specific expense so it can be added to a different report. The rejected expense will become Unreported and return to the submitter's Expenses page.
 
