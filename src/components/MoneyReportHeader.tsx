@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import GoogleMeetIcon from '@assets/images/google-meet.svg';
 import ZoomIcon from '@assets/images/zoom-icon.svg';
 import useLocalize from '@hooks/useLocalize';
@@ -55,7 +54,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = policy?.type;
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isGroupPolicy = _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType);
+    const isGroupPolicy = [CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM].some(type => type === policyType);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
     const isPayer = isGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
@@ -75,7 +74,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
+    const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
