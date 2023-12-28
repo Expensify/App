@@ -74,6 +74,16 @@ function replaceWithZeroAtPosition(originalString, position) {
     return `${originalString.slice(0, position - 1)}0${originalString.slice(position)}`;
 }
 
+function setCursorPosition(position, ref, setSelection) {
+    const selection = {
+        start: position,
+        end: position,
+    };
+    setSelection(selection);
+    ref.current?.setNativeProps({selection});
+    ref.current?.focus();
+}
+
 function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
@@ -93,20 +103,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
 
-    const focusMinuteInputOnFirstCharacter = useCallback(() => {
-        setSelectionMinute({start: 0, end: 0});
-        const timer = setTimeout(() => {
-            minuteInputRef.current.focus();
-        }, 10);
-        return () => clearTimeout(timer);
-    }, []);
-    const focusHourInputOnLastCharacter = useCallback(() => {
-        setSelectionHour({start: 2, end: 2});
-        const timer = setTimeout(() => {
-            hourInputRef.current.focus();
-        }, 10);
-        return () => clearTimeout(timer);
-    }, []);
+    const focusMinuteInputOnFirstCharacter = useCallback(() => setCursorPosition(0, minuteInputRef, setSelectionMinute), []);
+    const focusHourInputOnLastCharacter = useCallback(() => setCursorPosition(2, hourInputRef, setSelectionHour), []);
 
     const validate = useCallback(
         (time) => {
@@ -340,17 +338,19 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         [],
     );
 
-    const arrowLeftCallback = useCallback(() => {
+    const arrowLeftCallback = useCallback((e) => {
         const isMinuteFocused = minuteInputRef.current.isFocused();
         if (isMinuteFocused && selectionMinute.start === 0) {
+            e.preventDefault();
             focusHourInputOnLastCharacter();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectionHour, selectionMinute]);
-    const arrowRightCallback = useCallback(() => {
+    const arrowRightCallback = useCallback((e) => {
         const isHourFocused = hourInputRef.current.isFocused();
 
         if (isHourFocused && selectionHour.start === 2) {
+            e.preventDefault();
             focusMinuteInputOnFirstCharacter();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
