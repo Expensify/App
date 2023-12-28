@@ -76,6 +76,8 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isMultilineSupported: PropTypes.bool,
 
+    /** Key used internally by React */
+    keyForList: PropTypes.string,
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     ...withLocalizePropTypes,
@@ -99,6 +101,7 @@ const defaultProps = {
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
     shouldPreventDefaultFocusOnSelectRow: false,
+    keyForList: undefined,
 };
 
 function OptionRow(props) {
@@ -141,7 +144,6 @@ function OptionRow(props) {
             : props.backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
-    const defaultSubscriptSize = props.option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
@@ -163,6 +165,7 @@ function OptionRow(props) {
             <Hoverable>
                 {(hovered) => (
                     <PressableWithFeedback
+                        nativeID={props.keyForList}
                         ref={(el) => (pressableRef.current = el)}
                         onPress={(e) => {
                             if (!props.onSelectRow) {
@@ -208,7 +211,7 @@ function OptionRow(props) {
                                             mainAvatar={props.option.icons[0]}
                                             secondaryAvatar={props.option.icons[1]}
                                             backgroundColor={hovered ? hoveredBackgroundColor : subscriptColor}
-                                            size={defaultSubscriptSize}
+                                            size={CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
