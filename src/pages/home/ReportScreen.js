@@ -153,6 +153,7 @@ function ReportScreen({
     errors,
     userLeavingStatus,
     currentReportID,
+    navigation,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -299,17 +300,17 @@ function ReportScreen({
         [route],
     );
 
-    // Clear notifications for the current report when the app is focused
-    useAppFocusEvent(
-        useCallback(() => {
-            // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
-            if (!isTopMostReportId) {
-                return;
-            }
+    // Clear notifications for the current report when it's opened and re-focused
+    const clearNotifications = useCallback(() => {
+        // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
+        if (!isTopMostReportId) {
+            return;
+        }
 
-            clearReportNotifications(report.reportID);
-        }, [report.reportID, isTopMostReportId]),
-    );
+        clearReportNotifications(report.reportID);
+    }, [report.reportID, isTopMostReportId]);
+    useEffect(clearNotifications, [clearNotifications]);
+    useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
         Timing.end(CONST.TIMING.CHAT_RENDER);
@@ -434,6 +435,7 @@ function ReportScreen({
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
                 <ScreenWrapper
+                    navigation={navigation}
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}

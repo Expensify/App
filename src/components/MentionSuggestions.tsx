@@ -31,7 +31,7 @@ type MentionSuggestionsProps = {
     /** Array of suggested mentions */
     mentions: Mention[];
 
-    /** Fired when the user selects an mention */
+    /** Fired when the user selects a mention */
     onSelect: () => void;
 
     /** Mention prefix that follows the @ sign  */
@@ -42,7 +42,7 @@ type MentionSuggestionsProps = {
      * When this value is false, the suggester will have a height of 2.5 items. When this value is true, the height can be up to 5 items.  */
     isMentionPickerLarge: boolean;
 
-    /** Meaures the parent container's position and dimensions. */
+    /** Measures the parent container's position and dimensions. */
     measureParentContainer: () => void;
 };
 
@@ -100,7 +100,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
-                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle]}
+                                        style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.textSupporting]}
                                     >
                                         {text}
                                     </Text>
@@ -119,7 +119,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             styles.flexShrink1,
             styles.flex1,
             styles.mentionSuggestionsDisplayName,
-            styles.mentionSuggestionsHandle,
+            styles.textSupporting,
             theme.success,
             StyleUtils,
         ],
