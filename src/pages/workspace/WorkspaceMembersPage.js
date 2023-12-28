@@ -85,8 +85,6 @@ function WorkspaceMembersPage(props) {
     const isOfflineAndNoMemberDataAvailable = _.isEmpty(props.policyMembers) && props.network.isOffline;
     const prevPersonalDetails = usePrevious(props.personalDetails);
 
-    console.log('POLICY', props.policy);
-
     /**
      * Get filtered personalDetails list with current policyMembers
      * @param {Object} policyMembers

@@ -275,20 +275,20 @@ type OptimisticTaskReport = Pick<
 
 type TransactionDetails =
     | {
-    created: string;
-    amount: number;
-    currency: string;
-    merchant: string;
-    waypoints?: WaypointCollection;
-    comment: string;
-    category: string;
-    billable: boolean;
-    tag: string;
-    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-    cardID: number;
-    originalAmount: number;
-    originalCurrency: string;
-}
+          created: string;
+          amount: number;
+          currency: string;
+          merchant: string;
+          waypoints?: WaypointCollection;
+          comment: string;
+          category: string;
+          billable: boolean;
+          tag: string;
+          mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+          cardID: number;
+          originalAmount: number;
+          originalCurrency: string;
+      }
     | undefined;
 
 type OptimisticIOUReport = Pick<
@@ -1826,12 +1826,12 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
     return Boolean(
         reportAction?.actorAccountID === currentUserAccountID &&
-        isCommentOrIOU &&
-        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
-        !isReportMessageAttachment(reportAction?.message?.[0] ?? {type: '', text: ''}) &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            isCommentOrIOU &&
+            canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+            !isReportMessageAttachment(reportAction?.message?.[0] ?? {type: '', text: ''}) &&
+            !ReportActionsUtils.isDeletedAction(reportAction) &&
+            !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+            reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 }
 
@@ -2992,9 +2992,9 @@ function updateReportPreview(
         childMoneyRequestCount: (reportPreviewAction?.childMoneyRequestCount ?? 0) + (isPayRequest ? 0 : 1),
         childRecentReceiptTransactionIDs: hasReceipt
             ? {
-                ...(transaction && {[transaction.transactionID]: transaction?.created}),
-                ...previousTransactions,
-            }
+                  ...(transaction && {[transaction.transactionID]: transaction?.created}),
+                  ...previousTransactions,
+              }
             : recentReceiptTransactions,
         // As soon as we add a transaction without a receipt to the report, it will have ready money requests,
         // so we remove the whisper
@@ -3576,12 +3576,12 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
 
     return Boolean(
         !isCurrentUserAction &&
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        isNotEmptyObject(report) &&
-        report &&
-        isAllowedToComment(report),
+            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+            !ReportActionsUtils.isDeletedAction(reportAction) &&
+            !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+            isNotEmptyObject(report) &&
+            report &&
+            isAllowedToComment(report),
     );
 }
 
@@ -4225,12 +4225,12 @@ function getChannelLogMemberMessage(reportAction: OnyxEntry<ReportAction>): stri
 function isGroupChat(report: OnyxEntry<Report>): boolean {
     return Boolean(
         report &&
-        !isChatThread(report) &&
-        !isTaskReport(report) &&
-        !isMoneyRequestReport(report) &&
-        !isArchivedRoom(report) &&
-        !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-        (report.participantAccountIDs?.length ?? 0) > 2,
+            !isChatThread(report) &&
+            !isTaskReport(report) &&
+            !isMoneyRequestReport(report) &&
+            !isArchivedRoom(report) &&
+            !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
+            (report.participantAccountIDs?.length ?? 0) > 2,
     );
 }
 

@@ -17,18 +17,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {
-    Network,
-    PersonalDetails,
-    Policy,
-    PolicyMember, PolicyTags,
-    RecentlyUsedCategories,
-    RecentlyUsedTags,
-    ReimbursementAccount,
-    Report,
-    ReportAction,
-    Transaction
-} from '@src/types/onyx';
+import {Network, PersonalDetails, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -46,8 +35,8 @@ Onyx.connect({
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries = {};
-            const cleanUpSetQueries = {};
+            const cleanUpMergeQueries: OnyxCollection<Record<string, boolean>> = {};
+            const cleanUpSetQueries: OnyxCollection<Record<string, null>> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
@@ -58,7 +47,7 @@ Onyx.connect({
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
+            Onyx.multiSet(cleanUpSetQueries as Partial<{string: null}>);
             delete allPolicies[key];
             return;
         }
@@ -190,33 +179,33 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
                 errors: null,
             },
         },
-        ...reports.map(({reportID}) => ({
+        ...reports.map<OnyxUpdate>(({reportID}) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: ({
+            value: {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 hasDraft: false,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
-            }),
+            },
         })),
 
-        ...(reports.map(({reportID}) => ({
+        ...reports.map<OnyxUpdate>(({reportID}) => ({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`,
             value: null,
-        }))),
+        })),
 
         // Add closed actions to all chat reports linked to this policy
-        ...reports.map(({reportID, ownerAccountID}) => {
+        ...reports.map<OnyxUpdate>(({reportID, ownerAccountID}) => {
             // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
             let emailClosingReport: string = CONST.POLICY.OWNER_EMAIL_FAKE;
             if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
                 emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
             }
-            const optimisticClosedReportAction: ReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions: Record<string, ReportAction> = {};
-            optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
+            optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction as ReportAction;
             return {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -225,7 +214,7 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
         }),
 
         ...(!hasActiveFreePolicy(filteredPolicies)
-            ? ([
+            ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
@@ -233,8 +222,8 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
                           errors: null,
                       },
                   },
-              ])
-            : ([])),
+              ]
+            : []),
     ];
 
     // Restore the old report stateNum and statusNum
@@ -358,7 +347,6 @@ function removeMembers(accountIDs: number[], policyID: string) {
         return;
     }
 
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const policy = ReportUtils.getPolicy(policyID);
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
@@ -374,13 +362,13 @@ function removeMembers(accountIDs: number[], policyID: string) {
         failureMembersState[accountID] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
     });
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: optimisticMembersState,
         },
-        ...workspaceChats.map((report) => ({
+        ...workspaceChats.map<OnyxUpdate>((report) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
             value: {
@@ -390,10 +378,10 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 hasDraft: false,
             },
         })),
-        ...optimisticClosedReportActions.map((reportAction, index) => ({
+        ...optimisticClosedReportActions.map<OnyxUpdate>((reportAction, index) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
-            value: {[reportAction.reportActionID]: reportAction},
+            value: {[reportAction.reportActionID]: reportAction as ReportAction},
         })),
         ...announceRoomMembers.onyxOptimisticData,
     ];
@@ -424,22 +412,22 @@ function removeMembers(accountIDs: number[], policyID: string) {
         }
     }
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: successMembersState,
         },
     ];
 
     const filteredWorkspaceChats = workspaceChats.filter((e): e is Report => e !== null);
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
+            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
             value: failureMembersState,
         },
-        ...filteredWorkspaceChats.map(({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => ({
+        ...filteredWorkspaceChats.map<OnyxUpdate>(({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
@@ -449,7 +437,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 oldPolicyName,
             },
         })),
-        ...optimisticClosedReportActions.map((reportAction, index) => ({
+        ...optimisticClosedReportActions.map<OnyxUpdate>((reportAction, index) => ({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
             value: {[reportAction.reportActionID]: null},
@@ -794,7 +782,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                ...((allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {} as Policy)),
+                ...(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy)),
 
                 pendingFields: {
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -806,7 +794,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 },
                 name,
                 outputCurrency: currency,
-                ...((distanceUnit
+                ...(distanceUnit
                     ? {
                           customUnits: {
                               [distanceUnit.customUnitID]: {
@@ -820,7 +808,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                               },
                           },
                       }
-                    : {})),
+                    : {}),
             },
         },
     ];
@@ -1626,12 +1614,19 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
-            value: null,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
-            value: null,
+            value: {
+                pendingAction: null,
+            },
         },
         ...employeeWorkspaceChat.onyxOptimisticData,
     ];
@@ -1706,37 +1701,60 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: null,
+            value: {
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: null,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-            value: null,
+            value: {
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: null,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: null,
+            value: {
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`,
-            value: null,
+            value: {
+                pendingFields: {
+                    addWorkspaceRoom: null,
+                },
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChatReportID}`,
-            value: null,
+            value: {
+                pendingAction: null,
+            },
         },
     ];
 
@@ -1838,11 +1856,16 @@ function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
             value: {
-                [reportPreview.reportActionID]: ({
+                [reportPreview.reportActionID]: {
                     ...reportPreview,
-                    message: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, newWorkspace),
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            text: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, newWorkspace),
+                        },
+                    ],
                     created: DateUtils.getDBTime(),
-                }),
+                },
             },
         });
     }
