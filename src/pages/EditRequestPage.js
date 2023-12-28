@@ -120,6 +120,22 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.dismissModal(report.reportID);
     }
 
+    const saveAmountAndCurrency = useCallback(
+        ({amount, currency: newCurrency}) => {
+            const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
     const saveCreated = useCallback(
         ({created: newCreated}) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
@@ -164,19 +180,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 defaultAmount={transactionAmount}
                 defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
-                onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-                    // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    // Temporarily disabling currency editing and it will be enabled as a quick follow up
-                    editMoneyRequest({
-                        amount,
-                        currency: defaultCurrency,
-                    });
-                }}
+                onSubmit={saveAmountAndCurrency}
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
