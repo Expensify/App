@@ -205,7 +205,7 @@ function BaseOptionsSelector(props) {
     );
 
     const selectFocusedOption = useCallback((e) => {
-        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
         const focusedOption = focusedItemKey ? _.find(allOptions, (option) => option.keyForList === focusedItemKey) : allOptions[focusedIndex];
 
         if (!focusedOption || !isFocused) {
@@ -456,6 +456,7 @@ function BaseOptionsSelector(props) {
             spellCheck={false}
             shouldInterceptSwipe={props.shouldTextInputInterceptSwipe}
             isLoading={props.isLoadingNewOptions}
+            testID="options-selector-input"
         />
     );
     const optionsList = (
@@ -597,6 +598,7 @@ function BaseOptionsSelector(props) {
                             src={Info}
                             height={20}
                             width={20}
+                            fill={theme.icon}
                         />
                     </PressableWithoutFeedback>
                 </View>

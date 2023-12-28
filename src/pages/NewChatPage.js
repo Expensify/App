@@ -244,7 +244,6 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                             onAddToSelection={(option) => toggleOption(option)}
                             sections={sections}
                             selectedOptions={selectedOptions}
-                            value={searchTerm}
                             onSelectRow={(option) => createChat(option)}
                             onChangeText={setSearchTermAndSearchInServer}
                             headerMessage={headerMessage}

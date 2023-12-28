@@ -131,8 +131,6 @@ type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
-type AdminCanceledRequestParams = {amount: string};
-
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
 type PaidElsewhereWithAmountParams = {payer: string; amount: string};
@@ -295,7 +293,6 @@ export type {
     PayerSettledParams,
     WaitingOnBankAccountParams,
     CanceledRequestParams,
-    AdminCanceledRequestParams,
     SettledAfterAddedBankAccountParams,
     PaidElsewhereWithAmountParams,
     PaidWithExpensifyWithAmountParams,
