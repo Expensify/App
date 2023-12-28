@@ -13,6 +13,7 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 
 export default {
     // do we need to change it?
+    bottomTabHeight: 80,
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,

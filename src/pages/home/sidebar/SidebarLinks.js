@@ -132,19 +132,18 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
 
     return (
         <View style={[styles.flex1, styles.h100]}>
-            <View style={[styles.ph5, styles.pv5, styles.justifyContentBetween]}>
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            type: CONST.BREADCRUMB_TYPE.ROOT,
-                        },
-                        {
-                            text: translate('breadcrumbs.chats'),
-                        },
-                    ]}
-                />
-            </View>
-            <View style={[styles.pRelative, styles.flex1, styles.pt3]}>
+            <Breadcrumbs
+                breadcrumbs={[
+                    {
+                        type: CONST.BREADCRUMB_TYPE.ROOT,
+                    },
+                    {
+                        text: translate('common.chats'),
+                    },
+                ]}
+                style={[styles.pb5, styles.ph5]}
+            />
+            <View style={[styles.pRelative, styles.flex1]}>
                 <LHNOptionsList
                     style={styles.flex1}
                     contentContainerStyles={StyleSheet.flatten([styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}])}

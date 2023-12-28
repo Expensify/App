@@ -1,15 +1,14 @@
-import {useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import Breadcrumbs from '@components/Breadcrumbs';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import getTopmostCentralPaneName from '@libs/Navigation/getTopmostCentralPanePath';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -20,8 +19,7 @@ function AllSettingsScreen() {
     const {isExecuting, singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const activeRoute = useNavigationState(getTopmostCentralPaneName);
-
+    const activeRoute = useActiveRoute();
     /**
      * Retuns a list of menu items data for "everything" settings
      * @returns {Object} object with translationKey, style and items
@@ -91,7 +89,7 @@ function AllSettingsScreen() {
                                 }
                             })}
                             shouldBlockSelection={Boolean(item.link)}
-                            focused={activeRoute && activeRoute.startsWith(item.routeName, 1)}
+                            focused={activeRoute && activeRoute.startsWith(item.routeName)}
                         />
                     );
                 })}
@@ -103,21 +101,20 @@ function AllSettingsScreen() {
     const accountMenuItems = useMemo(() => getMenuItemsSection(menuItemsData), [menuItemsData, getMenuItemsSection]);
 
     return (
-        <View style={styles.w100}>
-            <View style={[styles.ph5, styles.pv5, styles.justifyContentBetween]}>
-                <Breadcrumbs
-                    breadcrumbs={[
-                        {
-                            type: CONST.BREADCRUMB_TYPE.ROOT,
-                        },
-                        {
-                            text: translate('common.settings'),
-                        },
-                    ]}
-                />
-            </View>
+        <>
+            <Breadcrumbs
+                breadcrumbs={[
+                    {
+                        type: CONST.BREADCRUMB_TYPE.ROOT,
+                    },
+                    {
+                        text: translate('common.settings'),
+                    },
+                ]}
+                style={[styles.pb5, styles.ph5]}
+            />
             {accountMenuItems}
-        </View>
+        </>
     );
 }
 

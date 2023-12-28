@@ -29,7 +29,7 @@ function TopBar({isCreateMenuOpen = false}) {
 
     return (
         <View
-            style={[styles.gap6, styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
+            style={[styles.gap4, styles.flexRow, styles.ph5, styles.pv5, styles.justifyContentBetween, styles.alignItemsCenter]}
             dataSet={{dragArea: true}}
         >
             <PressableWithFeedback role={CONST.ROLE.BUTTON}>

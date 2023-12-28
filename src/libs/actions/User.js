@@ -613,7 +613,7 @@ function updateChatPriorityMode(mode, automatic = false) {
     );
 
     if (!autoSwitchedToFocusMode) {
-        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+        Navigation.goBack();
     }
 }
 
@@ -796,7 +796,7 @@ function updateTheme(theme) {
         {optimisticData},
     );
 
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack();
 }
 
 /**
