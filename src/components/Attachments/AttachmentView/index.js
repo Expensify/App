@@ -201,14 +201,7 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
-                file={file}
-                isAuthTokenRequired={isAuthTokenRequired}
-                isUsedInCarousel={isUsedInCarousel}
-                loadComplete={loadComplete}
-                isFocused={isFocused}
-                isImage={isImage}
-                onPress={onPress}
-                onScaleChanged={onScaleChanged}
+                shouldUseSharedVideoElement={isUsedInCarousel}
                 isHovered={isHovered}
             />
         );
