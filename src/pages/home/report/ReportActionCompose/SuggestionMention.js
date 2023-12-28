@@ -254,7 +254,7 @@ function SuggestionMention({
         }
 
         calculateMentionSuggestion(selection.end);
-    }, [selection, value, previousValue, calculateMentionSuggestion]);
+    }, [selection, value, previousValue, calculateMentionSuggestion, isComposerFullSize]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
