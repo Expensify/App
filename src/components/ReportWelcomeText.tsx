@@ -42,7 +42,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     );
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, participantAccountIDs);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
 
     const navigateToReport = () => {
         if (!report?.reportID) {

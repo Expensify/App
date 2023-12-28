@@ -4,7 +4,7 @@ import EditedRenderer from './EditedRenderer';
 import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
-import NextStepsEmailRenderer from './NextStepsEmailRenderer';
+import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
 
 /**
@@ -22,5 +22,5 @@ export default {
     pre: PreRenderer,
     'mention-user': MentionUserRenderer,
     'mention-here': MentionHereRenderer,
-    'next-steps-email': NextStepsEmailRenderer,
+    'next-step-email': NextStepEmailRenderer,
 };

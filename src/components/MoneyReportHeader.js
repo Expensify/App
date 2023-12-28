@@ -102,11 +102,11 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextSteps = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
+    const shouldShowNextStep = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
-    const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
     if (!ReportUtils.isArchivedRoom(chatReport)) {
@@ -138,7 +138,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextSteps && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -200,7 +200,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                         />
                     </View>
                 )}
-                {shouldShowNextSteps && (
+                {shouldShowNextStep && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
