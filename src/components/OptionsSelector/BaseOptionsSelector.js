@@ -105,6 +105,7 @@ function BaseOptionsSelector(props) {
     const prevLocale = useRef(props.preferredLocale);
     const prevPaginationPage = useRef(paginationPage);
     const prevSelectedOptions = useRef(props.selectedOptions);
+    const prevValue = useRef(value);
 
     useImperativeHandle(props.forwardedRef, () => textInputRef.current);
 
@@ -340,17 +341,16 @@ function BaseOptionsSelector(props) {
     }, [props.sections]);
 
     useEffect(() => {
-        const isNewFocusedIndex = props.selectedOptions.length !== focusedIndex;
-
         // If we just toggled an option on a multi-selection page or cleared the search input, scroll to top
-        if (props.selectedOptions.length !== prevSelectedOptions.current.length || !value) {
+        if (props.selectedOptions.length !== prevSelectedOptions.current.length || (!!prevValue.current && !value)) {
             prevSelectedOptions.current = props.selectedOptions;
+            prevValue.current = value;
             scrollToIndex(0);
             return;
         }
 
         // Otherwise, scroll to the focused index (as long as it's in range)
-        if (allOptions.length <= focusedIndex || !isNewFocusedIndex) {
+        if (allOptions.length <= focusedIndex) {
             return;
         }
         scrollToIndex(props.focusedIndex);
