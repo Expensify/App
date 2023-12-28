@@ -1,52 +1,47 @@
-import lodashGet from 'lodash/get';
+import _ from 'lodash';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
-import _ from 'underscore';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import {TranslationPaths} from '@src/languages/types';
+import {Transaction} from '@src/types/onyx';
+import {WaypointCollection} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import Text from './Text';
 import ThumbnailImage from './ThumbnailImage';
-import transactionPropTypes from './transactionPropTypes';
 
-const propTypes = {
+type DistanceEReceiptProps = {
     /** The transaction for the distance request */
-    transaction: transactionPropTypes,
+    transaction: Transaction;
 };
 
-const defaultProps = {
-    transaction: {},
-};
-
-function DistanceEReceipt({transaction}) {
-    const theme = useTheme();
+function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {thumbnail} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction);
+    const {thumbnail = ''} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
+    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
-    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
-    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const sortedWaypoints = useMemo(
+    const thumbnailSource = tryResolveUrlFromApiRoot((thumbnail as string) || '');
+    const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
+    const sortedWaypoints = useMemo<WaypointCollection>(
         () =>
             // The waypoint keys are sometimes out of order
             _.chain(waypoints)
                 .keys()
                 .sort((keyA, keyB) => TransactionUtils.getWaypointIndex(keyA) - TransactionUtils.getWaypointIndex(keyB))
                 .map((key) => ({[key]: waypoints[key]}))
-                .reduce((result, obj) => (obj ? _.assign(result, obj) : result), {})
+                .reduce((result, obj) => (obj ? Object.assign(result, obj) : result), {})
                 .value(),
         [waypoints],
     );
@@ -64,7 +59,7 @@ function DistanceEReceipt({transaction}) {
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isOffline || !thumbnailSource ? (
+                        {isOffline === true || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ThumbnailImage
@@ -80,12 +75,12 @@ function DistanceEReceipt({transaction}) {
                         <Text style={styles.eReceiptMerchant}>{transactionMerchant}</Text>
                     </View>
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
-                        {_.map(sortedWaypoints, (waypoint, key) => {
+                        {Object.entries(sortedWaypoints).map(([key, waypoint]) => {
                             const index = TransactionUtils.getWaypointIndex(key);
                             let descriptionKey = 'distance.waypointDescription.';
                             if (index === 0) {
                                 descriptionKey += 'start';
-                            } else if (index === _.size(waypoints) - 1) {
+                            } else if (index === Object.keys(waypoints).length - 1) {
                                 descriptionKey += 'finish';
                             } else {
                                 descriptionKey += 'stop';
@@ -95,9 +90,9 @@ function DistanceEReceipt({transaction}) {
                                     style={styles.gap1}
                                     key={key}
                                 >
-                                    <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
-                                    {waypoint.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
-                                    {waypoint.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
+                                    <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey as TranslationPaths)}</Text>
+                                    {waypoint?.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
+                                    {waypoint?.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
                                 </View>
                             );
                         })}
@@ -110,7 +105,6 @@ function DistanceEReceipt({transaction}) {
                         <Icon
                             width={86}
                             height={19.25}
-                            fill={theme.textBrand}
                             src={Expensicons.ExpensifyWordmark}
                         />
 
@@ -122,7 +116,6 @@ function DistanceEReceipt({transaction}) {
     );
 }
 
-export default DistanceEReceipt;
 DistanceEReceipt.displayName = 'DistanceEReceipt';
-DistanceEReceipt.propTypes = propTypes;
-DistanceEReceipt.defaultProps = defaultProps;
+
+export default DistanceEReceipt;
