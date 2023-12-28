@@ -1,10 +1,4 @@
-<<<<<<< HEAD:src/components/MoneyReportHeader.tsx
-import React, {useCallback, useMemo, useState} from 'react';
-=======
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
->>>>>>> main:src/components/MoneyReportHeader.js
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -51,24 +45,10 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     personalDetails: PersonalDetails
 };
 
-<<<<<<< HEAD:src/components/MoneyReportHeader.tsx
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-=======
-const defaultProps = {
-    chatReport: {},
-    nextStep: {},
-    session: {
-        email: null,
-    },
-    policy: {},
-};
-
-function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
->>>>>>> main:src/components/MoneyReportHeader.js
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -98,11 +78,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
-<<<<<<< HEAD:src/components/MoneyReportHeader.tsx
-    const isMoreContentShown = shouldShowNextSteps ?? (shouldShowAnyButton && isSmallScreenWidth);
-=======
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
->>>>>>> main:src/components/MoneyReportHeader.js
+    const isMoreContentShown = shouldShowNextStep ?? (shouldShowAnyButton && isSmallScreenWidth);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
     if (!ReportUtils.isArchivedRoom(chatReport)) {
