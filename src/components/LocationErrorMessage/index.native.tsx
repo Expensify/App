@@ -1,14 +1,14 @@
 import React from 'react';
 import {Linking} from 'react-native';
 import BaseLocationErrorMessage from './BaseLocationErrorMessage';
-import LocationErrorMessagePropTypes from './types';
+import LocationErrorMessageProps from './types';
 
 /** Opens app level settings from the native system settings  */
-const openAppSettings = (): void => {
+const openAppSettings = () => {
     Linking.openSettings();
 };
 
-function LocationErrorMessage(props: LocationErrorMessagePropTypes) {
+function LocationErrorMessage(props: LocationErrorMessageProps) {
     return (
         <BaseLocationErrorMessage
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -19,4 +19,5 @@ function LocationErrorMessage(props: LocationErrorMessagePropTypes) {
 }
 
 LocationErrorMessage.displayName = 'LocationErrorMessage';
+
 export default LocationErrorMessage;

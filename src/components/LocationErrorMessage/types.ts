@@ -1,7 +1,8 @@
-type LocationErrorMessagePropTypes = {
+type LocationErrorMessageProps = {
     /** A callback that runs when close icon is pressed */
 
     onClose: () => void;
+
     /**
      * The location error code from onyx
      * - code -1 = location not supported (web only)
@@ -12,4 +13,4 @@ type LocationErrorMessagePropTypes = {
     locationErrorCode?: -1 | 1 | 2 | 3;
 };
 
-export default LocationErrorMessagePropTypes;
+export default LocationErrorMessageProps;

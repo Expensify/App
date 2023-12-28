@@ -12,9 +12,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
-import LocationErrorMessagePropTypes from './types';
+import LocationErrorMessageProps from './types';
 
-type BaseLocationErrorMessageProps = LocationErrorMessagePropTypes &
+type BaseLocationErrorMessageProps = LocationErrorMessageProps &
     WithLocalizeProps & {
         /** A callback that runs when 'allow location permission' link is pressed */
         onAllowLocationLinkPress: () => void;
@@ -75,4 +75,5 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
 }
 
 BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
+
 export default withLocalize(BaseLocationErrorMessage);
