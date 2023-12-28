@@ -1,5 +1,5 @@
 import React from 'react';
-import BaseUserDetailsTooltip from './BaseUserDetailsTooltip/index.native';
+import BaseUserDetailsTooltip from './BaseUserDetailsTooltip';
 import UserDetailsTooltipProps from './types';
 
 function UserDetailsTooltip({shouldRender = true, children, ...props}: UserDetailsTooltipProps) {
