@@ -22,12 +22,13 @@ function AttachmentViewPdf(props) {
     // frozen, which combined with Reanimated using strict mode since 3.6.0 was resulting in errors.
     // Without strict mode, it would just silently fail.
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze#description
+    const isContextReady = attachmentCarouselPagerContext !== null;
     const shouldPagerScroll = attachmentCarouselPagerContext.shouldPagerScroll;
 
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.value !== 0 && offsetY.value !== 0 && attachmentCarouselPagerContext) {
+            if (offsetX.value !== 0 && offsetY.value !== 0 && isContextReady) {
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
