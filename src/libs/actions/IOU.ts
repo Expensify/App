@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
+import {Participant} from '@src/types/onyx/IOU';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
@@ -165,106 +167,55 @@ function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, io
     });
 }
 
-/**
- * @param {String} transactionID
- */
-function clearMoneyRequest(transactionID) {
+function clearMoneyRequest(transactionID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-/**
- * @param {String} transactionID
- * @param {Number} amount
- * @param {String} currency
- */
-function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
+function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} created
- */
-function setMoneyRequestCreated_temporaryForRefactor(transactionID, created) {
+function setMoneyRequestCreated_temporaryForRefactor(transactionID: string, created: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {created});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} currency
- */
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency) {
+function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} comment
- */
-function setMoneyRequestDescription_temporaryForRefactor(transactionID, comment) {
+function setMoneyRequestDescription_temporaryForRefactor(transactionID: string, comment: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {comment: comment.trim()}});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} merchant
- */
-function setMoneyRequestMerchant_temporaryForRefactor(transactionID, merchant) {
+function setMoneyRequestMerchant_temporaryForRefactor(transactionID: string, merchant: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {merchant: merchant.trim()});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} category
- */
-function setMoneyRequestCategory_temporaryForRefactor(transactionID, category) {
+function setMoneyRequestCategory_temporaryForRefactor(transactionID: string, category: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
 }
 
-/*
- * @param {String} transactionID
- */
-function resetMoneyRequestCategory_temporaryForRefactor(transactionID) {
+function resetMoneyRequestCategory_temporaryForRefactor(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category: null});
 }
 
-/*
- * @param {String} transactionID
- * @param {String} tag
- */
-function setMoneyRequestTag_temporaryForRefactor(transactionID, tag) {
+function setMoneyRequestTag_temporaryForRefactor(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
 
-/*
- * @param {String} transactionID
- */
-function resetMoneyRequestTag_temporaryForRefactor(transactionID) {
+function resetMoneyRequestTag_temporaryForRefactor(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag: null});
 }
 
-/**
- * @param {String} transactionID
- * @param {Boolean} billable
- */
-function setMoneyRequestBillable_temporaryForRefactor(transactionID, billable) {
+function setMoneyRequestBillable_temporaryForRefactor(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
-/**
- * @param {String} transactionID
- * @param {Object[]} participants
- */
-function setMoneyRequestParticipants_temporaryForRefactor(transactionID, participants) {
+function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants: Participant[]) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
-/**
- * @param {String} transactionID
- * @param {String} source
- * @param {String} filename
- */
-function setMoneyRequestReceipt_temporaryForRefactor(transactionID, source, filename) {
+function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, source: string, filename: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {source}, filename});
 }
 
@@ -3214,60 +3165,37 @@ function setMoneyRequestParticipantsFromReport(transactionID, report) {
 
 /**
  * Initialize money request info and navigate to the MoneyRequest page
- * @param {String} iouType
- * @param {String} reportID
  */
-function startMoneyRequest(iouType, reportID = '') {
+function startMoneyRequest(iouType: string, reportID = '') {
     resetMoneyRequestInfo(`${iouType}${reportID}`);
     Navigation.navigate(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
 }
 
-/**
- * @param {String} id
- */
-function setMoneyRequestId(id) {
+function setMoneyRequestId(id: string) {
     Onyx.merge(ONYXKEYS.IOU, {id});
 }
 
-/**
- * @param {Number} amount
- */
-function setMoneyRequestAmount(amount) {
+function setMoneyRequestAmount(amount: number) {
     Onyx.merge(ONYXKEYS.IOU, {amount});
 }
 
-/**
- * @param {String} created
- */
-function setMoneyRequestCreated(created) {
+function setMoneyRequestCreated(created: string) {
     Onyx.merge(ONYXKEYS.IOU, {created});
 }
 
-/**
- * @param {String} currency
- */
-function setMoneyRequestCurrency(currency) {
+function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
-/**
- * @param {String} comment
- */
-function setMoneyRequestDescription(comment) {
+function setMoneyRequestDescription(comment: string) {
     Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
 }
 
-/**
- * @param {String} merchant
- */
-function setMoneyRequestMerchant(merchant) {
+function setMoneyRequestMerchant(merchant: string) {
     Onyx.merge(ONYXKEYS.IOU, {merchant: merchant.trim()});
 }
 
-/**
- * @param {String} category
- */
-function setMoneyRequestCategory(category) {
+function setMoneyRequestCategory(category: string) {
     Onyx.merge(ONYXKEYS.IOU, {category});
 }
 
@@ -3275,10 +3203,7 @@ function resetMoneyRequestCategory() {
     Onyx.merge(ONYXKEYS.IOU, {category: ''});
 }
 
-/*
- * @param {String} tag
- */
-function setMoneyRequestTag(tag) {
+function setMoneyRequestTag(tag: string) {
     Onyx.merge(ONYXKEYS.IOU, {tag});
 }
 
@@ -3286,26 +3211,15 @@ function resetMoneyRequestTag() {
     Onyx.merge(ONYXKEYS.IOU, {tag: ''});
 }
 
-/**
- * @param {Boolean} billable
- */
-function setMoneyRequestBillable(billable) {
+function setMoneyRequestBillable(billable: boolean) {
     Onyx.merge(ONYXKEYS.IOU, {billable});
 }
 
-/**
- * @param {Object[]} participants
- * @param {Boolean} isSplitRequest
- */
-function setMoneyRequestParticipants(participants, isSplitRequest) {
+function setMoneyRequestParticipants(participants: Participant[], isSplitRequest: boolean) {
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
-/**
- * @param {String} receiptPath
- * @param {String} receiptFilename
- */
-function setMoneyRequestReceipt(receiptPath, receiptFilename) {
+function setMoneyRequestReceipt(receiptPath: string, receiptFilename: string) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptFilename, merchant: ''});
 }
 

@@ -13,6 +13,7 @@ type IOU = {
     /** Selected Currency Code of the current IOU */
     currency?: string;
     comment?: string;
+    category?: string;
     merchant?: string;
     created?: string;
     receiptPath?: string;
@@ -20,6 +21,9 @@ type IOU = {
     transactionID?: string;
     participants?: Participant[];
     tag?: string;
+    billable?: boolean;
+    isSplitRequest?: boolean;
 };
 
 export default IOU;
+export type {Participant};

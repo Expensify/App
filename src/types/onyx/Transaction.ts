@@ -1,5 +1,6 @@
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import {Participant} from './IOU';
 import * as OnyxCommon from './OnyxCommon';
 import RecentWaypoint from './RecentWaypoint';
 
@@ -70,6 +71,7 @@ type Transaction = {
     modifiedWaypoints?: WaypointCollection;
     // Used during the creation flow before the transaction is saved to the server and helps dictate where the user is navigated to when pressing the back button on the confirmation step
     participantsAutoAssigned?: boolean;
+    participants?: Participant[];
     pendingAction: OnyxCommon.PendingAction;
     receipt?: Receipt;
     reportID: string;
