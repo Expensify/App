@@ -5,7 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import DateUtils from '@libs/DateUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Chronos from '@userActions/Chronos';
 import type {OriginalMessageChronosOOOList} from '@src/types/onyx/OriginalMessage';
 import type {ReportActionBase} from '@src/types/onyx/ReportAction';

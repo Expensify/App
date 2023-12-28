@@ -1,9 +1,9 @@
 import React, {useCallback} from 'react';
 import {ImageStyle, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import ChildrenProps from '@src/types/utils/ChildrenProps';

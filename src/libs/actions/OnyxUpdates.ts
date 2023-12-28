@@ -1,5 +1,6 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {Merge} from 'type-fest';
+import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,10 +70,10 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
-    console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, {request, response, updates});
+    Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
     if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
-        console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
+        Log.info('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates', false);
         return Promise.resolve();
     }
     if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {

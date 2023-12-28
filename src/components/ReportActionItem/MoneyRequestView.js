@@ -17,6 +17,9 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
@@ -32,9 +35,6 @@ import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateB
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,8 +101,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         originalCurrency: transactionOriginalCurrency,
         cardID: transactionCardID,
     } = ReportUtils.getTransactionDetails(transaction);
-    const isEmptyMerchant =
-        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
@@ -118,6 +117,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditAmount = canEdit && !isSettled && !isCardTransaction;
+    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, moneyRequestReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -192,7 +192,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
+                {!hasReceipt && canEditReceipt && !isSettled && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}

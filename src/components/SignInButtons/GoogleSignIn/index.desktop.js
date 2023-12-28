@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import IconButton from '@components/SignInButtons/IconButton';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
