@@ -11,6 +11,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
@@ -49,7 +50,7 @@ const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType'
         case CONST.POLICY.TYPE.TEAM:
             return Illustrations.Mailbox;
         default:
-            throw new Error(`Don't know which icon to serve for workspace type`);
+            return Illustrations.Mailbox;
     }
 };
 
@@ -65,6 +66,7 @@ function WorkspacesListRow({
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
@@ -77,7 +79,7 @@ function WorkspacesListRow({
             case CONST.POLICY.TYPE.TEAM:
                 return translate('workspace.type.collect');
             default:
-                throw new Error(`Don't know a friendly workspace name for this workspace type`);
+                return translate('workspace.type.free');
         }
     }, [workspaceType, translate]);
 
@@ -164,8 +166,9 @@ function WorkspacesListRow({
             {isWide && (
                 <ThreeDotsMenu
                     menuItems={menuItems}
-                    anchorPosition={{top: 0, right: 0}}
+                    anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                     iconStyles={[styles.mr2]}
+                    shouldOverlay
                 />
             )}
         </View>

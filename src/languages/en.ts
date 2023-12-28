@@ -1494,6 +1494,9 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
+            workspaceTitle: 'Workspace title',
+            workspaceOwner: 'Owner',
+            workspaceType: 'Workspace type',
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
         },
@@ -1504,7 +1507,7 @@ export default {
         },
         emptyWorkspace: {
             title: 'Create a workspace',
-            subtitle: 'Manage business expenses, issue cards, send invoices, and more.',
+            subtitle: 'Workspaces are where you’ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more - all in one place.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
