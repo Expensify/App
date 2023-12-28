@@ -20,31 +20,22 @@ jest.mock('../../src/components/withLocalize', () => (Component) => {
     return WrappedComponent;
 });
 
-jest.mock('../../src/components/withNavigationFocus', () => (Component) => {
-    function WithNavigationFocus(props) {
+jest.mock('../../src/components/withNavigation', () => (Component) => {
+    function withNavigation(props) {
         return (
             <Component
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                isFocused={false}
+                navigation={{
+                    navigate: jest.fn(),
+                    addListener: () => jest.fn(),
+                }}
             />
         );
     }
 
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
-
-    return WithNavigationFocus;
-});
-
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
-    return {
-        ...actualNav,
-        useNavigation: () => ({
-            navigate: jest.fn(),
-            addListener: () => jest.fn(),
-        }),
-    };
+    withNavigation.displayName = 'withNavigation';
+    return withNavigation;
 });
 
 const generateSections = (sectionConfigs) =>
