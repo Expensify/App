@@ -26,6 +26,25 @@ import TaxIdBusiness from './substeps/TaxIdBusiness';
 import TypeBusiness from './substeps/TypeBusiness';
 import WebsiteBusiness from './substeps/WebsiteBusiness';
 
+type BusinessInfoOnyxProps = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+};
+
+type BusinessInfoProps = BusinessInfoOnyxProps & {
+    /* The workspace policyID */
+    policyID: string;
+
+    /** Goes to the previous step */
+    onBackButtonPress: () => void;
+
+    /** Exits flow and goes back to the workspace initial page */
+    onCloseButtonPress: () => void;
+};
+
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     NameBusiness,
     TaxIdBusiness,
@@ -40,26 +59,13 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-type BusinessInfoOnyxProps = {
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
-};
-
-type BusinessInfoProps = {
-    reimbursementAccount: ReimbursementAccount;
-    reimbursementAccountDraft: ReimbursementAccountDraft;
-    policyID: string;
-    onBackButtonPress: () => void;
-    onCloseButtonPress: () => void;
-};
-
 function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID, onBackButtonPress, onCloseButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const getBankAccountFields = useCallback(
         (fieldNames: string[]) => ({
-            ...lodashPick(reimbursementAccount.achData, ...fieldNames),
+            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
             ...lodashPick(reimbursementAccountDraft, ...fieldNames),
         }),
         [reimbursementAccount, reimbursementAccountDraft],
@@ -69,7 +75,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: reimbursementAccount.achData?.bankAccountID ?? 0,
+            bankAccountID: reimbursementAccount?.achData?.bankAccountID ?? 0,
             ...values,
             ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
             companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),

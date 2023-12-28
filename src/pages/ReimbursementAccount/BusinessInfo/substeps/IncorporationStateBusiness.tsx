@@ -11,19 +11,19 @@ import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAcc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount} from '@src/types/onyx';
+import {FormValues} from '@src/types/onyx/Form';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-const companyIncorporationStateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
-
-const validate = (values: OnyxCommon.Errors) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationStateKey]);
-
 type IncorporationStateBusinessOnyxProps = {
+    /** Reimbursement account from ONYX */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
-type IncorporationStateBusinessProps = {
-    reimbursementAccount: ReimbursementAccount;
-} & SubStepProps;
+type IncorporationStateBusinessProps = IncorporationStateBusinessOnyxProps & SubStepProps;
+
+const companyIncorporationStateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_STATE;
+
+const validate = (values: FormValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationStateKey]);
 
 function IncorporationStateBusiness({reimbursementAccount, onNext, isEditing}: IncorporationStateBusinessProps) {
     const {translate} = useLocalize();

@@ -43,6 +43,8 @@ type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 type PlaidBankAccountToConnect = Omit<PlaidBankAccount, 'isSavings' | 'addressName' | 'mask'>;
 
+type BusinessAddress = {addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string};
+
 function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
@@ -133,9 +135,7 @@ function addBusinessWebsiteForDraft(website: string) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {website});
 }
 
-type AddBusinessAddressForDraftProps = {addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string};
-
-function addBusinessAddressForDraft(businessAddress: AddBusinessAddressForDraftProps) {
+function addBusinessAddressForDraft(businessAddress: BusinessAddress) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, businessAddress);
 }
 
@@ -491,4 +491,4 @@ export {
     setReimbursementAccountLoading,
 };
 
-export type {AddBusinessAddressForDraftProps};
+export type {BusinessAddress};

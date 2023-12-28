@@ -12,7 +12,15 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount} from '@src/types/onyx';
+import {FormValues} from '@src/types/onyx/Form';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+type AddressBusinessOnyxProps = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+};
+
+type AddressBusinessProps = AddressBusinessOnyxProps & SubStepProps;
 
 const companyBusinessInfoKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
@@ -25,7 +33,7 @@ const INPUT_KEYS = {
 
 const REQUIRED_FIELDS = [companyBusinessInfoKey.STREET, companyBusinessInfoKey.CITY, companyBusinessInfoKey.STATE, companyBusinessInfoKey.ZIP_CODE];
 
-const validate = (values: OnyxCommon.Errors) => {
+const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
     if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
@@ -39,14 +47,6 @@ const validate = (values: OnyxCommon.Errors) => {
     return errors;
 };
 
-type AddressBusinessOnyxProps = {
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-};
-
-type AddressBusinessProps = {
-    reimbursementAccount: ReimbursementAccount;
-} & SubStepProps;
-
 function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -58,7 +58,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
         zipCode: getDefaultValueForReimbursementAccountField(reimbursementAccount, companyBusinessInfoKey.ZIP_CODE, ''),
     };
 
-    const handleSubmit = (values: BankAccounts.AddBusinessAddressForDraftProps) => {
+    const handleSubmit = (values: BankAccounts.BusinessAddress) => {
         BankAccounts.addBusinessAddressForDraft(values);
         onNext();
     };

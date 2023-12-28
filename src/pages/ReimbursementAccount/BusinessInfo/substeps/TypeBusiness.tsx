@@ -9,22 +9,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount} from '@src/types/onyx';
+import {FormValues} from '@src/types/onyx/Form';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
-const companyIncorporationTypeKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_TYPE;
-
-const validate = (values: OnyxCommon.Errors) => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationTypeKey]);
-
 type TypeBusinessOnyxProps = {
+    /** Reimbursement account from ONYX */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
 
-type TypeBusinessProps = {
-    reimbursementAccount: ReimbursementAccount;
-} & SubStepProps;
+type TypeBusinessProps = TypeBusinessOnyxProps & SubStepProps;
+
+type IncorporationType = keyof typeof CONST.INCORPORATION_TYPES;
+
+const companyIncorporationTypeKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_TYPE;
+
+const validate = (values: FormValues): OnyxCommon.Errors => ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationTypeKey]);
 
 function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessProps) {
     const {translate} = useLocalize();
@@ -46,7 +47,10 @@ function TypeBusiness({reimbursementAccount, onNext, isEditing}: TypeBusinessPro
             <Picker
                 inputID={companyIncorporationTypeKey}
                 label={translate('businessInfoStep.companyType')}
-                items={Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({value: key, label: translate(`businessInfoStep.incorporationType.${key}` as TranslationPaths)}))}
+                items={Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({
+                    value: key,
+                    label: translate(`businessInfoStep.incorporationType.${key as IncorporationType}`),
+                }))}
                 placeholder={{value: '', label: '-'}}
                 // @ts-expect-error TODO: Remove this once Picker (https://github.com/Expensify/App/issues/25091) is migrated to TypeScript
                 defaultValue={defaultIncorporationType}

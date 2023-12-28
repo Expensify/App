@@ -1,3 +1,4 @@
+import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
@@ -15,14 +16,26 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import {FormValues} from '@src/types/onyx/Form';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+type ConfirmationBusinessOnyxProps = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+};
+
+type ConfirmationBusinessProps = ConfirmationBusinessOnyxProps & SubStepProps;
+
+type States = keyof typeof COMMON_CONST.STATES;
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-const validate = (values: OnyxCommon.Errors) => {
+const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS]);
 
     if (!values.hasNoConnectionToCannabis) {
@@ -32,25 +45,15 @@ const validate = (values: OnyxCommon.Errors) => {
     return errors;
 };
 
-type ConfirmationBusinessOnyxProps = {
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
-};
-
-type ConfirmationBusinessProps = {
-    reimbursementAccount: ReimbursementAccount;
-    reimbursementAccountDraft: ReimbursementAccountDraft;
-} & SubStepProps;
-
 function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const values = useMemo(() => getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount ?? {});
 
-    const defaultCheckboxState = reimbursementAccountDraft[businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
+    const defaultCheckboxState = reimbursementAccountDraft?.[businessInfoStepKeys.HAS_NO_CONNECTION_TO_CANNABIS] ?? false;
 
     return (
         // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript
@@ -119,7 +122,7 @@ function ConfirmationBusiness({reimbursementAccount, reimbursementAccountDraft, 
                 />
                 <MenuItemWithTopDescription
                     description={translate('businessInfoStep.incorporationState')}
-                    title={translate(`allStates.${values[businessInfoStepKeys.INCORPORATION_STATE]}.stateName` as TranslationPaths)}
+                    title={translate(`allStates.${values[businessInfoStepKeys.INCORPORATION_STATE] as States}.stateName`)}
                     shouldShowRightIcon
                     onPress={() => {
                         onMove(7);

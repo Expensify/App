@@ -14,11 +14,25 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount, Session, User} from '@src/types/onyx';
+import {FormValues} from '@src/types/onyx/Form';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+type WebsiteBusinessOnyxProps = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<Session>;
+
+    /** Object with various information about the user */
+    user: OnyxEntry<User>;
+};
+
+type WebsiteBusinessProps = WebsiteBusinessOnyxProps & SubStepProps;
 
 const companyWebsiteKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_WEBSITE;
 
-const validate = (values: OnyxCommon.Errors) => {
+const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [companyWebsiteKey]);
 
     if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
@@ -28,25 +42,13 @@ const validate = (values: OnyxCommon.Errors) => {
     return errors;
 };
 
-type WebsiteBusinessOnyxProps = {
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-    session: OnyxEntry<Session>;
-    user: OnyxEntry<User>;
-};
-
-type WebsiteBusinessProps = {
-    reimbursementAccount: ReimbursementAccount;
-    session: Session;
-    user: User;
-} & SubStepProps;
-
 function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing}: WebsiteBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultWebsiteExample = useMemo(
-        () => (user.isFromPublicDomain ?? false ? 'https://' : `https://www.${Str.extractEmailDomain(session.email ?? '')}`),
-        [session.email, user.isFromPublicDomain],
+        () => (user?.isFromPublicDomain ? 'https://' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`),
+        [session?.email, user?.isFromPublicDomain],
     );
 
     const defaultCompanyWebsite = getDefaultValueForReimbursementAccountField(reimbursementAccount, companyWebsiteKey, defaultWebsiteExample);

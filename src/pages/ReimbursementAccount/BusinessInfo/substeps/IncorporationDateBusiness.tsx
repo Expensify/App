@@ -12,11 +12,22 @@ import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAcc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
+import {FormValues} from '@src/types/onyx/Form';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+type IncorporationDateBusinessOnyxProps = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+};
+
+type IncorporationDateBusinessProps = IncorporationDateBusinessOnyxProps & SubStepProps;
 
 const companyIncorporationDateKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.INCORPORATION_DATE;
 
-const validate = (values: OnyxCommon.Errors) => {
+const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [companyIncorporationDateKey]);
 
     if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
@@ -28,22 +39,12 @@ const validate = (values: OnyxCommon.Errors) => {
     return errors;
 };
 
-type IncorporationDateBusinessOnyxProps = {
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
-};
-
-type IncorporationDateBusinessProps = {
-    reimbursementAccount: ReimbursementAccount;
-    reimbursementAccountDraft: ReimbursementAccountDraft;
-} & SubStepProps;
-
 function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}: IncorporationDateBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const defaultCompanyIncorporationDate =
-        getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationDateKey, '') || (reimbursementAccountDraft[companyIncorporationDateKey] ?? '');
+        getDefaultValueForReimbursementAccountField(reimbursementAccount, companyIncorporationDateKey, '') || (reimbursementAccountDraft?.[companyIncorporationDateKey] ?? '');
 
     return (
         // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript

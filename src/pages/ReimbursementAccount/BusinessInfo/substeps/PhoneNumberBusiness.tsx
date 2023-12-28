@@ -12,11 +12,19 @@ import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAcc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccount} from '@src/types/onyx';
+import {FormValues} from '@src/types/onyx/Form';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+type PhoneNumberBusinessOnyxProps = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+};
+
+type PhoneNumberBusinessProps = PhoneNumberBusinessOnyxProps & SubStepProps;
 
 const companyPhoneNumberKey = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY.COMPANY_PHONE;
 
-const validate = (values: OnyxCommon.Errors) => {
+const validate = (values: FormValues): OnyxCommon.Errors => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, [companyPhoneNumberKey]);
 
     if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
@@ -25,14 +33,6 @@ const validate = (values: OnyxCommon.Errors) => {
 
     return errors;
 };
-
-type PhoneNumberBusinessOnyxProps = {
-    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-};
-
-type PhoneNumberBusinessProps = {
-    reimbursementAccount: ReimbursementAccount;
-} & SubStepProps;
 
 function PhoneNumberBusiness({reimbursementAccount, onNext, isEditing}: PhoneNumberBusinessProps) {
     const {translate} = useLocalize();
