@@ -131,7 +131,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
     return (
         <AutoCompleteSuggestions
             suggestions={mentions}
-												isComposerFullSize={isComposerFullSize}
+            isComposerFullSize={isComposerFullSize}
             renderSuggestionMenuItem={renderSuggestionMenuItem}
             keyExtractor={keyExtractor}
             highlightedSuggestionIndex={highlightedMentionIndex}

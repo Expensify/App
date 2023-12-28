@@ -90,7 +90,7 @@ function EmojiSuggestions({
     return (
         <AutoCompleteSuggestions
             suggestions={emojis}
-												isComposerFullSize={isComposerFullSize}
+            isComposerFullSize={isComposerFullSize}
             renderSuggestionMenuItem={renderSuggestionMenuItem}
             keyExtractor={keyExtractor}
             highlightedSuggestionIndex={highlightedEmojiIndex}
