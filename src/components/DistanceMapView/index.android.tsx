@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MapView from '@components/MapView';
@@ -27,7 +27,7 @@ function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
                 }}
             />
             {!isMapReady && (
-                <View style={StyleSheet.flatten([styles.mapViewOverlay, overlayStyle])}>
+                <View style={[styles.mapViewOverlay, overlayStyle]}>
                     <BlockingView
                         icon={Expensicons.EmptyStateRoutePending}
                         title={translate('distance.mapPending.title')}
