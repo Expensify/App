@@ -4225,11 +4225,11 @@ function shouldDisableThreadForWhisperAction(reportAction: ReportAction) {
 /**
  * Disable reply in thread action if:
  *
- * - The action name is in the list of disable thread list
- * - The action is split bill action
- * - The action is deleted action and don't have the thread
- * - The action is whisper action and not is report preview or IOU action
- * - The action is the thread first chat
+ * - The action is listed in the thread-disabled list
+ * - The action is a split bill action
+ * - The action is deleted and is not threaded
+ * - The action is a whisper action and it's neither a report preview nor IOU action
+ * - The action is the thread's first chat
  */
 function shouldDisableThread(reportAction: ReportAction, reportID: string) {
     const disableThreadActions: string[] = [...CONST.REPORT.ACTIONS.DISABLE_THREAD];
