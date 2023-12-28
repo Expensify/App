@@ -716,7 +716,7 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
-        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
+        SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -943,6 +943,11 @@ const CONST = {
     IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
+    EMOJI_PICKER_ITEM_TYPES: {
+        HEADER: 'header',
+        EMOJI: 'emoji',
+        SPACER: 'spacer',
+    },
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
         HEIGHT: 416,
@@ -3040,6 +3045,14 @@ const CONST = {
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+
+    /** Context menu types */
+    CONTEXT_MENU_TYPES: {
+        LINK: 'LINK',
+        REPORT_ACTION: 'REPORT_ACTION',
+        EMAIL: 'EMAIL',
+        REPORT: 'REPORT',
     },
 } as const;
 

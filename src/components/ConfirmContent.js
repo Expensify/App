@@ -4,11 +4,13 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
+import sourcePropTypes from './Image/sourcePropTypes';
 import Text from './Text';
 
 const propTypes = {
@@ -43,7 +45,7 @@ const propTypes = {
     shouldShowCancelButton: PropTypes.bool,
 
     /** Icon to display above the title */
-    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    iconSource: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Whether to center the icon / text content */
     shouldCenterContent: PropTypes.bool,
@@ -88,6 +90,7 @@ const defaultProps = {
 
 function ConfirmContent(props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -101,6 +104,7 @@ function ConfirmContent(props) {
                         <View style={[styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={props.iconSource}
+                                fill={theme.icon}
                                 width={variables.appModalAppIconSize}
                                 height={variables.appModalAppIconSize}
                                 additionalStyles={[...props.iconAdditionalStyles]}
