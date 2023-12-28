@@ -369,7 +369,6 @@ function ReportActionCompose({
                                         reportParticipantIDs={reportParticipantIDs}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}
-                                        updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                         isBlockedFromConcierge={isBlockedFromConcierge}
                                         disabled={disabled}
                                         setMenuVisibility={setMenuVisibility}

@@ -186,7 +186,7 @@ function SuggestionEmoji({
             return;
         }
         calculateEmojiSuggestion(selection.end);
-    }, [selection, calculateEmojiSuggestion, isComposerFocused, isComposerFullSize]);
+    }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const onSelectionChange = useCallback(
         (e) => {

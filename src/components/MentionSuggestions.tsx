@@ -44,6 +44,9 @@ type MentionSuggestionsProps = {
 
     /** Measures the parent container's position and dimensions. */
     measureParentContainer: () => void;
+
+    /** Whether the composer is full size */
+    isComposerFullSize: boolean;
 };
 
 /**
@@ -51,7 +54,7 @@ type MentionSuggestionsProps = {
  */
 const keyExtractor = (item: Mention) => item.alternateText;
 
-function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
+function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}, isComposerFullSize}: MentionSuggestionsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -128,6 +131,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
     return (
         <AutoCompleteSuggestions
             suggestions={mentions}
+												isComposerFullSize={isComposerFullSize}
             renderSuggestionMenuItem={renderSuggestionMenuItem}
             keyExtractor={keyExtractor}
             highlightedSuggestionIndex={highlightedMentionIndex}

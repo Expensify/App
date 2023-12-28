@@ -55,9 +55,6 @@ const propTypes = {
     /** Whether or not the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
-    /** Updates the isComposerFullSize value */
-    updateShouldShowSuggestionMenuToFalse: PropTypes.func.isRequired,
-
     /** Whether or not the user is blocked from concierge */
     isBlockedFromConcierge: PropTypes.bool.isRequired,
 
@@ -116,7 +113,6 @@ function AttachmentPickerWithMenuItems({
     displayFileInModal,
     isFullComposerAvailable,
     isComposerFullSize,
-    updateShouldShowSuggestionMenuToFalse,
     reportID,
     isBlockedFromConcierge,
     disabled,
@@ -236,7 +232,6 @@ function AttachmentPickerWithMenuItems({
                                     <PressableWithFeedback
                                         onPress={(e) => {
                                             e.preventDefault();
-                                            updateShouldShowSuggestionMenuToFalse();
                                             Report.setIsComposerFullSize(reportID, false);
                                         }}
                                         // Keep focus on the composer when Collapse button is clicked.
@@ -258,7 +253,6 @@ function AttachmentPickerWithMenuItems({
                                     <PressableWithFeedback
                                         onPress={(e) => {
                                             e.preventDefault();
-                                            updateShouldShowSuggestionMenuToFalse();
                                             Report.setIsComposerFullSize(reportID, true);
                                         }}
                                         // Keep focus on the composer when Expand button is clicked.

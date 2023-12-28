@@ -33,6 +33,9 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer?: (callback: MeasureParentContainerCallback) => void;
+
+    /** Whether the composer is full size */
+    isComposerFullSize?: boolean;
 };
 
 export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps};
