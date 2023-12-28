@@ -51,17 +51,7 @@ function openOnfidoFlow() {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ONFIDO,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_ONFIDO,
@@ -76,8 +66,8 @@ function openOnfidoFlow() {
         {},
         {
             optimisticData,
-            successData,
-            failureData,
+            successData: finallyData,
+            failureData: finallyData,
         },
     );
 }
@@ -118,17 +108,7 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
@@ -140,8 +120,8 @@ function updatePersonalDetails(personalDetails: PersonalDetails) {
 
     API.write('UpdatePersonalDetailsForWallet', personalDetails, {
         optimisticData,
-        successData,
-        failureData,
+        successData: finallyData,
+        failureData: finallyData,
     });
 }
 
@@ -280,17 +260,7 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
@@ -312,8 +282,8 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
 
     API.write('AnswerQuestionsForWallet', requestParams, {
         optimisticData,
-        successData,
-        failureData,
+        successData: finallyData,
+        failureData: finallyData,
     });
 }
 
