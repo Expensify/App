@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
-import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
 import _ from 'underscore';
@@ -21,6 +21,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -28,10 +29,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
+import ReportAction from '@src/types/onyx/ReportAction';
 import {Comment} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
+
+// TODO: Remove this once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+type OptimisticPolicyRecentlyUsedCategories = string[];
+
+// TODO: Remove this once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
+type OptimisticPolicyRecentlyUsedTags = Record<string, string[]>;
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -249,63 +257,100 @@ function resetMoneyRequestInfo(id = '') {
 }
 
 function buildOnyxDataForMoneyRequest(
-    chatReport,
-    iouReport,
-    transaction,
-    chatCreatedAction,
-    iouCreatedAction,
-    iouAction,
-    optimisticPersonalDetailListAction,
-    reportPreviewAction,
-    optimisticPolicyRecentlyUsedCategories,
-    optimisticPolicyRecentlyUsedTags,
-    isNewChatReport,
-    isNewIOUReport,
-) {
-    const optimisticData = [
-        {
-            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
-            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
-                iouReportID: iouReport.reportID,
-                ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
-            },
-        },
-        {
-            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {
-                ...iouReport,
-                lastMessageText: iouAction.message[0].text,
-                lastMessageHtml: iouAction.message[0].html,
-                ...(isNewIOUReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
-            },
-        },
+    chatReport: OnyxTypes.Report,
+    iouReport: OnyxTypes.Report,
+    transaction: OnyxTypes.Transaction,
+    chatCreatedAction: OptimisticCreatedReportAction,
+    iouCreatedAction: OptimisticCreatedReportAction,
+    iouAction: OptimisticIOUReportAction,
+    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList | undefined,
+    reportPreviewAction: ReportAction,
+    optimisticPolicyRecentlyUsedCategories: OptimisticPolicyRecentlyUsedCategories,
+    optimisticPolicyRecentlyUsedTags: OptimisticPolicyRecentlyUsedTags,
+    isNewChatReport: boolean,
+    isNewIOUReport: boolean,
+): OnyxUpdate[][] {
+    const optimisticData: OnyxUpdate[] = [
+        isNewChatReport
+            ? {
+                  // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                  value: {
+                      ...chatReport,
+                      lastReadTime: DateUtils.getDBTime(),
+                      lastMessageTranslationKey: '',
+                      iouReportID: iouReport?.reportID,
+                      pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                  value: {
+                      ...chatReport,
+                      lastReadTime: DateUtils.getDBTime(),
+                      lastMessageTranslationKey: '',
+                      iouReportID: iouReport?.reportID,
+                  },
+              },
+        isNewIOUReport
+            ? {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                  value: {
+                      ...iouReport,
+                      lastMessageText: iouAction.message?.[0].text,
+                      lastMessageHtml: iouAction.message?.[0].html,
+                      pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                  value: {
+                      ...iouReport,
+                      lastMessageText: iouAction.message?.[0].text,
+                      lastMessageHtml: iouAction.message?.[0].html,
+                  },
+              },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: transaction,
         },
-        {
-            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
-                [reportPreviewAction.reportActionID]: reportPreviewAction,
-            },
-        },
-        {
-            onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
-            value: {
-                ...(isNewIOUReport ? {[iouCreatedAction.reportActionID]: iouCreatedAction} : {}),
-                [iouAction.reportActionID]: iouAction,
-            },
-        },
+        isNewChatReport
+            ? {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                  value: {
+                      [chatCreatedAction.reportActionID]: chatCreatedAction,
+                      [reportPreviewAction.reportActionID]: reportPreviewAction,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                  value: {
+                      [reportPreviewAction.reportActionID]: reportPreviewAction,
+                  },
+              },
+        isNewIOUReport
+            ? {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                  value: {
+                      [iouCreatedAction.reportActionID]: iouCreatedAction as OnyxTypes.ReportAction,
+                      [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                  value: {
+                      [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                  },
+              },
 
         // Remove the temporary transaction used during the creation flow
         {
@@ -315,7 +360,7 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
+    if (optimisticPolicyRecentlyUsedCategories.length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
@@ -323,7 +368,7 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
+    if (Object.keys(optimisticPolicyRecentlyUsedTags).length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
@@ -331,7 +376,7 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    if (!_.isEmpty(optimisticPersonalDetailListAction)) {
+    if (optimisticPersonalDetailListAction && Object.keys(optimisticPersonalDetailListAction).length) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -339,31 +384,31 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
-    const successData = [
-        ...(isNewChatReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                      value: {
-                          pendingFields: null,
-                          errorFields: null,
-                      },
-                  },
-              ]
-            : []),
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {
-                          pendingFields: null,
-                          errorFields: null,
-                      },
-                  },
-              ]
-            : []),
+    const successData: OnyxUpdate[] = [];
+
+    if (isNewChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        });
+    }
+
+    if (isNewIOUReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        });
+    }
+
+    successData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -408,9 +453,9 @@ function buildOnyxDataForMoneyRequest(
                 },
             },
         },
-    ];
+    );
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -427,20 +472,22 @@ function buildOnyxDataForMoneyRequest(
                     : {}),
             },
         },
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {
-                          pendingFields: null,
-                          errorFields: {
-                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                          },
-                      },
-                  },
-              ]
-            : []),
+    ];
+
+    if (isNewIOUReport) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: {
+                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                },
+            },
+        });
+    }
+
+    failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -499,7 +546,7 @@ function buildOnyxDataForMoneyRequest(
                       }),
             },
         },
-    ];
+    );
 
     return [optimisticData, successData, failureData];
 }
