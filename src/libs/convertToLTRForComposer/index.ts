@@ -7,6 +7,10 @@ function hasRTLCharacters(text: string): boolean {
     return rtlPattern.test(text);
 }
 
+const moveCursorToEndOfLine = (commentLength: number) => commentLength;
+
+export {moveCursorToEndOfLine};
+
 // Converts a given text to ensure it starts with the LTR (Left-to-Right) marker.
 const convertToLTRForComposer: ConvertToLTRForComposer = (text) => {
     // Ensure that the text starts with RTL characters if not we return the same text to avoid concatination with special
