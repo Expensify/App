@@ -1692,7 +1692,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         chatContentScrollView: {
-            flexGrow: 1,
             justifyContent: 'flex-end',
             paddingBottom: 16,
         },
