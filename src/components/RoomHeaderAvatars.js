@@ -31,7 +31,6 @@ function RoomHeaderAvatars(props) {
         Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(icon.id));
     };
 
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     if (!props.icons.length) {
