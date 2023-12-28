@@ -153,6 +153,7 @@ function ReportScreen({
     errors,
     userLeavingStatus,
     currentReportID,
+    navigation,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -427,6 +428,7 @@ function ReportScreen({
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
                 <ScreenWrapper
+                    navigation={navigation}
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}
