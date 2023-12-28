@@ -30,7 +30,8 @@ import ROUTES from '@src/ROUTES';
 import * as OnyxTypes from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
 import ReportAction from '@src/types/onyx/ReportAction';
-import {Comment} from '@src/types/onyx/Transaction';
+import {OnyxData} from '@src/types/onyx/Request';
+import {Comment, Receipt} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
@@ -42,6 +43,19 @@ type OptimisticPolicyRecentlyUsedCategories = string[];
 type OptimisticPolicyRecentlyUsedTags = Record<string, string[]>;
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+
+type MoneyRequestInformation = {
+    payerAccountID: number;
+    payerEmail: string;
+    iouReport: OnyxTypes.Report;
+    chatReport: OnyxTypes.Report;
+    transaction: OnyxTypes.Transaction;
+    iouAction: OptimisticIOUReportAction;
+    createdChatReportActionID: string;
+    createdIOUReportActionID: string;
+    reportPreviewAction: OnyxTypes.ReportAction;
+    onyxData: OnyxData;
+};
 
 let betas: OnyxTypes.Beta[] = [];
 Onyx.connect({
@@ -554,63 +568,35 @@ function buildOnyxDataForMoneyRequest(
 /**
  * Gathers all the data needed to make a money request. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
- *
- * @param {Object} report
- * @param {Object} participant
- * @param {String} comment
- * @param {Number} amount
- * @param {String} currency
- * @param {String} created
- * @param {String} merchant
- * @param {Number} [payeeAccountID]
- * @param {String} [payeeEmail]
- * @param {Object} [receipt]
- * @param {String} [existingTransactionID]
- * @param {String} [category]
- * @param {String} [tag]
- * @param {Boolean} [billable]
- * @returns {Object} data
- * @returns {String} data.payerEmail
- * @returns {Object} data.iouReport
- * @returns {Object} data.chatReport
- * @returns {Object} data.transaction
- * @returns {Object} data.iouAction
- * @returns {Object} data.createdChatReportActionID
- * @returns {Object} data.createdIOUReportActionID
- * @returns {Object} data.reportPreviewAction
- * @returns {Object} data.onyxData
- * @returns {Object} data.onyxData.optimisticData
- * @returns {Object} data.onyxData.successData
- * @returns {Object} data.onyxData.failureData
  */
 function getMoneyRequestInformation(
-    report,
-    participant,
-    comment,
-    amount,
-    currency,
-    created,
-    merchant,
+    report: OnyxTypes.Report,
+    participant: Participant,
+    comment: string,
+    amount: number,
+    currency: string,
+    created: string,
+    merchant: string,
     payeeAccountID = userAccountID,
     payeeEmail = currentUserEmail,
-    receipt = undefined,
-    existingTransactionID = undefined,
-    category = undefined,
-    tag = undefined,
-    billable = undefined,
-) {
-    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
+    receipt?: Receipt,
+    existingTransactionID?: string,
+    category?: string,
+    tag?: string,
+    billable?: boolean,
+): MoneyRequestInformation {
+    const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = lodashGet(report, 'reportID', null) ? report : null;
+    let chatReport = report?.reportID ? report : null;
 
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
     if (!chatReport && isPolicyExpenseChat) {
-        chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? null;
     }
 
     if (!chatReport) {
@@ -625,11 +611,11 @@ function getMoneyRequestInformation(
 
     // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
     const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport);
-    let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
+    let iouReport = isNewIOUReport ? null : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
     // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
     if (isPolicyExpenseChat && iouReport) {
-        const policyType = ReportUtils.getPolicy(iouReport.policyID).type || '';
+        const policyType = ReportUtils.getPolicy(iouReport.policyID ?? '').type || '';
         const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
         if (isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
             iouReport = null;
@@ -640,23 +626,25 @@ function getMoneyRequestInformation(
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
 
-            // Because of the Expense reports are stored as negative values, we substract the total from the amount
-            iouReport.total -= amount;
+            if (iouReport.total) {
+                // Because of the Expense reports are stored as negative values, we substract the total from the amount
+                iouReport.total -= amount;
+            }
         } else {
             iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
         }
     } else {
         iouReport = isPolicyExpenseChat
-            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '', payeeAccountID, amount, currency)
             : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
 
     // STEP 3: Build optimistic receipt and transaction
-    const receiptObject = {};
+    const receiptObject: Receipt = {};
     let filename;
-    if (receipt && receipt.source) {
+    if (receipt?.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state || CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
         filename = receipt.name;
     }
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -676,9 +664,9 @@ function getMoneyRequestInformation(
         billable,
     );
 
-    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
+    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category) as OptimisticPolicyRecentlyUsedCategories;
 
-    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag) as OptimisticPolicyRecentlyUsedTags;
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -687,7 +675,7 @@ function getMoneyRequestInformation(
     // to remind me to do this.
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     if (existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
-        optimisticTransaction = OnyxUtils.fastMerge(existingTransaction, optimisticTransaction);
+        optimisticTransaction = OnyxUtils.fastMerge(existingTransaction, optimisticTransaction) as OnyxTypes.Transaction;
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -706,7 +694,7 @@ function getMoneyRequestInformation(
         comment,
         [participant],
         optimisticTransaction.transactionID,
-        '',
+        undefined,
         iouReport.reportID,
         false,
         false,
@@ -733,6 +721,7 @@ function getMoneyRequestInformation(
               [payerAccountID]: {
                   accountID: payerAccountID,
                   avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
@@ -763,8 +752,8 @@ function getMoneyRequestInformation(
         chatReport,
         transaction: optimisticTransaction,
         iouAction,
-        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
-        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '',
+        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : '',
         reportPreviewAction,
         onyxData: {
             optimisticData,

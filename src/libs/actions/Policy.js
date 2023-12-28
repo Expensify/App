@@ -1475,8 +1475,8 @@ function dismissAddedWithPrimaryLoginMessages(policyID) {
 }
 
 /**
- * @param {String} policyID
- * @param {String} category
+ * @param {String | undefined} policyID
+ * @param {String | undefined} category
  * @returns {Object}
  */
 function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
@@ -1490,8 +1490,8 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID, category) {
 }
 
 /**
- * @param {String} policyID
- * @param {String} tag
+ * @param {String | undefined} policyID
+ * @param {String | undefined} tag
  * @returns {Object}
  */
 function buildOptimisticPolicyRecentlyUsedTags(policyID, tag) {

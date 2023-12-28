@@ -14,6 +14,7 @@ import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/ty
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Participant} from '@src/types/onyx/IOU';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
@@ -58,20 +59,6 @@ type ExpenseOriginalMessage = {
     oldTag?: string;
     billable?: string;
     oldBillable?: string;
-};
-
-type Participant = {
-    accountID: number;
-    alternateText: string;
-    firstName: string;
-    icons: Icon[];
-    keyForList: string;
-    lastName: string;
-    login: string;
-    phoneNumber: string;
-    searchText: string;
-    selected: boolean;
-    text: string;
 };
 
 type SpendBreakdown = {
@@ -133,27 +120,6 @@ type OptimisticIOUReportAction = Pick<
     | 'pendingAction'
     | 'receipt'
     | 'whisperedToAccountIDs'
->;
-
-type OptimisticReportPreview = Pick<
-    ReportAction,
-    | 'actionName'
-    | 'reportActionID'
-    | 'pendingAction'
-    | 'originalMessage'
-    | 'message'
-    | 'created'
-    | 'actorAccountID'
-    | 'childMoneyRequestCount'
-    | 'childLastMoneyRequestComment'
-    | 'childRecentReceiptTransactionIDs'
-    | 'childReportID'
-    | 'whisperedToAccountIDs'
-> & {reportID?: string; accountID?: number};
-
-type UpdateReportPreview = Pick<
-    ReportAction,
-    'created' | 'message' | 'childLastMoneyRequestComment' | 'childMoneyRequestCount' | 'childRecentReceiptTransactionIDs' | 'whisperedToAccountIDs'
 >;
 
 type ReportRouteParams = {
@@ -2607,7 +2573,7 @@ function buildOptimisticIOUReportAction(
     comment: string,
     participants: Participant[],
     transactionID: string,
-    paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>,
+    paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined,
     iouReportID = '',
     isSettlingUp = false,
     isSendMoneyFlow = false,
@@ -2801,7 +2767,7 @@ function buildOptimisticReportPreview(
     comment = '',
     transaction: OnyxEntry<Transaction> = null,
     childReportID?: string,
-): OptimisticReportPreview {
+): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
@@ -2812,7 +2778,7 @@ function buildOptimisticReportPreview(
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
-            linkedReportID: iouReport?.reportID,
+            linkedReportID: iouReport?.reportID ?? '',
         },
         message: [
             {
@@ -2887,7 +2853,7 @@ function updateReportPreview(
     isPayRequest = false,
     comment = '',
     transaction: OnyxEntry<Transaction> = null,
-): UpdateReportPreview {
+): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const recentReceiptTransactions = reportPreviewAction?.childRecentReceiptTransactionIDs ?? {};
     const transactionsToKeep = TransactionUtils.getRecentTransactions(recentReceiptTransactions);
@@ -2904,7 +2870,8 @@ function updateReportPreview(
 
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
-        ...reportPreviewAction,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(reportPreviewAction as ReportAction),
         created: DateUtils.getDBTime(),
         message: [
             {

@@ -139,6 +139,8 @@ type ReportActionBase = {
     /** Type of child report  */
     childType?: string;
 
+    accountID?: number;
+
     childOldestFourEmails?: string;
     childOldestFourAccountIDs?: string;
     childCommenterCount?: number;

@@ -1,3 +1,5 @@
+import {Icon} from './OnyxCommon';
+
 type Participant = {
     accountID: number;
     login?: string;
@@ -5,6 +7,15 @@ type Participant = {
     isOwnPolicyExpenseChat?: boolean;
     selected?: boolean;
     reportID?: string;
+    displayName?: string;
+    alternateText: string;
+    firstName: string;
+    icons: Icon[];
+    keyForList: string;
+    lastName: string;
+    phoneNumber: string;
+    searchText: string;
+    text: string;
 };
 
 type IOU = {
