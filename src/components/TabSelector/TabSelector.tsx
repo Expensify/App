@@ -1,7 +1,6 @@
 import {MaterialTopTabNavigationHelpers} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
 import {TabNavigationState} from '@react-navigation/native';
 import React, {useMemo} from 'react';
-import type {Animated} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -22,9 +21,6 @@ type TabSelectorProps = {
 
     /* Callback fired when tab is pressed */
     onTabPress?: (name: string) => void;
-
-    /* AnimatedValue for the position of the screen while swiping */
-    position: Animated.AnimatedInterpolation<number | string>;
 };
 
 type IconAndTitle = {
