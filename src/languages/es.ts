@@ -1501,6 +1501,7 @@ export default {
             invoices: 'Enviar facturas',
             travel: 'Viajes',
             members: 'Miembros',
+            plan: 'Plan',
             bankAccount: 'Cuenta bancaria',
             connectBankAccount: 'Conectar cuenta bancaria',
             testTransactions: 'Transacciones de prueba',
@@ -1514,6 +1515,11 @@ export default {
             goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             workspaceAvatar: 'Espacio de trabajo avatar',
             mustBeOnlineToViewMembers: 'Debes estar en línea para poder ver los miembros de este espacio de trabajo.',
+        },
+        type: {
+            free: 'Gratis',
+            control: 'Control',
+            collect: 'Recolectar',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',

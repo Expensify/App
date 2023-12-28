@@ -370,6 +370,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
                         screens: {
+                            [SCREENS.MONEY_REQUEST.START]: ROUTES.MONEY_REQUEST_START.route,
                             [SCREENS.MONEY_REQUEST.CREATE]: {
                                 path: ROUTES.MONEY_REQUEST_CREATE.route,
                                 exact: true,
