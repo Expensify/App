@@ -578,7 +578,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
                 },
             ]}
         >
-            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, doubleTap, Gesture.Race(pinchGesture, singleTap, panGesture))}>
+            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTap, doubleTap, panGesture))}>
                 <View
                     collapsable={false}
                     style={StyleUtils.getFullscreenCenteredContentStyles()}
