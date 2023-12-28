@@ -298,6 +298,7 @@ const BaseOptionsList = forwardRef(
                             onViewableItemsChanged={onViewableItemsChanged}
                             bounces={bounces}
                             ListFooterComponent={renderFooterContent}
+                            testID="options-list"
                         />
                     </>
                 )}
