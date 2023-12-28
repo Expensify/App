@@ -32,7 +32,7 @@ type MoneyReportHeaderOnyxProps = {
 
     /** UserSession info for the currently logged in user. */
     session: OnyxEntry<Session>;
-}
+};
 
 type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The report currently being looked at */
@@ -42,7 +42,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     policy: Policy;
 
     /** Personal details so we can get the ones for the report participants */
-    personalDetails: PersonalDetails
+    personalDetails: PersonalDetails;
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
@@ -54,7 +54,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = policy?.type;
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isGroupPolicy = [CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM].some(type => type === policyType);
+    const isGroupPolicy = [CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM].some((type) => type === policyType);
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && session?.accountID === moneyRequestReport.managerID;
     const isPayer = isGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
@@ -74,7 +74,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length
+    const shouldShowNextStep = isFromPaidPolicy && !!nextStep?.message?.length;
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
