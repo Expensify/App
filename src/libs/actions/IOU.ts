@@ -31,8 +31,8 @@ import * as OnyxTypes from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
 import ReportAction from '@src/types/onyx/ReportAction';
 import {OnyxData} from '@src/types/onyx/Request';
-import {Comment, Receipt} from '@src/types/onyx/Transaction';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
+import {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -570,7 +570,7 @@ function buildOnyxDataForMoneyRequest(
  * it creates optimistic versions of them and uses those instead
  */
 function getMoneyRequestInformation(
-    report: OnyxTypes.Report,
+    report: OnyxTypes.Report | EmptyObject,
     participant: Participant,
     comment: string,
     amount: number,
@@ -591,7 +591,7 @@ function getMoneyRequestInformation(
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = report?.reportID ? report : null;
+    let chatReport = !isEmptyObject(report) && report?.reportID ? report : null;
 
     // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
     // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
@@ -765,25 +765,25 @@ function getMoneyRequestInformation(
 
 /**
  * Requests money based on a distance (eg. mileage from a map)
- *
- * @param {Object} report
- * @param {Object} participant
- * @param {String} comment
- * @param {String} created
- * @param {String} [category]
- * @param {String} [tag]
- * @param {Number} amount
- * @param {String} currency
- * @param {String} merchant
- * @param {Boolean} [billable]
- * @param {Obejct} validWaypoints
  */
-function createDistanceRequest(report, participant, comment, created, category, tag, amount, currency, merchant, billable, validWaypoints) {
+function createDistanceRequest(
+    report: OnyxTypes.Report,
+    participant: Participant,
+    comment: string,
+    created: string,
+    category: string | undefined,
+    tag: string | undefined,
+    amount: number,
+    currency: string,
+    merchant: string,
+    billable: boolean | undefined,
+    validWaypoints: WaypointCollection,
+) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
 
-    const optimisticReceipt = {
+    const optimisticReceipt: Receipt = {
         source: ReceiptGeneric,
         state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
@@ -803,25 +803,40 @@ function createDistanceRequest(report, participant, comment, created, category, 
         tag,
         billable,
     );
-    API.write(
-        'CreateDistanceRequest',
-        {
-            comment,
-            iouReportID: iouReport.reportID,
-            chatReportID: chatReport.reportID,
-            transactionID: transaction.transactionID,
-            reportActionID: iouAction.reportActionID,
-            createdChatReportActionID,
-            createdIOUReportActionID,
-            reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            waypoints: JSON.stringify(validWaypoints),
-            created,
-            category,
-            tag,
-            billable,
-        },
-        onyxData,
-    );
+
+    type CreateDistanceRequestParams = {
+        comment: string;
+        iouReportID: string;
+        chatReportID: string;
+        transactionID: string;
+        reportActionID: string;
+        createdChatReportActionID: string | number;
+        createdIOUReportActionID: string | number;
+        reportPreviewReportActionID: string;
+        waypoints: string;
+        created: string;
+        category?: string;
+        tag?: string;
+        billable?: boolean;
+    };
+
+    const parameters: CreateDistanceRequestParams = {
+        comment,
+        iouReportID: iouReport.reportID,
+        chatReportID: chatReport.reportID,
+        transactionID: transaction.transactionID,
+        reportActionID: iouAction.reportActionID,
+        createdChatReportActionID,
+        createdIOUReportActionID,
+        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+        waypoints: JSON.stringify(validWaypoints),
+        created,
+        category,
+        tag,
+        billable,
+    };
+
+    API.write('CreateDistanceRequest', parameters, onyxData);
     Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
     Report.notifyNewAction(chatReport.reportID, userAccountID);
 }
@@ -1039,34 +1054,22 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
 /**
  * Request money from another user
  *
- * @param {Object} report
- * @param {Number} amount - always in the smallest unit of the currency
- * @param {String} currency
- * @param {String} created
- * @param {String} merchant
- * @param {String} payeeEmail
- * @param {Number} payeeAccountID
- * @param {Object} participant
- * @param {String} comment
- * @param {Object} [receipt]
- * @param {String} [category]
- * @param {String} [tag]
- * @param {Boolean} [billable]
+ * @param amount - always in the smallest unit of the currency
  */
 function requestMoney(
-    report,
-    amount,
-    currency,
-    created,
-    merchant,
-    payeeEmail,
-    payeeAccountID,
-    participant,
-    comment,
-    receipt = undefined,
-    category = undefined,
-    tag = undefined,
-    billable = undefined,
+    report: OnyxTypes.Report,
+    amount: number,
+    currency: string,
+    created: string,
+    merchant: string,
+    payeeEmail: string,
+    payeeAccountID: number,
+    participant: Participant,
+    comment: string,
+    receipt: Receipt,
+    category?: string,
+    tag?: string,
+    billable?: boolean,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -1075,31 +1078,51 @@ function requestMoney(
         getMoneyRequestInformation(currentChatReport, participant, comment, amount, currency, created, merchant, payeeAccountID, payeeEmail, receipt, undefined, category, tag, billable);
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
 
-    API.write(
-        'RequestMoney',
-        {
-            debtorEmail: payerEmail,
-            debtorAccountID: payerAccountID,
-            amount,
-            currency,
-            comment,
-            created,
-            merchant,
-            iouReportID: iouReport.reportID,
-            chatReportID: chatReport.reportID,
-            transactionID: transaction.transactionID,
-            reportActionID: iouAction.reportActionID,
-            createdChatReportActionID,
-            createdIOUReportActionID,
-            reportPreviewReportActionID: reportPreviewAction.reportActionID,
-            receipt,
-            receiptState: lodashGet(receipt, 'state'),
-            category,
-            tag,
-            billable,
-        },
-        onyxData,
-    );
+    type RequestMoneyParams = {
+        debtorEmail: string;
+        debtorAccountID: number;
+        amount: number;
+        currency: string;
+        comment: string;
+        created: string;
+        merchant: string;
+        iouReportID: string;
+        chatReportID: string;
+        transactionID: string;
+        reportActionID: string;
+        createdChatReportActionID: string | number;
+        createdIOUReportActionID: string | number;
+        reportPreviewReportActionID: string;
+        receipt: Receipt;
+        receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+        category?: string;
+        tag?: string;
+        billable?: boolean;
+    };
+
+    const parameters: RequestMoneyParams = {
+        debtorEmail: payerEmail,
+        debtorAccountID: payerAccountID,
+        amount,
+        currency,
+        comment,
+        created,
+        merchant,
+        iouReportID: iouReport.reportID,
+        chatReportID: chatReport.reportID,
+        transactionID: transaction.transactionID,
+        reportActionID: iouAction.reportActionID,
+        createdChatReportActionID,
+        createdIOUReportActionID,
+        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+        receipt,
+        receiptState: receipt?.state,
+        category,
+        tag,
+        billable,
+    };
+
+    API.write('RequestMoney', parameters, onyxData);
     resetMoneyRequestInfo();
     Navigation.dismissModal(activeReportID);
     Report.notifyNewAction(activeReportID, payeeAccountID);

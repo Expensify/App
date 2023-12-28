@@ -974,7 +974,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 /**
  * Get the report given a reportID
  */
-function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
+function getReport(reportID: string | undefined): Report | EmptyObject {
     /**
      * Using typical string concatenation here due to performance issues
      * with template literals.
