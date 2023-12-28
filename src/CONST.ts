@@ -821,6 +821,7 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
     },
+    WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -1295,6 +1296,12 @@ const CONST = {
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
+    },
+
+    LAYOUT_WIDTH: {
+        WIDE: 'wide',
+        NARROW: 'narrow',
+        NONE: 'none',
     },
 
     ICON_TYPE_ICON: 'icon',

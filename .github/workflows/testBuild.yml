@@ -187,8 +187,13 @@ jobs:
           max_attempts: 5
           command: cd ios && bundle exec pod install
 
-      - name: Decrypt profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output expensify_chat_adhoc.mobileprovision expensify_chat_adhoc.mobileprovision.gpg
+      - name: Decrypt AdHoc profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc.mobileprovision NewApp_AdHoc.mobileprovision.gpg
+        env:
+          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - name: Decrypt AdHoc Notification Service profile
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AdHoc_Notification_Service.mobileprovision NewApp_AdHoc_Notification_Service.mobileprovision.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 

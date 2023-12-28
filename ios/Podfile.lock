@@ -20,6 +20,7 @@ PODS:
     - Airship (= 16.12.1)
     - Airship/MessageCenter (= 16.12.1)
     - Airship/PreferenceCenter (= 16.12.1)
+  - AirshipServiceExtension (16.12.5)
   - AppAuth (1.6.2):
     - AppAuth/Core (= 1.6.2)
     - AppAuth/ExternalUserAgent (= 1.6.2)
@@ -1453,6 +1454,7 @@ PODS:
   - Yoga (1.14.0)
 
 DEPENDENCIES:
+  - AirshipServiceExtension
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -1578,6 +1580,7 @@ SPEC REPOS:
   trunk:
     - Airship
     - AirshipFrameworkProxy
+    - AirshipServiceExtension
     - AppAuth
     - CocoaAsyncSocket
     - Firebase
@@ -1822,6 +1825,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Airship: 2f4510b497a8200780752a5e0304a9072bfffb6d
   AirshipFrameworkProxy: ea1b6c665c798637b93c465b5e505be3011f1d9d
+  AirshipServiceExtension: 89c6e25a69f3458d9dbd581c700cffb196b61930
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   boost: 26fad476bfa736552bbfa698a06cc530475c1505
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
@@ -1965,6 +1969,6 @@ SPEC CHECKSUMS:
   VisionCamera: 7d13aae043ffb38b224a0f725d1e23ca9c190fe7
   Yoga: 4f53dc50008d626fa679c7a1cb4bed898f8c0bde
 
-PODFILE CHECKSUM: 872631c005ed9fdaa779c1a76d2c39b50c8a967c
+PODFILE CHECKSUM: 0ccbb4f2406893c6e9f266dc1e7470dcd72885d2
 
 COCOAPODS: 1.13.0
