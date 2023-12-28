@@ -51,8 +51,8 @@ type MoneyRequestInformation = {
     chatReport: OnyxTypes.Report;
     transaction: OnyxTypes.Transaction;
     iouAction: OptimisticIOUReportAction;
-    createdChatReportActionID: string;
-    createdIOUReportActionID: string;
+    createdChatReportActionID: string | number;
+    createdIOUReportActionID: string | number;
     reportPreviewAction: OnyxTypes.ReportAction;
     onyxData: OnyxData;
 };
@@ -752,8 +752,8 @@ function getMoneyRequestInformation(
         chatReport,
         transaction: optimisticTransaction,
         iouAction,
-        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '',
-        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : '',
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
+        createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
         reportPreviewAction,
         onyxData: {
             optimisticData,
