@@ -368,7 +368,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
     const shouldDisablePaidBySection = userCanModifyParticipants.current;
 
-    const defaultTaxName = `${policyTaxRates.name} • ${translate('common.default')}`;
+    const defaulTaxKey = policyTaxRates.defaultExternalID;
+    const defaultTaxName = `${policyTaxRates.taxes[defaulTaxKey].name} (${policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
+    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -744,8 +746,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={(transaction.taxRate && transaction.taxRate.text) || defaultTaxName}
-                            description={translate('iou.taxRate')}
+                            title={taxRateTitle}
+                            description={policyTaxRates.name}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
@@ -760,7 +762,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={formattedTaxAmount}
-                            description={translate('iou.taxAmount')}
+                            description={policyTaxRates.name}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>

@@ -63,6 +63,10 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
+    const defaulTaxKey = policyTaxRates.defaultExternalID;
+    const defaultTaxName = `${policyTaxRates.taxes[defaulTaxKey].name} (${policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
+    const selectedTaxRate = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
+
     const updateTaxRates = (taxes) => {
         const taxAmount = getTaxAmount(policyTaxRates, taxes.text, transaction.amount);
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
@@ -85,7 +89,7 @@ function IOURequestStepTaxRatePage({
                         onBackButtonPress={() => navigateBack()}
                     />
                     <TaxPicker
-                        selectedTaxRate={transaction.taxRate && transaction.taxRate.text}
+                        selectedTaxRate={selectedTaxRate}
                         policyTaxRates={policyTaxRates}
                         insets={insets}
                         onSubmit={updateTaxRates}

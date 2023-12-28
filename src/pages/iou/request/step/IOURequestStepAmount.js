@@ -1,5 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
@@ -11,6 +13,7 @@ import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -27,15 +30,20 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
+
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
+    policyTaxRates: {},
 };
 
-const getTaxAmount = (transaction, amount) => {
-    const percentage = (transaction.taxRate && transaction.taxRate.data.value) || '';
+const getTaxAmount = (transaction, defaultTaxValue, amount) => {
+    const percentage = transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue;
     return TransactionUtils.calculateTaxAmount(percentage, amount);
 };
 
@@ -46,6 +54,7 @@ function IOURequestStepAmount({
     },
     transaction,
     transaction: {currency: originalCurrency},
+    policyTaxRates,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
@@ -79,8 +88,8 @@ function IOURequestStepAmount({
     const navigateToNextPage = ({amount}) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-        if (backTo) {
-            const taxAmount = getTaxAmount(transaction, amountInSmallestCurrencyUnits);
+        if (iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) {
+            const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue, amountInSmallestCurrencyUnits);
             const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
             IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
         }
@@ -131,4 +140,12 @@ IOURequestStepAmount.propTypes = propTypes;
 IOURequestStepAmount.defaultProps = defaultProps;
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepAmount);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        policyTaxRates: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+        },
+    }),
+)(IOURequestStepAmount);

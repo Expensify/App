@@ -1127,7 +1127,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
         const selectedTaxRateOptions = _.map(selectedOptions, (option) => ({
-            name: option.name,
+            modifiedName: option.name,
             // Should be marked as enabled to be able to be de-selected
             isDisabled: false,
         }));
@@ -1169,15 +1169,15 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
-    const filteredTaxRates = _.filter(enabledTaxRates, (taxRate) => !_.includes(selectedOptionNames, taxRate.name));
+    const filteredTaxRates = _.filter(enabledTaxRates, (taxRate) => !_.includes(selectedOptionNames, taxRate.modifiedName));
 
     if (!_.isEmpty(selectedOptions)) {
         const selectedTaxRatesOptions = _.map(selectedOptions, (option) => {
             const taxRateObject = _.find(taxes, (taxRate) => taxRate.modifiedName === option.name);
 
             return {
-                name: option.name,
-                enabled: Boolean(taxRateObject && !taxRateObject.isDisabled),
+                modifiedName: option.name,
+                isDisabled: Boolean(taxRateObject && taxRateObject.isDisabled),
             };
         });
 

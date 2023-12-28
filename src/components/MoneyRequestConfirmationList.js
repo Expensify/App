@@ -346,7 +346,9 @@ function MoneyRequestConfirmationList(props) {
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
-    const defaultTaxName = `${props.policyTaxRates.name} • ${translate('common.default')}`;
+    const defaulTaxKey = props.policyTaxRates.defaultExternalID;
+    const defaultTaxName = `${props.policyTaxRates.taxes[defaulTaxKey].name} (${props.policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
+    const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -752,8 +754,8 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowTax && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={(props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName}
-                            description={translate('iou.taxRate')}
+                            title={taxRateTitle}
+                            description={props.policyTaxRates.name}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
@@ -770,7 +772,7 @@ function MoneyRequestConfirmationList(props) {
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
                             title={formattedTaxAmount}
-                            description={translate('iou.taxAmount')}
+                            description={props.policyTaxRates.name}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
                             onPress={() =>
