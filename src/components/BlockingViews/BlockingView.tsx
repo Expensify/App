@@ -1,9 +1,8 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ImageSourcePropType, View} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +13,7 @@ import {TranslationPaths} from '@src/languages/types';
 
 type BlockingViewProps = {
     /** Expensicon for the page */
-    icon: React.FC<SvgProps>;
+    icon: React.FC<SvgProps> | ImageSourcePropType;
 
     /** Color for the icon (should be from theme) */
     iconColor?: string;
