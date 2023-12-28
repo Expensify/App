@@ -23,6 +23,8 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import SettlementButton from './SettlementButton';
 
+type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+
 type MoneyReportHeaderOnyxProps = {
     /** The chat report this report is linked to */
     chatReport: OnyxEntry<Report>;
@@ -126,7 +128,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
                             // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
-                            onPress={(paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            onPress={(paymentType: PaymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
@@ -158,7 +160,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
                             // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
-                            onPress={(paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            onPress={(paymentType: PaymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
