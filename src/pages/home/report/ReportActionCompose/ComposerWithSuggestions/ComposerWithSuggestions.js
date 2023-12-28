@@ -20,7 +20,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import getDraftComment from '@libs/ComposerUtils/getDraftComment';
-import convertToLTRForComposer, {moveCursorToEndOfLine} from '@libs/convertToLTRForComposer';
+import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
@@ -113,7 +113,6 @@ function ComposerWithSuggestions({
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
-    const composerIsEmpty = useRef(true);
     const navigation = useNavigation();
     const emojisPresentBefore = useRef([]);
 
@@ -244,33 +243,18 @@ function ComposerWithSuggestions({
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
-
-            let newCommentConvertedToLTR = newComment;
-            const prevComment = commentRef.current;
-
-            // This prevent the double execution of setting input value that could affect the place holder and could send an empty message or draft messages in android
-            if (prevComment !== newComment) {
-                newCommentConvertedToLTR = convertToLTRForComposer(newCommentConvertedToLTR, composerIsEmpty.current);
-                setValue(newCommentConvertedToLTR);
-                moveCursorToEndOfLine(newComment.length, setSelection);
-                composerIsEmpty.current = false;
-            }
-
-            const isNewCommentEmpty = !!newCommentConvertedToLTR.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!prevComment.match(/^(\s)*$/);
+            const newCommentConverted = convertToLTRForComposer(newComment);
+            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
+            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
 
             /** Only update isCommentEmpty state if it's different from previous one */
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
-                if (isNewCommentEmpty) {
-                    composerIsEmpty.current = true;
-                }
             }
-
             emojisPresentBefore.current = emojis;
-
+            setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - prevComment.length), cursorPosition || 0);
+                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
                 setSelection({
                     start: position,
                     end: position,
@@ -278,22 +262,22 @@ function ComposerWithSuggestions({
             }
 
             // Indicate that draft has been created.
-            if (prevComment.length === 0 && newCommentConvertedToLTR.length !== 0) {
+            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
                 Report.setReportWithDraft(reportID, true);
             }
 
             // The draft has been deleted.
-            if (newCommentConvertedToLTR.length === 0) {
+            if (newCommentConverted.length === 0) {
                 Report.setReportWithDraft(reportID, false);
             }
 
-            commentRef.current = newCommentConvertedToLTR;
+            commentRef.current = newCommentConverted;
             if (shouldDebounceSaveComment) {
-                debouncedSaveReportComment(reportID, newCommentConvertedToLTR);
+                debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportComment(reportID, newCommentConvertedToLTR || '');
+                Report.saveReportComment(reportID, newCommentConverted || '');
             }
-            if (newCommentConvertedToLTR) {
+            if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
@@ -307,7 +291,6 @@ function ComposerWithSuggestions({
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
             selection.end,
-            composerIsEmpty,
         ],
     );
 

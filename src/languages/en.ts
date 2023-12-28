@@ -1474,6 +1474,7 @@ export default {
             invoices: 'Invoices',
             travel: 'Travel',
             members: 'Members',
+            plan: 'Plan',
             bankAccount: 'Bank account',
             connectBankAccount: 'Connect bank account',
             testTransactions: 'Test transactions',
@@ -1487,6 +1488,11 @@ export default {
             goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             workspaceAvatar: 'Workspace avatar',
             mustBeOnlineToViewMembers: 'You must be online in order to view members of this workspace.',
+        },
+        type: {
+            free: 'Free',
+            control: 'Control',
+            collect: 'Collect',
         },
         emptyWorkspace: {
             title: 'Create a workspace',

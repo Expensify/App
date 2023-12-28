@@ -1,31 +1,73 @@
-import React, {useMemo} from 'react';
+import React, {ForwardedRef, forwardRef, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
-import {defaultProps, propTypes} from '@components/Popover/popoverPropTypes';
 import {PopoverContext} from '@components/PopoverProvider';
-import withWindowDimensions from '@components/withWindowDimensions';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Modal from '@userActions/Modal';
+import PopoverWithoutOverlayProps from './types';
 
-function Popover(props) {
+function PopoverWithoutOverlay(
+    {
+        anchorPosition = {},
+        anchorRef,
+        withoutOverlayRef,
+        innerContainerStyle = {},
+        outerStyle,
+        onModalShow = () => {},
+        isVisible,
+        onClose,
+        onModalHide = () => {},
+        children,
+    }: PopoverWithoutOverlayProps,
+    ref: ForwardedRef<View>,
+) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {onOpen, close} = React.useContext(PopoverContext);
+    const {onOpen, close} = useContext(PopoverContext);
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const {modalStyle, modalContainerStyle, shouldAddTopSafeAreaMargin, shouldAddBottomSafeAreaMargin, shouldAddTopSafeAreaPadding, shouldAddBottomSafeAreaPadding} =
         StyleUtils.getModalStyles(
             'popover',
             {
-                windowWidth: props.windowWidth,
-                windowHeight: props.windowHeight,
+                windowWidth,
+                windowHeight,
                 isSmallScreenWidth: false,
             },
-            props.anchorPosition,
-            props.innerContainerStyle,
-            props.outerStyle,
+            anchorPosition,
+            innerContainerStyle,
+            outerStyle,
         );
+
+    useEffect(() => {
+        let removeOnClose: () => void;
+        if (isVisible) {
+            onModalShow();
+            onOpen?.({
+                ref: withoutOverlayRef,
+                close: onClose,
+                anchorRef,
+            });
+            removeOnClose = Modal.setCloseModal(() => onClose(anchorRef));
+        } else {
+            onModalHide();
+            close(anchorRef);
+            Modal.onModalDidClose();
+        }
+        Modal.willAlertModalBecomeVisible(isVisible);
+
+        return () => {
+            if (!removeOnClose) {
+                return;
+            }
+            removeOnClose();
+        };
+        // We want this effect to run strictly ONLY when isVisible prop changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible]);
 
     const {
         paddingTop: safeAreaPaddingTop,
@@ -69,41 +111,14 @@ function Popover(props) {
         ],
     );
 
-    React.useEffect(() => {
-        let removeOnClose;
-        if (props.isVisible) {
-            props.onModalShow();
-            onOpen({
-                ref: props.withoutOverlayRef,
-                close: props.onClose,
-                anchorRef: props.anchorRef,
-            });
-            removeOnClose = Modal.setCloseModal(() => props.onClose(props.anchorRef));
-        } else {
-            props.onModalHide();
-            close(props.anchorRef);
-            Modal.onModalDidClose();
-        }
-        Modal.willAlertModalBecomeVisible(props.isVisible);
-
-        return () => {
-            if (!removeOnClose) {
-                return;
-            }
-            removeOnClose();
-        };
-        // We want this effect to run strictly ONLY when isVisible prop changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isVisible]);
-
-    if (!props.isVisible) {
+    if (!isVisible) {
         return null;
     }
 
     return (
         <View
             style={[modalStyle, {zIndex: 1}]}
-            ref={props.withoutOverlayRef}
+            ref={withoutOverlayRef}
         >
             <View
                 style={{
@@ -111,16 +126,14 @@ function Popover(props) {
                     ...modalContainerStyle,
                     ...modalPaddingStyles,
                 }}
-                ref={props.forwardedRef}
+                ref={ref}
             >
-                <ColorSchemeWrapper>{props.children}</ColorSchemeWrapper>
+                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
             </View>
         </View>
     );
 }
 
-Popover.propTypes = propTypes;
-Popover.defaultProps = defaultProps;
-Popover.displayName = 'Popover';
+PopoverWithoutOverlay.displayName = 'PopoverWithoutOverlay';
 
-export default withWindowDimensions(Popover);
+export default forwardRef(PopoverWithoutOverlay);
