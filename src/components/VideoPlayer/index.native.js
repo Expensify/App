@@ -6,6 +6,7 @@ function BaseVideoPlayer(props, ref) {
         <VideoPlayer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            shouldUseSharedVideoElement={false}
             ref={ref}
         />
     );
