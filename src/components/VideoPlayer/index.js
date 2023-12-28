@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Hoverable from '@components/Hoverable';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -30,7 +31,7 @@ const propTypes = {
 
     shouldUseSmallVideoControls: PropTypes.bool,
 
-    isHovered: PropTypes.bool,
+    isVideoHovered: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,10 +43,10 @@ const defaultProps = {
     videoStyle: undefined,
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
-    isHovered: true,
+    isVideoHovered: false,
 };
 
-function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls, isHovered}) {
+function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls, isVideoHovered}) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
@@ -57,7 +58,7 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     const videoPlayerElementParentRef = useRef(null);
     const videoPlayerElementRef = useRef(null);
     const sharedVideoPlayerParentRef = useRef(null);
-    const sourceURLWithAuth = addEncryptedAuthTokenToURL(url);
+    const [sourceURL] = useState(url.includes('blob:') ? url : addEncryptedAuthTokenToURL(url));
 
     const onPlaybackStatusUpdate = useCallback((e) => {
         const isVideoPlaying = e.isPlaying || false;
@@ -104,63 +105,67 @@ function VideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, sty
     }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
 
     return (
-        <View style={[styles.w100, styles.h100]}>
-            {shouldUseSharedVideoElement ? (
-                <>
-                    <View
-                        ref={sharedVideoPlayerParentRef}
-                        style={[styles.flex1]}
-                    />
-                    {/* We are adding transaprent absolute View between appended video component and conttrol buttons to enable
+        <Hoverable>
+            {(isHovered) => (
+                <View style={[styles.w100, styles.h100]}>
+                    {shouldUseSharedVideoElement ? (
+                        <>
+                            <View
+                                ref={sharedVideoPlayerParentRef}
+                                style={[styles.flex1]}
+                            />
+                            {/* We are adding transaprent absolute View between appended video component and conttrol buttons to enable
                       catching onMosue events from Attachment Carousel. Due to late appending React doesn't handle
                        element's events properly.  */}
-                    <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
-                </>
-            ) : (
-                <View
-                    style={styles.flex1}
-                    ref={(el) => {
-                        if (!el) {
-                            return;
-                        }
-                        videoPlayerElementParentRef.current = el;
-                        if (el.childNodes && el.childNodes[0]) {
-                            videoPlayerElementRef.current = el.childNodes[0];
-                        }
-                    }}
-                >
-                    <View style={styles.flex1}>
-                        <Video
-                            ref={videoPlayerRef}
-                            style={style || [styles.w100, styles.h100]}
-                            videoStyle={videoStyle || [styles.w100, styles.h100]}
-                            source={{
-                                uri: sourceURLWithAuth, // testing video url: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                            <View style={[styles.w100, styles.h100, styles.pAbsolute]} />
+                        </>
+                    ) : (
+                        <View
+                            style={styles.flex1}
+                            ref={(el) => {
+                                if (!el) {
+                                    return;
+                                }
+                                videoPlayerElementParentRef.current = el;
+                                if (el.childNodes && el.childNodes[0]) {
+                                    videoPlayerElementRef.current = el.childNodes[0];
+                                }
                             }}
-                            shouldPlay={shouldPlay}
-                            useNativeControls={false}
-                            resizeMode={resizeMode}
-                            isLooping={isLooping}
-                            onReadyForDisplay={onVideoLoaded}
-                            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+                        >
+                            <View style={styles.flex1}>
+                                <Video
+                                    ref={videoPlayerRef}
+                                    style={style || [styles.w100, styles.h100]}
+                                    videoStyle={videoStyle || [styles.w100, styles.h100]}
+                                    source={{
+                                        uri: sourceURL, // testing video url: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+                                    }}
+                                    shouldPlay={shouldPlay}
+                                    useNativeControls={false}
+                                    resizeMode={resizeMode}
+                                    isLooping={isLooping}
+                                    onReadyForDisplay={onVideoLoaded}
+                                    onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+                                />
+                            </View>
+                        </View>
+                    )}
+
+                    {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+
+                    {!isLoading && (isVideoHovered || isHovered) && (
+                        <VideoPlayerControls
+                            duration={duration}
+                            position={position}
+                            url={url}
+                            videoPlayerRef={videoPlayerRef}
+                            isPlaying={isPlaying}
+                            small={shouldUseSmallVideoControls}
                         />
-                    </View>
+                    )}
                 </View>
             )}
-
-            {isLoading && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-
-            {!isLoading && isHovered && (
-                <VideoPlayerControls
-                    duration={duration}
-                    position={position}
-                    url={url}
-                    videoPlayerRef={videoPlayerRef}
-                    isPlaying={isPlaying}
-                    small={shouldUseSmallVideoControls}
-                />
-            )}
-        </View>
+        </Hoverable>
     );
 }
 

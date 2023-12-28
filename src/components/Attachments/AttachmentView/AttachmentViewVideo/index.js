@@ -9,21 +9,24 @@ const propTypes = {
 
     /** Whether the video is currently being hovered over */
     isHovered: PropTypes.bool,
+
+    shouldUseSharedVideoElement: PropTypes.bool,
 };
 
 const defaultProps = {
     isHovered: false,
+    shouldUseSharedVideoElement: false,
 };
 
-function AttachmentViewVideo({source, isHovered}) {
+function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement}) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
         <VideoPlayer
             url={source}
             shouldPlay={false}
-            shouldUseSharedVideoElement={!isSmallScreenWidth}
-            isHovered={isHovered}
+            shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreenWidth}
+            isVideoHovered={isHovered}
         />
     );
 }
