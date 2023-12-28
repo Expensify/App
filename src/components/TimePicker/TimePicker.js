@@ -16,7 +16,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
-import setSelection from './setSelection';
 
 const propTypes = {
     /** Refs forwarded to the TextInputWithCurrencySymbol */
@@ -89,13 +88,17 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).hour);
     const [minutes, setMinutes] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).minute);
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).period);
+    const [lastPressedKey, setLastPressedKey] = useState('');
 
     const hourInputRef = useRef(null);
     const minuteInputRef = useRef(null);
 
     const focusMinuteInputOnFirstCharacter = useCallback(() => {
-        const cleanupTimer = setSelection({start: 0, end: 0}, minuteInputRef, setSelectionMinute);
-        return cleanupTimer;
+        setSelectionMinute({start: 0, end: 0});
+        const timer = setTimeout(() => {
+            minuteInputRef.current.focus();
+        }, 10);
+        return () => clearTimeout(timer);
     }, []);
     const focusHourInputOnLastCharacter = useCallback(() => {
         setSelectionHour({start: 2, end: 2});
@@ -145,15 +148,18 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         if (selectionHour.start === 0 && selectionHour.end === 0) {
             // The cursor is at the start of hours
             const firstDigit = trimmedText[0];
-            const secondDigit = trimmedText[2];
+            const secondDigit = trimmedText[2] || '0';
 
-            if (firstDigit <= 1) {
+            if (trimmedText.length === 1) {
+                newHour = `0${firstDigit}`;
+                newSelection = 1;
+            } else if (firstDigit <= 1) {
                 /*
                  The first entered digit is 0 or 1.
                  If the first digit is 0, we can safely append the second digit.
                  If the first digit is 1, we must check the second digit to ensure it is not greater than 2, amd replace it with 0 otherwise.
                 */
-                newHour = `${firstDigit}${firstDigit === '1' && secondDigit > 1 ? 0 : secondDigit}`;
+                newHour = `${firstDigit}${firstDigit === '1' && secondDigit > 2 ? 0 : secondDigit}`;
                 newSelection = 1;
             } else {
                 // The first entered digit is 2-9. We should replace the whole value by prepending 0 to the entered digit.
@@ -162,7 +168,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             }
         } else if (selectionHour.start === 1 && selectionHour.end === 1) {
             // The cursor is in-between the digits
-            if (trimmedText.length < 2) {
+            if (trimmedText.length < 2 && lastPressedKey === 'Backspace') {
                 // We have removed the first digit. Replace it with 0 and move the cursor to the start.
                 newHour = `0${trimmedText}`;
                 newSelection = 0;
@@ -180,7 +186,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             newHour = `${trimmedText}0`;
             newSelection = 1;
         } else {
-            newHour = trimmedText;
+            newHour = trimmedText.substring(0, 2).padStart(2, '0');
             newSelection = 2;
         }
 
@@ -189,8 +195,6 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         } else if (newHour > 12) {
             newHour = String(newHour - 12).padStart(2, '0');
             setAmPmValue(CONST.TIME_PERIOD.PM);
-        } else {
-            newHour = newHour.padStart(2, '0');
         }
 
         setHours(newHour);
@@ -223,7 +227,10 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
         if (selectionMinute.start === 0 && selectionMinute.end === 0) {
             // The cursor is at the start of minutes
             const firstDigit = trimmedText[0];
-            if (firstDigit <= 5) {
+            if (trimmedText.length === 1) {
+                newMinute = `0${firstDigit}`;
+                newSelection = 1;
+            } else if (firstDigit <= 5) {
                 // The first entered digit is 0-5, we can safely append the second digit.
                 newMinute = `${firstDigit}${trimmedText[2] || 0}`;
                 newSelection = 1;
@@ -234,7 +241,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             }
         } else if (selectionMinute.start === 1 && selectionMinute.end === 1) {
             // The cursor is in-between the digits
-            if (trimmedText.length < 2) {
+            if (trimmedText.length < 2 && lastPressedKey === 'Backspace') {
                 // We have removed the first digit. Replace it with 0 and move the cursor to the start.
                 newMinute = `0${trimmedText}`;
                 newSelection = 0;
@@ -252,21 +259,16 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             newMinute = `${trimmedText}0`;
             newSelection = 1;
         } else {
-            newMinute = trimmedText;
+            newMinute = trimmedText.substring(0, 2).padStart(2, '0');
             newSelection = 2;
         }
 
         if (newMinute > 59) {
             newMinute = minutes;
-        } else {
-            newMinute = newMinute.padStart(2, '0');
         }
 
         setMinutes(newMinute);
         setSelectionMinute({start: newSelection, end: newSelection});
-        if (newSelection === 0) {
-            focusHourInputOnLastCharacter();
-        }
     };
 
     /**
@@ -409,6 +411,9 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         placeholder={numberFormat(0)}
                         maxLength={2}
                         formattedAmount={hours}
+                        onKeyPress={(e) => {
+                            setLastPressedKey(e.nativeEvent.key);
+                        }}
                         onChangeAmount={handleHourChange}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(ref) => {
@@ -433,7 +438,10 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                         placeholder={numberFormat(0)}
                         maxLength={2}
                         formattedAmount={minutes}
-                        onKeyPress={handleFocusOnBackspace}
+                        onKeyPress={(e) => {
+                            setLastPressedKey(e.nativeEvent.key);
+                            handleFocusOnBackspace(e);
+                        }}
                         onChangeAmount={handleMinutesChange}
                         role={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(ref) => {
