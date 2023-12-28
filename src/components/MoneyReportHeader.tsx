@@ -100,12 +100,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
 
     return (
         <View style={[styles.pt0]}>
-            {/* @ts-expect-error TODO:#25120 types should be defined for component */}
+            {/* @ts-expect-error TODO: Remove this once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TypeScript. */}
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
-                // @ts-expect-error TODO:#25120 types should be defined for component
+                // @ts-expect-error TODO: Remove this once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TypeScript.
                 report={moneyRequestReport}
                 policy={policy}
                 personalDetails={personalDetails}
@@ -120,12 +120,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
                     <View style={styles.pv2}>
                         <SettlementButton
-                            // @ts-expect-error : TODO #25100 : type of currency should be handled in component
+                            // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
-                            // @ts-expect-error : TODO #24926 : type of currency should be handled in file IOU.js
+                            // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
                             onPress={(paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
@@ -152,12 +152,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
-                            // @ts-expect-error : TODO #25100 : type of currency should be handled in component
+                            // @ts-expect-error TODO: Remove this once SettlementButton (https://github.com/Expensify/App/issues/25100) is migrated to TypeScript.
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
-                            // @ts-expect-error : TODO #24926 : type of currency should be handled in file IOU.js
+                            // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
                             onPress={(paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
