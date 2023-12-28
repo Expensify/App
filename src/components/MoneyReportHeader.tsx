@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Policy, Report, ReportNextStep, Session} from '@src/types/onyx';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
@@ -100,10 +101,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
 
     return (
         <View style={[styles.pt0]}>
+            {/* @ts-expect-error TODO:#25120 types should be defined for component */}
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldEnableDetailPageNavigation
                 shouldShowPinButton={false}
+                // @ts-expect-error TODO:#25120 types should be defined for component
                 report={moneyRequestReport}
                 policy={policy}
                 personalDetails={personalDetails}
@@ -118,11 +121,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
                     <View style={styles.pv2}>
                         <SettlementButton
+                            // @ts-expect-error : TODO #25100 : type of currency should be handled in component
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
-                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            // @ts-expect-error : TODO #24926 : type of currency should be handled in file IOU.js
+                            onPress={(paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
@@ -148,11 +153,13 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
+                            // @ts-expect-error : TODO #25100 : type of currency should be handled in component
                             currency={moneyRequestReport.currency}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
-                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            // @ts-expect-error : TODO #24926 : type of currency should be handled in file IOU.js
+                            onPress={(paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
