@@ -63,6 +63,9 @@ const propTypes = {
 
     /** Option to use the default scroll view  */
     shouldUseScrollView: PropTypes.bool,
+
+    /** Option to show the loading page while the API is calling */
+    shouldShowLoading: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -74,6 +77,7 @@ const defaultProps = {
     shouldUseScrollView: false,
     shouldSkipVBBACall: false,
     backButtonRoute: '',
+    shouldShowLoading: true,
 };
 
 function fetchData(skipVBBACal) {
@@ -84,7 +88,20 @@ function fetchData(skipVBBACal) {
     BankAccounts.openWorkspaceView();
 }
 
-function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCallTaskID, headerText, policy, reimbursementAccount, route, shouldUseScrollView, shouldSkipVBBACall, user}) {
+function WorkspacePageWithSections({
+    backButtonRoute,
+    children,
+    footer,
+    guidesCallTaskID,
+    headerText,
+    policy,
+    reimbursementAccount,
+    route,
+    shouldUseScrollView,
+    shouldSkipVBBACall,
+    user,
+    shouldShowLoading,
+}) {
     const styles = useThemeStyles();
     useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
@@ -125,7 +142,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
                     guidesCallTaskID={guidesCallTaskID}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}
                 />
-                {isLoading || firstRender.current ? (
+                {(isLoading || firstRender.current) && shouldShowLoading ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
                     <>
