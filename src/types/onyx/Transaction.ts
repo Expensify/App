@@ -96,5 +96,7 @@ type Transaction = {
     originalCurrency?: string;
 };
 
+type TransactionDraft = Partial<Transaction>;
+
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint};
+export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionDraft};

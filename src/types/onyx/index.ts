@@ -46,7 +46,7 @@ import ScreenShareRequest from './ScreenShareRequest';
 import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
-import Transaction from './Transaction';
+import Transaction, {TransactionDraft} from './Transaction';
 import {TransactionViolation, ViolationName} from './TransactionViolation';
 import User from './User';
 import UserLocation from './UserLocation';
@@ -115,6 +115,7 @@ export type {
     Session,
     Task,
     Transaction,
+    TransactionDraft,
     TransactionViolation,
     User,
     UserLocation,

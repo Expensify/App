@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
-import Onyx from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
 import _ from 'underscore';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
@@ -24,31 +24,33 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import * as OnyxTypes from '@src/types/onyx';
+import {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
-let betas;
+let betas: OnyxTypes.Beta[] = [];
 Onyx.connect({
     key: ONYXKEYS.BETAS,
-    callback: (val) => (betas = val || []),
+    callback: (val) => (betas = val ?? []),
 });
 
-let allPersonalDetails;
+let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        allPersonalDetails = val || {};
+        allPersonalDetails = val ?? {};
     },
 });
 
-let allReports;
+let allReports: OnyxCollection<OnyxTypes.Report> = null;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (val) => (allReports = val),
 });
 
-let allTransactions;
+let allTransactions: Record<string, OnyxTypes.Transaction | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -62,16 +64,16 @@ Onyx.connect({
     },
 });
 
-let allTransactionDrafts = {};
+let allTransactionDrafts: Record<string, OnyxTypes.TransactionDraft | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
     callback: (val) => {
-        allTransactionDrafts = val || {};
+        allTransactionDrafts = val ?? {};
     },
 });
 
-let allTransactionViolations;
+let allTransactionViolations: Record<string, OnyxTypes.TransactionViolation | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -85,43 +87,43 @@ Onyx.connect({
     },
 });
 
-let allDraftSplitTransactions;
+let allDraftSplitTransactions: Record<string, OnyxTypes.TransactionDraft | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
     callback: (val) => {
-        allDraftSplitTransactions = val || {};
+        allDraftSplitTransactions = val ?? {};
     },
 });
 
-let allNextSteps = {};
+let allNextSteps: Record<string, OnyxTypes.ReportNextStep | null> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
     callback: (val) => {
-        allNextSteps = val || {};
+        allNextSteps = val ?? {};
     },
 });
 
-let userAccountID = '';
+let userAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserEmail = lodashGet(val, 'email', '');
-        userAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = val?.email ?? '';
+        userAccountID = val?.accountID ?? -1;
     },
 });
 
-let currentUserPersonalDetails = {};
+let currentUserPersonalDetails: OnyxTypes.PersonalDetails | EmptyObject = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        currentUserPersonalDetails = lodashGet(val, userAccountID, {});
+        currentUserPersonalDetails = val?.[userAccountID] ?? {};
     },
 });
 
-let currentDate = '';
+let currentDate: OnyxEntry<string> = '';
 Onyx.connect({
     key: ONYXKEYS.CURRENT_DATE,
     callback: (val) => {
