@@ -16,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {Beta, ReportActions} from '@src/types/onyx';
 import ContextMenuActions from './ContextMenuActions';
 import {hideContextMenu} from './ReportActionContextMenu';
-import {GenericReportActionContextMenuProps} from './types';
 
 type BaseReportActionContextMenuOnyxProps = {
     /** Beta features list */
@@ -26,29 +25,51 @@ type BaseReportActionContextMenuOnyxProps = {
     reportActions: OnyxEntry<ReportActions>;
 };
 
-type BaseReportActionContextMenuProps = GenericReportActionContextMenuProps &
-    BaseReportActionContextMenuOnyxProps & {
-        /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
-        type?: ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
+type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
+    /** The ID of the report this report action is attached to. */
+    reportID: string;
 
-        /** Target node which is the target of ContentMenu */
-        anchor: any;
+    /** The ID of the report action this context menu is attached to. */
+    reportActionID: string;
 
-        /** Flag to check if the chat participant is Chronos */
-        isChronosReport: boolean;
+    /** The ID of the original report from which the given reportAction is first created. */
+    // eslint-disable-next-line react/no-unused-prop-types
+    originalReportID: string;
 
-        /** Whether the provided report is an archived room */
-        isArchivedRoom: boolean;
+    /** If true, this component will be a small, row-oriented menu that displays icons but not text.
+  If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row. */
+    isMini?: boolean;
 
-        /** Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action */
-        isPinnedChat?: boolean;
+    /** Controls the visibility of this component. */
+    isVisible?: boolean;
 
-        /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
-        isUnreadChat?: boolean;
+    /** The copy selection. */
+    selection?: string;
 
-        /** Content Ref */
-        contentRef: any;
-    };
+    /** Draft message - if this is set the comment is in 'edit' mode */
+    draftMessage?: string;
+
+    /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
+    type?: ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
+
+    /** Target node which is the target of ContentMenu */
+    anchor: any;
+
+    /** Flag to check if the chat participant is Chronos */
+    isChronosReport: boolean;
+
+    /** Whether the provided report is an archived room */
+    isArchivedRoom: boolean;
+
+    /** Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action */
+    isPinnedChat?: boolean;
+
+    /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
+    isUnreadChat?: boolean;
+
+    /** Content Ref */
+    contentRef: any;
+};
 
 function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
@@ -206,3 +227,5 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
         return lodashIsEqual(prevPropsWithoutReportActions, nextPropsWithoutReportActions);
     }),
 );
+
+export type {BaseReportActionContextMenuProps};

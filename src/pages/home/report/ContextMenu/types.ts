@@ -1,10 +1,3 @@
-const CONTEXT_MENU_TYPES = {
-    LINK: 'LINK',
-    REPORT_ACTION: 'REPORT_ACTION',
-    EMAIL: 'EMAIL',
-    REPORT: 'REPORT',
-} as const;
-
 type GenericReportActionContextMenuProps = {
     /** The ID of the report this report action is attached to. */
     reportID: string;
@@ -29,5 +22,4 @@ type GenericReportActionContextMenuProps = {
     draftMessage?: string;
 };
 
-export {CONTEXT_MENU_TYPES};
 export type {GenericReportActionContextMenuProps};

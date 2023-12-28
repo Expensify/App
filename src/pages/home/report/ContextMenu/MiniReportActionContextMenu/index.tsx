@@ -1,47 +1,27 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import useStyleUtils from '@hooks/useStyleUtils';
 import BaseReportActionContextMenu from '@pages/home/report/ContextMenu/BaseReportActionContextMenu';
-import {
-    defaultProps as GenericReportActionContextMenuDefaultProps,
-    propTypes as genericReportActionContextMenuPropTypes,
-} from '@pages/home/report/ContextMenu/genericReportActionContextMenuPropTypes';
 import CONST from '@src/CONST';
+import MiniReportActionContextMenuProps from './types';
 
-const propTypes = {
-    ..._.omit(genericReportActionContextMenuPropTypes, ['isMini']),
-
-    /** Should the reportAction this menu is attached to have the appearance of being
-     * grouped with the previous reportAction? */
-    displayAsGroup: PropTypes.bool,
-};
-
-const defaultProps = {
-    ..._.omit(GenericReportActionContextMenuDefaultProps, ['isMini']),
-    displayAsGroup: false,
-};
-
-function MiniReportActionContextMenu(props) {
+function MiniReportActionContextMenu({displayAsGroup = false, ...rest}: MiniReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
 
     return (
         <View
-            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: props.isVisible}}
+            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(displayAsGroup)}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: rest.isVisible ?? false}}
         >
             <BaseReportActionContextMenu
                 isMini
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...rest}
             />
         </View>
     );
 }
 
-MiniReportActionContextMenu.propTypes = propTypes;
-MiniReportActionContextMenu.defaultProps = defaultProps;
 MiniReportActionContextMenu.displayName = 'MiniReportActionContextMenu';
 
 export default MiniReportActionContextMenu;
