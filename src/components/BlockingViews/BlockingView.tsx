@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -56,7 +56,6 @@ function BlockingView({
     onLinkPress = () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle = false,
 }: BlockingViewProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     function renderContent() {
@@ -82,7 +81,7 @@ function BlockingView({
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
                 src={icon}
-                fill={iconColor ?? theme.offline}
+                fill={iconColor}
                 width={iconWidth}
                 height={iconHeight}
             />

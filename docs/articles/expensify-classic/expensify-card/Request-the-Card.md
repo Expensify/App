@@ -4,7 +4,7 @@ description: Details on requesting the Expensify Card as an employee
 ---
 # Overview
 
-Once your organization is approved for the Expensify Card, you can request a card! 
+Once your organization is approved for the Expensify Visa® Commercial Card, you can request a card! 
 
 This article covers how to request, activate, and replace your physical and virtual Expensify Cards.
 
