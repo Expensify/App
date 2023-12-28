@@ -140,7 +140,7 @@ function IOURequestStepWaypoint({
                 lat: null,
                 lng: null,
                 address: waypointValue,
-                name: values.name,
+                name: values.name || null,
             };
             saveWaypoint(waypoint);
         }
