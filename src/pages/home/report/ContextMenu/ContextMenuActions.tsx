@@ -34,13 +34,6 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
-const CONTEXT_MENU_TYPES = {
-    LINK: 'LINK',
-    REPORT_ACTION: 'REPORT_ACTION',
-    EMAIL: 'EMAIL',
-    REPORT: 'REPORT',
-};
-
 // A list of all the context actions in this menu.
 export default [
     {
@@ -468,5 +461,3 @@ export default [
         getDescription: () => {},
     },
 ];
-
-export {CONTEXT_MENU_TYPES};
