@@ -12,11 +12,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
-import * as UserSession from '@userActions/Session';
+import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Policy, Report, ReportNextStep, Session} from '@src/types/onyx';
+import * as OnyxTypes from '@src/types/onyx';
 import DeepValueOf from '@src/types/utils/DeepValueOf';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -27,24 +27,24 @@ type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
 type MoneyReportHeaderOnyxProps = {
     /** The chat report this report is linked to */
-    chatReport: OnyxEntry<Report>;
+    chatReport: OnyxEntry<OnyxTypes.Report>;
 
     /** The next step for the report */
-    nextStep: OnyxEntry<ReportNextStep>;
+    nextStep: OnyxEntry<OnyxTypes.ReportNextStep>;
 
-    /** UserSession info for the currently logged in user. */
-    session: OnyxEntry<Session>;
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<OnyxTypes.Session>;
 };
 
 type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The report currently being looked at */
-    report: Report;
+    report: OnyxTypes.Report;
 
     /** The policy tied to the money request report */
-    policy: Policy;
+    policy: OnyxTypes.Policy;
 
     /** Personal details so we can get the ones for the report participants */
-    personalDetails: PersonalDetails;
+    personalDetails: OnyxTypes.PersonalDetailsList;
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
@@ -87,14 +87,14 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         threeDotsMenuItems.push({
             icon: ZoomIcon,
             text: translate('videoChatButtonAndMenu.zoom'),
-            onSelected: UserSession.checkIfActionIsAllowed(() => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
             }),
         });
         threeDotsMenuItems.push({
             icon: GoogleMeetIcon,
             text: translate('videoChatButtonAndMenu.googleMeet'),
-            onSelected: UserSession.checkIfActionIsAllowed(() => {
+            onSelected: Session.checkIfActionIsAllowed(() => {
                 Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
             }),
         });
