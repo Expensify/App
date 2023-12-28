@@ -1586,7 +1586,7 @@ const styles = (theme: ThemeColors) =>
         optionDisplayName: {
             fontFamily: fontFamily.EXP_NEUE,
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
             ...whiteSpace.noWrap,
         },
 
@@ -1606,7 +1606,7 @@ const styles = (theme: ThemeColors) =>
 
         optionAlternateText: {
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         optionAlternateTextCompact: {
