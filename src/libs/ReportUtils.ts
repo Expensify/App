@@ -4213,16 +4213,6 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
- * Check whether we should disable thread for whisper action
- */
-function shouldDisableThreadForWhisperAction(reportAction: ReportAction) {
-    const isReportPreviewAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
-    const isIOUAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
-    return isWhisperAction && !isReportPreviewAction && !isIOUAction;
-}
-
-/**
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
@@ -4232,14 +4222,17 @@ function shouldDisableThreadForWhisperAction(reportAction: ReportAction) {
  * - The action is the thread's first chat
  */
 function shouldDisableThread(reportAction: ReportAction, reportID: string) {
-    const disableThreadActions: string[] = [...CONST.REPORT.ACTIONS.DISABLE_THREAD];
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
+    const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
+    const isIOUAction = ReportActionsUtils.isMoneyRequestAction(reportAction);
+    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+
     return (
-        disableThreadActions.includes(reportAction.actionName) ||
+        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction.actionName) ||
         isSplitBillAction ||
         (isDeletedAction && !reportAction.childVisibleActionCount) ||
-        shouldDisableThreadForWhisperAction(reportAction) ||
+        (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
         isThreadFirstChat(reportAction, reportID)
     );
 }
