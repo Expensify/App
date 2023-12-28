@@ -43,7 +43,7 @@ const defaultProps = {
     onInputChange: () => {},
 };
 
-function ValuePicker({value, label, items, placeholder, errorText, onInputChange, forwardedRef}) {
+function ValuePicker({value, label, items, placeholder, errorText, onInputChange, furtherDetails, forwardedRef}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -76,6 +76,7 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
                 descriptionTextStyle={descStyle}
                 description={label}
                 onPress={showPickerModal}
+                furtherDetails={furtherDetails}
             />
             <View style={styles.ml5}>
                 <FormHelpMessage message={errorText} />

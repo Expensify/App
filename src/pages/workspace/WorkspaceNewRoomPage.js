@@ -329,9 +329,9 @@ function WorkspaceNewRoomPage(props) {
                                         items={visibilityOptions}
                                         onValueChange={setVisibility}
                                         value={visibility}
+                                        furtherDetails={visibilityDescription}
                                     />
                                 </View>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
                             </FormProvider>
                             {isSmallScreenWidth && <OfflineIndicator />}
                         </KeyboardAvoidingView>
