@@ -230,6 +230,8 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
 
         /** Determines how the icon should be resized to fit its container */
         contentFit?: ImageContentFit;
+
+        shouldPutLeftPaddingWhenNoIcon?: boolean;
     };
 
 function MenuItem(
@@ -292,6 +294,7 @@ function MenuItem(
         titleWithTooltips,
         displayInDefaultIconColor = false,
         contentFit = 'cover',
+        shouldPutLeftPaddingWhenNoIcon = false,
     }: MenuItemProps,
     ref: ForwardedRef<View>,
 ) {
@@ -429,6 +432,7 @@ function MenuItem(
                                             ]}
                                         />
                                     )}
+                                    {!icon && shouldPutLeftPaddingWhenNoIcon && <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]} />}
                                     {icon && !Array.isArray(icon) && (
                                         <View style={[styles.popoverMenuIcon, iconStyles, StyleUtils.getAvatarWidthStyle(avatarSize)]}>
                                             {typeof icon !== 'string' && iconType === CONST.ICON_TYPE_ICON && (
