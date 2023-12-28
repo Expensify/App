@@ -285,6 +285,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
+    const [merchantError, setMerchantError] = useState(false);
+
     const shouldDisplayFieldError = useMemo(() => {
         if (!isEditingSplitBill) {
             return false;
@@ -294,7 +296,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const shouldDisplayMerchantError = isPolicyExpenseChat && !isScanRequest && isMerchantEmpty;
+    const isMerchantRequired = isPolicyExpenseChat && !isScanRequest;
+
+    useEffect(() => {
+        if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
+            return;
+        }
+        if (!isMerchantEmpty && merchantError) {
+            setMerchantError(false);
+            if (formError === 'iou.error.invalidMerchant') {
+                setFormError('');
+            }
+        }
+    }, [formError, isMerchantEmpty, merchantError, isMerchantRequired]);
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -305,13 +319,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
-        if (shouldDisplayMerchantError) {
+        if (merchantError) {
             setFormError('iou.error.invalidMerchant');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, shouldDisplayMerchantError]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -481,7 +495,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
-            if (shouldDisplayMerchantError) {
+            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))) {
+                setMerchantError(true);
                 return;
             }
 
@@ -514,7 +529,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
         [
             selectedParticipants,
-            shouldDisplayMerchantError,
+            isMerchantRequired,
+            isMerchantEmpty,
+            shouldDisplayFieldError,
+            transaction,
             iouType,
             onSendMoney,
             iouCurrencyCode,
@@ -522,7 +540,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             isDistanceRequestWithoutRoute,
             iouAmount,
             isEditingSplitBill,
-            transaction,
             onConfirm,
         ],
     );
@@ -655,7 +672,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 interactive={!isReadOnly}
                 numberOfLinesTitle={2}
             />
-            {shouldDisplayMerchantError && (
+            {isMerchantRequired && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!isReadOnly}
                     title={isMerchantEmpty ? '' : iouMerchant}
@@ -671,10 +688,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={
-                        shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
-                    }
-                    error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.fieldRequired') : ''}
+                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={merchantError ? translate('common.error.fieldRequired') : ''}
                 />
             )}
             {!shouldShowAllFields && (
@@ -728,7 +743,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             interactive={!isReadOnly}
                         />
                     )}
-                    {!shouldDisplayMerchantError && shouldShowMerchant && (
+                    {!isMerchantRequired && shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
                             title={isMerchantEmpty ? '' : iouMerchant}
@@ -744,10 +759,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={
-                                shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''
-                            }
-                            error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.fieldRequired') : ''}
+                            brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={merchantError ? translate('common.error.fieldRequired') : ''}
                         />
                     )}
                     {shouldShowCategories && (
