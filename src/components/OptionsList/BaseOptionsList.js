@@ -85,7 +85,7 @@ const BaseOptionsList = forwardRef(
         const didLayout = useRef(false);
 
         const listContainerStyles = useMemo(() => listContainerStylesProp || [styles.flex1], [listContainerStylesProp, styles.flex1]);
-        const contentContainerStyles = useMemo(() => [contentContainerStylesProp, safeAreaPaddingBottomStyle], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
+        const contentContainerStyles = useMemo(() => [safeAreaPaddingBottomStyle, ...contentContainerStylesProp], [contentContainerStylesProp, safeAreaPaddingBottomStyle]);
 
         /**
          * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.

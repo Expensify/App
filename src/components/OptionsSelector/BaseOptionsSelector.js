@@ -100,6 +100,9 @@ class BaseOptionsSelector extends Component {
 
     componentDidMount() {
         this.focusListener = this.props.navigation.addListener('focus', () => {
+            // Screen coming back into focus, for example
+            // when doing Cmd+Shift+K, then Cmd+K, then Cmd+Shift+K.
+            // Only applies to platforms that support keyboard shortcuts
             if ([CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform())) {
                 this.subscribeToKeyboardShortcut();
             }
@@ -188,7 +191,9 @@ class BaseOptionsSelector extends Component {
     }
 
     componentWillUnmount() {
-        this.interactionTask.cancel();
+        if (this.interactionTask) {
+            this.interactionTask.cancel();
+        }
         this.focusListener();
         this.blurListener();
         if (this.focusTimeout) {
