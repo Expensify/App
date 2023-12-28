@@ -179,6 +179,7 @@ function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, curre
 }
 
 /**
+ * Reset the money request amount, discarding the user-provided value. In the case of distance requests, this will effectively re-enable the default behavior of automatic amount calculation.
  * @param {String} transactionID
  */
 function resetMoneyRequestAmount_temporaryForRefactor(transactionID) {
