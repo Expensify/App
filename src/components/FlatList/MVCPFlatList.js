@@ -31,7 +31,7 @@ function useMergeRefs(...args) {
     );
 }
 
-const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizontal, inverted, onScroll, ...props}, forwardedRef) => {
+const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizontal, onScroll, ...props}, forwardedRef) => {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = React.useRef(null);
     const prevFirstVisibleOffsetRef = React.useRef(null);
@@ -70,7 +70,7 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
 
         const contentViewLength = contentView.childNodes.length;
         for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
-            const subview = contentView.childNodes[inverted ? contentViewLength - i - 1 : i];
+            const subview = contentView.childNodes[i];
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
             if (subviewOffset > scrollOffset || i === contentViewLength - 1) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
@@ -78,7 +78,7 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
                 break;
             }
         }
-    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal, inverted]);
+    }, [getContentView, getScrollOffset, mvcpMinIndexForVisible, horizontal]);
 
     const adjustForMaintainVisibleContentPosition = React.useCallback(() => {
         if (mvcpMinIndexForVisible == null) {
@@ -183,7 +183,6 @@ const MVCPFlatList = React.forwardRef(({maintainVisibleContentPosition, horizont
             {...props}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             horizontal={horizontal}
-            inverted={inverted}
             onScroll={onScrollInternal}
             scrollEventThrottle={1}
             ref={onRef}
