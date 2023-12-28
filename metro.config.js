@@ -1,7 +1,7 @@
-const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const {getDefaultConfig} = require('expo/metro-config');
+const {mergeConfig} = require('@react-native/metro-config');
 const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
 const defaultSourceExts = require('metro-config/src/defaults/defaults').sourceExts;
-const _ = require('underscore');
 require('dotenv').config();
 
 const defaultConfig = getDefaultConfig(__dirname);
@@ -23,9 +23,9 @@ const e2eSourceExts = ['e2e.js', 'e2e.ts'];
  */
 const config = {
     resolver: {
-        assetExts: [..._.filter(defaultAssetExts, (ext) => ext !== 'svg'), 'lottie'],
+        assetExts: [...defaultAssetExts, 'lottie'],
         // When we run the e2e tests we want files that have the extension e2e.js to be resolved as source files
-        sourceExts: [...(isE2ETesting ? e2eSourceExts : []), ...defaultSourceExts, 'jsx', 'svg'],
+        sourceExts: [...(isE2ETesting ? e2eSourceExts : []), ...defaultSourceExts, 'jsx'],
         resolveRequest: (context, moduleName, platform) => {
             const resolution = context.resolveRequest(context, moduleName, platform);
             if (isE2ETesting && moduleName.includes('/API')) {
@@ -41,9 +41,6 @@ const config = {
             }
             return resolution;
         },
-    },
-    transformer: {
-        babelTransformerPath: require.resolve('react-native-svg-transformer'),
     },
 };
 

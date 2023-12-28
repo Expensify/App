@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.13-6",
+  "version": "1.4.18-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -90,6 +90,7 @@
     "@shopify/flash-list": "^1.6.1",
     "@types/node": "^18.14.0",
     "@ua/react-native-airship": "^15.3.1",
+    "@vue/preload-webpack-plugin": "^2.0.0",
     "awesome-phonenumber": "^5.4.0",
     "babel-polyfill": "^6.26.0",
     "canvas-size": "^1.2.6",
@@ -98,10 +99,13 @@
     "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#927c8409e4454e15a1b95ed0a312ff8fee38f0f0",
+    "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#398bf7c6a6d37f229a41d92bd7a4324c0fd32849",
+    "expo": "^49.0.0",
+    "expo-image": "1.8.1",
     "fbjs": "^3.0.2",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
+    "jest-expo": "^49.0.0",
     "jest-when": "^3.5.2",
     "lodash": "4.17.21",
     "lottie-react-native": "^6.4.0",
@@ -127,7 +131,6 @@
     "react-native-device-info": "^10.3.0",
     "react-native-document-picker": "^8.2.1",
     "react-native-draggable-flatlist": "^4.0.1",
-    "react-native-fast-image": "^8.6.3",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "2.12.0",
     "react-native-google-places-autocomplete": "2.5.6",
@@ -148,7 +151,7 @@
     "react-native-plaid-link-sdk": "10.8.0",
     "react-native-qrcode-svg": "^6.2.0",
     "react-native-quick-sqlite": "^8.0.0-beta.2",
-    "react-native-reanimated": "^3.6.1",
+    "react-native-reanimated": "3.5.4",
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "4.4.1",
     "react-native-screens": "3.21.0",
@@ -244,7 +247,7 @@
     "electron-builder": "24.6.4",
     "eslint": "^7.6.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
-    "eslint-config-expensify": "^2.0.42",
+    "eslint-config-expensify": "^2.0.43",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-jsdoc": "^46.2.6",
@@ -268,7 +271,6 @@
     "react-native-clean-project": "^4.0.0-alpha4.0",
     "react-native-flipper": "https://gitpkg.now.sh/facebook/flipper/react-native/react-native-flipper?9cacc9b59402550eae866e0e81e5f0c2f8203e6b",
     "react-native-performance-flipper-reporter": "^2.0.0",
-    "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.2.0",
     "reassure": "^0.10.1",
     "setimmediate": "^1.0.5",
@@ -282,12 +284,22 @@
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",
-    "webpack-font-preload-plugin": "^1.5.0",
     "webpack-merge": "^5.8.0",
     "yaml": "^2.2.1"
   },
   "overrides": {
     "react-native": "$react-native"
+  },
+  "expo": {
+    "autolinking": {
+      "exclude": [
+        "expo-constants",
+        "expo-file-system",
+        "expo-font",
+        "@react-native-google-signin/google-signin",
+        "expo-keep-awake"
+      ]
+    }
   },
   "electronmon": {
     "patterns": [

@@ -66,7 +66,7 @@ function AddReactionBubble(props) {
                 (emojiCode, emojiObject) => {
                     props.onSelectEmoji(emojiObject);
                 },
-                refParam || ref.current,
+                refParam || ref,
                 anchorOrigin,
                 props.onWillShowPicker,
                 props.reportAction.reportActionID,
