@@ -118,7 +118,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (isPayer && isSettled) {
+    if (isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport)) {
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: 'Cancel payment',
