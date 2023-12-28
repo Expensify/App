@@ -17,7 +17,7 @@ import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
 class MainApplication : MultiDexApplication(), ReactApplication {
-    override val reactNativeHost: ReactNativeHost = object : ReactNativeHostWrapper(this, DefaultReactNativeHost(this) {
+    override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG
 
         override fun getPackages(): List<ReactPackage> {
@@ -70,8 +70,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         ApplicationLifecycleDispatcher.onApplicationCreate(this);
     }
 
-    fun onConfigurationChanged(newConfig: Configuration?) {
-        super.onConfigurationChanged(newConfig!!)
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
         ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
     }
 }
