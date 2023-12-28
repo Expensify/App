@@ -1,5 +1,4 @@
 import React from 'react';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -8,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import {TranslationPaths} from '@src/languages/types';
+import IconAsset from '@src/types/utils/IconAsset';
 
 const providerData = {
     [CONST.SIGN_IN_METHOD.APPLE]: {
@@ -21,7 +21,7 @@ const providerData = {
 } satisfies Record<
     ValueOf<typeof CONST.SIGN_IN_METHOD>,
     {
-        icon: React.FC<SvgProps>;
+        icon: IconAsset;
         accessibilityLabel: TranslationPaths;
     }
 >;
