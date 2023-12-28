@@ -13,6 +13,7 @@ import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout
 import LottieAnimations from '@components/LottieAnimations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -274,7 +275,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 illustration={LottieAnimations.WorkspacePlanet}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
                 title={translate('common.workspaces')}
-                style={styles.alignItemsCenter}
+                style={!isSmallScreenWidth && styles.alignItemsCenter}
                 shouldUseCentralPaneView
                 footer={
                     isSmallScreenWidth && (
@@ -287,7 +288,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                     )
                 }
             >
-                <View style={styles.workspaceFeatureList}>
+                <View style={!isSmallScreenWidth && styles.workspaceFeatureList}>
                     <FeatureList
                         menuItems={workspaceFeatures}
                         headline="workspace.emptyWorkspace.title"
@@ -309,7 +310,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
     }
 
     return (
-        <>
+        <ScreenWrapper shouldEnablePickerAvoiding={false}>
             <View style={{flex: 1}}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
@@ -341,7 +342,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 cancelText={translate('common.cancel')}
                 danger
             />
-        </>
+        </ScreenWrapper>
     );
 }
 
