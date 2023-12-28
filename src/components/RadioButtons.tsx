@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
 type Choice = {

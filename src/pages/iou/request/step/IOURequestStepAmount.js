@@ -36,15 +36,16 @@ const defaultProps = {
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo},
+        params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
     transaction,
-    transaction: {currency},
+    transaction: {currency: originalCurrency},
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
     const iouRequestType = getRequestType(transaction);
+    const currency = selectedCurrency || originalCurrency;
 
     useFocusEffect(
         useCallback(() => {
@@ -67,10 +68,10 @@ function IOURequestStepAmount({
     };
 
     /**
-     * @param {Number} currentAmount
+     * @param {Number} amount
      */
-    const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+    const navigateToNextPage = ({amount}) => {
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
@@ -98,6 +99,7 @@ function IOURequestStepAmount({
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
             shouldShowWrapper={Boolean(backTo)}
+            includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo)}

@@ -7,9 +7,9 @@ import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Chronos from '@userActions/Chronos';
 
 const propTypes = {
