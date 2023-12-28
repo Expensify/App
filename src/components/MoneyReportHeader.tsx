@@ -1,4 +1,10 @@
+<<<<<<< HEAD:src/components/MoneyReportHeader.tsx
 import React, {useCallback, useMemo, useState} from 'react';
+=======
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useMemo} from 'react';
+>>>>>>> main:src/components/MoneyReportHeader.js
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -19,9 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Policy, Report, ReportNextStep, Session} from '@src/types/onyx';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import SettlementButton from './SettlementButton';
 
@@ -47,10 +51,24 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     personalDetails: PersonalDetails
 };
 
+<<<<<<< HEAD:src/components/MoneyReportHeader.tsx
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+=======
+const defaultProps = {
+    chatReport: {},
+    nextStep: {},
+    session: {
+        email: null,
+    },
+    policy: {},
+};
+
+function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
+>>>>>>> main:src/components/MoneyReportHeader.js
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -63,13 +81,6 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
           isPolicyAdmin && (isApproved || isManager)
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-
-    const cancelPayment = useCallback(() => {
-        IOU.cancelPayment(moneyRequestReport, chatReport);
-        setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport]);
-
     const shouldShowPayButton = useMemo(
         () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
         [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
@@ -83,20 +94,17 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextSteps = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
+    const shouldShowNextStep = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
+<<<<<<< HEAD:src/components/MoneyReportHeader.tsx
     const isMoreContentShown = shouldShowNextSteps ?? (shouldShowAnyButton && isSmallScreenWidth);
+=======
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+>>>>>>> main:src/components/MoneyReportHeader.js
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (isPayer && isSettled) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: 'Cancel payment',
-            onSelected: () => setIsConfirmModalVisible(true),
-        });
-    }
     if (!ReportUtils.isArchivedRoom(chatReport)) {
         threeDotsMenuItems.push({
             icon: ZoomIcon,
@@ -126,7 +134,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextSteps && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -188,22 +196,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                         />
                     </View>
                 )}
-                {shouldShowNextSteps && (
+                {shouldShowNextStep && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
                 )}
             </View>
-            <ConfirmModal
-                title={translate('iou.cancelPayment')}
-                isVisible={isConfirmModalVisible}
-                onConfirm={cancelPayment}
-                onCancel={() => setIsConfirmModalVisible(false)}
-                prompt={translate('iou.cancelPaymentConfirmation')}
-                confirmText={translate('iou.cancelPayment')}
-                cancelText={translate('common.dismiss')}
-                danger
-            />
         </View>
     );
 }
