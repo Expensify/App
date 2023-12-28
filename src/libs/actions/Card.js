@@ -163,11 +163,13 @@ function revealVirtualCardDetails(cardID) {
         API.makeRequestWithSideEffects('RevealExpensifyCardDetails', {cardID})
             .then((response) => {
                 if (response.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                    // eslint-disable-next-line prefer-promise-reject-errors
                     reject('cardPage.cardDetailsLoadingFailure');
                     return;
                 }
                 resolve(response);
             })
+            // eslint-disable-next-line prefer-promise-reject-errors
             .catch(() => reject('cardPage.cardDetailsLoadingFailure'));
     });
 }
