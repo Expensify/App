@@ -42,14 +42,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainer = () => {}
             return;
         }
         measureParentContainer((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
-    }, [measureParentContainer, windowHeight, windowWidth]);
-
-    React.useEffect(() => {
-        if (!width) {
-            return;
-        }
-        measureParentContainer((x, y, w) => setContainerState({left: x, bottom: windowHeight - y, width: w}));
-    }, [isComposerFullSize]);
+    }, [measureParentContainer, windowHeight, windowWidth, isComposerFullSize]);
 
     const componentToRender = (
         <BaseAutoCompleteSuggestions<TSuggestion>
