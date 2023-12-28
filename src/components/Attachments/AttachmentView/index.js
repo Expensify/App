@@ -136,6 +136,7 @@ function AttachmentView({
                     source={source}
                     file={file}
                     isFocused={isFocused}
+                    isUsedInCarousel={isUsedInCarousel}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
                     carouselItemIndex={carouselItemIndex}
