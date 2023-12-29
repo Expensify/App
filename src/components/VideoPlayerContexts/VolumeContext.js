@@ -21,7 +21,7 @@ function VolumeContextProvider({children}) {
     );
 
     // We want to update the volume when currently playing video changes.
-    // When sharedElement changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.
+    // When originalParent changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.
     useEffect(() => {
         if (!originalParent) {
             return;

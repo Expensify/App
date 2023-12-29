@@ -49,7 +49,7 @@ const propTypes = {
     /** onPress callback */
     onPress: PropTypes.func,
 
-    isModalHovered: PropTypes.bool.isRequired,
+    isModalHovered: PropTypes.bool,
 
     /** Whether the attachment is currently being viewed in the carousel */
     isFocused: PropTypes.bool.isRequired,
@@ -57,6 +57,7 @@ const propTypes = {
 
 const defaultProps = {
     onPress: undefined,
+    isModalHovered: false,
 };
 
 function CarouselItem({item, index, activeIndex, isSingleItem, onPress, isFocused, isModalHovered}) {

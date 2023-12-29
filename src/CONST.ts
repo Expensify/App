@@ -3065,6 +3065,10 @@ const CONST = {
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
+        CONTROLS_POSITION: {
+            NATIVE: 32,
+            NORMAL: 8,
+        },
     },
 } as const;
 

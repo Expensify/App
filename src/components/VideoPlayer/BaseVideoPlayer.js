@@ -25,7 +25,11 @@ const propTypes = {
 
     style: stylePropTypes,
 
+    videoPlayerStyle: stylePropTypes,
+
     videoStyle: stylePropTypes,
+
+    videoControlsStyle: stylePropTypes,
 
     shouldUseSharedVideoElement: PropTypes.bool,
 
@@ -40,13 +44,28 @@ const defaultProps = {
     resizeMode: ResizeMode.CONTAIN,
     isLooping: false,
     style: undefined,
+    videoPlayerStyle: undefined,
     videoStyle: undefined,
+    videoControlsStyle: undefined,
     shouldUseSharedVideoElement: false,
     shouldUseSmallVideoControls: false,
     isVideoHovered: false,
 };
 
-function BaseVideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping, style, videoStyle, shouldUseSharedVideoElement, shouldUseSmallVideoControls, isVideoHovered}) {
+function BaseVideoPlayer({
+    url,
+    resizeMode,
+    shouldPlay,
+    onVideoLoaded,
+    isLooping,
+    style,
+    videoPlayerStyle,
+    videoStyle,
+    videoControlsStyle,
+    shouldUseSharedVideoElement,
+    shouldUseSmallVideoControls,
+    isVideoHovered,
+}) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
@@ -107,7 +126,7 @@ function BaseVideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping,
     return (
         <Hoverable>
             {(isHovered) => (
-                <View style={[styles.w100, styles.h100]}>
+                <View style={[styles.w100, styles.h100, style]}>
                     {shouldUseSharedVideoElement ? (
                         <>
                             <View
@@ -135,7 +154,7 @@ function BaseVideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping,
                             <View style={styles.flex1}>
                                 <Video
                                     ref={videoPlayerRef}
-                                    style={style || [styles.w100, styles.h100]}
+                                    style={videoPlayerStyle || [styles.w100, styles.h100]}
                                     videoStyle={videoStyle || [styles.w100, styles.h100]}
                                     source={{
                                         uri: sourceURL, // testing video url: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
@@ -161,6 +180,7 @@ function BaseVideoPlayer({url, resizeMode, shouldPlay, onVideoLoaded, isLooping,
                             videoPlayerRef={videoPlayerRef}
                             isPlaying={isPlaying}
                             small={shouldUseSmallVideoControls}
+                            style={videoControlsStyle}
                         />
                     )}
                 </View>

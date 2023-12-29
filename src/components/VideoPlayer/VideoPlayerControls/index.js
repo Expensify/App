@@ -11,6 +11,7 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import ProgressBar from './ProgressBar';
 import VolumeButton from './VolumeButton';
@@ -28,13 +29,16 @@ const propTypes = {
 
     // Defines if component should have small icons and tighter spacing inline
     small: PropTypes.bool,
+
+    style: stylePropTypes,
 };
 
 const defaultProps = {
     small: false,
+    style: undefined,
 };
 
-function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small}) {
+function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying, small, style}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {pauseVideo, playVideo, currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -80,7 +84,7 @@ function VideoPlayerControls({duration, position, url, videoPlayerRef, isPlaying
 
     return (
         <Animated.View
-            style={[styles.videoPlayerControlsContainer, small ? [styles.p2, styles.pb0] : [styles.p3, styles.pb1]]}
+            style={[styles.videoPlayerControlsContainer, small ? [styles.p2, styles.pb0] : [styles.p3, styles.pb1], style]}
             onLayout={onLayout}
         >
             <View style={[styles.videoPlayerControlsButtonContainer, !small && styles.mb4]}>

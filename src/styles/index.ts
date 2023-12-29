@@ -4121,9 +4121,9 @@ const styles = (theme: ThemeColors) =>
 
         videoPlayerControlsContainer: {
             position: 'absolute',
-            bottom: 8,
-            left: 8,
-            right: 8,
+            bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            left: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
+            right: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NORMAL,
             backgroundColor: theme.transparentAppBG,
             borderRadius: 8,
             flexDirection: 'column',

@@ -1,4 +1,5 @@
 import React, {forwardRef} from 'react';
+import CONST from '@src/CONST';
 import VideoPlayer from './BaseVideoPlayer';
 
 function BaseVideoPlayer(props, ref) {
@@ -8,6 +9,8 @@ function BaseVideoPlayer(props, ref) {
             {...props}
             isVideoHovered
             shouldUseSharedVideoElement={false}
+            // eslint-disable-next-line react/prop-types
+            videoControlsStyle={[{bottom: CONST.VIDEO_PLAYER.CONTROLS_POSITION.NATIVE}, props.style]}
             ref={ref}
         />
     );
