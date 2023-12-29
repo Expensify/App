@@ -66,7 +66,6 @@ function ReceiptSelector({route, transactionID, iou, report}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const iouType = lodashGet(route, 'params.iouType', '');
-    const pageIndex = lodashGet(route, 'params.pageIndex', 1);
 
     // Grouping related states
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
@@ -201,7 +200,6 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     torchOn={isFlashLightOn}
                     onTorchAvailability={setIsTorchAvailable}
                     forceScreenshotSourceSize
-                    cameraTabIndex={pageIndex}
                 />
             </View>
 
