@@ -263,6 +263,10 @@ function MoneyRequestConfirmationList(props) {
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
 
+    const defaultTaxKey = props.policyTaxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${props.policyTaxRates.taxes[defaultTaxKey].name} (${props.policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
+
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
 
@@ -345,10 +349,6 @@ function MoneyRequestConfirmationList(props) {
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
-
-    const defaultTaxKey = props.policyTaxRates.defaultExternalID;
-    const defaultTaxName = `${props.policyTaxRates.taxes[defaulTaxKey].name} (${props.policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
-    const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];

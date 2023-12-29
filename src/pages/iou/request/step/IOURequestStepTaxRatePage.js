@@ -64,7 +64,7 @@ function IOURequestStepTaxRatePage({
     }
 
     const defaulTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = `${policyTaxRates.taxes[defaulTaxKey].name} (${policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
+    const defaultTaxName = (defaulTaxKey && `${policyTaxRates.taxes[defaulTaxKey].name} (${policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`) || '';
     const selectedTaxRate = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const updateTaxRates = (taxes) => {
