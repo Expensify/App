@@ -2277,7 +2277,7 @@ function updateMoneyRequestAmountAndCurrency(transactionID, transactionThreadRep
 }
 
 /**
- * @param {String} transactionID
+ * @param {String | undefined} transactionID
  * @param {Object} reportAction - the money request reportAction we are deleting
  * @param {Boolean} isSingleTransactionView
  */

@@ -1,8 +1,7 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {memo, RefObject, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 import ContextMenuItem from '@components/ContextMenuItem';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -13,9 +12,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Beta, ReportActions} from '@src/types/onyx';
+import {Beta, ReportAction, ReportActions} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ContextMenuActions from './ContextMenuActions';
-import {hideContextMenu} from './ReportActionContextMenu';
+import {ContextMenuType, hideContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuOnyxProps = {
     /** Beta features list */
@@ -50,10 +50,10 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     draftMessage?: string;
 
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
-    type?: ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
+    type?: ContextMenuType;
 
     /** Target node which is the target of ContentMenu */
-    anchor: any;
+    anchor: HTMLElement;
 
     /** Flag to check if the chat participant is Chronos */
     isChronosReport: boolean;
@@ -68,7 +68,7 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     isUnreadChat?: boolean;
 
     /** Content Ref */
-    contentRef: any;
+    contentRef?: RefObject<View>;
 };
 
 function BaseReportActionContextMenu({
@@ -96,16 +96,16 @@ function BaseReportActionContextMenu({
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, isSmallScreenWidth);
     const {isOffline} = useNetwork();
 
-    const reportAction = useMemo(() => {
-        if (_.isEmpty(reportActions) || reportActionID === '0') {
-            return {};
+    const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
+        if (isEmptyObject(reportActions) || reportActionID === '0') {
+            return null;
         }
-        return reportActions[reportActionID] || {};
+        return reportActions[reportActionID] ?? null;
     }, [reportActions, reportActionID]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const filteredContextMenuActions = ContextMenuActions.filter((contextAction) =>
-        contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline),
+        contextAction.shouldShow(type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, !!isOffline),
     );
 
     // Context menu actions that are not rendered as menu items are excluded from arrow navigation
