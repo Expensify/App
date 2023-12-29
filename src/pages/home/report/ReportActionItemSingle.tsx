@@ -39,19 +39,19 @@ type ReportActionItemSingleProps = {
     report: Report;
 
     /** IOU Report for this action, if any */
-    iouReport: Report;
+    iouReport?: Report;
 
     /** Show header for action */
-    showHeader: boolean;
+    showHeader?: boolean;
 
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
-    shouldShowSubscriptAvatar: boolean;
+    shouldShowSubscriptAvatar?: boolean;
 
     /** If the message has been flagged for moderation */
-    hasBeenFlagged: boolean;
+    hasBeenFlagged?: boolean;
 
     /** If the action is being hovered */
-    isHovered: boolean;
+    isHovered?: boolean;
 };
 
 type SubAvatar = {
@@ -122,7 +122,7 @@ function ReportActionItemSingle({
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-        const secondaryAccountId = iouReport.ownerAccountID === actorAccountID ? iouReport.managerID : iouReport.ownerAccountID;
+        const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID ? iouReport?.managerID : iouReport?.ownerAccountID;
         const secondaryUserAvatar = secondaryAccountId ? personalDetails?.[secondaryAccountId]?.avatar ?? {} : {};
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
@@ -168,7 +168,7 @@ function ReportActionItemSingle({
             showWorkspaceDetails(reportID);
         } else {
             // Show participants page IOU report preview
-            if (displayAllActors) {
+            if (iouReportID && displayAllActors) {
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
