@@ -280,7 +280,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':iouType/edit/reason/:transactionID?',
-        getRoute: (iouType: string, transactionID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?backTo=${backTo}` as const,
+        getRoute: (iouType: string, transactionID: string, reportID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
     },
     MONEY_REQUEST_TAG: {
         route: ':iouType/new/tag/:reportID?',

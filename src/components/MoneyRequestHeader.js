@@ -93,7 +93,14 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const changeMoneyRequestStatus = () => {
         if (!isOnHold) {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(lodashGet(policy, 'type'), lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), activeRoute));
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(
+                    lodashGet(policy, 'type'),
+                    lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'),
+                    lodashGet(report, 'reportID'),
+                    activeRoute,
+                ),
+            );
         } else {
             IOU.unholdRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), lodashGet(report, 'reportID'));
         }

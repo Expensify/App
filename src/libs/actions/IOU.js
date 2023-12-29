@@ -3365,16 +3365,18 @@ function getIOUReportID(iou, route) {
  * @param {string} reportID
  */
 function putOnHold(transactionID, comment, reportID) {
-    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction();
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
+    const createdCommentReportAction = ReportUtils.buildOptimisticHoldReportActionComment(comment);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
 
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                value: {[createdReportAction.reportActionID]: createdReportAction},
+                [createdReportAction.reportActionID]: createdReportAction,
+                [createdCommentReportAction.reportActionID]: createdCommentReportAction,
             },
         },
         {
@@ -3417,16 +3419,16 @@ function putOnHold(transactionID, comment, reportID) {
  * @param {string} reportID
  */
 function unholdRequest(transactionID, reportID) {
-    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction();
+    const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
 
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
-                value: {[createdReportAction.reportActionID]: createdReportAction},
+                [createdReportAction.reportActionID]: createdReportAction,
             },
         },
         {

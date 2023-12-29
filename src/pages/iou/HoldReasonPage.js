@@ -2,7 +2,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,10 +12,8 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -26,27 +23,22 @@ const propTypes = {
             /** ID of the transaction the page was opened for */
             transactionID: PropTypes.string,
 
+            /** ID of the report that user is providing hold reason to */
+            reportID: PropTypes.string,
+
             /** Link to previous page */
             backTo: PropTypes.string,
         }),
     }).isRequired,
-
-    /* Onyx Props */
-    /** The report currently being used */
-    report: reportPropTypes,
 };
 
-const defaultProps = {
-    report: {},
-};
-
-function HoldReasonPage({route, report}) {
+function HoldReasonPage({route}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const reasonRef = useRef();
 
     const transactionID = lodashGet(route, 'params.transactionID', '');
-    const {reportID} = report;
+    const reportID = lodashGet(route, 'params.reportID', '');
     const backTo = lodashGet(route, 'params.backTo', '');
 
     const navigateBack = () => {
@@ -108,14 +100,5 @@ function HoldReasonPage({route, report}) {
 
 HoldReasonPage.displayName = 'MoneyRequestHoldReasonPage';
 HoldReasonPage.propTypes = propTypes;
-HoldReasonPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    report: {
-        key: ({route, iou}) => {
-            const reportID = IOU.getIOUReportID(iou, route);
-
-            return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        },
-    },
-})(HoldReasonPage);
+export default HoldReasonPage;
