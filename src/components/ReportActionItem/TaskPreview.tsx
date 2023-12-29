@@ -34,12 +34,13 @@ type TaskPreviewOnyxProps = {
     taskReport: OnyxEntry<Report>;
 
     /** The policy of root parent report */
-    rootParentReportpolicy: OnyxEntry<Partial<Policy> | null>;
+    rootParentReportpolicy: OnyxEntry<{role: string}>;
 };
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
     TaskPreviewOnyxProps & {
         /** The ID of the associated policy */
+        // eslint-disable-next-line
         policyID: string;
         /** The ID of the associated taskReport */
         taskReportID: string;
@@ -71,7 +72,7 @@ function TaskPreview(props: TaskPreviewProps) {
     const isTaskCompleted = isNotEmptyObject(props.taskReport)
         ? props.taskReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
-    const taskTitle = _.escape(TaskUtils.getTaskTitle(props.taskReportID, props.action?.childReportName ?? ''));
+    const taskTitle = escape(TaskUtils.getTaskTitle(props.taskReportID, props.action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport ?? {}) ?? props.action?.childManagerAccountID ?? '';
     const assigneeLogin = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.login ?? '' : '';
     const assigneeDisplayName = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.displayName ?? '' : '';
@@ -102,7 +103,9 @@ function TaskPreview(props: TaskPreviewProps) {
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(props.taskReport ?? {}, props.currentUserPersonalDetails.accountID, props.rootParentReportpolicy?.role ?? '')}
+                        disabled={
+                            !Task.canModifyTask(props.taskReport ?? {}, props.currentUserPersonalDetails.accountID, props.rootParentReportpolicy ? props.rootParentReportpolicy.role : '')
+                        }
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(props.taskReport ?? {});
@@ -132,7 +135,7 @@ export default compose(
         },
         rootParentReportpolicy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? '0'}`,
-            selector: (policy: Policy | null) => _.pick(policy, ['role']),
+            selector: (policy: Policy | null) => ({role: policy?.role ?? ''}),
         },
     }),
     withCurrentUserPersonalDetails,
