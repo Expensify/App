@@ -9,7 +9,7 @@ type KeyboardStateContextValue = {
     isKeyboardShown: boolean;
 };
 
-// TODO: Remove - left for backwards compatibility with existing components.
+// TODO: Remove - left for backwards compatibility with existing components (https://github.com/Expensify/App/issues/25151)
 const keyboardStatePropTypes = {
     /** Whether the keyboard is open */
     isKeyboardShown: PropTypes.bool.isRequired,
