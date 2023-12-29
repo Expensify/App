@@ -285,6 +285,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
+    const defaulTaxKey = policyTaxRates.defaultExternalID;
+    const defaultTaxName = defaulTaxKey && `${policyTaxRates.taxes[defaulTaxKey].name} (${policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
+    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
+
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
 
@@ -367,10 +371,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
     const shouldDisablePaidBySection = userCanModifyParticipants.current;
-
-    const defaulTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = `${policyTaxRates.taxes[defaulTaxKey].name} (${policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
-    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
