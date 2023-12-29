@@ -619,7 +619,7 @@ export default {
             genericSmartscanFailureMessage: 'Transaction is missing fields',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
             splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
-            invalidMerchant: 'Please enter a corrent merchant.',
+            invalidMerchant: 'Please enter a correct merchant.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
