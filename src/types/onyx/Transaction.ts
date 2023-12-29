@@ -21,18 +21,6 @@ type Waypoint = {
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
-type UserSplit = {
-    email: string;
-    accountID: number;
-};
-
-type WorkspaceSplit = {
-    policyID?: string;
-    chatReportID: string;
-};
-
-type Split = UserSplit | WorkspaceSplit;
-
 type Comment = {
     comment?: string;
     waypoints?: WaypointCollection;
@@ -41,7 +29,7 @@ type Comment = {
     customUnit?: Record<string, unknown>;
     source?: string;
     originalTransactionID?: string;
-    splits?: Split[];
+    splits?: Participant[];
 };
 
 type GeometryType = 'LineString';
@@ -123,4 +111,4 @@ type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointColle
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionDraft, TransactionChanges, Split};
+export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionDraft, TransactionChanges};

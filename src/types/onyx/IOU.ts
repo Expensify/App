@@ -1,22 +1,24 @@
 import {Icon} from './OnyxCommon';
 
 type Participant = {
-    accountID: number;
+    accountID?: number;
     login?: string;
+    email?: string;
     isPolicyExpenseChat?: boolean;
+    chatReportID?: string;
     isOwnPolicyExpenseChat?: boolean;
     selected?: boolean;
     reportID?: string;
     policyID?: string;
     displayName?: string;
-    alternateText: string;
-    firstName: string;
-    icons: Icon[];
-    keyForList: string;
-    lastName: string;
-    phoneNumber: string;
-    searchText: string;
-    text: string;
+    alternateText?: string;
+    firstName?: string;
+    icons?: Icon[];
+    keyForList?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    searchText?: string;
+    text?: string;
 };
 
 type IOU = {

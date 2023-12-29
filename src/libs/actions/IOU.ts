@@ -3,6 +3,7 @@ import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
+import {ImageSourcePropType} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
@@ -31,7 +32,7 @@ import * as OnyxTypes from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
 import ReportAction from '@src/types/onyx/ReportAction';
 import {OnyxData} from '@src/types/onyx/Request';
-import {Comment, Receipt, Split, WaypointCollection} from '@src/types/onyx/Transaction';
+import {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
@@ -243,7 +244,7 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
-function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, source: string, filename: string) {
+function setMoneyRequestReceipt_temporaryForRefactor(transactionID: string, source: ImageSourcePropType, filename: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {source}, filename});
 }
 
@@ -1741,11 +1742,11 @@ function startSplitBill(
         );
     }
 
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
+    const splits: Participant[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
 
     participants.forEach((participant) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text).toLowerCase();
+        const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -1760,7 +1761,7 @@ function startSplitBill(
             return;
         }
 
-        const participantPersonalDetails = allPersonalDetails[participant.accountID];
+        const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? -1];
         if (!participantPersonalDetails) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
