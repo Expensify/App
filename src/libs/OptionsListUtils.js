@@ -382,11 +382,7 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
-    const parentReportAction = ReportActionUtils.getParentReportAction(report);
-    const lastReportAction = _.find(
-        allSortedReportActions[report.reportID],
-        (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction) && !ReportActionUtils.shouldExcludeModifiedAction(parentReportAction, reportAction),
-    );
+    const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
@@ -424,9 +420,6 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-        if (ReportUtils.isMoneyRequest(report) && ReportActionUtils.isDeletedAction(parentReportAction)) {
-            lastMessageTextFromReport = ReportActionUtils.isCreatedAction(lastReportAction) ? '' : lodashGet(lastReportAction, 'message[0].text', '');
-        }
     }
     return lastMessageTextFromReport;
 }

@@ -75,7 +75,7 @@ function isCreatedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
 
-function isDeletedAction(reportAction: OnyxEntry<ReportAction> | Record<string, never>): boolean {
+function isDeletedAction(reportAction: OnyxEntry<ReportAction>): boolean {
     // A deleted comment has either an empty array or an object with html field with empty string as value
     const message = reportAction?.message ?? [];
     return message.length === 0 || message[0]?.html === '';
@@ -118,10 +118,6 @@ function isWhisperAction(reportAction: OnyxEntry<ReportAction>): boolean {
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
-}
-
-function shouldExcludeModifiedAction(parentReportAction: OnyxEntry<ReportAction> | Record<string, never>, reportAction: OnyxEntry<ReportAction>): boolean {
-    return isDeletedAction(parentReportAction) && isModifiedExpenseAction(reportAction);
 }
 
 function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
@@ -436,9 +432,7 @@ function replaceBaseURL(reportAction: ReportAction): ReportAction {
 function getLastVisibleAction(reportID: string, actionsToMerge: ReportActions = {}): OnyxEntry<ReportAction> {
     const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
     const parentReportAction = getParentReportAction(allReports?.[reportID] ?? null);
-    const visibleReportActions = Object.values(reportActions ?? {}).filter(
-        (action) => shouldReportActionBeVisibleAsLastAction(action) && !shouldExcludeModifiedAction(parentReportAction, action),
-    );
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return null;
@@ -826,7 +820,6 @@ export {
     shouldReportActionBeVisibleAsLastAction,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
-    shouldExcludeModifiedAction,
     isMemberChangeAction,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,

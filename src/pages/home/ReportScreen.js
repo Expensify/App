@@ -170,7 +170,6 @@ function ReportScreen({
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState({});
-    const [parentReportAction, setParentReportAction] = useState({});
 
     const wasReportAccessibleRef = useRef(false);
     if (firstRenderRef.current) {
@@ -194,11 +193,7 @@ function ReportScreen({
 
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
-    const isDeletedParentReportAction = useMemo(
-        () => ReportActionsUtils.isDeletedAction(parentReportAction),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [parentReportAction.message],
-    );
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
@@ -217,23 +212,6 @@ function ReportScreen({
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.HOME, false, true);
     }, []);
-
-    useEffect(() => {
-        const unsubscribeOnyxReportActions = onyxSubscribe({
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            callback: (reportActionArgs) => {
-                if (_.isEmpty(reportActionArgs)) {
-                    return;
-                }
-                setParentReportAction(reportActionArgs[report.parentReportActionID]);
-            },
-        });
-
-        return () => {
-            unsubscribeOnyxReportActions();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.parentReportID]);
 
     let headerView = (
         <HeaderView
@@ -430,17 +408,6 @@ function ReportScreen({
         }
     }, [report, didSubscribeToReportLeavingEvents, reportID]);
 
-    const reportActionToDisplay = useMemo(
-        () => {
-            if (!isDeletedParentReportAction) {
-                return filteredReportActions;
-            }
-            return _.filter(filteredReportActions, (action) => !ReportActionsUtils.shouldExcludeModifiedAction(parentReportAction, action));
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [filteredReportActions, isDeletedParentReportAction],
-    );
-
     const onListLayout = useCallback((e) => {
         setListHeight((prev) => lodashGet(e, 'nativeEvent.layout.height', prev));
         if (!markReadyForHydration) {
@@ -518,7 +485,7 @@ function ReportScreen({
                             >
                                 {isReportReadyForDisplay && !isLoadingInitialReportActions && !isLoading && (
                                     <ReportActionsView
-                                        reportActions={reportActionToDisplay}
+                                        reportActions={filteredReportActions}
                                         report={report}
                                         isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata.isLoadingNewerReportActions}
@@ -536,7 +503,7 @@ function ReportScreen({
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        reportActions={reportActionToDisplay}
+                                        reportActions={filteredReportActions}
                                         report={report}
                                         isComposerFullSize={isComposerFullSize}
                                         onSubmitComment={onSubmitComment}
