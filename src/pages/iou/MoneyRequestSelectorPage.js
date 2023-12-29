@@ -43,6 +43,12 @@ const propTypes = {
     /** Report on which the money request is being created */
     report: reportPropTypes,
 
+    /** The policy tied to the report */
+    policy: PropTypes.shape({
+        /** Type of the policy */
+        type: PropTypes.string,
+    }),
+
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
 };
@@ -50,6 +56,7 @@ const propTypes = {
 const defaultProps = {
     selectedTab: CONST.TAB_REQUEST.SCAN,
     report: {},
+    policy: {},
 };
 
 function MoneyRequestSelectorPage(props) {
@@ -76,7 +83,7 @@ function MoneyRequestSelectorPage(props) {
     };
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
-    const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, iouType);
+    const isAllowedToCreateRequest = _.isEmpty(props.report.reportID) || ReportUtils.canCreateRequest(props.report, props.policy, iouType);
     const prevSelectedTab = usePrevious(props.selectedTab);
 
     useEffect(() => {
@@ -112,13 +119,7 @@ function MoneyRequestSelectorPage(props) {
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     selectedTab={props.selectedTab}
-                                    tabBar={({state, navigation, position}) => (
-                                        <TabSelector
-                                            state={state}
-                                            navigation={navigation}
-                                            position={position}
-                                        />
-                                    )}
+                                    tabBar={TabSelector}
                                 >
                                     <TopTab.Screen
                                         name={CONST.TAB_REQUEST.MANUAL}
@@ -158,6 +159,9 @@ export default compose(
     withOnyx({
         selectedTab: {
             key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.RECEIPT_TAB_ID}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID')}`,
         },
     }),
 )(MoneyRequestSelectorPage);

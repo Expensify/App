@@ -175,6 +175,7 @@ module.exports = {
                 'es/no-optional-chaining': 'off',
                 'valid-jsdoc': 'off',
                 'jsdoc/no-types': 'error',
+                'rulesdir/no-default-props': 'error',
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',

@@ -1964,6 +1964,7 @@ function getReportPreviewMessage(
     policy: OnyxEntry<Policy> = null,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
+
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
         // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
@@ -1993,7 +1994,9 @@ function getReportPreviewMessage(
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID, true);
+    const policyName = getPolicyName(report, false, policy);
+    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && isGroupPolicy(report)) {
@@ -2010,12 +2013,12 @@ function getReportPreviewMessage(
             return Localize.translateLocal('iou.receiptScanning');
         }
     }
+    const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
-        const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
         if (
             [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
             !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
@@ -2023,7 +2026,11 @@ function getReportPreviewMessage(
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerName ?? ''});
+
+        const actualPayerName = report.managerID === currentUserAccountID ? '' : `${getDisplayNameForParticipant(report.managerID, true)}:`;
+        const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
+
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -2032,6 +2039,20 @@ function getReportPreviewMessage(
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
+
+    const lastActorID = reportAction?.actorAccountID;
+
+    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
+    if (originalMessage?.amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
+        const amount = originalMessage?.amount;
+        const currency = originalMessage?.currency ?? report.currency ?? '';
+        const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
+
+        // We only want to show the actor name in the preview if it's not the current user who took the action
+        const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
+        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
+    }
+
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
 
@@ -3635,7 +3656,7 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
-function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[]): boolean {
+function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
     // User cannot request money in chat thread or in task report or in chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report)) {
         return false;
@@ -3665,7 +3686,11 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
     // User can request money in any IOU report, unless paid, but user can only request money in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
-        return ((isExpenseReport(report) && isOwnPolicyExpenseChat) || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
+        const isOwnExpenseReport = isExpenseReport(report) && isOwnPolicyExpenseChat;
+        if (isOwnExpenseReport && PolicyUtils.isPaidGroupPolicy(policy)) {
+            return isDraftExpenseReport(report);
+        }
+        return (isOwnExpenseReport || isIOUReport(report)) && !isReportApproved(report) && !isSettled(report?.reportID);
     }
 
     // In case of policy expense chat, users can only request money from their own policy expense chat
@@ -3690,7 +3715,7 @@ function canRequestMoney(report: OnyxEntry<Report>, otherParticipants: number[])
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[]): Array<ValueOf<typeof CONST.IOU.TYPE>> {
     // In any thread or task report, we do not allow any new money requests yet
     if (isChatThread(report) || isTaskReport(report)) {
         return [];
@@ -3716,7 +3741,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, reportParticipants: n
         options = [CONST.IOU.TYPE.SPLIT];
     }
 
-    if (canRequestMoney(report, otherParticipants)) {
+    if (canRequestMoney(report, policy, otherParticipants)) {
         options = [...options, CONST.IOU.TYPE.REQUEST];
     }
 
@@ -3873,12 +3898,12 @@ function getPolicyExpenseChatReportIDByOwner(policyOwner: string): string | null
 /**
  * Check if the report can create the request with type is iouType
  */
-function canCreateRequest(report: OnyxEntry<Report>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
+function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, iouType: (typeof CONST.IOU.TYPE)[keyof typeof CONST.IOU.TYPE]): boolean {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     if (!canUserPerformWriteAction(report)) {
         return false;
     }
-    return getMoneyRequestOptions(report, participantAccountIDs).includes(iouType);
+    return getMoneyRequestOptions(report, policy, participantAccountIDs).includes(iouType);
 }
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {

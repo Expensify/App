@@ -157,12 +157,6 @@ function ReportActionItem(props) {
     // IOUDetails only exists when we are sending money
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
 
-    // When active action changes, we need to update the `isContextMenuActive` state
-    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
-    useEffect(() => {
-        setIsContextMenuActive(isActiveReportActionForMenu);
-    }, [isActiveReportActionForMenu]);
-
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
             setIsHidden(isHiddenValue);

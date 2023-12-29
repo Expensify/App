@@ -149,7 +149,7 @@ function OptionRowLHN(props) {
     const statusText = lodashGet(optionItem, 'status.text', '');
     const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
-    const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
+    const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
 
     const isGroupChat =
