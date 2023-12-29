@@ -525,7 +525,7 @@ function MenuItem(
                                         )}
                                         {!!furtherDetails && (
                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
-                                                {furtherDetailsIcon && (
+                                                {!!furtherDetailsIcon && (
                                                     <View style={[styles.mr2, styles.mb1]}>
                                                         <Icon
                                                             src={furtherDetailsIcon}
