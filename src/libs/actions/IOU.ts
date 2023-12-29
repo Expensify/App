@@ -191,6 +191,7 @@ function startMoneyRequest_temporaryForRefactor(reportID: string, isFromGlobalCr
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     });
 }
 
@@ -258,7 +259,7 @@ function resetMoneyRequestInfo(id = '') {
         currency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
         comment: '',
         participants: [],
-        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         category: '',
         tag: '',
         created,
