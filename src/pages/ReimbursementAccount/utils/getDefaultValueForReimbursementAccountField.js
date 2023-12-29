@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 
 /**
- * @param {Object} reimbursementAccount
+ * @param {Object | null} reimbursementAccount
  * @param {String} fieldName
  * @param {* | undefined} defaultValue
  * @returns {String}

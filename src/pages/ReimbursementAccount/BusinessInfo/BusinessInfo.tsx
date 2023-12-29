@@ -1,25 +1,21 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import {reimbursementAccountPropTypes} from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
-import getDefaultValueForReimbursementAccountField from '@pages/ReimbursementAccount/utils/getDefaultValueForReimbursementAccountField';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 import AddressBusiness from './substeps/AddressBusiness';
 import ConfirmationBusiness from './substeps/ConfirmationBusiness';
 import IncorporationDateBusiness from './substeps/IncorporationDateBusiness';
@@ -30,30 +26,26 @@ import TaxIdBusiness from './substeps/TaxIdBusiness';
 import TypeBusiness from './substeps/TypeBusiness';
 import WebsiteBusiness from './substeps/WebsiteBusiness';
 
-const propTypes = {
+type BusinessInfoOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+};
+
+type BusinessInfoProps = BusinessInfoOnyxProps & {
+    /** The workspace policyID */
+    policyID: string;
 
     /** Goes to the previous step */
-    onBackButtonPress: PropTypes.func.isRequired,
+    onBackButtonPress: () => void;
 
     /** Exits flow and goes back to the workspace initial page */
-    onCloseButtonPress: PropTypes.func.isRequired,
-
-    /* The workspace policyID */
-    policyID: PropTypes.string,
+    onCloseButtonPress: () => void;
 };
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-    policyID: '',
-};
-
-const bodyContent = [
+const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     NameBusiness,
     TaxIdBusiness,
     WebsiteBusiness,
@@ -67,19 +59,14 @@ const bodyContent = [
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID, onBackButtonPress, onCloseButtonPress}) {
+function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID, onBackButtonPress, onCloseButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    /**
-     * @param {Array} fieldNames
-     *
-     * @returns {*}
-     */
     const getBankAccountFields = useCallback(
-        (fieldNames) => ({
-            ..._.pick(lodashGet(reimbursementAccount, 'achData'), ...fieldNames),
-            ..._.pick(reimbursementAccountDraft, ...fieldNames),
+        (fieldNames: string[]) => ({
+            ...lodashPick(reimbursementAccount?.achData, ...fieldNames),
+            ...lodashPick(reimbursementAccountDraft, ...fieldNames),
         }),
         [reimbursementAccount, reimbursementAccountDraft],
     );
@@ -88,11 +75,11 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
 
     const submit = useCallback(() => {
         const payload = {
-            bankAccountID: getDefaultValueForReimbursementAccountField(reimbursementAccount, 'bankAccountID', 0),
+            bankAccountID: reimbursementAccount?.achData?.bankAccountID ?? 0,
             ...values,
             ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
-            companyTaxID: values.companyTaxID.replace(CONST.REGEX.NON_NUMERIC, ''),
-            companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
+            companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
+            companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
         };
 
         BankAccounts.updateCompanyInformationForBankAccount(payload, policyID);
@@ -111,6 +98,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
     };
 
     return (
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript
         <ScreenWrapper
             testID={BusinessInfo.displayName}
             includeSafeAreaPaddingBottom={false}
@@ -139,11 +127,9 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
     );
 }
 
-BusinessInfo.propTypes = propTypes;
-BusinessInfo.defaultProps = defaultProps;
 BusinessInfo.displayName = 'BusinessInfo';
 
-export default withOnyx({
+export default withOnyx<BusinessInfoProps, BusinessInfoOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

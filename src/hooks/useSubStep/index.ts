@@ -1,12 +1,7 @@
-import {ReactNode, useCallback, useRef, useState} from 'react';
+import {useCallback, useRef, useState} from 'react';
+import type {UseSubStep} from './types';
 
-type Props = {
-    bodyContent: ReactNode[];
-    onFinished: () => void;
-    startFrom?: number;
-};
-
-export default function useSubStep({bodyContent, onFinished, startFrom = 0}: Props) {
+export default function useSubStep({bodyContent, onFinished, startFrom = 0}: UseSubStep) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
 

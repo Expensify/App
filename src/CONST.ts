@@ -260,6 +260,14 @@ const CONST = {
                 EXIT: 'EXIT',
             },
         },
+        COMPLETE_VERIFICATION: {
+            INPUT_KEY: {
+                BANK_ACCOUNT_ID: 'bankAccountID',
+                IS_AUTHORIZED_TO_USE_BANK_ACCOUNT: 'isAuthorizedToUseBankAccount',
+                CERTIFY_TRUE_INFORMATION: 'certifyTrueInformation',
+                ACCEPT_TERMS_AND_CONDITIONS: 'acceptTermsAndConditions',
+            },
+        },
         ERROR: {
             MISSING_ROUTING_NUMBER: '402 Missing routingNumber',
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',

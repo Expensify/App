@@ -21,6 +21,8 @@ type DateOfBirthForm = Form & {
     dob?: string;
 };
 
+type FormValues = Record<string, string>;
+
 export default Form;
 
-export type {AddDebitCardForm, DateOfBirthForm};
+export type {AddDebitCardForm, DateOfBirthForm, FormValues};

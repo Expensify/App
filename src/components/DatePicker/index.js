@@ -1,7 +1,7 @@
 import {setYear} from 'date-fns';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import React, {forwardRef, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import refPropTypes from '@components/refPropTypes';
@@ -37,6 +37,12 @@ const propTypes = {
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
 
+    /** A function that is passed by FormWrapper */
+    onInputChange: PropTypes.func.isRequired,
+
+    /** A function that is passed by FormWrapper */
+    onTouched: PropTypes.func.isRequired,
+
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft: PropTypes.bool,
 
@@ -56,6 +62,7 @@ const datePickerDefaultProps = {
 };
 
 function DatePicker({
+    forwardedRef,
     containerStyles,
     defaultValue,
     disabled,
@@ -68,7 +75,6 @@ function DatePicker({
     onInputChange,
     onTouched,
     placeholder,
-    translate,
     value,
     shouldSaveDraft,
     formID,
@@ -76,6 +82,16 @@ function DatePicker({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [selectedDate, setSelectedDate] = useState(value || defaultValue || undefined);
+
+    const onSelected = (newValue) => {
+        if (_.isFunction(onTouched)) {
+            onTouched();
+        }
+        if (_.isFunction(onInputChange)) {
+            onInputChange(newValue);
+        }
+        setSelectedDate(newValue);
+    };
 
     useEffect(() => {
         // Value is provided to input via props and onChange never fires. We have to save draft manually.
@@ -89,16 +105,6 @@ function DatePicker({
 
         setSelectedDate(value);
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
-
-    useEffect(() => {
-        if (_.isFunction(onTouched)) {
-            onTouched();
-        }
-        if (_.isFunction(onInputChange)) {
-            onInputChange(newValue);
-        }
-        setSelectedDate(newValue);
-    };
 
     return (
         <View style={styles.datePickerRoot}>
