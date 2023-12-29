@@ -3,6 +3,7 @@ import _ from 'underscore';
 import stylePropTypes from '@styles/stylePropTypes';
 import CONST from '@src/CONST';
 import avatarPropTypes from './avatarPropTypes';
+import sourcePropTypes from './Image/sourcePropTypes';
 import refPropTypes from './refPropTypes';
 
 const propTypes = {
@@ -23,10 +24,10 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
+    icon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes, PropTypes.arrayOf(avatarPropTypes)]),
 
     /** Secondary icon to display on the left side of component, right of the icon */
-    secondaryIcon: PropTypes.elementType,
+    secondaryIcon: sourcePropTypes,
 
     /** Icon Width */
     iconWidth: PropTypes.number,
@@ -44,7 +45,7 @@ const propTypes = {
     shouldShowTitleIcon: PropTypes.bool,
 
     /** Icon to display at right side of title */
-    titleIcon: PropTypes.func,
+    titleIcon: sourcePropTypes,
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon: PropTypes.bool,
@@ -65,7 +66,7 @@ const propTypes = {
     success: PropTypes.bool,
 
     /** Overrides the icon for shouldShowRightIcon */
-    iconRight: PropTypes.elementType,
+    iconRight: sourcePropTypes,
 
     /** A description text to show under the title */
     description: PropTypes.string,
@@ -95,7 +96,7 @@ const propTypes = {
     interactive: PropTypes.bool,
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    fallbackIcon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars: PropTypes.arrayOf(avatarPropTypes),
@@ -162,6 +163,9 @@ const propTypes = {
 
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress: PropTypes.bool,
+
+    /** Icon should be displayed in its own color */
+    displayInDefaultIconColor: PropTypes.bool,
 };
 
 export default propTypes;
