@@ -1,22 +1,17 @@
+import {ImageContentFit} from 'expo-image';
 import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
+import ImageSVG from '@components/ImageSVG';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import IconAsset from '@src/types/utils/IconAsset';
 import IconWrapperStyles from './IconWrapperStyles';
-
-type SrcProps = {
-    width?: number;
-    height?: number;
-    fill?: string;
-    hovered?: string;
-    pressed?: string;
-};
 
 type IconProps = {
     /** The asset to render. */
-    src: (props: SrcProps) => React.ReactNode;
+    src: IconAsset;
 
     /** The width of the icon. */
     width?: number;
@@ -41,6 +36,12 @@ type IconProps = {
 
     /** Additional styles to add to the Icon */
     additionalStyles?: StyleProp<ViewStyle>;
+
+    /** Used to locate this icon in end-to-end tests. */
+    testID?: string;
+
+    /** Determines how the image should be resized to fit its container */
+    contentFit?: ImageContentFit;
 };
 
 function Icon({
@@ -50,9 +51,11 @@ function Icon({
     fill = undefined,
     small = false,
     inline = false,
+    additionalStyles = [],
     hovered = false,
     pressed = false,
-    additionalStyles = [],
+    testID = '',
+    contentFit = 'cover',
 }: IconProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -61,21 +64,22 @@ function Icon({
     const iconHeight = small ? variables.iconSizeSmall : height;
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
     const iconFill = fill ?? theme.icon;
-    const IconComponent = src;
 
     if (inline) {
         return (
             <View
-                testID={`${src.name} Icon`}
+                testID={testID}
                 style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
             >
                 <View style={iconStyles}>
-                    <IconComponent
+                    <ImageSVG
+                        src={src}
                         width={iconWidth}
                         height={iconHeight}
                         fill={iconFill}
-                        hovered={hovered?.toString()}
-                        pressed={pressed?.toString()}
+                        hovered={hovered}
+                        pressed={pressed}
+                        contentFit={contentFit}
                     />
                 </View>
             </View>
@@ -84,15 +88,17 @@ function Icon({
 
     return (
         <View
-            testID={`${src.name} Icon`}
+            testID={testID}
             style={additionalStyles}
         >
-            <IconComponent
+            <ImageSVG
+                src={src}
                 width={iconWidth}
                 height={iconHeight}
                 fill={iconFill}
-                hovered={hovered?.toString()}
-                pressed={pressed?.toString()}
+                hovered={hovered}
+                pressed={pressed}
+                contentFit={contentFit}
             />
         </View>
     );
