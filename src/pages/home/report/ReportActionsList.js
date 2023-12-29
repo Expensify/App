@@ -242,13 +242,11 @@ function ReportActionsList({
             setCurrentUnreadMarker(null);
         };
 
-        // Listen to specific reportID for unread event and set the marker to new message
         const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        // Listen to specific reportID for read newest action event and reset the marker
         const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(0);
