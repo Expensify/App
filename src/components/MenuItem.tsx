@@ -48,14 +48,14 @@ type UnresponsiveProps = {
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
-    iconType: typeof CONST.ICON_TYPE_ICON;
+    iconType?: typeof CONST.ICON_TYPE_ICON;
 
     /** Icon to display on the left side of component */
     icon: (props: SrcProps) => ReactNode;
 };
 
 type AvatarProps = {
-    iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
     icon: AvatarSource;
 };

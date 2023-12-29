@@ -18,7 +18,7 @@ type CompanyStepProps = {
     website?: string;
     companyTaxID?: string;
     incorporationType?: string;
-    incorporationDate?: string | Date;
+    incorporationDate?: string;
     incorporationState?: string;
     hasNoConnectionToCannabis?: boolean;
 };

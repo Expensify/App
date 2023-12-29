@@ -1,5 +1,5 @@
 import {useCallback, useRef, useState} from 'react';
-import {UseSubStep} from './types';
+import type {UseSubStep} from './types';
 
 export default function useSubStep({bodyContent, onFinished, startFrom = 0}: UseSubStep) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
