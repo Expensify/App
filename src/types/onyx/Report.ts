@@ -44,7 +44,7 @@ type Report = {
     /** The time of the last read of the report */
     lastReadCreated?: string;
 
-    /** The last time the report was visited */
+    /** The time when user read the last message */
     lastReadTime?: string;
 
     /** The sequence number of the last report visit */
