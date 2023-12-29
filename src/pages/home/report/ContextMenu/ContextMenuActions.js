@@ -23,7 +23,7 @@ import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -417,12 +417,12 @@ export default [
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction));
+                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction);
+            showDeleteModal(reportID, reportAction);
         },
         getDescription: () => {},
     },
