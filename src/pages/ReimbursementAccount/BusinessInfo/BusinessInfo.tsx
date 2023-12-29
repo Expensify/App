@@ -35,7 +35,7 @@ type BusinessInfoOnyxProps = {
 };
 
 type BusinessInfoProps = BusinessInfoOnyxProps & {
-    /* The workspace policyID */
+    /** The workspace policyID */
     policyID: string;
 
     /** Goes to the previous step */

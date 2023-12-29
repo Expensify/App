@@ -43,7 +43,12 @@ type ReimbursementAccountSubStep = BankAccountSubStep | '';
 
 type PlaidBankAccountToConnect = Omit<PlaidBankAccount, 'isSavings' | 'addressName' | 'mask'>;
 
-type BusinessAddress = {addressStreet?: string; addressCity?: string; addressState?: string; addressZipCode?: string};
+type BusinessAddress = {
+    addressStreet?: string;
+    addressCity?: string;
+    addressState?: string;
+    addressZipCode?: string;
+};
 
 function clearPlaid(): Promise<void> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
