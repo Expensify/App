@@ -296,7 +296,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    const isMerchantRequired = isPolicyExpenseChat && !isScanRequest;
+    const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
     useEffect(() => {
         if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
