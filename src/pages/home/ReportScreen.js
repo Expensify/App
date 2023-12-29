@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -153,6 +154,7 @@ function ReportScreen({
     errors,
     userLeavingStatus,
     currentReportID,
+    navigation,
 }) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -254,6 +256,14 @@ function ReportScreen({
         const isTransitioning = report && report.reportID !== reportIDFromPath;
         return reportIDFromPath !== '' && report.reportID && !isTransitioning;
     }, [route, report]);
+
+    const isFocused = useIsFocused();
+    useEffect(() => {
+        if (!report.reportID || !isFocused) {
+            return;
+        }
+        Report.updateLastVisitTime(report.reportID);
+    }, [report.reportID, isFocused]);
 
     const fetchReportIfNeeded = useCallback(() => {
         const reportIDFromPath = getReportID(route);
@@ -434,6 +444,7 @@ function ReportScreen({
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
                 <ScreenWrapper
+                    navigation={navigation}
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId}
                     testID={ReportScreen.displayName}
