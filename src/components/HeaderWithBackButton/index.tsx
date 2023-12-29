@@ -30,7 +30,7 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report = null,
     policy,
-    personalDetails,
+    personalDetails = null,
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,

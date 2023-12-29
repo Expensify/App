@@ -1,4 +1,4 @@
-import {ReactElement} from 'react';
+import {ReactNode} from 'react';
 import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
@@ -23,7 +23,7 @@ type HeaderWithBackButtonProps = ChildrenProps & {
     title?: string;
 
     /** Subtitle of the header */
-    subtitle: string | ReactElement;
+    subtitle?: ReactNode;
 
     /** Title color */
     titleColor?: string;
@@ -92,10 +92,10 @@ type HeaderWithBackButtonProps = ChildrenProps & {
     policy?: OnyxEntry<Policy>;
 
     /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails?: OnyxCollection<PersonalDetails>;
 
     /** Single execution function to prevent concurrent navigation actions */
-    singleExecution: <T extends unknown[]>(action: Action<T>) => Action<T>;
+    singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
 
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport?: boolean;
