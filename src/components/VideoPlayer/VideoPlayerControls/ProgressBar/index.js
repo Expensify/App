@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useState} from 'react';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -41,7 +41,7 @@ function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition})
         });
 
     useEffect(() => {
-        progressWidth.value = withTiming((position / duration) * 100, {duration: 300});
+        progressWidth.value = (position / duration) * 100;
     }, [duration, position, progressWidth]);
 
     const progressBarStyle = useAnimatedStyle(() => ({width: `${progressWidth.value}%`}));
@@ -50,11 +50,11 @@ function ProgressBar({togglePlayCurrentVideo, duration, position, seekPosition})
         <GestureDetector gesture={pan}>
             <Animated.View style={[styles.w100, styles.h100, styles.pv2]}>
                 <Animated.View
-                    style={[styles.progressBarOutline]}
+                    style={styles.progressBarOutline}
                     onLayout={onSliderLayout}
                 >
                     <Animated.View
-                        style={[styles.progressBarFill]}
+                        style={styles.progressBarFill}
                         animatedProps={progressBarStyle}
                     />
                 </Animated.View>
