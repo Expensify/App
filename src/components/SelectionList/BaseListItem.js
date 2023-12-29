@@ -91,6 +91,7 @@ function BaseListItem({
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             isUserItem || item.isSelected || item.alternateText ? styles.sidebarLinkTextBold : null,
                             styles.pre,
+                            item.alternateText ? styles.mb1 : null,
                         ]}
                         alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                         isDisabled={isDisabled}
