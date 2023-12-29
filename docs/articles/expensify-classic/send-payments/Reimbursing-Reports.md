@@ -19,7 +19,7 @@ To reimburse directly in Expensify, the following needs to be already configured
 
 If all of those settings are in place, to reimburse a report, you will click **Reimburse** on the report and then select **Via Direct Deposit (ACH)**.
 
-![Reimbursing Reports Dropdown]({{site.url}}/assets/images/ReimbursingReportsDropdown.png){:width="100%"}
+![Reimbursing Reports Dropdown]({{site.url}}/assets/images/Reimbursing Reports Dropdown.png){:width="100%"}
 
 ## Indirect or Manual Reimbursement 
 
