@@ -183,8 +183,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                     onError={onError}
                                     onLoadEnd={() => setImageLoaded(true)}
                                     onLoad={(e) => {
-                                        const width = (e.nativeEvent?.width || 0) / PixelRatio.get();
-                                        const height = (e.nativeEvent?.height || 0) / PixelRatio.get();
+                                        const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
+                                        const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
                                         setImageDimensions({...imageDimensions, lightboxSize: {width, height}});
                                     }}
                                 />
