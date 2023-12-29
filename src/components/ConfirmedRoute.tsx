@@ -1,8 +1,6 @@
-import React, {useCallback, useEffect} from 'react';
-import {ImageSourcePropType} from 'react-native';
+import React, {ReactNode, useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
-import {SvgProps} from 'react-native-svg';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,11 +10,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {MapboxAccessToken, Transaction} from '@src/types/onyx';
 import {WaypointCollection} from '@src/types/onyx/Transaction';
+import IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
-import {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
+
+type WayPoint = {
+    id: string;
+    coordinate: [number, number];
+    markerComponent: () => ReactNode;
+};
 
 type ConfirmedRoutePropsOnyxProps = {
     /** Data about Mapbox token for calling Mapbox API */
@@ -30,14 +34,14 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
 
 function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
-    const route = transaction.routes?.route0 ?? {geometry: {coordinates: []}};
+    const {route0: route} = transaction.routes ?? {};
     const waypoints = transaction.comment?.waypoints ?? {};
     const coordinates = route.geometry?.coordinates ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
 
     const getWaypointMarkers = useCallback(
-        (waypointsData: WaypointCollection): Array<WayPoint | undefined> => {
+        (waypointsData: WaypointCollection): WayPoint[] => {
             const numberOfWaypoints = Object.keys(waypointsData).length;
             const lastWaypointIndex = numberOfWaypoints - 1;
 
@@ -48,7 +52,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                     }
 
                     const index = TransactionUtils.getWaypointIndex(key);
-                    let MarkerComponent: React.FC<SvgProps> | ImageSourcePropType;
+                    let MarkerComponent: IconAsset;
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
@@ -59,8 +63,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
 
                     return {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat] as [number, number],
-                        markerComponent: () => (
+                        coordinate: [waypoint.lng, waypoint.lat] as const,
+                        markerComponent: (): ReactNode => (
                             <ImageSVG
                                 src={MarkerComponent}
                                 width={CONST.MAP_MARKER_SIZE}
@@ -70,7 +74,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                         ),
                     };
                 })
-                .filter((waypoint) => !!waypoint);
+                .filter((waypoint): waypoint is WayPoint => !!waypoint);
         },
         [theme],
     );
@@ -79,9 +83,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
 
     useEffect(() => {
         MapboxToken.init();
-        return () => {
-            MapboxToken.stop();
-        };
+        return MapboxToken.stop;
     }, []);
 
     return (
@@ -93,7 +95,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                     pitchEnabled={false}
                     initialState={{
                         zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: (waypointMarkers[0]?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE) as number[],
+                        location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
                     }}
                     directionCoordinates={coordinates}
                     style={[styles.mapView, styles.br4]}
