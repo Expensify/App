@@ -61,7 +61,6 @@ function VolumeButton({style, small}) {
     };
 
     useDerivedValue(() => {
-        runOnJS(updateVolume)(volume.value);
         runOnJS(updateIcon)(volume.value);
     }, [volume]);
 

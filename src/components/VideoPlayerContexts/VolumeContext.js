@@ -6,7 +6,7 @@ import {usePlaybackContext} from './PlaybackContext';
 const VolumeContext = React.createContext(null);
 
 function VolumeContextProvider({children}) {
-    const {currentVideoPlayerRef, sharedElement} = usePlaybackContext();
+    const {currentVideoPlayerRef, originalParent} = usePlaybackContext();
     const volume = useSharedValue(0);
 
     const updateVolume = useCallback(
@@ -23,8 +23,11 @@ function VolumeContextProvider({children}) {
     // We want to update the volume when currently playing video changes.
     // When sharedElement changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.
     useEffect(() => {
+        if (!originalParent) {
+            return;
+        }
         updateVolume(volume.value);
-    }, [sharedElement, updateVolume, volume.value]);
+    }, [originalParent, updateVolume, volume.value]);
 
     const contextValue = useMemo(() => ({updateVolume, volume}), [updateVolume, volume]);
     return <VolumeContext.Provider value={contextValue}>{children}</VolumeContext.Provider>;
