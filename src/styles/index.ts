@@ -1183,7 +1183,7 @@ const styles = (theme: ThemeColors) =>
 
         furtherDetailsText: {
             fontFamily: fontFamily.EXP_NEUE,
-            fontSize: variables.fontSizeSmall,
+            fontSize: variables.fontSizeLabel,
             color: theme.textSupporting,
         },
 
