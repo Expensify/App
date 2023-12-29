@@ -1,6 +1,6 @@
+import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
-import * as Environment from "@libs/Environment/Environment";
 import * as NetworkStore from './NetworkStore';
 
 /**
