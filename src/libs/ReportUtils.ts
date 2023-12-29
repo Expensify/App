@@ -336,6 +336,7 @@ type OptionData = {
     isTaskReport?: boolean | null;
     parentReportAction?: ReportAction;
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
+    notificationPreference?: NotificationPreference | null;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
