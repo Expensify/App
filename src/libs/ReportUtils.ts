@@ -1314,7 +1314,7 @@ function getIcons(
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         const actorAccountID = parentReportAction.actorAccountID;
-        const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1]);
+        const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(personalDetails?.[actorAccountID ?? -1]?.avatar ?? '', actorAccountID ?? -1),
