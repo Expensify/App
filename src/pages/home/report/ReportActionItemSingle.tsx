@@ -123,7 +123,7 @@ function ReportActionItemSingle({
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID ? iouReport?.managerID : iouReport?.ownerAccountID;
-        const secondaryUserAvatar = secondaryAccountId ? personalDetails?.[secondaryAccountId]?.avatar ?? {} : {};
+        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
         displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
