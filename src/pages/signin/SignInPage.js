@@ -246,7 +246,7 @@ function SignInPageInner({credentials, account, isInModal, activeClients, prefer
     const navigateFocus = () => {
         signInPageLayoutRef.current.scrollPageToTop();
         loginFormRef.current.clearDataAndFocus();
-    }
+    };
 
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.

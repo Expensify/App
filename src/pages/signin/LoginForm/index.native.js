@@ -1,15 +1,15 @@
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
-import AppStateMonitor from '@libs/AppStateMonitor';
 import refPropTypes from '@components/refPropTypes';
+import AppStateMonitor from '@libs/AppStateMonitor';
 import BaseLoginForm from './BaseLoginForm';
 
 const propTypes = {
     /** Function used to scroll to the top of the page */
     scrollPageToTop: PropTypes.func,
 
-    /** A reference so we can expose scrollPageToTop */
+    /** A reference so we can expose clearDataAndFocus */
     innerRef: refPropTypes,
 };
 const defaultProps = {
@@ -43,8 +43,8 @@ function LoginForm({innerRef, ...props}) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={(ref) => {
-                loginFormRef.current = ref
-                if (typeof innerRef === "function") {
+                loginFormRef.current = ref;
+                if (typeof innerRef === 'function') {
                     innerRef(ref);
                 } else if (innerRef && _.has(innerRef, 'current')) {
                     // eslint-disable-next-line no-param-reassign

@@ -248,7 +248,7 @@ function LoginForm(props) {
         clearDataAndFocus(clearLogin = true) {
             if (!input.current) {
                 return;
-            } 
+            }
             if (clearLogin) {
                 Session.clearSignInData();
             }
