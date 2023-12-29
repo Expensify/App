@@ -2311,7 +2311,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                     html: '',
                     text: '',
                     isEdited: true,
-                    isDeletedParentAction: shouldShowDeletedRequestMessage,
+                    isDeletedParentAction: true,
                 },
             ],
             originalMessage: {
