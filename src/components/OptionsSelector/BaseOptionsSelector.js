@@ -204,31 +204,34 @@ function BaseOptionsSelector(props) {
         [props.shouldShowTextInput, props.shouldPreventDefaultFocusOnSelectRow, value.length, props.canSelectMultipleOptions, props.selectedOptions.length],
     );
 
-    const selectFocusedOption = useCallback((e) => {
-        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
-        const focusedOption = focusedItemKey ? _.find(allOptions, (option) => option.keyForList === focusedItemKey) : allOptions[focusedIndex];
+    const selectFocusedOption = useCallback(
+        (e) => {
+            const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
+            const focusedOption = focusedItemKey ? _.find(allOptions, (option) => option.keyForList === focusedItemKey) : allOptions[focusedIndex];
 
-        if (!focusedOption || !isFocused) {
-            return;
-        }
-
-        if (props.canSelectMultipleOptions) {
-            selectRow(focusedOption);
-        } else if (!shouldDisableRowSelection) {
-            setShouldDisableRowSelection(true);
-
-            let result = selectRow(focusedOption);
-            if (!(result instanceof Promise)) {
-                result = Promise.resolve();
+            if (!focusedOption || !isFocused) {
+                return;
             }
 
-            setTimeout(() => {
-                result.finally(() => {
-                    setShouldDisableRowSelection(false);
-                });
-            }, 500);
-        }
-    }, [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow, shouldDisableRowSelection]);
+            if (props.canSelectMultipleOptions) {
+                selectRow(focusedOption);
+            } else if (!shouldDisableRowSelection) {
+                setShouldDisableRowSelection(true);
+
+                let result = selectRow(focusedOption);
+                if (!(result instanceof Promise)) {
+                    result = Promise.resolve();
+                }
+
+                setTimeout(() => {
+                    result.finally(() => {
+                        setShouldDisableRowSelection(false);
+                    });
+                }, 500);
+            }
+        },
+        [props.canSelectMultipleOptions, focusedIndex, allOptions, isFocused, selectRow, shouldDisableRowSelection],
+    );
 
     const selectOptions = useCallback(() => {
         if (props.canSelectMultipleOptions) {
