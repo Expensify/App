@@ -63,7 +63,6 @@ function Icon({
     const iconWidth = small ? variables.iconSizeSmall : width;
     const iconHeight = small ? variables.iconSizeSmall : height;
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
-    const iconFill = fill ?? theme.icon;
 
     if (inline) {
         return (
@@ -76,7 +75,7 @@ function Icon({
                         src={src}
                         width={iconWidth}
                         height={iconHeight}
-                        fill={iconFill}
+                        fill={fill}
                         hovered={hovered}
                         pressed={pressed}
                         contentFit={contentFit}
@@ -95,7 +94,7 @@ function Icon({
                 src={src}
                 width={iconWidth}
                 height={iconHeight}
-                fill={iconFill}
+                fill={fill}
                 hovered={hovered}
                 pressed={pressed}
                 contentFit={contentFit}
