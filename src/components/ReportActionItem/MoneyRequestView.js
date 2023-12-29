@@ -116,9 +116,10 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const canEditAmount = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.AMOUNT), [transaction, parentReportAction]);
-    const canEditMerchant = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.MERCHANT), [transaction, parentReportAction]);
-    const canEditDate = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.DATE), [transaction, parentReportAction]);
+
+    // The fields amount, currency, merchant, and date share the same logic, so we'll use Amount here for getting the permission
+    // and it can be used for the rest of the restricted fields
+    const canEditRestrictedField = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
     const canEditReceipt = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.RECEIPT), [transaction, parentReportAction]);
     const canEditDistance = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.DISTANCE), [transaction, parentReportAction]);
 
@@ -203,8 +204,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
                         titleStyle={styles.newKansasLarge}
-                        interactive={canEditAmount}
-                        shouldShowRightIcon={canEditAmount}
+                        interactive={canEditRestrictedField}
+                        shouldShowRightIcon={canEditRestrictedField}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         brickRoadIndicator={hasErrors && transactionAmount === 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
                         error={hasErrors && transactionAmount === 0 ? translate('common.error.enterAmount') : ''}
@@ -239,8 +240,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
                             title={isEmptyMerchant ? '' : transactionMerchant}
-                            interactive={canEditMerchant}
-                            shouldShowRightIcon={canEditMerchant}
+                            interactive={canEditRestrictedField}
+                            shouldShowRightIcon={canEditRestrictedField}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.MERCHANT))}
                             brickRoadIndicator={hasErrors && isEmptyMerchant ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
@@ -252,8 +253,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <MenuItemWithTopDescription
                         description={translate('common.date')}
                         title={transactionDate}
-                        interactive={canEditDate}
-                        shouldShowRightIcon={canEditDate}
+                        interactive={canEditRestrictedField}
+                        shouldShowRightIcon={canEditRestrictedField}
                         titleStyle={styles.flex1}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                         brickRoadIndicator={hasErrors && transactionDate === '' ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
