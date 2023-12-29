@@ -7,6 +7,7 @@ type Participant = {
     isOwnPolicyExpenseChat?: boolean;
     selected?: boolean;
     reportID?: string;
+    policyID?: string;
     displayName?: string;
     alternateText: string;
     firstName: string;

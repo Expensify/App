@@ -4,15 +4,11 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
-import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {Comment, Receipt, TransactionChanges, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
-
-type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
-
-type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 let allTransactions: OnyxCollection<Transaction> = {};
 

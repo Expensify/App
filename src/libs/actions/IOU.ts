@@ -31,7 +31,7 @@ import * as OnyxTypes from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
 import ReportAction from '@src/types/onyx/ReportAction';
 import {OnyxData} from '@src/types/onyx/Request';
-import {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import {Comment, Receipt, Split, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
@@ -1573,27 +1573,29 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 /** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
  *
- * @param {Array} participants
- * @param {String} currentUserLogin
- * @param {Number} currentUserAccountID
- * @param {String} comment
- * @param {String} category
- * @param {String} tag
- * @param {Object} receipt
- * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function startSplitBill(participants, currentUserLogin, currentUserAccountID, comment, category, tag, receipt, existingSplitChatReportID = '') {
+function startSplitBill(
+    participants: Participant[],
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    comment: string,
+    category: string,
+    tag: string,
+    receipt: Receipt,
+    existingSplitChatReportID = '',
+) {
     const currentUserEmailForIOUSplit = OptionsListUtils.addSMSDomainIfPhoneNumber(currentUserLogin);
-    const participantAccountIDs = _.map(participants, (participant) => Number(participant.accountID));
+    const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const existingSplitChatReport =
         existingSplitChatReportID || participants[0].reportID
-            ? allReports[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
+            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
             : ReportUtils.getChatByParticipants(participantAccountIDs);
-    const splitChatReport = existingSplitChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
-    const isOwnPolicyExpenseChat = splitChatReport.isOwnPolicyExpenseChat || false;
+    const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat || false;
 
     const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
-    const receiptObject = {state, source};
+    const receiptObject: Receipt = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -1618,7 +1620,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         comment,
         participants,
         splitTransaction.transactionID,
-        '',
+        undefined,
         '',
         false,
         false,
@@ -1627,8 +1629,8 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
     );
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
-    splitChatReport.lastMessageText = splitIOUReportAction.message[0].text;
-    splitChatReport.lastMessageHtml = splitIOUReportAction.message[0].html;
+    splitChatReport.lastMessageText = splitIOUReportAction.message?.[0].text;
+    splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0].html;
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
@@ -1637,7 +1639,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         };
     }
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             // Use set for new reports because it doesn't exist yet, is faster,
             // and we need the data to be available when we navigate to the chat page
@@ -1645,14 +1647,22 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
         },
-        {
-            onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
-            value: {
-                ...(existingSplitChatReport ? {} : {[splitChatCreatedReportAction.reportActionID]: splitChatCreatedReportAction}),
-                [splitIOUReportAction.reportActionID]: splitIOUReportAction,
-            },
-        },
+        existingSplitChatReport
+            ? {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
+                  value: {
+                      [splitIOUReportAction.reportActionID]: splitIOUReportAction as OnyxTypes.ReportAction,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
+                  value: {
+                      [splitChatCreatedReportAction.reportActionID]: splitChatCreatedReportAction,
+                      [splitIOUReportAction.reportActionID]: splitIOUReportAction as OnyxTypes.ReportAction,
+                  },
+              },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
@@ -1660,7 +1670,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         },
     ];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
@@ -1684,7 +1694,7 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         });
     }
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
@@ -1730,9 +1740,10 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         );
     }
 
-    const splits = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
 
-    _.each(participants, (participant) => {
+    participants.forEach((participant) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const email = participant.isOwnPolicyExpenseChat ? '' : OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || participant.text).toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
@@ -1757,7 +1768,9 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
                     [accountID]: {
                         accountID,
                         avatar: UserUtils.getDefaultAvatarURL(accountID),
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
                         isOptimisticPersonalDetail: true,
                     },
@@ -1782,26 +1795,37 @@ function startSplitBill(participants, currentUserLogin, currentUserAccountID, co
         },
     });
 
-    API.write(
-        'StartSplitBill',
-        {
-            chatReportID: splitChatReport.reportID,
-            reportActionID: splitIOUReportAction.reportActionID,
-            transactionID: splitTransaction.transactionID,
-            splits: JSON.stringify(splits),
-            receipt,
-            comment,
-            category,
-            tag,
-            isFromGroupDM: !existingSplitChatReport,
-            ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
-        },
-        {optimisticData, successData, failureData},
-    );
+    type StartSplitBillParams = {
+        chatReportID: string;
+        reportActionID: string;
+        transactionID: string;
+        splits: string;
+        receipt: Receipt;
+        comment: string;
+        category: string;
+        tag: string;
+        isFromGroupDM: boolean;
+        createdReportActionID?: string;
+    };
+
+    const parameters: StartSplitBillParams = {
+        chatReportID: splitChatReport.reportID,
+        reportActionID: splitIOUReportAction.reportActionID,
+        transactionID: splitTransaction.transactionID,
+        splits: JSON.stringify(splits),
+        receipt,
+        comment,
+        category,
+        tag,
+        isFromGroupDM: !existingSplitChatReport,
+        ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
+    };
+
+    API.write('StartSplitBill', parameters, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(splitChatReport.reportID);
-    Report.notifyNewAction(splitChatReport.chatReportID, currentUserAccountID);
+    Report.notifyNewAction(splitChatReport.chatReportID ?? '', currentUserAccountID);
 }
 
 /** Used for editing a split bill while it's still scanning or when SmartScan fails, it completes a split bill started by startSplitBill above.

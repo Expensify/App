@@ -159,6 +159,7 @@ type OptimisticChatReport = Pick<
     Report,
     | 'type'
     | 'chatType'
+    | 'chatReportID'
     | 'isOwnPolicyExpenseChat'
     | 'isPinned'
     | 'lastActorAccountID'
@@ -170,6 +171,7 @@ type OptimisticChatReport = Pick<
     | 'notificationPreference'
     | 'oldPolicyName'
     | 'ownerAccountID'
+    | 'pendingFields'
     | 'parentReportActionID'
     | 'parentReportID'
     | 'participantAccountIDs'
