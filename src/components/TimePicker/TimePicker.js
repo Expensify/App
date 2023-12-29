@@ -60,19 +60,28 @@ function insertAtPosition(originalString, newSubstring, selectionPositionFrom, s
     return originalString.slice(0, selectionPositionFrom) + newSubstring + originalString.slice(selectionPositionTo);
 }
 
-// if we need to manually move selection to the left, we need to decrease both selection start and end by one
-function decreaseBothSelectionByOne({start, end}) {
-    if (start === 0) {
-        return {start: 0, end: 0};
-    }
-    return {start: start - 1, end: end - 1};
+function replaceRangeWithZeros(originalString, from, to) {
+    const normalizedFrom = Math.max(from, 0);
+    const normalizedTo = Math.min(to, 2);
+    const replacement = '0'.repeat(normalizedTo - normalizedFrom);
+    return `${originalString.slice(0, normalizedFrom)}${replacement}${originalString.slice(normalizedTo)}`;
 }
 
-function replaceWithZeroAtPosition(originalString, position) {
-    if (position === 0 || position > 2) {
-        return originalString;
+function clearSelectedValue(value, selection, setValue, setSelection) {
+    let newValue;
+    let newCursorPosition;
+
+    if (selection.start !== selection.end) {
+        newValue = replaceRangeWithZeros(value, selection.start, selection.end);
+        newCursorPosition = selection.start;
+    } else {
+        const positionBeforeSelection = Math.max(selection.start - 1, 0);
+        newValue = replaceRangeWithZeros(value, positionBeforeSelection, selection.start);
+        newCursorPosition = positionBeforeSelection;
     }
-    return `${originalString.slice(0, position - 1)}0${originalString.slice(position)}`;
+
+    setValue(newValue);
+    setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
 function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
@@ -279,28 +288,14 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             }
             if (key === '<' || key === 'Backspace') {
                 if (isHourFocused) {
-                    if (selectionHour.start === 0 && selectionHour.end === 2) {
-                        resetHours();
-                        return;
-                    }
-
-                    const newHour = replaceWithZeroAtPosition(hours, selectionHour.start);
-                    setHours(newHour);
-                    setSelectionHour(decreaseBothSelectionByOne(selectionHour));
+                    clearSelectedValue(hours, selectionHour, setHours, setSelectionHour);
                 } else if (isMinuteFocused) {
-                    if (selectionMinute.start === 0 && selectionMinute.end === 2) {
-                        resetMinutes();
-                        return;
-                    }
-
                     if (selectionMinute.start === 0 && selectionMinute.end === 0) {
                         focusHourInputOnLastCharacter();
                         return;
                     }
 
-                    const newMinute = replaceWithZeroAtPosition(minutes, selectionMinute.start);
-                    setMinutes(newMinute);
-                    setSelectionMinute(decreaseBothSelectionByOne(selectionMinute));
+                    clearSelectedValue(minutes, selectionMinute, setMinutes, setSelectionMinute);
                 }
                 return;
             }
@@ -313,7 +308,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [minutes, hours, selectionHour, selectionMinute],
+        [minutes, hours, selectionMinute, selectionHour],
     );
 
     useEffect(() => {
@@ -339,8 +334,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 }
                 focusHourInputOnLastCharacter();
             }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectionHour, selectionMinute],
     );
     const arrowRightCallback = useCallback(
@@ -354,8 +349,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 }
                 focusMinuteInputOnFirstCharacter();
             }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [selectionHour, selectionMinute],
     );
 
