@@ -756,7 +756,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
  * concat all of the text elements of the message to create the full message.
  */
 function getMarkedReimbursedMessage(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.message?.map((element) => element.text).join('') || '';
+    return reportAction?.message?.map((element) => element.text).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
