@@ -16,29 +16,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 import {AnchorPosition, DomRect, KYCWallProps, PaymentMethod, TransferMethod} from './types';
-
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
-
 type BaseKYCWallOnyxProps = {
     /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
-
     /** Information related to the last step of the wallet activation flow */
     walletTerms: OnyxEntry<WalletTerms>;
-
     /** List of user's cards */
     fundList: OnyxEntry<FundList>;
-
     /** List of bank accounts */
     bankAccountList: OnyxEntry<BankAccountList>;
-
     /** The reimbursement account linked to the Workspace */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 };
-
 type BaseKYCWallProps = KYCWallProps & BaseKYCWallOnyxProps;
-
 // This component allows us to block various actions by forcing the user to first add a default payment method and successfully make it through our Know Your Customer flow
 // before continuing to take whatever action they originally intended to take. It requires a button as a child and a native event so we can get the coordinates and use it
 // to render the AddPaymentMethodMenu in the correct location.
@@ -65,15 +57,13 @@ function KYCWall({
     walletTerms,
     shouldShowPersonalBankAccountOption = false,
 }: BaseKYCWallProps) {
-    const anchorRef = useRef<HTMLDivElement | null>(null);
-    const transferBalanceButtonRef = useRef<Element | null>(null);
-
+    const anchorRef = useRef<HTMLDivElement>(null);
+    const transferBalanceButtonRef = useRef<HTMLDivElement | null>(null);
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionVertical: 0,
         anchorPositionHorizontal: 0,
     });
-
     const getAnchorPosition = useCallback(
         (domRect: DomRect): AnchorPosition => {
             if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
@@ -82,7 +72,6 @@ function KYCWall({
                     anchorPositionHorizontal: domRect.left + POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET,
                 };
             }
-
             return {
                 anchorPositionVertical: domRect.top - CONST.MODAL.POPOVER_MENU_PADDING,
                 anchorPositionHorizontal: domRect.left,
@@ -90,7 +79,6 @@ function KYCWall({
         },
         [anchorAlignment.vertical],
     );
-
     /**
      * Set position of the transfer payment menu
      */
@@ -100,17 +88,14 @@ function KYCWall({
             anchorPositionHorizontal,
         });
     };
-
     const setMenuPosition = useCallback(() => {
         if (!transferBalanceButtonRef.current) {
             return;
         }
         const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current);
         const position = getAnchorPosition(buttonPosition);
-
         setPositionAddPaymentMenu(position);
     }, [getAnchorPosition]);
-
     const selectPaymentMethod = useCallback(
         (paymentMethod: PaymentMethod) => {
             onSelectPaymentMethod(paymentMethod);
@@ -119,9 +104,8 @@ function KYCWall({
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-                if (ReportUtils.isIOUReport(iouReport)) {
+                if (iouReport && ReportUtils.isIOUReport(iouReport)) {
                     const policyID = Policy.createWorkspaceFromIOUPayment(iouReport);
-
                     // Navigate to the bank account set up flow for this specific policy
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID));
                     return;
@@ -131,7 +115,6 @@ function KYCWall({
         },
         [addBankAccountRoute, addDebitCardRoute, iouReport, onSelectPaymentMethod],
     );
-
     /**
      * Take the position of the button that calls this method and show the Add Payment method menu when the user has no valid payment method.
      * If they do have a valid payment method they are navigated to the "enable payments" route to complete KYC checks.
@@ -141,26 +124,20 @@ function KYCWall({
     const continueAction = useCallback(
         (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => {
             const currentSource = walletTerms?.source ?? source;
-
             /**
              * Set the source, so we can tailor the process according to how we got here.
              * We do not want to set this on mount, as the source can change upon completing the flow, e.g. when upgrading the wallet to Gold.
              */
-            Wallet.setKYCWallSource(source, chatReportID);
-
+            Wallet.setKYCWallSource(source ?? '', chatReportID);
             if (shouldShowAddPaymentMenu) {
                 setShouldShowAddPaymentMenu(false);
-
                 return;
             }
-
             // Use event target as fallback if anchorRef is null for safety
-            const targetElement = anchorRef.current ?? (event?.nativeEvent.target as Element);
-
+            const targetElement = anchorRef.current ?? (event?.nativeEvent.target as HTMLDivElement);
             transferBalanceButtonRef.current = targetElement;
-            const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
+            const isExpenseReport = ReportUtils.isExpenseReport(iouReport ?? null);
             const paymentCardList = fundList ?? {};
-
             // Check to see if user has a valid payment method on file and display the add payment popover if they don't
             if (
                 (isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
@@ -171,16 +148,12 @@ function KYCWall({
                     selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                     return;
                 }
-
                 const clickedElementLocation = getClickedTargetLocation(targetElement);
                 const position = getAnchorPosition(clickedElementLocation);
-
                 setPositionAddPaymentMenu(position);
                 setShouldShowAddPaymentMenu(true);
-
                 return;
             }
-
             if (!isExpenseReport) {
                 // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
                 const hasActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
@@ -210,25 +183,19 @@ function KYCWall({
             walletTerms?.source,
         ],
     );
-
     useEffect(() => {
         let dimensionsSubscription: EmitterSubscription | null = null;
-
         PaymentMethods.kycWallRef.current = {continueAction};
-
         if (shouldListenForResize) {
             dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
         }
-
         return () => {
             if (shouldListenForResize && dimensionsSubscription) {
                 dimensionsSubscription.remove();
             }
-
             PaymentMethods.kycWallRef.current = null;
         };
     }, [chatReportID, setMenuPosition, shouldListenForResize, continueAction]);
-
     return (
         <>
             <AddPaymentMethodMenu
@@ -252,9 +219,7 @@ function KYCWall({
         </>
     );
 }
-
 KYCWall.displayName = 'BaseKYCWall';
-
 export default withOnyx<BaseKYCWallProps, BaseKYCWallOnyxProps>({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,

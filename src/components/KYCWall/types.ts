@@ -4,6 +4,7 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import {Route} from '@src/ROUTES';
 import {Report} from '@src/types/onyx';
+import { OnyxEntry } from 'react-native-onyx';
 
 type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
 
@@ -30,13 +31,13 @@ type KYCWallProps = {
     isDisabled?: boolean;
 
     /** The source that triggered the KYC wall */
-    source: Source;
+    source?: Source;
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID?: string;
 
     /** The IOU/Expense report we are paying */
-    iouReport: Report;
+    iouReport?: OnyxEntry<Report>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: {
@@ -53,8 +54,10 @@ type KYCWallProps = {
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 
-    onSuccessfulKYC: (currentSource: Source, iouPaymentType?: TransferMethod) => void;
+    /** Callback for the end of the onContinue trigger on option selection */
+    onSuccessfulKYC: (currentSource?: Source, iouPaymentType?: TransferMethod) => void;
 
+    /** Children to build the KYC */
     children: (continueAction: (event: SyntheticEvent<NativeTouchEvent>, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
 };
 
