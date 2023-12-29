@@ -4,8 +4,8 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** The things to display inside the screenwrapper */

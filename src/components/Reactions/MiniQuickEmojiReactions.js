@@ -8,11 +8,11 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -66,7 +66,7 @@ function MiniQuickEmojiReactions(props) {
             (emojiCode, emojiObject) => {
                 props.onEmojiSelected(emojiObject, props.emojiReactions);
             },
-            ref.current,
+            ref,
             undefined,
             () => {},
             props.reportAction.reportActionID,

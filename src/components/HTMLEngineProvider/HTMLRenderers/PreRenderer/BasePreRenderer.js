@@ -6,8 +6,8 @@ import htmlRendererPropTypes from '@components/HTMLEngineProvider/HTMLRenderers/
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {

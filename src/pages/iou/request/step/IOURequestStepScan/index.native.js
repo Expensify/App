@@ -9,8 +9,11 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
@@ -20,8 +23,6 @@ import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -187,11 +188,14 @@ function IOURequestStepScan({
         >
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                    <Hand
+                    <ImageSVG
+                        contentFit="contain"
+                        src={Hand}
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
                         height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                        style={[styles.pb5]}
+                        style={styles.pb5}
                     />
+
                     <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
                     <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
                     <Button
@@ -284,7 +288,9 @@ function IOURequestStepScan({
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
                 >
-                    <Shutter
+                    <ImageSVG
+                        contentFit="contain"
+                        src={Shutter}
                         width={CONST.RECEIPT.SHUTTER_SIZE}
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />

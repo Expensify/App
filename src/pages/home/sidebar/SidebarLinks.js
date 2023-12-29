@@ -7,11 +7,15 @@ import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,9 +23,6 @@ import onyxSubscribe from '@libs/onyxSubscribe';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import safeAreaInsetPropTypes from '@pages/safeAreaInsetPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as App from '@userActions/App';
 import * as Session from '@userActions/Session';
@@ -157,10 +158,12 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
             >
                 <Header
                     title={
-                        <LogoComponent
-                            fill={theme.text}
+                        <ImageSVG
+                            src={LogoComponent}
                             width={variables.lhnLogoWidth}
                             height={variables.lhnLogoHeight}
+                            fill={theme.text}
+                            contentFit="contain"
                         />
                     }
                     role={CONST.ROLE.PRESENTATION}
@@ -173,7 +176,10 @@ function SidebarLinks({onLinkClick, insets, optionListItems, isLoading, priority
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
-                        <Icon src={Expensicons.MagnifyingGlass} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.MagnifyingGlass}
+                        />
                     </PressableWithoutFeedback>
                 </Tooltip>
                 <SignInOrAvatarWithOptionalStatus isCreateMenuOpen={isCreateMenuOpen} />
