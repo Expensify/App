@@ -6,9 +6,6 @@ import {OnyxEntry} from 'react-native-onyx/lib/types';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
-import tabNavigatorAnimationEnabled from './tabNavigatorAnimationEnabled';
-
-const screenOptions = {animationEnabled: tabNavigatorAnimationEnabled};
 
 type OnyxTabNavigatorOnyxProps = {
     selectedTab: OnyxEntry<string>;
@@ -40,7 +37,6 @@ function OnyxTabNavigator({id, selectedTab = '', children, onTabSelected = () =>
             {...rest}
             id={id}
             initialRouteName={selectedTab}
-            screenOptions={screenOptions}
             backBehavior="initialRoute"
             keyboardDismissMode="none"
             screenListeners={{
