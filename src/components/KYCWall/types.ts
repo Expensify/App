@@ -1,15 +1,17 @@
+import {ForwardedRef, SyntheticEvent} from 'react';
+import {NativeTouchEvent} from 'react-native';
+import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import {BankAccountList, FundList, ReimbursementAccount, Report, UserWallet, WalletTerms} from '@src/types/onyx';
-import { Route } from '@src/ROUTES';
-import { ValueOf } from 'type-fest';
-import { ForwardedRef, SyntheticEvent } from 'react';
-import { NativeTouchEvent } from 'react-native';
+import {Route} from '@src/ROUTES';
+import {Report} from '@src/types/onyx';
 
-type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>
+type Source = ValueOf<typeof CONST.KYC_WALL_SOURCE>;
 
-type WalletTermsWithSource = WalletTerms & {source: Source}
+type TransferMethod = ValueOf<typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
-type TransferMethod = ValueOf<typeof CONST.WALLET.TRANSFER_METHOD_TYPE>
+type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
+
+type DomRect = Pick<DOMRect, DOMRectProperties>;
 
 type KYCWallProps = {
     /** Route for the Add Bank Account screen for a given navigation stack */
@@ -27,32 +29,14 @@ type KYCWallProps = {
     /** Wrapped components should be disabled, and not in spinner/loading state */
     isDisabled?: boolean;
 
-    /** The user's wallet */
-    userWallet?: UserWallet;
-
-    /** Information related to the last step of the wallet activation flow */
-    walletTerms?: WalletTermsWithSource;
-
     /** The source that triggered the KYC wall */
     source: Source;
 
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID?: string;
 
-    /** List of user's cards */
-    fundList?: FundList;
-
-    /** List of bank accounts */
-    bankAccountList?: BankAccountList;
-
-    /** The chat report this report is linked to */
-    chatReport?: Report;
-
     /** The IOU/Expense report we are paying */
     iouReport: Report;
-
-    /** The reimbursement account linked to the Workspace */
-    reimbursementAccount?: ReimbursementAccount;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: {
@@ -71,16 +55,14 @@ type KYCWallProps = {
 
     onSuccessfulKYC: (currentSource: Source, iouPaymentType?: TransferMethod) => void;
 
-    children: (continueAction: (event: SyntheticEvent<NativeTouchEvent>, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void
+    children: (continueAction: (event: SyntheticEvent<NativeTouchEvent>, method: TransferMethod) => void, anchorRef: ForwardedRef<HTMLElement>) => void;
 };
-
-type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
 
 type AnchorPosition = {
     anchorPositionVertical: number;
     anchorPositionHorizontal: number;
 };
 
-type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>
+type PaymentMethod = ValueOf<typeof CONST.PAYMENT_METHODS>;
 
-export type {AnchorPosition, KYCWallProps, DOMRectProperties, PaymentMethod, TransferMethod};
+export type {AnchorPosition, KYCWallProps, PaymentMethod, TransferMethod, DomRect};

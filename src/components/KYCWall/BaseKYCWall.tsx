@@ -1,8 +1,6 @@
-import _ from 'lodash';
 import React, {SyntheticEvent, useCallback, useEffect, useRef, useState} from 'react';
 import {Dimensions, EmitterSubscription, NativeTouchEvent} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import * as BankAccounts from '@libs/actions/BankAccounts';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
@@ -16,19 +14,27 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {BankAccountList, FundList, ReimbursementAccount, Report, UserWallet, WalletTerms} from '@src/types/onyx';
-import {AnchorPosition, DOMRectProperties, KYCWallProps, PaymentMethod, TransferMethod} from './types';
+import {BankAccountList, FundList, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
+import {AnchorPosition, DomRect, KYCWallProps, PaymentMethod, TransferMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
 
 type BaseKYCWallOnyxProps = {
+    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
+
+    /** Information related to the last step of the wallet activation flow */
     walletTerms: OnyxEntry<WalletTerms>;
+
+    /** List of user's cards */
     fundList: OnyxEntry<FundList>;
+
+    /** List of bank accounts */
     bankAccountList: OnyxEntry<BankAccountList>;
+
+    /** The reimbursement account linked to the Workspace */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-    chatReport: OnyxEntry<Report>;
 };
 
 type BaseKYCWallProps = KYCWallProps & BaseKYCWallOnyxProps;
@@ -58,8 +64,8 @@ function KYCWall({
     userWallet,
     walletTerms,
     shouldShowPersonalBankAccountOption = false,
-}: KYCWallProps) {
-    const anchorRef = useRef(null);
+}: BaseKYCWallProps) {
+    const anchorRef = useRef<HTMLDivElement | null>(null);
     const transferBalanceButtonRef = useRef<Element | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -68,11 +74,8 @@ function KYCWall({
         anchorPositionHorizontal: 0,
     });
 
-    /**
-     * @param domRect
-     */
     const getAnchorPosition = useCallback(
-        (domRect: Pick<DOMRect, DOMRectProperties>): AnchorPosition => {
+        (domRect: DomRect): AnchorPosition => {
             if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
                 return {
                     anchorPositionVertical: domRect.top + domRect.height + CONST.MODAL.POPOVER_MENU_PADDING,
@@ -90,8 +93,6 @@ function KYCWall({
 
     /**
      * Set position of the transfer payment menu
-     *
-     * @param position
      */
     const setPositionAddPaymentMenu = ({anchorPositionVertical, anchorPositionHorizontal}: AnchorPosition) => {
         setAnchorPosition({
@@ -162,8 +163,8 @@ function KYCWall({
 
             // Check to see if user has a valid payment method on file and display the add payment popover if they don't
             if (
-                (isExpenseReport && (reimbursementAccount?.achData?.state ?? '') !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-                (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
+                (isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
+                (!isExpenseReport && bankAccountList !== null && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
             ) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
                 if (!shouldIncludeDebitCard) {
@@ -182,7 +183,7 @@ function KYCWall({
 
             if (!isExpenseReport) {
                 // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
-                const hasActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].includes(userWallet.tierName);
+                const hasActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
                 if (!hasActivatedWallet) {
                     Log.info('[KYC Wallet] User does not have active wallet');
                     Navigation.navigate(enablePaymentsRoute);
@@ -213,11 +214,7 @@ function KYCWall({
     useEffect(() => {
         let dimensionsSubscription: EmitterSubscription | null = null;
 
-        PaymentMethods.kycWallRef.current = {
-            continueAction: (event?: SyntheticEvent<NativeTouchEvent>, iouPaymentType?: TransferMethod) => {
-                continueAction(event, iouPaymentType);
-            },
-        };
+        PaymentMethods.kycWallRef.current = {continueAction};
 
         if (shouldListenForResize) {
             dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
@@ -245,7 +242,7 @@ function KYCWall({
                     horizontal: anchorPosition.anchorPositionHorizontal,
                 }}
                 anchorAlignment={anchorAlignment}
-                onItemSelected={(item: ValueOf<typeof CONST.PAYMENT_METHODS>) => {
+                onItemSelected={(item: PaymentMethod) => {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(item);
                 }}
@@ -273,8 +270,5 @@ export default withOnyx<BaseKYCWallProps, BaseKYCWallOnyxProps>({
     },
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
 })(KYCWall);
