@@ -76,4 +76,4 @@ Instead of a bulk reimbursement option, you can set up automatic reimbursement. 
 
 To set your manual reimbursement threshold, head to **Settings > Workspace > Group > _[Workspace Name]_ > Reimbursement > Manual Reimbursement**.
 
-![Manual Reimbursement]({{site.url}}/assets/images/ReimbursingManual.png){:width="100%"}
+![Manual Reimbursement]({{site.url}}/assets/images/Reimbursing Manual.png){:width="100%"}
