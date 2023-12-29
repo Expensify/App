@@ -3,7 +3,6 @@ import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import IconAsset from '@src/types/utils/IconAsset';
@@ -57,7 +56,6 @@ function Icon({
     testID = '',
     contentFit = 'cover',
 }: IconProps) {
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const iconWidth = small ? variables.iconSizeSmall : width;
