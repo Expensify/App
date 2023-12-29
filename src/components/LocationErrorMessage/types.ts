@@ -1,6 +1,5 @@
 type LocationErrorMessageProps = {
     /** A callback that runs when close icon is pressed */
-
     onClose: () => void;
 
     /**
