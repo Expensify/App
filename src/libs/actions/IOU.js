@@ -25,7 +25,6 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isPaidGroupPolicy} from '../PolicyUtils';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
