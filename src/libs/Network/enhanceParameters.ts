@@ -1,7 +1,7 @@
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
-import * as NetworkStore from './NetworkStore';
 import * as Environment from "@libs/Environment/Environment";
+import * as NetworkStore from './NetworkStore';
 
 /**
  * Does this command require an authToken?
