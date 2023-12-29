@@ -1,4 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import taxPropTypes from '@components/taxPropTypes';
@@ -7,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
@@ -34,16 +37,23 @@ const propTypes = {
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
+
+    /** The policy of the report */
+    policy: PropTypes.shape({
+        /** Is Tax tracking Enabled */
+        isTaxTrackingEnabled: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
     policyTaxRates: {},
+    policy: {},
 };
 
 const getTaxAmount = (transaction, defaultTaxValue, amount) => {
-    const percentage = transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue;
+    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
     return TransactionUtils.calculateTaxAmount(percentage, amount);
 };
 
@@ -55,12 +65,16 @@ function IOURequestStepAmount({
     transaction,
     transaction: {currency: originalCurrency},
     policyTaxRates,
+    policy,
 }) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
     const focusTimeoutRef = useRef(null);
     const iouRequestType = getRequestType(transaction);
     const currency = selectedCurrency || originalCurrency;
+
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
+    const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
 
     useFocusEffect(
         useCallback(() => {
@@ -88,7 +102,7 @@ function IOURequestStepAmount({
     const navigateToNextPage = ({amount}) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-        if (iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) {
+        if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
             const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue, amountInSmallestCurrencyUnits);
             const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
             IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
@@ -145,7 +159,10 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${lodashGet(report, 'policyID', '0')}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID', '0')}`,
         },
     }),
 )(IOURequestStepAmount);
