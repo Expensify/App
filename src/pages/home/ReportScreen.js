@@ -26,7 +26,6 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import onyxSubscribe from '@libs/onyxSubscribe';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -118,7 +117,6 @@ const defaultProps = {
     userLeavingStatus: false,
     personalDetails: {},
     markReadyForHydration: null,
-    parentReportActions: {},
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -194,7 +192,6 @@ function ReportScreen({
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
 
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
