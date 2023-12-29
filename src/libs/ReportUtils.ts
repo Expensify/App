@@ -1843,7 +1843,7 @@ function canEditFieldOfMoneyRequest(
     reportAction: OnyxEntry<ReportAction>,
     reportID: string,
     fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
-    transaction?: OnyxEntry<Transaction>,
+    transaction: OnyxEntry<Transaction>,
 ): boolean {
     // A list of fields that cannot be edited by anyone, once a money request has been settled
     const nonEditableFieldsWhenSettled: string[] = [
