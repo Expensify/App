@@ -27,12 +27,8 @@ function ReportTypingIndicator({userTypingStatuses}) {
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => _.filter(_.keys(userTypingStatuses), (loginOrAccountID) => userTypingStatuses[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping[0];
-    const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
 
-    const firstUserTypingID = useMemo(
-        () => (firstUserTyping && isUserTypingADisplayName ? PersonalDetailsUtils.getAccountIDsByLogins([firstUserTyping])[0] : firstUserTyping),
-        [firstUserTyping, isUserTypingADisplayName],
-    );
+    const isUserTypingADisplayName = Number.isNaN(Number(firstUserTyping));
 
     // If we are offline, the user typing statuses are not up-to-date so do not show them
     if (isOffline || !firstUserTyping) {
@@ -40,7 +36,7 @@ function ReportTypingIndicator({userTypingStatuses}) {
     }
 
     // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
-    const firstUserTypingDisplayName = isUserTypingADisplayName ? firstUserTyping : ReportUtils.getDisplayNameForParticipant(firstUserTypingID, false, false);
+    const firstUserTypingDisplayName = isUserTypingADisplayName ? firstUserTyping : ReportUtils.getDisplayNameForParticipant(Number(firstUserTyping), false, false);
 
     if (usersTyping.length === 1) {
         return (
