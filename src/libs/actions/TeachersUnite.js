@@ -87,6 +87,7 @@ function addSchoolPrincipal(firstName, partnerUserID, lastName, policyID) {
             firstName,
             lastName,
             partnerUserID,
+            policyID,
             reportCreationData: JSON.stringify(reportCreationData),
         },
         {
