@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 
 const propTypes = {
     // Public access token to be used to fetch map data from Mapbox.
@@ -27,7 +28,7 @@ const propTypes = {
         PropTypes.shape({
             id: PropTypes.string,
             coordinate: PropTypes.arrayOf(PropTypes.number),
-            markerComponent: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
+            markerComponent: sourcePropTypes,
         }),
     ),
 

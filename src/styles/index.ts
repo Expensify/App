@@ -122,6 +122,13 @@ const headlineFont = {
     fontWeight: '500',
 } satisfies TextStyle;
 
+const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
+    ({
+        position: 'absolute',
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        height: '100%',
+    } satisfies ViewStyle);
+
 const webViewStyles = (theme: ThemeColors) =>
     ({
         // As of react-native-render-html v6, don't declare distinct styles for
@@ -289,7 +296,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        mentionSuggestionsHandle: {
+        textSupporting: {
             color: theme.textSupporting,
         },
 
@@ -417,7 +424,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH1: {
@@ -938,8 +945,12 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        calendarDayContainerSelected: {
+        buttonDefaultBG: {
             backgroundColor: theme.buttonDefaultBG,
+        },
+
+        buttonHoveredBG: {
+            backgroundColor: theme.buttonHoveredBG,
         },
 
         autoGrowHeightInputContainer: (textInputHeight: number, minHeight: number, maxHeight: number) =>
@@ -1136,6 +1147,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         noOutline: addOutlineWidth(theme, {}, 0),
+
+        labelStrong: {
+            fontFamily: fontFamily.EXP_NEUE,
+            fontWeight: 'bold',
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
 
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
@@ -1404,23 +1422,10 @@ const styles = (theme: ThemeColors) =>
             height: variables.lineHeightSizeh1,
         },
 
-        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
-            ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                position: 'absolute',
-                left: 0,
-                height: '100%',
-                borderTopRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
-                borderBottomRightRadius: isSmallScreenWidth ? 0 : variables.lhpBorderRadius,
-                overflow: 'hidden',
-            } satisfies ViewStyle),
-
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                position: 'absolute',
+                ...modalNavigatorContainer(isSmallScreenWidth),
                 right: 0,
-                height: '100%',
             } satisfies ViewStyle),
 
         onlyEmojisText: {
@@ -1636,15 +1641,14 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
+        overlayStyles: (current: OverlayStylesParams) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                // The overlay must also cover borderRadius of the LHP component
-                left: isModalOnTheLeft ? -variables.lhpBorderRadius : -2 * variables.sideBarWidth,
+                left: -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
+                right: 0,
                 backgroundColor: theme.overlay,
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -1730,7 +1734,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: fontWeightBold,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             ...wordBreak.breakWord,
         },
 
@@ -1888,7 +1892,6 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
             justifyContent: 'center',
-            width: '100%',
         },
 
         emojiSkinToneTitle: {
@@ -1909,12 +1912,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiItem: {
-            width: '12.5%',
+            width: '100%',
             textAlign: 'center',
             borderRadius: 8,
             paddingTop: 2,
             paddingBottom: 2,
             height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+            flexShrink: 1,
             ...userSelect.userSelectNone,
         },
 
@@ -1950,10 +1954,6 @@ const styles = (theme: ThemeColors) =>
         editChatItemEmojiWrapper: {
             marginRight: 3,
             alignSelf: 'flex-end',
-        },
-
-        hoveredButton: {
-            backgroundColor: theme.buttonHoveredBG,
         },
 
         composerSizeButton: {
@@ -2881,6 +2881,14 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
         },
 
+        workspaceOwnerAvatarWrapper: {
+            margin: 6,
+        },
+
+        workspaceTypeWrapper: {
+            margin: 3,
+        },
+
         autoGrowHeightMultilineInput: {
             maxHeight: 115,
         },
@@ -2902,6 +2910,7 @@ const styles = (theme: ThemeColors) =>
         peopleBadge: {
             backgroundColor: theme.icon,
             ...spacing.ph3,
+            ...spacing.ml3,
         },
 
         peopleBadgeText: {
@@ -3690,16 +3699,8 @@ const styles = (theme: ThemeColors) =>
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
+                lineHeight: 14,
             } satisfies TextStyle),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabOpacity: (hovered: boolean, isFocused: boolean, activeOpacityValue: number, inactiveOpacityValue: number) => ({
-            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
-        }),
-
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
                 backgroundColor,
@@ -3787,8 +3788,7 @@ const styles = (theme: ThemeColors) =>
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },
@@ -3916,7 +3916,6 @@ const styles = (theme: ThemeColors) =>
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
-            maxHeight: 500,
         },
 
         mapView: {
@@ -4120,4 +4119,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};
