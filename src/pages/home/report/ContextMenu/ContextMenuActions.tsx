@@ -144,19 +144,18 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline) => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
-            const messageHtml = getActionText;
+            const messageHtml = reportAction?.message?.at(0)?.html;
             return (
                 isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
             );
         },
         onPress: (closePopover, {reportAction}) => {
             const html = getActionText(reportAction);
-            const attachmentDetails = getAttachmentDetails(html);
-            const {originalFileName, sourceURL} = attachmentDetails;
-            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
-            const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
+            const {originalFileName, sourceURL} = getAttachmentDetails(html);
+            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
+            const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
             Download.setDownload(sourceID, true);
-            fileDownload(sourceURLWithAuth, originalFileName).then(() => Download.setDownload(sourceID, false));
+            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -214,7 +213,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return !subscribed && !isWhisperAction && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            let childReportNotificationPreference = reportAction?.childReportNotificationPreference ?? '';
+            let childReportNotificationPreference = reportAction?.childReportNotificationPreference;
             if (!childReportNotificationPreference) {
                 const isActionCreator = ReportUtils.isActionCreator(reportAction);
                 childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
@@ -237,7 +236,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.unsubscribeFromThread',
         icon: Expensicons.BellSlash,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) => {
-            let childReportNotificationPreference = reportAction?.childReportNotificationPreference ?? '';
+            let childReportNotificationPreference = reportAction?.childReportNotificationPreference;
             if (!childReportNotificationPreference) {
                 const isActionCreator = ReportUtils.isActionCreator(reportAction);
                 childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
@@ -252,7 +251,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return subscribed && (isCommentAction || isReportPreviewAction || isIOUAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
-            let childReportNotificationPreference = reportAction?.childReportNotificationPreference ?? '';
+            let childReportNotificationPreference = reportAction?.childReportNotificationPreference;
             if (!childReportNotificationPreference) {
                 const isActionCreator = ReportUtils.isActionCreator(reportAction);
                 childReportNotificationPreference = isActionCreator ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
@@ -294,7 +293,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             Clipboard.setString(EmailUtils.trimMailTo(selection));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
-        getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection)),
+        getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? '')),
     },
     {
         isAnonymousAction: true,
@@ -413,7 +412,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const childReportID = reportAction?.childReportID ?? 0;
                 if (!childReportID) {
                     const thread = ReportUtils.buildTransactionThread(reportAction, reportID);
-                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs);
+                    const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
                     Report.openReport(thread.reportID, userLogins, thread, reportAction.reportActionID);
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
                     return;
@@ -493,7 +492,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             ReportUtils.canFlagReportAction(reportAction, reportID) &&
             !isArchivedRoom &&
             !isChronosReport &&
-            !ReportUtils.isConciergeChatReport(reportID) &&
             reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
