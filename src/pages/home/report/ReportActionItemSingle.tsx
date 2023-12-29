@@ -235,7 +235,7 @@ function ReportActionItemSingle({
                 accessibilityLabel={actorHint}
                 role={CONST.ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? undefined}>{getAvatar()}</OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingFields?.avatar ?? null}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (
