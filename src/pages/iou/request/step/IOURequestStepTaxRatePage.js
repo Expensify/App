@@ -63,8 +63,8 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID));
     }
 
-    const defaulTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaulTaxKey && `${policyTaxRates.taxes[defaulTaxKey].name} (${policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`) || '';
+    const defaultTaxKey = policyTaxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
     const selectedTaxRate = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const updateTaxRates = (taxes) => {
