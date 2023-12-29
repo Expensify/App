@@ -2644,8 +2644,8 @@ function buildOptimisticIOUReportAction(
             originalMessage.participantAccountIDs = currentUserAccountID ? [currentUserAccountID] : [];
         } else {
             originalMessage.participantAccountIDs = currentUserAccountID
-                ? [currentUserAccountID, ...participants.map((participant) => participant.accountID)]
-                : participants.map((participant) => participant.accountID);
+                ? [currentUserAccountID, ...participants.map((participant) => participant.accountID ?? -1)]
+                : participants.map((participant) => participant.accountID ?? -1);
         }
     }
 

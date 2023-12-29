@@ -6,6 +6,9 @@ type Participant = {
     email?: string;
     isPolicyExpenseChat?: boolean;
     chatReportID?: string;
+    iouReportID?: string;
+    transactionID?: string;
+    reportActionID?: string;
     isOwnPolicyExpenseChat?: boolean;
     selected?: boolean;
     reportID?: string;
@@ -19,6 +22,9 @@ type Participant = {
     phoneNumber?: string;
     searchText?: string;
     text?: string;
+    createdChatReportActionID?: string;
+    createdIOUReportActionID?: string;
+    reportPreviewReportActionID?: string;
 };
 
 type IOU = {
