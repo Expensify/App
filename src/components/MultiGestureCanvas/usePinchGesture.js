@@ -21,7 +21,7 @@ const usePinchGesture = ({
     pinchBounceTranslateX,
     pinchBounceTranslateY,
     pinchScaleOffset,
-    isScrolling,
+    isSwipingHorizontally,
     stopAnimation,
     onScaleChanged,
     onPinchGestureChange,
@@ -45,7 +45,7 @@ const usePinchGesture = ({
     const pinchGesture = Gesture.Pinch()
         .onTouchesDown((evt, state) => {
             // we don't want to activate pinch gesture when we are scrolling pager
-            if (!isScrolling.value) {
+            if (!isSwipingHorizontally.value) {
                 return;
             }
 
@@ -57,19 +57,21 @@ const usePinchGesture = ({
 
             stopAnimation();
 
-            const adjustFocal = getAdjustedFocal(evt.focalX, evt.focalY);
+            const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
 
-            pinchOrigin.x.value = adjustFocal.x;
-            pinchOrigin.y.value = adjustFocal.y;
+            pinchOrigin.x.value = adjustedFocal.x;
+            pinchOrigin.y.value = adjustedFocal.y;
         })
         .onChange((evt) => {
             const newZoomScale = pinchScaleOffset.value * evt.scale;
 
+            // limit zoom scale to zoom range and bounce if we go out of range
             if (zoomScale.value >= zoomRange.min * zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * zoomScaleBounceFactors.max) {
                 zoomScale.value = newZoomScale;
                 pinchGestureScale.value = evt.scale;
             }
 
+            // calculate new pinch translation
             const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
             const newPinchTranslateX = adjustedFocal.x + pinchGestureScale.value * pinchOrigin.x.value * -1;
             const newPinchTranslateY = adjustedFocal.y + pinchGestureScale.value * pinchOrigin.y.value * -1;
@@ -78,24 +80,29 @@ const usePinchGesture = ({
                 pinchTranslateX.value = newPinchTranslateX;
                 pinchTranslateY.value = newPinchTranslateY;
             } else {
+                // Store x and y translation that is produced while bouncing to separate variables
+                // so that we can revert the bounce once pinch gesture is released
                 pinchBounceTranslateX.value = newPinchTranslateX - pinchTranslateX.value;
                 pinchBounceTranslateY.value = newPinchTranslateY - pinchTranslateY.value;
             }
         })
         .onEnd(() => {
+            // Add pinch translation to total offset
             offsetX.value += pinchTranslateX.value;
             offsetY.value += pinchTranslateY.value;
+            // Reset pinch gesture variables
             pinchTranslateX.value = 0;
             pinchTranslateY.value = 0;
-            pinchScaleOffset.value = zoomScale.value;
             pinchGestureScale.value = 1;
 
-            if (pinchScaleOffset.value < zoomRange.min) {
+            if (zoomScale.value < zoomRange.min) {
                 pinchScaleOffset.value = zoomRange.min;
                 zoomScale.value = withSpring(zoomRange.min, SPRING_CONFIG);
-            } else if (pinchScaleOffset.value > zoomRange.max) {
+            } else if (zoomScale.value > zoomRange.max) {
                 pinchScaleOffset.value = zoomRange.max;
                 zoomScale.value = withSpring(zoomRange.max, SPRING_CONFIG);
+            } else {
+                pinchScaleOffset.value = zoomScale.value;
             }
 
             if (pinchBounceTranslateX.value !== 0 || pinchBounceTranslateY.value !== 0) {

@@ -22,8 +22,8 @@ const usePanGesture = ({
     offsetY,
     panTranslateX,
     panTranslateY,
-    isSwiping,
-    isScrolling,
+    isSwipingVertically,
+    isSwipingHorizontally,
     onSwipeSuccess,
     stopAnimation,
 }) => {
@@ -121,7 +121,7 @@ const usePanGesture = ({
             }
         } else {
             offsetY.value = withSpring(target.y, SPRING_CONFIG, () => {
-                isSwiping.value = false;
+                isSwipingVertically.value = false;
             });
         }
     });
@@ -136,7 +136,7 @@ const usePanGesture = ({
 
             // TODO: Swipe down to close carousel gesture
             // this needs fine tuning to work properly
-            // if (!isScrolling.value && scale.value === 1 && previousTouch.value != null) {
+            // if (!isSwipingHorizontally.value && scale.value === 1 && previousTouch.value != null) {
             //     const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
             //     const velocityY = evt.allTouches[0].y - previousTouch.value.y;
 
@@ -167,7 +167,7 @@ const usePanGesture = ({
             // since we're running both pinch and pan gesture handlers simultaneously
             // we need to make sure that we don't pan when we pinch and move fingers
             // since we track it as pinch focal gesture
-            if (evt.numberOfPointers > 1 || isScrolling.value) {
+            if (evt.numberOfPointers > 1 || isSwipingHorizontally.value) {
                 return;
             }
 
@@ -175,27 +175,30 @@ const usePanGesture = ({
 
             panVelocityY.value = evt.velocityY;
 
-            if (!isSwiping.value) {
+            if (!isSwipingVertically.value) {
                 panTranslateX.value += evt.changeX;
             }
 
-            if (canPanVertically.value || isSwiping.value) {
+            if (canPanVertically.value || isSwipingVertically.value) {
                 panTranslateY.value += evt.changeY;
             }
         })
         .onEnd((evt) => {
             previousTouch.value = null;
 
-            if (isScrolling.value) {
+            // If we are swiping, we don't want to return to boundaries
+            if (isSwipingHorizontally.value) {
                 return;
             }
 
+            // add pan translation to total offset
             offsetX.value += panTranslateX.value;
             offsetY.value += panTranslateY.value;
+            // reset pan gesture variables
             panTranslateX.value = 0;
             panTranslateY.value = 0;
 
-            if (isSwiping.value) {
+            if (isSwipingVertically.value) {
                 const enoughVelocity = Math.abs(evt.velocityY) > 300 && Math.abs(evt.velocityX) < Math.abs(evt.velocityY);
                 const rightDirection = (evt.translationY > 0 && evt.velocityY > 0) || (evt.translationY < 0 && evt.velocityY < 0);
 

@@ -37,14 +37,14 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const pagerRefFallback = useRef(null);
-    const {onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = attachmentCarouselPagerContext || {
+    const {onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isSwipingHorizontally, onPinchGestureChange} = attachmentCarouselPagerContext || {
         onTap: () => undefined,
         onSwipe: () => undefined,
         onSwipeSuccess: () => undefined,
         onPinchGestureChange: () => undefined,
         pagerRef: pagerRefFallback,
         shouldPagerScroll: false,
-        isScrolling: false,
+        isSwipingHorizontally: false,
         ...props,
     };
 
@@ -63,7 +63,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     // pan gesture
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
-    const isSwiping = useSharedValue(false);
+    const isSwipingVertically = useSharedValue(false);
     const panGestureRef = useRef(Gesture.Pan());
 
     // pinch gesture
@@ -129,8 +129,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         offsetY,
         panTranslateX,
         panTranslateY,
-        isSwiping,
-        isScrolling,
+        isSwipingHorizontally,
+        isSwipingVertically,
         onSwipeSuccess,
         stopAnimation,
     });
@@ -149,7 +149,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         pinchBounceTranslateX,
         pinchBounceTranslateY,
         pinchScaleOffset,
-        isScrolling,
+        isSwipingHorizontally,
         stopAnimation,
         onScaleChanged,
         onPinchGestureChange,
@@ -179,7 +179,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         const x = pinchTranslateX.value + pinchBounceTranslateX.value + panTranslateX.value + offsetX.value;
         const y = pinchTranslateY.value + pinchBounceTranslateY.value + panTranslateY.value + offsetY.value;
 
-        if (isSwiping.value) {
+        if (isSwipingVertically.value) {
             onSwipe(y);
         }
 
