@@ -17,6 +17,7 @@ type ReportScreenIDSetterComponentProps = {
     /** Whether user is a new user */
     isFirstTimeNewExpensifyUser: OnyxEntry<boolean>;
 
+    /** The report metadata */
     reportMetadata: OnyxCollection<ReportMetadata>;
 };
 
