@@ -245,6 +245,15 @@ function LoginForm(props) {
         isInputFocused() {
             return input.current && input.current.isFocused();
         },
+        clearDataAndFocus(clearLogin = true) {
+            if (!input.current) {
+                return;
+            } 
+            if (clearLogin) {
+                Session.clearSignInData();
+            }
+            input.current.focus();
+        },
     }));
 
     const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);

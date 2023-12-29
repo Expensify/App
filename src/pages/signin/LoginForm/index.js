@@ -10,17 +10,26 @@ const defaultProps = {
     scrollPageToTop: undefined,
 };
 
-function LoginForm(props) {
-    return (
-        <BaseLoginForm
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        />
-    );
+function LoginForm({innerRef, ...props}) { 
+    <BaseLoginForm
+        ref={innerRef}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+    />
 }
 
 LoginForm.displayName = 'LoginForm';
 LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
 
-export default LoginForm;
+const LoginFormWithRef = React.forwardRef((props, ref) => (
+    <LoginForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
+
+LoginFormWithRef.displayName = 'LoginFormWithRef';
+
+export default LoginFormWithRef;
