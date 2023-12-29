@@ -1,15 +1,15 @@
-import React, {ReactElement} from 'react';
+import {ReactElement} from 'react';
 import {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItems = {
     /** An icon element displayed on the left side */
-    icon?: React.FC<SvgProps>;
+    icon?: IconAsset;
 
     /** Text label */
     text: string;
