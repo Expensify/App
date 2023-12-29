@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -24,6 +25,7 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isPaidGroupPolicy} from '../PolicyUtils';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -625,21 +627,19 @@ function getMoneyRequestInformation(
     const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport);
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
-    // Check if the scheduled submit is enabled in case of expense report
+    // Check if the Scheduled Submit is enabled in case of expense report
     let needsToBeManuallySubmitted = false;
-    let policy = {};
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
-        policy = ReportUtils.getPolicy(chatReport.policyID);
-        const policyType = policy.type || '';
-        isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-        needsToBeManuallySubmitted = policy.isHarvestingEnabled || false;
+        const policy = ReportUtils.getPolicy(chatReport.policyID);
+        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        needsToBeManuallySubmitted = !policy.isHarvestingEnabled || false;
 
         // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
-        if (iouReport) {
-            if (isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
-                iouReport = null;
-            }
+        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
+            iouReport = null;
         }
     }
 
