@@ -103,7 +103,7 @@ type SettleExpensifyCardParams = {
 
 type RequestAmountParams = {amount: number};
 
-type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
+type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
 type SplitAmountParams = {amount: number};
 
@@ -115,7 +115,7 @@ type PayerOwesAmountParams = {payer: string; amount: number | string};
 
 type PayerOwesParams = {payer: string};
 
-type PayerPaidAmountParams = {payer: string; amount: number | string};
+type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
 
@@ -133,9 +133,9 @@ type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {payer: string; amount: string};
+type PaidElsewhereWithAmountParams = {payer?: string; amount: string};
 
-type PaidWithExpensifyWithAmountParams = {payer: string; amount: string};
+type PaidWithExpensifyWithAmountParams = {payer?: string; amount: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
