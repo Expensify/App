@@ -1,56 +1,51 @@
-import PropTypes from 'prop-types';
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
-import _ from 'underscore';
+import {ScrollView, StyleProp, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import ScreenWrapper from './ScreenWrapper';
 
-const propTypes = {
-    ...headerWithBackButtonPropTypes,
-
-    /** Children to display in the lower half of the page (below the header section w/ an animation) */
-    children: PropTypes.node.isRequired,
-
+// TODO: Extend with HeaderWithBackButtonProps once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TS
+type HeaderPageLayoutProps = ChildrenProps & {
     /** The background color to apply in the upper half of the screen. */
-    backgroundColor: PropTypes.string,
+    backgroundColor?: string;
 
     /** A fixed footer to display at the bottom of the page. */
-    footer: PropTypes.node,
+    footer?: React.ReactNode;
 
     /** The image to display in the upper half of the screen. */
-    header: PropTypes.node,
+    headerContent?: React.ReactNode;
 
     /** Style to apply to the header image container */
-    // eslint-disable-next-line react/forbid-prop-types
-    headerContainerStyles: PropTypes.arrayOf(PropTypes.object),
+    headerContainerStyles?: Array<StyleProp<ViewStyle>>;
 
     /** Style to apply to the ScrollView container */
-    // eslint-disable-next-line react/forbid-prop-types
-    scrollViewContainerStyles: PropTypes.arrayOf(PropTypes.object),
+    scrollViewContainerStyles?: Array<StyleProp<ViewStyle>>;
 
     /** Style to apply to the children container */
-    // eslint-disable-next-line react/forbid-prop-types
-    childrenContainerStyles: PropTypes.arrayOf(PropTypes.object),
+    childrenContainerStyles?: Array<StyleProp<ViewStyle>>;
+
+    /** Style to apply to the whole section container */
+    style?: StyleProp<ViewStyle>;
 };
 
-const defaultProps = {
-    backgroundColor: undefined,
-    header: null,
-    headerContainerStyles: [],
-    scrollViewContainerStyles: [],
-    childrenContainerStyles: [],
-    footer: null,
-};
-
-function HeaderPageLayout({backgroundColor, children, footer, headerContainerStyles, scrollViewContainerStyles, childrenContainerStyles, style, headerContent, ...propsToPassToHeader}) {
+function HeaderPageLayout({
+    backgroundColor,
+    children,
+    footer,
+    headerContainerStyles,
+    scrollViewContainerStyles,
+    childrenContainerStyles,
+    style,
+    headerContent,
+    ...propsToPassToHeader
+}: HeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -58,7 +53,7 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
     const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = (backgroundColor || theme.appBG) !== theme.appBG && (backgroundColor || theme.highlightBG) !== theme.highlightBG;
+        const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
         return {
             titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
             iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
@@ -66,40 +61,41 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
     }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
 
     return (
+        // @ts-expect-error TODO: Remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(backgroundColor || theme.appBG)]}
+            style={[StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
             offlineIndicatorStyle={[appBGColor]}
             testID={HeaderPageLayout.displayName}
         >
+            {/** @ts-expect-error TODO: Remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS */}
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...propsToPassToHeader}
+                        // @ts-expect-error TODO: Remove once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TS
                         titleColor={titleColor}
+                        // @ts-expect-error TODO: Remove once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TS
                         iconFill={iconFill}
                     />
-                    <View style={[styles.flex1, appBGColor, !isOffline && !_.isNull(footer) ? safeAreaPaddingBottomStyle : {}]}>
+                    <View style={[styles.flex1, appBGColor, !isOffline && !(footer === null) ? safeAreaPaddingBottomStyle : {}]}>
                         {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {Browser.isSafari() && (
                             <View style={styles.dualColorOverscrollSpacer}>
-                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor || theme.appBG)]} />
+                                <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG)]} />
                                 <View style={[isSmallScreenWidth ? styles.flex1 : styles.flex3, appBGColor]} />
                             </View>
                         )}
-                        <ScrollView
-                            contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
-                            offlineIndicatorStyle={[appBGColor]}
-                        >
-                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor || theme.appBG, windowHeight)} />}
-                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor || theme.appBG), ...headerContainerStyles]}>
+                        <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles, appBGColor]}>
+                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)} />}
+                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG), headerContainerStyles]}>
                                 {headerContent}
                             </View>
                             <View style={[styles.pt5, appBGColor, childrenContainerStyles]}>{children}</View>
                         </ScrollView>
-                        {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
+                        {!(footer === null) && <FixedFooter>{footer}</FixedFooter>}
                     </View>
                 </>
             )}
@@ -107,8 +103,7 @@ function HeaderPageLayout({backgroundColor, children, footer, headerContainerSty
     );
 }
 
-HeaderPageLayout.propTypes = propTypes;
-HeaderPageLayout.defaultProps = defaultProps;
 HeaderPageLayout.displayName = 'HeaderPageLayout';
 
+export type {HeaderPageLayoutProps};
 export default HeaderPageLayout;
