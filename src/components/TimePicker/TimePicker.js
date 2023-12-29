@@ -128,8 +128,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
     // This function receive value from hour input and validate it
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text) => {
-        const trimmedText = text.trim();
-
+        // Replace spaces with 0 to implement the following digit removal by pressing space
+        const trimmedText = text.replace(/ /g, '0');
         if (_.isEmpty(trimmedText)) {
             resetHours();
             return;
@@ -149,6 +149,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             const secondDigit = trimmedText[2] || '0';
 
             if (trimmedText.length === 1) {
+                // To support the forward-removal using Delete key
                 newHour = `0${firstDigit}`;
                 newSelection = 1;
             } else if (firstDigit <= 1) {
@@ -166,7 +167,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             }
         } else if (selectionHour.start === 1 && selectionHour.end === 1) {
             // The cursor is in-between the digits
-            if (trimmedText.length < 2 && lastPressedKey.current === 'Backspace') {
+            if (trimmedText.length === 1 && lastPressedKey.current === 'Backspace') {
                 // We have removed the first digit. Replace it with 0 and move the cursor to the start.
                 newHour = `0${trimmedText}`;
                 newSelection = 0;
@@ -174,7 +175,15 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newHour = `${trimmedText[0]}${trimmedText[1] || 0}`;
                 newSelection = 2;
             }
-        } else if (trimmedText.length <= 1 && trimmedText <= 1) {
+        } else if (selectionHour.start === 0 && selectionHour.end === 1) {
+            // There is an active selection of the first digit
+            newHour = trimmedText.substring(0, 2).padStart(2, '0');
+            newSelection = trimmedText.length === 1 ? 0 : 1;
+        } else if (selectionHour.start === 1 && selectionHour.end === 2) {
+            // There is an active selection of the second digit
+            newHour = trimmedText.substring(0, 2).padEnd(2, '0');
+            newSelection = trimmedText.length === 1 ? 1 : 2;
+        } else if (trimmedText.length === 1 && trimmedText <= 1) {
             /*
              The trimmed text is either 0 or 1.
              We are either replacing hours with a single digit, or removing the last digit.
@@ -207,8 +216,8 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
      The valid format is MM(from 00 to 59). If the user enters 9, it will be prepended to 09. If the user tries to change 09 to 99, it would skip the character
     */
     const handleMinutesChange = (text) => {
-        const trimmedText = text.trim();
-
+        // Replace spaces with 0 to implement the following digit removal by pressing space
+        const trimmedText = text.replace(/ /g, '0');
         if (_.isEmpty(trimmedText)) {
             resetMinutes();
             return;
@@ -226,6 +235,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             // The cursor is at the start of minutes
             const firstDigit = trimmedText[0];
             if (trimmedText.length === 1) {
+                // To support the forward-removal using Delete key
                 newMinute = `0${firstDigit}`;
                 newSelection = 1;
             } else if (firstDigit <= 5) {
@@ -239,7 +249,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
             }
         } else if (selectionMinute.start === 1 && selectionMinute.end === 1) {
             // The cursor is in-between the digits
-            if (trimmedText.length < 2 && lastPressedKey.current === 'Backspace') {
+            if (trimmedText.length === 1 && lastPressedKey.current === 'Backspace') {
                 // We have removed the first digit. Replace it with 0 and move the cursor to the start.
                 newMinute = `0${trimmedText}`;
                 newSelection = 0;
@@ -247,7 +257,15 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                 newMinute = `${trimmedText[0]}${trimmedText[1] || 0}`;
                 newSelection = 2;
             }
-        } else if (trimmedText.length <= 1 && trimmedText <= 5) {
+        } else if (selectionMinute.start === 0 && selectionMinute.end === 1) {
+            // There is an active selection of the first digit
+            newMinute = trimmedText.substring(0, 2).padStart(2, '0');
+            newSelection = trimmedText.length === 1 ? 0 : 1;
+        } else if (selectionMinute.start === 1 && selectionMinute.end === 2) {
+            // There is an active selection of the second digit
+            newMinute = trimmedText.substring(0, 2).padEnd(2, '0');
+            newSelection = trimmedText.length === 1 ? 1 : 2;
+        } else if (trimmedText.length === 1 && trimmedText <= 5) {
             /*
              The trimmed text is from 0 to 5.
              We are either replacing minutes with a single digit, or removing the last digit.
