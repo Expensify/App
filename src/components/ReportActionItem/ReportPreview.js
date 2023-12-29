@@ -60,6 +60,9 @@ const propTypes = {
 
         /** The role of the current user in the policy */
         role: PropTypes.string,
+
+        /** Whether Scheduled Submit is on for this policy */
+        isHarvestingEnabled: PropTypes.bool,
     }),
 
     /* Onyx Props */
@@ -164,6 +167,9 @@ function ReportPreview(props) {
         });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
+
+    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    const isCurrentUserSubmitter = props.chatReport.isOwnPolicyExpenseChat && !props.policy.isHarvestingEnabled;
 
     const getDisplayAmount = () => {
         if (hasPendingWaypoints) {
@@ -327,7 +333,7 @@ function ReportPreview(props) {
                         {shouldShowSubmitButton && (
                             <Button
                                 medium
-                                success={props.chatReport.isOwnPolicyExpenseChat}
+                                success={isCurrentUserSubmitter}
                                 text={translate('common.submit')}
                                 style={styles.mt3}
                                 onPress={() => IOU.submitReport(props.iouReport)}
