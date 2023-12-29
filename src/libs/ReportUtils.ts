@@ -1962,6 +1962,7 @@ function getReportPreviewMessage(
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
+    isForListPreview = false,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
 
@@ -2027,7 +2028,8 @@ function getReportPreviewMessage(
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
 
-        const actualPayerName = report.managerID === currentUserAccountID ? '' : `${getDisplayNameForParticipant(report.managerID, true)}:`;
+        let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.managerID, true);
+        actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
 
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
