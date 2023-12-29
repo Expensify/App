@@ -1,9 +1,7 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React from 'react';
 import {Animated, StyleSheet} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
@@ -18,45 +16,21 @@ type TabSelectorItemProps = {
     /** Title of the tab */
     title?: string;
 
-    /** Whether this tab is active */
-    isFocused?: boolean;
+    /** Animated background color value for the tab button */
+    backgroundColor?: string | Animated.AnimatedInterpolation<string>;
 
-    /** Whether animations should be skipped */
-    animationEnabled?: boolean;
+    /** Animated opacity value while the tab is in inactive state */
+    inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
+
+    /** Animated opacity value while the tab is in active state */
+    activeOpacity?: number | Animated.AnimatedInterpolation<number>;
+
+    /** Whether this tab is active */
+    isActive?: boolean;
 };
 
-function TabSelectorItem({icon, title = '', onPress = () => {}, isFocused = false, animationEnabled = true}: TabSelectorItemProps) {
-    const focusValueRef = useRef(new Animated.Value(isFocused ? 1 : 0));
+function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isActive = false}: TabSelectorItemProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
-
-    useEffect(() => {
-        const focusValue = isFocused ? 1 : 0;
-
-        if (animationEnabled) {
-            return Animated.timing(focusValueRef.current, {
-                toValue: focusValue,
-                duration: CONST.ANIMATED_TRANSITION,
-                useNativeDriver: true,
-            }).start();
-        }
-
-        focusValueRef.current.setValue(focusValue);
-    }, [animationEnabled, isFocused]);
-
-    const getBackgroundColorStyle = useCallback(
-        (hovered: boolean) => {
-            if (hovered && !isFocused) {
-                return {backgroundColor: theme.highlightBG};
-            }
-            return {backgroundColor: focusValueRef.current.interpolate({inputRange: [0, 1], outputRange: [theme.appBG, theme.border]})};
-        },
-        [theme, isFocused],
-    );
-
-    const activeOpacityValue = focusValueRef.current;
-    const inactiveOpacityValue = focusValueRef.current.interpolate({inputRange: [0, 1], outputRange: [1, 0]});
-
     return (
         <PressableWithFeedback
             accessibilityLabel={title}
@@ -65,16 +39,16 @@ function TabSelectorItem({icon, title = '', onPress = () => {}, isFocused = fals
             onPress={onPress}
         >
             {({hovered}) => (
-                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, getBackgroundColorStyle(hovered)]}>
+                <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, isActive, backgroundColor)]}>
                     <TabIcon
                         icon={icon}
-                        activeOpacity={activeOpacityValue}
-                        inactiveOpacity={inactiveOpacityValue}
+                        activeOpacity={styles.tabOpacity(hovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(hovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     />
                     <TabLabel
                         title={title}
-                        activeOpacity={activeOpacityValue}
-                        inactiveOpacity={inactiveOpacityValue}
+                        activeOpacity={styles.tabOpacity(hovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(hovered, isActive, inactiveOpacity, activeOpacity).opacity}
                     />
                 </Animated.View>
             )}

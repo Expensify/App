@@ -300,7 +300,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Cloudflare CLI
-        run: pip3 install cloudflare==2.14.3
+        run: pip3 install cloudflare
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
