@@ -3,7 +3,7 @@ title:  Cardholder Settings and Features
 description: Expensify Card Settings for Employees
 ---
 
-# How to use your Expensify Card
+# How to use your Expensify Visa® Commercial Card
 Once you receive your card, you can start using it right away. 
 
 First, you'll want to take note of the Smart Limit tied to your card – this is listed in your card settings via **Settings > Account > Credit Card Import**. This limit represents the total amount of unapproved expenses you can have on the card.
