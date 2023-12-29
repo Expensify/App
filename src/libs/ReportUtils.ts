@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {NotificationPreference} from '@src/types/onyx/Report';
@@ -551,12 +551,12 @@ function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
 /**
  * Given a collection of reports returns them sorted by last read
  */
-function sortReportsByLastRead(reports: OnyxCollection<Report>): Array<OnyxEntry<Report>> {
+function sortReportsByLastRead(reports: OnyxCollection<Report>, reportMetadata: OnyxCollection<ReportMetadata>): Array<OnyxEntry<Report>> {
     return Object.values(reports ?? {})
-        .filter((report) => !!report?.reportID && !!report?.lastReadTime)
+        .filter((report) => !!report?.reportID && !!(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`]?.lastVisitTime ?? report?.lastReadTime))
         .sort((a, b) => {
-            const aTime = new Date(a?.lastReadTime ?? '');
-            const bTime = new Date(b?.lastReadTime ?? '');
+            const aTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${a?.reportID}`]?.lastVisitTime ?? a?.lastReadTime ?? '');
+            const bTime = new Date(reportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${b?.reportID}`]?.lastVisitTime ?? b?.lastReadTime ?? '');
 
             return aTime.valueOf() - bTime.valueOf();
         });
@@ -820,13 +820,14 @@ function findLastAccessedReport(
     policies: OnyxCollection<Policy>,
     isFirstTimeNewExpensifyUser: boolean,
     openOnAdminRoom = false,
+    reportMetadata: OnyxCollection<ReportMetadata> = {},
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
     //   - their Concierge report, and a separate report that must have deeplinked them to the app before they created their account.
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
-    let sortedReports = sortReportsByLastRead(reports);
+    let sortedReports = sortReportsByLastRead(reports, reportMetadata);
 
     let adminReport: OnyxEntry<Report> | undefined;
     if (openOnAdminRoom) {
@@ -1961,6 +1962,7 @@ function getReportPreviewMessage(
     shouldConsiderReceiptBeingScanned = false,
     isPreviewMessageForParentChatReport = false,
     policy: OnyxEntry<Policy> = null,
+    isForListPreview = false,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
 
@@ -2026,7 +2028,8 @@ function getReportPreviewMessage(
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
 
-        const actualPayerName = report.managerID === currentUserAccountID ? '' : `${getDisplayNameForParticipant(report.managerID, true)}:`;
+        let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant(report.managerID, true);
+        actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
 
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
@@ -4215,6 +4218,31 @@ function navigateToPrivateNotes(report: Report, session: Session) {
     Navigation.navigate(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
 }
 
+/**
+ * Disable reply in thread action if:
+ *
+ * - The action is listed in the thread-disabled list
+ * - The action is a split bill action
+ * - The action is deleted and is not threaded
+ * - The action is a whisper action and it's neither a report preview nor IOU action
+ * - The action is the thread's first chat
+ */
+function shouldDisableThread(reportAction: ReportAction, reportID: string) {
+    const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
+    const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
+    const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
+    const isIOUAction = ReportActionsUtils.isMoneyRequestAction(reportAction);
+    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+
+    return (
+        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction.actionName) ||
+        isSplitBillAction ||
+        (isDeletedAction && !reportAction.childVisibleActionCount) ||
+        (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
+        isThreadFirstChat(reportAction, reportID)
+    );
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -4387,6 +4415,7 @@ export {
     canEditWriteCapability,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    shouldDisableThread,
 };
 
 export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport};

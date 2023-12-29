@@ -193,10 +193,16 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         return (
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
+                isPolicyExpenseChat={isPolicyExpenseChat}
                 onSubmit={(transactionChanges) => {
                     // In case the merchant hasn't been changed, do not make the API request.
                     if (transactionChanges.merchant.trim() === transactionMerchant) {
                         Navigation.dismissModal();
+                        return;
+                    }
+                    // This is possible only in case of IOU requests.
+                    if (transactionChanges.merchant.trim() === '') {
+                        editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
                         return;
                     }
                     editMoneyRequest({merchant: transactionChanges.merchant.trim()});
