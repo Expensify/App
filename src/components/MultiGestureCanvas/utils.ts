@@ -1,5 +1,3 @@
-const DOUBLE_TAP_SCALE = 3;
-
 const SPRING_CONFIG = {
     mass: 1,
     stiffness: 1000,
@@ -16,4 +14,4 @@ function clamp(value: number, lowerBound: number, upperBound: number) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-export {clamp, DOUBLE_TAP_SCALE, SPRING_CONFIG, zoomScaleBounceFactors};
+export {clamp, SPRING_CONFIG, zoomScaleBounceFactors};

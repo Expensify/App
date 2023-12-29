@@ -14,8 +14,8 @@ const usePinchGesture = ({
     panGesture,
     zoomScale,
     zoomRange,
-    offsetX,
-    offsetY,
+    totalOffsetX,
+    totalOffsetY,
     pinchTranslateX,
     pinchTranslateY,
     pinchBounceTranslateX,
@@ -26,9 +26,9 @@ const usePinchGesture = ({
     onScaleChanged,
     onPinchGestureChange,
 }) => {
+    const isPinchGestureRunning = useSharedValue(false);
     // used to store event scale value when we limit scale
     const pinchGestureScale = useSharedValue(1);
-    const pinchGestureRunning = useSharedValue(false);
     // origin of the pinch gesture
     const pinchOrigin = {
         x: useSharedValue(0),
@@ -37,8 +37,8 @@ const usePinchGesture = ({
 
     const getAdjustedFocal = useWorkletCallback(
         (focalX, focalY) => ({
-            x: focalX - (canvasSize.width / 2 + offsetX.value),
-            y: focalY - (canvasSize.height / 2 + offsetY.value),
+            x: focalX - (canvasSize.width / 2 + totalOffsetX.value),
+            y: focalY - (canvasSize.height / 2 + totalOffsetY.value),
         }),
         [canvasSize.width, canvasSize.height],
     );
@@ -53,7 +53,7 @@ const usePinchGesture = ({
         })
         .simultaneousWithExternalGesture(panGesture, singleTap, doubleTap)
         .onStart((evt) => {
-            pinchGestureRunning.value = true;
+            isPinchGestureRunning.value = true;
 
             stopAnimation();
 
@@ -88,8 +88,13 @@ const usePinchGesture = ({
         })
         .onEnd(() => {
             // Add pinch translation to total offset
-            offsetX.value += pinchTranslateX.value;
-            offsetY.value += pinchTranslateY.value;
+            totalOffsetX.value += pinchTranslateX.value;
+            totalOffsetY.value += pinchTranslateY.value;
+            // Reset pinch gesture variables
+            pinchTranslateX.value = 0;
+            pinchTranslateY.value = 0;
+            pinchGestureScale.value = 1;
+            isPinchGestureRunning.value = false;
 
             if (zoomScale.value < zoomRange.min) {
                 pinchScaleOffset.value = zoomRange.min;
@@ -107,20 +112,14 @@ const usePinchGesture = ({
             }
 
             if (onScaleChanged != null) {
-                runOnJS(onScaleChanged)(zoomScale.value);
+                runOnJS(onScaleChanged)(pinchScaleOffset.value);
             }
-
-            // Reset pinch gesture variables
-            pinchGestureRunning.value = false;
-            pinchTranslateX.value = 0;
-            pinchTranslateY.value = 0;
-            pinchGestureScale.value = 1;
         });
 
     // Triggers "onPinchGestureChange" callback when pinch scale changes
     const [isPinchGestureInUse, setIsPinchGestureInUse] = useState(false);
     useAnimatedReaction(
-        () => [zoomScale.value, pinchGestureRunning.value],
+        () => [zoomScale.value, isPinchGestureRunning.value],
         ([zoom, running]) => {
             const newIsPinchGestureInUse = zoom !== 1 || running;
             if (isPinchGestureInUse !== newIsPinchGestureInUse) {

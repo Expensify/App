@@ -56,9 +56,9 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     // and not smaller than needed to fit
     const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale]);
 
-    // stored offset of the canvas (used for panning and pinching)
-    const offsetX = useSharedValue(0);
-    const offsetY = useSharedValue(0);
+    // total offset of the canvas (panning + pinching offset)
+    const totalOffsetX = useSharedValue(0);
+    const totalOffsetY = useSharedValue(0);
 
     // pan gesture
     const panTranslateX = useSharedValue(0);
@@ -75,8 +75,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const pinchScaleOffset = useSharedValue(1);
 
     const stopAnimation = useWorkletCallback(() => {
-        cancelAnimation(offsetX);
-        cancelAnimation(offsetY);
+        cancelAnimation(totalOffsetX);
+        cancelAnimation(totalOffsetY);
     });
 
     const reset = useWorkletCallback((animated) => {
@@ -85,12 +85,12 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         stopAnimation();
 
         if (animated) {
-            offsetX.value = withSpring(0, SPRING_CONFIG);
-            offsetY.value = withSpring(0, SPRING_CONFIG);
+            totalOffsetX.value = withSpring(0, SPRING_CONFIG);
+            totalOffsetY.value = withSpring(0, SPRING_CONFIG);
             zoomScale.value = withSpring(1, SPRING_CONFIG);
         } else {
-            offsetX.value = 0;
-            offsetY.value = 0;
+            totalOffsetX.value = 0;
+            totalOffsetY.value = 0;
             zoomScale.value = 1;
             panTranslateX.value = 0;
             panTranslateY.value = 0;
@@ -105,8 +105,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         minContentScale,
         maxContentScale,
         panGestureRef,
-        offsetX,
-        offsetY,
+        totalOffsetX,
+        totalOffsetY,
         pinchScaleOffset,
         zoomScale,
         reset,
@@ -125,8 +125,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         zoomScale,
         zoomRange,
         totalScale,
-        offsetX,
-        offsetY,
+        totalOffsetX,
+        totalOffsetY,
         panTranslateX,
         panTranslateY,
         isSwipingHorizontally,
@@ -142,8 +142,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         panGesture,
         zoomScale,
         zoomRange,
-        offsetX,
-        offsetY,
+        totalOffsetX,
+        totalOffsetY,
         pinchTranslateX,
         pinchTranslateY,
         pinchBounceTranslateX,
@@ -176,8 +176,10 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     }, [isActive, mounted, reset]);
 
     const animatedStyles = useAnimatedStyle(() => {
-        const x = pinchTranslateX.value + pinchBounceTranslateX.value + panTranslateX.value + offsetX.value;
-        const y = pinchTranslateY.value + pinchBounceTranslateY.value + panTranslateY.value + offsetY.value;
+        const x = pinchTranslateX.value + pinchBounceTranslateX.value + panTranslateX.value + totalOffsetX.value;
+        const y = pinchTranslateY.value + pinchBounceTranslateY.value + panTranslateY.value + totalOffsetY.value;
+
+        // console.log({pinchTranslateY: pinchTranslateY.value, pinchBounceTranslateY: pinchBounceTranslateY.value, panTranslateY: panTranslateY.value, totalOffsetY: totalOffsetY.value});
 
         if (isSwipingVertically.value) {
             onSwipe(y);

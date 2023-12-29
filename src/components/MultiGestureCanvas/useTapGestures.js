@@ -4,8 +4,9 @@ import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useWorkletCallback, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
+const DOUBLE_TAP_SCALE = 3;
+
 const clamp = MultiGestureCanvasUtils.clamp;
-const DOUBLE_TAP_SCALE = MultiGestureCanvasUtils.DOUBLE_TAP_SCALE;
 const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
 
 const useTapGestures = ({
@@ -14,8 +15,8 @@ const useTapGestures = ({
     minContentScale,
     maxContentScale,
     panGestureRef,
-    offsetX,
-    offsetY,
+    totalOffsetX,
+    totalOffsetY,
     pinchScaleOffset,
     zoomScale,
     reset,
@@ -82,8 +83,8 @@ const useTapGestures = ({
                 target.y = 0;
             }
 
-            offsetX.value = withSpring(target.x, SPRING_CONFIG);
-            offsetY.value = withSpring(target.y, SPRING_CONFIG);
+            totalOffsetX.value = withSpring(target.x, SPRING_CONFIG);
+            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
             pinchScaleOffset.value = doubleTapScale;
         },

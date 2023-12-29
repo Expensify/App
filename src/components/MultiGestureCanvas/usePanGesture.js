@@ -18,8 +18,8 @@ const usePanGesture = ({
     zoomScale,
     zoomRange,
     totalScale,
-    offsetX,
-    offsetY,
+    totalOffsetX,
+    totalOffsetY,
     panTranslateX,
     panTranslateY,
     isSwipingVertically,
@@ -56,12 +56,12 @@ const usePanGesture = ({
         const minVector = {x: -rightBoundary, y: -topBoundary};
 
         const target = {
-            x: clamp(offsetX.value, minVector.x, maxVector.x),
-            y: clamp(offsetY.value, minVector.y, maxVector.y),
+            x: clamp(totalOffsetX.value, minVector.x, maxVector.x),
+            y: clamp(totalOffsetY.value, minVector.y, maxVector.y),
         };
 
-        const isInBoundaryX = target.x === offsetX.value;
-        const isInBoundaryY = target.y === offsetY.value;
+        const isInBoundaryX = target.x === totalOffsetX.value;
+        const isInBoundaryY = target.y === totalOffsetY.value;
 
         return {
             target,
@@ -77,21 +77,21 @@ const usePanGesture = ({
     const returnToBoundaries = useWorkletCallback(() => {
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
 
-        if (zoomScale.value === zoomRange.min && offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
+        if (zoomScale.value === zoomRange.min && totalOffsetX.value === 0 && totalOffsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
             // we don't need to run any animations
             return;
         }
 
         if (zoomScale.value <= zoomRange.min) {
             // just center it
-            offsetX.value = withSpring(0, SPRING_CONFIG);
-            offsetY.value = withSpring(0, SPRING_CONFIG);
+            totalOffsetX.value = withSpring(0, SPRING_CONFIG);
+            totalOffsetY.value = withSpring(0, SPRING_CONFIG);
             return;
         }
 
         if (isInBoundaryX) {
             if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= zoomRange.max) {
-                offsetX.value = withDecay({
+                totalOffsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [minVector.x, maxVector.x],
                     deceleration: PAN_DECAY_DECELARATION,
@@ -99,27 +99,27 @@ const usePanGesture = ({
                 });
             }
         } else {
-            offsetX.value = withSpring(target.x, SPRING_CONFIG);
+            totalOffsetX.value = withSpring(target.x, SPRING_CONFIG);
         }
 
         if (!canPanVertically.value) {
-            offsetY.value = withSpring(target.y, SPRING_CONFIG);
+            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
         } else if (isInBoundaryY) {
             if (
                 Math.abs(panVelocityY.value) > 0 &&
                 zoomScale.value <= zoomRange.max &&
                 // limit vertical pan only when content is smaller than screen
-                offsetY.value !== minVector.y &&
-                offsetY.value !== maxVector.y
+                totalOffsetY.value !== minVector.y &&
+                totalOffsetY.value !== maxVector.y
             ) {
-                offsetY.value = withDecay({
+                totalOffsetY.value = withDecay({
                     velocity: panVelocityY.value,
                     clamp: [minVector.y, maxVector.y],
                     deceleration: PAN_DECAY_DECELARATION,
                 });
             }
         } else {
-            offsetY.value = withSpring(target.y, SPRING_CONFIG, () => {
+            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG, () => {
                 isSwipingVertically.value = false;
             });
         }
@@ -159,7 +159,7 @@ const usePanGesture = ({
             }
         })
         .simultaneousWithExternalGesture(pagerRef, singleTap, doubleTap)
-        .onBegin(() => {
+        .onStart(() => {
             stopAnimation();
         })
         .onChange((evt) => {
@@ -185,8 +185,12 @@ const usePanGesture = ({
         })
         .onEnd((evt) => {
             // add pan translation to total offset
-            offsetX.value += panTranslateX.value;
-            offsetY.value += panTranslateY.value;
+            totalOffsetX.value += panTranslateX.value;
+            totalOffsetY.value += panTranslateY.value;
+            // reset pan gesture variables
+            panTranslateX.value = 0;
+            panTranslateY.value = 0;
+            previousTouch.value = null;
 
             // If we are swiping, we don't want to return to boundaries
             if (isSwipingHorizontally.value) {
@@ -204,7 +208,7 @@ const usePanGesture = ({
                         return invert ? -v : v;
                     };
 
-                    offsetY.value = withSpring(
+                    totalOffsetY.value = withSpring(
                         maybeInvert(contentSize.height * 2),
                         {
                             stiffness: 50,
@@ -228,9 +232,6 @@ const usePanGesture = ({
             // reset pan gesture variables
             panVelocityX.value = 0;
             panVelocityY.value = 0;
-            panTranslateX.value = 0;
-            panTranslateY.value = 0;
-            previousTouch.value = null;
         })
         .withRef(panGestureRef);
 
