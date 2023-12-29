@@ -148,6 +148,7 @@ function getOrderedReportIDs(
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
+
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
 

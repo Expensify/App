@@ -140,6 +140,7 @@ const chatReportSelector = (report) =>
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
+        notificationPreference: report.notificationPreference,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },

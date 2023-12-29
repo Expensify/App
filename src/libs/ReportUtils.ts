@@ -3421,7 +3421,7 @@ function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: 
 
     // All unread chats (even archived ones) in GSD mode will be shown. This is because GSD mode is specifically for focusing the user on the most relevant chats, primarily, the unread ones
     if (isInGSDMode) {
-        return isUnread(report);
+        return isUnread(report) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
