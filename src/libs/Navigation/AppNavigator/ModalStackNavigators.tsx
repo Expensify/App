@@ -73,6 +73,7 @@ function createModalStackNavigator<TStackParams extends ParamListBase>(screens: 
 }
 
 const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
+    [SCREENS.MONEY_REQUEST.START]: () => require('../../../pages/iou/request/IOURequestRedirectToStartPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.CREATE]: () => require('../../../pages/iou/request/IOURequestStartPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require('../../../pages/iou/request/step/IOURequestStepConfirmation').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: () => require('../../../pages/iou/request/step/IOURequestStepAmount').default as React.ComponentType,
@@ -197,8 +198,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
-    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
-    // [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
+    [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SECURITY]: () => require('../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,

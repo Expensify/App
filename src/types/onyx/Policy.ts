@@ -77,6 +77,9 @@ type Policy = {
     /** Whether the scheduled submit is enabled */
     isHarvestingEnabled: boolean;
 
+    /** The accountID of manager who the employee submits their expenses to on paid policies */
+    submitsTo?: number;
+
     /** The employee list of the policy */
     employeeList?: [];
 };
