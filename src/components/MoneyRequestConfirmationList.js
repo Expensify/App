@@ -346,7 +346,7 @@ function MoneyRequestConfirmationList(props) {
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
-    const defaulTaxKey = props.policyTaxRates.defaultExternalID;
+    const defaultTaxKey = props.policyTaxRates.defaultExternalID;
     const defaultTaxName = `${props.policyTaxRates.taxes[defaulTaxKey].name} (${props.policyTaxRates.taxes[defaulTaxKey].value}) • ${translate('common.default')}`;
     const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
 
