@@ -1872,7 +1872,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, trans
         return true;
     }
 
-    const reportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+    const reportID = (reportAction?.originalMessage as IOUMessage).IOUReportID ?? 0;
     if (isSettled(String(reportID)) || isReportApproved(String(reportID))) {
         return false;
     }
