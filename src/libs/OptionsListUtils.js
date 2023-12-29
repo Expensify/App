@@ -402,7 +402,7 @@ function getLastMessageTextForReport(report) {
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report);
+        lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(report);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
@@ -511,8 +511,9 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-        lastMessageText += report ? lastMessageTextFromReport : '';
+        const lastActorDisplayName =
+            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? lastActorDetails.firstName || lastActorDetails.displayName : '';
+        let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
             const archiveReason =

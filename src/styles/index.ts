@@ -296,7 +296,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        mentionSuggestionsHandle: {
+        textSupporting: {
             color: theme.textSupporting,
         },
 
@@ -424,7 +424,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH1: {
@@ -1148,6 +1148,13 @@ const styles = (theme: ThemeColors) =>
 
         noOutline: addOutlineWidth(theme, {}, 0),
 
+        labelStrong: {
+            fontFamily: fontFamily.EXP_NEUE,
+            fontWeight: 'bold',
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1727,7 +1734,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: fontWeightBold,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             ...wordBreak.breakWord,
         },
 
@@ -2874,6 +2881,14 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
         },
 
+        workspaceOwnerAvatarWrapper: {
+            margin: 6,
+        },
+
+        workspaceTypeWrapper: {
+            margin: 3,
+        },
+
         autoGrowHeightMultilineInput: {
             maxHeight: 115,
         },
@@ -3684,21 +3699,8 @@ const styles = (theme: ThemeColors) =>
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
+                lineHeight: 14,
             } satisfies TextStyle),
-
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
-        }),
-
-        tabOpacity: (
-            hovered: boolean,
-            isFocused: boolean,
-            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
-            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
-        ) => ({
-            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
-        }),
-
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
                 backgroundColor,
@@ -3786,8 +3788,7 @@ const styles = (theme: ThemeColors) =>
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },
@@ -4118,4 +4119,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};
