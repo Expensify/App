@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 
 const taxPropTypes = PropTypes.shape({
     /** Name of a tax */
-    name: PropTypes.string.isRequired,
+    name: PropTypes.string,
 
     /** The value of a tax */
-    value: PropTypes.string.isRequired,
+    value: PropTypes.string,
 
     /** Whether the tax is disabled */
     isDisabled: PropTypes.bool,
@@ -13,7 +13,7 @@ const taxPropTypes = PropTypes.shape({
 
 export default PropTypes.shape({
     /** Name of the tax */
-    name: PropTypes.string.isRequired,
+    name: PropTypes.string,
 
     /** Default policy tax ID */
     defaultExternalID: PropTypes.string,
