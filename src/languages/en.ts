@@ -112,6 +112,7 @@ export default {
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
+        select: 'Select',
         saveChanges: 'Save changes',
         submit: 'Submit',
         rotate: 'Rotate',

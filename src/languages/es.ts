@@ -96,6 +96,7 @@ export default {
         new: 'Nuevo',
         search: 'Buscar',
         searchWithThreeDots: 'Buscar...',
+        select: 'Seleccionar',
         next: 'Siguiente',
         previous: 'Anterior',
         goBack: 'Volver',
