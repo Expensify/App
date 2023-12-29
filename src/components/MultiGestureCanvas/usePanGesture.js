@@ -30,13 +30,12 @@ const usePanGesture = ({
     const zoomScaledContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomScaledContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
 
+    const previousTouch = useSharedValue(null);
     // pan velocity to calculate the decay
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
     // disable pan vertically when content is smaller than screen
     const canPanVertically = useDerivedValue(() => canvasSize.height < zoomScaledContentHeight.value, [canvasSize.height]);
-
-    const previousTouch = useSharedValue(null);
 
     // calculates bounds of the scaled content
     // can we pan left/right/up/down
@@ -167,6 +166,7 @@ const usePanGesture = ({
             // since we're running both pinch and pan gesture handlers simultaneously
             // we need to make sure that we don't pan when we pinch and move fingers
             // since we track it as pinch focal gesture
+            // we also need to prevent panning when we are swiping horizontally (in the pager)
             if (evt.numberOfPointers > 1 || isSwipingHorizontally.value) {
                 return;
             }
@@ -184,20 +184,16 @@ const usePanGesture = ({
             }
         })
         .onEnd((evt) => {
-            previousTouch.value = null;
+            // add pan translation to total offset
+            offsetX.value += panTranslateX.value;
+            offsetY.value += panTranslateY.value;
 
             // If we are swiping, we don't want to return to boundaries
             if (isSwipingHorizontally.value) {
                 return;
             }
 
-            // add pan translation to total offset
-            offsetX.value += panTranslateX.value;
-            offsetY.value += panTranslateY.value;
-            // reset pan gesture variables
-            panTranslateX.value = 0;
-            panTranslateY.value = 0;
-
+            // swipe to close animation when swiping down
             if (isSwipingVertically.value) {
                 const enoughVelocity = Math.abs(evt.velocityY) > 300 && Math.abs(evt.velocityX) < Math.abs(evt.velocityY);
                 const rightDirection = (evt.translationY > 0 && evt.velocityY > 0) || (evt.translationY < 0 && evt.velocityY < 0);
@@ -229,8 +225,12 @@ const usePanGesture = ({
 
             returnToBoundaries();
 
+            // reset pan gesture variables
             panVelocityX.value = 0;
             panVelocityY.value = 0;
+            panTranslateX.value = 0;
+            panTranslateY.value = 0;
+            previousTouch.value = null;
         })
         .withRef(panGestureRef);
 

@@ -90,10 +90,6 @@ const usePinchGesture = ({
             // Add pinch translation to total offset
             offsetX.value += pinchTranslateX.value;
             offsetY.value += pinchTranslateY.value;
-            // Reset pinch gesture variables
-            pinchTranslateX.value = 0;
-            pinchTranslateY.value = 0;
-            pinchGestureScale.value = 1;
 
             if (zoomScale.value < zoomRange.min) {
                 pinchScaleOffset.value = zoomRange.min;
@@ -110,11 +106,15 @@ const usePinchGesture = ({
                 pinchBounceTranslateY.value = withSpring(0, SPRING_CONFIG);
             }
 
-            pinchGestureRunning.value = false;
-
             if (onScaleChanged != null) {
                 runOnJS(onScaleChanged)(zoomScale.value);
             }
+
+            // Reset pinch gesture variables
+            pinchGestureRunning.value = false;
+            pinchTranslateX.value = 0;
+            pinchTranslateY.value = 0;
+            pinchGestureScale.value = 1;
         });
 
     // Triggers "onPinchGestureChange" callback when pinch scale changes
