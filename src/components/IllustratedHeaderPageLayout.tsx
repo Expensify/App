@@ -1,7 +1,8 @@
 import React from 'react';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HeaderPageLayout, {HeaderPageLayoutProps} from './HeaderPageLayout';
+import HeaderPageLayout from './HeaderPageLayout';
+import HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import Lottie from './Lottie';
 import DotLottieAnimation from './LottieAnimations/types';
 
@@ -18,7 +19,8 @@ type IllustratedHeaderPageLayoutProps = {
     /** Overlay content to display on top of animation */
     overlayContent?: () => React.ReactNode;
 
-    propsToPassToHeader: HeaderPageLayoutProps;
+    /** Props to pass to HeaderWithBackButton */
+    propsToPassToHeader: HeaderWithBackButtonProps;
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, overlayContent, propsToPassToHeader}: IllustratedHeaderPageLayoutProps) {
@@ -40,8 +42,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, o
                 </>
             }
             headerContainerStyles={[styles.justifyContentCenter, styles.w100]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...propsToPassToHeader}
+            propsToPassToHeader={propsToPassToHeader}
         >
             {children}
         </HeaderPageLayout>

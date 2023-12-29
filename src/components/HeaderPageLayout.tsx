@@ -9,9 +9,9 @@ import * as Browser from '@libs/Browser';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import ScreenWrapper from './ScreenWrapper';
 
-// TODO: Extend with HeaderWithBackButtonProps once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TS
 type HeaderPageLayoutProps = ChildrenProps & {
     /** The background color to apply in the upper half of the screen. */
     backgroundColor?: string;
@@ -33,6 +33,9 @@ type HeaderPageLayoutProps = ChildrenProps & {
 
     /** Style to apply to the whole section container */
     style?: StyleProp<ViewStyle>;
+
+    /** Props to pass to HeaderWithackButton */
+    propsToPassToHeader?: HeaderWithBackButtonProps;
 };
 
 function HeaderPageLayout({
@@ -44,7 +47,7 @@ function HeaderPageLayout({
     childrenContainerStyles,
     style,
     headerContent,
-    ...propsToPassToHeader
+    propsToPassToHeader,
 }: HeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -71,15 +74,12 @@ function HeaderPageLayout({
         >
             {/** @ts-expect-error TODO: Remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS */}
             {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...propsToPassToHeader}
-                        // @ts-expect-error TODO: Remove once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TS
-                        titleColor={titleColor}
-                        // @ts-expect-error TODO: Remove once HeaderWithBackButton (https://github.com/Expensify/App/issues/25120) is migrated to TS
-                        iconFill={iconFill}
-                    />
+                <HeaderWithBackButton
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...propsToPassToHeader}
+                    titleColor={titleColor}
+                    iconFill={iconFill}
+                >
                     <View style={[styles.flex1, appBGColor, !isOffline && !(footer === null) ? safeAreaPaddingBottomStyle : {}]}>
                         {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {Browser.isSafari() && (
@@ -97,7 +97,7 @@ function HeaderPageLayout({
                         </ScrollView>
                         {!(footer === null) && <FixedFooter>{footer}</FixedFooter>}
                     </View>
-                </>
+                </HeaderWithBackButton>
             )}
         </ScreenWrapper>
     );
@@ -105,5 +105,4 @@ function HeaderPageLayout({
 
 HeaderPageLayout.displayName = 'HeaderPageLayout';
 
-export type {HeaderPageLayoutProps};
 export default HeaderPageLayout;
