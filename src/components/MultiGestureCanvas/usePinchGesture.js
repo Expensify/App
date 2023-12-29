@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
+import {useEffect, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import {runOnJS, useAnimatedReaction, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
 const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
@@ -20,14 +21,14 @@ const usePinchGesture = ({
     pinchBounceTranslateX,
     pinchBounceTranslateY,
     pinchScaleOffset,
-    pinchGestureRunning,
     isScrolling,
     stopAnimation,
     onScaleChanged,
+    onPinchGestureChange,
 }) => {
     // used to store event scale value when we limit scale
     const pinchGestureScale = useSharedValue(1);
-
+    const pinchGestureRunning = useSharedValue(false);
     // origin of the pinch gesture
     const pinchOrigin = {
         x: useSharedValue(0),
@@ -108,6 +109,20 @@ const usePinchGesture = ({
                 runOnJS(onScaleChanged)(zoomScale.value);
             }
         });
+
+    // Triggers "onPinchGestureChange" callback when pinch scale changes
+    const [isPinchGestureInUse, setIsPinchGestureInUse] = useState(false);
+    useAnimatedReaction(
+        () => [zoomScale.value, pinchGestureRunning.value],
+        ([zoom, running]) => {
+            const newIsPinchGestureInUse = zoom !== 1 || running;
+            if (isPinchGestureInUse !== newIsPinchGestureInUse) {
+                runOnJS(setIsPinchGestureInUse)(newIsPinchGestureInUse);
+            }
+        },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
 
     return pinchGesture;
 };

@@ -1,7 +1,7 @@
-import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {cancelAnimation, runOnJS, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -56,7 +56,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     // and not smaller than needed to fit
     const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale]);
 
-    // pan and pinch gesture
+    // stored offset of the canvas (used for panning and pinching)
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
 
@@ -64,6 +64,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
     const isSwiping = useSharedValue(false);
+    const panGestureRef = useRef(Gesture.Pan());
 
     // pinch gesture
     const pinchTranslateX = useSharedValue(0);
@@ -97,8 +98,6 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             pinchTranslateY.value = 0;
         }
     });
-
-    const panGestureRef = useRef(Gesture.Pan());
 
     const {singleTap, doubleTap} = useTapGestures({
         canvasSize,
@@ -138,38 +137,23 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
 
     const pinchGesture = usePinchGesture({
         canvasSize,
-        contentSize,
-        panGestureRef,
-        pagerRef,
         singleTap,
         doubleTap,
+        panGesture,
         zoomScale,
         zoomRange,
-        totalScale,
         offsetX,
         offsetY,
-        panTranslateX,
-        panTranslateY,
-        isSwiping,
+        pinchTranslateX,
+        pinchTranslateY,
+        pinchBounceTranslateX,
+        pinchBounceTranslateY,
+        pinchScaleOffset,
         isScrolling,
-        onSwipeSuccess,
         stopAnimation,
+        onScaleChanged,
+        onPinchGestureChange,
     });
-
-    // Triggers "onPinchGestureChange" callback when pinch scale changes
-    const pinchGestureRunning = useSharedValue(false);
-    const [isPinchGestureInUse, setIsPinchGestureInUse] = useState(false);
-    useAnimatedReaction(
-        () => [zoomScale.value, pinchGestureRunning.value],
-        ([zoom, running]) => {
-            const newIsPinchGestureInUse = zoom !== 1 || running;
-            if (isPinchGestureInUse !== newIsPinchGestureInUse) {
-                runOnJS(setIsPinchGestureInUse)(newIsPinchGestureInUse);
-            }
-        },
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
 
     // reacts to scale change and enables/disables pager scroll
     useAnimatedReaction(
