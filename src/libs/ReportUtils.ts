@@ -1963,6 +1963,7 @@ function getReportPreviewMessage(
     policy: OnyxEntry<Policy> = null,
 ): string {
     const reportActionMessage = reportAction?.message?.[0].html ?? '';
+
     if (isEmptyObject(report) || !report?.reportID) {
         // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
         // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
@@ -1992,7 +1993,9 @@ function getReportPreviewMessage(
     }
 
     const totalAmount = getMoneyRequestReimbursableTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID, true);
+    const policyName = getPolicyName(report, false, policy);
+    const payerName = isExpenseReport(report) ? policyName : getDisplayNameForParticipant(report.managerID, !isPreviewMessageForParentChatReport);
+
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isReportApproved(report) && isGroupPolicy(report)) {
@@ -2009,12 +2012,12 @@ function getReportPreviewMessage(
             return Localize.translateLocal('iou.receiptScanning');
         }
     }
+    const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
 
     // Show Paid preview message if it's settled or if the amount is paid & stuck at receivers end for only chat reports.
     if (isSettled(report.reportID) || (report.isWaitingOnBankAccount && isPreviewMessageForParentChatReport)) {
         // A settled report preview message can come in three formats "paid ... elsewhere" or "paid ... with Expensify"
         let translatePhraseKey: TranslationPaths = 'iou.paidElsewhereWithAmount';
-        const originalMessage = reportAction?.originalMessage as IOUMessage | undefined;
         if (
             [CONST.IOU.PAYMENT_TYPE.VBBA, CONST.IOU.PAYMENT_TYPE.EXPENSIFY].some((paymentType) => paymentType === originalMessage?.paymentType) ||
             !!reportActionMessage.match(/ (with Expensify|using Expensify)$/) ||
@@ -2022,7 +2025,11 @@ function getReportPreviewMessage(
         ) {
             translatePhraseKey = 'iou.paidWithExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerName ?? ''});
+
+        const actualPayerName = report.managerID === currentUserAccountID ? '' : `${getDisplayNameForParticipant(report.managerID, true)}:`;
+        const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
+
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -2031,6 +2038,20 @@ function getReportPreviewMessage(
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
+
+    const lastActorID = reportAction?.actorAccountID;
+
+    // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest request
+    if (originalMessage?.amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
+        const amount = originalMessage?.amount;
+        const currency = originalMessage?.currency ?? report.currency ?? '';
+        const amountToDisplay = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency);
+
+        // We only want to show the actor name in the preview if it's not the current user who took the action
+        const requestorName = lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant(lastActorID, !isPreviewMessageForParentChatReport) : '';
+        return `${requestorName ? `${requestorName}: ` : ''}${Localize.translateLocal('iou.requestedAmount', {formattedAmount: amountToDisplay})}`;
+    }
+
     return Localize.translateLocal(containsNonReimbursable ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount});
 }
 

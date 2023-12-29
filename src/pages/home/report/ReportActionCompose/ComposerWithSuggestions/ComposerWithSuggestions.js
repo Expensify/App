@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, NativeModules, View} from 'react-native';
+import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {runOnJS, useAnimatedRef} from 'react-native-reanimated';
 import _ from 'underscore';
@@ -24,6 +24,7 @@ import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -44,6 +45,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 const {RNTextInputReset} = NativeModules;
+
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -141,6 +144,8 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
+
+    const syncSelectionWithOnChangeTextRef = useRef(null);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -255,6 +260,11 @@ function ComposerWithSuggestions({
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
+
+                if (isIOSNative) {
+                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+                }
+
                 setSelection({
                     start: position,
                     end: position,
@@ -379,6 +389,25 @@ function ComposerWithSuggestions({
             }
         },
         [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, sendMessage, lastReportAction, reportID],
+    );
+
+    const onChangeText = useCallback(
+        (commentValue) => {
+            updateComment(commentValue, true);
+
+            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
+                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+                syncSelectionWithOnChangeTextRef.current = null;
+
+                // ensure that selection is set imperatively after all state changes are effective
+                InteractionManager.runAfterInteractions(() => {
+                    // note: this implementation is only available on non-web RN, thus the wrapping
+                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                    textInputRef.current.setSelection(positionSnapshot, positionSnapshot);
+                });
+            }
+        },
+        [updateComment],
     );
 
     const onSelectionChange = useCallback(
@@ -548,11 +577,6 @@ function ComposerWithSuggestions({
 
     const onClear = useCallback(() => {
         setTextInputShouldClear(false);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const onChangeText = useCallback((text) => {
-        updateComment(text, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
