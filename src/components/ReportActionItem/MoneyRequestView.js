@@ -117,11 +117,10 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
 
-    // The fields amount, currency, merchant, and date share the same logic, so we'll use Amount here for getting the permission
-    // and it can be used for the rest of the restricted fields
+    // The fields amount, currency, merchant, and date share the same logic so we'll use Amount here for getting the permission and it can be used for the rest of the restricted fields
     const canEditRestrictedField = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
-    const canEditReceipt = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.RECEIPT), [transaction, parentReportAction]);
-    const canEditDistance = useMemo(() => ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.DISTANCE), [transaction, parentReportAction]);
+    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
