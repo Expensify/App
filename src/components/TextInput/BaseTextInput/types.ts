@@ -1,4 +1,3 @@
-import React from 'react';
 import type {Component, ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedProps} from 'react-native-reanimated';
