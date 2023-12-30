@@ -1,58 +1,37 @@
-import PropTypes from 'prop-types';
-import React, {forwardRef, useEffect, useRef} from 'react';
-import {DeviceEventEmitter, FlatList} from 'react-native';
+import React, {ForwardedRef, forwardRef, useEffect, useRef} from 'react';
+import {DeviceEventEmitter, FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
-const propTypes = {
-    /** Passed via forwardRef so we can access the FlatList ref */
-    innerRef: PropTypes.shape({
-        current: PropTypes.instanceOf(FlatList),
-    }).isRequired,
-
-    /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    contentContainerStyle: PropTypes.any,
-
-    /** Same as for FlatList */
-    onScroll: PropTypes.func,
-};
-
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList(props) {
-    const {innerRef, contentContainerStyle} = props;
-
-    const lastScrollEvent = useRef(null);
-    const scrollEndTimeout = useRef(null);
-    const updateInProgress = useRef(false);
-    const eventHandler = useRef(null);
+function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, contentContainerStyle, ...props}: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
+    const lastScrollEvent = useRef<number | null>(null);
+    const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
+    const updateInProgress = useRef<boolean>(false);
 
     useEffect(
         () => () => {
-            if (scrollEndTimeout.current) {
-                clearTimeout(scrollEndTimeout.current);
+            if (!scrollEndTimeout.current) {
+                return;
             }
-
-            if (eventHandler.current) {
-                eventHandler.current.remove();
-            }
+            clearTimeout(scrollEndTimeout.current);
         },
-        [innerRef],
+        [ref],
     );
 
     /**
      * Emits when the scrolling is in progress. Also,
      * invokes the onScroll callback function from props.
      *
-     * @param {Event} event - The onScroll event from the FlatList
+     * @param event - The onScroll event from the FlatList
      */
-    const onScroll = (event) => {
-        props.onScroll(event);
+    const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onScrollProp(event);
 
         if (!updateInProgress.current) {
             updateInProgress.current = true;
-            eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
+            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, true);
         }
     };
 
@@ -60,7 +39,7 @@ function InvertedFlatList(props) {
      * Emits when the scrolling has ended.
      */
     const onScrollEnd = () => {
-        eventHandler.current = DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
+        DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
         updateInProgress.current = false;
     };
 
@@ -77,9 +56,8 @@ function InvertedFlatList(props) {
      * This workaround is taken from below and refactored to fit our needs:
      * https://github.com/necolas/react-native-web/issues/1021#issuecomment-984151185
      *
-     * @param {Event} event - The onScroll event from the FlatList
      */
-    const handleScroll = (event) => {
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         onScroll(event);
         const timestamp = Date.now();
 
@@ -105,28 +83,13 @@ function InvertedFlatList(props) {
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            ref={innerRef}
+            ref={ref}
             contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}
         />
     );
 }
 
-InvertedFlatList.propTypes = propTypes;
-InvertedFlatList.defaultProps = {
-    contentContainerStyle: {},
-    onScroll: () => {},
-};
 InvertedFlatList.displayName = 'InvertedFlatList';
 
-const InvertedFlatListWithRef = forwardRef((props, ref) => (
-    <InvertedFlatList
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
-
-InvertedFlatListWithRef.displayName = 'InvertedFlatListWithRef';
-
-export default InvertedFlatListWithRef;
+export default forwardRef(InvertedFlatList);
