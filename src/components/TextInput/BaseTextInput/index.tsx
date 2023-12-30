@@ -287,7 +287,7 @@ function BaseTextInput(
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
-                        ...StyleUtils.parseStyleAsArray(touchableInputWrapperStyle)
+                        touchableInputWrapperStyle,
                     ]}
                 >
                     <View

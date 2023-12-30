@@ -386,7 +386,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                             setSelectionHour(e.nativeEvent.selection);
                         }}
                         style={styles.timePickerInput}
-                        containerStyles={[styles.timePickerHeight100]}
+                        touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionHour}
                         showSoftInputOnFocus={false}
                     />
@@ -411,7 +411,7 @@ function TimePicker({forwardedRef, defaultValue, onSubmit, onInputChange}) {
                             setSelectionMinute(e.nativeEvent.selection);
                         }}
                         style={styles.timePickerInput}
-                        containerStyles={[styles.timePickerHeight100]}
+                        touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionMinute}
                         showSoftInputOnFocus={false}
                     />
