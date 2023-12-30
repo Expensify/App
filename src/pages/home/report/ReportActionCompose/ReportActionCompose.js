@@ -200,12 +200,17 @@ function ReportActionCompose({
     }, []);
 
     const containerRef = useRef(null);
-    const measureContainer = useCallback((callback) => {
-        if (!containerRef.current) {
-            return;
-        }
-        containerRef.current.measureInWindow(callback);
-    }, []);
+    const measureContainer = useCallback(
+        (callback) => {
+            if (!containerRef.current) {
+                return;
+            }
+            containerRef.current.measureInWindow(callback);
+        },
+        // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isComposerFullSize],
+    );
 
     const onAddActionPressed = useCallback(() => {
         if (!willBlurTextInputOnTapOutside) {

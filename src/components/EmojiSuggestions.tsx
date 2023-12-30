@@ -34,9 +34,6 @@ type EmojiSuggestionsProps = {
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer: (callback: MeasureParentContainerCallback) => void;
-
-    /** Whether the composer is full size */
-    isComposerFullSize: boolean;
 };
 
 /**
@@ -44,16 +41,7 @@ type EmojiSuggestionsProps = {
  */
 const keyExtractor = (item: SimpleEmoji, index: number): string => `${item.name}+${index}}`;
 
-function EmojiSuggestions({
-    emojis,
-    onSelect,
-    prefix,
-    isEmojiPickerLarge,
-    preferredSkinToneIndex,
-    highlightedEmojiIndex = 0,
-    measureParentContainer = () => {},
-    isComposerFullSize,
-}: EmojiSuggestionsProps) {
+function EmojiSuggestions({emojis, onSelect, prefix, isEmojiPickerLarge, preferredSkinToneIndex, highlightedEmojiIndex = 0, measureParentContainer = () => {}}: EmojiSuggestionsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     /**
@@ -90,7 +78,6 @@ function EmojiSuggestions({
     return (
         <AutoCompleteSuggestions
             suggestions={emojis}
-            isComposerFullSize={isComposerFullSize}
             renderSuggestionMenuItem={renderSuggestionMenuItem}
             keyExtractor={keyExtractor}
             highlightedSuggestionIndex={highlightedEmojiIndex}
