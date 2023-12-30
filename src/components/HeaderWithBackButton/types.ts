@@ -18,7 +18,7 @@ type ThreeDotsMenuItems = {
     onSelected: () => void;
 };
 
-type HeaderWithBackButtonProps = ChildrenProps & {
+type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Title of the Header */
     title?: string;
 
