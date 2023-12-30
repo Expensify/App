@@ -23,6 +23,9 @@ const propTypes = {
     /** IOU amount saved in Onyx */
     amount: PropTypes.number,
 
+    /** Calculated tax amount based on selected tax rate */
+    taxAmount: PropTypes.number,
+
     /** Currency chosen by user or saved in Onyx */
     currency: PropTypes.string,
 
@@ -44,6 +47,7 @@ const propTypes = {
 
 const defaultProps = {
     amount: 0,
+    taxAmount: 0,
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
@@ -64,13 +68,13 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
 };
 
 const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount, amount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(amount);
+const isTaxAmountInvalid = (currentAmount, taxAmount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(taxAmount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
@@ -92,7 +96,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const forwardDeletePressedRef = useRef(false);
 
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(amount, currency);
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, currency);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -228,7 +232,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
 
-        if (isTaxAmountInvalid(currentAmount, amount, isTaxAmountForm)) {
+        if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
             setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
             return;
         }
@@ -239,7 +243,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         initializeAmount(backendAmount);
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [onSubmitButtonPress, currentAmount, amount, currency, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
+    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.

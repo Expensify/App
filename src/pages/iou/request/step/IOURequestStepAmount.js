@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -159,10 +158,10 @@ export default compose(
     withFullTransactionOrNotFound,
     withOnyx({
         policyTaxRates: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${lodashGet(report, 'policyID', '0')}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${lodashGet(report, 'policyID', '0')}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
         },
     }),
 )(IOURequestStepAmount);

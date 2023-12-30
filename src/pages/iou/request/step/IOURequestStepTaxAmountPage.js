@@ -1,9 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,10 +13,12 @@ import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -30,11 +34,21 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
+
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
+    policyTaxRates: {},
+};
+
+const getTaxAmount = (transaction, defaultTaxValue) => {
+    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transaction.amount)));
 };
 
 function IOURequestStepTaxAmountPage({
@@ -44,6 +58,7 @@ function IOURequestStepTaxAmountPage({
     transaction,
     transaction: {currency: originalCurrency},
     report,
+    policyTaxRates,
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -107,6 +122,8 @@ function IOURequestStepTaxAmountPage({
             isEditing={isEditing}
             currency={currency}
             amount={transaction.taxAmount}
+            taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
+            transaction={transaction}
             ref={(e) => (textInput.current = e)}
             onCurrencyButtonPress={navigateToCurrencySelectionPage}
             onSubmitButtonPress={updateTaxAmount}
@@ -138,4 +155,12 @@ IOURequestStepTaxAmountPage.propTypes = propTypes;
 IOURequestStepTaxAmountPage.defaultProps = defaultProps;
 IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 
-export default compose(withWritableReportOrNotFound, withFullTransactionOrNotFound)(IOURequestStepTaxAmountPage);
+export default compose(
+    withWritableReportOrNotFound,
+    withFullTransactionOrNotFound,
+    withOnyx({
+        policyTaxRates: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
+        },
+    }),
+)(IOURequestStepTaxAmountPage);
