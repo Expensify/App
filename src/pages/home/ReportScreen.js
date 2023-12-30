@@ -1,4 +1,4 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
+import {useIsFocused} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -273,6 +273,14 @@ function ReportScreen({
     const fetchReport = useCallback(() => {
         Report.openReport({reportID, reportActionID: reportActionID || ''});
     }, [reportID, reportActionID]);
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (!report.reportID || !isFocused) {
+            return;
+        }
+        Report.updateLastVisitTime(report.reportID);
+    }, [report.reportID, isFocused]);
 
     const fetchReportIfNeeded = useCallback(() => {
         const reportIDFromPath = getReportID(route);
