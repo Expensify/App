@@ -63,7 +63,6 @@ function AttachmentView({
     source,
     file,
     isAuthTokenRequired,
-    isUsedInCarousel,
     onPress,
     shouldShowLoadingSpinnerIcon,
     shouldShowDownloadIcon,
@@ -72,10 +71,14 @@ function AttachmentView({
     onToggleKeyboard,
     translate,
     isFocused,
+    isUsedInCarousel,
+    isSingleCarouselItem,
+    carouselItemIndex,
+    carouselActiveItemIndex,
+    isUsedInAttachmentModal,
     isWorkspaceAvatar,
     fallbackSource,
     transaction,
-    isUsedInAttachmentModal,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -132,16 +135,18 @@ function AttachmentView({
                 <AttachmentViewPdf
                     source={source}
                     file={file}
+                    isFocused={isFocused}
                     isAuthTokenRequired={isAuthTokenRequired}
                     encryptedSourceUrl={encryptedSourceUrl}
-                    isUsedInCarousel={isUsedInCarousel}
-                    isFocused={isFocused}
+                    carouselItemIndex={carouselItemIndex}
+                    carouselActiveItemIndex={carouselActiveItemIndex}
                     onPress={onPress}
                     onScaleChanged={onScaleChanged}
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={() => !loadComplete && setLoadComplete(true)}
                     errorLabelStyles={isUsedInAttachmentModal ? [styles.textLabel, styles.textLarge] : [styles.cursorAuto]}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInCarousel={isUsedInCarousel}
                 />
             </View>
         );
@@ -161,9 +166,12 @@ function AttachmentView({
                 source={imageError ? fallbackSource : source}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
-                isUsedInCarousel={isUsedInCarousel}
                 loadComplete={loadComplete}
                 isFocused={isFocused}
+                isUsedInCarousel={isUsedInCarousel}
+                isSingleCarouselItem={isSingleCarouselItem}
+                carouselItemIndex={carouselItemIndex}
+                carouselActiveItemIndex={carouselActiveItemIndex}
                 isImage={isImage}
                 onPress={onPress}
                 onScaleChanged={onScaleChanged}
@@ -177,14 +185,20 @@ function AttachmentView({
     return (
         <View style={[styles.defaultAttachmentView, ...containerStyles]}>
             <View style={styles.mr2}>
-                <Icon src={Expensicons.Paperclip} />
+                <Icon
+                    fill={theme.icon}
+                    src={Expensicons.Paperclip}
+                />
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{file && file.name}</Text>
             {!shouldShowLoadingSpinnerIcon && shouldShowDownloadIcon && (
                 <Tooltip text={translate('common.download')}>
                     <View style={styles.ml2}>
-                        <Icon src={Expensicons.Download} />
+                        <Icon
+                            fill={theme.icon}
+                            src={Expensicons.Download}
+                        />
                     </View>
                 </Tooltip>
             )}

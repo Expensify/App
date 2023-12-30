@@ -4,7 +4,7 @@ description: Details on setting up the Expensify Card for your company as an adm
 ---
 # Overview
 
-If you’re an admin interested in rolling out the Expensify Card for your organization, you’re in the right place. This article will cover how to qualify and apply for the Expensify Card program and begin issuing cards to your employees. 
+If you’re an admin interested in rolling out the Expensify Visa® Commercial Card for your organization, you’re in the right place. This article will cover how to qualify and apply for the Expensify Card program and begin issuing cards to your employees. 
 
 # How to qualify for the Expensify Card program
 
