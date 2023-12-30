@@ -400,7 +400,7 @@ function ReportActionCompose({
                                         setMenuVisibility={setMenuVisibility}
                                         isMenuVisible={isMenuVisible}
                                         onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-																																								raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         onCanceledAttachmentPicker={() => {
                                             isNextModalWillOpenRef.current = false;
                                             restoreKeyboardState();
@@ -415,8 +415,8 @@ function ReportActionCompose({
                                         animatedRef={animatedRef}
                                         suggestionsRef={suggestionsRef}
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
-																																								isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
-																																								raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                        isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
+                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
                                         report={report}
                                         reportActions={reportActions}

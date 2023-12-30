@@ -96,7 +96,7 @@ function ComposerWithSuggestions({
     shouldShowComposeInput,
     measureParentContainer,
     listHeight,
-				isScrollLikelyLayoutTriggered,
+    isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
     // Refs
     suggestionsRef,
