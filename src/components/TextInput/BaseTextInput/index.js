@@ -262,8 +262,7 @@ function BaseTextInput(props) {
                     style={[
                         props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
                         !isMultiline && styles.componentHeightLarge,
-                        props.testInputWrapper,
-                        ...StyleUtils.parseStyleAsArray(props.testInputWrapper)
+                        ...StyleUtils.parseStyleAsArray(props.touchableInputWrapperStyle)
                     ]}
                 >
                     <View
