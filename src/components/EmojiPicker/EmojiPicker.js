@@ -86,6 +86,11 @@ const EmojiPicker = forwardRef((props, ref) => {
         if (isNavigating) {
             onModalHide.current = () => {};
         }
+        const currOnModalHide = onModalHide.current;
+        onModalHide.current = () => {
+            currOnModalHide();
+            emojiPopoverAnchorRef.current = null;
+        }
         setIsEmojiPickerVisible(false);
     };
 
@@ -161,10 +166,7 @@ const EmojiPicker = forwardRef((props, ref) => {
             isVisible={isEmojiPickerVisible}
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}
-            onModalHide={() => {
-                onModalHide.current();
-                emojiPopoverAnchorRef.current = null;
-            }}
+            onModalHide={onModalHide.current}
             hideModalContentWhileAnimating
             shouldSetModalVisibility={false}
             animationInTiming={1}
