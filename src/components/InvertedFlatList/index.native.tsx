@@ -1,9 +1,10 @@
-import React, {forwardRef} from 'react';
+import React, {ForwardedRef, forwardRef} from 'react';
+import {FlatList, FlatListProps} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
 
-const BaseInvertedFlatListWithRef = forwardRef((props, ref) => {
+function BaseInvertedFlatListWithRef<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
     const styles = useThemeStyles();
     return (
         <BaseInvertedFlatList
@@ -20,8 +21,8 @@ const BaseInvertedFlatListWithRef = forwardRef((props, ref) => {
             removeClippedSubviews={false}
         />
     );
-});
+}
 
 BaseInvertedFlatListWithRef.displayName = 'BaseInvertedFlatListWithRef';
 
-export default BaseInvertedFlatListWithRef;
+export default forwardRef(BaseInvertedFlatListWithRef);
