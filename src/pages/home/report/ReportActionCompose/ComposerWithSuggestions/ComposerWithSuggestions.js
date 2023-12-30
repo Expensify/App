@@ -394,7 +394,7 @@ function ComposerWithSuggestions({
             return;
         }
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-    }, [suggestionsRef]);
+    }, [suggestionsRef, isScrollLikelyLayoutTriggered]);
 
     const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
