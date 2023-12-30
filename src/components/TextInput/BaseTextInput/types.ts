@@ -2,7 +2,7 @@ import React from 'react';
 import type {Component, ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedProps} from 'react-native-reanimated';
-import type {SrcProps} from '@components/Icon';
+import type {IconProps} from '@components/Icon';
 import type {MaybePhraseKey} from '@libs/Localize';
 
 type CustomBaseTextInputProps = {
@@ -25,7 +25,7 @@ type CustomBaseTextInputProps = {
     errorText?: MaybePhraseKey;
 
     /** Icon to display in right side of text input */
-    icon: ((props: SrcProps) => React.ReactNode) | null;
+    icon: ((props: IconProps) => React.ReactNode) | null;
 
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
