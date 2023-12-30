@@ -17,6 +17,7 @@ import useInitialValue from '@hooks/useInitialValue';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import Performance from '@libs/Performance';
@@ -98,7 +99,10 @@ function getReportActionID(route) {
     return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
 }
 
-const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMessage) => {
+// NOTE: The current delay is a temporary workaround due to a limitation in React Native Web. This will be removed once a forthcoming patch to React Native Web is applied.
+const TIMEOUT = Browser.isSafari() && Browser.isMobileSafari ? 1100 : 70;
+
+const useHandleList = (linkedID, messageArray, fetchFn, route) => {
     const [edgeID, setEdgeID] = useState(linkedID);
     const [listID, setListID] = useState(() => Math.round(Math.random() * 100));
     const isFirstRender = useRef(true);
@@ -116,7 +120,6 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
         setEdgeID('');
     }, [route, linkedID]);
 
-
     const cattedArray = useMemo(() => {
         if (!linkedID || index === -1) {
             return messageArray;
@@ -130,7 +133,7 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
             return messageArray.slice(newStartIndex, messageArray.length);
         }
         return messageArray;
-    }, [linkedID, messageArray, edgeID, index, isLoadingLinkedMessage]);
+    }, [linkedID, messageArray, edgeID, index]);
 
     const hasMoreCashed = cattedArray.length < messageArray.length;
 
@@ -143,10 +146,10 @@ const useHandleList = (linkedID, messageArray, fetchFn, route, isLoadingLinkedMe
             }
 
             if (isFirstRender.current) {
-                isFirstRender.current = false;
-                InteractionManager.runAfterInteractions(() => {
+                setTimeout(() => {
+                    isFirstRender.current = false;
                     setEdgeID(firstReportActionID);
-                });
+                }, TIMEOUT);
             } else {
                 setEdgeID(firstReportActionID);
             }
@@ -172,7 +175,6 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const didSubscribeToReportTypingEvents = useRef(false);
     const contentListHeight = useRef(0);
     const layoutListHeight = useRef(0);
-    const isInitial = useRef(true);
     const hasCachedActions = useInitialValue(() => _.size(props.reportActions) > 0);
     const mostRecentIOUReportActionID = useInitialValue(() => ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
     const {windowHeight} = useWindowDimensions();
@@ -327,14 +329,9 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
             const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
             const SPACER = 30;
             const isContentSmallerThanList = windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current;
-
-            if (
-                (reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isInitial.current && !isContentSmallerThanList) ||
-                (!reportActionID && !hasNewestReportAction && !isContentSmallerThanList)
-            ) {
+            if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isContentSmallerThanList) || (!reportActionID && !hasNewestReportAction && !isContentSmallerThanList)) {
                 fetchFunc({firstReportActionID, distanceFromStart});
             }
-            isInitial.current = false;
         },
         [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID, windowHeight],
     );
