@@ -90,7 +90,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         onModalHide.current = () => {
             currOnModalHide();
             emojiPopoverAnchorRef.current = null;
-        }
+        };
         setIsEmojiPickerVisible(false);
     };
 
