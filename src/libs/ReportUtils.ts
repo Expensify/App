@@ -1845,11 +1845,6 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
         return true;
     }
 
-    // We allow editing of PROCESSING reports in Free policies, but not in paid policie (yet)
-    if (policy.type === CONST.POLICY.TYPE.FREE) {
-        return isRequestor && isProcessingReport(moneyRequestReport);
-    }
-
     return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
 }
 
