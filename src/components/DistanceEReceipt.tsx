@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, {useMemo} from 'react';
 import {ScrollView, View} from 'react-native';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
@@ -37,12 +36,10 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
     const sortedWaypoints = useMemo<WaypointCollection>(
         () =>
             // The waypoint keys are sometimes out of order
-            _.chain(waypoints)
-                .keys()
+            Object.keys(waypoints)
                 .sort((keyA, keyB) => TransactionUtils.getWaypointIndex(keyA) - TransactionUtils.getWaypointIndex(keyB))
                 .map((key) => ({[key]: waypoints[key]}))
-                .reduce((result, obj) => (obj ? Object.assign(result, obj) : result), {})
-                .value(),
+                .reduce((result, obj) => (obj ? Object.assign(result, obj) : result), {}),
         [waypoints],
     );
     return (
