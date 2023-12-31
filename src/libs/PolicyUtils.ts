@@ -200,16 +200,15 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 /**
  * Checks if the current user has a shared policy.
  */
-function hasSharedPolicies(policies: OnyxCollection<Policy>, allPolicyMembers: OnyxEntry<PolicyMembers>): boolean {
+function hasSharedPolicies(policies: OnyxCollection<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): boolean {
     let found = false;
-    if (policies && allPolicyMembers) {
+    if (policies && policyMembersCollection) {
         Object.keys(policies).forEach((policyKey) => {
             const policy = policies[policyKey];
             if (policy && !isPolicyAdmin(policy)) {
                 return;
             }
-            const policyId = policy?.id ?? null;
-            const policyMembers = allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyId}`] ?? {};
+            const policyMembers = policyMembersCollection?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy?.id}`] ?? {};
             if (Object.keys(policyMembers).length > 1) {
                 found = true;
             }
