@@ -231,7 +231,7 @@ const FormProvider = forwardRef(
             }
 
             onSubmit(trimmedStringValues);
-        }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate, errorMessage, getErrorMessage]);
+        }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate, getErrorMessage]);
 
         /**
          * Resets the form

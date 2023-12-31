@@ -191,6 +191,7 @@ function FormWrapper(props) {
             submitButtonStyles,
             submitButtonText,
             determineMessage,
+            props.errorMessage,
         ],
     );
 
