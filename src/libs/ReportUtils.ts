@@ -529,7 +529,9 @@ function isCanceledTaskReport(report: OnyxEntry<Report> | EmptyObject = {}, pare
  * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
 function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> | EmptyObject = {}): boolean {
-    return isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+    return (
+        isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN
+    );
 }
 
 /**
