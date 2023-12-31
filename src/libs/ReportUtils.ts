@@ -109,7 +109,6 @@ type OptimisticExpenseReport = Pick<
     | 'ownerAccountID'
     | 'currency'
     | 'reportName'
-    | 'state'
     | 'stateNum'
     | 'statusNum'
     | 'total'
@@ -300,13 +299,12 @@ type OptimisticIOUReport = Pick<
     | 'ownerAccountID'
     | 'participantAccountIDs'
     | 'reportID'
-    | 'state'
     | 'stateNum'
+    | 'statusNum'
     | 'total'
     | 'reportName'
     | 'notificationPreference'
     | 'parentReportID'
-    | 'statusNum'
     | 'lastVisibleActionCreated'
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;

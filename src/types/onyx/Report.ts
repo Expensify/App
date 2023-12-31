@@ -87,7 +87,7 @@ type Report = {
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
     /** The status of the current report */
-    statusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Which user role is capable of posting messages on the report */
     writeCapability?: WriteCapability;
