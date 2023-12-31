@@ -15,6 +15,9 @@ import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 
 const propTypes = {
+    /** Client side error getter if any*/
+    getErrorMessage: PropTypes.func,
+
     /** A unique Onyx key identifying the form */
     formID: PropTypes.string.isRequired,
 
@@ -94,6 +97,7 @@ const defaultProps = {
     validate: () => {},
     shouldValidateOnBlur: true,
     shouldValidateOnChange: true,
+    getErrorMessage: undefined,
 };
 
 function getInitialValueByType(valueType) {
@@ -110,11 +114,12 @@ function getInitialValueByType(valueType) {
 }
 
 const FormProvider = forwardRef(
-    ({validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}, forwardedRef) => {
+    ({getErrorMessage, validate, formID, shouldValidateOnBlur, shouldValidateOnChange, children, formState, network, enabledWhenOffline, draftValues, onSubmit, ...rest}, forwardedRef) => {
         const inputRefs = useRef({});
         const touchedInputs = useRef({});
         const [inputValues, setInputValues] = useState(() => ({...draftValues}));
         const [errors, setErrors] = useState({});
+        const [errorMessage, setErrorMessage] = useState('');
         const hasServerError = useMemo(() => Boolean(formState) && !_.isEmpty(formState.errors), [formState]);
 
         const onValidate = useCallback(
@@ -172,6 +177,10 @@ const FormProvider = forwardRef(
 
                 if (!_.isEqual(errors, touchedInputErrors)) {
                     setErrors(touchedInputErrors);
+                    // Clear the client side form validation error if any
+                    if (errorMessage) {
+                        setErrorMessage('');
+                    }
                 }
 
                 return touchedInputErrors;
@@ -206,13 +215,23 @@ const FormProvider = forwardRef(
                 return;
             }
 
+            // Validate the form if there is a client side form validation logic and return early if an error is found
+            let error = '';
+            if (getErrorMessage) {
+                error = getErrorMessage();
+                setErrorMessage(error);
+            }
+            if (error) {
+                return;
+            }
+
             // Do not submit form if network is offline and the form is not enabled when offline
             if (network.isOffline && !enabledWhenOffline) {
                 return;
             }
 
             onSubmit(trimmedStringValues);
-        }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate]);
+        }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate, errorMessage]);
 
         /**
          * Resets the form
@@ -374,6 +393,7 @@ const FormProvider = forwardRef(
                 {/* eslint-disable react/jsx-props-no-spreading */}
                 <FormWrapper
                     {...rest}
+                    errorMessage={errorMessage}
                     formID={formID}
                     onSubmit={submit}
                     inputRefs={inputRefs}

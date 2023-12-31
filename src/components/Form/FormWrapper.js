@@ -14,6 +14,9 @@ import stylePropTypes from '@styles/stylePropTypes';
 import errorsPropType from './errorsPropType';
 
 const propTypes = {
+    /** Client side error if any*/
+    errorMessage: PropTypes.string,
+
     /** A unique Onyx key identifying the form */
     formID: PropTypes.string.isRequired,
 
@@ -79,6 +82,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     submitButtonStyles: [],
+    errorMessage: '',
 };
 
 function FormWrapper(props) {
@@ -117,9 +121,9 @@ function FormWrapper(props) {
                 {isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={submitButtonText}
-                        isAlertVisible={_.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)}
+                        isAlertVisible={props.errorMessage || _.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)}
                         isLoading={formState.isLoading}
-                        message={_.isEmpty(formState.errorFields) ? errorMessage : null}
+                        message={props.errorMessage ? props.errorMessage : _.isEmpty(formState.errorFields) ? errorMessage : null}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={() => {
