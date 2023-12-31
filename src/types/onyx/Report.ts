@@ -83,9 +83,6 @@ type Report = {
     /** ID of the chat report */
     chatReportID?: string;
 
-    /** The state of the report */
-    state?: ValueOf<typeof CONST.REPORT.STATE>;
-
     /** The state that the report is currently in */
     stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
