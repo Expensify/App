@@ -33,7 +33,15 @@ jobs:
           # Clear node_modules and reinstall dependencies
           rm -rf node_modules
           npm install --force
-          npx patch-package
+
+          # Check if the patch files exist and apply them
+          if [ -d "patches" ]; then
+            for file in patches/*.patch; do
+              if [ -e "$file" ]; then
+                npx patch-package `basename $file | sed -e 's/+[0-9]*+.*.patch$//'`
+              fi
+            done
+          fi
 
           npx reassure --baseline
           git switch --force --detach -
@@ -42,7 +50,14 @@ jobs:
           # Repeat clearing node_modules and reinstalling for the feature branch
           rm -rf node_modules
           npm install --force
-          npx patch-package
+
+          if [ -d "patches" ]; then
+            for file in patches/*.patch; do
+              if [ -e "$file" ]; then
+                npx patch-package `basename $file | sed -e 's/+[0-9]*+.*.patch$//'`
+              fi
+            done
+          fi
 
           npx reassure --branch
 
@@ -59,4 +74,3 @@ jobs:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
           REGRESSION_OUTPUT: ${{ steps.reassure.outputs.content }}
-
