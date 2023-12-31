@@ -628,7 +628,7 @@ const CONST = {
         },
         STATE_NUM: {
             OPEN: 0,
-            PROCESSING: 1,
+            SUBMITTED: 1,
             APPROVED: 2,
             BILLING: 3,
         },
