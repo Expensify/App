@@ -1237,9 +1237,8 @@ describe('actions/IOU', () => {
                                     expect(chatReport.pendingFields).toBeFalsy();
                                     expect(iouReport.pendingFields).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.SUBMITTED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1306,9 +1305,8 @@ describe('actions/IOU', () => {
 
                                     expect(chatReport.iouReportID).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.MANUALREIMBURSED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1356,9 +1354,8 @@ describe('actions/IOU', () => {
 
                                     expect(chatReport.iouReportID).toBeFalsy();
 
-                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS.REIMBURSED);
-                                    // expect(iouReport.state).toBe(CONST.REPORT.STATE.MANUALREIMBURSED);
-                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+                                    // expect(iouReport.status).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+                                    // expect(iouReport.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
 
                                     resolve();
                                 },
@@ -1770,9 +1767,8 @@ describe('actions/IOU', () => {
                                         expect.objectContaining({
                                             lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
                                             lastMessageText: `paid $${amount / 100}.00 with Expensify`,
-                                            state: CONST.REPORT.STATE.SUBMITTED,
-                                            statusNum: CONST.REPORT.STATUS.REIMBURSED,
-                                            stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
+                                            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                                            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(

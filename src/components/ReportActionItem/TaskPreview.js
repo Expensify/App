@@ -90,8 +90,8 @@ function TaskPreview(props) {
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
     const isTaskCompleted = !_.isEmpty(props.taskReport)
-        ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
-        : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
+        ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED && props.taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
+        : props.action.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && props.action.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = _.escape(TaskUtils.getTaskTitle(props.taskReportID, props.action.childReportName));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const assigneeLogin = lodashGet(personalDetails, [taskAssigneeAccountID, 'login'], '');

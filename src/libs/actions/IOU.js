@@ -2827,7 +2827,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
                 lastMessageText: optimisticIOUReportAction.message[0].text,
                 lastMessageHtml: optimisticIOUReportAction.message[0].html,
                 hasOutstandingChildRequest: false,
-                statusNum: CONST.REPORT.STATUS.REIMBURSED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
             },
         },
         {
@@ -2965,8 +2965,8 @@ function approveMoneyRequest(expenseReport) {
             ...expenseReport,
             lastMessageText: optimisticApprovedReportAction.message[0].text,
             lastMessageHtml: optimisticApprovedReportAction.message[0].html,
-            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-            statusNum: CONST.REPORT.STATUS.APPROVED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         },
     };
     const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
@@ -3038,9 +3038,8 @@ function submitReport(expenseReport) {
                 ...expenseReport,
                 lastMessageText: lodashGet(optimisticSubmittedReportAction, 'message.0.text', ''),
                 lastMessageHtml: lodashGet(optimisticSubmittedReportAction, 'message.0.html', ''),
-                state: CONST.REPORT.STATE.SUBMITTED,
-                stateNum: CONST.REPORT.STATE_NUM.PROCESSING,
-                statusNum: CONST.REPORT.STATUS.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             },
         },
         ...(parentReport.reportID
@@ -3084,7 +3083,7 @@ function submitReport(expenseReport) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
