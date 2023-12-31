@@ -67,13 +67,13 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
     const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
-    const estimatedListSize = useMemo(() => {
-        const footerPadding = 40;
-        return {
+    const estimatedListSize = useMemo(
+        () => ({
             height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,
-            width: (isLargeScreenWidth ? windowWidth - variables.sideBarWidth : windowWidth) - footerPadding,
-        };
-    }, [isLargeScreenWidth, suggestions.length, windowWidth]);
+            width: (isLargeScreenWidth ? windowWidth - variables.sideBarWidth : windowWidth) - CONST.CHAT_FOOTER_HORIZONTAL_PADDING,
+        }),
+        [isLargeScreenWidth, suggestions.length, windowWidth],
+    );
     useEffect(() => {
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
             duration: 100,
