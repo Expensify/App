@@ -15,7 +15,7 @@ import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 
 const propTypes = {
-    /** Client side error getter if any*/
+    /** Client side error getter if any */
     getErrorMessage: PropTypes.func,
 
     /** A unique Onyx key identifying the form */
@@ -185,7 +185,7 @@ const FormProvider = forwardRef(
 
                 return touchedInputErrors;
             },
-            [errors, formID, validate],
+            [errors, formID, validate, errorMessage],
         );
 
         /**
@@ -231,7 +231,7 @@ const FormProvider = forwardRef(
             }
 
             onSubmit(trimmedStringValues);
-        }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate, errorMessage]);
+        }, [enabledWhenOffline, formState.isLoading, inputValues, network.isOffline, onSubmit, onValidate, errorMessage, getErrorMessage]);
 
         /**
          * Resets the form

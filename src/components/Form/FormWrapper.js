@@ -14,7 +14,7 @@ import stylePropTypes from '@styles/stylePropTypes';
 import errorsPropType from './errorsPropType';
 
 const propTypes = {
-    /** Client side error if any*/
+    /** Client side error if any */
     errorMessage: PropTypes.string,
 
     /** A unique Onyx key identifying the form */
@@ -109,6 +109,16 @@ function FormWrapper(props) {
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
     }, [formState]);
 
+    const determineMessage = () => {
+        if (props.errorMessage) {
+            return props.errorMessage;
+        }
+        if (!_.isEmpty(formState.errorFields)) {
+            return errorMessage;
+        }
+        return null;
+    };
+
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle) => (
             <FormSubmit
@@ -123,7 +133,7 @@ function FormWrapper(props) {
                         buttonText={submitButtonText}
                         isAlertVisible={props.errorMessage || _.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)}
                         isLoading={formState.isLoading}
-                        message={props.errorMessage ? props.errorMessage : _.isEmpty(formState.errorFields) ? errorMessage : null}
+                        message={determineMessage()}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={() => {
@@ -180,6 +190,7 @@ function FormWrapper(props) {
             styles.mt5,
             submitButtonStyles,
             submitButtonText,
+            determineMessage,
         ],
     );
 
