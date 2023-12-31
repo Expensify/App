@@ -109,20 +109,15 @@ function FormWrapper(props) {
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
     }, [formState]);
 
-    const determineMessage = useCallback(
-        () => {
-            if (props.errorMessage) {
-                return props.errorMessage;
-            }
-            if (!_.isEmpty(formState.errorFields)) {
-                return errorMessage;
-            }
-            return null;
-        },
-        props.errorMessage,
-        formState.errorFields,
-        errorMessage,
-    );
+    const determineMessage = useCallback(() => {
+        if (props.errorMessage) {
+            return props.errorMessage;
+        }
+        if (!_.isEmpty(formState.errorFields)) {
+            return errorMessage;
+        }
+        return null;
+    }, [props.errorMessage, formState.errorFields, errorMessage]);
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle) => (
