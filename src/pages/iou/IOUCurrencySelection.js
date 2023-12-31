@@ -86,7 +86,7 @@ function IOUCurrencySelection(props) {
         const parentReportAction = ReportActionsUtils.getReportAction(report.parentReportID, report.parentReportActionID);
 
         // Do not dismiss the modal, when a current user can edit this currency of this money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, report.parentReportID, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.transaction, CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             return;
         }
 
@@ -94,7 +94,7 @@ function IOUCurrencySelection(props) {
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [threadReportID]);
+    }, [threadReportID, props.transaction]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
@@ -193,6 +193,24 @@ export default compose(
     withOnyx({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
+        },
+    }),
+    withOnyx({
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+            canEvict: false,
+        },
+    }),
+    withOnyx({
+        transaction: {
+            key: ({report, parentReportActions}) => {
+                const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
+                const parentReportAction = lodashGet(parentReportActions, parentReportActionID);
+                return `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(parentReportAction, 'originalMessage.IOUTransactionID', 0)}`;
+            },
+        },
     }),
     withNetwork(),
 )(IOUCurrencySelection);
