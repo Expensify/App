@@ -2769,6 +2769,10 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 5,
         },
 
+        codePlainTextStyle: {
+            ...codeStyles.codePlainTextStyle,
+        },
+
         fullScreenLoading: {
             backgroundColor: theme.componentBG,
             opacity: 0.8,
@@ -3701,6 +3705,20 @@ const styles = (theme: ThemeColors) =>
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: 14,
             } satisfies TextStyle),
+
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        }),
+
+        tabOpacity: (
+            hovered: boolean,
+            isFocused: boolean,
+            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        ) => ({
+            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
+        }),
+
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
                 backgroundColor,
