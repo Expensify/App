@@ -730,7 +730,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
+                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowBillable && (
