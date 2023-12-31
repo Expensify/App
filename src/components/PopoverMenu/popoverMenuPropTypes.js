@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import sourcePropTypes from '@components/Image/sourcePropTypes';
 import CONST from '@src/CONST';
 
@@ -33,6 +34,12 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
+
+    /** Where the popover should be positioned relative to the anchor points. */
+    anchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
 
     /** The anchor reference of the CreateMenu popover */
     anchorRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
