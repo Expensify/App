@@ -50,7 +50,7 @@ class CalendarPicker extends React.PureComponent {
         if (props.minDate >= props.maxDate) {
             throw new Error('Minimum date cannot be greater than the maximum date.');
         }
-        let currentDateView = new Date(props.value);
+        let currentDateView = typeof props.value === 'string' ? parseISO(props.value) : new Date(props.value);
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
         } else if (props.minDate > currentDateView) {
@@ -236,7 +236,7 @@ class CalendarPicker extends React.PureComponent {
                                         <View
                                             style={[
                                                 this.props.themeStyles.calendarDayContainer,
-                                                isSelected ? this.props.themeStyles.calendarDayContainerSelected : {},
+                                                isSelected ? this.props.themeStyles.buttonDefaultBG : {},
                                                 !isDisabled ? this.props.StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
                                             ]}
                                         >

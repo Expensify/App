@@ -13,6 +13,7 @@ import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -386,18 +387,18 @@ function getLastMessageTextForReport(report) {
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
+        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
+        const lastIOUMoneyReportAction = _.find(
             allSortedReportActions[iouReport.reportID],
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReportAction, true, ReportUtils.isChatReport(report), null, true);
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
@@ -407,7 +408,7 @@ function getLastMessageTextForReport(report) {
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
@@ -456,7 +457,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         searchText: null,
         isDefaultRoom: false,
         isPinned: false,
-        hasOutstandingIOU: false,
         isWaitingOnBankAccount: false,
         iouReportID: null,
         isIOUReportOwner: null,
@@ -503,7 +503,6 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
-        result.hasOutstandingIOU = report.hasOutstandingIOU;
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
 
@@ -512,15 +511,16 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-        lastMessageText += report ? lastMessageTextFromReport : '';
+        const lastActorDisplayName =
+            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? lastActorDetails.firstName || lastActorDetails.displayName : '';
+        let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
             const archiveReason =
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(lastActorDetails, 'displayName')),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -752,7 +752,7 @@ function sortTags(tags) {
 }
 
 /**
- * Builds the options for the tree hierarchy via indents
+ * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -760,7 +760,7 @@ function sortTags(tags) {
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getIndentedOptionTree(options, isOneLine = false) {
+function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = new Map();
 
     _.each(options, (option) => {
@@ -828,7 +828,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         return categorySections;
@@ -842,7 +842,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(searchCategories, true),
+            data: getCategoryOptionTree(searchCategories, true),
         });
 
         return categorySections;
@@ -854,7 +854,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(enabledCategories),
+            data: getCategoryOptionTree(enabledCategories),
         });
 
         return categorySections;
@@ -866,7 +866,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
@@ -889,7 +889,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(cutRecentlyUsedCategories, true),
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
 
         indexOffset += filteredRecentlyUsedCategories.length;
@@ -902,7 +902,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getIndentedOptionTree(filteredCategories),
+        data: getCategoryOptionTree(filteredCategories),
     });
 
     return categorySections;
@@ -917,7 +917,13 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return getIndentedOptionTree(tags);
+    return _.map(tags, (tag) => ({
+        text: tag.name,
+        keyForList: tag.name,
+        searchText: tag.name,
+        tooltipText: tag.name,
+        isDisabled: !tag.enabled,
+    }));
 }
 
 /**
@@ -1209,7 +1215,7 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
-    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
+    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login) && !detail.isOptimisticPersonalDetail);
     let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
         createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
@@ -1387,7 +1393,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: _.filter(personalDetailsOptions, (personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
+        personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
@@ -1760,7 +1766,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    getIndentedOptionTree,
+    getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
 };

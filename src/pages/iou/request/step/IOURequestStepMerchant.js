@@ -7,9 +7,9 @@ import TextInput from '@components/TextInput';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +41,7 @@ function IOURequestStepMerchant({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+    const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
     const navigateBack = () => {
         Navigation.goBack(backTo || ROUTES.HOME);
@@ -89,7 +90,7 @@ function IOURequestStepMerchant({
                         InputComponent={TextInput}
                         inputID="moneyRequestMerchant"
                         name="moneyRequestMerchant"
-                        defaultValue={merchant}
+                        defaultValue={isEmptyMerchant ? '' : merchant}
                         maxLength={CONST.MERCHANT_NAME_MAX_LENGTH}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}

@@ -9,6 +9,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -22,8 +24,6 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -267,6 +267,9 @@ function MoneyRequestConfirmationList(props) {
         return (props.hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
     }, [props.isEditingSplitBill, props.hasSmartScanFailed, transaction, didConfirmSplit]);
 
+    const isMerchantEmpty = !props.iouMerchant || props.iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const shouldDisplayMerchantError = props.isPolicyExpenseChat && !props.isScanRequest && isMerchantEmpty;
+
     useEffect(() => {
         if (shouldDisplayFieldError && props.hasSmartScanFailed) {
             setFormError('iou.receiptScanningFailed');
@@ -448,7 +451,10 @@ function MoneyRequestConfirmationList(props) {
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
-
+            if (props.iouCategory && props.iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
+                setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
             if (props.iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
@@ -483,6 +489,7 @@ function MoneyRequestConfirmationList(props) {
             props.isEditingSplitBill,
             props.iouType,
             props.isDistanceRequest,
+            props.iouCategory,
             isDistanceRequestWithoutRoute,
             props.iouCurrencyCode,
             props.iouAmount,
@@ -496,7 +503,7 @@ function MoneyRequestConfirmationList(props) {
         }
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
+        const shouldDisableButton = selectedParticipants.length === 0 || shouldDisplayMerchantError;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -517,6 +524,7 @@ function MoneyRequestConfirmationList(props) {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
+                shouldShowPersonalBankAccountOption
             />
         ) : (
             <ButtonWithDropdownMenu
@@ -547,6 +555,7 @@ function MoneyRequestConfirmationList(props) {
         props.iouCurrencyCode,
         props.policyID,
         selectedParticipants.length,
+        shouldDisplayMerchantError,
         confirm,
         splitOrRequestOptions,
         formError,
@@ -560,7 +569,6 @@ function MoneyRequestConfirmationList(props) {
     return (
         <OptionsSelector
             sections={optionSelectorSections}
-            value=""
             onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
@@ -676,7 +684,7 @@ function MoneyRequestConfirmationList(props) {
                     {shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!props.isReadOnly}
-                            title={props.iouMerchant}
+                            title={isMerchantEmpty ? '' : props.iouMerchant}
                             description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -690,7 +698,7 @@ function MoneyRequestConfirmationList(props) {
                             disabled={didConfirm}
                             interactive={!props.isReadOnly}
                             brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? translate('common.error.enterMerchant') : ''}
+                            error={shouldDisplayMerchantError || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)) ? translate('common.error.enterMerchant') : ''}
                         />
                     )}
                     {shouldShowCategories && (
