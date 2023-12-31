@@ -1863,6 +1863,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, trans
         return false;
     }
 
+    // If we're editing fields such as category, tag, description, etc. the check above should be enough for handling the permission
     if (!restrictedFields.includes(fieldToEdit)) {
         return true;
     }
