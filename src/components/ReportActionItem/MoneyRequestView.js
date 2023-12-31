@@ -120,7 +120,6 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     // The fields amount, currency, merchant, and date share the same logic so we'll use Amount here for getting the permission and it can be used for the rest of the restricted fields
     const canEditRestrictedField = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, transaction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = policy && policy.type !== CONST.POLICY.TYPE.PERSONAL;
@@ -228,8 +227,8 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         <MenuItemWithTopDescription
                             description={translate('common.distance')}
                             title={hasPendingWaypoints ? transactionMerchant.replace(CONST.REGEX.FIRST_SPACE, translate('common.tbd')) : transactionMerchant}
-                            interactive={canEditDistance}
-                            shouldShowRightIcon={canEditDistance}
+                            interactive={canEditRestrictedField}
+                            shouldShowRightIcon={canEditRestrictedField}
                             titleStyle={styles.flex1}
                             onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DISTANCE))}
                         />
