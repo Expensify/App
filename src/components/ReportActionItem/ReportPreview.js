@@ -171,7 +171,10 @@ function ReportPreview(props) {
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
-    const isWaitingForSubmissionFromCurrentUser = props.chatReport.isOwnPolicyExpenseChat && !props.policy.isHarvestingEnabled;
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => props.chatReport.isOwnPolicyExpenseChat && !props.policy.isHarvestingEnabled,
+        [props.chatReport.isOwnPolicyExpenseChat, props.policy.isHarvestingEnabled],
+    );
 
     const getDisplayAmount = () => {
         if (hasPendingWaypoints) {

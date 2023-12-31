@@ -114,7 +114,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
-    const isWaitingForSubmissionFromCurrentUser = chatReport.isOwnPolicyExpenseChat && !policy.isHarvestingEnabled;
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => chatReport.isOwnPolicyExpenseChat && !policy.isHarvestingEnabled,
+        [chatReport.isOwnPolicyExpenseChat, policy.isHarvestingEnabled],
+    );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
     if (!ReportUtils.isArchivedRoom(chatReport)) {
