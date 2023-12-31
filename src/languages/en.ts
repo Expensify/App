@@ -780,9 +780,7 @@ export default {
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
-        hasSharedPoliciesTitle: 'You still own workspaces that are shared with other users.',
-        hasSharedPoliciesSubTitle: 'Please delete the workspace or have another user take ownership before you try again.',
-        goToWorkspacesSettings: 'Go to workspaces settings',
+        hasSharedPolicies: 'You still own workspaces that are shared with other users. Please delete the workspace or have another user take ownership before you try again.',
     },
     passwordPage: {
         changePassword: 'Change password',

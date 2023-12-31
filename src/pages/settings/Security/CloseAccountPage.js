@@ -21,7 +21,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import {policyPropTypes} from '@pages/workspace/withPolicy';
-import variables from '@styles/variables';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -57,12 +56,6 @@ function CloseAccountPage(props) {
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
     const [reasonForLeaving, setReasonForLeaving] = useState('');
-    const [shouldAllowClosing, setshouldAllowClosing] = useState(!PolicyUtils.hasSharedPolicies(props.policies, props.allPolicyMembers));
-
-    useEffect(() => {
-        setshouldAllowClosing(!PolicyUtils.hasSharedPolicies(props.policies, props.allPolicyMembers));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // If you are new to hooks this might look weird but basically it is something that only runs when the component unmounts
     // nothing runs on mount and we pass empty dependencies to prevent this from running on every re-render.
@@ -102,6 +95,15 @@ function CloseAccountPage(props) {
         return errors;
     };
 
+    const getErrorMessage = () => {
+        let error = '';
+        const hasSharedPolicies = PolicyUtils.hasSharedPolicies(props.policies, props.allPolicyMembers);
+        if (hasSharedPolicies) {
+            error = props.translate('closeAccountPage.hasSharedPolicies');
+        }
+        return error;
+    };
+
     const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
 
     return (
@@ -113,66 +115,54 @@ function CloseAccountPage(props) {
                 title={props.translate('closeAccountPage.closeAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
-            {!shouldAllowClosing ? (
-                <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
-                    iconWidth={variables.modalTopIconWidth}
-                    iconHeight={variables.modalTopIconHeight}
-                    title={props.translate('closeAccountPage.hasSharedPoliciesTitle')}
-                    subtitle={props.translate('closeAccountPage.hasSharedPoliciesSubTitle')}
-                    linkKey="closeAccountPage.goToWorkspacesSettings"
-                    shouldShowLink
-                    onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                />
-            ) : (
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
-                    validate={validate}
-                    onSubmit={showConfirmModal}
-                    submitButtonText={props.translate('closeAccountPage.closeAccount')}
-                    style={[styles.flexGrow1, styles.mh5]}
-                    isSubmitActionDangerous
-                >
-                    <View style={[styles.flexGrow1]}>
-                        <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID="reasonForLeaving"
-                            autoGrowHeight
-                            label={props.translate('closeAccountPage.enterMessageHere')}
-                            aria-label={props.translate('closeAccountPage.enterMessageHere')}
-                            role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
-                        />
-                        <Text style={[styles.mt5]}>
-                            {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
-                        </Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID="phoneOrEmail"
-                            autoCapitalize="none"
-                            label={props.translate('closeAccountPage.enterDefaultContact')}
-                            aria-label={props.translate('closeAccountPage.enterDefaultContact')}
-                            role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mt5]}
-                            autoCorrect={false}
-                            inputMode={Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
-                        />
-                        <ConfirmModal
-                            danger
-                            title={props.translate('closeAccountPage.closeAccountWarning')}
-                            onConfirm={onConfirm}
-                            onCancel={hideConfirmModal}
-                            isVisible={isConfirmModalVisible}
-                            prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                            confirmText={props.translate('common.yesContinue')}
-                            cancelText={props.translate('common.cancel')}
-                            shouldDisableConfirmButtonWhenOffline
-                            shouldShowCancelButton
-                        />
-                    </View>
-                </FormProvider>
-            )}
+            <FormProvider
+                getErrorMessage={getErrorMessage}
+                formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
+                validate={validate}
+                onSubmit={showConfirmModal}
+                submitButtonText={props.translate('closeAccountPage.closeAccount')}
+                style={[styles.flexGrow1, styles.mh5]}
+                isSubmitActionDangerous
+            >
+                <View style={[styles.flexGrow1]}>
+                    <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID="reasonForLeaving"
+                        autoGrowHeight
+                        label={props.translate('closeAccountPage.enterMessageHere')}
+                        aria-label={props.translate('closeAccountPage.enterMessageHere')}
+                        role={CONST.ROLE.PRESENTATION}
+                        containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
+                    />
+                    <Text style={[styles.mt5]}>
+                        {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
+                    </Text>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID="phoneOrEmail"
+                        autoCapitalize="none"
+                        label={props.translate('closeAccountPage.enterDefaultContact')}
+                        aria-label={props.translate('closeAccountPage.enterDefaultContact')}
+                        role={CONST.ROLE.PRESENTATION}
+                        containerStyles={[styles.mt5]}
+                        autoCorrect={false}
+                        inputMode={Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                    />
+                    <ConfirmModal
+                        danger
+                        title={props.translate('closeAccountPage.closeAccountWarning')}
+                        onConfirm={onConfirm}
+                        onCancel={hideConfirmModal}
+                        isVisible={isConfirmModalVisible}
+                        prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
+                        confirmText={props.translate('common.yesContinue')}
+                        cancelText={props.translate('common.cancel')}
+                        shouldDisableConfirmButtonWhenOffline
+                        shouldShowCancelButton
+                    />
+                </View>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

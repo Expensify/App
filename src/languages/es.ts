@@ -775,9 +775,8 @@ export default {
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
-        hasSharedPoliciesTitle: 'Sigues siendo propietario de espacios de trabajo compartidos con otros usuarios.',
-        hasSharedPoliciesSubTitle: 'Elimina el espacio de trabajo o asigna otro propietario antes de volver a intentarlo.',
-        goToWorkspacesSettings: 'Ir a la configuración de espacios de trabajo',
+        hasSharedPolicies:
+            'Sigues siendo propietario de espacios de trabajo compartidos con otros usuarios. Elimina el espacio de trabajo o asigna otro propietario antes de volver a intentarlo.',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
