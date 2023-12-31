@@ -109,68 +109,69 @@ function FormWrapper(props) {
         return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
     }, [formState]);
 
-    const determineMessage = () => {
-        if (props.errorMessage) {
-            return props.errorMessage;
-        }
-        if (!_.isEmpty(formState.errorFields)) {
-            return errorMessage;
-        }
-        return null;
-    };
-
     const scrollViewContent = useCallback(
-        (safeAreaPaddingBottomStyle) => (
-            <FormSubmit
-                key={formID}
-                ref={formContentRef}
-                style={StyleSheet.flatten([style, safeAreaPaddingBottomStyle])}
-                onSubmit={onSubmit}
-            >
-                {children}
-                {isSubmitButtonVisible && (
-                    <FormAlertWithSubmitButton
-                        buttonText={submitButtonText}
-                        isAlertVisible={props.errorMessage || _.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)}
-                        isLoading={formState.isLoading}
-                        message={determineMessage()}
-                        onSubmit={onSubmit}
-                        footerContent={footerContent}
-                        onFixTheErrorsLinkPressed={() => {
-                            const errorFields = !_.isEmpty(errors) ? errors : formState.errorFields;
-                            const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
-                            const focusInput = inputRefs.current[focusKey].current;
+        (safeAreaPaddingBottomStyle) => {
+            const determineMessage = () => {
+                if (props.errorMessage) {
+                    return props.errorMessage;
+                }
+                if (!_.isEmpty(formState.errorFields)) {
+                    return errorMessage;
+                }
+                return null;
+            };
+            return (
+                <FormSubmit
+                    key={formID}
+                    ref={formContentRef}
+                    style={StyleSheet.flatten([style, safeAreaPaddingBottomStyle])}
+                    onSubmit={onSubmit}
+                >
+                    {children}
+                    {isSubmitButtonVisible && (
+                        <FormAlertWithSubmitButton
+                            buttonText={submitButtonText}
+                            isAlertVisible={props.errorMessage || _.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(formState.errorFields)}
+                            isLoading={formState.isLoading}
+                            message={determineMessage()}
+                            onSubmit={onSubmit}
+                            footerContent={footerContent}
+                            onFixTheErrorsLinkPressed={() => {
+                                const errorFields = !_.isEmpty(errors) ? errors : formState.errorFields;
+                                const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
+                                const focusInput = inputRefs.current[focusKey].current;
 
-                            // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
-                            if (typeof focusInput.isFocused !== 'function') {
-                                Keyboard.dismiss();
-                            }
+                                // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
+                                if (typeof focusInput.isFocused !== 'function') {
+                                    Keyboard.dismiss();
+                                }
 
-                            // We subtract 10 to scroll slightly above the input
-                            if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
-                                // We measure relative to the content root, not the scroll view, as that gives
-                                // consistent results across mobile and web
-                                focusInput.measureLayout(formContentRef.current, (x, y) =>
-                                    formRef.current.scrollTo({
-                                        y: y - 10,
-                                        animated: false,
-                                    }),
-                                );
-                            }
+                                // We subtract 10 to scroll slightly above the input
+                                if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
+                                    // We measure relative to the content root, not the scroll view, as that gives
+                                    // consistent results across mobile and web
+                                    focusInput.measureLayout(formContentRef.current, (x, y) =>
+                                        formRef.current.scrollTo({
+                                            y: y - 10,
+                                            animated: false,
+                                        }),
+                                    );
+                                }
 
-                            // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                            if (focusInput.focus && typeof focusInput.focus === 'function') {
-                                focusInput.focus();
-                            }
-                        }}
-                        containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...submitButtonStyles]}
-                        enabledWhenOffline={enabledWhenOffline}
-                        isSubmitActionDangerous={isSubmitActionDangerous}
-                        disablePressOnEnter
-                    />
-                )}
-            </FormSubmit>
-        ),
+                                // Focus the input after scrolling, as on the Web it gives a slightly better visual result
+                                if (focusInput.focus && typeof focusInput.focus === 'function') {
+                                    focusInput.focus();
+                                }
+                            }}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, ...submitButtonStyles]}
+                            enabledWhenOffline={enabledWhenOffline}
+                            isSubmitActionDangerous={isSubmitActionDangerous}
+                            disablePressOnEnter
+                        />
+                    )}
+                </FormSubmit>
+            );
+        },
         [
             children,
             enabledWhenOffline,
@@ -190,7 +191,6 @@ function FormWrapper(props) {
             styles.mt5,
             submitButtonStyles,
             submitButtonText,
-            determineMessage,
             props.errorMessage,
         ],
     );
