@@ -1,11 +1,9 @@
 import {useEffect} from 'react';
 import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
 import usePermissions from '@hooks/usePermissions';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportMetadata} from '@src/types/onyx';
 import type {ReportScreenWrapperProps} from './ReportScreenWrapper';
 
