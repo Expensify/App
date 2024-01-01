@@ -425,7 +425,11 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
 function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
-    return Boolean(transaction && hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
+    return Boolean(
+        transaction && hasReceipt(transaction) && isFromExpenseReport && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction),
+    );
 }
 
 /**
