@@ -51,7 +51,7 @@ function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTime
             const reportActionID = route?.params?.reportActionID;
             const regexValidReportActionID = new RegExp(/^\d*$/);
             if (reportActionID && !regexValidReportActionID.test(reportActionID)) {
-                Navigation.goBack(ROUTES.HOME);
+                Navigation.navigate(ROUTES.HOME);
                 return;
             }
 
