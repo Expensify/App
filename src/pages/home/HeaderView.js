@@ -147,7 +147,14 @@ function HeaderView(props) {
                 icon: Expensicons.ChatBubbles,
                 text: translate('common.join'),
                 onSelected: Session.checkIfActionIsAllowed(() =>
-                    Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, props.report.parentReportID, props.report.parentReportActionID),
+                    Report.updateNotificationPreference(
+                        props.report.reportID,
+                        props.report.notificationPreference,
+                        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        false,
+                        props.report.parentReportID,
+                        props.report.parentReportActionID,
+                    ),
                 ),
             });
         } else if ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom) {
