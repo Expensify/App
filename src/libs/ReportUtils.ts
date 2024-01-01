@@ -1807,7 +1807,8 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    - the current user is the requestor and is not settled yet
  * - in case of expense report
  *    - the current user is the requestor and is not settled yet
- *    - or the user is an admin on the policy the expense report is tied to
+ *    - the current user is the manager of the report
+ *    - or the current user is an admin on the policy the expense report is tied to
  *
  *    This is used in conjuction with canEditRestrictedField to control editing of specific fields like amount, currency, created, and receipt.
  *    On its own, it only controls allowing/disallowing navigating to the editing pages or showing/hiding the 'Edit' icon on report actions
