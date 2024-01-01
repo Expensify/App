@@ -1849,7 +1849,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     return !isReportApproved(moneyRequestReport) && !isSettled(moneyRequestReport?.reportID) && isRequestor;
 }
 
-function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, transaction: Transaction, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
     // A list of fields that cannot be edited by anyone, once a money request has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -1869,11 +1869,12 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, trans
         return true;
     }
 
-    const reportID = (reportAction?.originalMessage as IOUMessage)?.IOUReportID ?? 0;
-    if (isSettled(String(reportID)) || isReportApproved(String(reportID))) {
+    const iouMessage: IOUMessage = reportAction?.originalMessage;
+    if (isSettled(String(iouMessage.IOUReportID)) || isReportApproved(String(iouMessage.IOUReportID))) {
         return false;
     }
 
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? {};
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) {
         return !TransactionUtils.isCardTransaction(transaction);
     }
