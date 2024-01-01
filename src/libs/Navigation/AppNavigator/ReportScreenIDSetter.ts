@@ -44,16 +44,17 @@ const getLastAccessedReportID = (
 function ReportScreenIDSetter({route, reports, policies, navigation, isFirstTimeNewExpensifyUser = false, reportMetadata}: ReportScreenIDSetterProps) {
     const {canUseDefaultRooms} = usePermissions();
     useEffect(() => {
-        const reportActionID = route?.params?.reportActionID;
-        const regexValidReportActionID = new RegExp(/^\d*$/);
-        if (reportActionID && !regexValidReportActionID.test(reportActionID)) {
-            Navigation.goBack(ROUTES.HOME);
-            return;
-        }
-
         // Don't update if there is a reportID in the params already
         if (route?.params?.reportID) {
             App.confirmReadyToOpenApp();
+
+            const reportActionID = route?.params?.reportActionID;
+            const regexValidReportActionID = new RegExp(/^\d*$/);
+            if (reportActionID && !regexValidReportActionID.test(reportActionID)) {
+                Navigation.goBack(ROUTES.HOME);
+                return;
+            }
+
             return;
         }
 
