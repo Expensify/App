@@ -70,7 +70,7 @@ function IOURequestStepParticipants({
             if (isSplit && iouType !== CONST.IOU.TYPE.SPLIT) {
                 newIouType.current = CONST.IOU.TYPE.SPLIT;
             } else if (!isSplit && iouType === CONST.IOU.TYPE.SPLIT) {
-                // Non-split can be either REQUEST or SEND. Instead of checking whether 
+                // Non-split can be either REQUEST or SEND. Instead of checking whether
                 // the current IOU type is not a REQUEST (true for SEND), we check whether the current IOU type is a SPLIT.
                 newIouType.current = CONST.IOU.TYPE.REQUEST;
             }
