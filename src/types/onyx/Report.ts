@@ -153,8 +153,7 @@ type Report = {
     nonReimbursableTotal?: number;
     isHidden?: boolean;
     isChatRoom?: boolean;
-    participantsList?: Array<Partial<PersonalDetails>>;
-    text?: string;
+    participantsList?: PersonalDetails[];
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
 

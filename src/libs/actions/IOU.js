@@ -2203,17 +2203,28 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: {
+                ...transaction,
+                modifiedCreated: transaction.modifiedCreated ? transaction.modifiedCreated : null,
+                modifiedAmount: transaction.modifiedAmount ? transaction.modifiedAmount : null,
+                modifiedCurrency: transaction.modifiedCurrency ? transaction.modifiedCurrency : null,
+                modifiedMerchant: transaction.modifiedMerchant ? transaction.modifiedMerchant : null,
+                modifiedWaypoints: transaction.modifiedWaypoints ? transaction.modifiedWaypoints : null,
+                pendingFields: null,
+            },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: iouReport,
+            value: {
+                ...iouReport,
+                cachedTotal: iouReport.cachedTotal ? iouReport.cachedTotal : null,
+            },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`,
             value: chatReport,
         },
