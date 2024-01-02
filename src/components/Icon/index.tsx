@@ -3,7 +3,6 @@ import React from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import IconAsset from '@src/types/utils/IconAsset';
@@ -57,13 +56,11 @@ function Icon({
     testID = '',
     contentFit = 'cover',
 }: IconProps) {
-    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const iconWidth = small ? variables.iconSizeSmall : width;
     const iconHeight = small ? variables.iconSizeSmall : height;
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
-    const iconFill = fill ?? theme.icon;
 
     if (inline) {
         return (
@@ -76,7 +73,7 @@ function Icon({
                         src={src}
                         width={iconWidth}
                         height={iconHeight}
-                        fill={iconFill}
+                        fill={fill}
                         hovered={hovered}
                         pressed={pressed}
                         contentFit={contentFit}
@@ -95,7 +92,7 @@ function Icon({
                 src={src}
                 width={iconWidth}
                 height={iconHeight}
-                fill={iconFill}
+                fill={fill}
                 hovered={hovered}
                 pressed={pressed}
                 contentFit={contentFit}
