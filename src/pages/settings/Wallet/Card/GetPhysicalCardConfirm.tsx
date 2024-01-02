@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
@@ -14,7 +13,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 
@@ -46,7 +45,7 @@ function GetPhysicalCardConfirm({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {addressLine1, addressLine2, city, state, zipPostCode, country, phoneNumber, legalFirstName, legalLastName} = draftValues ?? {};
+    const {addressLine1, addressLine2, city = '', state = '', zipPostCode = '', country = '', phoneNumber = '', legalFirstName = '', legalLastName = ''} = draftValues ?? {};
 
     return (
         <BaseGetPhysicalCard
@@ -80,10 +79,10 @@ function GetPhysicalCardConfirm({
                 title={PersonalDetailsUtils.getFormattedAddress({
                     address: {
                         street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2),
-                        city: city || '',
-                        state: state || '',
-                        zip: zipPostCode || '',
-                        country: country || '',
+                        city,
+                        state,
+                        zip: zipPostCode,
+                        country,
                     },
                 })}
             />

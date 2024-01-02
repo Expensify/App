@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import type {OnyxEntry} from 'react-native-onyx';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -7,13 +6,6 @@ import Navigation from './Navigation/Navigation';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as UserUtils from './UserUtils';
 
-/**
- *
- * @param domain
- * @param privatePersonalDetails
- * @param loginList
- * @returns
- */
 function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>): Route {
     const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
 
@@ -30,13 +22,6 @@ function getCurrentRoute(domain: string, privatePersonalDetails: OnyxEntry<Priva
     return ROUTES.SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM.getRoute(domain);
 }
 
-/**
- *
- * @param domain
- * @param privatePersonalDetails
- * @param loginList
- * @returns
- */
 function goToNextPhysicalCardRoute(domain: string, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>, loginList: OnyxEntry<LoginList>) {
     Navigation.navigate(getCurrentRoute(domain, privatePersonalDetails, loginList));
 }
@@ -71,6 +56,8 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
     const {address, legalFirstName, legalLastName, phoneNumber} = privatePersonalDetails ?? {};
 
     return {
+        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+        // we do not need to use nullish coalescing here because we want to allow empty strings
         legalFirstName: draftValues?.legalFirstName || legalFirstName,
         legalLastName: draftValues?.legalLastName || legalLastName,
         addressLine1: draftValues?.addressLine1 || address?.street.split('\n')[0],
@@ -80,6 +67,7 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
         phoneNumber: draftValues?.phoneNumber || phoneNumber || UserUtils.getSecondaryPhoneLogin(loginList) || '',
         state: draftValues?.state || address?.state,
         zipPostCode: draftValues?.zipPostCode || address?.zip || '',
+        /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     };
 }
 
@@ -89,12 +77,12 @@ function getUpdatedDraftValues(draftValues: OnyxEntry<GetPhysicalCardForm>, priv
  * @returns
  */
 function getUpdatedPrivatePersonalDetails(draftValues: OnyxEntry<GetPhysicalCardForm | undefined>): PrivatePersonalDetails {
-    const {addressLine1, addressLine2, city, country, legalFirstName, legalLastName, phoneNumber, state, zipPostCode} = draftValues ?? {};
+    const {addressLine1, addressLine2, city = '', country = '', legalFirstName, legalLastName, phoneNumber, state = '', zipPostCode = ''} = draftValues ?? {};
     return {
         legalFirstName,
         legalLastName,
         phoneNumber,
-        address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city: city || '', country: country || '', state: state || '', zip: zipPostCode || ''},
+        address: {street: PersonalDetailsUtils.getFormattedStreet(addressLine1, addressLine2), city, country, state, zip: zipPostCode},
     };
 }
 

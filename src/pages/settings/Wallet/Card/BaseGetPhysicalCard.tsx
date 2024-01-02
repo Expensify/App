@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
+import type {ReactNode} from 'react';
 import {Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx/lib/types';
@@ -42,9 +43,12 @@ type BaseGetPhysicalCardOnyxProps = {
     loginList: OnyxEntry<LoginList>;
 };
 
-type BaseGetPhysicalCardProps = ChildrenProps & BaseGetPhysicalCardOnyxProps & {
+type BaseGetPhysicalCardProps = BaseGetPhysicalCardOnyxProps & {
     /** Text displayed below page title */
     headline: string;
+
+    /** Children components that will be rendered by renderContent */
+    children?: ReactNode;
 
     /** Current route from ROUTES */
     currentRoute: string;

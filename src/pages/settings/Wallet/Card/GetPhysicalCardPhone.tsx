@@ -36,14 +36,16 @@ function GetPhysicalCardPhone({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {phoneNumber} = draftValues ?? {};
+    const {phoneNumber = ''} = draftValues ?? {};
 
     const onValidate = (values: OnyxEntry<GetPhysicalCardForm>): OnValidateResult => {
+        const {phoneNumber: phoneNumberToValidate = ''} = values ?? {};
+
         const errors: OnValidateResult = {};
 
-        if (!(parsePhoneNumber(values?.phoneNumber ?? '').possible && Str.isValidPhone(values?.phoneNumber ?? ''))) {
+        if (!(parsePhoneNumber(phoneNumberToValidate).possible && Str.isValidPhone(phoneNumberToValidate))) {
             errors.phoneNumber = 'common.error.phoneNumber';
-        } else if (!values?.phoneNumber) {
+        } else if (!phoneNumberToValidate) {
             errors.phoneNumber = 'common.error.fieldRequired';
         }
 
@@ -66,7 +68,7 @@ function GetPhysicalCardPhone({
                 name="phoneNumber"
                 label={translate('getPhysicalCard.phoneNumber')}
                 aria-label={translate('getPhysicalCard.phoneNumber')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 defaultValue={phoneNumber}
                 containerStyles={[styles.mh5]}
                 shouldSaveDraft

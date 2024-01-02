@@ -1,14 +1,14 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
 import AddressForm from '@components/AddressForm';
 import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {GetPhysicalCardForm} from '@src/types/onyx';
 import BaseGetPhysicalCard from './BaseGetPhysicalCard';
 import type {RenderContentProps} from './BaseGetPhysicalCard';
@@ -28,7 +28,7 @@ function GetPhysicalCardAddress({
 }: GetPhysicalCardAddressProps) {
     const {translate} = useLocalize();
 
-    const {addressLine1, addressLine2, city, state, zipPostCode, country} = draftValues ?? {};
+    const {addressLine1 = '', addressLine2 = '', city = '', state = '', zipPostCode = '', country = ''} = draftValues ?? {};
 
     useEffect(() => {
         if (!countryFromUrl) {

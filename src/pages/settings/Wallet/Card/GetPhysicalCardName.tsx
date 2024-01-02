@@ -36,7 +36,7 @@ function GetPhysicalCardName({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {legalFirstName, legalLastName} = draftValues ?? {};
+    const {legalFirstName = '', legalLastName = ''} = draftValues ?? {};
 
     const onValidate = (values: OnyxEntry<GetPhysicalCardForm>): OnValidateResult => {
         const errors: OnValidateResult = {};
@@ -72,7 +72,7 @@ function GetPhysicalCardName({
                 name="legalFirstName"
                 label={translate('getPhysicalCard.legalFirstName')}
                 aria-label={translate('getPhysicalCard.legalFirstName')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="words"
                 defaultValue={legalFirstName}
                 containerStyles={[styles.mh5]}
@@ -85,7 +85,7 @@ function GetPhysicalCardName({
                 name="legalLastName"
                 label={translate('getPhysicalCard.legalLastName')}
                 aria-label={translate('getPhysicalCard.legalLastName')}
-                role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                role={CONST.ROLE.PRESENTATION}
                 autoCapitalize="words"
                 defaultValue={legalLastName}
                 containerStyles={[styles.mt5, styles.mh5]}
