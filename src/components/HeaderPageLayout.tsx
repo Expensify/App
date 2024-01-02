@@ -72,12 +72,13 @@ function HeaderPageLayout({
         >
             {/** @ts-expect-error TODO: Remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS */}
             {({safeAreaPaddingBottomStyle}) => (
-                <HeaderWithBackButton
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                    titleColor={titleColor}
-                    iconFill={iconFill}
-                >
+                <>
+                    <HeaderWithBackButton
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...rest}
+                        titleColor={titleColor}
+                        iconFill={iconFill}
+                    />
                     <View style={[styles.flex1, appBGColor, !isOffline && footer !== null ? safeAreaPaddingBottomStyle : {}]}>
                         {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {Browser.isSafari() && (
@@ -95,7 +96,7 @@ function HeaderPageLayout({
                         </ScrollView>
                         {footer !== null && <FixedFooter>{footer}</FixedFooter>}
                     </View>
-                </HeaderWithBackButton>
+                </>
             )}
         </ScreenWrapper>
     );
