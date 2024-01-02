@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import categoryPropTypes from '@components/categoryPropTypes';
@@ -85,9 +85,6 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     } = ReportUtils.getTransactionDetails(transaction);
 
     const defaultCurrency = lodashGet(route, 'params.currency', '') || transactionCurrency;
-
-    // Take only the YYYY-MM-DD value
-    const transactionCreated = TransactionUtils.getCreated(transaction);
     const fieldToEdit = lodashGet(route, ['params', 'field'], '');
 
     // For now, it always defaults to the first tag of the policy
@@ -128,6 +125,35 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.dismissModal(report.reportID);
     }
 
+    const saveAmountAndCurrency = useCallback(
+        ({amount, currency: newCurrency}) => {
+            const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newAmount === TransactionUtils.getAmount(transaction) && newCurrency === TransactionUtils.getCurrency(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            IOU.updateMoneyRequestAmountAndCurrency(transaction.transactionID, report.reportID, newCurrency, newAmount);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
+    const saveCreated = useCallback(
+        ({created: newCreated}) => {
+            // If the value hasn't changed, don't request to save changes on the server and just close the modal
+            if (newCreated === TransactionUtils.getCreated(transaction)) {
+                Navigation.dismissModal();
+                return;
+            }
+            IOU.updateMoneyRequestDate(transaction.transactionID, report.reportID, newCreated);
+            Navigation.dismissModal();
+        },
+        [transaction, report],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
@@ -147,15 +173,8 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) {
         return (
             <EditRequestCreatedPage
-                defaultCreated={transactionCreated}
-                onSubmit={(transactionChanges) => {
-                    // In case the date hasn't been changed, do not make the API request.
-                    if (transactionChanges.created === transactionCreated) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest(transactionChanges);
-                }}
+                defaultCreated={TransactionUtils.getCreated(transaction)}
+                onSubmit={saveCreated}
             />
         );
     }
@@ -166,19 +185,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 defaultAmount={transactionAmount}
                 defaultCurrency={defaultCurrency}
                 reportID={report.reportID}
-                onSubmit={(transactionChanges) => {
-                    const amount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(transactionChanges));
-                    // In case the amount hasn't been changed, do not make the API request.
-                    if (amount === transactionAmount && transactionCurrency === defaultCurrency) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    // Temporarily disabling currency editing and it will be enabled as a quick follow up
-                    editMoneyRequest({
-                        amount,
-                        currency: defaultCurrency,
-                    });
-                }}
+                onSubmit={saveAmountAndCurrency}
                 onNavigateToCurrency={() => {
                     const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
                     Navigation.navigate(ROUTES.EDIT_CURRENCY_REQUEST.getRoute(report.reportID, defaultCurrency, activeRoute));
@@ -191,13 +198,23 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         return (
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
+                isPolicyExpenseChat={isPolicyExpenseChat}
                 onSubmit={(transactionChanges) => {
+                    const newTrimmedMerchant = transactionChanges.merchant.trim();
+
                     // In case the merchant hasn't been changed, do not make the API request.
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
+                    // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+                    if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
                         Navigation.dismissModal();
                         return;
                     }
-                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
+
+                    // This is possible only in case of IOU requests.
+                    if (newTrimmedMerchant === '') {
+                        editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+                        return;
+                    }
+                    editMoneyRequest({merchant: newTrimmedMerchant});
                 }}
             />
         );

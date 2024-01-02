@@ -3,11 +3,12 @@ import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useSharedValue} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import styles from '@styles/styles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 import {attachmentViewPdfDefaultProps, attachmentViewPdfPropTypes} from './propTypes';
 
 function AttachmentViewPdf(props) {
+    const styles = useThemeStyles();
     const {onScaleChanged, ...restProps} = props;
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
     const scaleRef = useSharedValue(1);
@@ -17,7 +18,7 @@ function AttachmentViewPdf(props) {
     const Pan = Gesture.Pan()
         .manualActivation(true)
         .onTouchesMove((evt) => {
-            if (offsetX.value !== 0 && offsetY.value !== 0) {
+            if (offsetX.value !== 0 && offsetY.value !== 0 && attachmentCarouselPagerContext) {
                 // if the value of X is greater than Y and the pdf is not zoomed in,
                 // enable  the pager scroll so that the user
                 // can swipe to the next attachment otherwise disable it.
@@ -41,7 +42,7 @@ function AttachmentViewPdf(props) {
     return (
         <View
             collapsable={false}
-            style={[styles.flex1]}
+            style={styles.flex1}
         >
             <GestureDetector gesture={Pan}>
                 <Animated.View

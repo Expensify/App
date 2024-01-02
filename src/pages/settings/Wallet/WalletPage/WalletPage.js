@@ -1,11 +1,11 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, InteractionManager, ScrollView, View} from 'react-native';
+import {ActivityIndicator, ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
-import ConfirmContent from '@components/ConfirmContent';
+import ConfirmModal from '@components/ConfirmModal';
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -20,16 +20,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import WalletSection from '@components/WalletSection';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
-import Permissions from '@libs/Permissions';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import WalletEmptyState from '@pages/settings/Wallet/WalletEmptyState';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -38,7 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {defaultProps, propTypes} from './walletPagePropTypes';
 
-function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
+function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethods, network, shouldListenForResize, userWallet, walletTerms}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -63,7 +62,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         anchorPositionTop: 0,
         anchorPositionRight: 0,
     });
-    const [showConfirmDeleteContent, setShowConfirmDeleteContent] = useState(false);
+    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
     const hasBankAccount = !_.isEmpty(bankAccountList) || !_.isEmpty(fundList);
     const hasWallet = !_.isEmpty(userWallet);
@@ -202,7 +201,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
             return;
         }
 
-        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
             BankAccounts.openPersonalBankAccountSetupView();
             return;
         }
@@ -216,15 +215,13 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
      */
     const hideDefaultDeleteMenu = useCallback(() => {
         setShouldShowDefaultDeleteMenu(false);
-        InteractionManager.runAfterInteractions(() => {
-            setShowConfirmDeleteContent(false);
-        });
-    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteContent]);
+        setShowConfirmDeleteModal(false);
+    }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList || {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, paymentCardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, paymentCardList, styles);
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === paymentMethod.methodID);
@@ -240,6 +237,7 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
         paymentMethod.selectedPaymentMethodType,
         bankAccountList,
         fundList,
+        styles,
     ]);
 
     const deletePaymentMethod = useCallback(() => {
@@ -309,7 +307,6 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
 
     const shouldShowMakeDefaultButton =
         !paymentMethod.isSelectedPaymentMethodDefault &&
-        Permissions.canUseWallet(betas) &&
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
@@ -488,11 +485,9 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                             top: anchorPosition.anchorPositionTop,
                             right: anchorPosition.anchorPositionRight,
                         }}
-                        withoutOverlay
                         anchorRef={paymentMethodButtonRef}
-                        onModalHide={resetSelectedPaymentMethodData}
                     >
-                        {!showConfirmDeleteContent ? (
+                        {!showConfirmDeleteModal && (
                             <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
                                 {isPopoverBottomMount && (
                                     <MenuItem
@@ -513,34 +508,28 @@ function WalletPage({bankAccountList, betas, cardList, fundList, isLoadingPaymen
                                     />
                                 )}
                                 <Button
-                                    onPress={() => {
-                                        setShowConfirmDeleteContent(true);
-                                    }}
+                                    onPress={() => setShowConfirmDeleteModal(true)}
                                     style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
                                     text={translate('common.delete')}
                                     danger
                                 />
                             </View>
-                        ) : (
-                            <ConfirmContent
-                                onConfirm={() => {
-                                    deletePaymentMethod();
-                                    hideDefaultDeleteMenu();
-                                }}
-                                onCancel={hideDefaultDeleteMenu}
-                                contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
-                                title={translate('walletPage.deleteAccount')}
-                                prompt={translate('walletPage.deleteConfirmation')}
-                                confirmText={translate('common.delete')}
-                                cancelText={translate('common.cancel')}
-                                anchorPosition={{
-                                    top: anchorPosition.anchorPositionTop,
-                                    right: anchorPosition.anchorPositionRight,
-                                }}
-                                shouldShowCancelButton
-                                danger
-                            />
                         )}
+                        <ConfirmModal
+                            isVisible={showConfirmDeleteModal}
+                            onConfirm={() => {
+                                deletePaymentMethod();
+                                hideDefaultDeleteMenu();
+                            }}
+                            onCancel={hideDefaultDeleteMenu}
+                            title={translate('walletPage.deleteAccount')}
+                            prompt={translate('walletPage.deleteConfirmation')}
+                            confirmText={translate('common.delete')}
+                            cancelText={translate('common.cancel')}
+                            shouldShowCancelButton
+                            danger
+                            onModalHide={resetSelectedPaymentMethodData}
+                        />
                     </Popover>
                 </ScreenWrapper>
             )}
@@ -565,9 +554,6 @@ WalletPage.displayName = 'WalletPage';
 export default compose(
     withNetwork(),
     withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
         },

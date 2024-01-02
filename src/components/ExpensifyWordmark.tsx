@@ -5,11 +5,11 @@ import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
 import ProductionLogo from '@assets/images/expensify-wordmark.svg';
 import useEnvironment from '@hooks/useEnvironment';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ImageSVG from './ImageSVG';
 import withWindowDimensions from './withWindowDimensions';
 import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
@@ -26,11 +26,11 @@ const logoComponents = {
 };
 
 function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
-    const LogoComponent = environment ? logoComponents[environment] : AdHocLogo;
+    const LogoComponent = logoComponents[environment];
 
     return (
         <>
@@ -42,7 +42,10 @@ function ExpensifyWordmark({isSmallScreenWidth, style}: ExpensifyWordmarkProps) 
                     style,
                 ]}
             >
-                <LogoComponent fill={theme.success} />
+                <ImageSVG
+                    contentFit="contain"
+                    src={LogoComponent}
+                />
             </View>
         </>
     );

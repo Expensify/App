@@ -7,8 +7,9 @@ import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
 
 const propTypes = {
@@ -53,7 +54,7 @@ function BaseOptionsList({
     contentContainerStyles,
     sectionHeaderStyle,
     showScrollIndicator,
-    listContainerStyles,
+    listContainerStyles: listContainerStylesProp,
     shouldDisableRowInnerPadding,
     shouldPreventDefaultFocusOnSelectRow,
     disableFocusOptions,
@@ -70,11 +71,14 @@ function BaseOptionsList({
     isLoadingNewOptions,
     nestedScrollEnabled,
     bounces,
+    renderFooterContent,
 }) {
     const styles = useThemeStyles();
     const flattenedData = useRef();
     const previousSections = usePrevious(sections);
     const didLayout = useRef(false);
+
+    const listContainerStyles = listContainerStylesProp || [styles.flex1];
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
@@ -90,7 +94,6 @@ function BaseOptionsList({
         // Build the flat array
         for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
             const section = sections[sectionIndex];
-
             // Add the section header
             const sectionHeaderHeight = section.title && !hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
             flatArray.push({length: sectionHeaderHeight, offset});
@@ -197,6 +200,7 @@ function BaseOptionsList({
 
         return (
             <OptionRow
+                keyForList={item.keyForList}
                 option={item}
                 showTitleTooltip={showTitleTooltip}
                 hoverStyle={optionHoveredStyle}
@@ -281,11 +285,13 @@ function BaseOptionsList({
                         renderSectionHeader={renderSectionHeader}
                         extraData={focusedIndex}
                         initialNumToRender={12}
-                        maxToRenderPerBatch={5}
+                        maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT}
                         windowSize={5}
                         viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
+                        ListFooterComponent={renderFooterContent}
+                        testID="options-list"
                     />
                 </>
             )}

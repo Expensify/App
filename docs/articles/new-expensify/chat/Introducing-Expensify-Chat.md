@@ -24,30 +24,30 @@ After downloading the app, log into your new.expensify.com account (you’ll use
 
 ## How to send messages
 
-Click **+** then **Send message** in New Expensify 
-Choose **Chat**
-Search for any name, email or phone number
-Select the individual to begin chatting 
+1. Click **+** then **Send message** in New Expensify 
+2. Choose **Chat**
+3. Search for any name, email or phone number
+4. Select the individual to begin chatting 
 
 ## How to create a group
 
-Click **+**, then **Send message** in New Expensify
-Search for any name, email or phone number
-Click **Add to group**
-Group participants are listed with a green check
-Repeat steps 1-3 to add more participants to the group 
-Click **Create chat** to start chatting
+1. Click **+**, then **Send message** in New Expensify
+2. Search for any name, email or phone number
+3. Click **Add to group**
+4. Group participants are listed with a green check
+5. Repeat steps 1-3 to add more participants to the group
+6. Click **Create chat** to start chatting
 
 ## How to create a room 
 
-Click **+**, then **Send message** in New Expensify
-Click **Room**
-Enter a room name that doesn’t already exist on the intended Workspace
-Choose the Workspace you want to associate the room with.
-Choose the room’s visibility setting:
-Private: Only people explicitly invited can find the room*
-Restricted: Workspace members can find the room*
-Public: Anyone can find the room
+1. Click **+**, then **Send message** in New Expensify
+2. Click **Room**
+3. Enter a room name that doesn’t already exist on the intended Workspace
+4. Choose the Workspace you want to associate the room with.
+5. Choose the room’s visibility setting:
+6. Private: Only people explicitly invited can find the room*
+7. Restricted: Workspace members can find the room*
+8. Public: Anyone can find the room
 
 *Anyone, including non-Workspace Members, can be invited to a Private or Restricted room.
 
@@ -56,26 +56,29 @@ Public: Anyone can find the room
 You can invite people to a Group or Room by @mentioning them or from the Members pane.
 
 ## Mentions:
-Type **@** and start typing the person’s name or email address 
-Choose one or more contacts
-Input message, if desired, then send 
+
+1. Type **@** and start typing the person’s name or email address 
+2. Choose one or more contacts
+3. Input message, if desired, then send 
 
 
 ## Members pane invites:
-Click the **Room** or **Group** header
-Select **Members**
-Click **Invite**
-Find and select any contact/s you’d like to invite
-Click **Next**
-Write a custom invitation if you like 
-Click **Invite**
+
+1. Click the **Room** or **Group** header
+2. Select **Members**
+3. Click **Invite**
+4. Find and select any contact/s you’d like to invite
+5. Click **Next**
+6. Write a custom invitation if you like 
+7. Click **Invite**
 
 ## Members pane removals:
-Click the **Room** or **Group** header
-Select **Members**
-Find and select any contact/s you’d like to remove
-Click **Remove**
-Click **Remove members**
+
+1. Click the **Room** or **Group** header
+2. Select **Members**
+3. Find and select any contact/s you’d like to remove
+4. Click **Remove**
+5. Click **Remove members**
 
 ## How to format text
 

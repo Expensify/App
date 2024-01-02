@@ -10,8 +10,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +52,14 @@ const validate = (values) => {
         }
     }
 
+    if (values.firstName && !ValidationUtils.isValidPersonName(values.firstName)) {
+        errors.firstName = 'bankAccount.error.firstName';
+    }
+
+    if (values.lastName && !ValidationUtils.isValidPersonName(values.lastName)) {
+        errors.lastName = 'bankAccount.error.lastName';
+    }
+
     if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
         errors.ssnLast4 = 'bankAccount.error.ssnLast4';
     }
@@ -77,6 +85,7 @@ const validate = (values) => {
  */
 const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido, onBackButtonPress, getDefaultStateForField}, ref) => {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const defaultValues = useMemo(
         () => ({
@@ -138,7 +147,7 @@ const RequestorStep = React.forwardRef(({reimbursementAccount, shouldShowOnfido,
                 submitButtonText={translate('common.saveAndContinue')}
                 validate={validate}
                 onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt3, styles.flexGrow1]}
                 scrollContextEnabled
             >
                 <Text>{translate('requestorStep.subtitle')}</Text>
