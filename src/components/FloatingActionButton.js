@@ -1,132 +1,130 @@
 import PropTypes from 'prop-types';
-import React, {PureComponent} from 'react';
-import {Animated, Easing, View} from 'react-native';
-import compose from '@libs/compose';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import React, {useEffect, useRef} from 'react';
+import {Platform, View} from 'react-native';
+import Animated, {createAnimatedPropAdapter, Easing, interpolateColor, processColor, useAnimatedProps, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Svg, {Path} from 'react-native-svg';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withStyleUtils, {withStyleUtilsPropTypes} from './withStyleUtils';
-import withTheme, {withThemePropTypes} from './withTheme';
-import withThemeStyles, {withThemeStylesPropTypes} from './withThemeStyles';
 
-const AnimatedIcon = Animated.createAnimatedComponent(Icon);
-AnimatedIcon.displayName = 'AnimatedIcon';
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+AnimatedPath.displayName = 'AnimatedPath';
 
 const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
+const adapter = createAnimatedPropAdapter(
+    (props) => {
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
+        if (Object.keys(props).includes('fill')) {
+            // eslint-disable-next-line no-param-reassign
+            props.fill = {type: 0, payload: processColor(props.fill)};
+        }
+        // eslint-disable-next-line rulesdir/prefer-underscore-method
+        if (Object.keys(props).includes('stroke')) {
+            // eslint-disable-next-line no-param-reassign
+            props.stroke = {type: 0, payload: processColor(props.stroke)};
+        }
+    },
+    ['fill', 'stroke'],
+);
+adapter.propTypes = {
+    fill: PropTypes.string,
+    stroke: PropTypes.string,
+};
+
 const propTypes = {
-    // Callback to fire on request to toggle the FloatingActionButton
+    /* Callback to fire on request to toggle the FloatingActionButton */
     onPress: PropTypes.func.isRequired,
 
-    // Current state (active or not active) of the component
+    /* Current state (active or not active) of the component */
     isActive: PropTypes.bool.isRequired,
 
-    // Ref for the button
-    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    /* An accessibility label for the button */
+    accessibilityLabel: PropTypes.string.isRequired,
 
-    ...withLocalizePropTypes,
-    ...withThemePropTypes,
-    ...withThemeStylesPropTypes,
-    ...withStyleUtilsPropTypes,
+    /* An accessibility role for the button */
+    role: PropTypes.string.isRequired,
 };
 
-const defaultProps = {
-    buttonRef: () => {},
-};
+const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibilityLabel, role}, ref) => {
+    const {success, buttonDefaultBG, textLight, textDark} = useTheme();
+    const styles = useThemeStyles();
+    const borderRadius = styles.floatingActionButton.borderRadius;
+    const {translate} = useLocalize();
+    const fabPressable = useRef(null);
+    const sharedValue = useSharedValue(isActive ? 1 : 0);
+    const buttonRef = ref;
 
-class FloatingActionButton extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.animatedValue = new Animated.Value(props.isActive ? 1 : 0);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.isActive === this.props.isActive) {
-            return;
-        }
-
-        this.animateFloatingActionButton();
-    }
-
-    /**
-     * Animates the floating action button
-     * Method is called when the isActive prop changes
-     */
-    animateFloatingActionButton() {
-        const animationFinalValue = this.props.isActive ? 1 : 0;
-
-        Animated.timing(this.animatedValue, {
-            toValue: animationFinalValue,
+    useEffect(() => {
+        sharedValue.value = withTiming(isActive ? 1 : 0, {
             duration: 340,
             easing: Easing.inOut(Easing.ease),
-            useNativeDriver: false,
-        }).start();
-    }
-
-    render() {
-        const rotate = this.animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['0deg', '135deg'],
         });
+    }, [isActive, sharedValue]);
 
-        const backgroundColor = this.animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [this.props.theme.success, this.props.theme.buttonDefaultBG],
-        });
+    const animatedStyle = useAnimatedStyle(() => {
+        const backgroundColor = interpolateColor(sharedValue.value, [0, 1], [success, buttonDefaultBG]);
 
-        const fill = this.animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [this.props.theme.textLight, this.props.theme.textDark],
-        });
+        return {
+            transform: [{rotate: `${sharedValue.value * 135}deg`}],
+            backgroundColor,
+            borderRadius,
+        };
+    });
 
-        return (
-            <Tooltip text={this.props.translate('common.new')}>
-                <View style={this.props.themeStyles.floatingActionButtonContainer}>
-                    <AnimatedPressable
-                        ref={(el) => {
-                            this.fabPressable = el;
-                            if (this.props.buttonRef) {
-                                this.props.buttonRef.current = el;
-                            }
-                        }}
-                        accessibilityLabel={this.props.accessibilityLabel}
-                        role={this.props.role}
-                        pressDimmingValue={1}
-                        onPress={(e) => {
-                            // Drop focus to avoid blue focus ring.
-                            this.fabPressable.blur();
-                            this.props.onPress(e);
-                        }}
-                        onLongPress={() => {}}
-                        style={[this.props.themeStyles.floatingActionButton, this.props.StyleUtils.getAnimatedFABStyle(rotate, backgroundColor)]}
+    const animatedProps = useAnimatedProps(
+        () => {
+            const fill = interpolateColor(sharedValue.value, [0, 1], [textLight, textDark]);
+
+            return {
+                fill,
+            };
+        },
+        undefined,
+        Platform.OS === 'web' ? undefined : adapter,
+    );
+
+    return (
+        <Tooltip text={translate('common.new')}>
+            <View style={styles.floatingActionButtonContainer}>
+                <AnimatedPressable
+                    ref={(el) => {
+                        fabPressable.current = el;
+                        if (buttonRef) {
+                            buttonRef.current = el;
+                        }
+                    }}
+                    accessibilityLabel={accessibilityLabel}
+                    role={role}
+                    pressDimmingValue={1}
+                    onPress={(e) => {
+                        // Drop focus to avoid blue focus ring.
+                        fabPressable.current.blur();
+                        onPress(e);
+                    }}
+                    onLongPress={() => {}}
+                    style={[styles.floatingActionButton, animatedStyle]}
+                >
+                    <Svg
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
                     >
-                        <AnimatedIcon
-                            src={Expensicons.Plus}
-                            fill={fill}
+                        <AnimatedPath
+                            d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
+                            animatedProps={animatedProps}
                         />
-                    </AnimatedPressable>
-                </View>
-            </Tooltip>
-        );
-    }
-}
+                    </Svg>
+                </AnimatedPressable>
+            </View>
+        </Tooltip>
+    );
+});
 
 FloatingActionButton.propTypes = propTypes;
-FloatingActionButton.defaultProps = defaultProps;
+FloatingActionButton.displayName = 'FloatingActionButton';
 
-const FloatingActionButtonWithLocalize = withLocalize(FloatingActionButton);
-
-const FloatingActionButtonWithLocalizeWithRef = React.forwardRef((props, ref) => (
-    <FloatingActionButtonWithLocalize
-        // eslint-disable-next-line
-        {...props}
-        buttonRef={ref}
-    />
-));
-
-FloatingActionButtonWithLocalizeWithRef.displayName = 'FloatingActionButtonWithLocalizeWithRef';
-
-export default compose(withThemeStyles, withTheme, withStyleUtils)(FloatingActionButtonWithLocalizeWithRef);
+export default FloatingActionButton;

@@ -1,5 +1,3 @@
-import getOperatingSystem from '@libs/getOperatingSystem';
-import CONST from '@src/CONST';
 import emojis from './common';
 import enEmojis from './en';
 import esEmojis from './es';
@@ -33,21 +31,6 @@ const localeEmojis = {
     es: esEmojis,
 } as const;
 
-// On windows, flag emojis are not supported
-const emojisForOperatingSystem =
-    getOperatingSystem() === CONST.OS.WINDOWS
-        ? emojis.slice(
-              0,
-              emojis.findIndex((emoji) => {
-                  if (!('header' in emoji)) {
-                      return;
-                  }
-
-                  return emoji.header && emoji.code === 'flags';
-              }),
-          )
-        : emojis;
-
-export default emojisForOperatingSystem;
-export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, emojisForOperatingSystem};
+export default emojis;
+export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis};
 export {skinTones, categoryFrequentlyUsed} from './common';
