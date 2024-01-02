@@ -109,6 +109,7 @@ class ShareCodePage extends React.Component {
                             successIcon={Expensicons.Checkmark}
                             successText={this.props.translate('qrCodes.copied')}
                             onPress={() => Clipboard.setString(url)}
+                            shouldLimitWidth={false}
                         />
 
                         {isNative && (
