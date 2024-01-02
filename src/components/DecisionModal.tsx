@@ -20,7 +20,7 @@ type DecisionModalProps = {
     prompt?: string;
 
     /** Text content used in first button */
-    firstOptionText: string;
+    firstOptionText?: string;
 
     /** Text content used in second button */
     secondOptionText: string;
@@ -72,13 +72,15 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
 
                     <Text>{prompt}</Text>
                 </View>
-                <Button
-                    success
-                    style={[styles.mt4]}
-                    onPress={onFirstOptionSubmit}
-                    pressOnEnter
-                    text={firstOptionText}
-                />
+                {firstOptionText && (
+                    <Button
+                        success
+                        style={[styles.mt4]}
+                        onPress={onFirstOptionSubmit}
+                        pressOnEnter
+                        text={firstOptionText}
+                    />
+                )}
                 <Button
                     style={[styles.mt3, styles.noSelect]}
                     onPress={onSecondOptionSubmit}

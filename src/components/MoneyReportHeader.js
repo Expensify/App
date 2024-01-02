@@ -234,7 +234,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
             </View>
             {isHoldMenuVisible && (
                 <ProcessMoneyRequestHoldMenu
-                    nonHeldAmount={nonHeldAmount}
+                    nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
                     requestType={confirmationType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}

@@ -21,7 +21,7 @@ type ProcessMoneyRequestHoldMenuProps = {
     moneyRequestReport: OnyxTypes.IOU;
 
     /** Not held amount of expense report */
-    nonHeldAmount: string;
+    nonHeldAmount?: string;
 
     /** Callback for closing modal */
     onClose: () => void;
@@ -62,7 +62,7 @@ function ProcessMoneyRequestHoldMenu({
             onClose={onClose}
             isVisible={isVisible}
             prompt={translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')}
-            firstOptionText={`${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}`}
+            firstOptionText={nonHeldAmount ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
