@@ -594,6 +594,7 @@ const CONST = {
                     JOIN_ROOM: 'JOINROOM',
                 },
             },
+            THREAD_DISABLED: ['CREATED'],
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -978,6 +979,7 @@ const CONST = {
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
     CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
+    CHAT_FOOTER_HORIZONTAL_PADDING: 40,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {

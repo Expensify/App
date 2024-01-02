@@ -26,7 +26,7 @@ import {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import {Beta, ReportAction, ReportActionReactions} from '@src/types/onyx';
 import IconAsset from '@src/types/utils/IconAsset';
-import {clearActiveReportAction, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionText(reportAction: OnyxEntry<ReportAction>) {
@@ -171,17 +171,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION) {
                 return false;
             }
-            const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
-            const isReportPreviewAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
-            const isIOUAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isSplitBillAction(reportAction);
-            const isModifiedExpenseAction = ReportActionsUtils.isModifiedExpenseAction(reportAction);
-            const isTaskAction = ReportActionsUtils.isTaskAction(reportAction);
-            const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
-            return (
-                (!isWhisperAction || isIOUAction || isReportPreviewAction) &&
-                (isCommentAction || isReportPreviewAction || isIOUAction || isModifiedExpenseAction || isTaskAction) &&
-                !ReportUtils.isThreadFirstChat(reportAction, reportID)
-            );
+            return !ReportUtils.shouldDisableThread(reportAction, reportID);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
@@ -423,7 +413,13 @@ const ContextMenuActions: ContextMenuAction[] = [
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
-            const editAction = () => Report.saveReportActionDraft(reportID, reportAction, !draftMessage ? getActionText(reportAction) : '');
+            const editAction = () => {
+                if (draftMessage === undefined) {
+                    Report.saveReportActionDraft(reportID, reportAction, getActionText(reportAction));
+                } else {
+                    Report.deleteReportActionDraft(reportID, reportAction);
+                }
+            };
 
             if (closePopover) {
                 // Hide popover, then call editAction
@@ -450,12 +446,12 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction));
+                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction, true, clearActiveReportAction, clearActiveReportAction);
+            showDeleteModal(reportID, reportAction);
         },
         getDescription: () => {},
     },
