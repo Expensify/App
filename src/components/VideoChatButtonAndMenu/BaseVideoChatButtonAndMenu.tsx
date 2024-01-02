@@ -29,8 +29,8 @@ function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isVideoChatMenuActive, setIsVideoChatMenuActive] = useState(false);
     const [videoChatIconPosition, setVideoChatIconPosition] = useState({x: 0, y: 0});
-    const videoChatIconWrapperRef = useRef<View | null>(null);
-    const videoChatButtonRef = useRef<View | null>(null);
+    const videoChatIconWrapperRef = useRef<View>(null);
+    const videoChatButtonRef = useRef<View>(null);
 
     const menuItemData = [
         {
@@ -124,6 +124,7 @@ function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
                             wrapperStyle={styles.mr3}
                             key={text}
                             icon={icon}
+                            iconType={CONST.ICON_TYPE_ICON}
                             title={text}
                             onPress={onPress}
                         />
