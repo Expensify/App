@@ -778,25 +778,6 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
-function getActionableItemButtons(reportAction: ReportAction, reportID: string): ActionableItem[] {
-    if (!(reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && !reportAction.originalMessage?.resolution)) {
-        return [];
-    }
-    return [
-        {
-            text: 'actionableMentionWhisperOptions.invite',
-            key: `${reportAction.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-            onPress: () => resolveActionableMentionWhisper(reportID, reportAction.reportActionID, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
-            isPrimary: true,
-        },
-        {
-            text: 'actionableMentionWhisperOptions.nothing',
-            key: `${reportAction.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-            onPress: () => resolveActionableMentionWhisper(reportID, reportAction.reportActionID, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
-        },
-    ];
-}
-
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -844,7 +825,6 @@ export {
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
-    getActionableItemButtons,
 };
 
 export type {LastVisibleMessage};
