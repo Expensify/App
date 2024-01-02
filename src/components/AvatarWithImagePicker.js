@@ -323,10 +323,10 @@ function AvatarWithImagePicker({
                             </View>
                             <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                 <Icon
-                                    src={Expensicons.Camera}
+                                    src={Expensicons.Pencil}
                                     width={variables.iconSizeSmall}
                                     height={variables.iconSizeSmall}
-                                    fill={theme.textLight}
+                                    fill={theme.icon}
                                 />
                             </View>
                         </PressableWithoutFeedback>

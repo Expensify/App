@@ -90,6 +90,7 @@ function AllSettingsScreen() {
                             })}
                             shouldBlockSelection={Boolean(item.link)}
                             focused={activeRoute && activeRoute.startsWith(item.routeName)}
+                            isPaneMenu
                         />
                     );
                 })}

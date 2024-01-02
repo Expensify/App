@@ -15,7 +15,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -42,7 +41,6 @@ function HeaderWithBackButton({
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
-    shouldUseCentralPaneView = false,
     stepCounter,
     subtitle = '',
     title = '',
@@ -66,28 +64,16 @@ function HeaderWithBackButton({
     // @ts-expect-error TODO: Remove this once useKeyboardState (https://github.com/Expensify/App/issues/24941) is migrated to TypeScript.
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const shouldFinalShowBackButton = shouldShowBackButton && (!shouldUseCentralPaneView || isSmallScreenWidth);
 
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
             // https://github.com/Expensify/App/issues/29598
             dataSet={{dragArea: false}}
-            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}
+            style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton ? styles.pl2 : styles.pl5]}
         >
-            <View
-                style={[
-                    styles.dFlex,
-                    styles.flexRow,
-                    styles.alignItemsCenter,
-                    styles.flexGrow1,
-                    styles.justifyContentBetween,
-                    styles.overflowHidden,
-                    !shouldFinalShowBackButton && styles.pl5,
-                ]}
-            >
-                {shouldFinalShowBackButton && (
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
+                {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {

@@ -81,7 +81,6 @@ function FloatingActionButtonAndPopover(props) {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
     const fabRef = useRef(null);
-    const fabWrapperRef = useRef(null);
 
     const prevIsFocused = usePrevious(props.isFocused);
 
