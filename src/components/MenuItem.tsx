@@ -223,7 +223,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         onSecondaryInteraction?: () => void;
 
         /** Array of objects that map display names to their corresponding tooltip */
-        titleWithTooltips: DisplayNameWithTooltip[];
+        titleWithTooltips?: DisplayNameWithTooltip[];
 
         /** Icon should be displayed in its own color */
         displayInDefaultIconColor?: boolean;
