@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import HeaderPageLayout from './HeaderPageLayout';
 import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import Lottie from './Lottie';
