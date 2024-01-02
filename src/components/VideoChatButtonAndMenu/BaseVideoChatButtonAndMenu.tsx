@@ -9,9 +9,9 @@ import Popover from '@components/Popover';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -98,7 +98,7 @@ function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
                         })}
                         style={styles.touchableButtonImage}
                         accessibilityLabel={translate('videoChatButtonAndMenu.tooltip')}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                     >
                         <Icon
                             src={Expensicons.Phone}
@@ -121,7 +121,6 @@ function BaseVideoChatButtonAndMenu(props: BaseVideoChatButtonAndMenuProps) {
                 <View style={isSmallScreenWidth ? {} : styles.pv3}>
                     {menuItemData.map(({icon, text, onPress}) => (
                         <MenuItem
-                            // @ts-expect-error TODO: fix once MenuItem is converted to typescript
                             wrapperStyle={styles.mr3}
                             key={text}
                             icon={icon}

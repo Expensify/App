@@ -16,12 +16,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -140,7 +140,7 @@ function IOURequestStepWaypoint({
                 lat: null,
                 lng: null,
                 address: waypointValue,
-                name: values.name,
+                name: values.name || null,
             };
             saveWaypoint(waypoint);
         }
@@ -166,7 +166,7 @@ function IOURequestStepWaypoint({
             lat: values.lat,
             lng: values.lng,
             address: values.address,
-            name: values.name,
+            name: values.name || null,
         };
         Transaction.saveWaypoint(transactionID, pageIndex, waypoint, false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
