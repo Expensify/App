@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
@@ -25,9 +26,11 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
+import type {MoneyRequestNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import * as OnyxTypes from '@src/types/onyx';
 import {Participant} from '@src/types/onyx/IOU';
 import ReportAction from '@src/types/onyx/ReportAction';
@@ -42,6 +45,11 @@ type OptimisticPolicyRecentlyUsedCategories = string[];
 
 // TODO: Remove this once Policy.js (https://github.com/Expensify/App/issues/24918) is migrated to TypeScript.
 type OptimisticPolicyRecentlyUsedTags = Record<string, string[]>;
+
+type MoneyRequestRoute = StackScreenProps<
+    MoneyRequestNavigatorParamList,
+    typeof SCREENS.MONEY_REQUEST.CATEGORY | typeof SCREENS.MONEY_REQUEST.TAG | typeof SCREENS.MONEY_REQUEST.CONFIRMATION
+>['route'];
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -3260,19 +3268,17 @@ function replaceReceipt(transactionID, receipt, filePath) {
 
 /**
  * Finds the participants for an IOU based on the attached report
- * @param {String} transactionID of the transaction to set the participants of
- * @param {Object} report attached to the transaction
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID, report) {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const participants = ReportUtils.isPolicyExpenseChat(chatReport)
+    const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
         ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
-        : _.chain(chatReport.participantAccountIDs)
-              .filter((accountID) => currentUserAccountID !== accountID)
-              .map((accountID) => ({accountID, selected: true}))
-              .value();
+        : (chatReport.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
 
@@ -3328,7 +3334,7 @@ function setMoneyRequestBillable(billable: boolean) {
     Onyx.merge(ONYXKEYS.IOU, {billable});
 }
 
-function setMoneyRequestParticipants(participants: Participant[], isSplitRequest: boolean) {
+function setMoneyRequestParticipants(participants: Participant[], isSplitRequest?: boolean) {
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
@@ -3347,16 +3353,10 @@ function setUpDistanceTransaction() {
 
 /**
  * Navigates to the next IOU page based on where the IOU request was started
- *
- * @param {Object} iou
- * @param {String} iouType
- * @param {Object} report
- * @param {String} report.reportID
- * @param {String} path
  */
-function navigateToNextPage(iou, iouType, report, path = '') {
-    const moneyRequestID = `${iouType}${report.reportID || ''}`;
-    const shouldReset = iou.id !== moneyRequestID && !_.isEmpty(report.reportID);
+function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, report?: OnyxTypes.Report, path = '') {
+    const moneyRequestID = `${iouType}${report?.reportID ?? ''}`;
+    const shouldReset = iou?.id !== moneyRequestID && !!report?.reportID;
 
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
@@ -3365,24 +3365,21 @@ function navigateToNextPage(iou, iouType, report, path = '') {
     }
 
     // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
-    if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report.reportID)) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
+    if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report?.reportID)) {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
         return;
     }
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-    if (report.reportID) {
+    if (report?.reportID) {
         // If the report is iou or expense report, we should get the chat report to set participant for request money
         const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
         // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-        if (_.isEmpty(iou.participants) || shouldReset) {
+        if (!iou?.participants?.length || shouldReset) {
             const currentUserAccountID = currentUserPersonalDetails.accountID;
-            const participants = ReportUtils.isPolicyExpenseChat(chatReport)
+            const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
                 ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
-                : _.chain(chatReport.participantAccountIDs)
-                      .filter((accountID) => currentUserAccountID !== accountID)
-                      .map((accountID) => ({accountID, selected: true}))
-                      .value();
+                : (chatReport.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
             resetMoneyRequestCategory();
             resetMoneyRequestTag();
@@ -3397,15 +3394,10 @@ function navigateToNextPage(iou, iouType, report, path = '') {
  *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
  * parameter.
  * Gets a report id from the first participant of the IOU object stored in Onyx.
- * @param {Object} iou
- * @param {Array} iou.participants
- * @param {Object} route
- * @param {Object} route.params
- * @param {String} [route.params.reportID]
- * @returns {String}
  */
-function getIOUReportID(iou, route) {
-    return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
+function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
 }
 
 export {
