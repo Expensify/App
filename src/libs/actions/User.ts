@@ -870,7 +870,7 @@ function updateDraftCustomStatus(status: Status) {
  * Clear the custom draft status
  */
 function clearDraftCustomStatus() {
-    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: '', customDateTemporary: ''});
+    Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, {text: '', emojiCode: '', clearAfter: ''});
 }
 
 export {
