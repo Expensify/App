@@ -1,3 +1,5 @@
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import {Icon} from './OnyxCommon';
 
 type Participant = {
@@ -10,6 +12,8 @@ type Participant = {
     transactionID?: string;
     reportActionID?: string;
     isOwnPolicyExpenseChat?: boolean;
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
+    amount?: number;
     selected?: boolean;
     reportID?: string;
     policyID?: string;
