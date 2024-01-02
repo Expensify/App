@@ -3208,7 +3208,8 @@ function cancelPayment(expenseReport, chatReport) {
     API.write(
         'CancelPayment',
         {
-            reportID: expenseReport.reportID,
+            iouReportID: expenseReport.reportID,
+            chatReportID: chatReport.reportID,
             managerAccountID: expenseReport.managerID,
             reportActionID: optimisticReportAction.reportActionID,
         },
