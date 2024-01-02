@@ -25,7 +25,6 @@ import {getGroupChatName} from '@libs/GroupChatUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as ContextMenuActions from '@pages/home/report/ContextMenu/ContextMenuActions';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 
@@ -116,7 +115,6 @@ function OptionRowLHN(props) {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
 
     /**
@@ -130,7 +128,7 @@ function OptionRowLHN(props) {
         }
         setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
-            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
+            CONST.CONTEXT_MENU_TYPES.REPORT,
             event,
             '',
             popoverAnchor,
@@ -151,7 +149,7 @@ function OptionRowLHN(props) {
     const statusText = lodashGet(optionItem, 'status.text', '');
     const statusClearAfterDate = lodashGet(optionItem, 'status.clearAfter', '');
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
-    const statusContent = formattedDate ? `${statusText} (${formattedDate})` : statusText;
+    const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(ReportUtils.getReport(optionItem.reportID));
 
     const isGroupChat =
@@ -220,7 +218,7 @@ function OptionRowLHN(props) {
                                             backgroundColor={hovered && !props.isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -299,7 +297,11 @@ function OptionRowLHN(props) {
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
                                 >
-                                    <Icon src={Expensicons.Pencil} />
+                                    <Icon
+                                        testID="Pencil Icon"
+                                        fill={theme.icon}
+                                        src={Expensicons.Pencil}
+                                    />
                                 </View>
                             )}
                             {!shouldShowGreenDotIndicator && !hasBrickError && optionItem.isPinned && (
@@ -307,7 +309,11 @@ function OptionRowLHN(props) {
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
                                 >
-                                    <Icon src={Expensicons.Pin} />
+                                    <Icon
+                                        testID="Pin Icon"
+                                        fill={theme.icon}
+                                        src={Expensicons.Pin}
+                                    />
                                 </View>
                             )}
                         </View>

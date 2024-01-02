@@ -40,6 +40,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
+import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -60,7 +61,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -156,12 +156,6 @@ function ReportActionItem(props) {
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && _.has(originalMessage, 'IOUDetails');
-
-    // When active action changes, we need to update the `isContextMenuActive` state
-    const isActiveReportActionForMenu = ReportActionContextMenu.isActiveReportAction(props.action.reportActionID);
-    useEffect(() => {
-        setIsContextMenuActive(isActiveReportActionForMenu);
-    }, [isActiveReportActionForMenu]);
 
     const updateHiddenState = useCallback(
         (isHiddenValue) => {
@@ -273,7 +267,7 @@ function ReportActionItem(props) {
             setIsContextMenuActive(true);
             const selection = SelectionScraper.getCurrentSelection();
             ReportActionContextMenu.showContextMenu(
-                ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
                 event,
                 selection,
                 popoverAnchorRef,
@@ -427,7 +421,7 @@ function ReportActionItem(props) {
 
             children = <ReportActionItemBasicMessage message={props.translate('iou.canceledRequest', {submitterDisplayName, amount})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
-            children = <ReportActionItemBasicMessage message={ReportUtils.getModifiedExpenseMessage(props.action)} />;
+            children = <ReportActionItemBasicMessage message={ModifiedExpenseMessage.getForReportAction(props.action)} />;
         } else {
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
             children = (
@@ -705,6 +699,7 @@ function ReportActionItem(props) {
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
                                         <View style={[styles.pl6, styles.mr3]}>
                                             <Icon
+                                                fill={theme.icon}
                                                 src={Expensicons.Eye}
                                                 small
                                             />
