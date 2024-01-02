@@ -42,24 +42,41 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function insertAtPosition(originalString, newSubstring, selectionPositionFrom, selectionPositionTo) {
+/**
+ * Replace the sub-string of the given string with the provided value
+ * @param {String} originalString - the string that will be modified
+ * @param {String} newSubstring - the replacement string
+ * @param {Number} from - the start index of the sub-string to replace
+ * @param {Number} to - the end index of the sub-string to replace
+ *
+ * @returns {String} - the modified string with the range (from, to) replaced with the provided value
+ */
+function insertAtPosition(originalString, newSubstring, from, to) {
     // Check for invalid positions
-    if (selectionPositionFrom < 0 || selectionPositionTo < 0 || selectionPositionFrom > originalString.length || selectionPositionTo > originalString.length) {
-        return;
+    if (from < 0 || to < 0 || from > originalString.length || to > originalString.length) {
+        return originalString;
     }
 
-    // If the positions are the same, it means we're inserting at a point
-    if (selectionPositionFrom === selectionPositionTo) {
-        if (selectionPositionFrom === originalString.length) {
-            return originalString; // If the insertion point is at the end, simply return the original string
-        }
-        return originalString.slice(0, selectionPositionFrom) + newSubstring + originalString.slice(selectionPositionFrom);
+    /*
+     If the positions are the same, it means we're inserting at a point.
+     If the insertion point is at the end, simply return the original string.
+    */
+    if (from === to && from === originalString.length) {
+        return originalString;
     }
 
     // Replace the selected range
-    return originalString.slice(0, selectionPositionFrom) + newSubstring + originalString.slice(selectionPositionTo);
+    return originalString.slice(0, from) + newSubstring + originalString.slice(to);
 }
 
+/**
+ * Replace the sub-string of the given string with zeros
+ * @param {String} originalString - the string that will be modified
+ * @param {Number} from - the start index of the sub-string to replace
+ * @param {Number} to - the end index of the sub-string to replace
+ *
+ * @returns {String} - the modified string with the range (from, to) replaced with zeros
+ */
 function replaceRangeWithZeros(originalString, from, to) {
     const normalizedFrom = Math.max(from, 0);
     const normalizedTo = Math.min(to, 2);
@@ -67,6 +84,13 @@ function replaceRangeWithZeros(originalString, from, to) {
     return `${originalString.slice(0, normalizedFrom)}${replacement}${originalString.slice(normalizedTo)}`;
 }
 
+/**
+ * Clear the value under selection of an input (either hours or minutes) by replacing it with zeros
+ * @param {String} value - current value of the input
+ * @param {Object} selection - current selection of the input
+ * @param {Function} setValue - the function that modifies the value of the input
+ * @param {Function} setSelection - the function that modifies the selection of the input
+ */
 function clearSelectedValue(value, selection, setValue, setSelection) {
     let newValue;
     let newCursorPosition;
