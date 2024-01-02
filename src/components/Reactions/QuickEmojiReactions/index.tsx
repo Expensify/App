@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import BaseQuickEmojiReactions from './BaseQuickEmojiReactions';
 import type {OpenPickerCallback, QuickEmojiReactionsProps} from './types';
 
-function QuickEmojiReactions({closeContextMenu, ...props}: QuickEmojiReactionsProps) {
+function QuickEmojiReactions({closeContextMenu, ...rest}: QuickEmojiReactionsProps) {
     const onPressOpenPicker = (openPicker?: OpenPickerCallback) => {
         openPicker?.(contextMenuRef.current?.contentRef, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -15,7 +15,7 @@ function QuickEmojiReactions({closeContextMenu, ...props}: QuickEmojiReactionsPr
     return (
         <BaseQuickEmojiReactions
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...rest}
             onPressOpenPicker={onPressOpenPicker}
             onWillShowPicker={closeContextMenu}
         />

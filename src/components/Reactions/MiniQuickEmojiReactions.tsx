@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
@@ -15,9 +15,16 @@ import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BaseQuickEmojiReactionsOnyxProps, BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
+import type {ReportActionReactions} from '@src/types/onyx';
+import type {BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
 
-type MiniQuickEmojiReactionsOnyxProps = Omit<BaseQuickEmojiReactionsOnyxProps, 'preferredLocale'>;
+type MiniQuickEmojiReactionsOnyxProps = {
+    /** All the emoji reactions for the report action. */
+    emojiReactions: OnyxEntry<ReportActionReactions>;
+
+    /** The user's preferred skin tone. */
+    preferredSkinTone: OnyxEntry<string | number>;
+};
 
 type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
     /**
