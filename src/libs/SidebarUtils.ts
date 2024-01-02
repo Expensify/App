@@ -274,6 +274,7 @@ function getOptionData(
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
+        isDeletedParentAction: false,
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -309,6 +310,7 @@ function getOptionData(
     result.notificationPreference = report.notificationPreference;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
+    result.isDeletedParentAction = report.isDeletedParentAction;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
