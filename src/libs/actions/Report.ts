@@ -498,6 +498,7 @@ function openReport(
                 isLoadingInitialReportActions: true,
                 isLoadingOlderReportActions: false,
                 isLoadingNewerReportActions: false,
+                lastVisitTime: DateUtils.getDBTime(),
             },
         },
     ];
@@ -940,8 +941,18 @@ function readNewestAction(reportID: string) {
  * Sets the last read time on a report
  */
 function markCommentAsUnread(reportID: string, reportActionCreated: string) {
-    // If no action created date is provided, use the last action's
-    const actionCreationTime = reportActionCreated || (allReports?.[reportID]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
+    const reportActions = allReportActions?.[reportID];
+
+    // Find the latest report actions from other users
+    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
+        if (current.actorAccountID !== currentUserAccountID && (!latest || current.created > latest.created)) {
+            return current;
+        }
+        return latest;
+    }, null);
+
+    // If no action created date is provided, use the last action's from other user
+    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? DateUtils.getDBTime(0));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -1346,10 +1357,16 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
 
+/** Deletes the draft for a comment report action. */
+function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
+}
+
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
 function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: draftMessage});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
 
 /** Saves the number of lines for the report action draft */
@@ -2515,6 +2532,13 @@ function searchInServer(searchInput: string) {
     searchForReports(searchInput);
 }
 
+function updateLastVisitTime(reportID: string) {
+    if (!ReportUtils.isValidReportIDFromPath(reportID)) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
+}
+
 function clearNewRoomFormError() {
     Onyx.set(ONYXKEYS.FORMS.NEW_ROOM_FORM, {
         isLoading: false,
@@ -2583,6 +2607,7 @@ export {
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinksInHtml,
+    deleteReportActionDraft,
     saveReportActionDraft,
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
@@ -2625,6 +2650,7 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    updateLastVisitTime,
     clearNewRoomFormError,
     resolveActionableMentionWhisper,
 };

@@ -595,6 +595,7 @@ const CONST = {
                     JOIN_ROOM: 'JOINROOM',
                 },
             },
+            THREAD_DISABLED: ['CREATED'],
         },
         RESOLUTIONS: {
             INVITE: 'invited',
@@ -826,6 +827,7 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
     },
+    WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
