@@ -32,12 +32,11 @@ type RequestorStepProps = {
     requestorAddressZipCode?: string;
     dob?: string;
     ssnLast4?: string;
-    isControllingOfficer?: boolean;
     isOnfidoSetupComplete?: boolean;
     onfidoData?: OnfidoData;
 };
 
-type BeneficialOwnersStepDraftProps = {
+type BeneficialOwnersStepProps = {
     ownsMoreThan25Percent?: boolean;
     hasOtherBeneficialOwners?: boolean;
     beneficialOwners?: string;
@@ -45,13 +44,9 @@ type BeneficialOwnersStepDraftProps = {
 };
 
 type ACHContractStepProps = {
-    ownsMoreThan25Percent?: boolean;
-    hasOtherBeneficialOwners?: boolean;
     acceptTermsAndConditions?: boolean;
     certifyTrueInformation?: boolean;
     isAuthorizedToUseBankAccount?: boolean;
-    beneficialOwners?: string;
-    beneficialOwnerKeys?: string[];
 };
 
 type ReimbursementAccountProps = {
@@ -67,16 +62,13 @@ type ReimbursementAccountProps = {
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
 type BeneficialOwnerDraftData = Record<`beneficialOwner_${string}_${string}`, string>;
 
-type ReimbursementAccountDraft = BankAccountStepProps & CompanyStepProps & RequestorStepProps & ACHContractStepProps & ReimbursementAccountProps & BeneficialOwnerDraftData;
+type ReimbursementAccountDraft = BankAccountStepProps &
+    CompanyStepProps &
+    RequestorStepProps &
+    BeneficialOwnersStepProps &
+    ACHContractStepProps &
+    ReimbursementAccountProps &
+    BeneficialOwnerDraftData;
 
 export default ReimbursementAccountDraft;
-export type {
-    ACHContractStepProps,
-    BeneficialOwnersStepDraftProps,
-    RequestorStepProps,
-    OnfidoData,
-    BankAccountStepProps,
-    CompanyStepProps,
-    ReimbursementAccountProps,
-    BeneficialOwnerDraftData,
-};
+export type {ACHContractStepProps, BeneficialOwnersStepProps, RequestorStepProps, OnfidoData, BankAccountStepProps, CompanyStepProps, ReimbursementAccountProps, BeneficialOwnerDraftData};

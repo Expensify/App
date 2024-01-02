@@ -1,4 +1,3 @@
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -11,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parsePhoneNumber} from '@libs/PhoneNumber';
 import getInitialSubstepForBusinessInfo from '@pages/ReimbursementAccount/utils/getInitialSubstepForBusinessInfo';
 import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -36,9 +36,6 @@ type BusinessInfoOnyxProps = {
 };
 
 type BusinessInfoProps = BusinessInfoOnyxProps & {
-    /** The workspace policyID */
-    policyID: string;
-
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 
@@ -60,7 +57,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
 
 const businessInfoStepKeys = CONST.BANK_ACCOUNT.BUSINESS_INFO_STEP.INPUT_KEY;
 
-function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID, onBackButtonPress, onCloseButtonPress}: BusinessInfoProps) {
+function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: BusinessInfoProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -75,16 +72,13 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
     const values = useMemo(() => getSubstepValues(businessInfoStepKeys, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
-        const payload = {
-            bankAccountID: reimbursementAccount?.achData?.bankAccountID ?? 0,
+        BankAccounts.updateCompanyInformationForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {
             ...values,
             ...getBankAccountFields(['routingNumber', 'accountNumber', 'bankName', 'plaidAccountID', 'plaidAccessToken', 'isSavings']),
             companyTaxID: values.companyTaxID?.replace(CONST.REGEX.NON_NUMERIC, ''),
             companyPhone: parsePhoneNumber(values.companyPhone ?? '', {regionCode: CONST.COUNTRY.US}).number?.significant,
-        };
-
-        BankAccounts.updateCompanyInformationForBankAccount(payload, policyID);
-    }, [reimbursementAccount, values, getBankAccountFields, policyID]);
+        });
+    }, [reimbursementAccount, values, getBankAccountFields]);
 
     const startFrom = useMemo(() => getInitialSubstepForBusinessInfo(values), [values]);
 
@@ -119,7 +113,7 @@ function BusinessInfo({reimbursementAccount, reimbursementAccountDraft, policyID
             />
             <View style={[styles.ph5, styles.mv3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStepIndex={1}
+                    startStepIndex={3}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
                 />
             </View>

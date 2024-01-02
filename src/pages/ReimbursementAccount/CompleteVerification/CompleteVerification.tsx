@@ -35,7 +35,6 @@ type CompleteVerificationProps = CompleteVerificationOnyxProps & {
 
 const BODY_CONTENT: Array<ComponentType<SubStepProps>> = [ConfirmAgreements];
 const COMPLETE_VERIFICATION_KEYS = CONST.BANK_ACCOUNT.COMPLETE_VERIFICATION.INPUT_KEY;
-const BENEFICIAL_OWNER_INFO_STEP_KEYS = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.INPUT_KEY;
 
 function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, onCloseButtonPress}: CompleteVerificationProps) {
     const {translate} = useLocalize();
@@ -44,19 +43,12 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
     const values = useMemo(() => getSubstepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
 
     const submit = useCallback(() => {
-        const payload = {
-            bankAccountID: values?.bankAccountID ?? reimbursementAccount?.achData?.bankAccountID,
+        BankAccounts.acceptACHContractForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {
             isAuthorizedToUseBankAccount: values.isAuthorizedToUseBankAccount,
             certifyTrueInformation: values.certifyTrueInformation,
             acceptTermsAndConditions: values.acceptTermsAndConditions,
-        };
-        const beneficialOwnersStepValues = getSubstepValues(BENEFICIAL_OWNER_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
-
-        BankAccounts.updateBeneficialOwnersForBankAccount({
-            ...beneficialOwnersStepValues,
-            ...payload,
         });
-    }, [reimbursementAccount, reimbursementAccountDraft, values]);
+    }, [reimbursementAccount, values]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: submit});
 

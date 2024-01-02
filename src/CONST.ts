@@ -189,7 +189,6 @@ const CONST = {
     BANK_ACCOUNT: {
         BANK_INFO_STEP: {
             INPUT_KEY: {
-                BANK_ACCOUNT_ID: 'bankAccountID',
                 ROUTING_NUMBER: 'routingNumber',
                 ACCOUNT_NUMBER: 'accountNumber',
                 PLAID_MASK: 'plaidMask',
@@ -201,7 +200,6 @@ const CONST = {
         },
         PERSONAL_INFO_STEP: {
             INPUT_KEY: {
-                BANK_ACCOUNT_ID: 'bankAccountID',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
                 DOB: 'dob',
@@ -266,7 +264,6 @@ const CONST = {
         },
         COMPLETE_VERIFICATION: {
             INPUT_KEY: {
-                BANK_ACCOUNT_ID: 'bankAccountID',
                 IS_AUTHORIZED_TO_USE_BANK_ACCOUNT: 'isAuthorizedToUseBankAccount',
                 CERTIFY_TRUE_INFORMATION: 'certifyTrueInformation',
                 ACCEPT_TERMS_AND_CONDITIONS: 'acceptTermsAndConditions',
@@ -281,8 +278,9 @@ const CONST = {
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',
-            COMPANY: 'CompanyStep',
             REQUESTOR: 'RequestorStep',
+            COMPANY: 'CompanyStep',
+            BENEFICIAL_OWNERS: 'BeneficialOwnersStep',
             ACH_CONTRACT: 'ACHContractStep',
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
