@@ -2,8 +2,8 @@ import React, {ForwardedRef, forwardRef} from 'react';
 import {FlatList} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import  {InvertedFlatListProps} from './types'
 import CellRendererComponent from './CellRendererComponent';
+import {InvertedFlatListProps} from './types';
 
 function BaseInvertedFlatListWithRef<T>(props: InvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
     const styles = useThemeStyles();
