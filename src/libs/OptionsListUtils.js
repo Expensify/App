@@ -532,17 +532,22 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
             const archiveReason =
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-            lastMessageText =  {key: `reportArchiveReasons.${archiveReason}`, 
-            params: {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(lastActorDetails, 'displayName')),
-                policyName: ReportUtils.getPolicyName(report),
-            }};
+            lastMessageText = {
+                key: `reportArchiveReasons.${archiveReason}`,
+                params: {
+                    displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(lastActorDetails, 'displayName')),
+                    policyName: ReportUtils.getPolicyName(report),
+                },
+            };
         }
 
         if (result.isThread || result.isMoneyRequestReport) {
-            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : {
-                key: 'report.noActivityYet'
-            };
+            result.alternateText =
+                lastMessageTextFromReport.length > 0
+                    ? lastMessageText
+                    : {
+                          key: 'report.noActivityYet',
+                      };
         } else if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {

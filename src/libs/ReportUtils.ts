@@ -450,16 +450,18 @@ function getPolicyType(report: OnyxEntry<Report>, policies: OnyxCollection<Polic
  * Get the policy name from a given report
  */
 function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, returnEmptyIfNotFound = false, policy: OnyxEntry<Policy> | undefined = undefined): string | {key: string} {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : {
-        key: 'workspace.common.unavailable'
-    };
+    const noPolicyFound = returnEmptyIfNotFound
+        ? ''
+        : {
+              key: 'workspace.common.unavailable',
+          };
     if (isEmptyObject(report)) {
         return noPolicyFound;
     }
 
     if ((!allPolicies || Object.keys(allPolicies).length === 0) && !report?.policyName) {
         return {
-            key: 'workspace.common.unavailable'
+            key: 'workspace.common.unavailable',
         };
     }
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
