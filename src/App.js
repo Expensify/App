@@ -5,6 +5,8 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+// eslint-disable-next-line @dword-design/import-alias/prefer-alias
+import {PerfDevtools} from '@components/PerfDevtools/PerfDevtools';
 import '../wdyr';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
@@ -78,6 +80,7 @@ function App() {
                     </ColorSchemeWrapper>
                 </ErrorBoundary>
             </ComposeProviders>
+            <PerfDevtools />
         </GestureHandlerRootView>
     );
 }
