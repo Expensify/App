@@ -40,6 +40,11 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual('react-native-reanimated/mock'),
+    createAnimatedPropAdapter: jest.fn,
+}));
+
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
  */
