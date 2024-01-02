@@ -663,7 +663,7 @@ function isReportActionAttachment(reportAction: OnyxEntry<ReportAction>): boolea
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction {
+function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
     }
