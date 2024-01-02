@@ -6,7 +6,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import Tooltip from '@components/Tooltip';
-import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,16 +14,17 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import LocationErrorMessageProps from './types';
 
-type BaseLocationErrorMessageProps = LocationErrorMessageProps &
-    WithLocalizeProps & {
-        /** A callback that runs when 'allow location permission' link is pressed */
-        onAllowLocationLinkPress: () => void;
-    };
+type BaseLocationErrorMessageProps = LocationErrorMessageProps & {
+    /** A callback that runs when 'allow location permission' link is pressed */
+    onAllowLocationLinkPress: () => void;
+};
 
-function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode, translate}: BaseLocationErrorMessageProps) {
+function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationErrorCode}: BaseLocationErrorMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+
     if (!locationErrorCode) {
         return null;
     }
@@ -76,4 +77,4 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
 
 BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
 
-export default withLocalize(BaseLocationErrorMessage);
+export default BaseLocationErrorMessage;
