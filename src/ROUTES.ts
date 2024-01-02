@@ -34,7 +34,7 @@ const ROUTES = {
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
-        getRoute: (taskID: string) => `get-assistance/${taskID}` as const,
+        getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
     },
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
     APPLE_SIGN_IN: 'sign-in-with-apple',
@@ -140,7 +140,9 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
-    SETTINGS_STATUS_SET: 'settings/profile/status/set',
+    SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
+    SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
+    SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
 
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
@@ -370,6 +372,12 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
+    // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
+    // straight to those flows without needing to have optimistic transaction and report IDs.
+    MONEY_REQUEST_START: {
+        route: 'start/:iouType/:iouRequestType',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) => `start/${iouType}/${iouRequestType}` as const,
+    },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
         route: 'create/:iouType/start/:transactionID/:reportID/distance',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) => `create/${iouType}/start/${transactionID}/${reportID}/distance` as const,
@@ -461,11 +469,6 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string) => `referral/${contentType}` as const,
     },
-
-    // These are some one-off routes that will be removed once they're no longer needed (see GH issues for details)
-    SAASTR: 'saastr',
-    SBE: 'sbe',
-    MONEY2020: 'money2020',
 } as const;
 
 export {getUrlWithBackToParam};

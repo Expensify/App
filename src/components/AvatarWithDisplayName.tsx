@@ -2,12 +2,12 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {OnyxCollection, OnyxEntry, withOnyx} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import useTheme from '@styles/themes/useTheme';
-import useStyleUtils from '@styles/useStyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,7 +65,6 @@ function AvatarWithDisplayName({
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
     const isExpenseRequest = ReportUtils.isExpenseRequest(report);
-    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : size;
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
@@ -111,14 +110,14 @@ function AvatarWithDisplayName({
                     <PressableWithoutFeedback
                         onPress={showActorDetails}
                         accessibilityLabel={title}
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                     >
                         {shouldShowSubscriptAvatar ? (
                             <SubscriptAvatar
                                 backgroundColor={avatarBorderColor}
                                 mainAvatar={icons[0]}
                                 secondaryAvatar={icons[1]}
-                                size={defaultSubscriptSize}
+                                size={size}
                             />
                         ) : (
                             <MultipleAvatars
@@ -166,7 +165,7 @@ function AvatarWithDisplayName({
             onPress={() => ReportUtils.navigateToDetailsPage(report)}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
-            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            role={CONST.ROLE.BUTTON}
         >
             {headerView}
         </PressableWithoutFeedback>
