@@ -21,7 +21,7 @@ type HeaderPageLayoutProps = ChildrenProps &
         footer?: ReactNode;
 
         /** The image to display in the upper half of the screen. */
-        headerContent?: React.ReactNode;
+        headerContent?: ReactNode;
 
         /** Style to apply to the header image container */
         headerContainerStyles?: StyleProp<ViewStyle>;
@@ -104,4 +104,5 @@ function HeaderPageLayout({
 
 HeaderPageLayout.displayName = 'HeaderPageLayout';
 
+export type {HeaderPageLayoutProps};
 export default HeaderPageLayout;
