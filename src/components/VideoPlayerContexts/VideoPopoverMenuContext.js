@@ -3,18 +3,33 @@ import React, {useCallback, useContext, useMemo, useState} from 'react';
 import _ from 'underscore';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import fileDownload from '@libs/fileDownload';
+import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
+import {usePlaybackContext} from './PlaybackContext';
 
 const VideoPopoverMenuContext = React.createContext(null);
 
 function VideoPopoverMenuContextProvider({children}) {
+    const {currentVideoPlayerRef} = usePlaybackContext();
     const {translate} = useLocalize();
     const [playbackSpeeds] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS);
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
 
-    const updatePlaybackSpeed = useCallback((speed) => {
-        setCurrentPlaybackSpeed(speed);
-    }, []);
+    const updatePlaybackSpeed = useCallback(
+        (speed) => {
+            setCurrentPlaybackSpeed(speed);
+            currentVideoPlayerRef.current.setStatusAsync({rate: speed});
+        },
+        [currentVideoPlayerRef],
+    );
+
+    const downloadAttachment = useCallback(() => {
+        currentVideoPlayerRef.current.getStatusAsync().then((status) => {
+            const sourceURI = `/${Url.getPathFromURL(status.uri)}`;
+            fileDownload(sourceURI);
+        });
+    }, [currentVideoPlayerRef]);
 
     const menuItems = useMemo(
         () => [
@@ -22,7 +37,7 @@ function VideoPopoverMenuContextProvider({children}) {
                 icon: Expensicons.Download,
                 text: translate('common.download'),
                 onSelected: () => {
-                    // TODO: Implement download
+                    downloadAttachment();
                 },
             },
             {
@@ -33,15 +48,14 @@ function VideoPopoverMenuContextProvider({children}) {
                         icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
                         text: speed.toString(),
                         onSelected: () => {
-                            // updatePlaybackSpeed(speed);
-                            console.log(`SPEED: ${speed}`);
+                            updatePlaybackSpeed(speed);
                         },
                         shouldPutLeftPaddingWhenNoIcon: true,
                     })),
                 ],
             },
         ],
-        [currentPlaybackSpeed, playbackSpeeds, translate],
+        [currentPlaybackSpeed, downloadAttachment, playbackSpeeds, translate, updatePlaybackSpeed],
     );
 
     const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
