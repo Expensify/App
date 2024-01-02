@@ -81,12 +81,10 @@ const SCREENS = {
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
-    LEFT_MODAL: {
-        SEARCH: 'Search',
-    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         NEW_CHAT: 'NewChat',
+        SEARCH: 'Search',
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
@@ -120,6 +118,7 @@ const SCREENS = {
         DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
+        START: 'Money_Request_Start',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
         STEP_CURRENCY: 'Money_Request_Step_Currency',

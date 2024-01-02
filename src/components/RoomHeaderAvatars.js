@@ -3,7 +3,6 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -22,7 +21,6 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     if (!props.icons.length) {
@@ -48,7 +46,6 @@ function RoomHeaderAvatars(props) {
                         <Avatar
                             source={props.icons[0].source}
                             imageStyles={[styles.avatarLarge]}
-                            fill={theme.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
                             name={props.icons[0].name}
                             type={props.icons[0].type}
@@ -92,7 +89,6 @@ function RoomHeaderAvatars(props) {
                                 >
                                     <Avatar
                                         source={icon.source}
-                                        fill={theme.iconSuccessFill}
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                         name={icon.name}
