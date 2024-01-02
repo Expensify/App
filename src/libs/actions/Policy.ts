@@ -4,7 +4,7 @@ import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
 import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx/lib/types';
+import {NullishDeep, OnyxEntry} from 'react-native-onyx/lib/types';
 import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -17,7 +17,19 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Network, PersonalDetails, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyMember,
+    PolicyTags,
+    RecentlyUsedCategories,
+    RecentlyUsedTags,
+    ReimbursementAccount,
+    Report,
+    ReportAction,
+    Transaction,
+} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -35,8 +47,9 @@ Onyx.connect({
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: OnyxCollection<Record<string, boolean>> = {};
-            const cleanUpSetQueries: OnyxCollection<Record<string, null>> = {};
+            type cleanUpMergeKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
+            const cleanUpMergeQueries: Record<cleanUpMergeKey, NullishDeep<Record<string, boolean>>> = {};
+            const cleanUpSetQueries: OnyxCollection<Record<string, unknown>> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
@@ -81,7 +94,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>>;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
@@ -119,12 +132,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
     callback: (val) => (allRecentlyUsedTags = val),
-});
-
-let networkStatus: OnyxEntry<Network> = {};
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (val) => (networkStatus = val),
 });
 
 /**
@@ -353,9 +360,9 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
 
-    const optimisticMembersState: Record<string, unknown> = {};
-    const successMembersState: Record<string, unknown> = {};
-    const failureMembersState: Record<string, unknown> = {};
+    const optimisticMembersState: Record<string, Record<string, unknown>> = {};
+    const successMembersState: Record<string, Record<string, unknown> | null> = {};
+    const failureMembersState: Record<string, Record<string, unknown>> = {};
     accountIDs.forEach((accountID) => {
         optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[accountID] = null;
@@ -391,7 +398,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     if (isNotEmptyObject(policy?.primaryLoginsInvited ?? {})) {
         // Take the current policy members and remove them optimistically
         // console.log('POLICYMEMBERS', allPolicyMembers);
-        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {});
+        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => parseInt(accountID));
         const remainingMemberAccountIDs = policyMemberAccountIDs.filter((e) => !accountIDs.includes(Number(e)));
         const remainingLogins: string[] = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
@@ -447,7 +454,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: accountIDs.map((accountID) => allPersonalDetails?.[accountID].login).join(','),
+            emailList: accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},
@@ -571,8 +578,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
-    const optimisticMembersState: Record<string, unknown> = {};
-    const failureMembersState: Record<string, unknown> = {};
+    const optimisticMembersState: Record<string, Record<string, unknown>> = {};
+    const failureMembersState: Record<string, Record<string, unknown>> = {};
     accountIDs.forEach((accountID) => {
         optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         failureMembersState[accountID] = {
@@ -770,7 +777,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
     }
 
     const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const distanceRate = Object.values(distanceUnit ? distanceUnit.rates : {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+    const distanceRate = Object.values(distanceUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
 
     if (!distanceUnit?.customUnitID || !distanceRate?.customUnitRateID) {
         return;
@@ -975,7 +982,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            ...(!networkStatus?.isOffline && {lastModified}),
+            lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },

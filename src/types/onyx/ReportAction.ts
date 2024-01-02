@@ -63,6 +63,9 @@ type ImageMetadata = {
 
     /**  The URL of the image. */
     url?: string;
+
+    /**  The type of the image. */
+    type?: string;
 };
 
 type LinkMetadata = {
@@ -151,6 +154,7 @@ type ReportActionBase = {
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
     childLastReceiptTransactionIDs?: string;
     childLastMoneyRequestComment?: string;
+    childLastActorAccountID?: number;
     timestamp?: number;
     reportActionTimestamp?: number;
     childMoneyRequestCount?: number;
@@ -186,6 +190,9 @@ type ReportActionBase = {
 
     /** The current user's notification preference for this report's child */
     childReportNotificationPreference?: NotificationPreference;
+
+    /** We manually add this field while sorting to detect the end of the list */
+    isNewestReportAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
@@ -193,4 +200,4 @@ type ReportAction = ReportActionBase & OriginalMessage;
 type ReportActions = Record<string, ReportAction>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata};

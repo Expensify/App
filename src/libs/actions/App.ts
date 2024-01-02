@@ -1,7 +1,7 @@
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
 import {AppState, AppStateStatus} from 'react-native';
-import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as Browser from '@libs/Browser';
@@ -228,7 +228,7 @@ function openApp() {
  * Fetches data when the app reconnects to the network
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
-function reconnectApp(updateIDFrom = 0) {
+function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         type ReconnectParams = {
@@ -384,7 +384,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  */
-function setUpPoliciesAndNavigate(session: OnyxTypes.Session) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;

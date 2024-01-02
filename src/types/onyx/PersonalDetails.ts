@@ -71,12 +71,9 @@ type PersonalDetails = {
 
     /** Status of the current user from their personal details */
     status?: string;
-
-    /** PayPalMe address of the current user */
-    payPalMeAddress?: string;
 };
 
-type PersonalDetailsList = Record<string, PersonalDetails>;
+type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 

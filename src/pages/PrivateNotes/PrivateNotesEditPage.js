@@ -16,14 +16,14 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withLocalize from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -147,7 +147,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}) {
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputID="privateNotes"
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}

@@ -17,9 +17,6 @@ type Report = {
     /** The specific type of chat */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU?: boolean;
-
     /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
     hasOutstandingChildRequest?: boolean;
 
@@ -74,9 +71,6 @@ type Report = {
     /** Whether the parent action was deleted */
     isDeletedParentAction?: boolean;
 
-    /** PayPalMe address of the submitter */
-    submitterPayPalMeAddress?: string;
-
     /** Linked policy's ID */
     policyID?: string;
 
@@ -103,6 +97,9 @@ type Report = {
 
     /** The report type */
     type?: string;
+
+    /** If the admin room should be opened */
+    openOnAdminRoom?: boolean;
 
     /** The report visibility */
     visibility?: ValueOf<typeof CONST.REPORT.VISIBILITY>;
@@ -144,9 +141,11 @@ type Report = {
     /** Total amount of money owed for IOU report */
     iouReportAmount?: number;
 
+    /** Is this action pending? */
+    pendingAction?: OnyxCommon.PendingAction;
+
     /** Pending fields for the report */
     pendingFields?: Record<string, OnyxCommon.PendingAction>;
-    pendingAction?: OnyxCommon.PendingAction;
 
     /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
     preexistingReportID?: string;
@@ -159,6 +158,9 @@ type Report = {
     text?: string;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
+
+    /** If the report contains reportFields, save the field id and its value */
+    reportFields?: Record<string, string>;
 };
 
 export default Report;

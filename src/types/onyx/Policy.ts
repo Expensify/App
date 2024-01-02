@@ -5,8 +5,8 @@ import * as OnyxCommon from './OnyxCommon';
 type Unit = 'mi' | 'km';
 
 type Rate = {
-    name: string;
-    rate: number;
+    name?: string;
+    rate?: number;
     currency?: string;
     customUnitRateID?: string;
     errors?: OnyxCommon.Errors;
@@ -14,23 +14,23 @@ type Rate = {
 };
 
 type NewCustomUnit = {
-    name: string;
+    name?: string;
     customUnitID?: string;
     attributes: {
         unit: Unit;
     };
-    rates: Rate;
+    rates?: Rate;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
 };
 
 type CustomUnit = {
-    name: string;
+    name?: string;
     customUnitID?: string;
     attributes: {
         unit: Unit;
     };
-    rates: Record<string, Rate>;
+    rates?: Record<string, Rate>;
     pendingAction?: string;
     errors?: OnyxCommon.Errors;
 };
@@ -90,6 +90,9 @@ type Policy = {
     /** The scheduled submit frequency set up on the this policy */
     autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 
+    /** The accountID of manager who the employee submits their expenses to on paid policies */
+    submitsTo?: number;
+
     /** The employee list of the policy */
     employeeList?: [];
 
@@ -105,4 +108,5 @@ type Policy = {
 };
 
 export default Policy;
-export type {CustomUnit, NewCustomUnit};
+
+export type {Unit, CustomUnit, NewCustomUnit};
