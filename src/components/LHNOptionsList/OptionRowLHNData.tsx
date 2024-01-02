@@ -3,7 +3,7 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import * as ReportLib from '@userActions/Report';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
@@ -57,7 +57,7 @@ function OptionRowLHNData({
         if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
             return;
         }
-        ReportLib.setReportWithDraft(reportID, true);
+        Report.setReportWithDraft(reportID, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
