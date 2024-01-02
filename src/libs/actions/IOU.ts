@@ -3005,35 +3005,35 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport) {
-    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+function approveMoneyRequest(expenseReport: OnyxTypes.Report) {
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
 
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
+    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
 
-    const optimisticReportActionsData = {
+    const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
             [optimisticApprovedReportAction.reportActionID]: {
-                ...optimisticApprovedReportAction,
+                ...(optimisticApprovedReportAction as OnyxTypes.ReportAction),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
     };
-    const optimisticIOUReportData = {
+    const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
             ...expenseReport,
-            lastMessageText: optimisticApprovedReportAction.message[0].text,
-            lastMessageHtml: optimisticApprovedReportAction.message[0].html,
+            lastMessageText: optimisticApprovedReportAction.message?.[0].text,
+            lastMessageHtml: optimisticApprovedReportAction.message?.[0].html,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS.APPROVED,
         },
     };
-    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
+    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData];
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -3045,19 +3045,19 @@ function approveMoneyRequest(expenseReport) {
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport.reportActionID]: {
+                [expenseReport.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
         },
     ];
 
-    if (!_.isNull(currentNextStep)) {
+    if (currentNextStep) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
@@ -3070,25 +3070,32 @@ function approveMoneyRequest(expenseReport) {
         });
     }
 
-    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
+    type ApproveMoneyRequestParams = {
+        reportID: string;
+        approvedReportActionID: string;
+    };
+
+    const parameters: ApproveMoneyRequestParams = {
+        reportID: expenseReport.reportID,
+        approvedReportActionID: optimisticApprovedReportAction.reportActionID,
+    };
+
+    API.write('ApproveMoneyRequest', parameters, {optimisticData, successData, failureData});
 }
 
-/**
- * @param {Object} expenseReport
- */
-function submitReport(expenseReport) {
-    const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
+function submitReport(expenseReport: OnyxTypes.Report) {
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
 
-    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
+    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
                 [optimisticSubmittedReportAction.reportActionID]: {
-                    ...optimisticSubmittedReportAction,
+                    ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
@@ -3105,22 +3112,21 @@ function submitReport(expenseReport) {
                 statusNum: CONST.REPORT.STATUS.SUBMITTED,
             },
         },
-        ...(parentReport.reportID
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
-                      value: {
-                          ...parentReport,
-                          hasOutstandingChildRequest: false,
-                          iouReportID: null,
-                      },
-                  },
-              ]
-            : []),
     ];
 
-    const successData = [
+    if (parentReport.reportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: {
+                ...parentReport,
+                hasOutstandingChildRequest: false,
+                iouReportID: null,
+            },
+        });
+    }
+
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
@@ -3132,12 +3138,12 @@ function submitReport(expenseReport) {
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport.reportActionID]: {
+                [expenseReport.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
@@ -3150,21 +3156,20 @@ function submitReport(expenseReport) {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
             },
         },
-        ...(parentReport.reportID
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
-                      value: {
-                          hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
-                          iouReportID: expenseReport.reportID,
-                      },
-                  },
-              ]
-            : []),
     ];
 
-    if (!_.isNull(currentNextStep)) {
+    if (parentReport.reportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            value: {
+                hasOutstandingChildRequest: parentReport.hasOutstandingChildRequest,
+                iouReportID: expenseReport.reportID,
+            },
+        });
+    }
+
+    if (currentNextStep) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
@@ -3177,15 +3182,19 @@ function submitReport(expenseReport) {
         });
     }
 
-    API.write(
-        'SubmitReport',
-        {
-            reportID: expenseReport.reportID,
-            managerAccountID: expenseReport.managerID,
-            reportActionID: optimisticSubmittedReportAction.reportActionID,
-        },
-        {optimisticData, successData, failureData},
-    );
+    type SubmitReportParams = {
+        reportID: string;
+        managerAccountID?: number;
+        reportActionID: string;
+    };
+
+    const parameters: SubmitReportParams = {
+        reportID: expenseReport.reportID,
+        managerAccountID: expenseReport.managerID,
+        reportActionID: optimisticSubmittedReportAction.reportActionID,
+    };
+
+    API.write('SubmitReport', parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -3206,11 +3215,12 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     Navigation.dismissModal(chatReport.reportID);
 }
 
-function detachReceipt(transactionID) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] || {};
+function detachReceipt(transactionID: string) {
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] as OnyxTypes.Transaction;
     const newTransaction = {...transaction, filename: '', receipt: {}};
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -3218,7 +3228,7 @@ function detachReceipt(transactionID) {
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -3229,16 +3239,11 @@ function detachReceipt(transactionID) {
     API.write('DetachReceipt', {transactionID}, {optimisticData, failureData});
 }
 
-/**
- * @param {String} transactionID
- * @param {Object} receipt
- * @param {String} filePath
- */
-function replaceReceipt(transactionID, receipt, filePath) {
-    const transaction = lodashGet(allTransactions, 'transactionID', {});
-    const oldReceipt = lodashGet(transaction, 'receipt', {});
+function replaceReceipt(transactionID: string, receipt: Receipt, filePath: ImageSourcePropType) {
+    const transaction = allTransactions.transactionID;
+    const oldReceipt = transaction?.receipt ?? {};
 
-    const optimisticData = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -3252,18 +3257,28 @@ function replaceReceipt(transactionID, receipt, filePath) {
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: oldReceipt,
-                filename: transaction.filename,
+                filename: transaction?.filename,
             },
         },
     ];
 
-    API.write('ReplaceReceipt', {transactionID, receipt}, {optimisticData, failureData});
+    type ReplaceReceiptParams = {
+        transactionID: string;
+        receipt: Receipt;
+    };
+
+    const parameters: ReplaceReceiptParams = {
+        transactionID,
+        receipt,
+    };
+
+    API.write('ReplaceReceipt', parameters, {optimisticData, failureData});
 }
 
 /**
