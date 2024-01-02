@@ -278,6 +278,7 @@ const FormProvider = forwardRef(
 
                 return {
                     ...propsToParse,
+                    returnKeyType: isSubmitEditing ? 'go' : propsToParse.returnKeyType,
                     ...onSubmitEditingObject,
                     ref:
                         typeof propsToParse.ref === 'function'
