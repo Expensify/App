@@ -240,7 +240,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
-                            title={transactionMerchant}
+                            title={isEmptyMerchant ? '' : transactionMerchant}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}

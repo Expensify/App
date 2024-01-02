@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,54 +6,54 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import BlockingView from './BlockingView';
 
-const propTypes = {
+type FullPageNotFoundViewProps = {
     /** Child elements */
-    children: PropTypes.node,
+    children?: React.ReactNode;
 
     /** If true, child components are replaced with a blocking "not found" view */
-    shouldShow: PropTypes.bool,
+    shouldShow?: boolean;
 
     /** The key in the translations file to use for the title */
-    titleKey: PropTypes.string,
+    titleKey?: TranslationPaths;
 
     /** The key in the translations file to use for the subtitle */
-    subtitleKey: PropTypes.string,
+    subtitleKey?: TranslationPaths;
 
     /** Whether we should show a link to navigate elsewhere */
-    shouldShowLink: PropTypes.bool,
+    shouldShowLink?: boolean;
 
     /** Whether we should show the back button on the header */
-    shouldShowBackButton: PropTypes.bool,
+    shouldShowBackButton?: boolean;
 
     /** The key in the translations file to use for the go back link */
-    linkKey: PropTypes.string,
+    linkKey?: TranslationPaths;
 
     /** Method to trigger when pressing the back button of the header */
-    onBackButtonPress: PropTypes.func,
+    onBackButtonPress: () => void;
 
     /** Function to call when pressing the navigation link */
-    onLinkPress: PropTypes.func,
-};
-
-const defaultProps = {
-    children: null,
-    shouldShow: false,
-    titleKey: 'notFound.notHere',
-    subtitleKey: 'notFound.pageNotFound',
-    linkKey: 'notFound.goBackHome',
-    onBackButtonPress: () => Navigation.goBack(ROUTES.HOME),
-    shouldShowLink: true,
-    shouldShowBackButton: true,
-    onLinkPress: () => Navigation.dismissModal(),
+    onLinkPress: () => void;
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, linkKey, onBackButtonPress, shouldShowLink, shouldShowBackButton, onLinkPress}) {
+function FullPageNotFoundView({
+    children = null,
+    shouldShow = false,
+    titleKey = 'notFound.notHere',
+    subtitleKey = 'notFound.pageNotFound',
+    linkKey = 'notFound.goBackHome',
+    onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
+    shouldShowLink = true,
+    shouldShowBackButton = true,
+    onLinkPress = () => Navigation.dismissModal(),
+}: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     if (shouldShow) {
         return (
             <>
@@ -81,8 +80,6 @@ function FullPageNotFoundView({children, shouldShow, titleKey, subtitleKey, link
     return children;
 }
 
-FullPageNotFoundView.propTypes = propTypes;
-FullPageNotFoundView.defaultProps = defaultProps;
 FullPageNotFoundView.displayName = 'FullPageNotFoundView';
 
 export default FullPageNotFoundView;
