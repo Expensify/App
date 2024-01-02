@@ -17,19 +17,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {
-    PersonalDetails,
-    PersonalDetailsList,
-    Policy,
-    PolicyMember,
-    PolicyTags,
-    RecentlyUsedCategories,
-    RecentlyUsedTags,
-    ReimbursementAccount,
-    Report,
-    ReportAction,
-    Transaction,
-} from '@src/types/onyx';
+import {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -47,8 +35,7 @@ Onyx.connect({
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            type cleanUpMergeKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
-            const cleanUpMergeQueries: Record<cleanUpMergeKey, NullishDeep<Record<string, boolean>>> = {};
+            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Record<string, boolean>>> = {};
             const cleanUpSetQueries: OnyxCollection<Record<string, unknown>> = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
@@ -275,8 +262,8 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
 /**
  * Is the user an admin of a free policy (aka workspace)?
  */
-function isAdminOfFreePolicy(policies: Record<string, Policy>): boolean {
-    return Object.values(policies).some((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+function isAdminOfFreePolicy(policies?: Record<string, OnyxEntry<Policy>>): boolean {
+    return Object.values(policies ?? {}).some((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 type AnnounceRoomMembers = {
@@ -405,7 +392,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
     if (isNotEmptyObject(policy?.primaryLoginsInvited ?? {})) {
         // Take the current policy members and remove them optimistically
-        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => parseInt(accountID));
+        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => parseInt(accountID, 10));
         const remainingMemberAccountIDs = policyMemberAccountIDs.filter((e) => !accountIDs.includes(Number(e)));
         const remainingLogins: string[] = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
