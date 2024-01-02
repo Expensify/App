@@ -206,8 +206,8 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={actorAccountID}
-                delegateAccountID={action.delegateAccountID}
+                accountID={Number(actorAccountID ?? 0)}
+                delegateAccountID={Number(action.delegateAccountID ?? 0)}
                 icon={icon}
             >
                 <View>
