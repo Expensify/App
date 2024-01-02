@@ -116,7 +116,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
-    const canEditAmount = canEdit && !isSettled && !isCardTransaction;
+    const canEditAmount = ReportUtils.canEditMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, transaction) && !isSettled && !isCardTransaction;
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, moneyRequestReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
@@ -174,7 +174,6 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
 
     const pendingAction = lodashGet(transaction, 'pendingAction');
     const getPendingFieldAction = (fieldPath) => lodashGet(transaction, fieldPath) || pendingAction;
-    const isAdmin = ReportUtils.isAdminOfMoneyRequestReport(moneyRequestReport);
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>

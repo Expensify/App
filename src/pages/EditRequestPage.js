@@ -101,15 +101,10 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     // A flag for showing the tags page
     const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
 
-    const isAdmin = ReportUtils.isAdminOfMoneyRequestReport(report);
-
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
-            return;
-        }
-        if (TransactionUtils.isDistanceRequest(transaction) ? isAdmin : true) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit, transaction)) {
             return;
         }
 
@@ -117,7 +112,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit, isAdmin, transaction]);
+    }, [parentReportAction, parentReport.reportID, fieldToEdit,  transaction]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
