@@ -195,17 +195,21 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 defaultMerchant={transactionMerchant}
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 onSubmit={(transactionChanges) => {
+                    const newTrimmedMerchant = transactionChanges.merchant.trim();
+
                     // In case the merchant hasn't been changed, do not make the API request.
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
+                    // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+                    if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
                         Navigation.dismissModal();
                         return;
                     }
+
                     // This is possible only in case of IOU requests.
-                    if (transactionChanges.merchant.trim() === '') {
+                    if (newTrimmedMerchant === '') {
                         editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
                         return;
                     }
-                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
+                    editMoneyRequest({merchant: newTrimmedMerchant});
                 }}
             />
         );
