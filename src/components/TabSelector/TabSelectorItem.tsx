@@ -1,8 +1,8 @@
 import React from 'react';
 import {Animated, StyleSheet} from 'react-native';
-import {SrcProps} from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
+import IconAsset from '@src/types/utils/IconAsset';
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
 
@@ -11,7 +11,7 @@ type TabSelectorItemProps = {
     onPress?: () => void;
 
     /** Icon to display on tab */
-    icon?: (props: SrcProps) => React.ReactNode;
+    icon?: IconAsset;
 
     /** Title of the tab */
     title?: string;

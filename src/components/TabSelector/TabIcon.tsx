@@ -1,11 +1,12 @@
 import React from 'react';
 import {Animated, StyleSheet, View} from 'react-native';
-import Icon, {SrcProps} from '@components/Icon';
+import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
+import IconAsset from '@src/types/utils/IconAsset';
 
 type TabIconProps = {
     /** Icon to display on tab */
-    icon?: (props: SrcProps) => React.ReactNode;
+    icon?: IconAsset;
 
     /** Animated opacity value while the icon is in inactive state */
     inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;

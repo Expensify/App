@@ -7,7 +7,6 @@ import Card from './Card';
 import Credentials from './Credentials';
 import Currency from './Currency';
 import CustomStatusDraft from './CustomStatusDraft';
-import DemoInfo from './DemoInfo';
 import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -37,6 +36,7 @@ import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import Report from './Report';
 import ReportAction, {ReportActions} from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
+import ReportActionsDraft from './ReportActionsDraft';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
 import ReportNextStep from './ReportNextStep';
@@ -71,7 +71,6 @@ export type {
     Currency,
     CustomStatusDraft,
     DateOfBirthForm,
-    DemoInfo,
     Download,
     Form,
     FrequentlyUsedEmoji,
@@ -107,6 +106,7 @@ export type {
     ReportAction,
     ReportActionReactions,
     ReportActions,
+    ReportActionsDraft,
     ReportActionsDrafts,
     ReportMetadata,
     ReportNextStep,
