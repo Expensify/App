@@ -2546,7 +2546,7 @@ function clearNewRoomFormError() {
     });
 }
 
-function resolveActionableMentionWhisper(reportId: string, reportActionID: string, resolution: ValueOf<typeof CONST.REPORT.RESOLUTIONS>) {
+function resolveActionableMentionWhisper(reportId: string, reportActionID: string, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2577,7 +2577,7 @@ function resolveActionableMentionWhisper(reportId: string, reportActionID: strin
 
     type ResolveActionableMentionWhisperParams = {
         reportActionID: string;
-        resolution: ValueOf<typeof CONST.REPORT.RESOLUTIONS>;
+        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>;
     };
 
     const parameters: ResolveActionableMentionWhisperParams = {

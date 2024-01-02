@@ -117,6 +117,7 @@ type OriginalMessageActionableMentionWhisper = {
         inviteeEmails: string;
         lastModified: string;
         reportID: number;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
         whisperedTo?: number[];
     };
 };

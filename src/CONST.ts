@@ -597,7 +597,7 @@ const CONST = {
             },
             THREAD_DISABLED: ['CREATED'],
         },
-        RESOLUTIONS: {
+        ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
             NOTHING: 'nothing',
         },

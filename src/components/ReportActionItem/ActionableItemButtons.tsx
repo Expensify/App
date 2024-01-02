@@ -1,20 +1,22 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import withLocalize, {WithLocalizeProps} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {TranslationPaths} from '@src/languages/types';
 
-type ActionItem = {
-    isPrimary: boolean;
+type ActionableItem = {
+    isPrimary?: boolean;
     key: string;
     onPress: () => void;
-    text: string;
+    text: TranslationPaths;
 };
 
-type ActionItemButtonsProps = {
-    items: ActionItem[];
+type ActionableItemButtonsProps = WithLocalizeProps & {
+    items: ActionableItem[];
 };
 
-function ActionItemButtons(props: ActionItemButtonsProps) {
+function ActionableItemButtons(props: ActionableItemButtonsProps) {
     const styles = useThemeStyles();
 
     return (
@@ -24,7 +26,7 @@ function ActionItemButtons(props: ActionItemButtonsProps) {
                     key={item.key}
                     style={[styles.mt2]}
                     onPress={item.onPress}
-                    text={item.text}
+                    text={props.translate(item.text)}
                     small
                     success={item.isPrimary}
                 />
@@ -33,6 +35,7 @@ function ActionItemButtons(props: ActionItemButtonsProps) {
     );
 }
 
-ActionItemButtons.displayName = 'ActionItemButtton';
+ActionableItemButtons.displayName = 'ActionableItemButtton';
 
-export default ActionItemButtons;
+export default withLocalize(ActionableItemButtons);
+export type {ActionableItem};

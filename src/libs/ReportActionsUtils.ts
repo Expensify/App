@@ -3,12 +3,14 @@ import lodashFindLast from 'lodash/findLast';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
 import {ValueOf} from 'type-fest';
+import {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
 import Report from '@src/types/onyx/Report';
 import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {resolveActionableMentionWhisper} from './actions/Report';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -776,6 +778,25 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
     return reportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.actorAccountID === currentAccountID);
 }
 
+function getActionableItemButtons(reportAction: ReportAction, reportID: string): ActionableItem[] {
+    if (!(reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && !reportAction.originalMessage?.resolution)) {
+        return [];
+    }
+    return [
+        {
+            text: 'actionableMentionWhisperOptions.invite',
+            key: `${reportAction.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
+            onPress: () => resolveActionableMentionWhisper(reportID, reportAction.reportActionID, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE),
+            isPrimary: true,
+        },
+        {
+            text: 'actionableMentionWhisperOptions.nothing',
+            key: `${reportAction.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
+            onPress: () => resolveActionableMentionWhisper(reportID, reportAction.reportActionID, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
+        },
+    ];
+}
+
 export {
     extractLinksFromMessageHtml,
     getAllReportActions,
@@ -823,6 +844,7 @@ export {
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
+    getActionableItemButtons,
 };
 
 export type {LastVisibleMessage};
