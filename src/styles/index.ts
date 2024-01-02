@@ -2865,7 +2865,7 @@ const styles = (theme: ThemeColors) =>
 
         smallEditIcon: {
             alignItems: 'center',
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.buttonDefaultBG,
             borderColor: theme.appBG,
             borderRadius: 14,
             borderWidth: 3,
