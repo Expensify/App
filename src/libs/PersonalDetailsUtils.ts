@@ -17,17 +17,6 @@ Onyx.connect({
 });
 
 /**
- * @param [defaultValue] optional default display name value
- */
-function getDisplayNameOrDefault(displayName?: string, defaultValue = ''): string {
-    // Not using nullish coalescing as it differs from OR for strings. For example:
-    // '' || 'A' === 'A'
-    // '' ?? 'A' === ''
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return displayName || defaultValue || Localize.translateLocal('common.hidden');
-}
-
-/**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
  * @param accountIDs  - Array of accountIDs
  * @param currentUserAccountID
@@ -203,7 +192,6 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 }
 
 export {
-    getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,

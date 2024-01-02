@@ -10,7 +10,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -127,7 +127,7 @@ function WorkspacesListRow({
                                 numberOfLines={1}
                                 style={[styles.labelStrong]}
                             >
-                                {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails.displayName)}
+                                {ReportUtils.getDisplayNameForParticipant(ownerAccountID)}
                             </Text>
                             <Text
                                 numberOfLines={1}
