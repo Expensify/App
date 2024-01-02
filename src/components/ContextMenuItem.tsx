@@ -96,7 +96,7 @@ function ContextMenuItem(
             style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
-            interactive
+            interactive={isThrottledButtonActive}
         />
     );
 }
