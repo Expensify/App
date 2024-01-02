@@ -3393,10 +3393,14 @@ function getIOUReportID(iou, route) {
  * @param {string} reportID
  */
 function putOnHold(transactionID, comment, reportID) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
-    const createdCommentReportAction = ReportUtils.buildOptimisticHoldReportActionComment(comment);
+    const createdDate = new Date();
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(createdDate);
+    const createdCommentReportAction = ReportUtils.buildOptimisticHoldReportActionComment(comment, new Date(createdDate.getTime() + 1));
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+
+    console.log('createdReportAction: ', createdReportAction);
+    console.log('createdCommentReportAction: ', createdCommentReportAction);
 
     const optimisticData = [
         {
