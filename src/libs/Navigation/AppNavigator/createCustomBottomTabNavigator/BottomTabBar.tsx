@@ -43,7 +43,7 @@ function BottomTabBar() {
                 >
                     <Icon
                         src={Expensicons.ChatBubble}
-                        fill={currentTabName === SCREENS.HOME ? theme.iconMenu : undefined}
+                        fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
                     />
                 </PressableWithFeedback>
             </Tooltip>
