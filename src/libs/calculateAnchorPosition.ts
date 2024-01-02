@@ -2,16 +2,12 @@
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
 
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
     shiftVertical?: number;
-};
-
-type AnchorPosition = {
-    horizontal: number;
-    vertical: number;
 };
 
 /**

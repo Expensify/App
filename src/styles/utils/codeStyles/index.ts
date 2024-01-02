@@ -4,4 +4,5 @@ import {CodeTextStyles, CodeWordStyles, CodeWordWrapperStyles} from './types';
 const codeWordWrapper: CodeWordWrapperStyles = {};
 const codeWordStyle: CodeWordStyles = {};
 const codeTextStyle: CodeTextStyles = {};
-export default {codeWordWrapper, codeWordStyle, codeTextStyle};
+const codePlainTextStyle: CodeTextStyles = {};
+export default {codeWordWrapper, codeWordStyle, codeTextStyle, codePlainTextStyle};
