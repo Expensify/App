@@ -1355,10 +1355,16 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
 
+/** Deletes the draft for a comment report action. */
+function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
+}
+
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
 function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: draftMessage});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
 
 /** Saves the number of lines for the report action draft */
@@ -2557,6 +2563,7 @@ export {
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinksInHtml,
+    deleteReportActionDraft,
     saveReportActionDraft,
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
