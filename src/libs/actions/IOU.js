@@ -3479,7 +3479,7 @@ function unholdRequest(transactionID, reportID) {
     ];
 
     API.write(
-        'UnholdRequest',
+        'UnHoldRequest',
         {
             ...transactionDetails,
             transactionID,
