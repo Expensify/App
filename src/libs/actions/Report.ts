@@ -2522,7 +2522,7 @@ function clearNewRoomFormError() {
     });
 }
 
-function resolveMentionWhisper(reportId: string, reportActionID: string, resolution: ValueOf<typeof CONST.REPORT.RESOLUTIONS>) {
+function resolveActionableMentionWhisper(reportId: string, reportActionID: string, resolution: ValueOf<typeof CONST.REPORT.RESOLUTIONS>) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2551,12 +2551,12 @@ function resolveMentionWhisper(reportId: string, reportActionID: string, resolut
         },
     ];
 
-    type ResolveMentionWhisperParameters = {
+    type ResolveActionableMentionWhisperParams = {
         reportActionID: string;
         resolution: ValueOf<typeof CONST.REPORT.RESOLUTIONS>;
     };
 
-    const parameters: ResolveMentionWhisperParameters = {
+    const parameters: ResolveActionableMentionWhisperParams = {
         reportActionID,
         resolution,
     };
@@ -2625,5 +2625,5 @@ export {
     savePrivateNotesDraft,
     getDraftPrivateNote,
     clearNewRoomFormError,
-    resolveMentionWhisper,
+    resolveActionableMentionWhisper,
 };

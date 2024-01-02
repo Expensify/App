@@ -110,8 +110,8 @@ type OriginalMessageAddComment = {
     };
 };
 
-type OriginalMessageActionableWhisper = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MENTIONWHISPER;
+type OriginalMessageActionableMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
     originalMessage: {
         inviteeAccountIDs: number[];
         inviteeEmails: string;
@@ -251,7 +251,7 @@ type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
     | OriginalMessageAddComment
-    | OriginalMessageActionableWhisper
+    | OriginalMessageActionableMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated

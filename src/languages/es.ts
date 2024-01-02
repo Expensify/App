@@ -2395,10 +2395,9 @@ export default {
         copy: 'Copiar',
         copied: '¡Copiado!',
     },
-    actionableWhisperItems: {
-        // Todo: ask for translation
-        invite: 'Invite them',
-        nothing: 'Do nothing',
+    actionableMentionWhisperOptions: {
+        invite: 'Invitar',
+        nothing: 'No hacer nada',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',

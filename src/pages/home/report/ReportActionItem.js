@@ -17,7 +17,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import EmojiReactionsPropTypes from '@components/Reactions/EmojiReactionsPropTypes';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
 import RenderHTML from '@components/RenderHTML';
-import ActionItemButttons from '@components/ReportActionItem/ActionItemButttons';
+import ActionItemButtons from '@components/ReportActionItem/ActionItemButtons';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
@@ -468,19 +468,19 @@ function ReportActionItem(props) {
                                     </Text>
                                 </Button>
                             )}
-                            {lodashGet(props, 'action.actionName', '') === CONST.REPORT.ACTIONS.TYPE.MENTIONWHISPER && !lodashGet(props, 'action.originalMessage.resolution', null) && (
-                                <ActionItemButttons
+                            {lodashGet(props, 'action.actionName', '') === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER && !lodashGet(props, 'action.originalMessage.resolution', null) && (
+                                <ActionItemButtons
                                     items={[
                                         {
-                                            text: props.translate('actionableWhisperItems.invite'),
-                                            key: 'invite',
-                                            onPress: () => Report.resolveMentionWhisper(props.report.reportID, props.action.reportActionID, CONST.REPORT.RESOLUTIONS.INVITE),
+                                            text: props.translate('actionableMentionWhisperOptions.invite'),
+                                            key: `${props.action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.RESOLUTIONS.INVITE}`,
+                                            onPress: () => Report.resolveActionableMentionWhisper(props.report.reportID, props.action.reportActionID, CONST.REPORT.RESOLUTIONS.INVITE),
                                             isPrimary: true,
                                         },
                                         {
-                                            text: props.translate('actionableWhisperItems.nothing'),
-                                            key: 'nothing',
-                                            onPress: () => Report.resolveMentionWhisper(props.report.reportID, props.action.reportActionID, CONST.REPORT.RESOLUTIONS.NOTHING),
+                                            text: props.translate('actionableMentionWhisperOptions.nothing'),
+                                            key: `${props.action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.RESOLUTIONS.NOTHING}`,
+                                            onPress: () => Report.resolveActionableMentionWhisper(props.report.reportID, props.action.reportActionID, CONST.REPORT.RESOLUTIONS.NOTHING),
                                         },
                                     ]}
                                 />

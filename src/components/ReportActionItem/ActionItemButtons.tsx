@@ -10,11 +10,11 @@ type ActionItem = {
     text: string;
 };
 
-type ActionItemButttonsProps = {
+type ActionItemButtonsProps = {
     items: ActionItem[];
 };
 
-function ActionItemButttons(props: ActionItemButttonsProps) {
+function ActionItemButtons(props: ActionItemButtonsProps) {
     const styles = useThemeStyles();
 
     return (
@@ -33,6 +33,6 @@ function ActionItemButttons(props: ActionItemButttonsProps) {
     );
 }
 
-ActionItemButttons.displayName = 'ActionItemButtton';
+ActionItemButtons.displayName = 'ActionItemButtton';
 
-export default ActionItemButttons;
+export default ActionItemButtons;

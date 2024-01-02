@@ -523,7 +523,7 @@ const CONST = {
                 TASKCOMPLETED: 'TASKCOMPLETED',
                 TASKEDITED: 'TASKEDITED',
                 TASKREOPENED: 'TASKREOPENED',
-                MENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -599,7 +599,6 @@ const CONST = {
         RESOLUTIONS: {
             INVITE: 'invited',
             NOTHING: 'nothing',
-            UNRESOLVED: 'unresolved',
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
