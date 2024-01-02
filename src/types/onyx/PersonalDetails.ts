@@ -11,7 +11,17 @@ type Timezone = {
     /** Whether timezone is automatically set */
     automatic?: boolean;
 };
-type CustomStatus = {text: string; emojiCode: string; clearAfter?: string};
+
+type Status = {
+    /** The emoji code of the status */
+    emojiCode: string;
+
+    /** The text of the draft status */
+    text?: string;
+
+    /** The timestamp of when the status should be cleared */
+    clearAfter: string; // ISO 8601 format;
+};
 
 type PersonalDetails = {
     /** ID of the current user from their personal details */
@@ -71,11 +81,11 @@ type PersonalDetails = {
     fallbackIcon?: string;
 
     /** Status of the current user from their personal details */
-    status?: CustomStatus;
+    status?: Status;
 };
 
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone, CustomStatus, PersonalDetailsList};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList};
