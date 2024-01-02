@@ -3119,7 +3119,7 @@ function submitReport(expenseReport) {
  * @param {Object} chatReport
  */
 function cancelPayment(expenseReport, chatReport) {
-    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction();
+    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID);
     const policy = ReportUtils.getPolicy(chatReport.policyID);
     const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
     const optimisticData = [

@@ -2800,13 +2800,14 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticCancelPaymentReportAction(): OptimisticCancelPaymentReportAction {
+function buildOptimisticCancelPaymentReportAction(expenseReportID: string): OptimisticCancelPaymentReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
         actorAccountID: currentUserAccountID,
         message: [
             {
                 cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+                expenseReportID,
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: '',
             },
