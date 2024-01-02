@@ -303,7 +303,7 @@ class BaseOptionsSelector extends Component {
     }
 
     selectFocusedOption(e) {
-        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
         const focusedOption = focusedItemKey ? _.find(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
 
         if (!focusedOption || !this.props.isFocused) {
@@ -492,6 +492,7 @@ class BaseOptionsSelector extends Component {
                 spellCheck={false}
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
+                testID="options-selector-input"
             />
         );
         const optionsList = (
