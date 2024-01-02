@@ -29,36 +29,13 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
-
-          # Clear node_modules and reinstall dependencies
           rm -rf node_modules
           npm install --force
-
-          # Check if the patch files exist and apply them
-          if [ -d "patches" ]; then
-            for file in patches/*.patch; do
-              if [ -e "$file" ]; then
-                npx patch-package `basename $file | sed -e 's/+[0-9]*+.*.patch$//'`
-              fi
-            done
-          fi
-
           npx reassure --baseline
           git switch --force --detach -
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
-
-          # Repeat clearing node_modules and reinstalling for the feature branch
           rm -rf node_modules
           npm install --force
-
-          if [ -d "patches" ]; then
-            for file in patches/*.patch; do
-              if [ -e "$file" ]; then
-                npx patch-package `basename $file | sed -e 's/+[0-9]*+.*.patch$//'`
-              fi
-            done
-          fi
-
           npx reassure --branch
 
       - name: Read output.json
