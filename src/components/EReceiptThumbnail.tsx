@@ -19,9 +19,7 @@ type EReceiptThumbnailOnyxProps = {
 };
 
 type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
-    /** TransactionID of the transaction this EReceipt corresponds to
-     * It's used by withOnyx HOC
-     */
+    /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
 };
@@ -44,7 +42,6 @@ function EReceiptThumbnail({transaction}: EReceiptThumbnailProps) {
 
     const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
 
-    // Get receipt colorway, or default to Yellow.
     const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
