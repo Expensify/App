@@ -59,7 +59,6 @@ function ContextMenuItem(
 
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (!!successIcon || successText) {
             setThrottledButtonInactive();
         }
