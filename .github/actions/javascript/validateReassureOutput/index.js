@@ -1,6 +1,3 @@
-/**
- * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -8,9 +5,10 @@
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const core = __nccwpck_require__(186);
+const fs = __nccwpck_require__(147);
 
 const run = () => {
-    const regressionOutput = JSON.parse(core.getInput('REGRESSION_OUTPUT', {required: true}));
+    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
     const countDeviation = core.getInput('COUNT_DEVIATION', {required: true});
     const durationDeviation = core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true});
 
