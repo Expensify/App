@@ -379,9 +379,10 @@ function getAllReportErrors(report, reportActions) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  * @param {Object} report
+ * @param {Object[]} personalDetails - list of personal details of the report participants
  * @returns {String}
  */
-function getLastMessageTextForReport(report) {
+function getLastMessageTextForReport(report, personalDetails) {
     const lastReportAction = _.find(allSortedReportActions[report.reportID], (reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
     let lastMessageTextFromReport = '';
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
@@ -418,10 +419,9 @@ function getLastMessageTextForReport(report) {
         lastMessageTextFromReport = lodashGet(lastReportAction, 'message[0].text', '');
     } else if (ReportActionUtils.isCreatedTaskReportAction(lastReportAction)) {
         lastMessageTextFromReport = TaskUtils.getTaskCreatedMessage(lastReportAction);
-    } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
     }
-    return lastMessageTextFromReport;
+
+    return lastMessageTextFromReport || PersonalDetailsUtils.replaceLoginsWithDisplayNames(lodashGet(report, 'lastMessageText', ''), personalDetails);
 }
 
 /**
@@ -509,7 +509,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastMessageTextFromReport = getLastMessageTextForReport(report);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, personalDetailList);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         const lastActorDisplayName =
             hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? lastActorDetails.firstName || lastActorDetails.displayName : '';

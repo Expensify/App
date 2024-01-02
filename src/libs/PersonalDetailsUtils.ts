@@ -6,13 +6,28 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        // When signed out, val is undefined
+        if (!value) {
+            return;
+        }
+
+        currentUserAccountID = value.accountID;
+    },
+});
+
 let personalDetails: Array<OnyxTypes.PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
+        currentUserPersonalDetails = val?.[currentUserAccountID ?? -1] ?? null;
     },
 });
 
@@ -25,6 +40,22 @@ function getDisplayNameOrDefault(displayName?: string, defaultValue = ''): strin
     // '' ?? 'A' === ''
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return displayName || defaultValue || Localize.translateLocal('common.hidden');
+}
+
+function replaceLoginsWithDisplayNames(text: string, details: PersonalDetails[], includeCurrentAccount = true): string {
+    const result = details.reduce<string>((replacedText, detail) => {
+        if (!detail.login) {
+            return replacedText;
+        }
+
+        return replacedText.replaceAll(detail.login, getDisplayNameOrDefault(detail?.displayName));
+    }, text);
+
+    if (!includeCurrentAccount || !currentUserPersonalDetails) {
+        return result;
+    }
+
+    return result.replaceAll(currentUserPersonalDetails.login ?? '', getDisplayNameOrDefault(currentUserPersonalDetails?.displayName));
 }
 
 /**
@@ -212,4 +243,5 @@ export {
     getFormattedStreet,
     getStreetLines,
     getEffectiveDisplayName,
+    replaceLoginsWithDisplayNames,
 };
