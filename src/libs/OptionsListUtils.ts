@@ -610,11 +610,15 @@ function createOption(
         lastMessageText += report ? lastMessageTextFromReport : '';
         const lastReportAction = lastReportActions[report.reportID ?? ''];
         if (result.isArchivedRoom && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-            const archiveReason = lastReportAction?.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-            lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}` as 'reportArchiveReasons.removedFromPolicy', {
-                displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails?.displayName),
-                policyName: ReportUtils.getPolicyName(report),
-            });
+            const archiveReason = lastReportAction.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            if (archiveReason === CONST.REPORT.ARCHIVE_REASON.DEFAULT || archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
+                lastMessageText = Localize.translate(preferredLocale, 'reportArchiveReasons.default');
+            } else {
+                lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails?.displayName),
+                    policyName: ReportUtils.getPolicyName(report),
+                });
+            }
         }
 
         if (result.isThread || result.isMoneyRequestReport) {
