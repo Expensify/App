@@ -1,4 +1,4 @@
-import React, {ForwardedRef, forwardRef, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import React, {type ForwardedRef, forwardRef, type MouseEventHandler, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -29,7 +29,7 @@ type CheckboxProps = Partial<ChildrenProps> & {
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Callback that is called when mousedown is triggered. */
-    onMouseDown?: () => void;
+    onMouseDown?: MouseEventHandler;
 
     /** The size of the checkbox container */
     containerSize?: number;

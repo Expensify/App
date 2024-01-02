@@ -23,7 +23,7 @@ type BaseModalProps = WindowDimensionsProps &
         shouldSetModalVisibility?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
-        onClose: () => void;
+        onClose: (ref?: React.RefObject<HTMLElement>) => void;
 
         /** State that determines whether to display the modal or not */
         isVisible: boolean;

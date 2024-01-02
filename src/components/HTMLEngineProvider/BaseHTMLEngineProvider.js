@@ -60,11 +60,11 @@ function BaseHTMLEngineProvider(props) {
             }),
             'mention-user': defaultHTMLElementModels.span.extend({tagName: 'mention-user'}),
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
-            'next-steps': defaultHTMLElementModels.span.extend({
-                tagName: 'next-steps',
+            'next-step': defaultHTMLElementModels.span.extend({
+                tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting},
             }),
-            'next-steps-email': defaultHTMLElementModels.span.extend({tagName: 'next-steps-email'}),
+            'next-step-email': defaultHTMLElementModels.span.extend({tagName: 'next-step-email'}),
             video: defaultHTMLElementModels.div.extend({
                 tagName: 'video',
                 mixedUAStyles: {whiteSpace: 'pre'},
