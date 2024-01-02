@@ -683,7 +683,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction.pendingAction).toBeFalsy();
                                         expect(transaction.errors).toBeTruthy();
-                                        expect(_.values(transaction.errors)[0]).toBe(['iou.error.genericCreateFailureMessage', {isTranslated: false}]);
+                                        expect(_.values(transaction.errors)[0]).toStrictEqual(['iou.error.genericCreateFailureMessage', {isTranslated: false}]);
                                         resolve();
                                     },
                                 });
