@@ -1,3 +1,4 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
@@ -9,7 +10,6 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
 import * as LoginUtils from './LoginUtils';
-import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
 
 /**
