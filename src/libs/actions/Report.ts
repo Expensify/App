@@ -2560,6 +2560,7 @@ function resolveActionableMentionWhisper(reportId: string, reportActionID: strin
         reportActionID,
         resolution,
     };
+
     API.write('ResolveActionableMentionWhisper', parameters, {optimisticData, failureData});
 }
 
