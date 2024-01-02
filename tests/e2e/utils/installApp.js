@@ -1,4 +1,3 @@
-const {APP_PACKAGE} = require('../config');
 const execAsync = require('./execAsync');
 const Logger = require('./logger');
 
@@ -11,7 +10,7 @@ const Logger = require('./logger');
  * @param {String} path
  * @returns {Promise<void>}
  */
-module.exports = function (platform = 'android', packageName = APP_PACKAGE, path) {
+module.exports = function (platform = 'android', packageName, path) {
     if (platform !== 'android') {
         throw new Error(`installApp() missing implementation for platform: ${platform}`);
     }

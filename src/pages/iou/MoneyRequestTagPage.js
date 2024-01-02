@@ -9,11 +9,11 @@ import TagPicker from '@components/TagPicker';
 import tagPropTypes from '@components/tagPropTypes';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import styles from '@styles/styles';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,6 +50,7 @@ const defaultProps = {
 };
 
 function MoneyRequestTagPage({route, report, policyTags, iou}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const iouType = lodashGet(route, 'params.iouType', '');
@@ -77,17 +78,22 @@ function MoneyRequestTagPage({route, report, policyTags, iou}) {
             shouldEnableMaxHeight
             testID={MoneyRequestTagPage.displayName}
         >
-            <HeaderWithBackButton
-                title={policyTagListName}
-                onBackButtonPress={navigateBack}
-            />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
-            <TagPicker
-                policyID={report.policyID}
-                tag={tagListKey}
-                selectedTag={iou.tag}
-                onSubmit={updateTag}
-            />
+            {({insets}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={policyTagListName}
+                        onBackButtonPress={navigateBack}
+                    />
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: policyTagListName})}</Text>
+                    <TagPicker
+                        policyID={report.policyID}
+                        tag={tagListKey}
+                        selectedTag={iou.tag}
+                        insets={insets}
+                        onSubmit={updateTag}
+                    />
+                </>
+            )}
         </ScreenWrapper>
     );
 }

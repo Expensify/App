@@ -11,8 +11,9 @@ import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
     image: ImageSourcePropType | string;
-    thumbnail: string | null;
+    thumbnail: ImageSourcePropType | string | null;
     transaction?: Transaction;
+    isLocalFile?: boolean;
 };
 
 type FileNameAndExtension = {
@@ -65,7 +66,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
         image = ReceiptSVG;
     }
 
-    return {thumbnail: null, image};
+    return {thumbnail: image, image: path, isLocalFile: true};
 }
 
 // eslint-disable-next-line import/prefer-default-export

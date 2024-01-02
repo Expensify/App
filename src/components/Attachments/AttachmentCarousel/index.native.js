@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
@@ -18,31 +18,20 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, onClose, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+    const styles = useThemeStyles();
     const pagerRef = useRef(null);
-
-    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [activeSource, setActiveSource] = useState(source);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
-    const [isReceipt, setIsReceipt] = useState(false);
+    const [activeSource, setActiveSource] = useState(source);
 
-    const compareImage = useCallback(
-        (attachment) => {
-            if (attachment.isReceipt && isReceipt) {
-                const action = ReportActionsUtils.getParentReportAction(report);
-                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
-                return attachment.transactionID === transactionID;
-            }
-            return attachment.source === source;
-        },
-        [source, report, isReceipt],
-    );
+    const compareImage = useCallback((attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
-        const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
+        const parentReportAction = parentReportActions[report.parentReportActionID];
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -77,7 +66,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
             const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
-            setIsReceipt(item.isReceipt);
             setActiveSource(item.source);
 
             onNavigate(item);
@@ -106,61 +94,63 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose,
      * @returns {JSX.Element}
      */
     const renderItem = useCallback(
-        ({item, isActive}) => (
+        ({item, index, isActive}) => (
             <CarouselItem
                 item={item}
+                isSingleItem={attachments.length === 1}
+                index={index}
+                activeIndex={page}
                 isFocused={isActive && activeSource === item.source}
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
-        [activeSource, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) =>
-                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
-            }
             onMouseEnter={() => setShouldShowArrows(true)}
             onMouseLeave={() => setShouldShowArrows(false)}
         >
-            {page === -1 ? (
-                <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
-                    iconWidth={variables.modalTopIconWidth}
-                    iconHeight={variables.modalTopIconHeight}
-                    title={translate('notFound.notHere')}
-                />
+            {page == null ? (
+                <FullScreenLoadingIndicator />
             ) : (
                 <>
-                    <CarouselButtons
-                        shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
-                        page={page}
-                        attachments={attachments}
-                        onBack={() => cycleThroughAttachments(-1)}
-                        onForward={() => cycleThroughAttachments(1)}
-                        autoHideArrow={autoHideArrows}
-                        cancelAutoHideArrow={cancelAutoHideArrows}
-                    />
-
-                    {containerDimensions.width > 0 && containerDimensions.height > 0 && (
-                        <AttachmentCarouselPager
-                            items={attachments}
-                            renderItem={renderItem}
-                            initialIndex={page}
-                            onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                            onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                    setShouldShowArrows(true);
-                                }
-                            }}
-                            onSwipeDown={onClose}
-                            containerWidth={containerDimensions.width}
-                            containerHeight={containerDimensions.height}
-                            ref={pagerRef}
+                    {page === -1 ? (
+                        <BlockingView
+                            icon={Illustrations.ToddBehindCloud}
+                            iconWidth={variables.modalTopIconWidth}
+                            iconHeight={variables.modalTopIconHeight}
+                            title={translate('notFound.notHere')}
                         />
+                    ) : (
+                        <>
+                            <CarouselButtons
+                                shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
+                                page={page}
+                                attachments={attachments}
+                                onBack={() => cycleThroughAttachments(-1)}
+                                onForward={() => cycleThroughAttachments(1)}
+                                autoHideArrow={autoHideArrows}
+                                cancelAutoHideArrow={cancelAutoHideArrows}
+                            />
+
+                            <AttachmentCarouselPager
+                                items={attachments}
+                                renderItem={renderItem}
+                                initialIndex={page}
+                                onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                                onPinchGestureChange={(newIsPinchGestureRunning) => {
+                                    setIsPinchGestureRunning(newIsPinchGestureRunning);
+                                    if (!newIsPinchGestureRunning && !shouldShowArrows) {
+                                        setShouldShowArrows(true);
+                                    }
+                                }}
+                                onSwipeDown={onClose}
+                                ref={pagerRef}
+                            />
+                        </>
                     )}
                 </>
             )}
@@ -175,6 +165,13 @@ export default compose(
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            canEvict: false,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
     }),

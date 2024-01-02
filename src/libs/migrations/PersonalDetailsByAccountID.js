@@ -257,6 +257,18 @@ export default function () {
                     delete newReport.participants;
                 }
 
+                if (lodashHas(newReport, ['ownerEmail'])) {
+                    reportWasModified = true;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing ownerEmail from report ${newReport.reportID}`);
+                    delete newReport.ownerEmail;
+                }
+
+                if (lodashHas(newReport, ['managerEmail'])) {
+                    reportWasModified = true;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing managerEmail from report ${newReport.reportID}`);
+                    delete newReport.managerEmail;
+                }
+
                 if (reportWasModified) {
                     onyxData[onyxKey] = newReport;
                 }

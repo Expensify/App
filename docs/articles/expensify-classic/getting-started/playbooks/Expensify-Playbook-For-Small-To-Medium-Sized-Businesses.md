@@ -55,11 +55,11 @@ You do this by synchronizing Expensify and your accounting package as follows:
 4. Follow the prompts to connect your accounting package
 
 Check out the links below for more information on how to connect to your accounting solution:
-- *[QuickBooks Online](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/QuickBooks-Online#gsc.tab=0)*
-- *[Xero](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Xero#gsc.tab=0)*
-- *[NetSuite](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#gsc.tab=0)*
-- *[Sage Intacct](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#gsc.tab=0)*
-- *[Other Accounting System](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Indirect-Accounting-Integrations#gsc.tab=0)
+- *[QuickBooks Online](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/QuickBooks-Online)*
+- *[Xero](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Xero)*
+- *[NetSuite](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite)*
+- *[Sage Intacct](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct)*
+- *[Other Accounting System](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Indirect-Accounting-Integrations)
 
 
 *“Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical.”*
@@ -106,7 +106,7 @@ Receipts are important, and in most cases you prefer an itemized receipt. Howeve
 At this point, you’ve set enough compliance controls around categorical spend and general expenses for all employees, such that you can put trust in our solution to audit all expenses up front so you don’t have to. Next, let’s dive into how we can comfortably take on more automation, while relying on compliance controls to capture bad behavior (or better yet, instill best practices in our employees).
 
 ## Step 7: Set up scheduled submit
-For an efficient company, we recommend setting up [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/policy-and-domain-settings/reports/Scheduled-Submit#gsc.tab=0) on a *Daily* frequency:
+For an efficient company, we recommend setting up [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/policy-and-domain-settings/reports/Scheduled-Submit) on a *Daily* frequency:
 
 - Click *Settings > Workspace*
 - From here, select your group collect workspace
@@ -147,10 +147,10 @@ You only need to do this once: you are fully set up for not only reimbursing exp
 
 ## Step 9: Invite employees and set an approval workflow
 *Select an Approval Mode*
-We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows#gsc.tab=0). But if *Advanced Approval* is your jam, keep reading! 
+We recommend you select *Advanced Approval* as your Approval Mode to set up a middle-management layer of approval. If you have a single layer of approval, we recommend selecting [Submit & Approve](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows). But if *Advanced Approval* is your jam, keep reading! 
 
 *Import your employees in bulk via CSV*
-Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows#gsc.tab=0)*
+Given the amount of employees you have, it’s best you import employees in bulk via CSV. You can learn more about using a CSV file to bulk upload employees with *Advanced Approval [here](https://help.expensify.com/articles/expensify-classic/manage-employees-and-report-approvals/Approval-Workflows)*
 
 ![Bulk import your employees](https://help.expensify.com/assets/images/playbook-impoort-employees.png){:width="100%"}
 
@@ -185,15 +185,20 @@ Expensify supports direct card feeds from most financial institutions. Setting u
 
 ![If you have existing corporate cards](https://help.expensify.com/assets/images/playbook-existing-corporate-card.png){:width="100%"}
 
-As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. One benefit of the Expensify Card for your company is being able to see transactions at the point of purchase which provides you with real-time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS-compliant e-receipts as a backup wherever applicable. 
+As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. The Expensify Card has many benefits for your company. Two in particular that are worth mentioning are: 
+
+1. Seeing transactions at the point of purchase provides you with real-time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS-compliant e-receipts as a backup wherever applicable.
+
+2. The option to issue Unlimited Virtual Cards with a fixed or monthly limit for specific company purchases (ex., Marketing purchases, Advertising, Travel, etc).
 
 ### If you don't have a corporate card, use the Expensify Card (US only)
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back (up to 4% in your first 3 months!)
+- Up to 2% cash back
 - [SmartLimits](https://help.expensify.com/articles/expensify-classic/expensify-card/Card-Settings) to control what each individual cardholder can spend
 - A stable, unbreakable real-time connection (third-party bank feeds can run into connectivity issues)
-- Receipt compliance - informing notifications (eg. add a receipt!) for users *as soon as the card is swiped*
+- Receipt compliance - informing notifications (e.g. add a receipt!) for users *as soon as the card is swiped*
+- Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
 - A 50% discount on the price of all Expensify plans
 - Multiple discounts and savings on a host of partner tech suppliers 
 - Good Karma - 10% of all card interchange we earn goes directly to the Expensify.org Social Justice Community funds
@@ -202,13 +207,14 @@ The Expensify Card is recommended as the most efficient way to manage your compa
 
 Here’s how to enable it:
 
-1. There are *two ways* you can [apply for the Expensify Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Card-for-Your-Company)
+1. You can [apply for the Expensify Card](https://help.expensify.com/articles/expensify-classic/expensify-card/Set-Up-the-Card-for-Your-Company)
       - *Via your tasks on the Home page* 
       - *Via Domain Settings* - Go to Settings > Domain > Company Cards > Enable Expensify Card
-2. Assign the cards to your employees
+2. Assign virtual and physical cards to your employees
 3. Set *SmartLimits*:
       - *Employees* - We recommend a low limit for most employees, roughly double the size of the maximum daily spend – such as $1000.  
-      - *Execs* - We recommend a higher limit for executives, roughly 10x the limit of a non-executive employee (eg, $10,000).
+      - *Execs* - We recommend a higher limit for executives, roughly 10x the limit of a non-executive employee (e.g., $10,000).
+      - You can also issue Unlimited Virtual Cards to any employee. These are single-purpose cards with a set SmartLimit that can be used for specific company purchases
 
 Once the Expensify Cards have been assigned, each employee will be prompted to enter their mailing address so they can receive their physical card. In the meantime, a virtual card will be ready to use immediately.
 

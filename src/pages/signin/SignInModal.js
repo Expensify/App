@@ -1,9 +1,11 @@
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import * as Session from '@userActions/Session';
+import SCREENS from '@src/SCREENS';
 import SignInPage from './SignInPage';
 
 const propTypes = {};
@@ -11,6 +13,9 @@ const propTypes = {};
 const defaultProps = {};
 
 function SignInModal() {
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
+
     if (!Session.isAnonymousUser()) {
         // Sign in in RHP is only for anonymous users
         Navigation.isNavigationReady().then(() => {
@@ -19,7 +24,7 @@ function SignInModal() {
     }
     return (
         <ScreenWrapper
-            style={[styles.highlightBG]}
+            style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.RIGHT_MODAL.SIGN_IN].backgroundColor)]}
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={SignInModal.displayName}

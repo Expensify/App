@@ -5,8 +5,8 @@ import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import refPropTypes from '@components/refPropTypes';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ValueSelectorModal from './ValueSelectorModal';
 
@@ -44,6 +44,8 @@ const defaultProps = {
 };
 
 function ValuePicker({value, label, items, placeholder, errorText, onInputChange, forwardedRef}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -80,7 +82,6 @@ function ValuePicker({value, label, items, placeholder, errorText, onInputChange
             </View>
             <ValueSelectorModal
                 isVisible={isPickerVisible}
-                currentValue={selectedLabel || placeholder || ''}
                 label={label}
                 selectedItem={selectedItem}
                 items={items}

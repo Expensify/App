@@ -6,8 +6,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
@@ -16,6 +16,7 @@ const propTypes = {};
 const defaultProps = {};
 
 function ImTeacherUpdateEmailPage() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const activeRoute = Navigation.getActiveRouteWithoutParams();
 
@@ -34,7 +35,7 @@ function ImTeacherUpdateEmailPage() {
                 linkKey="teachersUnitePage.contactMethods"
                 onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 iconWidth={variables.signInLogoWidthLargeScreen}
-                iconHeight={variables.lhnLogoWidth}
+                iconHeight={variables.signInLogoHeightLargeScreen}
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button

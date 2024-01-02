@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -37,11 +37,9 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function getBackgroundImage(transaction) {
-    return backgroundImages[StyleUtils.getEReceiptColorCode(transaction)];
-}
-
 function EReceiptThumbnail({transaction}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
 
@@ -74,6 +72,8 @@ function EReceiptThumbnail({transaction}) {
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
     }
 
+    const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
+
     return (
         <View
             style={[
@@ -86,7 +86,7 @@ function EReceiptThumbnail({transaction}) {
             onLayout={onContainerLayout}
         >
             <Image
-                source={getBackgroundImage(transaction)}
+                source={backgroundImage}
                 style={styles.eReceiptBackgroundThumbnail}
                 resizeMode="cover"
             />

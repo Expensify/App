@@ -1,30 +1,38 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-let closeModal: (isNavigating: boolean) => void;
+const closeModals: Array<(isNavigating: boolean) => void> = [];
+
 let onModalClose: null | (() => void);
 
 /**
  * Allows other parts of the app to call modal close function
  */
 function setCloseModal(onClose: () => void) {
-    closeModal = onClose;
+    if (!closeModals.includes(onClose)) {
+        closeModals.push(onClose);
+    }
+    return () => {
+        const index = closeModals.indexOf(onClose);
+        if (index === -1) {
+            return;
+        }
+        closeModals.splice(index, 1);
+    };
 }
 
 /**
  * Close modal in other parts of the app
  */
 function close(onModalCloseCallback: () => void, isNavigating = true) {
-    if (!closeModal) {
-        // If modal is already closed, no need to wait for modal close. So immediately call callback.
-        if (onModalCloseCallback) {
-            onModalCloseCallback();
-        }
-        onModalClose = null;
+    if (closeModals.length === 0) {
+        onModalCloseCallback();
         return;
     }
     onModalClose = onModalCloseCallback;
-    closeModal(isNavigating);
+    [...closeModals].reverse().forEach((onClose) => {
+        onClose(isNavigating);
+    });
 }
 
 function onModalDidClose() {

@@ -9,8 +9,8 @@ import Text from '@components/Text';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import styles from '@styles/styles';
 import CONST from '@src/CONST';
 import {defaultProps as createMenuDefaultProps, propTypes as createMenuPropTypes} from './popoverMenuPropTypes';
 
@@ -18,20 +18,8 @@ const propTypes = {
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
 
-    /** The horizontal and vertical anchors points for the popover */
-    anchorPosition: PropTypes.shape({
-        horizontal: PropTypes.number.isRequired,
-        vertical: PropTypes.number.isRequired,
-    }).isRequired,
-
     /** Ref of the anchor */
     anchorRef: refPropTypes,
-
-    /** Where the popover should be positioned relative to the anchor points. */
-    anchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
 
     withoutOverlay: PropTypes.bool,
 
@@ -51,6 +39,7 @@ const defaultProps = {
 };
 
 function PopoverMenu(props) {
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const selectedItemIndex = useRef(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
@@ -104,11 +93,13 @@ function PopoverMenu(props) {
                         iconWidth={item.iconWidth}
                         iconHeight={item.iconHeight}
                         iconFill={item.iconFill}
+                        contentFit={item.contentFit}
                         title={item.text}
                         shouldCheckActionAllowedOnPress={false}
                         description={item.description}
                         onPress={() => selectItem(menuIndex)}
                         focused={focusedIndex === menuIndex}
+                        displayInDefaultIconColor={item.displayInDefaultIconColor}
                     />
                 ))}
             </View>

@@ -2,10 +2,9 @@ import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import CONST from '@src/CONST';
 import AttachmentModal from './AttachmentModal';
 import Avatar from './Avatar';
@@ -22,6 +21,8 @@ const defaultProps = {
 };
 
 function RoomHeaderAvatars(props) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     if (!props.icons.length) {
         return null;
     }
@@ -39,13 +40,12 @@ function RoomHeaderAvatars(props) {
                     <PressableWithoutFocus
                         style={[styles.noOutline]}
                         onPress={show}
-                        role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                         accessibilityLabel={props.icons[0].name}
                     >
                         <Avatar
                             source={props.icons[0].source}
                             imageStyles={[styles.avatarLarge]}
-                            fill={themeColors.iconSuccessFill}
                             size={CONST.AVATAR_SIZE.LARGE}
                             name={props.icons[0].name}
                             type={props.icons[0].type}
@@ -84,12 +84,11 @@ function RoomHeaderAvatars(props) {
                                 <PressableWithoutFocus
                                     style={[styles.mln4, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                     onPress={show}
-                                    role={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     accessibilityLabel={icon.name}
                                 >
                                     <Avatar
                                         source={icon.source}
-                                        fill={themeColors.iconSuccessFill}
                                         size={CONST.AVATAR_SIZE.LARGE}
                                         containerStyles={[...iconStyle, StyleUtils.getAvatarBorderRadius(CONST.AVATAR_SIZE.LARGE_BORDERED, icon.type)]}
                                         name={icon.name}

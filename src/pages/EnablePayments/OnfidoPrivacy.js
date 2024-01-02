@@ -10,9 +10,9 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import styles from '@styles/styles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import walletOnfidoDataPropTypes from './walletOnfidoDataPropTypes';
@@ -36,6 +36,7 @@ const defaultProps = {
 };
 
 function OnfidoPrivacy({walletOnfidoData, translate, form}) {
+    const styles = useThemeStyles();
     const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
 
     const formRef = useRef(null);

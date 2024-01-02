@@ -63,6 +63,7 @@ const CONST = {
         DEPLOY_BLOCKER: 'DeployBlockerCash',
         INTERNAL_QA: 'InternalQA',
     },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
 };
 
 CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
@@ -142,6 +143,20 @@ class GithubUtils {
         }
         this.initOctokit();
         return this.internalOctokit.rest;
+    }
+
+    /**
+     * Get the graphql instance from internal octokit.
+     * @readonly
+     * @static
+     * @memberof GithubUtils
+     */
+    static get graphql() {
+        if (this.internalOctokit) {
+            return this.internalOctokit.graphql;
+        }
+        this.initOctokit();
+        return this.internalOctokit.graphql;
     }
 
     /**

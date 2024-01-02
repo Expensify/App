@@ -1,7 +1,8 @@
-import {fireEvent, screen} from '@testing-library/react-native';
+import {act, fireEvent, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
+import _ from 'underscore';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import DragAndDropProvider from '../../src/components/DragAndDrop/Provider';
 import {LocaleContextProvider} from '../../src/components/LocaleContextProvider';
@@ -20,8 +21,6 @@ import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-jest.setTimeout(60000);
 
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual('react-native-reanimated/mock'),
@@ -56,7 +55,6 @@ jest.mock('../../src/hooks/useEnvironment', () =>
 );
 
 jest.mock('../../src/libs/Permissions', () => ({
-    canUseTasks: jest.fn(() => true),
     canUseLinkPreviews: jest.fn(() => true),
 }));
 
@@ -104,6 +102,33 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
+/**
+ * This is a helper function to create a mock for the addListener function of the react-navigation library.
+ * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
+ * the transitionEnd event that is triggered when the screen transition animation is completed.
+ *
+ * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
+ *
+ * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
+ */
+const createAddListenerMock = () => {
+    const transitionEndListeners = [];
+    const triggerTransitionEnd = () => {
+        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
+    };
+
+    const addListener = jest.fn().mockImplementation((listener, callback) => {
+        if (listener === 'transitionEnd') {
+            transitionEndListeners.push(callback);
+        }
+        return () => {
+            _.filter(transitionEndListeners, (cb) => cb !== callback);
+        };
+    });
+
+    return {triggerTransitionEnd, addListener};
+};
+
 function ReportScreenWrapper(args) {
     return (
         <ComposeProviders
@@ -120,19 +145,33 @@ function ReportScreenWrapper(args) {
             <ReportScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
+                navigation={args.navigation}
             />
         </ComposeProviders>
     );
 }
 
-test('should render ReportScreen with composer interactions', () => {
+const runs = CONST.PERFORMANCE_TESTS.RUNS;
+
+test('[ReportScreen] should render ReportScreen with composer interactions', () => {
+    const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
+        /**
+         * First make sure ReportScreen is mounted, so that we can trigger
+         * the transitionEnd event manually.
+         *
+         * If we don't do that, then the transitionEnd event will be triggered
+         * before the ReportScreen is mounted, and the test will fail.
+         */
+        await screen.findByTestId('ReportScreen');
+
+        await act(triggerTransitionEnd);
+
         // Query for the report list
         await screen.findByTestId('report-actions-list');
 
         // Query for the composer
         const composer = await screen.findByTestId('composer');
-        expect(composer).toBeDefined();
 
         // Type in the composer
         fireEvent.changeText(composer, 'Test message');
@@ -141,7 +180,6 @@ test('should render ReportScreen with composer interactions', () => {
 
         // Query for the send button
         const sendButton = await screen.findByLabelText(hintSendButtonText);
-        expect(sendButton).toBeDefined();
 
         // Click on the send button
         fireEvent.press(sendButton);
@@ -149,8 +187,7 @@ test('should render ReportScreen with composer interactions', () => {
         const hintHeaderText = Localize.translateLocal('common.back');
 
         // Query for the header
-        const header = await screen.findByLabelText(hintHeaderText);
-        expect(header).toBeDefined();
+        await screen.findByLabelText(hintHeaderText);
     };
 
     const policy = {
@@ -159,8 +196,10 @@ test('should render ReportScreen with composer interactions', () => {
     };
 
     const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '1'}};
+
+    const navigation = {addListener};
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -176,11 +215,31 @@ test('should render ReportScreen with composer interactions', () => {
                 },
             }),
         )
-        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
+        .then(() =>
+            measurePerformance(
+                <ReportScreenWrapper
+                    navigation={navigation}
+                    route={mockRoute}
+                />,
+                {scenario, runs},
+            ),
+        );
 });
 
-test('should press of the report item', () => {
+test('[ReportScreen] should press of the report item', () => {
+    const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
+        /**
+         * First make sure ReportScreen is mounted, so that we can trigger
+         * the transitionEnd event manually.
+         *
+         * If we don't do that, then the transitionEnd event will be triggered
+         * before the ReportScreen is mounted, and the test will fail.
+         */
+        await screen.findByTestId('ReportScreen');
+
+        await act(triggerTransitionEnd);
+
         // Query for the report list
         await screen.findByTestId('report-actions-list');
 
@@ -192,8 +251,6 @@ test('should press of the report item', () => {
         // Query for report preview buttons
         const reportPreviewButtons = await screen.findAllByLabelText(hintReportPreviewText);
 
-        expect(reportPreviewButtons.length).toBeDefined();
-
         // click on the report preview button
         fireEvent.press(reportPreviewButtons[0]);
     };
@@ -204,8 +261,10 @@ test('should press of the report item', () => {
     };
 
     const report = LHNTestUtils.getFakeReport();
-    const reportActions = ReportTestUtils.getMockedReportsMap(1000);
+    const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
     const mockRoute = {params: {reportID: '2'}};
+
+    const navigation = {addListener};
 
     return waitForBatchedUpdates()
         .then(() =>
@@ -221,5 +280,13 @@ test('should press of the report item', () => {
                 },
             }),
         )
-        .then(() => measurePerformance(<ReportScreenWrapper route={mockRoute} />, {scenario}));
+        .then(() =>
+            measurePerformance(
+                <ReportScreenWrapper
+                    navigation={navigation}
+                    route={mockRoute}
+                />,
+                {scenario, runs},
+            ),
+        );
 });

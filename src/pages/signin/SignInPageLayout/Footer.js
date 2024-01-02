@@ -5,14 +5,15 @@ import _ from 'underscore';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Licenses from '@pages/signin/Licenses';
 import Socials from '@pages/signin/Socials';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
-import themeColors from '@styles/themes/default';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -146,6 +147,9 @@ const columns = ({scrollPageToTop}) => [
 ];
 
 function Footer(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const isVertical = props.shouldShowSmallScreen;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -153,14 +157,17 @@ function Footer(props) {
     const pageFooterWrapper = [styles.footerWrapper, imageDirection, imageStyle, isVertical ? styles.pl10 : {}];
     const footerColumns = [styles.footerColumnsContainer, columnDirection];
     const footerColumn = isVertical ? [styles.p4] : [styles.p4, props.isMediumScreenWidth ? styles.w50 : styles.w25];
-    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(themeColors.signInPage), styles.overflowHidden] : [];
+    const footerWrapper = isVertical ? [StyleUtils.getBackgroundColorStyle(theme.signInPage), styles.overflowHidden] : [];
 
     return (
         <View style={[styles.flex1]}>
             <View style={footerWrapper}>
                 {isVertical ? (
                     <View style={[styles.signInPageGradientMobile]}>
-                        <SignInGradient height="100%" />
+                        <ImageSVG
+                            src={SignInGradient}
+                            height="100%"
+                        />
                     </View>
                 ) : null}
                 <View style={pageFooterWrapper}>
@@ -203,9 +210,10 @@ function Footer(props) {
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
-                            <Expensicons.ExpensifyFooterLogo />
+                            <ImageSVG src={Expensicons.ExpensifyFooterLogo} />
                         ) : (
-                            <Expensicons.ExpensifyFooterLogoVertical
+                            <ImageSVG
+                                src={Expensicons.ExpensifyFooterLogoVertical}
                                 height={variables.verticalLogoHeight}
                                 width={variables.verticalLogoWidth}
                             />

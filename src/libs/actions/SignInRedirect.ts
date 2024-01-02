@@ -1,14 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import HttpUtils from '@libs/HttpUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
-import * as MainQueue from '@libs/Network/MainQueue';
-import NetworkConnection from '@libs/NetworkConnection';
-import * as SessionUtils from '@libs/SessionUtils';
 import ONYXKEYS, {OnyxKey} from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import * as PersistedRequests from './PersistedRequests';
 
 let currentIsOffline: boolean | undefined;
 let currentShouldForceOffline: boolean | undefined;
@@ -46,41 +38,15 @@ function clearStorageAndRedirect(errorMessage?: string) {
 }
 
 /**
- * Reset all current params of the Home route
- */
-function resetHomeRouteParams() {
-    Navigation.isNavigationReady().then(() => {
-        const routes = navigationRef.current?.getState().routes;
-        const homeRoute = routes?.find((route) => route.name === SCREENS.HOME);
-
-        const emptyParams: Record<string, undefined> = {};
-        Object.keys(homeRoute?.params ?? {}).forEach((paramKey) => {
-            emptyParams[paramKey] = undefined;
-        });
-
-        Navigation.setParams(emptyParams, homeRoute?.key ?? '');
-        Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
-    });
-}
-
-/**
  * Cleanup actions resulting in the user being redirected to the Sign-in page
  * - Clears the Onyx store - removing the authToken redirects the user to the Sign-in page
- * - Cancels pending network calls - any lingering requests are discarded to prevent unwanted storage writes
- * - Clears all current params of the Home route - the login page URL should not contain any parameter
  *
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
  * @param [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage?: string) {
-    MainQueue.clear();
-    HttpUtils.cancelPendingRequests();
-    PersistedRequests.clear();
-    NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
-    resetHomeRouteParams();
-    SessionUtils.resetDidUserLogInDuringSession();
 }
 
 export default redirectToSignIn;

@@ -7,11 +7,11 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Tooltip from '@components/Tooltip';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import styles from '@styles/styles';
 import AddReactionBubble from './AddReactionBubble';
 import EmojiReactionBubble from './EmojiReactionBubble';
 import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
@@ -43,6 +43,7 @@ const defaultProps = {
 };
 
 function ReportActionItemEmojiReactions(props) {
+    const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef({});
 

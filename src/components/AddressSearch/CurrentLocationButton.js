@@ -5,10 +5,10 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import colors from '@styles/colors';
-import styles from '@styles/styles';
-import * as StyleUtils from '@styles/StyleUtils';
+import colors from '@styles/theme/colors';
 
 const propTypes = {
     /** Callback that runs when location button is clicked */
@@ -24,6 +24,8 @@ const defaultProps = {
 };
 
 function CurrentLocationButton({onPress, isDisabled}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     return (

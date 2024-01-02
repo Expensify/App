@@ -6,12 +6,13 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import withLocalize from '@components/withLocalize';
 import withWindowDimensions from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import styles from '@styles/styles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import {defaultProps, propTypes} from './attachmentCarouselPropTypes';
@@ -27,7 +28,9 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const scrollRef = useRef(null);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -37,22 +40,12 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
     const [attachments, setAttachments] = useState([]);
     const [activeSource, setActiveSource] = useState(source);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
-    const [isReceipt, setIsReceipt] = useState(false);
 
-    const compareImage = useCallback(
-        (attachment) => {
-            if (attachment.isReceipt && isReceipt) {
-                const action = ReportActionsUtils.getParentReportAction(report);
-                const transactionID = _.get(action, ['originalMessage', 'IOUTransactionID']);
-                return attachment.transactionID === transactionID;
-            }
-            return attachment.source === source;
-        },
-        [source, report, isReceipt],
-    );
+    const compareImage = useCallback((attachment) => attachment.source === source, [source]);
 
     useEffect(() => {
-        const attachmentsFromReport = extractAttachmentsFromReport(report, reportActions);
+        const parentReportAction = parentReportActions[report.parentReportActionID];
+        const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions);
 
         const initialPage = _.findIndex(attachmentsFromReport, compareImage);
 
@@ -72,7 +65,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportActions, compareImage]);
+    }, [reportActions, parentReportActions, compareImage]);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -87,12 +80,10 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             // to get the index of the current page
             const entry = _.first(viewableItems);
             if (!entry) {
-                setIsReceipt(false);
                 setActiveSource(null);
                 return;
             }
 
-            setIsReceipt(entry.item.isReceipt);
             setPage(entry.index);
             setActiveSource(entry.item.source);
 
@@ -150,10 +141,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             <CarouselItem
                 item={item}
                 isFocused={activeSource === item.source}
+                isSingleItem={attachments.length === 1}
                 onPress={canUseTouchScreen ? () => setShouldShowArrows(!shouldShowArrows) : undefined}
             />
         ),
-        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [activeSource, attachments.length, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
@@ -166,6 +158,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
             {page === -1 ? (
                 <BlockingView
                     icon={Illustrations.ToddBehindCloud}
+                    iconColor={theme.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
                     title={translate('notFound.notHere')}
@@ -203,7 +196,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, setDownl
                             initialScrollIndex={page}
                             initialNumToRender={3}
                             windowSize={5}
-                            maxToRenderPerBatch={3}
+                            maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                             data={attachments}
                             CellRendererComponent={AttachmentCarouselCellRenderer}
                             renderItem={renderItem}
@@ -229,6 +222,13 @@ export default compose(
     withOnyx({
         reportActions: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            canEvict: false,
+        },
+        parentReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+        },
+        parentReportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
             canEvict: false,
         },
     }),

@@ -7,13 +7,13 @@ on:
 
 jobs:
   typecheck:
-    uses: Expensify/App/.github/workflows/typecheck.yml@main
+    uses: ./.github/workflows/typecheck.yml
 
   lint:
-    uses: Expensify/App/.github/workflows/lint.yml@main
+    uses: ./.github/workflows/lint.yml
 
   test:
-    uses: Expensify/App/.github/workflows/test.yml@main
+    uses: ./.github/workflows/test.yml
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
@@ -21,9 +21,11 @@ jobs:
     if: ${{ always() }}
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Announce failed workflow in Slack
         if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
@@ -39,6 +41,8 @@ jobs:
       SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Get merged pull request
         id: getMergedPullRequest
         uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
@@ -47,7 +51,7 @@ jobs:
 
       - name: Check if StagingDeployCash is locked
         id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/javascript/isStagingDeployLocked@main
+        uses: ./.github/actions/javascript/isStagingDeployLocked
         with:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -71,7 +75,7 @@ jobs:
   createNewVersion:
     needs: chooseDeployActions
     if: ${{ fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) }}
-    uses: Expensify/App/.github/workflows/createNewVersion.yml@main
+    uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
 
   updateStaging:
@@ -86,13 +90,13 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Checkout main
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Git for OSBotify
-        uses: Expensify/App/.github/actions/composite/setupGitForOSBotifyApp@8c19d6da4a3d7ce3b15c9cd89a802187d208ecab
+        uses: ./.github/actions/composite/setupGitForOSBotifyApp
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
@@ -108,14 +112,14 @@ jobs:
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
   e2ePerformanceTests:
     needs: [chooseDeployActions]
     if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
-    uses: Expensify/App/.github/workflows/e2ePerformanceTests.yml@main
+    uses: ./.github/workflows/e2ePerformanceTests.yml
     secrets: inherit
     with:
       PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}

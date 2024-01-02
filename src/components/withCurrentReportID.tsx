@@ -8,6 +8,7 @@ type CurrentReportIDContextValue = {
     updateCurrentReportID: (state: NavigationState) => void;
     currentReportID: string;
 };
+
 type CurrentReportIDContextProviderProps = {
     /** Actual content wrapped by this component */
     children: React.ReactNode;

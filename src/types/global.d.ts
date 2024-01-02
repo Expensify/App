@@ -12,8 +12,13 @@ declare module '*.svg' {
     import React from 'react';
     import {SvgProps} from 'react-native-svg';
 
-    const content: React.FC<SvgProps>;
+    const content: React.FC<SvgProps> | import('react-native').ImageSourcePropType;
     export default content;
+}
+
+declare module '*.lottie' {
+    const value: import('lottie-react-native').LottieViewProps.source;
+    export default value;
 }
 
 declare module 'react-native-device-info/jest/react-native-device-info-mock';
