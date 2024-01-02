@@ -113,11 +113,12 @@ function PopoverMenu(props) {
     );
 
     useEffect(() => {
-        if (menuItems.length !== 0) {
+        if (props.menuItems.length === 0) {
             return;
         }
+        setEnteredSubMenuIndexes([]);
         setMenuItems(props.menuItems);
-    }, [menuItems, props.menuItems]);
+    }, [props.menuItems]);
 
     return (
         <PopoverWithMeasuredContent
@@ -125,7 +126,7 @@ function PopoverMenu(props) {
             anchorRef={props.anchorRef}
             anchorAlignment={props.anchorAlignment}
             onClose={() => {
-                setMenuItems([]);
+                setMenuItems(props.menuItems);
                 setEnteredSubMenuIndexes([]);
                 props.onClose();
             }}
