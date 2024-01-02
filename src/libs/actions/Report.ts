@@ -2029,7 +2029,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                     return;
                 }
                 if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
-                    Session.signOutAndRedirectToSignIn();
+                    Session.signOutAndRedirectToSignIn(true);
                     return;
                 }
 
