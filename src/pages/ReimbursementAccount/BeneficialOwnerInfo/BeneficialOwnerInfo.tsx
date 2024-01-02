@@ -7,6 +7,7 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import {UseSubStep} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as FormActions from '@userActions/FormActions';
@@ -21,13 +22,14 @@ import LegalNameUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/LegalNam
 import SocialSecurityNumberUBO from './substeps/BeneficialOwnerDetailsFormSubsteps/SocialSecurityNumberUBO';
 import CompanyOwnersListUBO from './substeps/CompanyOwnersListUBO';
 
-type BeneficialOwnerInfoProps = {
+type BeneficialOwnerInfoOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount?: OnyxEntry<ReimbursementAccount>;
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft?: OnyxEntry<ReimbursementAccountDraft>;
-
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
+};
+type BeneficialOwnerInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
 
@@ -36,9 +38,10 @@ type BeneficialOwnerInfoProps = {
 
     /** Changes variable responsible for displaying step 4 or 5 */
     setIsBeneficialOwnerInfoSet: (newState: boolean) => void;
-};
+} & BeneficialOwnerInfoOnyxProps;
 
-const BODY_CONTENT = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
+// @ts-expect-error TODO: fix later
+const BODY_CONTENT: UseSubStep['bodyContent'] = [LegalNameUBO, DateOfBirthUBO, SocialSecurityNumberUBO, AddressUBO, ConfirmationUBO];
 const SUBSTEP = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 const MAX_NUMBER_OF_UBOS = 4;
 
@@ -64,13 +67,12 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 
     const submit = () => {
-        const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
         const beneficialOwnerFields = ['firstName', 'lastName', 'dob', 'ssnLast4', 'street', 'city', 'state', 'zipCode'];
         const beneficialOwners = beneficialOwnerKeys.map((ownerKey) =>
             beneficialOwnerFields.reduce(
                 (acc, fieldName) => ({
                     ...acc,
-                    [fieldName]: reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`],
+                    [fieldName]: reimbursementAccountDraft ? reimbursementAccountDraft[`beneficialOwner_${ownerKey}_${fieldName}`] : undefined,
                 }),
                 {},
             ),
@@ -80,12 +82,11 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
             ownsMoreThan25Percent: isUserUBO,
             beneficialOwners: JSON.stringify(beneficialOwners),
             beneficialOwnerKeys,
-            bankAccountID,
         });
         setIsBeneficialOwnerInfoSet(true);
     };
 
-    const addBeneficialOwner = (beneficialOwnerID) => {
+    const addBeneficialOwner = (beneficialOwnerID: string) => {
         // Each beneficial owner is assigned a unique key that will connect it to values in saved ONYX.
         // That way we can dynamically render each Identity Form based on which keys are present in the beneficial owners array.
         const newBeneficialOwners = [...beneficialOwnerKeys, beneficialOwnerID];
@@ -93,8 +94,6 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         setBeneficialOwnerKeys(newBeneficialOwners);
         FormActions.setDraftValues(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {beneficialOwners: JSON.stringify(newBeneficialOwners)});
     };
-
-    const startFrom = 0;
     const handleBeneficialOwnerDetailsFormSubmit = () => {
         const shouldAddBeneficialOwner = !beneficialOwnerKeys.find((beneficialOwnerID) => beneficialOwnerID === beneficialOwnerBeingModifiedID) && canAddMoreUBOS;
 
@@ -116,7 +115,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         prevScreen,
         moveTo,
         resetScreenIndex,
-    } = useSubStep({bodyContent: BODY_CONTENT, startFrom, onFinished: handleBeneficialOwnerDetailsFormSubmit});
+    } = useSubStep({bodyContent: BODY_CONTENT, startFrom: 0, onFinished: handleBeneficialOwnerDetailsFormSubmit});
 
     const prepareBeneficialOwnerDetailsForm = () => {
         const beneficialOwnerID = Str.guid();
@@ -126,12 +125,12 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         setCurrentUBOSubstep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
-    const handleNextUBOSubstep = (value) => {
+    const handleNextUBOSubstep = (value: boolean) => {
         if (currentUBOSubstep === SUBSTEP.IS_USER_UBO) {
             setIsUserUBO(value);
 
             // User is an owner but there are 4 other owners already added, so we remove last one
-            if (value === true && beneficialOwnerKeys.length === 4) {
+            if (value && beneficialOwnerKeys.length === 4) {
                 setBeneficialOwnerKeys((previousBeneficialOwners) => previousBeneficialOwners.slice(0, 3));
             }
 
@@ -142,24 +141,24 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         if (currentUBOSubstep === SUBSTEP.IS_ANYONE_ELSE_UBO) {
             setIsAnyoneElseUBO(value);
 
-            if (!canAddMoreUBOS && value === true) {
+            if (!canAddMoreUBOS && value) {
                 setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
                 return;
             }
 
-            if (canAddMoreUBOS && value === true) {
+            if (canAddMoreUBOS && value) {
                 prepareBeneficialOwnerDetailsForm();
                 return;
             }
 
             // User is not an owner and no one else is an owner
-            if (isUserUBO === false && value === false) {
+            if (!isUserUBO && !value) {
                 submit();
                 return;
             }
 
             // User is an owner and no one else is an owner
-            if (isUserUBO === true && value === false) {
+            if (isUserUBO && !value) {
                 setCurrentUBOSubstep(SUBSTEP.UBOS_LIST);
                 return;
             }
@@ -167,7 +166,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
 
         // Are there more UBOs
         if (currentUBOSubstep === SUBSTEP.ARE_THERE_MORE_UBOS) {
-            if (value === true) {
+            if (value) {
                 prepareBeneficialOwnerDetailsForm();
                 return;
             }
@@ -189,9 +188,9 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && !canAddMoreUBOS) {
             setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             // User goes back to last radio button
-        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isAnyoneElseUBO === true) {
+        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isAnyoneElseUBO) {
             setCurrentUBOSubstep(SUBSTEP.ARE_THERE_MORE_UBOS);
-        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isUserUBO === true && isAnyoneElseUBO === false) {
+        } else if (currentUBOSubstep === SUBSTEP.UBOS_LIST && isUserUBO && !isAnyoneElseUBO) {
             setCurrentUBOSubstep(SUBSTEP.IS_ANYONE_ELSE_UBO);
             // User moves between substeps of beneficial owner details form
         } else if (currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && screenIndex > 0) {
@@ -201,13 +200,14 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
         }
     };
 
-    const handleUBOEdit = (beneficialOwnerID) => {
+    const handleUBOEdit = (beneficialOwnerID: string) => {
         setBeneficialOwnerBeingModifiedID(beneficialOwnerID);
         setIsEditingCreatedBeneficialOwner(true);
         setCurrentUBOSubstep(SUBSTEP.UBO_DETAILS_FORM);
     };
 
     return (
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={BeneficialOwnerInfo.displayName}
             includeSafeAreaPaddingBottom={false}
@@ -246,6 +246,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
             {currentUBOSubstep === SUBSTEP.UBO_DETAILS_FORM && (
                 <BeneficialOwnerDetailsForm
                     isEditing={isEditing}
+                    // @ts-expect-error TODO: fix later
                     beneficialOwnerBeingModifiedID={beneficialOwnerBeingModifiedID}
                     setBeneficialOwnerBeingModifiedID={setBeneficialOwnerBeingModifiedID}
                     onNext={nextScreen}
@@ -263,6 +264,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
 
             {currentUBOSubstep === SUBSTEP.UBOS_LIST && (
                 <CompanyOwnersListUBO
+                    // @ts-expect-error TODO: fix later
                     beneficialOwnerKeys={beneficialOwnerKeys}
                     handleUBOsConfirmation={submit}
                     handleUBOEdit={handleUBOEdit}
@@ -276,7 +278,7 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
 
 BeneficialOwnerInfo.displayName = 'BeneficialOwnerInfo';
 
-export default withOnyx({
+export default withOnyx<BeneficialOwnerInfoProps, BeneficialOwnerInfoOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },

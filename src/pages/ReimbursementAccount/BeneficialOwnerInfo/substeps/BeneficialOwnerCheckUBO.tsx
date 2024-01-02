@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
-import RadioButtons from '@components/RadioButtons';
+import RadioButtons, {Choice} from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -21,36 +21,38 @@ type BeneficialOwnerCheckUBOProps = {
 function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: BeneficialOwnerCheckUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [value, setValue] = useState(defaultValue);
+    const [value, setValue] = useState(defaultValue.toString());
 
-    const handleSelectUBOValue = () => {
-        onSelectedValue(value);
+    const handleSubmit = () => {
+        onSelectedValue(value === 'true');
     };
-
-    const options = useMemo(
+    const handleSelectUBOValue = (newValue: string) => setValue(newValue);
+    const options = useMemo<Choice[]>(
         () => [
             {
                 label: translate('common.yes'),
-                value: true,
+                value: 'true',
             },
             {
                 label: translate('common.no'),
-                value: false,
+                value: 'false',
             },
         ],
         [translate],
     );
 
     return (
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={BeneficialOwnerCheckUBO.displayName}
             style={[styles.pt0]}
             scrollEnabled
         >
+            {/* @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript. */}
             <FormProvider
                 formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
                 submitButtonText={translate('common.confirm')}
-                onSubmit={handleSelectUBOValue}
+                onSubmit={handleSubmit}
                 style={[styles.mh5, styles.flexGrow1]}
                 submitButtonStyles={[styles.pb5, styles.mb0]}
             >
@@ -58,8 +60,8 @@ function BeneficialOwnerCheckUBO({title, onSelectedValue, defaultValue}: Benefic
                 <Text style={styles.pv5}>{translate('beneficialOwnerInfoStep.regulationRequiresUsToVerifyTheIdentity')}</Text>
                 <RadioButtons
                     items={options}
-                    onPress={setValue}
-                    defaultCheckedValue={defaultValue}
+                    onPress={handleSelectUBOValue}
+                    defaultCheckedValue={defaultValue.toString()}
                 />
             </FormProvider>
         </ScreenWrapper>
