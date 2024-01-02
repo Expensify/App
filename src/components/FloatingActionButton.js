@@ -8,8 +8,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -96,7 +96,6 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
         onPress();
     };
 
-
     return (
         <Tooltip text={translate('common.new')}>
             <PressableWithoutFeedback
@@ -104,32 +103,32 @@ const FloatingActionButton = React.forwardRef(({onPress, isActive, accessibility
                 style={[styles.h100]}
                 onPress={toggleFabAction}
             >
-            <View style={styles.bottomTabBarItem}>
-                <AnimatedPressable
-                    ref={(el) => {
-                        fabPressable.current = el;
-                        if (buttonRef) {
-                            buttonRef.current = el;
-                        }
-                    }}
-                    accessibilityLabel={accessibilityLabel}
-                    role={role}
-                    pressDimmingValue={1}
-                    onPress={toggleFabAction}
-                    onLongPress={() => {}}
-                    style={[styles.floatingActionButton, animatedStyle]}
-                >
-                    <Svg
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
+                <View style={styles.bottomTabBarItem}>
+                    <AnimatedPressable
+                        ref={(el) => {
+                            fabPressable.current = el;
+                            if (buttonRef) {
+                                buttonRef.current = el;
+                            }
+                        }}
+                        accessibilityLabel={accessibilityLabel}
+                        role={role}
+                        pressDimmingValue={1}
+                        onPress={toggleFabAction}
+                        onLongPress={() => {}}
+                        style={[styles.floatingActionButton, animatedStyle]}
                     >
-                        <AnimatedPath
-                            d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
-                            animatedProps={animatedProps}
-                        />
-                    </Svg>
-                </AnimatedPressable>
-            </View>
+                        <Svg
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        >
+                            <AnimatedPath
+                                d="M12,3c0-1.1-0.9-2-2-2C8.9,1,8,1.9,8,3v5H3c-1.1,0-2,0.9-2,2c0,1.1,0.9,2,2,2h5v5c0,1.1,0.9,2,2,2c1.1,0,2-0.9,2-2v-5h5c1.1,0,2-0.9,2-2c0-1.1-0.9-2-2-2h-5V3z"
+                                animatedProps={animatedProps}
+                            />
+                        </Svg>
+                    </AnimatedPressable>
+                </View>
             </PressableWithoutFeedback>
         </Tooltip>
     );

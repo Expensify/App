@@ -232,7 +232,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         contentFit?: ImageContentFit;
 
         /** Is this in the Pane */
-        isPaneMenu: false,
+        isPaneMenu: false;
     };
 
 function MenuItem(
@@ -446,7 +446,8 @@ function MenuItem(
                                                     fill={
                                                         displayInDefaultIconColor
                                                             ? undefined
-                                                            : iconFill ?? StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true, isPaneMenu)
+                                                            : iconFill ??
+                                                              StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true, isPaneMenu)
                                                     }
                                                 />
                                             )}

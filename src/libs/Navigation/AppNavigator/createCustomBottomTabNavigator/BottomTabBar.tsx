@@ -60,7 +60,7 @@ function BottomTabBar() {
                 >
                     <Icon
                         src={Expensicons.Gear}
-                        fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : undefined}
+                        fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : theme.icon}
                     />
                 </PressableWithFeedback>
             </Tooltip>

@@ -1,6 +1,7 @@
 import React from 'react';
 import {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -29,6 +30,7 @@ type SearchProps = {
 
 function Search({onPress, placeholder, tooltip, style, containerStyle}: SearchProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
 
     return (
@@ -46,6 +48,7 @@ function Search({onPress, placeholder, tooltip, style, containerStyle}: SearchPr
                                 src={Expensicons.MagnifyingGlass}
                                 width={variables.iconSizeSmall}
                                 height={variables.iconSizeSmall}
+                                fill={theme.icon}
                             />
                             <Text
                                 style={styles.searchInputStyle}
