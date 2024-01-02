@@ -4237,7 +4237,7 @@ function getReportFieldTitle(report: OnyxEntry<Report>, reportField: PolicyRepor
         return value;
     }
 
-    return value.replaceAll(/{report:([a-zA-Z]+)}/g, (match, property) => {
+    return value.replaceAll(CONST.REGEX.REPORT_FIELD_TITLE, (match, property) => {
         if (report && property in report) {
             return report[property as keyof Report]?.toString() ?? match;
         }

@@ -761,7 +761,7 @@ export default compose(
             initialValue: {},
         },
         policyReportFields: {
-            key: ({report}) => report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined,
+            key: ({report}) => (report && 'policyID' in report ? `${ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS}${report.policyID}` : undefined),
             initialValue: [],
         },
         emojiReactions: {
