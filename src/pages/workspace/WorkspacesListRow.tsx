@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
@@ -16,6 +15,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import IconAsset from '@src/types/utils/IconAsset';
 
 type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Name of the workspace */
@@ -41,7 +41,7 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     layoutWidth?: ValueOf<typeof CONST.LAYOUT_WIDTH>;
 };
 
-const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): React.FC<SvgProps> => {
+const workspaceTypeIcon = (workspaceType: WorkspacesListRowProps['workspaceType']): IconAsset => {
     switch (workspaceType) {
         case CONST.POLICY.TYPE.FREE:
             return Illustrations.HandCard;
@@ -117,7 +117,7 @@ function WorkspacesListRow({
                 )}
             </View>
             <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
-                {ownerDetails && (
+                {!!ownerDetails && (
                     <>
                         <Avatar
                             source={ownerDetails.avatar}
@@ -174,5 +174,7 @@ function WorkspacesListRow({
         </View>
     );
 }
+
+WorkspacesListRow.displayName = 'WorkspacesListRow';
 
 export default withCurrentUserPersonalDetails(WorkspacesListRow);
