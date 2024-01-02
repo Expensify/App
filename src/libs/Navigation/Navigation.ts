@@ -1,5 +1,5 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import {CommonActions, EventMapCore, getPathFromState, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
 import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
@@ -95,6 +95,10 @@ function getActiveRoute(): string {
         return '';
     }
 
+    if (currentRoute?.path) {
+        return currentRoute.path;
+    }
+
     const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
 
     if (routeFromState) {
@@ -114,8 +118,10 @@ function getActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    // We remove First forward slash from the URL before matching
-    return getActiveRoute().substring(1) === routePath;
+    let activeRoute = getActiveRoute();
+    activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
+
+    return activeRoute === routePath;
 }
 
 /**
@@ -247,7 +253,7 @@ function getActiveRouteWithoutParams(): string {
 }
 
 /** Returns the active route name from a state event from the navigationRef  */
-function getRouteNameFromStateEvent(event: EventMapCore<NavigationState>['state']): string | undefined {
+function getRouteNameFromStateEvent(event: EventArg<'state', false, NavigationContainerEventMap['state']['data']>): string | undefined {
     if (!event.data.state) {
         return;
     }

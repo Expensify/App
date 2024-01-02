@@ -13,16 +13,15 @@ import SelectionList from '@components/SelectionList';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,9 +30,6 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 import reportPropTypes from './reportPropTypes';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
@@ -69,7 +65,6 @@ const defaultProps = {
     },
     report: {},
     policies: {},
-    betas: [],
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -90,11 +85,6 @@ function RoomMembersPage(props) {
     }, [props.report.reportID]);
 
     useEffect(() => {
-        // Kick the user out if they tried to navigate to this via the URL
-        if (!PolicyUtils.isPolicyMember(props.report.policyID, props.policies) || !Permissions.canUsePolicyRooms(props.betas)) {
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID));
-            return;
-        }
         getRoomMembers();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -321,9 +311,6 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
     withCurrentUserPersonalDetails,

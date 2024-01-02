@@ -8,6 +8,7 @@ import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Modal from '@components/Modal';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,11 +16,11 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ImageCropView from './ImageCropView';
 import Slider from './Slider';
@@ -44,7 +45,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** Image crop vector mask */
-    maskImage: PropTypes.func,
+    maskImage: sourcePropTypes,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -63,6 +64,7 @@ const defaultProps = {
 function AvatarCropModal(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -404,7 +406,7 @@ function AvatarCropModal(props) {
                             <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
                                 <Icon
                                     src={Expensicons.Zoom}
-                                    fill={theme.icons}
+                                    fill={theme.icon}
                                 />
 
                                 <PressableWithoutFeedback
@@ -412,7 +414,7 @@ function AvatarCropModal(props) {
                                     onLayout={initializeSliderContainer}
                                     onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
                                     accessibilityLabel="slider"
-                                    role={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
+                                    role={CONST.ROLE.SLIDER}
                                 >
                                     <Slider
                                         sliderValue={translateSlider}

@@ -5,14 +5,15 @@ import React, {useCallback, useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as MapboxToken from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import DistanceMapView from './DistanceMapView';
 import * as Expensicons from './Icon/Expensicons';
+import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import transactionPropTypes from './transactionPropTypes';
 
@@ -42,8 +43,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
     const {route0: route} = transaction.routes || {};
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const coordinates = lodashGet(route, 'geometry.coordinates', []);
-    const styles = useThemeStyles();
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     const getWaypointMarkers = useCallback(
         (waypointsData) => {
@@ -70,7 +71,8 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat],
                         markerComponent: () => (
-                            <MarkerComponent
+                            <ImageSVG
+                                src={MarkerComponent}
                                 width={CONST.MAP_MARKER_SIZE}
                                 height={CONST.MAP_MARKER_SIZE}
                                 fill={theme.icon}
@@ -115,9 +117,6 @@ function ConfirmedRoute({mapboxAccessToken, transaction}) {
 }
 
 export default withOnyx({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },
