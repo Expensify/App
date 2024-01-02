@@ -1,5 +1,5 @@
-import React, {ForwardedRef, forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {Dimensions, EmitterSubscription} from 'react-native';
+import React, {ForwardedRef, forwardRef, RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Dimensions, EmitterSubscription, NativeTouchEvent, View} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -10,20 +10,30 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
-import {ContextMenuType} from './ReportActionContextMenu';
+import {ContextMenuType, ShowContextMenu} from './ReportActionContextMenu';
+
+type HideContextMenu = (onHideActionCallback?: () => void) => void;
+
+type ShowDeleteModal = (reportID: string, reportAction: ReportAction, shouldSetModalVisibility?: boolean, onConfirm?: () => void, onCancel?: () => void) => void;
+
+type IsActiveReportAction = (actionID: string) => boolean;
 
 type PopoverReportActionContextMenuRef = {
-    showContextMenu: () => void;
-    hideContextMenu: () => void;
-    showDeleteModal: () => void;
+    showContextMenu: ShowContextMenu;
+    hideContextMenu: HideContextMenu;
+    showDeleteModal: ShowDeleteModal;
     hideDeleteModal: () => void;
-    isActiveReportAction: () => void;
-    instanceID: () => void;
+    isActiveReportAction: IsActiveReportAction;
+    instanceID: string;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
-    contentRef: () => void;
+    contentRef: RefObject<View>;
 };
 
+type ContextMenuAnchorCallback = (x: number, y: number) => void;
+type ContextMenuAnchor = {measureInWindow: (callback: ContextMenuAnchorCallback) => void};
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
 function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<PopoverReportActionContextMenuRef>) {
     const {translate} = useLocalize();
     const reportIDRef = useRef('0');
@@ -32,7 +42,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef(undefined);
+    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -56,11 +66,11 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
-    const contentRef = useRef(null);
-    const anchorRef = useRef(null);
+    const contentRef = useRef<View>(null);
+    const anchorRef = useRef<HTMLElement>(null);
     const dimensionsEventListener = useRef<EmitterSubscription | null>(null);
-    const contextMenuAnchorRef = useRef(null);
-    const contextMenuTargetNode = useRef(null);
+    const contextMenuAnchorRef = useRef<ContextMenuAnchor | null>(null);
+    const contextMenuTargetNode = useRef<HTMLElement | null>(null);
 
     const onPopoverShow = useRef(() => {});
     const onPopoverHide = useRef(() => {});
@@ -70,16 +80,11 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
     const onPopoverHideActionCallback = useRef(() => {});
     const callbackWhenDeleteModalHide = useRef(() => {});
 
-    /**
-     * Get the Context menu anchor position
-     * We calculate the achor coordinates from measureInWindow async method
-     *
-     * @returns {Promise<Object>}
-     */
+    /** Get the Context menu anchor position. We calculate the anchor coordinates from measureInWindow async method */
     const getContextMenuMeasuredLocation = useCallback(
         () =>
-            new Promise((resolve) => {
-                if (contextMenuAnchorRef.current && _.isFunction(contextMenuAnchorRef.current.measureInWindow)) {
+            new Promise<{x: number; y: number}>((resolve) => {
+                if (contextMenuAnchorRef.current && typeof contextMenuAnchorRef.current.measureInWindow === 'function') {
                     contextMenuAnchorRef.current.measureInWindow((x, y) => resolve({x, y}));
                 } else {
                     resolve({x: 0, y: 0});
@@ -88,9 +93,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
         [],
     );
 
-    /**
-     * This gets called on Dimensions change to find the anchor coordinates for the action context menu.
-     */
+    /** This gets called on Dimensions change to find the anchor coordinates for the action context menu. */
     const measureContextMenuAnchorPosition = useCallback(() => {
         if (!isPopoverVisible) {
             return;
@@ -120,7 +123,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
     }, [measureContextMenuAnchorPosition]);
 
     /** Whether Context Menu is active for the Report Action. */
-    const isActiveReportAction = (actionID: string): boolean => !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current.reportActionID === actionID);
+    const isActiveReportAction: IsActiveReportAction = (actionID) => !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
         reportActionIDRef.current = '0';
@@ -145,7 +148,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
      * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
      * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
-    const showContextMenu = (
+    const showContextMenu: ShowContextMenu = (
         type,
         event,
         selection,
@@ -161,7 +164,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
         isPinnedChat = false,
         isUnreadChat = false,
     ) => {
-        const nativeEvent = event.nativeEvent || {};
+        const nativeEvent = 'nativeEvent' in event ? event.nativeEvent : ({pageX: 0, pageY: 0} as NativeTouchEvent);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = nativeEvent.target;
 
@@ -181,9 +184,9 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
                 vertical: nativeEvent.pageY,
             };
             typeRef.current = type;
-            reportIDRef.current = reportID;
-            reportActionIDRef.current = reportActionID;
-            originalReportIDRef.current = originalReportID;
+            reportIDRef.current = reportID ?? '0';
+            reportActionIDRef.current = reportActionID ?? '0';
+            originalReportIDRef.current = originalReportID ?? '0';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -194,9 +197,7 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
         });
     };
 
-    /**
-     * After Popover shows, call the registered onPopoverShow callback and reset it
-     */
+    /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
         onPopoverShow.current();
 
@@ -204,19 +205,13 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
         onPopoverShow.current = () => {};
     };
 
-    /**
-     * Run the callback and return a noop function to reset it
-     * @param callback
-     * @returns
-     */
-    const runAndResetCallback = (callback) => {
+    /** Run the callback and return a noop function to reset it */
+    const runAndResetCallback = (callback: () => void) => {
         callback();
         return () => {};
     };
 
-    /**
-     * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
-     */
+    /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
         reportIDRef.current = '0';
         reportActionIDRef.current = '0';
@@ -230,8 +225,8 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu = (onHideActionCallback) => {
-        if (onHideActionCallback === 'function') {
+    const hideContextMenu: HideContextMenu = (onHideActionCallback) => {
+        if (typeof onHideActionCallback === 'function') {
             onPopoverHideActionCallback.current = onHideActionCallback;
         }
 
@@ -261,15 +256,8 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
         setHasUnreadMessages(false);
     };
 
-    /**
-     * Opens the Confirm delete action modal
-     * @param reportID
-     * @param reportAction
-     * @param [shouldSetModalVisibility]
-     * @param [onConfirm]
-     * @param [onCancel]
-     */
-    const showDeleteModal = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
+    /** Opens the Confirm delete action modal */
+    const showDeleteModal: ShowDeleteModal = (reportID, reportAction, shouldSetModalVisibility = true, onConfirm = () => {}, onCancel = () => {}) => {
         onCancelDeleteModal.current = onCancel;
         onComfirmDeleteModal.current = onConfirm;
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import {GestureResponderEvent, Text as RNText} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -24,7 +25,14 @@ ShowContextMenuContext.displayName = 'ShowContextMenuContext';
  * @param checkIfContextMenuActive Callback to update context menu active state
  * @param isArchivedRoom - Is the report an archived room
  */
-function showContextMenuForReport(event: Event, anchor: HTMLElement, reportID: string, action: ReportAction, checkIfContextMenuActive: () => void, isArchivedRoom = false) {
+function showContextMenuForReport(
+    event: GestureResponderEvent | MouseEvent,
+    anchor: RNText | null,
+    reportID: string,
+    action: ReportAction,
+    checkIfContextMenuActive: () => void,
+    isArchivedRoom = false,
+) {
     if (!DeviceCapabilities.canUseTouchScreen()) {
         return;
     }

@@ -4247,7 +4247,7 @@ function navigateToPrivateNotes(report: Report, session: Session) {
  * - The action is a whisper action and it's neither a report preview nor IOU action
  * - The action is the thread's first chat
  */
-function shouldDisableThread(reportAction: ReportAction, reportID: string) {
+function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: string) {
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(reportAction);
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
@@ -4255,9 +4255,9 @@ function shouldDisableThread(reportAction: ReportAction, reportID: string) {
     const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
 
     return (
-        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction.actionName) ||
+        CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName) ||
         isSplitBillAction ||
-        (isDeletedAction && !reportAction.childVisibleActionCount) ||
+        (isDeletedAction && !reportAction?.childVisibleActionCount) ||
         (isWhisperAction && !isReportPreviewAction && !isIOUAction) ||
         isThreadFirstChat(reportAction, reportID)
     );

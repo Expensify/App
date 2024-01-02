@@ -13,7 +13,7 @@ type PopoverProps = BaseModalProps & {
     anchorPosition?: PopoverAnchorPosition;
 
     /** The anchor alignment of the popover */
-    anchorAlignment: AnchorAlignment;
+    anchorAlignment?: AnchorAlignment;
 
     /** The anchor ref of the popover */
     anchorRef: React.RefObject<HTMLElement>;

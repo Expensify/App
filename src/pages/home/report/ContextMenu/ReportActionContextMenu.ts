@@ -173,4 +173,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
-export type {ContextMenuType};
+export type {ContextMenuType, ShowContextMenu};

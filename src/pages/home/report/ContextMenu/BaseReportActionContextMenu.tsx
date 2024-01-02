@@ -1,5 +1,5 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, RefObject, useMemo, useRef, useState} from 'react';
+import React, {memo, MutableRefObject, RefObject, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {Beta, ReportAction, ReportActions} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ContextMenuActions from './ContextMenuActions';
+import ContextMenuActions, {ContextMenuActionPayload} from './ContextMenuActions';
 import {ContextMenuType, hideContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuOnyxProps = {
@@ -53,7 +53,7 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     type?: ContextMenuType;
 
     /** Target node which is the target of ContentMenu */
-    anchor: HTMLElement;
+    anchor: MutableRefObject<HTMLElement | null>;
 
     /** Flag to check if the chat participant is Chronos */
     isChronosReport: boolean;
@@ -73,8 +73,8 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
 
 function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-    anchor = null,
-    contentRef = null,
+    anchor,
+    contentRef,
     isChronosReport = false,
     isArchivedRoom = false,
     isMini = false,
@@ -161,8 +161,8 @@ function BaseReportActionContextMenu({
             >
                 {filteredContextMenuActions.map((contextAction, index) => {
                     const closePopup = !isMini;
-                    const payload = {
-                        reportAction,
+                    const payload: ContextMenuActionPayload = {
+                        reportAction: reportAction as ReportAction,
                         reportID,
                         draftMessage,
                         selection,
@@ -173,7 +173,7 @@ function BaseReportActionContextMenu({
 
                     if (contextAction.renderContent) {
                         // make sure that renderContent isn't mixed with unsupported props
-                        if (__DEV__ && (contextAction.text != null || contextAction.icon != null)) {
+                        if (__DEV__ && contextAction.icon != null) {
                             throw new Error('Dev error: renderContent() and text/icon cannot be used together.');
                         }
 
@@ -185,14 +185,15 @@ function BaseReportActionContextMenu({
                             ref={(ref) => {
                                 menuItemRefs.current[index] = ref;
                             }}
+                            // @ts-expect-error TODO: Remove this once ContextMenuItem (https://github.com/Expensify/App/issues/25056) is migrated to TypeScript.
                             icon={contextAction.icon}
-                            text={translate(contextAction.textTranslateKey, {action: reportAction})}
+                            text={contextAction.textTranslateKey ? translate(contextAction.textTranslateKey, {action: reportAction} as never) : undefined}
                             successIcon={contextAction.successIcon}
                             successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={isMini}
                             key={contextAction.textTranslateKey}
-                            onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
-                            description={contextAction.getDescription(selection, isSmallScreenWidth)}
+                            onPress={() => interceptAnonymousUser(() => contextAction.onPress?.(closePopup, payload), contextAction.isAnonymousAction)}
+                            description={contextAction.getDescription?.(selection)}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
                         />

@@ -1,5 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React from 'react';
+import React, {MutableRefObject} from 'react';
 import {OnyxEntry} from 'react-native-onyx';
 import {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -50,7 +50,7 @@ type ShouldShow = (
     reportAction: OnyxEntry<ReportAction>,
     isArchivedRoom: boolean,
     betas: OnyxEntry<Beta[]>,
-    menuTarget: HTMLElement,
+    menuTarget: MutableRefObject<HTMLElement | null>,
     isChronosReport: boolean,
     reportID: string,
     isPinnedChat: boolean,
@@ -58,7 +58,7 @@ type ShouldShow = (
     isOffline: boolean,
 ) => boolean;
 
-type Payload = {
+type ContextMenuActionPayload = {
     reportAction: ReportAction;
     reportID: string;
     draftMessage: string;
@@ -68,9 +68,9 @@ type Payload = {
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
 };
 
-type OnPress = (closePopover: boolean, payload: Payload, selection: string | undefined, reportID: string, draftMessage: string) => void;
+type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
 
-type RenderContent = (closePopover: boolean, payload: Payload) => React.ReactElement;
+type RenderContent = (closePopover: boolean, payload: ContextMenuActionPayload) => React.ReactElement;
 
 type GetDescription = (selection?: string) => string | void;
 
@@ -90,7 +90,7 @@ type ContextMenuAction = {
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
-        shouldShow: (type, reportAction) =>
+        shouldShow: (type, reportAction): reportAction is ReportAction =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !ReportActionsUtils.isMessageDeleted(reportAction),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
             const isMini = !closePopover;
@@ -143,7 +143,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Download,
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline) => {
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = reportAction?.message?.at(0)?.html;
             return (
@@ -347,7 +347,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
-            const isAttachmentTarget = menuTarget?.tagName === 'IMG' && isAttachment;
+            const isAttachmentTarget = menuTarget.current?.tagName === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
@@ -504,3 +504,4 @@ const ContextMenuActions: ContextMenuAction[] = [
 ];
 
 export default ContextMenuActions;
+export type {ContextMenuActionPayload};
