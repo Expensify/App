@@ -1651,7 +1651,6 @@ const styles = (theme: ThemeColors) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                // The overlay must also cover borderRadius of the LHP component
                 left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
