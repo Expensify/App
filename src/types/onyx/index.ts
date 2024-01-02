@@ -7,7 +7,6 @@ import Card from './Card';
 import Credentials from './Credentials';
 import Currency from './Currency';
 import CustomStatusDraft from './CustomStatusDraft';
-import DemoInfo from './DemoInfo';
 import Download from './Download';
 import Form, {AddDebitCardForm, DateOfBirthForm} from './Form';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
@@ -25,9 +24,11 @@ import PlaidData from './PlaidData';
 import Policy from './Policy';
 import PolicyCategory, {PolicyCategories} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
+import PolicyReportField from './PolicyReportField';
 import PolicyTag, {PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
+import RecentlyUsedReportFields from './RecentlyUsedReportFields';
 import RecentlyUsedTags from './RecentlyUsedTags';
 import RecentWaypoint from './RecentWaypoint';
 import ReimbursementAccount from './ReimbursementAccount';
@@ -35,8 +36,10 @@ import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import Report from './Report';
 import ReportAction, {ReportActions} from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
+import ReportActionsDraft from './ReportActionsDraft';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
+import ReportNextStep from './ReportNextStep';
 import ReportUserIsTyping from './ReportUserIsTyping';
 import Request from './Request';
 import Response from './Response';
@@ -57,7 +60,6 @@ import WalletTransfer from './WalletTransfer';
 
 export type {
     Account,
-    UserLocation,
     AccountData,
     AddDebitCardForm,
     BankAccount,
@@ -69,7 +71,6 @@ export type {
     Currency,
     CustomStatusDraft,
     DateOfBirthForm,
-    DemoInfo,
     Download,
     Form,
     FrequentlyUsedEmoji,
@@ -89,24 +90,26 @@ export type {
     PersonalDetailsList,
     PlaidData,
     Policy,
-    PolicyCategory,
     PolicyCategories,
+    PolicyCategory,
     PolicyMember,
     PolicyMembers,
     PolicyTag,
     PolicyTags,
     PrivatePersonalDetails,
+    RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
-    RecentWaypoint,
     ReimbursementAccount,
     ReimbursementAccountDraft,
     Report,
     ReportAction,
     ReportActionReactions,
     ReportActions,
+    ReportActionsDraft,
     ReportActionsDrafts,
     ReportMetadata,
+    ReportNextStep,
     Request,
     Response,
     ScreenShareRequest,
@@ -116,6 +119,7 @@ export type {
     Transaction,
     TransactionViolation,
     User,
+    UserLocation,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
@@ -124,4 +128,6 @@ export type {
     WalletTerms,
     WalletTransfer,
     ReportUserIsTyping,
+    PolicyReportField,
+    RecentlyUsedReportFields,
 };
