@@ -112,7 +112,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit,  transaction]);
+    }, [parentReportAction, parentReport.reportID, fieldToEdit, transaction]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
