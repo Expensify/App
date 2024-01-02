@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ImageSourcePropType, View} from 'react-native';
 import {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +11,7 @@ import Text from './Text';
 
 type HoldMenuSection = {
     /** The icon supplied with the section */
-    icon: React.FC<SvgProps>;
+    icon: React.FC<SvgProps> | ImageSourcePropType;
 
     /** Translation key for the title */
     titleTranslationKey: TranslationPaths;

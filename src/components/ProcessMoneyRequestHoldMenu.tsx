@@ -8,6 +8,7 @@ import {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
 import {AnchorAlignment} from './Popover/types';
 import Text from './Text';
+import TextPill from './TextPill';
 
 type ProcessMoneyRequestHoldMenuProps = {
     /** Whether the content is visible */
@@ -46,7 +47,7 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <Text style={[styles.holdRequestInline]}>{translate('iou.hold')}</Text>
+                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>;
                 </View>
                 <HoldMenuSectionList />
                 <Button

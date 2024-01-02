@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import HoldMenuSectionList from '@components/HoldMenuSectionList';
 import Text from '@components/Text';
+import TextPill from '@components/TextPill';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,7 +38,7 @@ function ProcessMoneyRequestHoldPage() {
             <View style={[styles.mh5, styles.flex1]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <Text style={[styles.holdRequestInline]}>{translate('iou.hold')}</Text>
+                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>;
                 </View>
                 <HoldMenuSectionList />
             </View>
