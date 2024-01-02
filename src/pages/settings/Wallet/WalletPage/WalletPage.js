@@ -16,7 +16,6 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {withNetwork} from '@components/OnyxProvider';
 import Popover from '@components/Popover';
-import ProcessMoneyRequestHoldMenu from '@components/ProcessMoneyRequestHoldMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import WalletSection from '@components/WalletSection';
@@ -315,25 +314,6 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100, styles.ph5];
 
-    const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(true);
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (shouldShowHoldMenu) {
-            if (isSmallScreenWidth) {
-                if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
-                    Navigation.goBack();
-                }
-            } else {
-                Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
-            }
-        }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
-
-    const handleHoldRequestClose = () => {
-        setShouldShowHoldMenu(false);
-    };
-
     return (
         <>
             {shouldShowEmptyState ? (
@@ -563,13 +543,6 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
                 onItemSelected={(method) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
             />
-            {isSmallScreenWidth && (
-                <ProcessMoneyRequestHoldMenu
-                    onClose={handleHoldRequestClose}
-                    onConfirm={handleHoldRequestClose}
-                    isVisible={shouldShowHoldMenu}
-                />
-            )}
         </>
     );
 }
