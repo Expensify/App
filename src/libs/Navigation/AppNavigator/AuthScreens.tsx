@@ -49,9 +49,6 @@ type AuthScreensProps = {
 
     /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
     isUsingMemoryOnlyKeys: OnyxEntry<boolean>;
-
-    /** Information about any currently running demos */
-    demoInfo: OnyxEntry<OnyxTypes.DemoInfo>;
 };
 
 const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
@@ -338,8 +335,5 @@ export default withOnyx<AuthScreensProps, AuthScreensProps>({
     },
     isUsingMemoryOnlyKeys: {
         key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
-    },
-    demoInfo: {
-        key: ONYXKEYS.DEMO_INFO,
     },
 })(AuthScreensMemoized);
