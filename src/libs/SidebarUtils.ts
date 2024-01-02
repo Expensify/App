@@ -447,7 +447,7 @@ function getOptionData(
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
     if (status) {
-        result.status = status.text;
+        result.status = status;
     }
     result.type = report.type;
 
