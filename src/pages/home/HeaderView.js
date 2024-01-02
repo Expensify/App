@@ -223,7 +223,10 @@ function HeaderView(props) {
                                     shiftVertical={4}
                                 >
                                     <View>
-                                        <Icon src={Expensicons.BackArrow} />
+                                        <Icon
+                                            src={Expensicons.BackArrow}
+                                            fill={theme.icon}
+                                        />
                                     </View>
                                 </Tooltip>
                             </PressableWithoutFeedback>
