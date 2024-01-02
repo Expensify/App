@@ -3399,9 +3399,6 @@ function putOnHold(transactionID, comment, reportID) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
 
-    console.log('createdReportAction: ', createdReportAction);
-    console.log('createdCommentReportAction: ', createdCommentReportAction);
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
