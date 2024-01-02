@@ -40,6 +40,9 @@ type AvatarProps = {
      */
     fallbackIcon?: AvatarSource;
 
+    /** Used to locate fallback icon in end-to-end tests. */
+    fallbackIconTestID?: string;
+
     /** Denotes whether it is an avatar or a workspace avatar */
     type?: AvatarType;
 
@@ -55,6 +58,7 @@ function Avatar({
     size = CONST.AVATAR_SIZE.DEFAULT,
     fill,
     fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
 }: AvatarProps) {
@@ -79,16 +83,18 @@ function Avatar({
     const imageStyle = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
-    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill ?? theme.icon;
+    const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(name).fill : fill;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
 
     const avatarSource = imageError ? fallbackAvatar : source;
 
     return (
         <View style={[containerStyles, styles.pointerEventsNone]}>
-            {typeof avatarSource === 'function' ? (
+            {typeof avatarSource === 'function' || typeof avatarSource === 'number' ? (
                 <View style={iconStyle}>
                     <Icon
+                        testID={fallbackAvatarTestID}
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}

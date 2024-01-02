@@ -1,7 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import _ from 'lodash';
 import Onyx, {OnyxEntry} from 'react-native-onyx';
-import {SvgProps} from 'react-native-svg';
 import {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
@@ -9,11 +8,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetailsList} from '@src/types/onyx';
 import Login from '@src/types/onyx/Login';
+import IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
-type AvatarSource = React.FC<SvgProps> | string;
+type AvatarSource = IconAsset | string;
 
 type LoginListIndicator = ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | '';
 
@@ -90,7 +90,7 @@ function generateAccountID(searchValue: string): number {
  * @param [accountID]
  * @returns
  */
-function getDefaultAvatar(accountID = -1, avatarURL?: string): React.FC<SvgProps> {
+function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
     if (accountID <= 0) {
         return FallbackAvatar;
     }
@@ -223,18 +223,18 @@ function getSecondaryPhoneLogin(loginList: Record<string, Login>): string | unde
 }
 
 export {
-    hashText,
-    hasLoginListError,
-    hasLoginListInfo,
-    getLoginListBrickRoadIndicator,
-    getDefaultAvatar,
-    getDefaultAvatarURL,
-    isDefaultAvatar,
+    generateAccountID,
     getAvatar,
     getAvatarUrl,
-    getSmallSizeAvatar,
+    getDefaultAvatar,
+    getDefaultAvatarURL,
     getFullSizeAvatar,
-    generateAccountID,
+    getLoginListBrickRoadIndicator,
     getSecondaryPhoneLogin,
+    getSmallSizeAvatar,
+    hasLoginListError,
+    hasLoginListInfo,
+    hashText,
+    isDefaultAvatar,
 };
 export type {AvatarSource};
