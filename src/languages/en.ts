@@ -2021,7 +2021,7 @@ export default {
             buttonText1: 'Invite a friend, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: 'Start a chat, send or request money, split a bill, or share your invite link below with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer. Learn more ways to earn below.',
+            body: `Start a chat, send or request money, split a bill, or share your invite link below with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} if they become an Expensify customer. Learn more ways to earn below.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
