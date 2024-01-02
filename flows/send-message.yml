@@ -1,0 +1,25 @@
+appId: ${APP_ID}
+env:
+    DEVTOOLS_BUTTON: "__reassure__"
+    COMPOSER_INPUT_TEXT: "Write something..."
+
+---
+
+- launchApp
+- tapOn: Navigates to a chat
+- tapOn:
+    text: ${COMPOSER_INPUT_TEXT}
+# Ensure that composer is indeed focused
+- assertVisible:
+    text: ${COMPOSER_INPUT_TEXT}
+    focused: true
+- inputText: ${MSG}
+# Due to heavy calculations, composer might contain obsolete state and try to send incomplete message resulting in error
+# That's why we are asserting if the entire message is visible
+# TODO: Paste entire message instead of typing it
+- assertVisible: ${MSG}
+- tapOn: Send
+# Remove text form input to easily assert message content against MSG text
+- eraseText
+- assertVisible: ${MSG}
+- tapOn: ${DEVTOOLS_BUTTON}
