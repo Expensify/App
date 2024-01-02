@@ -83,7 +83,7 @@ function OfflineWithFeedback({
 
     const hasErrors = isNotEmptyObject(errors ?? {});
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
-    const errorMessages = ErrorUtils.getErrorMessagesWithTranslationData(omitBy(errors, (e) => e === null));
+    const errorMessages = ErrorUtils.getErrorsWithTranslationData(omitBy(errors, (e) => e === null));
     const hasErrorMessages = isNotEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
     const isUpdateOrDeleteError = hasErrors && (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);

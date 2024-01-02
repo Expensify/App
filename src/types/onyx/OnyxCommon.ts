@@ -1,4 +1,5 @@
 import {ValueOf} from 'type-fest';
+import * as Localize from '@libs/Localize';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 
@@ -8,7 +9,7 @@ type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | 
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
-type Errors = Record<string, string>;
+type Errors = Record<string, Localize.MaybePhraseKey>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 

@@ -838,6 +838,9 @@ export default {
         sharedNoteMessage: 'Guarda notas sobre este chat aquí. Los empleados de Expensify y otros usuarios del dominio team.expensify.com pueden ver estas notas.',
         composerLabel: 'Notas',
         myNote: 'Mi nota',
+        error: {
+            genericFailureMessage: 'Notas privadas no han podido ser guardados',
+        },
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',

@@ -1,4 +1,4 @@
-import mapKeys from 'lodash/mapKeys';
+import mapValues from 'lodash/mapValues';
 import CONST from '@src/CONST';
 import {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -39,8 +39,8 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string): Record<number, string> {
-    return {[DateUtils.getMicroseconds()]: error};
+function getMicroSecondOnyxError(error: string, isTranslated = false): Record<number, Localize.MaybePhraseKey> {
+    return {[DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
 }
 
 /**
@@ -49,6 +49,11 @@ function getMicroSecondOnyxError(error: string): Record<number, string> {
  */
 function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<number, Record<string, string>> {
     return {[DateUtils.getMicroseconds()]: error};
+}
+
+// We can assume that if error is a string, it has already been translated because it is server error
+function getErrorWithTranslationData(error: Localize.MaybePhraseKey): Localize.MaybePhraseKey {
+    return typeof error === 'string' ? [error, {isTranslated: true}] : error;
 }
 
 type OnyxDataWithErrors = {
@@ -63,8 +68,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     }
 
     const key = Object.keys(errors).sort().reverse()[0];
-
-    return [errors[key], {isTranslated: true}];
+    return getErrorWithTranslationData(errors[key]);
 }
 
 type OnyxDataWithErrorFields = {
@@ -79,8 +83,7 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     }
 
     const key = Object.keys(errorsForField).sort().reverse()[0];
-
-    return {[key]: [errorsForField[key], {isTranslated: true}]};
+    return {[key]: getErrorWithTranslationData(errorsForField[key])};
 }
 
 function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Record<string, Localize.MaybePhraseKey> {
@@ -91,29 +94,26 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
     }
 
     const key = Object.keys(errorsForField).sort()[0];
-
-    return {[key]: [errorsForField[key], {isTranslated: true}]};
+    return {[key]: getErrorWithTranslationData(errorsForField[key])};
 }
 
 type ErrorsList = Record<string, Localize.MaybePhraseKey>;
 
 /**
- * Method used to attach already translated message with isTranslated: true property
+ * Method used to attach already translated message with isTranslated property
  * @param errors - An object containing current errors in the form
- * @returns Errors in the form of {timestamp: [message, {isTranslated: true}]}
+ * @returns Errors in the form of {timestamp: [message, {isTranslated}]}
  */
-function getErrorMessagesWithTranslationData(errors: Localize.MaybePhraseKey | ErrorsList): ErrorsList {
+function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | ErrorsList): ErrorsList {
     if (!errors || (Array.isArray(errors) && errors.length === 0)) {
         return {};
     }
 
     if (typeof errors === 'string' || Array.isArray(errors)) {
-        const [message, variables] = Array.isArray(errors) ? errors : [errors];
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        return {'0': [message, {...(variables ?? []), isTranslated: true}]};
+        return {'0': getErrorWithTranslationData(errors)};
     }
 
-    return mapKeys(errors, (message) => [message, {isTranslated: true}]);
+    return mapValues(errors, getErrorWithTranslationData);
 }
 
 /**
@@ -146,6 +146,6 @@ export {
     getLatestErrorMessage,
     getLatestErrorField,
     getEarliestErrorField,
-    getErrorMessagesWithTranslationData,
+    getErrorsWithTranslationData,
     addErrorMessage,
 };

@@ -68,14 +68,14 @@ function UnlinkLoginForm(props) {
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={ErrorUtils.getErrorMessagesWithTranslationData(props.account.message)}
+                    messages={ErrorUtils.getErrorsWithTranslationData(props.account.message)}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
                 <DotIndicatorMessage
                     style={[styles.mb5]}
                     type="error"
-                    messages={ErrorUtils.getErrorMessagesWithTranslationData(props.account.errors)}
+                    messages={ErrorUtils.getErrorsWithTranslationData(props.account.errors)}
                 />
             )}
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>

@@ -288,7 +288,7 @@ function LoginForm(props) {
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    messages={ErrorUtils.getErrorMessagesWithTranslationData(props.closeAccount.success || props.account.message)}
+                    messages={ErrorUtils.getErrorsWithTranslationData(props.closeAccount.success || props.account.message)}
                 />
             )}
             {

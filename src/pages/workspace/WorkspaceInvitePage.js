@@ -278,7 +278,7 @@ function WorkspaceInvitePage(props) {
                                 isAlertVisible={shouldShowAlertPrompt}
                                 buttonText={translate('common.next')}
                                 onSubmit={inviteUser}
-                                message={ErrorUtils.getErrorMessagesWithTranslationData(props.policy.alertMessage)}
+                                message={ErrorUtils.getErrorsWithTranslationData(props.policy.alertMessage)}
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
                                 enabledWhenOffline
                                 disablePressOnEnter

@@ -2379,7 +2379,7 @@ const updatePrivateNotes = (reportID: string, accountID: number, note: string) =
             value: {
                 privateNotes: {
                     [accountID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError("Private notes couldn't be saved"),
+                        errors: ErrorUtils.getMicroSecondOnyxError('privateNotes.error.genericFailureMessage'),
                     },
                 },
             },
