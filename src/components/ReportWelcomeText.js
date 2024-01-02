@@ -4,13 +4,13 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,7 +70,7 @@ function ReportWelcomeText(props) {
     );
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs);
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, props.policy, participantAccountIDs);
 
     return (
         <>

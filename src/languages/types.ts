@@ -103,7 +103,7 @@ type SettleExpensifyCardParams = {
 
 type RequestAmountParams = {amount: number};
 
-type RequestedAmountMessageParams = {formattedAmount: string; comment: string};
+type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
 type SplitAmountParams = {amount: number};
 
@@ -115,9 +115,13 @@ type PayerOwesAmountParams = {payer: string; amount: number | string};
 
 type PayerOwesParams = {payer: string};
 
-type PayerPaidAmountParams = {payer: string; amount: number | string};
+type PayerPaidAmountParams = {payer?: string; amount: number | string};
+
+type ApprovedAmountParams = {amount: number | string};
 
 type ManagerApprovedParams = {manager: string};
+
+type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 
 type PayerPaidParams = {payer: string};
 
@@ -129,9 +133,9 @@ type CanceledRequestParams = {amount: string; submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {payer: string; amount: string};
+type PaidElsewhereWithAmountParams = {payer?: string; amount: string};
 
-type PaidWithExpensifyWithAmountParams = {payer: string; amount: string};
+type PaidWithExpensifyWithAmountParams = {payer?: string; amount: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -204,6 +208,8 @@ type FormattedMaxLengthParams = {formattedMaxLength: string};
 type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
+
+type TaskCreatedActionParams = {title: string};
 
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -281,7 +287,9 @@ export type {
     PayerOwesParams,
     PayerPaidAmountParams,
     PayerPaidParams,
+    ApprovedAmountParams,
     ManagerApprovedParams,
+    ManagerApprovedAmountParams,
     PayerSettledParams,
     WaitingOnBankAccountParams,
     CanceledRequestParams,
@@ -324,4 +332,5 @@ export type {
     SetTheDistanceParams,
     UpdatedTheDistanceParams,
     WalletProgramParams,
+    TaskCreatedActionParams,
 };

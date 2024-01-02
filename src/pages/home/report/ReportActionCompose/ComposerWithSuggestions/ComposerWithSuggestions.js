@@ -1,15 +1,20 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {findNodeHandle, NativeModules, View} from 'react-native';
+import {findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Composer from '@components/Composer';
+import {PopoverContext} from '@components/PopoverProvider';
 import withKeyboardState from '@components/withKeyboardState';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
 import * as ComposerUtils from '@libs/ComposerUtils';
@@ -17,18 +22,16 @@ import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionUtils from '@libs/SuggestionUtils';
-import updateMultilineInputRange from '@libs/UpdateMultilineInputRange';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import containerComposeStyles from '@styles/containerComposeStyles';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
@@ -38,6 +41,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './composerWithSuggestionsProps';
 
 const {RNTextInputReset} = NativeModules;
+
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -76,6 +81,7 @@ function ComposerWithSuggestions({
     // Focus
     onFocus,
     onBlur,
+    onValueChange,
     // Composer
     isComposerFullSize,
     isMenuVisible,
@@ -101,8 +107,10 @@ function ComposerWithSuggestions({
     // For testing
     children,
 }) {
+    const {isOpen: isPopoverOpen} = React.useContext(PopoverContext);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
@@ -132,6 +140,8 @@ function ComposerWithSuggestions({
 
     const textInputRef = useRef(null);
     const insertedEmojisRef = useRef([]);
+
+    const syncSelectionWithOnChangeTextRef = useRef(null);
 
     // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
     const isScrollLikelyLayoutTriggered = useRef(false);
@@ -232,6 +242,11 @@ function ComposerWithSuggestions({
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition || 0);
+
+                if (isIOSNative) {
+                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+                }
+
                 setSelection({
                     start: position,
                     end: position,
@@ -364,6 +379,25 @@ function ComposerWithSuggestions({
         [isKeyboardShown, isSmallScreenWidth, parentReportActions, report, reportActions, reportID, handleSendMessage, suggestionsRef, valueRef],
     );
 
+    const onChangeText = useCallback(
+        (commentValue) => {
+            updateComment(commentValue, true);
+
+            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
+                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+                syncSelectionWithOnChangeTextRef.current = null;
+
+                // ensure that selection is set imperatively after all state changes are effective
+                InteractionManager.runAfterInteractions(() => {
+                    // note: this implementation is only available on non-web RN, thus the wrapping
+                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                    textInputRef.current.setSelection(positionSnapshot, positionSnapshot);
+                });
+            }
+        },
+        [updateComment],
+    );
+
     const onSelectionChange = useCallback(
         (e) => {
             if (textInputRef.current && textInputRef.current.isFocused() && suggestionsRef.current.onSelectionChange(e)) {
@@ -395,9 +429,15 @@ function ComposerWithSuggestions({
      * @param {Boolean} [shouldDelay=false] Impose delay before focusing the composer
      * @memberof ReportActionCompose
      */
-    const focus = useCallback((shouldDelay = false) => {
-        focusComposerWithDelay(textInputRef.current)(shouldDelay);
-    }, []);
+    const focus = useCallback(
+        (shouldDelay = false) => {
+            if (isPopoverOpen) {
+                return;
+            }
+            focusComposerWithDelay(textInputRef.current)(shouldDelay);
+        },
+        [isPopoverOpen],
+    );
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
@@ -514,9 +554,13 @@ function ComposerWithSuggestions({
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
 
+    useEffect(() => {
+        onValueChange(value);
+    }, [onValueChange, value]);
+
     return (
         <>
-            <View style={[containerComposeStyles(styles), styles.textInputComposeBorder]}>
+            <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={shouldAutoFocus}
@@ -524,7 +568,7 @@ function ComposerWithSuggestions({
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={(commentValue) => updateComment(commentValue, true)}
+                    onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
@@ -555,6 +599,7 @@ function ComposerWithSuggestions({
                         setComposerHeight(composerLayoutHeight);
                     }}
                     onScroll={hideSuggestionMenu}
+                    shouldContainScroll={Browser.isMobileSafari()}
                 />
             </View>
 

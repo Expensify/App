@@ -1,3 +1,4 @@
+import lodashHas from 'lodash/has';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -25,6 +26,46 @@ Onyx.connect({
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
 });
+
+function isDistanceRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+
+    // This is the case for transaction objects once they have been saved to the server
+    const type = transaction?.comment?.type;
+    const customUnitName = transaction?.comment?.customUnit?.name;
+    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+}
+
+function isScanRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+
+    return Boolean(transaction?.receipt?.source);
+}
+
+function getRequestType(transaction: Transaction): ValueOf<typeof CONST.IOU.REQUEST_TYPE> {
+    if (isDistanceRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.DISTANCE;
+    }
+    if (isScanRequest(transaction)) {
+        return CONST.IOU.REQUEST_TYPE.SCAN;
+    }
+    return CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isManualRequest(transaction: Transaction): boolean {
+    // This is used during the request creation flow before the transaction has been saved to the server
+    if (lodashHas(transaction, 'iouRequestType')) {
+        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
+    }
+
+    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
 
 /**
  * Optimistically generate a transaction.
@@ -66,7 +107,7 @@ function buildOptimisticTransaction(
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || CONST.TRANSACTION.DEFAULT_MERCHANT,
+        merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         receipt,
@@ -89,14 +130,9 @@ function hasReceipt(transaction: Transaction | undefined | null): boolean {
 }
 
 function isMerchantMissing(transaction: Transaction) {
-    const isMerchantEmpty =
-        transaction.merchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
+    const isMerchantEmpty = transaction.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.merchant === '';
 
-    const isModifiedMerchantEmpty =
-        !transaction.modifiedMerchant ||
-        transaction.modifiedMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT ||
-        transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        transaction.modifiedMerchant === '';
+    const isModifiedMerchantEmpty = !transaction.modifiedMerchant || transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === '';
 
     return isMerchantEmpty && isModifiedMerchantEmpty;
 }
@@ -266,6 +302,10 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
+function getDistance(transaction: Transaction): number {
+    return transaction?.routes?.route0?.distance ?? 0;
+}
+
 /**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
@@ -318,10 +358,16 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
     return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
-function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+/**
+ * Returns the translation key to use for the header title
+ */
+function getHeaderTitleTranslationKey(transaction: Transaction): string {
+    const headerTitles = {
+        [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
+        [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
+        [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
+    };
+    return headerTitles[getRequestType(transaction)];
 }
 
 /**
@@ -467,8 +513,13 @@ export {
     getUpdatedTransaction,
     getTransaction,
     getDescription,
+    getHeaderTitleTranslationKey,
+    getRequestType,
+    isManualRequest,
+    isScanRequest,
     getAmount,
     getCurrency,
+    getDistance,
     getCardID,
     getOriginalCurrency,
     getOriginalAmount,

@@ -10,11 +10,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,7 +94,7 @@ function NewTaskDetailsPage(props) {
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
@@ -106,7 +106,7 @@ function NewTaskDetailsPage(props) {
                 <View style={styles.mb5}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        role={CONST.ROLE.PRESENTATION}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}

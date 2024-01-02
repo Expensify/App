@@ -17,6 +17,9 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import compose from '@libs/compose';
@@ -32,9 +35,6 @@ import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateB
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
-import * as StyleUtils from '@styles/StyleUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,6 +82,7 @@ const defaultProps = {
 function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
@@ -100,8 +101,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         originalCurrency: transactionOriginalCurrency,
         cardID: transactionCardID,
     } = ReportUtils.getTransactionDetails(transaction);
-    const isEmptyMerchant =
-        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
     const hasPendingWaypoints = lodashGet(transaction, 'pendingFields.waypoints', null);
@@ -117,6 +117,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
     const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditAmount = canEdit && !isSettled && !isCardTransaction;
+    const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, moneyRequestReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
@@ -146,7 +147,9 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
         if (!isDistanceRequest) {
             amountDescription += ` • ${translate('iou.cash')}`;
         }
-        if (isCancelled) {
+        if (ReportUtils.isReportApproved(report)) {
+            amountDescription += ` • ${translate('iou.approved')}`;
+        } else if (isCancelled) {
             amountDescription += ` • ${translate('iou.canceled')}`;
         } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;
@@ -189,7 +192,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEdit && !isSettled && canUseViolations && (
+                {!hasReceipt && canEditReceipt && !isSettled && canUseViolations && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT))}
@@ -237,7 +240,7 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                     <OfflineWithFeedback pendingAction={lodashGet(transaction, 'pendingFields.merchant') || lodashGet(transaction, 'pendingAction')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
-                            title={transactionMerchant}
+                            title={isEmptyMerchant ? '' : transactionMerchant}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}

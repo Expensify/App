@@ -1,7 +1,7 @@
 import React from 'react';
 import {Animated} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 import growlNotificationContainerPropTypes from './growlNotificationContainerPropTypes';
 
 const propTypes = {

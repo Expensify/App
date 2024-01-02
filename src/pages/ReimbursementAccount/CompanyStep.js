@@ -18,9 +18,9 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withLocalize from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -88,20 +88,12 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
         ];
         const errors = ValidationUtils.getFieldRequiredErrors(values, requiredFields);
 
-        if (values.companyName && !ValidationUtils.isValidLegalName(values.companyName)) {
-            errors.companyName = 'bankAccount.error.companyName';
-        }
-
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = 'bankAccount.error.addressStreet';
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = 'bankAccount.error.zipCode';
-        }
-
-        if (values.addressCity && !ValidationUtils.isValidLegalName(values.addressCity)) {
-            errors.addressCity = 'bankAccount.error.addressCity';
         }
 
         if (values.companyPhone && !ValidationUtils.isValidUSPhone(values.companyPhone, true)) {
@@ -174,7 +166,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     InputComponent={TextInput}
                     label={translate('companyStep.legalBusinessName')}
                     accessibilityLabel={translate('companyStep.legalBusinessName')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     inputID="companyName"
                     containerStyles={[styles.mt4]}
                     disabled={shouldDisableCompanyName}
@@ -204,7 +196,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="companyPhone"
                     label={translate('common.phoneNumber')}
                     accessibilityLabel={translate('common.phoneNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.TEL}
                     placeholder={translate('common.phoneNumberPlaceholder')}
@@ -216,7 +208,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="website"
                     label={translate('companyStep.companyWebsite')}
                     accessibilityLabel={translate('companyStep.companyWebsite')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     defaultValue={getDefaultStateForField('website', defaultWebsite)}
                     shouldSaveDraft
@@ -228,7 +220,7 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                     inputID="companyTaxID"
                     label={translate('companyStep.taxIDNumber')}
                     accessibilityLabel={translate('companyStep.taxIDNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     disabled={shouldDisableCompanyTaxID}
@@ -242,14 +234,18 @@ function CompanyStep({reimbursementAccount, reimbursementAccountDraft, getDefaul
                         InputComponent={Picker}
                         inputID="incorporationType"
                         label={translate('companyStep.companyType')}
-                        items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({value: key, label: translate(`companyStep.incorporationTypes.${key}`)}))}
+                        items={_.map(_.keys(CONST.INCORPORATION_TYPES), (key) => ({
+                            value: key,
+                            label: translate(`companyStep.incorporationTypes.${key}`),
+                        }))}
                         placeholder={{value: '', label: '-'}}
                         defaultValue={getDefaultStateForField('incorporationType')}
                         shouldSaveDraft
                     />
                 </View>
                 <View style={styles.mt4}>
-                    <DatePicker
+                    <InputWrapper
+                        InputComponent={DatePicker}
                         inputID="incorporationDate"
                         label={translate('companyStep.incorporationDate')}
                         placeholder={translate('companyStep.incorporationDatePlaceholder')}
