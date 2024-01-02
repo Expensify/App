@@ -1,20 +1,12 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
+import {StyleProp, View, ViewProps} from 'react-native';
 
-const propTypes = {
-    /** Position index of the list item in a list view */
-    index: PropTypes.number.isRequired,
-
-    /** Styles that are passed to the component */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+type CellRendererComponentProps = ViewProps & {
+    index: number;
+    style?: StyleProp<ViewProps>;
 };
 
-const defaultProps = {
-    style: {},
-};
-
-function CellRendererComponent(props) {
+function CellRendererComponent(props: CellRendererComponentProps) {
     return (
         <View
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -34,8 +26,6 @@ function CellRendererComponent(props) {
     );
 }
 
-CellRendererComponent.propTypes = propTypes;
-CellRendererComponent.defaultProps = defaultProps;
 CellRendererComponent.displayName = 'CellRendererComponent';
 
 export default CellRendererComponent;
