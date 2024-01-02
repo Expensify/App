@@ -125,7 +125,7 @@ function IOURequestStepScan({
     };
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack();
     };
 
     const navigateToConfirmationStep = useCallback(() => {
@@ -147,18 +147,11 @@ function IOURequestStepScan({
     }, [iouType, report, reportID, transactionID, isFromGlobalCreate, backTo]);
 
     const updateScanAndNavigate = useCallback(
-        (photo, source) => {
-            FileUtils.readFileAsync(source, photo.path, (file) => {
-                IOU.replaceReceipt(transactionID, file, source);
-
-                if (backTo) {
-                    Navigation.goBack(backTo);
-                    return;
-                }
-                Navigation.dismissModal();
-            });
+        (file, source) => {
+            Navigation.dismissModal();
+            IOU.replaceReceipt(transactionID, file, source);
         },
-        [backTo, transactionID],
+        [transactionID],
     );
 
     /**
@@ -202,7 +195,9 @@ function IOURequestStepScan({
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
                 if (action === CONST.IOU.ACTION.EDIT) {
-                    updateScanAndNavigate(photo, source);
+                    FileUtils.readFileAsync(source, photo.path, (file) => {
+                        updateScanAndNavigate(file, source);
+                    });
                     return;
                 }
 
