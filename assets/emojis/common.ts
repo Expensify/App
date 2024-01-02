@@ -91,7 +91,7 @@ const emojis: PickerEmojis = [
         code: '😊',
     },
     {
-        name: ':innocent:',
+        name: 'innocent',
         code: '😇',
     },
     {
