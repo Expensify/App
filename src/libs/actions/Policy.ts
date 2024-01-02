@@ -277,7 +277,7 @@ type AnnounceRoomMembers = {
 /**
  * Build optimistic data for adding members to the announcement room
  */
-function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]) {
+function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]): AnnounceRoomMembers {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const announceRoomMembers: AnnounceRoomMembers = {
         onyxOptimisticData: [],
@@ -312,7 +312,7 @@ type OptimisticAnnounceRoomMembers = {
 /**
  * Build optimistic data for removing users from the announcement room
  */
-function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]) {
+function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]): OptimisticAnnounceRoomMembers {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const announceRoomMembers: OptimisticAnnounceRoomMembers = {
         onyxOptimisticData: [],
@@ -358,9 +358,9 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
 
-    const optimisticMembersState: Record<string, Record<string, unknown>> = {};
-    const successMembersState: Record<string, Record<string, unknown> | null> = {};
-    const failureMembersState: Record<string, Record<string, unknown>> = {};
+    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
+    const successMembersState: OnyxCollection<PolicyMember> = {};
+    const failureMembersState: OnyxCollection<PolicyMember> = {};
     accountIDs.forEach((accountID) => {
         optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[accountID] = null;
@@ -490,7 +490,7 @@ type WorkspaceMembersChats = {
  *
  * @returns - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
-function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: Record<string, number>, hasOutstandingChildRequest = false) {
+function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: Record<string, number>, hasOutstandingChildRequest = false): WorkspaceMembersChats {
     const workspaceMembersChats: WorkspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -590,8 +590,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: Record<string, number>
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
-    const optimisticMembersState: Record<string, Record<string, unknown>> = {};
-    const failureMembersState: Record<string, Record<string, unknown>> = {};
+    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
+    const failureMembersState: OnyxCollection<PolicyMember> = {};
     accountIDs.forEach((accountID) => {
         optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         failureMembersState[accountID] = {
