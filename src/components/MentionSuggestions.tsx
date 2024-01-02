@@ -72,7 +72,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                             size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
                             name={item.icons[0].name}
                             type={item.icons[0].type}
-                            fill={theme.success}
+                            fill={isIcon ? theme.success : undefined}
                             fallbackIcon={item.icons[0].fallbackIcon}
                         />
                     </View>
