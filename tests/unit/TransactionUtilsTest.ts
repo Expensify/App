@@ -1,3 +1,4 @@
+import CONST from '@src/CONST';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Transaction} from '../../src/types/onyx';
 
@@ -58,6 +59,50 @@ describe('TransactionUtils', () => {
 
                     expect(result).toEqual(expectedResult);
                 });
+            });
+        });
+    });
+
+    describe('getCurrency', () => {
+        describe('when the transaction has a receipt with a failed scan', () => {
+            const transaction = generateTransaction({
+                currency: 'BRL',
+                modifiedCurrency: 'USD',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                receipt: {
+                    receiptID: 668988678,
+                    state: 'OPEN',
+                    source: 'https://www.expensify.com/receipts/w_1dc0503005ad60e4d34f88aeea24c4920ab2231f.png',
+                },
+            });
+
+            it('returns the created currency', () => {
+                const expectedResult = 'BRL';
+
+                const result = TransactionUtils.getCurrency(transaction);
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when the transaction has a receipt with successful scan', () => {
+            const transaction = generateTransaction({
+                currency: 'BRL',
+                modifiedCurrency: 'USD',
+                merchant: 'Test Merchant',
+                receipt: {
+                    receiptID: 668988678,
+                    state: 'OPEN',
+                    source: 'https://www.expensify.com/receipts/w_1dc0503005ad60e4d34f88aeea24c4920ab2231f.png',
+                },
+            });
+
+            it('returns the modified currency', () => {
+                const expectedResult = 'USD';
+
+                const result = TransactionUtils.getCurrency(transaction);
+
+                expect(result).toEqual(expectedResult);
             });
         });
     });

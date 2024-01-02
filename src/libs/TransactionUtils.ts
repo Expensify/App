@@ -1,4 +1,5 @@
 import lodashHas from 'lodash/has';
+import lodashIsEmpty from 'lodash/isEmpty';
 import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
@@ -269,15 +270,29 @@ function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boo
     return amount ? -amount : 0;
 }
 
+function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
+    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
+}
+
+/**
+ * Check if the transaction has a non-smartscanning receipt and is missing required fields
+ */
+function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
+    return Boolean(transaction && hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
+}
+
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
 function getCurrency(transaction: OnyxEntry<Transaction>): string {
     const currency = transaction?.modifiedCurrency ?? '';
-    if (currency) {
-        return currency;
+    const hasFieldErrors = hasMissingSmartscanFields(transaction);
+
+    if (hasFieldErrors || lodashIsEmpty(currency)) {
+        return transaction?.currency ?? CONST.CURRENCY.USD;
     }
-    return transaction?.currency ?? CONST.CURRENCY.USD;
+
+    return currency;
 }
 
 /**
@@ -406,17 +421,6 @@ function isPosted(transaction: Transaction): boolean {
         return false;
     }
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
-}
-
-function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
-    return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
-}
-
-/**
- * Check if the transaction has a non-smartscanning receipt and is missing required fields
- */
-function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
-    return Boolean(transaction && hasReceipt(transaction) && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
 /**
