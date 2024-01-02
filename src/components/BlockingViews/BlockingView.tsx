@@ -1,60 +1,60 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import {View} from 'react-native';
+import {ImageSourcePropType, View} from 'react-native';
+import {SvgProps} from 'react-native-svg';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';
-import sourcePropTypes from '@components/Image/sourcePropTypes';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import {TranslationPaths} from '@src/languages/types';
 
-const propTypes = {
+type BlockingViewProps = {
     /** Expensicon for the page */
-    icon: sourcePropTypes.isRequired,
+    icon: React.FC<SvgProps> | ImageSourcePropType;
 
     /** Color for the icon (should be from theme) */
-    iconColor: PropTypes.string,
+    iconColor?: string;
 
     /** Title message below the icon */
-    title: PropTypes.string.isRequired,
+    title: string;
 
     /** Subtitle message below the title */
-    subtitle: PropTypes.string,
+    subtitle?: string;
 
     /** Link message below the subtitle */
-    linkKey: PropTypes.string,
+    linkKey?: TranslationPaths;
 
     /** Whether we should show a link to navigate elsewhere */
-    shouldShowLink: PropTypes.bool,
+    shouldShowLink?: boolean;
 
     /** The custom icon width */
-    iconWidth: PropTypes.number,
+    iconWidth?: number;
 
     /** The custom icon height */
-    iconHeight: PropTypes.number,
+    iconHeight?: number;
 
     /** Function to call when pressing the navigation link */
-    onLinkPress: PropTypes.func,
+    onLinkPress?: () => void;
 
     /** Whether we should embed the link with subtitle */
-    shouldEmbedLinkWithSubtitle: PropTypes.bool,
+    shouldEmbedLinkWithSubtitle?: boolean;
 };
 
-const defaultProps = {
-    iconColor: null,
-    subtitle: '',
-    shouldShowLink: false,
-    linkKey: 'notFound.goBackHome',
-    iconWidth: variables.iconSizeSuperLarge,
-    iconHeight: variables.iconSizeSuperLarge,
-    onLinkPress: () => Navigation.dismissModal(),
-    shouldEmbedLinkWithSubtitle: false,
-};
-
-function BlockingView(props) {
+function BlockingView({
+    icon,
+    iconColor,
+    title,
+    subtitle = '',
+    linkKey = 'notFound.goBackHome',
+    shouldShowLink = false,
+    iconWidth = variables.iconSizeSuperLarge,
+    iconHeight = variables.iconSizeSuperLarge,
+    onLinkPress = () => Navigation.dismissModal(),
+    shouldEmbedLinkWithSubtitle = false,
+}: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     function renderContent() {
@@ -62,14 +62,14 @@ function BlockingView(props) {
             <>
                 <AutoEmailLink
                     style={[styles.textAlignCenter]}
-                    text={props.subtitle}
+                    text={subtitle}
                 />
-                {props.shouldShowLink ? (
+                {shouldShowLink ? (
                     <TextLink
-                        onPress={props.onLinkPress}
+                        onPress={onLinkPress}
                         style={[styles.link, styles.mt2]}
                     >
-                        {translate(props.linkKey)}
+                        {translate(linkKey)}
                     </TextLink>
                 ) : null}
             </>
@@ -79,14 +79,14 @@ function BlockingView(props) {
     return (
         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10]}>
             <Icon
-                src={props.icon}
-                fill={props.iconColor}
-                width={props.iconWidth}
-                height={props.iconHeight}
+                src={icon}
+                fill={iconColor}
+                width={iconWidth}
+                height={iconHeight}
             />
-            <Text style={[styles.notFoundTextHeader]}>{props.title}</Text>
+            <Text style={[styles.notFoundTextHeader]}>{title}</Text>
 
-            {props.shouldEmbedLinkWithSubtitle ? (
+            {shouldEmbedLinkWithSubtitle ? (
                 <Text style={[styles.textAlignCenter]}>{renderContent()}</Text>
             ) : (
                 <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{renderContent()}</View>
@@ -95,8 +95,6 @@ function BlockingView(props) {
     );
 }
 
-BlockingView.propTypes = propTypes;
-BlockingView.defaultProps = defaultProps;
 BlockingView.displayName = 'BlockingView';
 
 export default BlockingView;

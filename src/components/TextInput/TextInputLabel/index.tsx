@@ -1,12 +1,12 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated} from 'react-native';
+import {Animated, Text} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {defaultProps, propTypes} from './TextInputLabelPropTypes';
+import type TextInputLabelProps from './types';
 
-function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
+function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}: TextInputLabelProps) {
     const styles = useThemeStyles();
-    const labelRef = useRef(null);
+    const labelRef = useRef<Text & HTMLFormElement>(null);
 
     useEffect(() => {
         if (!inputId || !labelRef.current) {
@@ -28,7 +28,5 @@ function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
 }
 
 TextInputLabel.displayName = 'TextInputLabel';
-TextInputLabel.propTypes = propTypes;
-TextInputLabel.defaultProps = defaultProps;
 
 export default React.memo(TextInputLabel);

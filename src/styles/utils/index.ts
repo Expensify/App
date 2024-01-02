@@ -382,7 +382,7 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
-function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
+function getBackgroundAndBorderStyle(backgroundColor: string | undefined): ViewStyle {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -443,13 +443,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
         };
     }
     return {};
-}
-
-function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
 }
 
 function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
@@ -1013,7 +1006,6 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,

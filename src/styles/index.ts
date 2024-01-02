@@ -2769,6 +2769,10 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 5,
         },
 
+        codePlainTextStyle: {
+            ...codeStyles.codePlainTextStyle,
+        },
+
         fullScreenLoading: {
             backgroundColor: theme.componentBG,
             opacity: 0.8,
@@ -4133,4 +4137,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};
