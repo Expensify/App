@@ -361,14 +361,22 @@ function AttachmentModal(props) {
         setIsModalOpen(true);
     }, []);
 
+    useEffect(() => {
+        setSource(props.source);
+    }, [props.source]);
+
+    useEffect(() => {
+        setIsAuthTokenRequired(props.isAuthTokenRequired);
+    }, [props.isAuthTokenRequired]);
+
     const sourceForAttachmentView = props.source || source;
 
     const threeDotsMenuItems = useMemo(() => {
         if (!props.isReceiptAttachment || !props.parentReport || !props.parentReportActions) {
             return [];
         }
-        const menuItems = [];
 
+        const menuItems = [];
         if (props.canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Camera,
@@ -395,7 +403,7 @@ function AttachmentModal(props) {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+    }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file, source]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.

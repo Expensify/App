@@ -113,8 +113,8 @@ platforms:
         icon: /assets/images/hand-card.svg
         description: Explore how the Expensify Card combines convenience and security to enhance everyday business transactions. Discover how to apply for, oversee, and maximize your card perks here.
 
-      - href: get-paid-back
-        title: Get Paid Back
+      - href: payments
+        title: Payments
         icon: /assets/images/money-into-wallet.svg
         description: Whether you submit an expense report or an invoice, find out here how to ensure a smooth and timely payback process every time.
 

@@ -247,6 +247,7 @@ function getOptionData(
     }
 
     const result: ReportUtils.OptionData = {
+        text: '',
         alternateText: null,
         allReportErrors: null,
         brickRoadIndicator: null,
