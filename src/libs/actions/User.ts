@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
-import OnyxPersonalDetails, {CustomStatus} from '@src/types/onyx/PersonalDetails';
+import OnyxPersonalDetails, {Status} from '@src/types/onyx/PersonalDetails';
 import ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
@@ -809,7 +809,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 /**
  * Sets a custom status
  */
-function updateCustomStatus(status: CustomStatus) {
+function updateCustomStatus(status: Status) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -823,7 +823,7 @@ function updateCustomStatus(status: CustomStatus) {
     ];
 
     type UpdateStatusParams = {
-        text: string;
+        text?: string;
         emojiCode: string;
         clearAfter?: string;
     };
@@ -862,7 +862,7 @@ function clearCustomStatus() {
  * @param status.emojiCode
  * @param status.clearAfter - ISO 8601 format string, which represents the time when the status should be cleared
  */
-function updateDraftCustomStatus(status: CustomStatus) {
+function updateDraftCustomStatus(status: Status) {
     Onyx.merge(ONYXKEYS.CUSTOM_STATUS_DRAFT, status);
 }
 
