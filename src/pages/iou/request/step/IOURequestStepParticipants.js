@@ -59,6 +59,8 @@ function IOURequestStepParticipants({
         if (!newIouType.current) {
             return;
         }
+        // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
+        // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
         IOU.updateMoneyRequestTypeParams(routes, newIouType.current);
         newIouType.current = null;
     }, [routes, participants]);
