@@ -164,7 +164,7 @@ type ReportRouteParams = {
 
 type ReportOfflinePendingActionAndErrors = {
     addWorkspaceRoomOrChatPendingAction: PendingAction | undefined;
-    addWorkspaceRoomOrChatErrors: Record<string, string> | null | undefined;
+    addWorkspaceRoomOrChatErrors: Errors | null | undefined;
 };
 
 type OptimisticApprovedReportAction = Pick<
@@ -3864,7 +3864,7 @@ function isValidReportIDFromPath(reportIDFromPath: string): boolean {
 /**
  * Return the errors we have when creating a chat or a workspace room
  */
-function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Record<string, string> | null | undefined {
+function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Errors | null | undefined {
     // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to have errors for the same report at the same time, so
     // simply looking up the first truthy value will get the relevant property if it's set.
     return report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat;

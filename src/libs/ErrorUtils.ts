@@ -110,6 +110,7 @@ function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | ErrorsLi
     }
 
     if (typeof errors === 'string' || Array.isArray(errors)) {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         return {'0': getErrorWithTranslationData(errors)};
     }
 
