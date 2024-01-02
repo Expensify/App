@@ -30,11 +30,11 @@ type ProcessMoneyRequestHoldMenuProps = {
     paymentType: string;
 
     /** Type of action handled either 'pay' or 'approve' */
-    type: string;
+    requestType: string;
 };
 
 function ProcessMoneyRequestHoldMenu({
-    type,
+    requestType,
     nonHeldAmount,
     fullAmount,
     isSmallScreenWidth = false,
@@ -45,7 +45,7 @@ function ProcessMoneyRequestHoldMenu({
     moneyRequestReport,
 }: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
-    const isApprove = type === 'approve';
+    const isApprove = requestType === 'approve';
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {

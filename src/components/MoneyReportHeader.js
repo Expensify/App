@@ -235,7 +235,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
             {isHoldMenuVisible && (
                 <ProcessMoneyRequestHoldMenu
                     nonHeldAmount={nonHeldAmount}
-                    type={confirmationType}
+                    requestType={confirmationType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}
                     onClose={() => setIsHoldMenuVisible(false)}
