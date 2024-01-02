@@ -363,7 +363,7 @@ function Composer(
                 value={value}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
-                inputMode={!showSoftInputOnFocus ? 'none': 'text'}
+                inputMode={!showSoftInputOnFocus ? 'none' : 'text'}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
