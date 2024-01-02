@@ -1,29 +1,25 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import HeaderPageLayout from './HeaderPageLayout';
 import HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import Lottie from './Lottie';
 import DotLottieAnimation from './LottieAnimations/types';
 
-type IllustratedHeaderPageLayoutProps = {
-    /** Children to display in the lower half of the page (below the header section w/ an animation) */
-    children?: React.ReactNode;
+type IllustratedHeaderPageLayoutProps = ChildrenProps &
+    HeaderWithBackButtonProps & {
+        /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
+        illustration: DotLottieAnimation;
 
-    /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation;
+        /** The background color to apply in the upper half of the screen. */
+        backgroundColor?: string;
 
-    /** The background color to apply in the upper half of the screen. */
-    backgroundColor?: string;
+        /** Overlay content to display on top of animation */
+        overlayContent?: () => ReactNode;
+    };
 
-    /** Overlay content to display on top of animation */
-    overlayContent?: () => React.ReactNode;
-
-    /** Props to pass to HeaderWithBackButton */
-    propsToPassToHeader: HeaderWithBackButtonProps;
-};
-
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, overlayContent, propsToPassToHeader}: IllustratedHeaderPageLayoutProps) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, overlayContent, ...rest}: IllustratedHeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     return (
@@ -42,7 +38,8 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, o
                 </>
             }
             headerContainerStyles={[styles.justifyContentCenter, styles.w100]}
-            propsToPassToHeader={propsToPassToHeader}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         >
             {children}
         </HeaderPageLayout>

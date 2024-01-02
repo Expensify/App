@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {ReactNode, useMemo} from 'react';
 import {ScrollView, StyleProp, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,31 +12,29 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import ScreenWrapper from './ScreenWrapper';
 
-type HeaderPageLayoutProps = ChildrenProps & {
-    /** The background color to apply in the upper half of the screen. */
-    backgroundColor?: string;
+type HeaderPageLayoutProps = ChildrenProps &
+    HeaderWithBackButtonProps & {
+        /** The background color to apply in the upper half of the screen. */
+        backgroundColor?: string;
 
-    /** A fixed footer to display at the bottom of the page. */
-    footer?: React.ReactNode;
+        /** A fixed footer to display at the bottom of the page. */
+        footer?: ReactNode;
 
-    /** The image to display in the upper half of the screen. */
-    headerContent?: React.ReactNode;
+        /** The image to display in the upper half of the screen. */
+        headerContent?: React.ReactNode;
 
-    /** Style to apply to the header image container */
-    headerContainerStyles?: Array<StyleProp<ViewStyle>>;
+        /** Style to apply to the header image container */
+        headerContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Style to apply to the ScrollView container */
-    scrollViewContainerStyles?: Array<StyleProp<ViewStyle>>;
+        /** Style to apply to the ScrollView container */
+        scrollViewContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Style to apply to the children container */
-    childrenContainerStyles?: Array<StyleProp<ViewStyle>>;
+        /** Style to apply to the children container */
+        childrenContainerStyles?: StyleProp<ViewStyle>;
 
-    /** Style to apply to the whole section container */
-    style?: StyleProp<ViewStyle>;
-
-    /** Props to pass to HeaderWithackButton */
-    propsToPassToHeader?: HeaderWithBackButtonProps;
-};
+        /** Style to apply to the whole section container */
+        style?: StyleProp<ViewStyle>;
+    };
 
 function HeaderPageLayout({
     backgroundColor,
@@ -47,7 +45,7 @@ function HeaderPageLayout({
     childrenContainerStyles,
     style,
     headerContent,
-    propsToPassToHeader,
+    ...rest
 }: HeaderPageLayoutProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -76,11 +74,11 @@ function HeaderPageLayout({
             {({safeAreaPaddingBottomStyle}) => (
                 <HeaderWithBackButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...propsToPassToHeader}
+                    {...rest}
                     titleColor={titleColor}
                     iconFill={iconFill}
                 >
-                    <View style={[styles.flex1, appBGColor, !isOffline && !(footer === null) ? safeAreaPaddingBottomStyle : {}]}>
+                    <View style={[styles.flex1, appBGColor, !isOffline && footer !== null ? safeAreaPaddingBottomStyle : {}]}>
                         {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
                         {Browser.isSafari() && (
                             <View style={styles.dualColorOverscrollSpacer}>
@@ -88,14 +86,14 @@ function HeaderPageLayout({
                                 <View style={[isSmallScreenWidth ? styles.flex1 : styles.flex3, appBGColor]} />
                             </View>
                         )}
-                        <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles, appBGColor]}>
+                        <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}>
                             {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG), headerContainerStyles]}>
                                 {headerContent}
                             </View>
                             <View style={[styles.pt5, appBGColor, childrenContainerStyles]}>{children}</View>
                         </ScrollView>
-                        {!(footer === null) && <FixedFooter>{footer}</FixedFooter>}
+                        {footer !== null && <FixedFooter>{footer}</FixedFooter>}
                     </View>
                 </HeaderWithBackButton>
             )}
