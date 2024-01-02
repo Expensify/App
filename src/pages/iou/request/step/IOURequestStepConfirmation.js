@@ -213,8 +213,17 @@ function IOURequestStepConfirmation({
 
             // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
-                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(report.reportID) ? reportID : '';
-                IOU.startSplitBill(selectedParticipants, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trimmedComment, receiptFile, existingSplitChatReportID);
+                const existingSplitChatReportID = CONST.REGEX.NUMBER.test(reportID) ? reportID : '';
+                IOU.startSplitBill(
+                    selectedParticipants,
+                    currentUserPersonalDetails.login,
+                    currentUserPersonalDetails.accountID,
+                    trimmedComment,
+                    transaction.category,
+                    transaction.tag,
+                    receiptFile,
+                    existingSplitChatReportID,
+                );
                 return;
             }
 
@@ -228,10 +237,10 @@ function IOURequestStepConfirmation({
                     transaction.amount,
                     trimmedComment,
                     transaction.currency,
+                    transaction.merchant,
                     transaction.category,
                     transaction.tag,
                     report.reportID,
-                    transaction.merchant,
                 );
                 return;
             }
@@ -245,9 +254,9 @@ function IOURequestStepConfirmation({
                     transaction.amount,
                     trimmedComment,
                     transaction.currency,
+                    transaction.merchant,
                     transaction.category,
                     transaction.tag,
-                    transaction.merchant,
                 );
                 return;
             }
@@ -356,7 +365,6 @@ function IOURequestStepConfirmation({
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction.merchant}
                         iouCreated={transaction.created}
-                        isScanRequest={requestType === CONST.IOU.REQUEST_TYPE.SCAN}
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                         shouldShowSmartScanFields={_.isEmpty(lodashGet(transaction, 'receipt.source', ''))}
                     />
