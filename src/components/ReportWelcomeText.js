@@ -69,8 +69,8 @@ function ReportWelcomeText(props) {
     );
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(props.policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(props.report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, participantAccountIDs);
-    const additionalText = _.map(moneyRequestOptions, (item) => props.translate(`reportActionsView.iouTypes.${item}`)).join(', ');
+    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(props.report, props.policy, participantAccountIDs);
+				const additionalText = _.map(moneyRequestOptions, (item) => props.translate(`reportActionsView.iouTypes.${item}`)).join(', ');
 
     return (
         <>
