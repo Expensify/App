@@ -2814,6 +2814,7 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string): Opti
         ],
         originalMessage: {
             cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            expenseReportID,
         },
         person: [
             {
