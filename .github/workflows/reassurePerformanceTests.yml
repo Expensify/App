@@ -44,7 +44,6 @@ jobs:
           # Restore patches from backup
           rm -rf ./patches/
           cp -r ./patches_backup/ ./patches/
-          npx patch-package
 
           rm -rf node_modules
           npm cache clean --force
@@ -64,3 +63,4 @@ jobs:
           DURATION_DEVIATION_PERCENTAGE: 20
           COUNT_DEVIATION: 0
           REGRESSION_OUTPUT: ${{ steps.reassure.outputs.content }}
+
