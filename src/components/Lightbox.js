@@ -205,8 +205,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoadEnd={() => setFallbackLoaded(true)}
                                 onLoad={(e) => {
-                                    const width = e.nativeEvent?.width || 0;
-                                    const height = e.nativeEvent?.height || 0;
+                                    const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
+                                    const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
 
                                     if (imageDimensions?.lightboxSize != null) {
                                         return;
