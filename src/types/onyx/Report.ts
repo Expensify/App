@@ -44,7 +44,7 @@ type Report = {
     /** The time of the last read of the report */
     lastReadCreated?: string;
 
-    /** The last time the report was visited */
+    /** The time when user read the last message */
     lastReadTime?: string;
 
     /** The sequence number of the last report visit */
@@ -159,6 +159,9 @@ type Report = {
     updateReportInLHN?: boolean;
     privateNotes?: Record<number, Note>;
     isLoadingPrivateNotes?: boolean;
+
+    /** If the report contains reportFields, save the field id and its value */
+    reportFields?: Record<string, string>;
 };
 
 export default Report;
