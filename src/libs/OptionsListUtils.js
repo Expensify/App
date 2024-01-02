@@ -519,7 +519,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || ReportUtils.getDisplayNameForParticipant(lastActorDetails?.accountID) || Localize.translateLocal('common.hidden'),
+                displayName: archiveReason.displayName || ReportUtils.getDisplayNameForParticipant(report.lastActorAccountID) || Localize.translateLocal('common.hidden'),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
