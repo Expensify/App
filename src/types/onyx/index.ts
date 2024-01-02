@@ -36,6 +36,7 @@ import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import Report from './Report';
 import ReportAction, {ReportActions} from './ReportAction';
 import ReportActionReactions from './ReportActionReactions';
+import ReportActionsDraft from './ReportActionsDraft';
 import ReportActionsDrafts from './ReportActionsDrafts';
 import ReportMetadata from './ReportMetadata';
 import ReportNextStep from './ReportNextStep';
@@ -105,6 +106,7 @@ export type {
     ReportAction,
     ReportActionReactions,
     ReportActions,
+    ReportActionsDraft,
     ReportActionsDrafts,
     ReportMetadata,
     ReportNextStep,
