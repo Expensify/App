@@ -3074,7 +3074,7 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
  * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()) {
+function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -3105,7 +3105,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()) {
  * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()) {
+function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -3136,11 +3136,8 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()) {
  * Returns the necessary reportAction user comment user provided to put on hold optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()) {
+function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
     return {
-        accountID: currentUserAccountID,
-        date: created,
-        comment,
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3159,7 +3156,6 @@ function buildOptimisticHoldReportActionComment(comment: string, created = DateU
                 text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
             },
         ],
-        isFirstItem: true,
         automatic: true,
         avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created,

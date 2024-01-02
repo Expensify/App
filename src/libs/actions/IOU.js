@@ -2934,7 +2934,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
     Report.notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport) {
+function approveMoneyRequest(expenseReport, full) {
     const currentNextStep = lodashGet(allNextSteps, `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`, null);
 
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
@@ -2999,7 +2999,11 @@ function approveMoneyRequest(expenseReport) {
         });
     }
 
-    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID}, {optimisticData, successData, failureData});
+    API.write(
+        'ApproveMoneyRequest',
+        {reportID: expenseReport.reportID, approvedReportActionID: optimisticApprovedReportAction.reportActionID, full},
+        {optimisticData, successData, failureData},
+    );
 }
 
 /**

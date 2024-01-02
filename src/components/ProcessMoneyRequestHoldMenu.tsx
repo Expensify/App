@@ -1,51 +1,53 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
-import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
+import * as OnyxTypes from '@src/types/onyx';
 import DecisionModal from './DecisionModal';
 
-const propTypes = {
+type ProcessMoneyRequestHoldMenuProps = {
+    /** The chat report this report is linked to */
+    chatReport: OnyxTypes.Report;
+
     /** Full amount of expense report to pay */
-    fullAmount: PropTypes.string.isRequired,
-
-    /** Not held amount of expense report */
-    nonHeldAmount: PropTypes.string.isRequired,
-
-    /** Type of action handled either 'pay' or 'approve' */
-    type: PropTypes.string.isRequired,
+    fullAmount: string;
 
     /** Is the window width narrow, like on a mobile device? */
-    isSmallScreenWidth: PropTypes.bool,
-
-    /** Callback for closing modal */
-    onClose: PropTypes.func.isRequired,
+    isSmallScreenWidth: boolean;
 
     /** Whether modal is visible */
-    isVisible: PropTypes.bool.isRequired,
-
-    /** Type of payment */
-    paymentType: PropTypes.string.isRequired,
-
-    /** The chat report this report is linked to */
-    chatReport: reportPropTypes,
+    isVisible: boolean;
 
     /** The report currently being looked at */
-    moneyRequestReport: iouReportPropTypes,
+    moneyRequestReport: OnyxTypes.IOU;
+
+    /** Not held amount of expense report */
+    nonHeldAmount: string;
+
+    /** Callback for closing modal */
+    onClose: () => void;
+
+    /** Type of payment */
+    paymentType: string;
+
+    /** Type of action handled either 'pay' or 'approve' */
+    type: string;
 };
 
-const defaultProps = {
-    chatReport: {},
-    moneyRequestReport: {},
-    isSmallScreenWidth: false,
-};
-
-function ProcessMoneyRequestHoldMenu({type, nonHeldAmount, fullAmount, isSmallScreenWidth, onClose, isVisible, paymentType, chatReport, moneyRequestReport}) {
+function ProcessMoneyRequestHoldMenu({
+    type,
+    nonHeldAmount,
+    fullAmount,
+    isSmallScreenWidth = false,
+    onClose,
+    isVisible,
+    paymentType,
+    chatReport,
+    moneyRequestReport,
+}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = type === 'approve';
 
-    const onSubmit = (full) => {
+    const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
         } else {
@@ -70,7 +72,5 @@ function ProcessMoneyRequestHoldMenu({type, nonHeldAmount, fullAmount, isSmallSc
 }
 
 ProcessMoneyRequestHoldMenu.displayName = 'ProcessMoneyRequestHoldMenu';
-ProcessMoneyRequestHoldMenu.propTypes = propTypes;
-ProcessMoneyRequestHoldMenu.defaultProps = defaultProps;
 
 export default ProcessMoneyRequestHoldMenu;
