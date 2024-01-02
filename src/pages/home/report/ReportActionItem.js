@@ -317,8 +317,8 @@ function ReportActionItem(props) {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${props.action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
                 onPress: () => Report.resolveActionableMentionWhisper(props.report.reportID, props.action.reportActionID, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
-            }
-        ]
+            },
+        ];
     }, [props.action, props.report]);
 
     /**
@@ -486,8 +486,7 @@ function ReportActionItem(props) {
                                 for example: Invite a user mentioned but not a member of the room
                                 https://github.com/Expensify/App/issues/32741
                             */}
-                            {actionableItemButtons.length > 0
-                            && <ActionableItemButtons items={actionableItemButtons} />}
+                            {actionableItemButtons.length > 0 && <ActionableItemButtons items={actionableItemButtons} />}
                         </View>
                     ) : (
                         <ReportActionItemMessageEdit
