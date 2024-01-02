@@ -36,9 +36,16 @@ type Geometry = {
     location: Location;
 };
 
+type Values = Record<string, string>;
+
 type MappedWaypoint = {
+    /* Waypoint name */
     name?: string;
+
+    /* Waypoint description */
     description: string;
+
+    /* Waypoint geometry object cointaing coordinates */
     geometry: Geometry;
 };
 
@@ -93,7 +100,7 @@ function WaypointEditor({
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
-    const validate = (values: Record<string, string>) => {
+    const validate = (values: Values): ErrorUtils.ErrorsList => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
@@ -111,7 +118,7 @@ function WaypointEditor({
 
     const saveWaypoint = (waypoint: OnyxTypes.RecentWaypoint) => Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
-    const submit = (values: Record<string, string>) => {
+    const submit = (values: Values) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
@@ -143,7 +150,6 @@ function WaypointEditor({
             lat: values.lat,
             lng: values.lng,
             address: values.address ?? '',
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             name: values.name,
         };
         saveWaypoint(waypoint);

@@ -120,3 +120,4 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
 }
 
 export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
+export type {ErrorsList};

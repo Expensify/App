@@ -127,16 +127,8 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
-        ...transaction,
-        amount: transaction?.amount ?? 0,
-        billable: transaction?.billable ?? false,
-        category: transaction?.category ?? '',
-        created: transaction?.created ?? '',
-        currency: transaction?.currency ?? '',
-        merchant: transaction?.merchant ?? '',
-        reportID: transaction?.reportID ?? '',
-        transactionID: transaction?.transactionID ?? '',
-        tag: transaction?.tag ?? '',
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as Transaction),
         comment: {
             ...transaction?.comment,
             waypoints: reIndexedWaypoints,
