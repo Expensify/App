@@ -30,9 +30,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
 
-            // Demo routes
-            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
-
             // Sidebar
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,
@@ -44,15 +41,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
-            [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
-                screens: {
-                    [SCREENS.LEFT_MODAL.SEARCH]: {
-                        screens: {
-                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
-                        },
-                    },
-                },
-            },
+
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
                     [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -349,6 +338,11 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
                         },
                     },
+                    [SCREENS.RIGHT_MODAL.SEARCH]: {
+                        screens: {
+                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
+                        },
+                    },
                     [SCREENS.RIGHT_MODAL.DETAILS]: {
                         screens: {
                             [SCREENS.DETAILS_ROOT]: ROUTES.DETAILS.route,
@@ -376,6 +370,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
                         screens: {
+                            [SCREENS.MONEY_REQUEST.START]: ROUTES.MONEY_REQUEST_START.route,
                             [SCREENS.MONEY_REQUEST.CREATE]: {
                                 path: ROUTES.MONEY_REQUEST_CREATE.route,
                                 exact: true,

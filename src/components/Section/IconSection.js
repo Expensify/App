@@ -2,10 +2,11 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 const iconSectionPropTypes = {
-    icon: PropTypes.icon,
+    icon: sourcePropTypes,
     IconComponent: PropTypes.IconComponent,
     iconContainerStyles: PropTypes.iconContainerStyles,
 };
