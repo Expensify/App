@@ -11,7 +11,7 @@ on:
     branches: ['*ci-test/**']
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_14.2.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
 
 jobs:
   validateActor:
@@ -159,7 +159,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup XCode
-        run: sudo xcode-select -switch /Applications/Xcode_14.2.app
+        run: sudo xcode-select -switch /Applications/Xcode_15.0.1.app
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@a05e47355e80e57b9a67566a813648fa67d92011
