@@ -1,60 +1,34 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import Navigation from '@libs/Navigation/Navigation';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {defaultProps as validateLinkDefaultProps, propTypes as validateLinkPropTypes} from './validateLinkPropTypes';
+import SCREENS from '@src/SCREENS';
+import type {Account, Credentials, Session as SessionType} from '@src/types/onyx';
 
-const propTypes = {
-    /** The accountID and validateCode are passed via the URL */
-    route: validateLinkPropTypes,
-
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        /** Currently logged in user authToken */
-        authToken: PropTypes.string,
-    }),
-
-    /** The credentials of the person logging in */
-    credentials: PropTypes.shape({
-        /** The email the user logged in with */
-        login: PropTypes.string,
-
-        /** The validate code */
-        validateCode: PropTypes.string,
-    }),
-
-    /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** Whether a sign on form is loading (being submitted) */
-        isLoading: PropTypes.bool,
-    }),
+type ValidateLoginPageOnyxProps = {
+    account: OnyxEntry<Account>;
+    credentials: OnyxEntry<Credentials>;
+    session: OnyxEntry<SessionType>;
 };
 
-const defaultProps = {
-    route: validateLinkDefaultProps,
-    session: {
-        authToken: null,
-    },
-    credentials: {},
-    account: {},
-};
+type ValidateLoginPageProps = ValidateLoginPageOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.VALIDATE_LOGIN>;
 
-function ValidateLoginPage(props) {
-    const login = lodashGet(props, 'credentials.login', null);
-    const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
-    const accountID = lodashGet(props.route.params, 'accountID', '');
-    const validateCode = lodashGet(props.route.params, 'validateCode', '');
-    const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
-    const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
-    const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
+function ValidateLoginPage({account, credentials, route, session}: ValidateLoginPageProps) {
+    const login = credentials?.login;
+    const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
+    const accountID = Number(route?.params.accountID ?? '');
+    const validateCode = route.params.validateCode ?? '';
+    const isSignedIn = !!session?.authToken;
+    const is2FARequired = !!account?.requiresTwoFactorAuth;
+    const cachedAccountID = credentials?.accountID;
 
     useEffect(() => {
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
@@ -74,7 +48,7 @@ function ValidateLoginPage(props) {
     }, []);
 
     useEffect(() => {
-        if (login || !cachedAccountID || !is2FARequired) {
+        if (!!login || !cachedAccountID || !is2FARequired) {
             return;
         }
 
@@ -98,11 +72,9 @@ function ValidateLoginPage(props) {
     );
 }
 
-ValidateLoginPage.defaultProps = defaultProps;
 ValidateLoginPage.displayName = 'ValidateLoginPage';
-ValidateLoginPage.propTypes = propTypes;
 
-export default withOnyx({
+export default withOnyx<ValidateLoginPageProps, ValidateLoginPageOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     session: {key: ONYXKEYS.SESSION},
