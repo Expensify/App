@@ -172,10 +172,10 @@ function ProfilePage(props) {
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar
-                                                containerStyles={[styles.avatarLarge, styles.mb3]}
-                                                imageStyles={[styles.avatarLarge]}
+                                                containerStyles={[styles.avatarXLarge, styles.mb3]}
+                                                imageStyles={[styles.avatarXLarge]}
                                                 source={UserUtils.getAvatar(avatar, accountID)}
-                                                size={CONST.AVATAR_SIZE.LARGE}
+                                                size={CONST.AVATAR_SIZE.XLARGE}
                                                 fallbackIcon={fallbackIcon}
                                             />
                                         </OfflineWithFeedback>
