@@ -1869,12 +1869,12 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
         return true;
     }
 
-    const iouMessage: IOUMessage = reportAction?.originalMessage;
+    const iouMessage = reportAction?.originalMessage as IOUMessage;
     if (isSettled(String(iouMessage.IOUReportID)) || isReportApproved(String(iouMessage.IOUReportID))) {
         return false;
     }
 
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? {};
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) {
         return !TransactionUtils.isCardTransaction(transaction);
     }
