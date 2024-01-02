@@ -68,7 +68,7 @@ type PopoverMenuProps = PopoverModalProps & {
     anchorPosition: AnchorPosition;
 
     /** Ref of the anchor */
-    anchorRef?: RefObject<View | HTMLDivElement>;
+    anchorRef: RefObject<HTMLDivElement>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
@@ -127,7 +127,6 @@ function PopoverMenu({
     );
 
     return (
-        // @ts-expect-error TODO: Remove this once PopoverWithMeasuredContent (https://github.com/Expensify/App/issues/25053) is migrated to TypeScript.
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
             anchorRef={anchorRef}
