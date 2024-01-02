@@ -1,58 +1,29 @@
-import React, {useEffect, useState} from 'react';
-import _ from 'underscore';
-import * as Expensicons from '@components/Icon/Expensicons';
+import PropTypes from 'prop-types';
+import React from 'react';
 import PopoverMenu from '@components/PopoverMenu';
 import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
-import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import CONST from '@src/CONST';
 
-const propTypes = {};
-const defaultProps = {};
+const propTypes = {
+    isPopoverVisible: PropTypes.bool.isRequired,
 
-function VideoPopoverMenu() {
-    const {translate} = useLocalize();
+    hidePopover: PropTypes.func.isRequired,
+
+    anchorPosition: PropTypes.shape({
+        horizontal: PropTypes.number.isRequired,
+        vertical: PropTypes.number.isRequired,
+    }),
+};
+const defaultProps = {
+    anchorPosition: {
+        horizontal: 0,
+        vertical: 0,
+    },
+};
+
+function VideoPopoverMenu({isPopoverVisible, hidePopover, anchorPosition}) {
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {isPopoverVisible, hidePopover, anchorPosition, targetVideoPlayerRef} = useVideoPopoverMenuContext();
-
-    const [playbackSpeeds] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS);
-    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
-
-    const updatePlaybackSpeed = (speed) => {
-        targetVideoPlayerRef.current.setStatusAsync({rate: speed});
-        setCurrentPlaybackSpeed(speed);
-    };
-
-    const playbackSpeedSubMenuItems = _.map(playbackSpeeds, (speed) => ({
-        icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
-        text: speed.toString(),
-        onSelected: () => updatePlaybackSpeed(speed),
-        shouldPutLeftPaddingWhenNoIcon: true,
-    }));
-
-    const menuItems = [
-        {
-            icon: Expensicons.Download,
-            text: translate('common.download'),
-            onSelected: () => {
-                // TODO: Implement download
-            },
-        },
-        {
-            icon: Expensicons.Meter,
-            text: translate('videoPlayer.playbackSpeed'),
-            subMenuItems: playbackSpeedSubMenuItems,
-        },
-    ];
-
-    useEffect(() => {
-        if (!isPopoverVisible) {
-            return;
-        }
-        targetVideoPlayerRef.current.getStatusAsync().then((status) => {
-            setCurrentPlaybackSpeed(status.rate);
-        });
-    }, [isPopoverVisible, playbackSpeeds, targetVideoPlayerRef]);
+    const {menuItems} = useVideoPopoverMenuContext();
 
     return (
         <PopoverMenu

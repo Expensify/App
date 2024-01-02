@@ -1,34 +1,50 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import useLocalize from '@hooks/useLocalize';
+import CONST from '@src/CONST';
 
 const VideoPopoverMenuContext = React.createContext(null);
 
 function VideoPopoverMenuContextProvider({children}) {
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const [anchorPosition, setAnchorPosition] = useState({vertical: 0, horizontal: 0});
-    const targetVideoPlayerRef = useRef(null);
+    const {translate} = useLocalize();
+    const [playbackSpeeds] = useState(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS);
+    const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState(playbackSpeeds[2]);
 
-    const updateAnchorPosition = useCallback((y, x) => {
-        setAnchorPosition({vertical: y, horizontal: x});
+    const updatePlaybackSpeed = useCallback((speed) => {
+        setCurrentPlaybackSpeed(speed);
     }, []);
 
-    const hidePopover = useCallback(() => {
-        setIsPopoverVisible(false);
-    }, []);
-
-    const showPopover = useCallback(
-        (ref, y = 0, x = 0) => {
-            setIsPopoverVisible(true);
-            updateAnchorPosition(y, x);
-            targetVideoPlayerRef.current = ref;
-        },
-        [updateAnchorPosition],
+    const menuItems = useMemo(
+        () => [
+            {
+                icon: Expensicons.Download,
+                text: translate('common.download'),
+                onSelected: () => {
+                    // TODO: Implement download
+                },
+            },
+            {
+                icon: Expensicons.Meter,
+                text: translate('videoPlayer.playbackSpeed'),
+                subMenuItems: [
+                    ..._.map(playbackSpeeds, (speed) => ({
+                        icon: currentPlaybackSpeed === speed ? Expensicons.Checkmark : null,
+                        text: speed.toString(),
+                        onSelected: () => {
+                            // updatePlaybackSpeed(speed);
+                            console.log(`SPEED: ${speed}`);
+                        },
+                        shouldPutLeftPaddingWhenNoIcon: true,
+                    })),
+                ],
+            },
+        ],
+        [currentPlaybackSpeed, playbackSpeeds, translate],
     );
 
-    const contextValue = useMemo(
-        () => ({isPopoverVisible, hidePopover, showPopover, anchorPosition, updateAnchorPosition, targetVideoPlayerRef}),
-        [anchorPosition, hidePopover, isPopoverVisible, showPopover, updateAnchorPosition, targetVideoPlayerRef],
-    );
+    const contextValue = useMemo(() => ({menuItems, updatePlaybackSpeed}), [menuItems, updatePlaybackSpeed]);
     return <VideoPopoverMenuContext.Provider value={contextValue}>{children}</VideoPopoverMenuContext.Provider>;
 }
 

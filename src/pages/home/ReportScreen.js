@@ -13,7 +13,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
-import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import withCurrentReportID, {withCurrentReportIDDefaultProps, withCurrentReportIDPropTypes} from '@components/withCurrentReportID';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
@@ -513,8 +512,6 @@ function ReportScreen({
                             </View>
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
-
-                    <VideoPopoverMenu />
                 </ScreenWrapper>
             </ReactionListContext.Provider>
         </ActionListContext.Provider>
