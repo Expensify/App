@@ -88,9 +88,35 @@ type ReportAndWorkspaceName = {
     workspaceName?: string;
 };
 
+type OptimisticAddCommentReportAction = Pick<
+    ReportAction,
+    | 'reportActionID'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'person'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'message'
+    | 'isFirstItem'
+    | 'isAttachment'
+    | 'attachmentInfo'
+    | 'pendingAction'
+    | 'shouldShow'
+    | 'originalMessage'
+    | 'childReportID'
+    | 'parentReportID'
+    | 'childType'
+    | 'childReportName'
+    | 'childManagerAccountID'
+    | 'childStatusNum'
+    | 'childStateNum'
+    | 'errors'
+>;
+
 type OptimisticReportAction = {
     commentText: string;
-    reportAction: {reportActionID: string} & Partial<ReportAction>;
+    reportAction: OptimisticAddCommentReportAction;
 };
 
 type UpdateOptimisticParentReportAction = {
@@ -4048,7 +4074,7 @@ function getTaskAssigneeChatOnyxData(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
-                value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: optimisticAssigneeAddComment.reportAction},
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID ?? '']: optimisticAssigneeAddComment.reportAction as ReportAction},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4435,4 +4461,4 @@ export {
     shouldDisableThread,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, DisplayNameWithTooltips, OptimisticTaskReportAction};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, DisplayNameWithTooltips, OptimisticTaskReportAction, OptimisticAddCommentReportAction};
