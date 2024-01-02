@@ -1,4 +1,4 @@
-import {ViewStyle} from 'react-native';
+import {View, ViewStyle} from 'react-native';
 import {ModalProps} from 'react-native-modal';
 import {ValueOf} from 'type-fest';
 import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
@@ -23,7 +23,7 @@ type BaseModalProps = WindowDimensionsProps &
         shouldSetModalVisibility?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
-        onClose: (ref?: React.RefObject<HTMLElement>) => void;
+        onClose: (ref?: React.RefObject<View | HTMLDivElement>) => void;
 
         /** State that determines whether to display the modal or not */
         isVisible: boolean;

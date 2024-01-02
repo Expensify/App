@@ -1,38 +1,42 @@
-import {ReactNode, RefObject} from 'react';
+import {RefObject} from 'react';
 import {View} from 'react-native';
 import BaseModalProps, {PopoverAnchorPosition} from '@components/Modal/types';
 import {WindowDimensionsProps} from '@components/withWindowDimensions/types';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
+
+type AnchorAlignment = {horizontal: string; vertical: string};
 
 type PopoverDimensions = {
     width: number;
     height: number;
 };
 
-type PopoverProps = BaseModalProps & {
-    /** The anchor position of the popover */
-    anchorPosition?: PopoverAnchorPosition;
+type PopoverProps = BaseModalProps &
+    ChildrenProps & {
+        /** The anchor position of the popover */
+        anchorPosition?: PopoverAnchorPosition;
 
-    /** The anchor ref of the popover */
-    anchorRef: RefObject<View>;
+        /** The anchor alignment of the popover */
+        anchorAlignment?: AnchorAlignment;
 
-    /** Whether disable the animations */
-    disableAnimation?: boolean;
+        /** The anchor ref of the popover */
+        anchorRef: RefObject<View | HTMLDivElement>;
 
-    /** Whether we don't want to show overlay */
-    withoutOverlay: boolean;
+        /** Whether disable the animations */
+        disableAnimation?: boolean;
 
-    /** The dimensions of the popover */
-    popoverDimensions?: PopoverDimensions;
+        /** Whether we don't want to show overlay */
+        withoutOverlay: boolean;
 
-    /** The ref of the popover */
-    withoutOverlayRef?: RefObject<View>;
+        /** The dimensions of the popover */
+        popoverDimensions?: PopoverDimensions;
 
-    /** Whether we want to show the popover on the right side of the screen */
-    fromSidebarMediumScreen?: boolean;
+        /** The ref of the popover */
+        withoutOverlayRef?: RefObject<View | HTMLDivElement>;
 
-    /** The popover children */
-    children: ReactNode;
-};
+        /** Whether we want to show the popover on the right side of the screen */
+        fromSidebarMediumScreen?: boolean;
+    };
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
 
