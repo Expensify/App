@@ -128,8 +128,8 @@ function NewRequestAmountPage({route, iou, report, selectedTab}) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_CURRENCY.getRoute(iouType, reportID, currency, activeRoute));
     };
 
-    const navigateToNextPage = (currentAmount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+    const navigateToNextPage = ({amount}) => {
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(currency);
 

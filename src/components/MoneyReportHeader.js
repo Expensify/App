@@ -4,16 +4,22 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import GoogleMeetIcon from '@assets/images/google-meet.svg';
+import ZoomIcon from '@assets/images/zoom-icon.svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import nextStepPropTypes from '@pages/nextStepPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
+import * as Link from '@userActions/Link';
+import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -70,6 +76,7 @@ const defaultProps = {
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
     const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(moneyRequestReport);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -95,11 +102,29 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     const shouldShowSubmitButton = isDraft && reimbursableTotal !== 0;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const shouldShowNextSteps = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextSteps;
+    const shouldShowNextStep = isFromPaidPolicy && nextStep && !_.isEmpty(nextStep.message);
+    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
-    const isMoreContentShown = shouldShowNextSteps || (shouldShowAnyButton && isSmallScreenWidth);
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+
+    const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
+    if (!ReportUtils.isArchivedRoom(chatReport)) {
+        threeDotsMenuItems.push({
+            icon: ZoomIcon,
+            text: translate('videoChatButtonAndMenu.zoom'),
+            onSelected: Session.checkIfActionIsAllowed(() => {
+                Link.openExternalLink(CONST.NEW_ZOOM_MEETING_URL);
+            }),
+        });
+        threeDotsMenuItems.push({
+            icon: GoogleMeetIcon,
+            text: translate('videoChatButtonAndMenu.googleMeet'),
+            onSelected: Session.checkIfActionIsAllowed(() => {
+                Link.openExternalLink(CONST.NEW_GOOGLE_MEET_MEETING_URL);
+            }),
+        });
+    }
 
     return (
         <View style={[styles.pt0]}>
@@ -113,7 +138,10 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextSteps && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
+                shouldShowThreeDotsButton
+                threeDotsMenuItems={threeDotsMenuItems}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             >
                 {shouldShowSettlementButton && !isSmallScreenWidth && (
                     <View style={styles.pv2}>
@@ -172,7 +200,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                         />
                     </View>
                 )}
-                {shouldShowNextSteps && (
+                {shouldShowNextStep && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
