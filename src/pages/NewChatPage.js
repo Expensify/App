@@ -232,7 +232,7 @@ function NewChatPage({betas, isGroupChat, personalDetails, reports, translate, i
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
                     keyboardVerticalOffset={
-                        variables.contentHeaderHeight + insets.top + (Permissions.canUsePolicyRooms(betas) ? variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0)
+                        variables.contentHeaderHeight + insets.top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding
                     }
                 >
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>

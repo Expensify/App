@@ -35,7 +35,6 @@ function NewChatSelectorPage(props) {
             testID={NewChatSelectorPage.displayName}
         >
             <HeaderWithBackButton title={props.translate('sidebarScreen.fabNewChat')} />
-            {Permissions.canUsePolicyRooms(props.betas) ? (
                 <OnyxTabNavigator
                     id={CONST.TAB.NEW_CHAT_TAB_ID}
                     tabBar={({state, navigation, position}) => (
@@ -55,9 +54,6 @@ function NewChatSelectorPage(props) {
                         component={WorkspaceNewRoomPage}
                     />
                 </OnyxTabNavigator>
-            ) : (
-                <NewChatPage />
-            )}
         </ScreenWrapper>
     );
 }

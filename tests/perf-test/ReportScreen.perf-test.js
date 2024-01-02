@@ -208,7 +208,7 @@ test('[ReportScreen] should render ReportScreen with composer interactions', () 
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,
@@ -273,7 +273,7 @@ test('[ReportScreen] should press of the report item', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS],
+                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                 [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
                     isLoadingReportActions: false,

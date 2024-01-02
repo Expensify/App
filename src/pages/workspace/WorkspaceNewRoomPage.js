@@ -249,96 +249,94 @@ function WorkspaceNewRoomPage(props) {
     );
 
     return (
-        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas)}>
-            <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={false}
-                includeSafeAreaPaddingBottom={isOffline}
-                shouldShowOfflineIndicator={false}
-                includePaddingTop={false}
-                shouldEnablePickerAvoiding={false}
-                testID={WorkspaceNewRoomPage.displayName}
-            >
-                {({insets}) =>
-                    workspaceOptions.length === 0 ? (
-                        renderEmptyWorkspaceView()
-                    ) : (
-                        <KeyboardAvoidingView
-                            style={styles.h100}
-                            behavior="padding"
-                            // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                            // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                            keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
+            includePaddingTop={false}
+            shouldEnablePickerAvoiding={false}
+            testID={WorkspaceNewRoomPage.displayName}
+        >
+            {({insets}) =>
+                workspaceOptions.length === 0 ? (
+                    renderEmptyWorkspaceView()
+                ) : (
+                    <KeyboardAvoidingView
+                        style={styles.h100}
+                        behavior="padding"
+                        // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                        // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
+                    >
+                        <FormProvider
+                            formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                            submitButtonText={translate('newRoomPage.createRoom')}
+                            style={[styles.mh5, styles.flexGrow1]}
+                            validate={validate}
+                            onSubmit={submit}
+                            enabledWhenOffline
                         >
-                            <FormProvider
-                                formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                                submitButtonText={translate('newRoomPage.createRoom')}
-                                style={[styles.mh5, styles.flexGrow1]}
-                                validate={validate}
-                                onSubmit={submit}
-                                enabledWhenOffline
-                            >
-                                <View style={styles.mb5}>
-                                    <InputWrapper
-                                        InputComponent={RoomNameInput}
-                                        ref={inputCallbackRef}
-                                        inputID="roomName"
-                                        isFocused={props.isFocused}
-                                        shouldDelayFocus
-                                        autoFocus
-                                    />
-                                </View>
-                                <View style={styles.mb5}>
-                                    <InputWrapper
-                                        InputComponent={TextInput}
-                                        inputID="welcomeMessage"
-                                        label={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                        accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
-                                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                        autoGrowHeight
-                                        maxLength={CONST.MAX_COMMENT_LENGTH}
-                                        autoCapitalize="none"
-                                        containerStyles={[styles.autoGrowHeightMultilineInput]}
-                                    />
-                                </View>
-                                <View style={[styles.mhn5]}>
-                                    <InputWrapper
-                                        InputComponent={ValuePicker}
-                                        inputID="policyID"
-                                        label={translate('workspace.common.workspace')}
-                                        items={workspaceOptions}
-                                        onValueChange={setPolicyID}
-                                    />
-                                </View>
-                                {isPolicyAdmin && (
-                                    <View style={styles.mhn5}>
-                                        <InputWrapper
-                                            InputComponent={ValuePicker}
-                                            inputID="writeCapability"
-                                            label={translate('writeCapabilityPage.label')}
-                                            items={writeCapabilityOptions}
-                                            value={writeCapability}
-                                            onValueChange={setWriteCapability}
-                                        />
-                                    </View>
-                                )}
-                                <View style={[styles.mb1, styles.mhn5]}>
+                            <View style={styles.mb5}>
+                                <InputWrapper
+                                    InputComponent={RoomNameInput}
+                                    ref={inputCallbackRef}
+                                    inputID="roomName"
+                                    isFocused={props.isFocused}
+                                    shouldDelayFocus
+                                    autoFocus
+                                />
+                            </View>
+                            <View style={styles.mb5}>
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    inputID="welcomeMessage"
+                                    label={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                    autoGrowHeight
+                                    maxLength={CONST.MAX_COMMENT_LENGTH}
+                                    autoCapitalize="none"
+                                    containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                />
+                            </View>
+                            <View style={[styles.mhn5]}>
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
+                                    inputID="policyID"
+                                    label={translate('workspace.common.workspace')}
+                                    items={workspaceOptions}
+                                    onValueChange={setPolicyID}
+                                />
+                            </View>
+                            {isPolicyAdmin && (
+                                <View style={styles.mhn5}>
                                     <InputWrapper
                                         InputComponent={ValuePicker}
-                                        inputID="visibility"
-                                        label={translate('newRoomPage.visibility')}
-                                        items={visibilityOptions}
-                                        onValueChange={setVisibility}
-                                        value={visibility}
+                                        inputID="writeCapability"
+                                        label={translate('writeCapabilityPage.label')}
+                                        items={writeCapabilityOptions}
+                                        value={writeCapability}
+                                        onValueChange={setWriteCapability}
                                     />
                                 </View>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                            </FormProvider>
-                            {isSmallScreenWidth && <OfflineIndicator />}
-                        </KeyboardAvoidingView>
-                    )
-                }
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+                            )}
+                            <View style={[styles.mb1, styles.mhn5]}>
+                                <InputWrapper
+                                    InputComponent={ValuePicker}
+                                    inputID="visibility"
+                                    label={translate('newRoomPage.visibility')}
+                                    items={visibilityOptions}
+                                    onValueChange={setVisibility}
+                                    value={visibility}
+                                />
+                            </View>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
+                        </FormProvider>
+                        {isSmallScreenWidth && <OfflineIndicator />}
+                    </KeyboardAvoidingView>
+                )
+            }
+        </ScreenWrapper>
     );
 }
 
