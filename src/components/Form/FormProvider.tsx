@@ -6,12 +6,12 @@ import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Form, Network} from '@src/types/onyx';
+import {AddDebitCardForm, Form, Network} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import {FormProps, InputRef, InputRefs, InputValues, RegisterInput, ValueType} from './types';
+import {FormProps, FormValuesFields, InputRef, InputRefs, OnyxFormKeyWithoutDraft, RegisterInput, ValueType} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -47,10 +47,10 @@ type FormProviderOnyxProps<TForm extends Form> = {
 type FormProviderProps<TForm extends Form> = FormProviderOnyxProps<TForm> &
     FormProps & {
         /** Children to render. */
-        children: ((props: {inputValues: InputValues}) => ReactNode) | ReactNode;
+        children: ((props: {inputValues: TForm}) => ReactNode) | ReactNode;
 
         /** Callback to validate the form */
-        validate?: (values: InputValues) => Errors;
+        validate?: (values: FormValuesFields<TForm>) => Errors<keyof FormValuesFields<TForm> & string>;
 
         /** Should validate function be called when input loose focus */
         shouldValidateOnBlur?: boolean;
@@ -59,11 +59,11 @@ type FormProviderProps<TForm extends Form> = FormProviderOnyxProps<TForm> &
         shouldValidateOnChange?: boolean;
     };
 
-type FormRef = {
-    resetForm: (optionalValue: InputValues) => void;
+type FormRef<TForm extends Form> = {
+    resetForm: (optionalValue: TForm) => void;
 };
 
-function FormProvider<TForm extends Form & Record<string, unknown>>(
+function FormProvider<TForm extends Form>(
     {
         formID,
         validate,
@@ -76,18 +76,18 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
         draftValues,
         onSubmit,
         ...rest
-    }: FormProviderProps<TForm>,
-    forwardedRef: ForwardedRef<FormRef>,
+    }: FormProviderProps<Form & Record<string, unknown>>,
+    forwardedRef: ForwardedRef<FormRef<TForm>>,
 ) {
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
-    const [inputValues, setInputValues] = useState<InputValues>(() => ({...draftValues}));
+    const [inputValues, setInputValues] = useState<Record<string, unknown>>(() => ({...draftValues}));
     const [errors, setErrors] = useState<Errors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
 
     const onValidate = useCallback(
-        (values: InputValues, shouldClearServerError = true) => {
-            const trimmedStringValues = ValidationUtils.prepareValues(values);
+        (values: FormValuesFields<Record<string, unknown>>, shouldClearServerError = true) => {
+            const trimmedStringValues = ValidationUtils.prepareValues(values) as FormValuesFields<TForm>;
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
@@ -161,7 +161,7 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
         }
 
         // Prepare values before submitting
-        const trimmedStringValues = ValidationUtils.prepareValues(inputValues);
+        const trimmedStringValues = ValidationUtils.prepareValues(inputValues) as FormValuesFields<TForm>;
 
         // Touches all form inputs so we can validate the entire form
         Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
@@ -180,7 +180,7 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
     }, [enabledWhenOffline, formState?.isLoading, inputValues, network?.isOffline, onSubmit, onValidate]);
 
     const resetForm = useCallback(
-        (optionalValue: InputValues) => {
+        (optionalValue: FormValuesFields<Record<string, unknown>>) => {
             Object.keys(inputValues).forEach((inputID) => {
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
@@ -310,8 +310,8 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
                         return newState;
                     });
 
-                    if (inputProps.shouldSaveDraft) {
-                        FormActions.setDraftValues(formID, {[inputKey]: value});
+                    if (inputProps.shouldSaveDraft && !(formID as string).includes('Draft')) {
+                        FormActions.setDraftValues(formID as OnyxFormKeyWithoutDraft, {[inputKey]: value});
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },
@@ -340,15 +340,16 @@ function FormProvider<TForm extends Form & Record<string, unknown>>(
 
 FormProvider.displayName = 'Form';
 
-export default (<TForm extends Form & Record<string, unknown>>() =>
-    withOnyx<FormProviderProps<TForm>, FormProviderOnyxProps<Form>>({
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
-        formState: {
-            key: (props) => props.formID as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM,
-        },
-        draftValues: {
-            key: (props) => `${props.formID}Draft` as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM,
-        },
-    })(forwardRef(FormProvider<TForm>)))();
+export default withOnyx<FormProviderProps<Form>, FormProviderOnyxProps<Form>>({
+    network: {
+        key: ONYXKEYS.NETWORK,
+    },
+    formState: {
+        key: ({formID}) => formID as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM,
+    },
+    draftValues: {
+        key: (props) => `${props.formID}Draft` as typeof ONYXKEYS.FORMS.EDIT_TASK_FORM_DRAFT,
+    },
+})(forwardRef(FormProvider)) as unknown as <TForm extends Form>(
+    component: React.ComponentType<FormProviderProps<TForm>>,
+) => React.ComponentType<Omit<FormProviderProps<TForm>, keyof FormProviderOnyxProps<TForm>>>;

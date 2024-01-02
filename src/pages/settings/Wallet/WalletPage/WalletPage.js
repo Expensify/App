@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {ActivityIndicator, ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
@@ -54,6 +54,26 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         methodID: null,
         selectedPaymentMethodType: null,
     });
+    useEffect(() => {
+        if (cardList[234523452345]) {
+            return;
+        }
+        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+        Onyx.merge(`cardList`, {
+            234523452345: {
+                key: '234523452345',
+                cardID: 234523452345,
+                state: 2,
+                bank: 'Expensify Card',
+                availableSpend: 10000,
+                domainName: 'expensify.com',
+                lastFourPAN: '2345',
+                isVirtual: false,
+                fraud: null,
+            },
+        });
+    }, [cardList]);
+
     const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef(null);
     const [anchorPosition, setAnchorPosition] = useState({

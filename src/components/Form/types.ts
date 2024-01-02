@@ -1,7 +1,7 @@
 import {ComponentType, ForwardedRef, ReactNode, SyntheticEvent} from 'react';
 import {GestureResponderEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {OnyxFormKey} from '@src/ONYXKEYS';
+import {Form} from '@src/types/onyx';
 
 type ValueType = 'string' | 'boolean' | 'date';
 
@@ -11,11 +11,15 @@ type InputWrapperProps<TInputProps> = {
     valueType?: ValueType;
 };
 
-type FormID = ValueOf<typeof ONYXKEYS.FORMS> & `${string}Form`;
+type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
+type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
+
+type DraftOnly<T> = T extends `${string}Draft` ? T : never;
+type OnyxFormKeyDraftOnly = DraftOnly<OnyxFormKey>;
 
 type FormProps = {
     /** A unique Onyx key identifying the form */
-    formID: FormID;
+    formID: OnyxFormKey;
 
     /** Text to be displayed in the submit button */
     submitButtonText: string;
@@ -42,7 +46,7 @@ type FormProps = {
     footerContent?: ReactNode;
 };
 
-type InputValues = Record<string, unknown>;
+type FormValuesFields<TForm extends Form> = Omit<TForm, keyof Form>;
 
 type InputRef = ForwardedRef<TextInput>;
 type InputRefs = Record<string, InputRef>;
@@ -72,4 +76,4 @@ type InputProps = InputPropsToPass & {
 
 type RegisterInput = (inputID: string, props: InputPropsToPass) => InputProps;
 
-export type {InputWrapperProps, FormProps, InputRef, InputRefs, RegisterInput, ValueType, InputValues, InputProps, FormID};
+export type {InputWrapperProps, FormProps, InputRef, InputRefs, RegisterInput, ValueType, FormValuesFields, InputProps, OnyxFormKeyWithoutDraft, OnyxFormKeyDraftOnly};

@@ -8,7 +8,7 @@ import {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS, {OnyxFormKey} from '@src/ONYXKEYS';
 import {Form} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -52,7 +52,7 @@ function FormWrapper({
     const styles = useThemeStyles();
     const formRef = useRef<ScrollView | null>(null);
     const formContentRef = useRef<View | null>(null);
-    const errorMessage = useMemo(() => formState && ErrorUtils.getLatestErrorMessage(formState), [formState]);
+    const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
 
     const scrollViewContent = useCallback(
         (safeAreaPaddingBottomStyle: SafeAreaChildrenProps['safeAreaPaddingBottomStyle']) => (
@@ -68,7 +68,8 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isAlertVisible={!isEmptyObject(errors) || !!errorMessage || !isEmptyObject(formState?.errorFields)}
                         isLoading={!!formState?.isLoading}
-                        message={isEmptyObject(formState?.errorFields) ? errorMessage : null}
+                        // eslint-disable-next-line no-extra-boolean-cast
+                        message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={() => {
@@ -103,7 +104,6 @@ function FormWrapper({
                             // Focus the input after scrolling, as on the Web it gives a slightly better visual result
                             focusInput?.focus?.();
                         }}
-                        // @ts-expect-error FormAlertWithSubmitButton migration
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
