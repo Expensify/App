@@ -13,6 +13,7 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
@@ -79,6 +80,8 @@ function FloatingActionButtonAndPopover(props) {
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const isAnonymousUser = Session.isAnonymousUser();
     const anchorRef = useRef(null);
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
     const prevIsFocused = usePrevious(props.isFocused);
 
@@ -215,7 +218,7 @@ function FloatingActionButtonAndPopover(props) {
                     ...(!props.isLoading && !Policy.hasActiveFreePolicy(props.allPolicies)
                         ? [
                               {
-                                  displayInDefaultIconColor: true,
+                                  displayInDefaultIconColor: isNative,
                                   contentFit: 'contain',
                                   icon: Expensicons.NewWorkspace,
                                   iconWidth: 46,
