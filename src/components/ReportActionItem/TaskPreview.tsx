@@ -1,3 +1,4 @@
+import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
@@ -72,7 +73,7 @@ function TaskPreview(props: TaskPreviewProps) {
     const isTaskCompleted = isNotEmptyObject(props.taskReport)
         ? props.taskReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
-    const taskTitle = escape(TaskUtils.getTaskTitle(props.taskReportID, props.action?.childReportName ?? ''));
+    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(props.taskReportID, props.action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport ?? {}) ?? props.action?.childManagerAccountID ?? '';
     const assigneeLogin = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.login ?? '' : '';
     const assigneeDisplayName = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.displayName ?? '' : '';
