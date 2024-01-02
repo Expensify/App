@@ -14,4 +14,8 @@ const codeTextStyle: CodeTextStyles = {
     lineHeight: 18,
 };
 
-export default {codeWordWrapper, codeWordStyle, codeTextStyle};
+const codePlainTextStyle: CodeTextStyles = {
+    lineHeight: 15,
+};
+
+export default {codeWordWrapper, codeWordStyle, codeTextStyle, codePlainTextStyle};
