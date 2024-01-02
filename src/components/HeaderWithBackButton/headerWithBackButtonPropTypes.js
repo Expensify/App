@@ -96,9 +96,6 @@ const propTypes = {
 
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport: PropTypes.bool,
-
-    /** Whether we should show the back button only on mobile */
-    shouldUseCentralPaneView: PropTypes.bool,
 };
 
 export default propTypes;

@@ -112,12 +112,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState(null);
     const [policyNameToDelete, setPolicyNameToDelete] = useState(null);
-
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     const confirmDeleteAndHideModal = () => {
         Policy.deleteWorkspace(policyIDToDelete, [], policyNameToDelete);
@@ -200,7 +199,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                         numberOfLines={1}
                         style={[styles.flexGrow1, styles.textLabelSupporting]}
                     >
-                        {translate('workspace.common.workspaceTitle')}
+                        {translate('workspace.common.workspaceName')}
                     </Text>
                 </View>
                 <View style={[styles.flexRow, styles.flex1, styles.workspaceOwnerSectionTitle]}>

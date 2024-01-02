@@ -131,6 +131,7 @@ import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
+import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
 import LoungeAccess from './svgs/LoungeAccessIcon';
 
@@ -145,6 +146,7 @@ export {
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
+    Wrench,
     BackArrow,
     Bank,
     Bill,

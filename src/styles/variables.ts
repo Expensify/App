@@ -78,6 +78,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
+    iconBottomBar: 25,
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
