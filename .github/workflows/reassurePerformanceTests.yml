@@ -28,13 +28,24 @@ jobs:
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
+
+          # Backup current patches
+          cp -r ./patches/ ./patches_backup/
+
           git switch "$BASELINE_BRANCH"
           rm -rf node_modules
           npm cache clean --force
           npm install --force
           npx reassure --baseline
+
           git switch --force --detach -
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
+
+          # Restore patches from backup
+          rm -rf ./patches/
+          cp -r ./patches_backup/ ./patches/
+          npx patch-package
+
           rm -rf node_modules
           npm cache clean --force
           npm install --force
