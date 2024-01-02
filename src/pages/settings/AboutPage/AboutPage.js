@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import compose from '@libs/compose';
@@ -42,6 +43,7 @@ function getFlavor() {
 
 function AboutPage(props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = props;
     const popoverAnchor = useRef(null);
     const waitForNavigate = useWaitForNavigation();
@@ -104,8 +106,7 @@ function AboutPage(props) {
                     <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
-                        shouldUseCentralPaneView
-                        shouldShowBorderBottom
+                        shouldShowBackButton={props.isSmallScreenWidth}
                     />
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>
@@ -114,6 +115,7 @@ function AboutPage(props) {
                                     <Logo
                                         height={80}
                                         width={80}
+                                        fill={theme.QRLogo}
                                     />
                                     <Text style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted, styles.userSelectText]}>
                                         v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}

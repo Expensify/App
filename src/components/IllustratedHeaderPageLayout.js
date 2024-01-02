@@ -35,9 +35,7 @@ const defaultProps = {
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, overlayContent, ...propsToPassToHeader}) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
-
-    const shouldUseMaxHeight = propsToPassToHeader.shouldUseCentralPaneView && !isSmallScreenWidth;
+    const shouldUseMaxHeight = !propsToPassToHeader.shouldShowBackButton;
 
     return (
         <HeaderPageLayout
