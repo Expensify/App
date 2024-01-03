@@ -264,7 +264,6 @@ function BeneficialOwnerInfo({reimbursementAccount, reimbursementAccountDraft, o
 
             {currentUBOSubstep === SUBSTEP.UBOS_LIST && (
                 <CompanyOwnersListUBO
-                    // @ts-expect-error TODO: fix later
                     beneficialOwnerKeys={beneficialOwnerKeys}
                     handleUBOsConfirmation={submit}
                     handleUBOEdit={handleUBOEdit}
