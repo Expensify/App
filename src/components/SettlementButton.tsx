@@ -195,10 +195,10 @@ function SettlementButton({
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
-                    onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    onPress={(event: Event, iouPaymentType: string) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    style={[style]}
+                    style={style as Record<string, string | number>}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                 />
