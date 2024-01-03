@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, ScrollView, View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {ActivityIndicator, Dimensions, ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import Button from '@components/Button';
@@ -165,7 +165,6 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-
         paymentMethodButtonRef.current = nativeEvent.currentTarget;
 
         // The delete/default menu
@@ -297,12 +296,27 @@ function WalletPage({bankAccountList, cardList, fundList, isLoadingPaymentMethod
         PaymentMethods.openWalletPage();
     }, [network.isOffline]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!shouldListenForResize) {
             return;
         }
-        setMenuPosition();
-    }, [shouldListenForResize, setMenuPosition]);
+        const popoverPositionListener = Dimensions.addEventListener('change', () => {
+            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu) {
+                return;
+            }
+            if (shouldShowAddPaymentMenu) {
+                _.debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+                return;
+            }
+            setMenuPosition();
+        });
+        return () => {
+            if (!popoverPositionListener) {
+                return;
+            }
+            popoverPositionListener.remove();
+        };
+    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, setMenuPosition, shouldListenForResize]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
