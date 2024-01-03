@@ -52,6 +52,8 @@ type FormAlertWithSubmitButtonProps = {
 
     /** Style for the error message for submit button */
     errorMessageStyle?: StyleProp<ViewStyle>;
+
+    disableFixButton?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -71,6 +73,7 @@ function FormAlertWithSubmitButton({
     onSubmit,
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
+    disableFixButton = false,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!footerContent ? {} : styles.mb3, buttonStyles];
@@ -83,6 +86,7 @@ function FormAlertWithSubmitButton({
             message={message}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
             errorMessageStyle={errorMessageStyle}
+            disableFixButton={disableFixButton}
         >
             {(isOffline: boolean | undefined) => (
                 <View>

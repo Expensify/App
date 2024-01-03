@@ -33,6 +33,8 @@ type FormAlertWrapperProps = {
 
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
+
+    disableFixButton?: boolean;
 };
 
 // The FormAlertWrapper offers a standardized way of showing error messages and offline functionality.
@@ -48,6 +50,7 @@ function FormAlertWrapper({
     message = '',
     network,
     onFixTheErrorsLinkPressed = () => {},
+    disableFixButton = false,
 }: FormAlertWrapperProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -57,12 +60,16 @@ function FormAlertWrapper({
         content = (
             <Text style={[styles.formError, styles.mb0]}>
                 {`${translate('common.please')} `}
-                <TextLink
-                    style={styles.label}
-                    onPress={onFixTheErrorsLinkPressed}
-                >
-                    {translate('common.fixTheErrors')}
-                </TextLink>
+                {disableFixButton ? (
+                    translate('common.fixTheErrors')
+                ) : (
+                    <TextLink
+                        style={styles.label}
+                        onPress={onFixTheErrorsLinkPressed}
+                    >
+                        {translate('common.fixTheErrors')}
+                    </TextLink>
+                )}
                 {` ${translate('common.inTheFormBeforeContinuing')}.`}
             </Text>
         );

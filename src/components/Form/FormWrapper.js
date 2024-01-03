@@ -66,6 +66,8 @@ const propTypes = {
     errors: errorsPropType.isRequired,
 
     inputRefs: PropTypes.objectOf(refPropTypes).isRequired,
+
+    disableFixButton: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -79,6 +81,7 @@ const defaultProps = {
     footerContent: null,
     style: [],
     submitButtonStyles: [],
+    disableFixButton: false,
 };
 
 function FormWrapper(props) {
@@ -97,6 +100,7 @@ function FormWrapper(props) {
         enabledWhenOffline,
         isSubmitActionDangerous,
         formID,
+        disableFixButton,
     } = props;
     const formRef = useRef(null);
     const formContentRef = useRef(null);
@@ -153,6 +157,7 @@ function FormWrapper(props) {
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter
+                        disableFixButton={disableFixButton}
                     />
                 )}
             </FormSubmit>
