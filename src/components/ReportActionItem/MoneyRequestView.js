@@ -34,6 +34,7 @@ import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateB
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import {policyDefaultProps, policyPropTypes} from '@pages/workspace/withPolicy';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +55,9 @@ const propTypes = {
     /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** The policy the report is tied to */
+    ...policyPropTypes,
+
     /** Collection of categories attached to a policy */
     policyCategories: PropTypes.objectOf(categoryPropTypes),
 
@@ -69,12 +73,13 @@ const propTypes = {
 const defaultProps = {
     parentReport: {},
     parentReportActions: {},
-    policyCategories: {},
     transaction: {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         comment: {comment: ''},
     },
+    ...policyDefaultProps,
+    policyCategories: {},
     policyTags: {},
 };
 
