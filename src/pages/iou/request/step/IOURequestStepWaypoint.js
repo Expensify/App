@@ -97,7 +97,6 @@ function IOURequestStepWaypoint({
     const parsedWaypointIndex = parseInt(pageIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
-    console.log('allwaypoints', allWaypoints);
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
 
