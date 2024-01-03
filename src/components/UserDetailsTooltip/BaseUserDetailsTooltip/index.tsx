@@ -4,7 +4,7 @@ import {Text, View} from 'react-native';
 import Avatar from '@components/Avatar';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import Tooltip from '@components/Tooltip';
-import UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
+import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';

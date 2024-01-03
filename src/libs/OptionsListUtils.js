@@ -854,23 +854,11 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledCategories),
-        });
-
-        return categorySections;
-    }
-
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
+            shouldShow: false,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
@@ -879,6 +867,21 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
+    const numberOfVisibleCategories = selectedOptions.length + filteredCategories.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(filteredCategories),
+        });
+
+        return categorySections;
+    }
+
     const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
         .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
         .map((categoryName) => ({
@@ -900,8 +903,6 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
-
-    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold

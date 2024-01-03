@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import ModifiedExpenseMessage from '../../src/libs/ModifiedExpenseMessage';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
