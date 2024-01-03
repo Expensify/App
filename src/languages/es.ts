@@ -464,7 +464,7 @@ export default {
         iouTypes: {
             send: 'enviar dinero',
             split: 'dividir factura',
-            request: 'redir dinero',
+            request: 'pedir dinero',
         },
     },
     reportAction: {
