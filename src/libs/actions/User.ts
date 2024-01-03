@@ -18,7 +18,7 @@ import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {type EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
