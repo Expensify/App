@@ -95,6 +95,10 @@ function getActiveRoute(): string {
         return '';
     }
 
+    if (currentRoute?.path) {
+        return currentRoute.path;
+    }
+
     const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
 
     if (routeFromState) {
@@ -114,9 +118,11 @@ function getActiveRoute(): string {
  * @return is active
  */
 function isActiveRoute(routePath: Route): boolean {
-    // We remove First forward slash from the URL
-    // And redundant (consecutive and trailing) slashes from path before matching
-    return getActiveRoute().substring(1) === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
+    let activeRoute = getActiveRoute();
+    activeRoute = activeRoute.startsWith('/') ? activeRoute.substring(1) : activeRoute;
+
+    // We remove redundant (consecutive and trailing) slashes from path before matching
+    return activeRoute === routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : ''));
 }
 
 /**

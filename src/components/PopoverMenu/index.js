@@ -18,20 +18,8 @@ const propTypes = {
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
 
-    /** The horizontal and vertical anchors points for the popover */
-    anchorPosition: PropTypes.shape({
-        horizontal: PropTypes.number.isRequired,
-        vertical: PropTypes.number.isRequired,
-    }).isRequired,
-
     /** Ref of the anchor */
     anchorRef: refPropTypes,
-
-    /** Where the popover should be positioned relative to the anchor points. */
-    anchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
 
     withoutOverlay: PropTypes.bool,
 

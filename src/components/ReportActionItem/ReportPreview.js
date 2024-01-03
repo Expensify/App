@@ -14,6 +14,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -28,6 +29,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +60,9 @@ const propTypes = {
 
         /** The role of the current user in the policy */
         role: PropTypes.string,
+
+        /** Whether Scheduled Submit is turned on for this policy */
+        isHarvestingEnabled: PropTypes.bool,
     }),
 
     /* Onyx Props */
@@ -114,12 +119,15 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
-    policy: {},
+    policy: {
+        isHarvestingEnabled: false,
+    },
 };
 
 function ReportPreview(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
 
     const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
@@ -161,6 +169,12 @@ function ReportPreview(props) {
         });
 
     const shouldShowSubmitButton = isDraftExpenseReport && reimbursableSpend !== 0;
+
+    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => props.chatReport.isOwnPolicyExpenseChat && !props.policy.isHarvestingEnabled,
+        [props.chatReport.isOwnPolicyExpenseChat, props.policy.isHarvestingEnabled],
+    );
 
     const getDisplayAmount = () => {
         if (hasPendingWaypoints) {
@@ -270,7 +284,7 @@ function ReportPreview(props) {
                     <View style={styles.reportPreviewBoxBody}>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh20]}>{getPreviewMessage()}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mb1, getLineHeightStyle(variables.lineHeightXXLarge)]}>{getPreviewMessage()}</Text>
                             </View>
                             {!iouSettled && hasErrors && (
                                 <Icon
@@ -324,7 +338,7 @@ function ReportPreview(props) {
                         {shouldShowSubmitButton && (
                             <Button
                                 medium
-                                success={props.chatReport.isOwnPolicyExpenseChat}
+                                success={isWaitingForSubmissionFromCurrentUser}
                                 text={translate('common.submit')}
                                 style={styles.mt3}
                                 onPress={() => IOU.submitReport(props.iouReport)}
