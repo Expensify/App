@@ -1,4 +1,4 @@
-import React, {forwardRef, PropsWithRef, useContext} from 'react';
+import React, {forwardRef, useContext} from 'react';
 import TextInput from '@components/TextInput';
 import FormContext from './FormContext';
 import {InputProps, InputRef, InputWrapperProps} from './types';

@@ -8,7 +8,7 @@ import {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import ONYXKEYS, {OnyxFormKey} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {Form} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -16,7 +16,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {FormProps, InputRefs} from './types';
 
 type FormWrapperOnyxProps = {
-    /** Contains the form state that must be accessed outside of the component */
+    /** Contains the form state that must be accessed outside the component */
     formState: OnyxEntry<Form>;
 };
 
@@ -29,7 +29,7 @@ type FormWrapperProps = ChildrenProps &
         /** Server side errors keyed by microtime */
         errors: Errors;
 
-        // Assuming refs are React refs
+        /** Assuming refs are React refs */
         inputRefs: MutableRefObject<InputRefs>;
     };
 
@@ -102,7 +102,7 @@ function FormWrapper({
                             }
 
                             // Focus the input after scrolling, as on the Web it gives a slightly better visual result
-                            focusInput?.focus?.();
+                            focusInput?.focus();
                         }}
                         containerStyles={[styles.mh0, styles.mt5, styles.flex1, submitButtonStyles]}
                         enabledWhenOffline={enabledWhenOffline}

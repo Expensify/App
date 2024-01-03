@@ -6,7 +6,7 @@ import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {AddDebitCardForm, Form, Network} from '@src/types/onyx';
+import {Form, Network} from '@src/types/onyx';
 import {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
@@ -34,7 +34,7 @@ function getInitialValueByType(valueType?: ValueType): InitialDefaultValue {
 }
 
 type FormProviderOnyxProps<TForm extends Form> = {
-    /** Contains the form state that must be accessed outside of the component */
+    /** Contains the form state that must be accessed outside the component */
     formState: OnyxEntry<TForm>;
 
     /** Contains draft values for each input in the form */
@@ -87,7 +87,7 @@ function FormProvider<TForm extends Form>(
 
     const onValidate = useCallback(
         (values: FormValuesFields<Record<string, unknown>>, shouldClearServerError = true) => {
-            const trimmedStringValues = ValidationUtils.prepareValues(values) as FormValuesFields<TForm>;
+            const trimmedStringValues = ValidationUtils.prepareValues(values) as FormValuesFields<Record<string, unknown>>;
 
             if (shouldClearServerError) {
                 FormActions.setErrors(formID, null);
@@ -96,7 +96,7 @@ function FormProvider<TForm extends Form>(
 
             const validateErrors = validate?.(trimmedStringValues) ?? {};
 
-            // Validate the input for html tags. It should supercede any other error
+            // Validate the input for html tags. It should supersede any other error
             Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
                 // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
                 if (!inputValue || typeof inputValue !== 'string') {
@@ -135,7 +135,7 @@ function FormProvider<TForm extends Form>(
                 throw new Error('Validate callback must return an empty object or an object with shape {inputID: error}');
             }
 
-            const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => !!touchedInputs.current[inputID]));
+            const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
 
             if (!lodashIsEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
@@ -163,7 +163,7 @@ function FormProvider<TForm extends Form>(
         // Prepare values before submitting
         const trimmedStringValues = ValidationUtils.prepareValues(inputValues) as FormValuesFields<TForm>;
 
-        // Touches all form inputs so we can validate the entire form
+        // Touches all form inputs, so we can validate the entire form
         Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
 
         // Validate form and return early if any errors are found
@@ -262,7 +262,7 @@ function FormProvider<TForm extends Form>(
                 },
                 onPressOut: (event) => {
                     // To prevent validating just pressed inputs, we need to set the touched input right after
-                    // onValidate and to do so, we need to delays setTouchedInput of the same amount of time
+                    // onValidate and to do so, we need to delay setTouchedInput of the same amount of time
                     // as the onValidate is delayed
                     if (!inputProps.shouldSetTouchedOnBlurOnly) {
                         setTimeout(() => {

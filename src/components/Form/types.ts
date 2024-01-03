@@ -14,9 +14,6 @@ type InputWrapperProps<TInputProps> = {
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
 type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
 
-type DraftOnly<T> = T extends `${string}Draft` ? T : never;
-type OnyxFormKeyDraftOnly = DraftOnly<OnyxFormKey>;
-
 type FormProps = {
     /** A unique Onyx key identifying the form */
     formID: OnyxFormKey;
@@ -61,12 +58,12 @@ type InputPropsToPass = {
     valueType?: ValueType;
     shouldSetTouchedOnBlurOnly?: boolean;
 
-    onValueChange?: (value: unknown, key: string) => void;
+    onValueChange?: (value: unknown, key?: string) => void;
     onTouched?: (event: GestureResponderEvent | KeyboardEvent) => void;
     onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
     onPressOut?: (event: GestureResponderEvent | KeyboardEvent) => void;
     onBlur?: (event: SyntheticEvent<TextInput, FocusEvent> | FocusEvent) => void;
-    onInputChange?: (value: unknown, key: string) => void;
+    onInputChange?: (value: unknown, key?: string) => void;
 };
 
 type InputProps = InputPropsToPass & {
@@ -76,4 +73,4 @@ type InputProps = InputPropsToPass & {
 
 type RegisterInput = (inputID: string, props: InputPropsToPass) => InputProps;
 
-export type {InputWrapperProps, FormProps, InputRef, InputRefs, RegisterInput, ValueType, FormValuesFields, InputProps, OnyxFormKeyWithoutDraft, OnyxFormKeyDraftOnly};
+export type {InputWrapperProps, FormProps, InputRef, InputRefs, RegisterInput, ValueType, FormValuesFields, InputProps, OnyxFormKeyWithoutDraft};
