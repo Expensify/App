@@ -8,10 +8,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+type File = {
+    name: string;
+};
+
 type Attachment = {
-    file: {
-        name: string;
-    };
+    file: File;
     hasBeenFlagged: boolean;
     isAuthTokenRequired: boolean;
     isReceipt: boolean;
