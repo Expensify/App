@@ -12,7 +12,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withW
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
@@ -493,8 +492,7 @@ function ReportActionsList({
                     renderItem={renderItem}
                     contentContainerStyle={contentContainerStyle}
                     keyExtractor={keyExtractor}
-                    // initialNumToRender={initialNumToRender}
-                    initialNumToRender={50}
+                    initialNumToRender={initialNumToRender}
                     onEndReached={loadOlderChats}
                     onEndReachedThreshold={0.75}
                     onStartReached={loadNewerChats}
