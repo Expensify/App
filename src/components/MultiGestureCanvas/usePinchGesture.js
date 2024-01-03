@@ -54,7 +54,17 @@ const usePinchGesture = ({
         }),
         [canvasSize.width, canvasSize.height],
     );
+
+    const [pinchEnabled, setPinchEnabled] = useState(true);
+    useEffect(() => {
+        if (pinchEnabled) {
+            return;
+        }
+        setPinchEnabled(true);
+    }, [pinchEnabled]);
+
     const pinchGesture = Gesture.Pinch()
+        .enabled(pinchEnabled)
         .onTouchesDown((evt, state) => {
             // We don't want to activate pinch gesture when we are scrolling pager
             if (!isSwipingInPager.value) {
@@ -75,6 +85,11 @@ const usePinchGesture = ({
             pinchOrigin.y.value = adjustedFocal.y;
         })
         .onChange((evt) => {
+            if (evt.numberOfPointers !== 2) {
+                runOnJS(setPinchEnabled)(false);
+                return;
+            }
+
             const newZoomScale = pinchScale.value * evt.scale;
 
             // Limit zoom scale to zoom range including bounce range
@@ -103,8 +118,8 @@ const usePinchGesture = ({
         })
         .onEnd(() => {
             // Add pinch translation to total offset
-            offsetX.value += totalPinchTranslateX.value;
-            offsetY.value += totalPinchTranslateX.value;
+            offsetX.value += pinchTranslateX.value;
+            offsetY.value += pinchTranslateY.value;
 
             // Reset pinch gesture variables
             pinchTranslateX.value = 0;
