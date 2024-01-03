@@ -50,27 +50,24 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
 
     const zoomScale = useSharedValue(1);
-    // Adding together the pinch zoom scale and the initial scale to fit the content into the canvas
-    // Using the smaller content scale, so that the immage is not bigger than the canvas
+
+    // Adding together zoom scale and the initial scale to fit the content into the canvas
+    // Using the minimum content scale, so that the image is not bigger than the canvas
     // and not smaller than needed to fit
     const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale]);
 
-    // total offset of the canvas (panning + pinching offset)
-    const totalOffsetX = useSharedValue(0);
-    const totalOffsetY = useSharedValue(0);
-
-    // pan gesture
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
     const panGestureRef = useRef(Gesture.Pan());
 
-    // pinch gesture
+    const pinchScale = useSharedValue(1);
     const pinchTranslateX = useSharedValue(0);
     const pinchTranslateY = useSharedValue(0);
-    const pinchBounceTranslateX = useSharedValue(0);
-    const pinchBounceTranslateY = useSharedValue(0);
-    // scale in between gestures
-    const pinchScaleOffset = useSharedValue(1);
+
+    // Total offset of the canvas
+    // Contains both offsets from panning and pinching gestures
+    const totalOffsetX = useSharedValue(0);
+    const totalOffsetY = useSharedValue(0);
 
     const stopAnimation = useWorkletCallback(() => {
         cancelAnimation(totalOffsetX);
@@ -78,23 +75,30 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     });
 
     const reset = useWorkletCallback((animated) => {
-        pinchScaleOffset.value = 1;
+        pinchScale.value = 1;
 
         stopAnimation();
+
+        pinchScale.value = 1;
 
         if (animated) {
             totalOffsetX.value = withSpring(0, SPRING_CONFIG);
             totalOffsetY.value = withSpring(0, SPRING_CONFIG);
+            panTranslateX.value = withSpring(0, SPRING_CONFIG);
+            panTranslateY.value = withSpring(0, SPRING_CONFIG);
+            pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
+            pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
             zoomScale.value = withSpring(1, SPRING_CONFIG);
-        } else {
-            totalOffsetX.value = 0;
-            totalOffsetY.value = 0;
-            zoomScale.value = 1;
-            panTranslateX.value = 0;
-            panTranslateY.value = 0;
-            pinchTranslateX.value = 0;
-            pinchTranslateY.value = 0;
+            return;
         }
+
+        totalOffsetX.value = 0;
+        totalOffsetY.value = 0;
+        panTranslateX.value = 0;
+        panTranslateY.value = 0;
+        pinchTranslateX.value = 0;
+        pinchTranslateY.value = 0;
+        zoomScale.value = 1;
     });
 
     const {singleTap, doubleTap} = useTapGestures({
@@ -105,7 +109,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         panGestureRef,
         totalOffsetX,
         totalOffsetY,
-        pinchScaleOffset,
+        pinchScale,
         zoomScale,
         reset,
         stopAnimation,
@@ -142,9 +146,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         totalOffsetY,
         pinchTranslateX,
         pinchTranslateY,
-        pinchBounceTranslateX,
-        pinchBounceTranslateY,
-        pinchScaleOffset,
+        pinchScale,
         isSwipingInPager,
         stopAnimation,
         onScaleChanged,
@@ -173,8 +175,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     }, [isActive, mounted, reset]);
 
     const animatedStyles = useAnimatedStyle(() => {
-        const x = pinchTranslateX.value + pinchBounceTranslateX.value + panTranslateX.value + totalOffsetX.value;
-        const y = pinchTranslateY.value + pinchBounceTranslateY.value + panTranslateY.value + totalOffsetY.value;
+        const x = pinchTranslateX.value + panTranslateX.value + totalOffsetX.value;
+        const y = pinchTranslateY.value + panTranslateY.value + totalOffsetY.value;
 
         return {
             transform: [

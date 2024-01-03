@@ -18,7 +18,7 @@ const useTapGestures = ({
     panGestureRef,
     totalOffsetX,
     totalOffsetY,
-    pinchScaleOffset,
+    pinchScale,
     zoomScale,
     reset,
     stopAnimation,
@@ -28,7 +28,7 @@ const useTapGestures = ({
     const scaledWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
 
-    // On double tap zoom to fill, but at least 3x zoom
+    // On double tap zoom to fill, but at least zoom by 3x
     const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
     const zoomToCoordinates = useWorkletCallback(
@@ -87,7 +87,7 @@ const useTapGestures = ({
             totalOffsetX.value = withSpring(target.x, SPRING_CONFIG);
             totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
-            pinchScaleOffset.value = doubleTapScale;
+            pinchScale.value = doubleTapScale;
         },
         [scaledWidth, scaledHeight, canvasSize, doubleTapScale],
     );
