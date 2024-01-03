@@ -28,6 +28,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import walletTermsPropTypes from '@pages/EnablePayments/walletTermsPropTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import iouReportPropTypes from '@pages/iouReportPropTypes';
@@ -104,6 +105,9 @@ const propTypes = {
 
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
+
+    /** All transactionViolations */
+    transactionViolations: transactionViolationsPropType,
 };
 
 const defaultProps = {
@@ -123,6 +127,7 @@ const defaultProps = {
     transaction: {},
     shouldShowPendingConversionMessage: false,
     isWhisper: false,
+    transactionViolations: {},
 };
 
 function MoneyRequestPreview(props) {
@@ -155,7 +160,8 @@ function MoneyRequestPreview(props) {
     const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
-    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction);
+    const hasViolations = TransactionUtils.hasViolation(props.transaction.transactionId, props.transactionViolations);
+    const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction) || hasViolations;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
     const isSettled = ReportUtils.isSettled(props.iouReport.reportID);
@@ -208,6 +214,12 @@ function MoneyRequestPreview(props) {
         }
 
         let message = translate('iou.cash');
+        if (hasViolations) {
+            const violations = TransactionUtils.getTransactionViolations(props.transaction.transactionId, props.transactionViolations);
+            const firstViolationName = translate(`violations.${violations[0].name}`);
+            const isTooLong = violations.length > 1 || firstViolationName.length > 15;
+            message += ` • ${isTooLong ? translate('violations.reviewRequired') : firstViolationName}`;
+        }
         if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${translate('iou.approved')}`;
         } else if (props.iouReport.isWaitingOnBankAccount) {
@@ -389,5 +401,8 @@ export default withOnyx({
     },
     walletTerms: {
         key: ONYXKEYS.WALLET_TERMS,
+    },
+    transactionViolations: {
+        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     },
 })(MoneyRequestPreview);

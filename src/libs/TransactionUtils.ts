@@ -526,6 +526,10 @@ function hasViolation(transactionID: string, transactionViolations: TransactionV
     return Boolean(transactionViolations[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
 }
 
+function getTransactionViolations(transactionID: string, transactionViolations: TransactionViolations): TransactionViolation[] | null {
+    return (transactionViolations[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] as TransactionViolation[]) ?? null;
+}
+
 /**
  * this is the formulae to calculate tax
  */
@@ -564,6 +568,7 @@ export {
     getCategory,
     getBillable,
     getTag,
+    getTransactionViolations,
     getLinkedTransaction,
     getAllReportTransactions,
     hasReceipt,

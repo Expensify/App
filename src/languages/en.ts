@@ -2074,6 +2074,7 @@ export default {
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Amount over daily ${limit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
         receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Receipt required over ${amount} ${category ? ' category limit' : ''}`,
+        reviewRequired: 'dummy.violations.reviewRequired.EN',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
