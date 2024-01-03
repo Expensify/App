@@ -28,7 +28,7 @@ const propTypes = {
     /** All report actions for all reports */
 
     /** Object of report actions for this report */
-    allReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    allReportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: PropTypes.bool,
@@ -190,8 +190,7 @@ const chatReportSelector = (report) =>
  * @returns {Object|undefined}
  */
 const reportActionsSelector = (reportActions) =>
-    reportActions &&
-    _.map(reportActions, (reportAction) => ({
+    _.map(reportActions || [], (reportAction) => ({
         errors: _.get(reportAction, 'errors', []),
         message: [
             {
