@@ -50,7 +50,7 @@ type FormProviderProps<TForm extends Form> = FormProviderOnyxProps<TForm> &
         children: ((props: {inputValues: TForm}) => ReactNode) | ReactNode;
 
         /** Callback to validate the form */
-        validate?: (values: FormValuesFields<TForm>) => Errors<keyof FormValuesFields<TForm> & string>;
+        validate?: (values: FormValuesFields<TForm>) => Errors;
 
         /** Should validate function be called when input loose focus */
         shouldValidateOnBlur?: boolean;

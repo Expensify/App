@@ -8,7 +8,7 @@ type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | 
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
-type Errors<TKey extends string = string> = Partial<Record<TKey, string>>;
+type Errors = Record<string, string>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 

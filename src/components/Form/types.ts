@@ -1,4 +1,4 @@
-import {ComponentType, ForwardedRef, ReactNode, SyntheticEvent} from 'react';
+import {ComponentType, ForwardedRef, ForwardRefExoticComponent, ReactNode, SyntheticEvent} from 'react';
 import {GestureResponderEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {OnyxFormKey} from '@src/ONYXKEYS';
 import {Form} from '@src/types/onyx';
@@ -6,7 +6,8 @@ import {Form} from '@src/types/onyx';
 type ValueType = 'string' | 'boolean' | 'date';
 
 type InputWrapperProps<TInputProps> = {
-    InputComponent: ComponentType<TInputProps>;
+    // TODO: refactor it as soon as TextInput will be written in typescript
+    InputComponent: ComponentType<TInputProps> | ForwardRefExoticComponent<unknown>;
     inputID: string;
     valueType?: ValueType;
 };
