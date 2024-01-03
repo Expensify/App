@@ -21,19 +21,17 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
-import {AvatarType} from '@src/types/onyx/OnyxCommon';
+import {Icon} from '@src/types/onyx/OnyxCommon';
+import ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemSingleProps = {
+type ReportActionItemSingleProps = ChildrenProps & {
     /** All the data of the action */
     action: ReportAction;
 
     /** Styles for the outermost View */
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Children view component for this action item */
-    children: React.ReactNode;
 
     /** Report for this action */
     report: Report;
@@ -52,23 +50,6 @@ type ReportActionItemSingleProps = {
 
     /** If the action is being hovered */
     isHovered?: boolean;
-};
-
-type SubAvatar = {
-    /** Avatar source to display */
-    source: UserUtils.AvatarSource;
-
-    /** Denotes whether it is a user avatar or a workspace avatar */
-    type: AvatarType;
-
-    /** Owner of the avatar. If user, displayName. If workspace, policy name */
-    name: string;
-
-    /** Avatar id */
-    id?: number | string;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL */
-    fallbackIcon?: UserUtils.AvatarSource;
 };
 
 const showUserDetails = (accountID: string) => {
@@ -119,7 +100,7 @@ function ReportActionItemSingle({
     }
 
     // If this is a report preview, display names and avatars of both people involved
-    let secondaryAvatar: SubAvatar;
+    let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
