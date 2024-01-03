@@ -89,7 +89,7 @@ type ScreenWrapperProps = {
 function ScreenWrapper(
     {
         shouldEnableMaxHeight = false,
-        shouldEnableMinHeight,
+        shouldEnableMinHeight = false,
         includePaddingTop = true,
         keyboardAvoidingViewBehavior = 'padding',
         includeSafeAreaPaddingBottom = true,
