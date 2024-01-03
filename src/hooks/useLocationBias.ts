@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 /**
  * Construct the rectangular boundary based on user location and waypoints
  */
-export default function useLocationBias(allWaypoints: Record<string, {lng?: number, lat?: number}>, userLocation?: {latitude: number, longitude: number}) {
+export default function useLocationBias(allWaypoints: Record<string, {lng?: number; lat?: number}>, userLocation?: {latitude: number; longitude: number}) {
     return useMemo(() => {
         const hasFilledWaypointCount = Object.values(allWaypoints).some((waypoint) => Object.keys(waypoint).length > 0);
         // If there are no filled wayPoints and if user's current location cannot be retrieved,
