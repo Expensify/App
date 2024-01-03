@@ -238,7 +238,7 @@ function BaseSelectionList({
     };
 
     const selectFocusedOption = (e) => {
-        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
         const focusedOption = focusedItemKey ? _.find(flattenedSections.allOptions, (option) => option.keyForList === focusedItemKey) : flattenedSections.allOptions[focusedIndex];
 
         if (!focusedOption || focusedOption.isDisabled) {

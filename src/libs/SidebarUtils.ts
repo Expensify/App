@@ -228,6 +228,8 @@ function getOrderedReportIDs(
 
 type ActorDetails = {
     displayName?: string;
+    firstName?: string;
+    lastName?: string;
     accountID?: number;
 };
 
@@ -250,6 +252,7 @@ function getOptionData(
     }
 
     const result: ReportUtils.OptionData = {
+        text: '',
         alternateText: null,
         allReportErrors: null,
         brickRoadIndicator: null,
@@ -312,7 +315,7 @@ function getOptionData(
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
 
-    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
+    const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
     const login = Str.removeSMSDomain(personalDetail?.login ?? '');
@@ -336,7 +339,11 @@ function getOptionData(
               }
             : null;
     }
-    const lastActorDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID ? lastActorDetails.displayName : '';
+
+    const shouldShowDisplayName = hasMultipleParticipants && lastActorDetails?.accountID && Number(lastActorDetails.accountID) !== currentUserAccountID;
+    const lastActorName = lastActorDetails?.firstName ?? lastActorDetails?.displayName;
+    const lastActorDisplayName = shouldShowDisplayName ? lastActorName : '';
+
     let lastMessageText = lastMessageTextFromReport;
 
     const reportAction = lastReportActions?.[report.reportID];
@@ -359,7 +366,10 @@ function getOptionData(
         }
     }
 
-    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport) && !result.isArchivedRoom) {
+    const isThreadMessage =
+        ReportUtils.isThread(report) && reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+    if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
         const lastAction = visibleReportActionItems[report.reportID];
 
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {

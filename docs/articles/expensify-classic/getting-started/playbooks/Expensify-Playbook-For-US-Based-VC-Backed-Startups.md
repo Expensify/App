@@ -30,7 +30,7 @@ To create your Control Policy:
 2. Select *Group* and click the button that says *New Policy*
 3. Click *Select* under Control
 
-The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's #admins room at *[new.expensify.com](https://new.expensify.com)*, and chatting with them there. The Control plan is bundled with the Expensify Card is $9 per user per month when you commit annually, which is a 75% discount off our standard unbundled price point. The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and chat with them there.
+The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's #admins room at *[new.expensify.com](https://new.expensify.com)*, and chatting with them there. The Control plan is bundled with the  Expensify Visa® Commercial Card is $9 per user per month when you commit annually, which is a 75% discount off our standard unbundled price point. The Control plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and chat with them there.
 
 ## Step 3: Connect your accounting system
 As a VC-backed company, your investors will want to see that your books are managed properly. That means making sure that:
@@ -144,13 +144,20 @@ Expensify supports direct card feeds from most financial institutions. Setting u
 4. Set a transaction start date
   - If you don’t have a backlog of transactions you’d like to account for, feel free to skip this step.
 
-As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. However, with the Expensify Card, we’re able to bring in transactions at the point of sale which provides you with real-time compliance. Next, let’s dive into how to set up the Expensify Card and the benefits of using the Expensify Card.
+As mentioned above, we’ll be able to pull in transactions as they post (daily) and handle receipt matching for you and your employees. 
+
+The Expensify Card has many benefits for your company. Two in particular are worth mentioning here: 
+
+1. Seeing transactions at the point of purchase provides you with real-time compliance. We even send users push notifications to SmartScan their receipt when it’s required and generate IRS-compliant e-receipts as a backup wherever applicable.
+2. The option to issue Unlimited Virtual Cards with a fixed or monthly limit for specific company purchases (ex., Marketing purchases, Advertising, Travel, etc).
+
 
 ### If you don't have a corporate card, use the Expensify Card
 Expensify provides a corporate card with the following features:
 
-- Up to 2% cash back (up to 4% in your first 3 months!)
+- Up to 2% cash back (within the US)
 - [SmartLimits](https://community.expensify.com/discussion/4851/deep-dive-what-are-unapproved-expense-limits#latest)
+- Unlimited Virtual Cards - single-purpose cards with a fixed or monthly limit for specific company purchases
 - A stable, unbreakable connection (third-party bank feeds can run into connectivity issues)
 
 The Expensify Card is recommended as the most efficient way to manage your company's spending.
@@ -160,10 +167,11 @@ Here’s how to enable it:
 1. There are *two ways* you can [apply for the Expensify Card](https://community.expensify.com/discussion/4874/how-to-apply-for-the-expensify-card)
   - *Via your Inbox*
   - *Via Domain Settings* - Go to Settings > Domain > Company Cards > Enable Expensify Card
-2. Assign the cards to your employees
+2. Assign virtual and physical cards to your employees
 3. Set *SmartLimits*:
   - *Employees* - We recommend a low limit for most employees, roughly double the size of the maximum daily spend – such as $1000.
-  - *Execs* - We recommend a higher limit for executives, roughly 10x the limit of a non-executive employee (eg, $10,000).
+  - *Execs* - We recommend a higher limit for executives, roughly 10x the limit of a non-executive employee (e.g., $10,000).
+  - You can also issue Unlimited Virtual Cards to any employee. These are single-purpose cards with a set SmartLimit that can be used for specific company purchases
 
 Once the Expensify Cards have been assigned, each employee will be prompted to enter their mailing address so they can receive their physical card. In the meantime, a virtual card will be ready to use immediately.
 
