@@ -8,7 +8,7 @@ import * as App from '@userActions/App';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import DeeplinkWrapperProps from './types';
+import type DeeplinkWrapperProps from './types';
 
 function isMacOSWeb(): boolean {
     return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);

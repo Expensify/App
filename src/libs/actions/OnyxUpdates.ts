@@ -1,11 +1,12 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
-import {Merge} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
-import Response from '@src/types/onyx/Response';
+import type {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import type Response from '@src/types/onyx/Response';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
