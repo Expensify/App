@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import darkTheme from './themes/dark';
 import lightTheme from './themes/light';
-import type { ThemePreferenceWithoutSystem,type ThemeColors} from './types';
+import type {ThemeColors, ThemePreferenceWithoutSystem} from './types';
 
 const themes = {
     [CONST.THEME.LIGHT]: lightTheme,
