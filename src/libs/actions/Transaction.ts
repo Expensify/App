@@ -59,7 +59,7 @@ function addStop(transactionID: string) {
 }
 
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
-    IOU.resetMoneyRequestAmount_temporaryForRefactor(transactionID);
+    IOU.resetMoneyRequestAmount_temporaryForRefactor(transactionID, isDraft);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
             waypoints: {
@@ -102,7 +102,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 }
 
 function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft: boolean) {
-    IOU.resetMoneyRequestAmount_temporaryForRefactor(transaction.transactionID);
+    IOU.resetMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, isDraft);
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -243,7 +243,7 @@ function getRouteForDraft(transactionID: string, waypoints: WaypointCollection) 
  *                             which will replace the existing ones.
  */
 function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
-    IOU.resetMoneyRequestAmount_temporaryForRefactor(transactionID);
+    IOU.resetMoneyRequestAmount_temporaryForRefactor(transactionID, isDraft);
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
