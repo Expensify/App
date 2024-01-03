@@ -44,7 +44,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
         // For local files, we won't have a thumbnail yet
         if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-            return {thumbnail: null, image: path};
+            return {thumbnail: null, image: path, isLocalFile: true};
         }
 
         if (isReceiptImage) {
@@ -66,7 +66,8 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
         image = ReceiptSVG;
     }
 
-    return {thumbnail: image, image: path, isLocalFile: true};
+    const isLocalFile = path.startsWith('blob:') || path.startsWith('file:');
+    return {thumbnail: image, image: path, isLocalFile};
 }
 
 // eslint-disable-next-line import/prefer-default-export

@@ -1422,6 +1422,12 @@ const styles = (theme: ThemeColors) =>
             height: variables.lineHeightSizeh1,
         },
 
+        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+            ({
+                ...modalNavigatorContainer(isSmallScreenWidth),
+                left: 0,
+            } satisfies ViewStyle),
+
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
@@ -1641,14 +1647,14 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams) =>
+        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: -2 * variables.sideBarWidth,
+                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: 0,
+                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -3705,6 +3711,20 @@ const styles = (theme: ThemeColors) =>
                 color: isSelected ? theme.text : theme.textSupporting,
                 lineHeight: 14,
             } satisfies TextStyle),
+
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
+            backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
+        }),
+
+        tabOpacity: (
+            hovered: boolean,
+            isFocused: boolean,
+            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        ) => ({
+            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
+        }),
+
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
                 backgroundColor,
