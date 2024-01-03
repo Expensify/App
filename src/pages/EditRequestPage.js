@@ -145,10 +145,6 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         });
     }, [parentReportAction, parentReport.reportID, fieldToEdit, transaction, isDataLoading]);
 
-    if (isDataLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
-
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
         IOU.editMoneyRequest(transaction, report.reportID, transactionChanges);
@@ -183,6 +179,10 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         },
         [transaction, report],
     );
+
+    if (isDataLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
