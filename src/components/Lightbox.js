@@ -168,7 +168,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
             {isContainerLoaded && (
                 <>
                     {isLightboxVisible && (
-                        <View style={[StyleSheet.absoluteFill, {opacity: hasSiblingCarouselItems && isFallbackVisible ? 0 : 1}]}>
+                        <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), {opacity: hasSiblingCarouselItems && isFallbackVisible ? 0 : 1}]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
                                 onScaleChanged={onScaleChanged}
@@ -183,8 +183,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                     onError={onError}
                                     onLoadEnd={() => setImageLoaded(true)}
                                     onLoad={(e) => {
-                                        const width = (e.nativeEvent?.width || 0) / PixelRatio.get();
-                                        const height = (e.nativeEvent?.height || 0) / PixelRatio.get();
+                                        const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
+                                        const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
                                         setImageDimensions({...imageDimensions, lightboxSize: {width, height}});
                                     }}
                                 />
@@ -194,10 +194,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
                     {/* Keep rendering the image without gestures as fallback if the carousel item is not active and while the lightbox is loading the image */}
                     {isFallbackVisible && (
-                        <View
-                            collapsable={false}
-                            style={StyleUtils.getFullscreenCenteredContentStyles()}
-                        >
+                        <View style={StyleUtils.getFullscreenCenteredContentStyles()}>
                             <Image
                                 source={{uri: source}}
                                 resizeMode="contain"
@@ -205,8 +202,8 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                                 isAuthTokenRequired={isAuthTokenRequired}
                                 onLoadEnd={() => setFallbackLoaded(true)}
                                 onLoad={(e) => {
-                                    const width = e.nativeEvent?.width || 0;
-                                    const height = e.nativeEvent?.height || 0;
+                                    const width = (e.nativeEvent?.width || 0) * PixelRatio.get();
+                                    const height = (e.nativeEvent?.height || 0) * PixelRatio.get();
 
                                     if (imageDimensions?.lightboxSize != null) {
                                         return;

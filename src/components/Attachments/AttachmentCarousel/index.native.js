@@ -18,7 +18,7 @@ import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import AttachmentCarouselPager from './Pager';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate, onClose}) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, translate}) {
     const styles = useThemeStyles();
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
@@ -147,7 +147,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                         setShouldShowArrows(true);
                                     }
                                 }}
-                                onSwipeDown={onClose}
                                 ref={pagerRef}
                             />
                         </>

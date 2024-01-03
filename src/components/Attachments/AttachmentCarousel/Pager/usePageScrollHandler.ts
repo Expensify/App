@@ -2,8 +2,15 @@ import {PagerViewProps} from 'react-native-pager-view';
 import {useEvent, useHandler} from 'react-native-reanimated';
 
 type PageScrollHandler = NonNullable<PagerViewProps['onPageScroll']>;
-type PageScrollHandlerParams = Parameters<PageScrollHandler>;
-const usePageScrollHandler = (handlers: PageScrollHandlerParams[0], dependencies: PageScrollHandlerParams[1]): PageScrollHandler => {
+type OnPageScrollEventData = Parameters<PageScrollHandler>[0]['nativeEvent'];
+type OnPageScrollREAHandler = Parameters<typeof useHandler<OnPageScrollEventData, Record<string, unknown>>>[0][string];
+
+type Handlers = {
+    onPageScroll?: OnPageScrollREAHandler;
+};
+type Deps = Parameters<typeof useHandler>[1];
+
+const usePageScrollHandler = (handlers: Handlers, dependencies: Deps): PageScrollHandler => {
     const {context, doDependenciesDiffer} = useHandler(handlers, dependencies);
     const subscribeForEvents = ['onPageScroll'];
 

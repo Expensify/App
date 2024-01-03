@@ -1,85 +1,48 @@
-import _ from 'lodash';
-import PropTypes from 'prop-types';
 import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {createNativeWrapper} from 'react-native-gesture-handler';
-import PagerView from 'react-native-pager-view';
-import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
-import refPropTypes from '@components/refPropTypes';
+import {createNativeWrapper, NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
+import PagerView, {PagerViewProps} from 'react-native-pager-view';
+import Animated, {AnimatedProps, runOnJS, useAnimatedProps, useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
 
-const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
-
-const noopWorklet = () => {
-    'worklet';
-
-    // noop
+type PagerViewPropsObject = {
+    [K in keyof PagerViewProps]: PagerViewProps[K];
 };
 
-const pagerPropTypes = {
-    items: PropTypes.arrayOf(
-        PropTypes.shape({
-            key: PropTypes.string,
-            url: PropTypes.string,
-        }),
-    ).isRequired,
-    renderItem: PropTypes.func.isRequired,
-    initialIndex: PropTypes.number,
-    onPageSelected: PropTypes.func,
-    onTap: PropTypes.func,
-    onSwipe: PropTypes.func,
-    onSwipeSuccess: PropTypes.func,
-    onSwipeDown: PropTypes.func,
-    onPinchGestureChange: PropTypes.func,
-    forwardedRef: refPropTypes,
+type AnimatedNativeWrapperComponent<P extends Record<string, unknown>, C> = React.ForwardRefExoticComponent<
+    React.PropsWithoutRef<AnimatedProps<P> & NativeViewGestureHandlerProps> & React.RefAttributes<C>
+>;
+
+const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView)) as AnimatedNativeWrapperComponent<PagerViewPropsObject, PagerView>;
+
+type AttachmentCarouselPagerHandle = {
+    setPage: (selectedPage: number) => void;
 };
 
-const pagerDefaultProps = {
-    initialIndex: 0,
-    onPageSelected: () => {},
-    onTap: () => {},
-    onSwipe: noopWorklet,
-    onSwipeSuccess: () => {},
-    onSwipeDown: () => {},
-    onPinchGestureChange: () => {},
-    forwardedRef: null,
+type PagerItem = {
+    key: string;
+    url: string;
+    source: string;
 };
 
 type AttachmentCarouselPagerProps = React.PropsWithChildren<{
-    items: Array<{
-        key: string;
-        url: string;
-    }>;
-    renderItem: () => React.ReactNode;
+    items: PagerItem[];
+    renderItem: (props: {item: PagerItem; index: number; isActive: boolean}) => React.ReactNode;
     initialIndex: number;
     onPageSelected: () => void;
     onTap: () => void;
-    onSwipe: () => void;
-    onSwipeSuccess: () => void;
-    onSwipeDown: () => void;
     onPinchGestureChange: () => void;
-    forwardedRef: React.Ref<typeof AttachmentCarouselPager>;
+    forwardedRef: React.Ref<AttachmentCarouselPagerHandle>;
 }>;
 
-function AttachmentCarouselPager({
-    items,
-    renderItem,
-    initialIndex,
-    onPageSelected,
-    onTap,
-    onSwipe = noopWorklet,
-    onSwipeSuccess,
-    onSwipeDown,
-    onPinchGestureChange,
-    forwardedRef,
-}: AttachmentCarouselPagerProps) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onTap, onPinchGestureChange, forwardedRef}: AttachmentCarouselPagerProps) {
     const styles = useThemeStyles();
     const shouldPagerScroll = useSharedValue(true);
-    const pagerRef = useRef(null);
+    const pagerRef = useRef<PagerView>(null);
 
-    const isScrolling = useSharedValue(false);
+    const isSwipingInPager = useSharedValue(false);
     const activeIndex = useSharedValue(initialIndex);
 
     const pageScrollHandler = usePageScrollHandler(
@@ -88,7 +51,7 @@ function AttachmentCarouselPager({
                 'worklet';
 
                 activeIndex.value = e.position;
-                isScrolling.value = e.offset !== 0;
+                isSwipingInPager.value = e.offset !== 0;
             },
         },
         [],
@@ -104,7 +67,7 @@ function AttachmentCarouselPager({
     // we use reanimated for this since onPageSelected is called
     // in the middle of the pager animation
     useAnimatedReaction(
-        () => isScrolling.value,
+        () => isSwipingInPager.value,
         (stillScrolling) => {
             if (stillScrolling) {
                 return;
@@ -114,10 +77,12 @@ function AttachmentCarouselPager({
         },
     );
 
-    useImperativeHandle(
+    useImperativeHandle<AttachmentCarouselPagerHandle, AttachmentCarouselPagerHandle>(
         forwardedRef,
         () => ({
-            setPage: (...props) => pagerRef.current.setPage(...props),
+            setPage: (selectedPage) => {
+                pagerRef.current?.setPage(selectedPage);
+            },
         }),
         [],
     );
@@ -128,16 +93,13 @@ function AttachmentCarouselPager({
 
     const contextValue = useMemo(
         () => ({
-            isScrolling,
+            isSwipingInPager,
             pagerRef,
             shouldPagerScroll,
             onPinchGestureChange,
             onTap,
-            onSwipe,
-            onSwipeSuccess,
-            onSwipeDown,
         }),
-        [isScrolling, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap, onSwipe, onSwipeSuccess, onSwipeDown],
+        [isSwipingInPager, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap],
     );
 
     return (
@@ -164,17 +126,14 @@ function AttachmentCarouselPager({
         </AttachmentCarouselPagerContext.Provider>
     );
 }
-
 AttachmentCarouselPager.displayName = 'AttachmentCarouselPager';
 
-const AttachmentCarouselPagerWithRef = React.forwardRef((props, ref) => (
+const AttachmentCarouselPagerWithRef = React.forwardRef<AttachmentCarouselPagerHandle, Omit<AttachmentCarouselPagerProps, 'forwardedRef'>>((props, ref) => (
     <AttachmentCarouselPager
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
-
-AttachmentCarouselPagerWithRef.displayName = 'AttachmentCarouselPagerWithRef';
 
 export default AttachmentCarouselPagerWithRef;
