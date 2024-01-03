@@ -70,7 +70,7 @@ project.ext.envConfigFiles = [
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -149,9 +149,13 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            productFlavors.production.signingConfig signingConfigs.release
+            // ndk {
+            //     abiFilters "arm64-v8a"
+            // }
+            productFlavors.production.signingConfig signingConfigs.debug
+            shrinkResources enableProguardInReleaseBuilds
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
             signingConfig null
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
@@ -159,7 +163,7 @@ android {
             // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode. 
             productFlavors.all { flavor ->
                 // All release builds should be signed with the release config ...
-                flavor.signingConfig signingConfigs.release
+                flavor.signingConfig signingConfigs.debug
             }
             // ... except for the e2e flavor, which we maybe want to build locally:
             productFlavors.e2e.signingConfig signingConfigs.debug
