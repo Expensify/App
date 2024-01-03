@@ -94,7 +94,7 @@ function HeaderPageLayout({
                             </View>
                             <View style={[styles.pt5, appBGColor, childrenContainerStyles]}>{children}</View>
                         </ScrollView>
-                        {footer !== null && <FixedFooter>{footer}</FixedFooter>}
+                        {!!footer && <FixedFooter>{footer}</FixedFooter>}
                     </View>
                 </>
             )}
