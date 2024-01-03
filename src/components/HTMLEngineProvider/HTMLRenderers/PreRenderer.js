@@ -48,10 +48,10 @@ function PreRenderer(props) {
                         role={CONST.ROLE.PRESENTATION}
                         accessibilityLabel={props.translate('accessibilityHints.prestyledText')}
                     >
-                        {/* <View> */}
-                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                        <TDefaultRenderer {...defaultRendererProps} />
-                        {/* </View> */}
+                        <View>
+                            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                            <TDefaultRenderer {...defaultRendererProps} />
+                        </View>
                     </PressableWithoutFeedback>
                 )}
             </ShowContextMenuContext.Consumer>
