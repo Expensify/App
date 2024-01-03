@@ -7,6 +7,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -238,6 +239,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const {canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -776,6 +778,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
+                            rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -790,6 +793,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             style={[styles.moneyRequestMenuItem]}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
+                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowBillable && (
