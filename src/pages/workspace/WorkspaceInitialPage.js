@@ -18,6 +18,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -69,6 +70,7 @@ function dismissError(policyID) {
 
 function WorkspaceInitialPage(props) {
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const policy = props.policyDraft && props.policyDraft.id ? props.policyDraft : props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -277,7 +279,7 @@ function WorkspaceInitialPage(props) {
                                                     containerStyles={styles.avatarLarge}
                                                     imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
                                                     source={policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policyName)}
-                                                    fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                                                    fallbackIcon={illustrations.FallbackWorkspaceAvatar}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                     name={policyName}
                                                     type={CONST.ICON_TYPE_WORKSPACE}

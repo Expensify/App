@@ -3,7 +3,7 @@ import _ from 'lodash';
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
-import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
+import {ConciergeAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {PersonalDetailsList} from '@src/types/onyx';
@@ -91,9 +91,6 @@ function generateAccountID(searchValue: string): number {
  * @returns
  */
 function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
-    if (accountID <= 0) {
-        return FallbackAvatar;
-    }
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
