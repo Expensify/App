@@ -84,12 +84,11 @@ class BaseOptionsSelector extends Component {
         this.handleFocusOut = this.handleFocusOut.bind(this);
         this.debouncedUpdateSearchValue = _.debounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
-        this.accessibilityRoles = _.values(CONST.ACCESSIBILITY_ROLE);
+        this.accessibilityRoles = _.values(CONST.ROLE);
 
         const allOptions = this.flattenSections();
         const sections = this.sliceSections();
         const focusedIndex = this.getInitiallyFocusedIndex(allOptions);
-        const platform = getPlatform();
 
         this.state = {
             sections,
@@ -277,7 +276,7 @@ class BaseOptionsSelector extends Component {
     handleFocusIn() {
         const activeElement = document.activeElement;
         this.setState({
-            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ACCESSIBILITY_ROLE.TEXT,
+            disableEnterShortCut: activeElement && this.accessibilityRoles.includes(activeElement.role) && activeElement.role !== CONST.ROLE.PRESENTATION,
         });
     }
 
