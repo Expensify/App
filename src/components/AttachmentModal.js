@@ -449,7 +449,6 @@ function AttachmentModal(props) {
                                 report={props.report}
                                 onNavigate={onNavigate}
                                 source={props.source}
-                                onClose={closeModal}
                                 onToggleKeyboard={updateConfirmButtonVisibility}
                                 setDownloadButtonVisibility={setDownloadButtonVisibility}
                             />
