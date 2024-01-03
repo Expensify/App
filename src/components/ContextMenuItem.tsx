@@ -1,23 +1,23 @@
 import React, {ForwardedRef, forwardRef, useImperativeHandle} from 'react';
-import {SvgProps} from 'react-native-svg';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
+import IconAsset from '@src/types/utils/IconAsset';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 
 type ContextMenuItemProps = {
     /** Icon Component */
-    icon: React.FC<SvgProps>;
+    icon: IconAsset;
 
     /** Text to display */
     text: string;
 
     /** Icon to show when interaction was successful */
-    successIcon?: React.FC<SvgProps>;
+    successIcon?: IconAsset;
 
     /** Text to show when interaction was successful */
     successText?: string;
