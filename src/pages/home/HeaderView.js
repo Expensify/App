@@ -142,6 +142,17 @@ function HeaderView(props) {
         }
     }
 
+    const join = Session.checkIfActionIsAllowed(() =>
+        Report.updateNotificationPreference(
+            props.report.reportID,
+            props.report.notificationPreference,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            false,
+            props.report.parentReportID,
+            props.report.parentReportActionID,
+        ),
+    );
+
     const canJoinOrLeave = (isChatThread && !isEmptyChat) || isUserCreatedPolicyRoom || canLeaveRoom;
     const canJoin = canJoinOrLeave && !isWhisperAction && props.report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && props.report.notificationPreference.length) || isUserCreatedPolicyRoom || canLeaveRoom);
@@ -149,9 +160,7 @@ function HeaderView(props) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.join'),
-            onSelected: Session.checkIfActionIsAllowed(() =>
-                Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
-            ),
+            onSelected: join,
         });
     } else if (canLeave) {
         const isWorkspaceMemberLeavingWorkspaceRoom = lodashGet(props.report, 'visibility', '') === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
@@ -167,9 +176,7 @@ function HeaderView(props) {
             success
             medium
             text={translate('common.join')}
-            onPress={Session.checkIfActionIsAllowed(() =>
-                Report.updateNotificationPreference(props.report.reportID, props.report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false),
-            )}
+            onPress={join}
         />
     );
 
