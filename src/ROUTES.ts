@@ -1,5 +1,5 @@
-import {IsEqual, ValueOf} from 'type-fest';
-import CONST from './CONST';
+import type {IsEqual, ValueOf} from 'type-fest';
+import type CONST from './CONST';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
