@@ -239,7 +239,7 @@ function FormProvider<TForm extends Form>(
                         : newRef,
                 inputID,
                 key: inputProps.key ?? inputID,
-                errorText: errors[inputID] || fieldErrorMessage,
+                errorText: errors[inputID] ?? fieldErrorMessage,
                 value: inputValues[inputID],
                 // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
@@ -297,7 +297,7 @@ function FormProvider<TForm extends Form>(
                     inputProps.onBlur?.(event);
                 },
                 onInputChange: (value, key) => {
-                    const inputKey = key || inputID;
+                    const inputKey = key ?? inputID;
                     setInputValues((prevState) => {
                         const newState = {
                             ...prevState,
