@@ -8,6 +8,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -668,7 +669,7 @@ function getAssignee(assigneeAccountID, personalDetails) {
     }
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: details.displayName,
+        displayName: PersonalDetailsUtils.getDisplayNameOrDefault(details),
         subtitle: details.login,
     };
 }
@@ -712,13 +713,16 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {number} originalStateNum
  * @param {number} originalStatusNum
  */
-function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
+function deleteTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `deleted task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const taskReport = ReportUtils.getReport(taskReportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
+
+    // If the task report is the last visible action in the parent report, we should navigate back to the parent report
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(taskReportID);
 
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: {
@@ -821,6 +825,10 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     ];
 
     API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, successData, failureData});
+
+    if (shouldDeleteTaskReport) {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID));
+    }
 }
 
 /**
@@ -927,7 +935,7 @@ export {
     clearOutTaskInfoAndNavigate,
     getAssignee,
     getShareDestination,
-    cancelTask,
+    deleteTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     clearTaskErrors,

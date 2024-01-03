@@ -640,6 +640,19 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
+/**
+ * When we delete certain reports, we want to check whether there are any visible actions left to display.
+ * If there are no visible actions left (including system messages), we can hide the report from view entirely
+ */
+function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportActions = {}): boolean {
+    const reportActions = Object.values(OnyxUtils.fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge));
+    const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
+
+    // Exclude the task system message and the created message
+    const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter((action) => !isTaskAction(action) && !isCreatedAction(action));
+    return visibleReportActionsWithoutTaskSystemMessage.length > 0;
+}
+
 function getAllReportActions(reportID: string): ReportActions {
     return allReportActions?.[reportID] ?? {};
 }
@@ -751,6 +764,14 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+/**
+ * MARKEDREIMBURSED reportActions come from marking a report as reimbursed in OldDot. For now, we just
+ * concat all of the text elements of the message to create the full message.
+ */
+function getMarkedReimbursedMessage(reportAction: OnyxEntry<ReportAction>): string {
+    return reportAction?.message?.map((element) => element.text).join('') ?? '';
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
@@ -811,6 +832,7 @@ export {
     isSentMoneyReportAction,
     isSplitBillAction,
     isTaskAction,
+    doesReportHaveVisibleActions,
     isThreadParentMessage,
     isTransactionThread,
     isWhisperAction,
@@ -820,6 +842,7 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
+    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
