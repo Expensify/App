@@ -512,6 +512,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 IOU: 'IOU',
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
@@ -719,6 +720,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        RESIZE_DEBOUNCE_TIME: 100,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -853,7 +855,7 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -1175,6 +1177,7 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
+        DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',
@@ -2943,6 +2946,7 @@ const CONST = {
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
     TAG_LIST_THRESHOLD: 8,
+    TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
         PADDING: 50,
