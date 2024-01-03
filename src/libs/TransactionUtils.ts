@@ -4,6 +4,7 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
+import PolicyTaxRate, {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
@@ -517,8 +518,25 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
         .slice(0, size);
 }
 
+/**
+ * this is the formulae to calculate tax
+ */
+function calculateTaxAmount(percentage: string, amount: number) {
+    const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
+    return Math.round(amount - amount / divisor) / 100;
+}
+
+/**
+ * Calculates count of all tax enabled options
+ */
+function getEnabledTaxRateCount(options: PolicyTaxRates) {
+    return Object.values(options).filter((option: PolicyTaxRate) => !option.isDisabled).length;
+}
+
 export {
     buildOptimisticTransaction,
+    calculateTaxAmount,
+    getEnabledTaxRateCount,
     getUpdatedTransaction,
     getTransaction,
     getDescription,

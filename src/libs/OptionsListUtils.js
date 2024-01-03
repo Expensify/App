@@ -1058,6 +1058,159 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
 }
 
 /**
+ * Represents the data for a single tax rate.
+ *
+ * @property {string} name - The name of the tax rate.
+ * @property {string} value - The value of the tax rate.
+ * @property {string} code - The code associated with the tax rate.
+ * @property {string} modifiedName - This contains the tax name and tax value as one name
+ * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
+ */
+
+/**
+ * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
+ *
+ * @param {Object} policyTaxRates - The original tax rates object.
+ * @returns {Object.<string, Object.<string, policyTaxRates>>} The transformed tax rates object.
+ */
+function transformedTaxRates(policyTaxRates) {
+    const defaultTaxKey = policyTaxRates.defaultExternalID;
+    const getModifiedName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+    return taxes;
+}
+
+/**
+ * Sorts tax rates alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} taxRates
+ * @returns {Array<Object>}
+ */
+function sortTaxRates(taxRates) {
+    const sortedtaxRates = _.chain(taxRates)
+        .values()
+        .sortBy((taxRate) => taxRate.name)
+        .value();
+
+    return sortedtaxRates;
+}
+
+/**
+ * Builds the options for taxRates
+ *
+ * @param {Object[]} taxRates - an initial object array
+ * @returns {Array<Object>}
+ */
+function getTaxRatesOptions(taxRates) {
+    return _.map(taxRates, (taxRate) => ({
+        text: taxRate.modifiedName,
+        keyForList: taxRate.code,
+        searchText: taxRate.modifiedName,
+        tooltipText: taxRate.modifiedName,
+        isDisabled: taxRate.isDisabled,
+        data: taxRate,
+    }));
+}
+
+/**
+ * Builds the section list for tax rates
+ *
+ * @param {Object} policyTaxRates
+ * @param {Object[]} selectedOptions
+ * @param {String} searchInputValue
+ * @returns {Array<Object>}
+ */
+function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
+    const policyRatesSections = [];
+
+    const taxes = transformedTaxRates(policyTaxRates);
+
+    const sortedTaxRates = sortTaxRates(taxes);
+    const enabledTaxRates = _.filter(sortedTaxRates, (taxRate) => !taxRate.isDisabled);
+    const numberOfTaxRates = _.size(enabledTaxRates);
+
+    let indexOffset = 0;
+
+    // If all tax are disabled but there's a previously selected tag, show only the selected tag
+    if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
+        const selectedTaxRateOptions = _.map(selectedOptions, (option) => ({
+            modifiedName: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            isDisabled: false,
+        }));
+        policyRatesSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTaxRatesOptions(selectedTaxRateOptions),
+        });
+
+        return policyRatesSections;
+    }
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchTaxRates = _.filter(enabledTaxRates, (taxRate) => taxRate.modifiedName.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        policyRatesSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(searchTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+        policyRatesSections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTaxRatesOptions(enabledTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredTaxRates = _.filter(enabledTaxRates, (taxRate) => !_.includes(selectedOptionNames, taxRate.modifiedName));
+
+    if (!_.isEmpty(selectedOptions)) {
+        const selectedTaxRatesOptions = _.map(selectedOptions, (option) => {
+            const taxRateObject = _.find(taxes, (taxRate) => taxRate.modifiedName === option.name);
+
+            return {
+                modifiedName: option.name,
+                isDisabled: Boolean(taxRateObject && taxRateObject.isDisabled),
+            };
+        });
+
+        policyRatesSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(selectedTaxRatesOptions),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    policyRatesSections.push({
+        // "All" section when number of items are more than the threshold
+        title: '',
+        shouldShow: true,
+        indexOffset,
+        data: getTaxRatesOptions(filteredTaxRates),
+    });
+
+    return policyRatesSections;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -1098,6 +1251,8 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
+        includePolicyTaxRates,
+        policyTaxRates,
     },
 ) {
     if (includeCategories) {
@@ -1110,6 +1265,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1123,6 +1279,21 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
+            policyTaxRatesOptions: [],
+        };
+    }
+
+    if (includePolicyTaxRates) {
+        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            policyTaxRatesOptions,
         };
     }
 
@@ -1134,6 +1305,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1405,6 +1577,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
+        policyTaxRatesOptions: [],
     };
 }
 
@@ -1494,6 +1667,8 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
  * @param {boolean} [includeSelectedOptions]
+ * @param {boolean} [includePolicyTaxRates]
+ * @param {Object} [policyTaxRates]
  * @returns {Object}
  */
 function getFilteredOptions(
@@ -1513,6 +1688,8 @@ function getFilteredOptions(
     recentlyUsedTags = [],
     canInviteUser = true,
     includeSelectedOptions = false,
+    includePolicyTaxRates = false,
+    policyTaxRates = {},
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1532,6 +1709,8 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
+        includePolicyTaxRates,
+        policyTaxRates,
     });
 }
 
@@ -1777,4 +1956,5 @@ export {
     getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
+    transformedTaxRates,
 };
