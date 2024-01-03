@@ -245,25 +245,24 @@ type OptimisticChatReport = Pick<
     | 'writeCapability'
 >;
 
-type OptimisticTaskReportAction = {reportActionID: string} & Partial<
-    Pick<
-        ReportAction,
-        | 'actionName'
-        | 'actorAccountID'
-        | 'automatic'
-        | 'avatar'
-        | 'created'
-        | 'isAttachment'
-        | 'message'
-        | 'originalMessage'
-        | 'person'
-        | 'pendingAction'
-        | 'shouldShow'
-        | 'isFirstItem'
-        | 'previousMessage'
-        | 'errors'
-        | 'linkMetadata'
-    >
+type OptimisticTaskReportAction = Pick<
+    ReportAction,
+    | 'reportActionID'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'automatic'
+    | 'avatar'
+    | 'created'
+    | 'isAttachment'
+    | 'message'
+    | 'originalMessage'
+    | 'person'
+    | 'pendingAction'
+    | 'shouldShow'
+    | 'isFirstItem'
+    | 'previousMessage'
+    | 'errors'
+    | 'linkMetadata'
 >;
 
 type OptimisticWorkspaceChats = {

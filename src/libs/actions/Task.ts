@@ -32,6 +32,7 @@ type ShareDestination = {
     displayNamesWithTooltips: ReportUtils.DisplayNameWithTooltips;
     shouldUseFullTitleToDisplay: boolean;
 };
+type PolicyValue = ValueOf<typeof CONST.POLICY.ROLE>;
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -706,7 +707,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
     const report = reports?.[`report_${reportID}`] ?? null;
 
     const participantAccountIDs = report?.participantAccountIDs ?? [];
-    const isMultipleParticipant = participantAccountIDs?.length > 1;
+    const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
         // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/24921) is migrated to TypeScript.
         OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails),
@@ -715,10 +716,10 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
     let subtitle = '';
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
-        const participantAccountID = report?.participantAccountIDs?.[0];
+        const participantAccountID = report?.participantAccountIDs?.[0] ?? -1;
 
-        const displayName = personalDetails[participantAccountID ?? 0]?.displayName ?? '';
-        const login = personalDetails[participantAccountID ?? 0]?.login ?? '';
+        const displayName = personalDetails[participantAccountID]?.displayName ?? '';
+        const login = personalDetails[participantAccountID]?.login ?? '';
         subtitle = LocalePhoneNumber.formatPhoneNumber(login || displayName);
     } else {
         subtitle = ReportUtils.getChatRoomSubtitle(report) ?? '';
@@ -742,7 +743,7 @@ function cancelTask(taskReportID: string, taskTitle: string, originalStateNum: n
     const taskReport = ReportUtils.getReport(taskReportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(isNotEmptyObject(taskReport) ? taskReport : null);
     const parentReport = isNotEmptyObject(taskReport) ? ReportUtils.getParentReport(taskReport) : {};
-    const optimisticReportAction: ReportUtils.OptimisticTaskReportAction = {
+    const optimisticReportAction: Partial<ReportUtils.OptimisticTaskReportAction> = {
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         previousMessage: parentReportAction.message,
         message: [
@@ -892,7 +893,7 @@ function getTaskOwnerAccountID(taskReport: OnyxTypes.Report): number | undefined
 /**
  * Check if you're allowed to modify the task - anyone that has write access to the report can modify the task
  */
-function canModifyTask(taskReport: OnyxTypes.Report, sessionAccountID: number, policyRole: ValueOf<typeof CONST.POLICY.ROLE> | undefined): boolean {
+function canModifyTask(taskReport: OnyxTypes.Report, sessionAccountID: number, policyRole: PolicyValue | undefined): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
