@@ -26,7 +26,6 @@ import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import {usePersonalDetails} from './OnyxProvider';
 import SettlementButton from './SettlementButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
@@ -76,7 +75,6 @@ const defaultProps = {
 };
 
 function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -143,7 +141,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                personalDetails={personalDetails}
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
