@@ -216,8 +216,8 @@ function MoneyRequestPreview(props) {
         let message = translate('iou.cash');
         if (hasViolations) {
             const violations = TransactionUtils.getTransactionViolations(props.transaction, props.transactionViolations);
-            const violation = translate(`violations.${violations[0]?.name}`, violations[0]?.data);
-            const isTooLong = violations?.length > 1 || violation.length > 15;
+            const violation = translate(`violations.${violations[0].name}`, violations[0].data);
+            const isTooLong = violations.length > 1 || violation.length > 15;
             message += ` • ${isTooLong ? translate('violations.reviewRequired') : violation}`;
         }
         if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
