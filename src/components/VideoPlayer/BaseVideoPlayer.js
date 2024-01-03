@@ -80,8 +80,10 @@ function BaseVideoPlayer({
     const sharedVideoPlayerParentRef = useRef(null);
     const [sourceURL] = useState(url.includes('blob:') ? url : addEncryptedAuthTokenToURL(url));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
 
     const showPopoverMenu = (e) => {
+        setPopoverAnchorPosition({horizontal: e.nativeEvent.pageX, vertical: e.nativeEvent.pageY});
         setIsPopoverVisible(true);
     };
 
@@ -201,6 +203,7 @@ function BaseVideoPlayer({
             <VideoPopoverMenu
                 isPopoverVisible={isPopoverVisible}
                 hidePopover={hidePopoverMenu}
+                anchorPosition={popoverAnchorPosition}
             />
         </>
     );

@@ -30,10 +30,7 @@ function VideoPopoverMenu({isPopoverVisible, hidePopover, anchorPosition}) {
             onClose={hidePopover}
             onItemSelected={hidePopover}
             isVisible={isPopoverVisible}
-            anchorPosition={{
-                horizontal: 0,
-                vertical: 0,
-            }}
+            anchorPosition={anchorPosition}
             menuItems={menuItems}
             withoutOverlay
         />
