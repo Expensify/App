@@ -25,7 +25,7 @@ type ConciergePageProps = ConciergePageOnyxProps & StackScreenProps<AuthScreensP
  */
 function ConciergePage({session}: ConciergePageProps) {
     useFocusEffect(() => {
-        if (session?.authToken) {
+        if (Object.hasOwn(session ?? {}, 'authToken')) {
             // Pop the concierge loading page before opening the concierge report.
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(ROUTES.HOME);
