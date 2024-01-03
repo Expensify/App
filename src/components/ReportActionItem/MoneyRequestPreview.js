@@ -160,7 +160,7 @@ function MoneyRequestPreview(props) {
     const description = requestComment;
     const hasReceipt = TransactionUtils.hasReceipt(props.transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(props.transaction);
-    const hasViolations = TransactionUtils.hasViolation(props.transaction.transactionId, props.transactionViolations);
+    const hasViolations = TransactionUtils.hasViolation(props.transaction, props.transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(props.transaction) || hasViolations;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(props.transaction);
     const isExpensifyCardTransaction = TransactionUtils.isExpensifyCardTransaction(props.transaction);
@@ -215,10 +215,10 @@ function MoneyRequestPreview(props) {
 
         let message = translate('iou.cash');
         if (hasViolations) {
-            const violations = TransactionUtils.getTransactionViolations(props.transaction.transactionId, props.transactionViolations);
-            const firstViolationName = translate(`violations.${violations[0].name}`);
-            const isTooLong = violations.length > 1 || firstViolationName.length > 15;
-            message += ` • ${isTooLong ? translate('violations.reviewRequired') : firstViolationName}`;
+            const violations = TransactionUtils.getTransactionViolations(props.transaction, props.transactionViolations);
+            const violation = translate(`violations.${violations[0]?.name}`, violations[0]?.data);
+            const isTooLong = violations?.length > 1 || violation.length > 15;
+            message += ` • ${isTooLong ? translate('violations.reviewRequired') : violation}`;
         }
         if (ReportUtils.isGroupPolicyExpenseReport(props.iouReport) && ReportUtils.isReportApproved(props.iouReport) && !ReportUtils.isSettled(props.iouReport)) {
             message += ` • ${translate('iou.approved')}`;
