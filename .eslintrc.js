@@ -15,11 +15,6 @@ const restrictedImportPaths = [
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
     },
     {
-        name: 'awesome-phonenumber',
-        importNames: ['parsePhoneNumber'],
-        message: "Please use '@libs/PhoneNumber' instead.",
-    },
-    {
         name: 'react-native-safe-area-context',
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
@@ -212,6 +207,7 @@ module.exports = {
                 'es/no-optional-chaining': 'off',
                 'valid-jsdoc': 'off',
                 'jsdoc/no-types': 'error',
+                'rulesdir/no-default-props': 'error',
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',

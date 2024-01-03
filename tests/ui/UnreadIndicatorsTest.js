@@ -1,4 +1,4 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import lodashGet from 'lodash/get';
@@ -30,6 +30,75 @@ jest.setTimeout(30000);
 
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
+
+// Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
+jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
+    __esModule: true,
+    default: {
+        ignoreLogs: jest.fn(),
+        ignoreAllLogs: jest.fn(),
+    },
+}));
+
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual('react-native-reanimated/mock'),
+    createAnimatedPropAdapter: jest.fn,
+}));
+
+/**
+ * We need to keep track of the transitionEnd callback so we can trigger it in our tests
+ */
+let transitionEndCB;
+
+/**
+ * This is a helper function to create a mock for the addListener function of the react-navigation library.
+ * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
+ * the transitionEnd event that is triggered when the screen transition animation is completed.
+ *
+ * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
+ *
+ * @returns {Object} An object with two functions: triggerTransitionEnd and addListener
+ */
+const createAddListenerMock = () => {
+    const transitionEndListeners = [];
+    const triggerTransitionEnd = () => {
+        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
+    };
+
+    const addListener = jest.fn().mockImplementation((listener, callback) => {
+        if (listener === 'transitionEnd') {
+            transitionEndListeners.push(callback);
+        }
+        return () => {
+            // eslint-disable-next-line rulesdir/prefer-underscore-method
+            transitionEndListeners.filter((cb) => cb !== callback);
+        };
+    });
+
+    return {triggerTransitionEnd, addListener};
+};
+
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    const {triggerTransitionEnd, addListener} = createAddListenerMock();
+    transitionEndCB = triggerTransitionEnd;
+    const useNavigation = () => ({
+        navigate: jest.fn(),
+        ...actualNav.useNavigation,
+        getState: () => ({
+            routes: [],
+        }),
+        addListener,
+    });
+
+    return {
+        ...actualNav,
+        useNavigation,
+        getState: () => ({
+            routes: [],
+        }),
+    };
+});
 
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
@@ -95,11 +164,11 @@ function navigateToSidebar() {
  * @param {Number} index
  * @return {Promise}
  */
-function navigateToSidebarOption(index) {
+async function navigateToSidebarOption(index) {
     const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
     const optionRows = screen.queryAllByAccessibilityHint(hintText);
     fireEvent(optionRows[index], 'press');
-    return waitForBatchedUpdates();
+    await waitForBatchedUpdatesWithAct();
 }
 
 /**
@@ -136,19 +205,22 @@ function signInAndGetAppWithUnreadChat() {
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
-            return TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+            await act(async () => {
+                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+            });
+            return waitForBatchedUpdatesWithAct();
         })
         .then(() => {
             User.subscribeToUserEvents();
             return waitForBatchedUpdates();
         })
-        .then(() => {
+        .then(async () => {
             const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
             reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
             reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
 
             // Simulate setting an unread report and personal details
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 lastReadTime: reportAction3CreatedDate,
@@ -158,7 +230,7 @@ function signInAndGetAppWithUnreadChat() {
                 type: CONST.REPORT.TYPE.CHAT,
             });
             const createdReportActionID = NumberUtils.rand64();
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     automatic: false,
@@ -187,13 +259,13 @@ function signInAndGetAppWithUnreadChat() {
                 8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
             AppActions.setSidebarLoaded(true);
-            return waitForBatchedUpdates();
+            return waitForBatchedUpdatesWithAct();
         });
 }
 
@@ -226,7 +298,9 @@ describe('Unread Indicators', () => {
 
                 return navigateToSidebarOption(0);
             })
-            .then(() => {
+            .then(async () => {
+                await act(() => transitionEndCB && transitionEndCB());
+
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
                 const createdAction = screen.queryByLabelText(welcomeMessageHintText);
@@ -249,7 +323,8 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
-            .then(() => {
+            .then(async () => {
+                await act(() => transitionEndCB && transitionEndCB());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -373,7 +448,8 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
-            .then(() => {
+            .then(async () => {
+                await act(() => transitionEndCB && transitionEndCB());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
@@ -449,7 +525,8 @@ describe('Unread Indicators', () => {
                 // Navigate to the report and verify the indicator is present
                 return navigateToSidebarOption(0);
             })
-            .then(() => {
+            .then(async () => {
+                await act(() => transitionEndCB && transitionEndCB());
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
