@@ -1,6 +1,6 @@
 import React from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import Button, {ButtonProps} from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -26,6 +26,14 @@ const reimbursementAccountDefault = {
     errors: {},
     maxAttemptsReached: false,
     shouldShowResetModal: false,
+};
+
+type CompanyOwnersListUBOIOnyxProps = {
+    /** Reimbursement account from ONYX */
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
+
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 
 type CompanyOwnersListUBOProps = {
@@ -70,6 +78,7 @@ function CompanyOwnersListUBO({
 
     const extraBeneficialOwners =
         isAnyoneElseUBO &&
+        reimbursementAccountDraft &&
         beneficialOwnerKeys.map((ownerKey) => {
             const beneficialOwnerData = getValuesForBeneficialOwner(ownerKey, reimbursementAccountDraft);
 
@@ -92,6 +101,7 @@ function CompanyOwnersListUBO({
         });
 
     return (
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={CompanyOwnersListUBO.displayName}
             style={[styles.pt0]}
@@ -139,7 +149,7 @@ function CompanyOwnersListUBO({
 
 CompanyOwnersListUBO.displayName = 'CompanyOwnersListUBO';
 
-export default withOnyx({
+export default withOnyx<CompanyOwnersListUBOProps, CompanyOwnersListUBOIOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
