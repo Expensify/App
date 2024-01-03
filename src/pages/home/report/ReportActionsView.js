@@ -99,8 +99,8 @@ function getReportActionID(route) {
     return {reportActionID: lodashGet(route, 'params.reportActionID', null), reportID: lodashGet(route, 'params.reportID', null)};
 }
 
-// NOTE: The current delay is a temporary workaround due to a limitation in React Native Web. This will be removed once a forthcoming patch to React Native Web is applied.
-const TIMEOUT = Browser.isSafari() && Browser.isMobileSafari ? 1100 : 70;
+// Set a longer timeout for Safari on mobile due to FlatList issues.
+const TIMEOUT = Browser.isSafari() || Browser.isMobileSafari ? 200 : 100;
 
 const useHandleList = (linkedID, messageArray, fetchFn, route) => {
     const [edgeID, setEdgeID] = useState(linkedID);
@@ -116,8 +116,11 @@ const useHandleList = (linkedID, messageArray, fetchFn, route) => {
     }, [messageArray, linkedID, edgeID]);
 
     useMemo(() => {
-        isFirstRender.current = true;
-        setEdgeID('');
+        // Clear edgeID before navigating to a linked message
+        requestAnimationFrame(() => {
+            isFirstRender.current = true;
+            setEdgeID('');
+        });
     }, [route, linkedID]);
 
     const cattedArray = useMemo(() => {
@@ -125,33 +128,42 @@ const useHandleList = (linkedID, messageArray, fetchFn, route) => {
             return messageArray;
         }
         if (isFirstRender.current) {
+            // On first render, position the view at the linked message
             setListID((i) => i + 1);
             return messageArray.slice(index, messageArray.length);
         } else if (edgeID) {
-            const amountOfItemsBeforeLinkedOne = 10;
+            // On subsequent renders, load additional messages
+            const amountOfItemsBeforeLinkedOne = 20;
             const newStartIndex = index >= amountOfItemsBeforeLinkedOne ? index - amountOfItemsBeforeLinkedOne : 0;
-            return messageArray.slice(newStartIndex, messageArray.length);
+            return newStartIndex ? messageArray.slice(newStartIndex, messageArray.length) : messageArray;
         }
         return messageArray;
     }, [linkedID, messageArray, edgeID, index]);
 
     const hasMoreCashed = cattedArray.length < messageArray.length;
 
+    const debouncedSetEdgeID = _.throttle((firstReportActionID) => {
+        setEdgeID(firstReportActionID);
+    }, 200);
+
     const paginate = useCallback(
-        ({firstReportActionID, distanceFromStart}) => {
+        ({firstReportActionID}) => {
             // This function is a placeholder as the actual pagination is handled by cattedArray
             // It's here if you need to trigger any side effects during pagination
             if (!hasMoreCashed) {
-                fetchFn({distanceFromStart});
+                // Fetch new messages if all current messages have been shown
+                fetchFn();
+                setEdgeID(firstReportActionID);
+                return;
             }
-
             if (isFirstRender.current) {
+                isFirstRender.current = false;
+                // Delay to ensure the linked message is displayed correctly.
                 setTimeout(() => {
-                    isFirstRender.current = false;
                     setEdgeID(firstReportActionID);
                 }, TIMEOUT);
             } else {
-                setEdgeID(firstReportActionID);
+                debouncedSetEdgeID(firstReportActionID);
             }
         },
         [setEdgeID, fetchFn, hasMoreCashed],
@@ -209,7 +221,7 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const hasNewestReportAction = lodashGet(reportActions[0], 'created') === props.report.lastVisibleActionCreated;
     const newestReportAction = lodashGet(reportActions, '[0]');
     const oldestReportAction = _.last(reportActions);
-    const isWeReachedTheOldestAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+    const isWeReachedTheOldestAction = lodashGet(oldestReportAction, 'actionName') === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     /**
      * @returns {Boolean}
@@ -325,12 +337,12 @@ function ReportActionsView({reportActions: allReportActions, fetchReport, ...pro
     const firstReportActionID = useMemo(() => reportActions[0]?.reportActionID, [reportActions]);
     const handleLoadNewerChats = useCallback(
         // eslint-disable-next-line rulesdir/prefer-early-return
-        ({distanceFromStart}) => {
+        () => {
             const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 164;
             const SPACER = 30;
             const isContentSmallerThanList = windowHeight - DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST - SPACER > contentListHeight.current;
             if ((reportActionID && linkedIdIndex > -1 && !hasNewestReportAction && !isContentSmallerThanList) || (!reportActionID && !hasNewestReportAction && !isContentSmallerThanList)) {
-                fetchFunc({firstReportActionID, distanceFromStart});
+                fetchFunc({firstReportActionID});
             }
         },
         [hasNewestReportAction, linkedIdIndex, firstReportActionID, fetchFunc, reportActionID, windowHeight],
