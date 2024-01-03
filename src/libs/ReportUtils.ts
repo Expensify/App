@@ -4327,6 +4327,7 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    isGroupPolicy,
     isControlPolicyExpenseChat,
     isControlPolicyExpenseReport,
     isGroupPolicyExpenseChat,

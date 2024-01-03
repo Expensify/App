@@ -89,8 +89,7 @@ function EditRequestPage({report, route, policyCategories, policyTags, parentRep
     const tagListName = PolicyUtils.getTagListName(policyTags);
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
-    const policy = ReportUtils.getPolicy(report.policyID || '');
-    const isPolicyExpenseChat = policy.type && policy.type !== CONST.POLICY.TYPE.PERSONAL;
+    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
     // A flag for showing the categories page
     const shouldShowCategories = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
