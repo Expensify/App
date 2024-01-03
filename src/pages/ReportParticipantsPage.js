@@ -60,7 +60,7 @@ const getAllParticipants = (report, personalDetails, translate) =>
         .map((accountID, index) => {
             const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
             const userLogin = LocalePhoneNumber.formatPhoneNumber(userPersonalDetail.login || '') || translate('common.hidden');
-            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail.displayName);
+            const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(userPersonalDetail);
 
             return {
                 alternateText: userLogin,
