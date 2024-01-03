@@ -4,9 +4,8 @@ import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
 import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
-import {FormValuesFields} from '@components/Form/types';
 import CONST from '@src/CONST';
-import {Form, Report} from '@src/types/onyx';
+import {Report} from '@src/types/onyx';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
@@ -390,7 +389,12 @@ function isValidAccountRoute(accountID: number): boolean {
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): {dateValidationErrorKey: string; timeValidationErrorKey: string} => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (
+    data: string,
+): {
+    dateValidationErrorKey: string;
+    timeValidationErrorKey: string;
+} => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
