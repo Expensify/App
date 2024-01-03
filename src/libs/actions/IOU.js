@@ -685,8 +685,7 @@ function getMoneyRequestInformation(
     let needsToBeManuallySubmitted = false;
     let isFromPaidPolicy = false;
     if (isPolicyExpenseChat) {
-        const fetchedPolicy = ReportUtils.getPolicy(chatReport.policyID);
-        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(fetchedPolicy);
+        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
 
         // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
         needsToBeManuallySubmitted = isFromPaidPolicy && !(policy.isHarvestingEnabled || false);
