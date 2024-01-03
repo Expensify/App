@@ -1,13 +1,14 @@
 /* eslint-disable no-param-reassign */
 import {useMemo} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import {runOnJS, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
 const DOUBLE_TAP_SCALE = 3;
 
 const clamp = MultiGestureCanvasUtils.clamp;
 const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
+const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
 
 const useTapGestures = ({
     canvasSize,

@@ -1,11 +1,12 @@
 /* eslint-disable no-param-reassign */
 import {useEffect, useState} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useAnimatedReaction, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
 const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
 const zoomScaleBounceFactors = MultiGestureCanvasUtils.zoomScaleBounceFactors;
+const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
 
 const usePinchGesture = ({
     canvasSize,

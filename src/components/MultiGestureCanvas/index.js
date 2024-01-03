@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +14,7 @@ import * as MultiGestureCanvasUtils from './utils';
 
 const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
 const zoomScaleBounceFactors = MultiGestureCanvasUtils.zoomScaleBounceFactors;
+const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
 
 function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoomRangeProp = {}}) {
     const contentSize = {
@@ -37,10 +38,9 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const pagerRefFallback = useRef(null);
-    const {onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isSwipingHorizontally, onPinchGestureChange} = attachmentCarouselPagerContext || {
+    const {onTap, onSwipeDown, pagerRef, shouldPagerScroll, isSwipingHorizontally, onPinchGestureChange} = attachmentCarouselPagerContext || {
         onTap: () => undefined,
-        onSwipe: () => undefined,
-        onSwipeSuccess: () => undefined,
+        onSwipeDown: () => undefined,
         onPinchGestureChange: () => undefined,
         pagerRef: pagerRefFallback,
         shouldPagerScroll: false,
@@ -131,7 +131,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         panTranslateY,
         isSwipingHorizontally,
         isSwipingVertically,
-        onSwipeSuccess,
+        onSwipeDown,
         stopAnimation,
     });
 
@@ -155,7 +155,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         onPinchGestureChange,
     });
 
-    // reacts to scale change and enables/disables pager scroll
+    // Enables/disables the pager scroll based on the zoom scale
+    // When the content is zoomed in/out, the pager should be disabled
     useAnimatedReaction(
         () => zoomScale.value,
         () => {
@@ -179,11 +180,9 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         const x = pinchTranslateX.value + pinchBounceTranslateX.value + panTranslateX.value + totalOffsetX.value;
         const y = pinchTranslateY.value + pinchBounceTranslateY.value + panTranslateY.value + totalOffsetY.value;
 
-        // console.log({pinchTranslateY: pinchTranslateY.value, pinchBounceTranslateY: pinchBounceTranslateY.value, panTranslateY: panTranslateY.value, totalOffsetY: totalOffsetY.value});
-
-        if (isSwipingVertically.value) {
-            onSwipe(y);
-        }
+        // if (isSwipingVertically.value) {
+        //     onSwipe(y);
+        // }
 
         return {
             transform: [

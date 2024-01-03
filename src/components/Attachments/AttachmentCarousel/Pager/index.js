@@ -47,7 +47,6 @@ const pagerPropTypes = {
     onPageSelected: PropTypes.func,
     onTap: PropTypes.func,
     onSwipe: PropTypes.func,
-    onSwipeSuccess: PropTypes.func,
     onSwipeDown: PropTypes.func,
     onPinchGestureChange: PropTypes.func,
     forwardedRef: refPropTypes,
@@ -58,13 +57,12 @@ const pagerDefaultProps = {
     onPageSelected: () => {},
     onTap: () => {},
     onSwipe: noopWorklet,
-    onSwipeSuccess: () => {},
     onSwipeDown: () => {},
     onPinchGestureChange: () => {},
     forwardedRef: null,
 };
 
-function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onTap, onSwipe = noopWorklet, onSwipeSuccess, onSwipeDown, onPinchGestureChange, forwardedRef}) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onTap, onSwipe = noopWorklet, onSwipeDown, onPinchGestureChange, forwardedRef}) {
     const styles = useThemeStyles();
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef(null);
@@ -124,10 +122,9 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
             onPinchGestureChange,
             onTap,
             onSwipe,
-            onSwipeSuccess,
             onSwipeDown,
         }),
-        [isSwipingHorizontally, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap, onSwipe, onSwipeSuccess, onSwipeDown],
+        [isSwipingHorizontally, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap, onSwipe, onSwipeDown],
     );
 
     return (

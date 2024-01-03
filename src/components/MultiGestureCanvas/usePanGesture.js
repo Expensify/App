@@ -1,12 +1,13 @@
 /* eslint-disable no-param-reassign */
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
+import {runOnJS, useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
 const PAN_DECAY_DECELARATION = 0.9915;
 
-const clamp = MultiGestureCanvasUtils.clamp;
 const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
+const clamp = MultiGestureCanvasUtils.clamp;
+const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
 
 const usePanGesture = ({
     canvasSize,
@@ -24,22 +25,26 @@ const usePanGesture = ({
     panTranslateY,
     isSwipingVertically,
     isSwipingHorizontally,
-    onSwipeSuccess,
+    onSwipeDown,
     stopAnimation,
 }) => {
+    // The content size after scaling it with the current (total) zoom value
     const zoomScaledContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomScaledContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
 
+    // Used to track previous touch position for the "swipe down to close" gesture
     const previousTouch = useSharedValue(null);
-    // pan velocity to calculate the decay
+
+    // Pan velocity to calculate the decay
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
-    // disable pan vertically when content is smaller than screen
+
+    // Disable "swipe down to close" gesture when content is bigger than the canvas
     const canPanVertically = useDerivedValue(() => canvasSize.height < zoomScaledContentHeight.value, [canvasSize.height]);
 
-    // calculates bounds of the scaled content
-    // can we pan left/right/up/down
-    // can be used to limit gesture or implementing tension effect
+    // Calculates bounds of the scaled content
+    // Can we pan left/right/up/down
+    // Can be used to limit gesture or implementing tension effect
     const getBounds = useWorkletCallback(() => {
         let rightBoundary = 0;
         let topBoundary = 0;
@@ -78,12 +83,12 @@ const usePanGesture = ({
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
 
         if (zoomScale.value === zoomRange.min && totalOffsetX.value === 0 && totalOffsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
-            // we don't need to run any animations
+            // We don't need to run any animations
             return;
         }
 
+        // If we are zoomed out, we want to center the content
         if (zoomScale.value <= zoomRange.min) {
-            // just center it
             totalOffsetX.value = withSpring(0, SPRING_CONFIG);
             totalOffsetY.value = withSpring(0, SPRING_CONFIG);
             return;
@@ -108,7 +113,7 @@ const usePanGesture = ({
             if (
                 Math.abs(panVelocityY.value) > 0 &&
                 zoomScale.value <= zoomRange.max &&
-                // limit vertical pan only when content is smaller than screen
+                // Limit vertical panning when content is smaller than screen
                 totalOffsetY.value !== minVector.y &&
                 totalOffsetY.value !== maxVector.y
             ) {
@@ -143,10 +148,9 @@ const usePanGesture = ({
             //     if (Math.abs(velocityY) > velocityX && velocityY > 20) {
             //         state.activate();
 
-            //         isSwiping.value = true;
+            //         isSwipingVertically.value = true;
             //         previousTouch.value = null;
 
-            //         runOnJS(onSwipeDown)();
             //         return;
             //     }
             // }
@@ -163,10 +167,10 @@ const usePanGesture = ({
             stopAnimation();
         })
         .onChange((evt) => {
-            // since we're running both pinch and pan gesture handlers simultaneously
-            // we need to make sure that we don't pan when we pinch and move fingers
-            // since we track it as pinch focal gesture
-            // we also need to prevent panning when we are swiping horizontally (in the pager)
+            // Since we're running both pinch and pan gesture handlers simultaneously,
+            // we need to make sure that we don't pan when we pinch AND move fingers
+            // since we track it as pinch focal gesture.
+            // We also need to prevent panning when we are swiping horizontally (from page to page)
             if (evt.numberOfPointers > 1 || isSwipingHorizontally.value) {
                 return;
             }
@@ -184,20 +188,22 @@ const usePanGesture = ({
             }
         })
         .onEnd((evt) => {
-            // add pan translation to total offset
+            // Add pan translation to total offset
             totalOffsetX.value += panTranslateX.value;
             totalOffsetY.value += panTranslateY.value;
-            // reset pan gesture variables
+
+            // Reset pan gesture variables
             panTranslateX.value = 0;
             panTranslateY.value = 0;
             previousTouch.value = null;
 
-            // If we are swiping, we don't want to return to boundaries
+            // If we are swiping (in the pager), we don't want to return to boundaries
             if (isSwipingHorizontally.value) {
                 return;
             }
 
-            // swipe to close animation when swiping down
+            // Triggers the "swipe down to close" animation and the "onSwipeDown" callback,
+            // which can be used to close the lightbox/carousel
             if (isSwipingVertically.value) {
                 const enoughVelocity = Math.abs(evt.velocityY) > 300 && Math.abs(evt.velocityX) < Math.abs(evt.velocityY);
                 const rightDirection = (evt.translationY > 0 && evt.velocityY > 0) || (evt.translationY < 0 && evt.velocityY < 0);
@@ -220,7 +226,7 @@ const usePanGesture = ({
                             velocity: Math.abs(evt.velocityY) < 1200 ? maybeInvert(1200) : evt.velocityY,
                         },
                         () => {
-                            runOnJS(onSwipeSuccess)();
+                            runOnJS(onSwipeDown)();
                         },
                     );
                     return;
@@ -229,7 +235,7 @@ const usePanGesture = ({
 
             returnToBoundaries();
 
-            // reset pan gesture variables
+            // Reset pan gesture variables
             panVelocityX.value = 0;
             panVelocityY.value = 0;
         })
