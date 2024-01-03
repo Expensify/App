@@ -51,12 +51,11 @@ type Message = {
     translationKey?: string;
 
     /** ID of a task report */
-    taskReportID?: string
+    taskReportID?: string;
 
     /** Reason pf payment cancellation */
     cancellationReason?: string;
 };
-
 
 type ImageMetadata = {
     /**  The height of the image. */
