@@ -336,7 +336,7 @@ type OptionData = {
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
     hasDraftComment?: boolean | null;
-    keyForList?: string | null;
+    keyForList?: string;
     searchText?: string | null;
     isIOUReportOwner?: boolean | null;
     isArchivedRoom?: boolean | null;

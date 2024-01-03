@@ -1,7 +1,5 @@
-import PropTypes from 'prop-types';
-import React, {forwardRef, memo, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
+import React, {forwardRef, memo, useEffect, useRef, ForwardedRef} from 'react';
+import {View, SectionList as RNSectionList, SectionListRenderItem, SectionListData} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
@@ -10,31 +8,8 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {defaultProps as optionsListDefaultProps, propTypes as optionsListPropTypes} from './optionsListPropTypes';
-
-const propTypes = {
-    /** Determines whether the keyboard gets dismissed in response to a drag */
-    keyboardDismissMode: PropTypes.string,
-
-    /** Called when the user begins to drag the scroll view. Only used for the native component */
-    onScrollBeginDrag: PropTypes.func,
-
-    /** Callback executed on scroll. Only used for web/desktop component */
-    onScroll: PropTypes.func,
-
-    /** List styles for SectionList */
-    listStyles: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    ...optionsListPropTypes,
-};
-
-const defaultProps = {
-    keyboardDismissMode: 'none',
-    onScrollBeginDrag: () => {},
-    onScroll: () => {},
-    listStyles: [],
-    ...optionsListDefaultProps,
-};
+import type {OptionData} from '@libs/ReportUtils';
+import type {BaseOptionListProps} from './types';
 
 function BaseOptionsList({
     keyboardDismissMode,
@@ -66,24 +41,24 @@ function BaseOptionsList({
     onSelectRow,
     boldStyle,
     isDisabled,
-    innerRef,
     isRowMultilineSupported,
     isLoadingNewOptions,
     nestedScrollEnabled,
     bounces,
     renderFooterContent,
-}) {
+}: BaseOptionListProps, ref: ForwardedRef<RNSectionList>) {
     const styles = useThemeStyles();
-    const flattenedData = useRef();
+    const flattenedData = useRef<Array<{
+        length: number;
+        offset: number;
+    }>>([]);
     const previousSections = usePrevious(sections);
     const didLayout = useRef(false);
 
-    const listContainerStyles = listContainerStylesProp || [styles.flex1];
+    const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
 
     /**
      * This helper function is used to memoize the computation needed for getItemLayout. It is run whenever section data changes.
-     *
-     * @returns {Array<Object>}
      */
     const buildFlatSectionArray = () => {
         let offset = 0;
@@ -92,6 +67,8 @@ function BaseOptionsList({
         const flatArray = [{length: 0, offset}];
 
         // Build the flat array
+        // TODO: Verify if we can use for of here
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
             const section = sections[sectionIndex];
             // Add the section header
@@ -119,7 +96,11 @@ function BaseOptionsList({
     };
 
     useEffect(() => {
-        if (_.isEqual(sections, previousSections)) {
+        // TODO: Verify if we can use isEqual here
+        // if (_.isEqual(sections, previousSections)) {
+        //     return;
+        // }
+        if (sections === previousSections) {
             return;
         }
         flattenedData.current = buildFlatSectionArray();
@@ -150,8 +131,9 @@ function BaseOptionsList({
      *
      * @returns {Object}
      */
-    const getItemLayout = (data, flatDataArrayIndex) => {
-        if (!_.has(flattenedData.current, flatDataArrayIndex)) {
+    //SectionListProps<SectionList<any, DefaultSectionT>, DefaultSectionT>.getItemLayout?: ((data: SectionListData<SectionList<any, DefaultSectionT>, DefaultSectionT>[] | null, index: number)
+    const getItemLayout = (data: any, flatDataArrayIndex: number) => {
+        if (!flattenedData.current.has(flatDataArrayIndex)) {
             flattenedData.current = buildFlatSectionArray();
         }
 
@@ -165,10 +147,8 @@ function BaseOptionsList({
 
     /**
      * Returns the key used by the list
-     * @param {Object} option
-     * @return {String}
      */
-    const extractKey = (option) => option.keyForList;
+    const extractKey = (option: OptionData) => option.keyForList;
 
     /**
      * Function which renders a row in the list
@@ -180,9 +160,10 @@ function BaseOptionsList({
      *
      * @return {Component}
      */
-    const renderItem = ({item, index, section}) => {
+
+    const renderItem: SectionListRenderItem<OptionData> = ({item, index, section}) => {
         const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
-        const isSelected = _.some(selectedOptions, (option) => {
+        const isSelected = selectedOptions?.some((option) => {
             if (option.accountID && option.accountID === item.accountID) {
                 return true;
             }
@@ -224,15 +205,10 @@ function BaseOptionsList({
 
     /**
      * Function which renders a section header component
-     *
-     * @param {Object} params
-     * @param {Object} params.section
-     * @param {String} params.section.title
-     * @param {Boolean} params.section.shouldShow
-     *
-     * @return {Component}
      */
-    const renderSectionHeader = ({section: {title, shouldShow}}) => {
+    const renderSectionHeader = ({section: {title, shouldShow}}: {
+        section: SectionListData<OptionData>
+    }) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
         }
@@ -266,7 +242,7 @@ function BaseOptionsList({
                         </View>
                     ) : null}
                     <SectionList
-                        ref={innerRef}
+                        ref={ref}
                         style={listStyles}
                         indicatorStyle="white"
                         keyboardShouldPersistTaps="always"
@@ -279,7 +255,7 @@ function BaseOptionsList({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         sections={sections}
                         keyExtractor={extractKey}
-                        stickySectionHeadersEnabled={false}
+                        stickySectixonHeadersEnabled={false}
                         renderItem={renderItem}
                         getItemLayout={getItemLayout}
                         renderSectionHeader={renderSectionHeader}
@@ -299,22 +275,14 @@ function BaseOptionsList({
     );
 }
 
-BaseOptionsList.propTypes = propTypes;
-BaseOptionsList.defaultProps = defaultProps;
 BaseOptionsList.displayName = 'BaseOptionsList';
 
 // using memo to avoid unnecessary rerenders when parents component rerenders (thus causing this component to rerender because shallow comparison is used for some props).
 export default memo(
-    forwardRef((props, ref) => (
-        <BaseOptionsList
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
+    forwardRef(BaseOptionsList),
     (prevProps, nextProps) =>
         nextProps.focusedIndex === prevProps.focusedIndex &&
-        nextProps.selectedOptions.length === prevProps.selectedOptions.length &&
+        nextProps?.selectedOptions?.length === prevProps?.selectedOptions?.length &&
         nextProps.headerMessage === prevProps.headerMessage &&
         nextProps.isLoading === prevProps.isLoading &&
         _.isEqual(nextProps.sections, prevProps.sections),
