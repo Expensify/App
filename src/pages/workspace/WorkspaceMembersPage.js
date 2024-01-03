@@ -364,7 +364,7 @@ function WorkspaceMembersPage(props) {
                     details.login === props.policy.owner ||
                     policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
                     !_.isEmpty(policyMember.errors),
-                text: props.formatPhoneNumber(details.displayName),
+                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
                 rightElement: isAdmin ? (
                     <View style={[styles.badge, styles.peopleBadge]}>

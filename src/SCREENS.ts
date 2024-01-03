@@ -130,6 +130,8 @@ const SCREENS = {
         STEP_SCAN: 'Money_Request_Step_Scan',
         STEP_TAG: 'Money_Request_Step_Tag',
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
+        STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
+        STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',
