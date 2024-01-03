@@ -903,6 +903,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         VISIBLE_PASSWORD: 'visible-password',
         ASCII_CAPABLE: 'ascii-capable',
+        NUMBER_PAD: 'number-pad',
     },
 
     INPUT_MODE: {
@@ -2831,12 +2832,16 @@ const CONST = {
         CHECKBOX: 'checkbox',
         /** Use for elements that allow a choice from multiple options. */
         COMBOBOX: 'combobox',
+        /** Use for form elements. */
+        FORM: 'form',
         /** Use with scrollable lists to represent a grid layout. */
         GRID: 'grid',
         /** Use for section headers or titles. */
         HEADING: 'heading',
         /** Use for image elements. */
         IMG: 'img',
+        /** Use for input elements. */
+        INPUT: 'input',
         /** Use for elements that navigate to other pages or content. */
         LINK: 'link',
         /** Use to identify a list of items. */
