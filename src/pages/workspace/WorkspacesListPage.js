@@ -193,11 +193,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
 
     const listHeaderComponent = useCallback(() => {
         if (isSmallScreenWidth) {
-            return null;
+            return <View style={styles.mt5} />;
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap5, styles.mh5, styles.mb5, styles.pl5]}>
+            <View style={[styles.flexRow, styles.gap5, styles.mh5, styles.mv5, styles.pl5]}>
                 <View style={[styles.flexRow, styles.flex1]}>
                     <Text
                         numberOfLines={1}
@@ -225,22 +225,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 <View style={[styles.ml10, styles.mr2]} />
             </View>
         );
-    }, [
-        isSmallScreenWidth,
-        styles.flex1,
-        styles.flexGrow1,
-        styles.flexRow,
-        styles.gap5,
-        styles.mb5,
-        styles.mh5,
-        styles.ml10,
-        styles.mr2,
-        styles.pl5,
-        styles.textLabelSupporting,
-        styles.workspaceOwnerSectionTitle,
-        styles.workspaceTypeSectionTitle,
-        translate,
-    ]);
+    }, [isSmallScreenWidth, styles, translate]);
 
     const policyRooms = useMemo(
         () =>
@@ -366,7 +351,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                     data={workspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
-                    style={styles.mt5}
                 />
             </View>
             <ConfirmModal
