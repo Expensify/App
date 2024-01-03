@@ -285,6 +285,7 @@ export default {
         required: 'Obligatorio',
         showing: 'Mostrando',
         of: 'de',
+        default: 'Predeterminado',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -544,6 +545,8 @@ export default {
     },
     iou: {
         amount: 'Importe',
+        taxAmount: 'Importe del impuesto',
+        taxRate: 'Tasa de impuesto',
         approve: 'Aprobar',
         approved: 'Aprobado',
         cash: 'Efectivo',
@@ -617,6 +620,7 @@ export default {
         error: {
             invalidCategoryLength: 'El largo de la categoría escogida excede el máximo permitido (255). Por favor escoge otra categoría o acorta la categoría primero.',
             invalidAmount: 'Por favor ingresa un monto válido antes de continuar.',
+            invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado solicitando dinero, Por favor, inténtalo más tarde',

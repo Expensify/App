@@ -2,11 +2,11 @@ import {CardStyleInterpolators, StackNavigationOptions} from '@react-navigation/
 import {ThemeStyles} from '@styles/index';
 
 /**
- * RHP stack navigator screen options generator function
+ * Modal stack navigator screen options generator function
  * @param themeStyles - The styles object
  * @returns The screen options object
  */
-const RHPScreenOptions = (themeStyles: ThemeStyles): StackNavigationOptions => ({
+const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles): StackNavigationOptions => ({
     headerShown: false,
     animationEnabled: true,
     gestureDirection: 'horizontal',
@@ -14,4 +14,4 @@ const RHPScreenOptions = (themeStyles: ThemeStyles): StackNavigationOptions => (
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 });
 
-export default RHPScreenOptions;
+export default ModalNavigatorScreenOptions;
