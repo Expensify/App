@@ -14,6 +14,8 @@ It's crucial to understand the requirements based on your specific QuickBooks su
 - An error will occur if you try to export to QuickBooks with a feature enabled that isn't part of your subscription.
 - Please be aware that Expensify does not support the Self-Employed subscription in QuickBooks Online.
 
+![QuickBooks Online - Subscription types]({{site.url}}/assets/images/QBO1.png){:width="100%"}
+
 # How to connect to QuickBooks Online
 
 ## Step 1: Setup employees in QuickBooks Online
@@ -79,13 +81,19 @@ This is a single itemized vendor bill for each Expensify report. If the accounti
 
 The submitter will be listed as the vendor in the vendor bill.
 
+![Vendor Bill]({{site.url}}/assets/images/QBO2-Bill.png){:width="100%"}
+
 ## Check
 
 This is a single itemized check for each Expensify report. You can mark a check to be printed later in QuickBooks Online.
 
+![Check to print]({{site.url}}/assets/images/QBO3-Checktoprint.png){:width="100%"}
+
 ## Journal entry
 
 This is a single itemized journal entry for each Expensify report.
+
+![Journal Entry]({{site.url}}/assets/images/QBO4-JournalEntry.png){:width="100%"}
 
 # Non-reimbursable expenses
 
@@ -102,7 +110,9 @@ Using Credit/Debit Card Transactions:
 - Each expense will be exported as a bank transaction with its transaction date.
 - If you split an expense in Expensify, we'll consolidate it into a single credit card transaction in QuickBooks with multiple line items posted to the corresponding General Ledger accounts.
 
-Pro-Tip: To ensure the payee field in QuickBooks Online reflects the merchant name for Credit Card expenses, ensure there's a matching Vendor in QuickBooks Online. Expensify checks for an exact match during export. If none are found, the payee will be mapped to a vendor we create and labeled as Credit Card Misc. or Debit Card Misc. 
+Pro-Tip: To ensure the payee field in QuickBooks Online reflects the merchant name for Credit Card expenses, ensure there's a matching Vendor in QuickBooks Online. Expensify checks for an exact match during export. If none are found, the payee will be mapped to a vendor we create and labeled as Credit Card Misc. or Debit Card Misc.
+
+![Expense]({{site.url}}/assets/images/QBO5-Expense.png){:width="100%"}
 
 If you centrally manage your company cards through Domains, you can export expenses from each card to a specific account in QuickBooks.
 
@@ -224,6 +234,8 @@ Step 3: Importing Your Credit Card Transactions into QuickBooks Online
 
 - After completing Steps 1 and 2, you can import your credit card transactions into QuickBooks Online. These imported banking transactions will align with the ones brought in from Expensify. QuickBooks Online will guide you through the process of matching these transactions, similar to the example below:
 
+![Transactions]({{site.url}}/assets/images/QBO7-Transactions.png){:width="100%"}
+
 ## Tax in QuickBooks Online
 
 If your country applies taxes on sales (like GST, HST, or VAT), you can utilize Expensify's Tax Tracking along with your QuickBooks Online tax rates. Please note: Tax Tracking is not available for Workspaces linked to the US version of QuickBooks Online. If you need assistance applying taxes after reports are exported, contact QuickBooks.
@@ -246,6 +258,8 @@ Tax information can't be sent to Journal Entries in QuickBooks Online. Also, whe
 When working with QuickBooks Online Multi-Currency, there are some things to remember when exporting Vendor Bills and Check! Make sure the vendor's currency and the Accounts Payable (A/P) bank account match.
 
 In QuickBooks Online, the currency conversion rates are not applied when exporting. All transactions will be exported with a 1:1 conversion rate, so for example, if a vendor's currency is CAD (Canadian Dollar) and the home currency is USD (US Dollar), the export will show these currencies without applying conversion rates.
+
+![Check]({{site.url}}/assets/images/QBO6-Check.png){:width="100%"}
 
 To correct this, you must manually update the conversion rate after the report has been exported to QuickBooks Online. 
 

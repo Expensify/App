@@ -1,7 +1,7 @@
 import React from 'react';
 import {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import Text from '@components/Text';
-import useThemeStyles from '@styles/useThemeStyles';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type TextWithEllipsisProps = {
     /** Leading text before the ellipsis */

@@ -31,9 +31,6 @@
         #root > div > div {
             height: 100% !important;
         }
-        :root {
-            color-scheme: dark !important;
-        }
         * {
             touch-action: pan-x pan-y;
         }
@@ -74,6 +71,17 @@
         }
 
         /* Customizes the background and text colors for autofill inputs in Chrome */
+        /* Chrome on iOS does not support the autofill pseudo class because it is a non-standard webkit feature.
+        We should rely on the chrome-autofilled property being added to the input when users use auto-fill */
+        input[chrome-autofilled],
+        input[chrome-autofilled]:hover,
+        input[chrome-autofilled]:focus,
+        textarea[chrome-autofilled],
+        textarea[chrome-autofilled]:hover,
+        textarea[chrome-autofilled]:focus,
+        select[chrome-autofilled],
+        select[chrome-autofilled]:hover,
+        select[chrome-autofilled]:focus,
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -89,7 +97,7 @@
         }
 
         /* Prevent autofill from overlapping with the input label in Chrome */
-        div:has(input:-webkit-autofill) > label {
+        div:has(input:-webkit-autofill, input[chrome-autofilled]) > label {
             transform: translateY(var(--active-label-translate-y)) scale(var(--active-label-scale)) !important;
             transition: transform var(--label-transition-duration);
         }

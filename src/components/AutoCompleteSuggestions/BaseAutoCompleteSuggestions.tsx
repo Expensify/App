@@ -1,12 +1,15 @@
 import {FlashList} from '@shopify/flash-list';
-import React, {ForwardedRef, forwardRef, ReactElement, useCallback, useEffect, useRef} from 'react';
+import React, {ForwardedRef, forwardRef, ReactElement, useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import * as StyleUtils from '@styles/StyleUtils';
-import useThemeStyles from '@styles/useThemeStyles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
@@ -38,7 +41,9 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
+    const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
     /**
@@ -57,12 +62,18 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                 {renderSuggestionMenuItem(item, index)}
             </PressableWithFeedback>
         ),
-        [highlightedSuggestionIndex, renderSuggestionMenuItem, onSelect, accessibilityLabelExtractor],
+        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, onSelect],
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
     const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
-
+    const estimatedListSize = useMemo(
+        () => ({
+            height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,
+            width: (isLargeScreenWidth ? windowWidth - variables.sideBarWidth : windowWidth) - CONST.CHAT_FOOTER_HORIZONTAL_PADDING,
+        }),
+        [isLargeScreenWidth, suggestions.length, windowWidth],
+    );
     useEffect(() => {
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
             duration: 100,
@@ -83,18 +94,21 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
         >
-            <FlashList
-                estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
-                ref={scrollRef}
-                keyboardShouldPersistTaps="handled"
-                data={suggestions}
-                renderItem={renderItem}
-                renderScrollComponent={ScrollView}
-                keyExtractor={keyExtractor}
-                removeClippedSubviews={false}
-                showsVerticalScrollIndicator={innerHeight > rowHeight.value}
-                extraData={highlightedSuggestionIndex}
-            />
+            <ColorSchemeWrapper>
+                <FlashList
+                    estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
+                    estimatedListSize={estimatedListSize}
+                    ref={scrollRef}
+                    keyboardShouldPersistTaps="handled"
+                    data={suggestions}
+                    renderItem={renderItem}
+                    renderScrollComponent={ScrollView}
+                    keyExtractor={keyExtractor}
+                    removeClippedSubviews={false}
+                    showsVerticalScrollIndicator={innerHeight > rowHeight.value}
+                    extraData={highlightedSuggestionIndex}
+                />
+            </ColorSchemeWrapper>
         </Animated.View>
     );
 }

@@ -18,6 +18,8 @@ type KeyboardShortcutConfig = {
     excludedNodes?: string[];
     /* Is keyboard shortcut is already active */
     isActive?: boolean;
+    /* Shuld stop propagation? */
+    shouldStopPropagation?: boolean;
 };
 
 /**
@@ -35,6 +37,9 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: G
         // Hence the use of CONST.EMPTY_ARRAY.
         excludedNodes = CONST.EMPTY_ARRAY,
         isActive = true,
+
+        // This flag is used to prevent auto submit form when press enter key on selection modal.
+        shouldStopPropagation = false,
     } = config;
 
     useEffect(() => {
@@ -52,6 +57,7 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: G
             priority,
             shouldPreventDefault,
             excludedNodes as string[],
+            shouldStopPropagation,
         );
 
         return () => {

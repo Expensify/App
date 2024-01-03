@@ -5,7 +5,10 @@ description: Get the most out of your Expensify Card with exclusive perks!
 
 
 # Overview
-The Expensify Card is packed with perks, both native to our Card program and through exclusive discounts with partnering solutions. Below, we’ll cover all of our exclusive offers in more detail and how to claim discounts with our partners.
+The Expensify Visa® Commercial Card is packed with perks, both native to our Card program and through exclusive discounts with partnering solutions. The Expensify Card’s primary perks include: 
+- Unbeatable cash back incentive with each USD purchase
+
+Below, we’ll cover all of our exclusive offers in more detail and how to claim discounts with our partners.
 
 # Partner Specific Perks
 
@@ -188,4 +191,3 @@ Stripe Atlas helps removes obstacles typically associated with starting a busine
 **Receive $100 off Stripe Atlas and get access to a startup toolkit and special offers on additional Strip Atlas services.**
 
 **How to redeem:** Sign up with your Expensify Card.
-
