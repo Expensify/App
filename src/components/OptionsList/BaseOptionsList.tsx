@@ -1,5 +1,5 @@
 import React, {forwardRef, memo, useEffect, useRef, ForwardedRef} from 'react';
-import {View, SectionList as RNSectionList, SectionListRenderItem, SectionListData} from 'react-native';
+import {View, SectionList as RNSectionList, SectionListRenderItem, SectionListData, SectionList as SectionListType} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
@@ -52,7 +52,7 @@ function BaseOptionsList({
         length: number;
         offset: number;
     }>>([]);
-    const previousSections = usePrevious(sections);
+    const previousSections = usePrevious<Array<SectionListData<SectionListType<OptionData>>>>(sections);
     const didLayout = useRef(false);
 
     const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
@@ -131,17 +131,19 @@ function BaseOptionsList({
      *
      * @returns {Object}
      */
-    //SectionListProps<SectionList<any, DefaultSectionT>, DefaultSectionT>.getItemLayout?: ((data: SectionListData<SectionList<any, DefaultSectionT>, DefaultSectionT>[] | null, index: number)
-    const getItemLayout = (data: any, flatDataArrayIndex: number) => {
-        if (!flattenedData.current.has(flatDataArrayIndex)) {
+    const getItemLayout = (
+        data: Array<SectionListData<OptionData>>,
+        flatDataArrayIndex: number
+    ): {length: number, offset: number, index: number} => {
+        if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
         }
-
         const targetItem = flattenedData.current[flatDataArrayIndex];
+
         return {
             length: targetItem.length,
             offset: targetItem.offset,
-            index: flatDataArrayIndex,
+            index: flatDataArrayIndex
         };
     };
 
@@ -161,8 +163,8 @@ function BaseOptionsList({
      * @return {Component}
      */
 
-    const renderItem: SectionListRenderItem<OptionData> = ({item, index, section}) => {
-        const isItemDisabled = isDisabled || section.isDisabled || !!item.isDisabled;
+    const renderItem: SectionListRenderItem<SectionList<OptionData>> = ({item, index, section}) => {
+        const isItemDisabled = isDisabled || section.isDisabled; // TODO:  || !!item.isDisabled
         const isSelected = selectedOptions?.some((option) => {
             if (option.accountID && option.accountID === item.accountID) {
                 return true;
@@ -172,11 +174,12 @@ function BaseOptionsList({
                 return true;
             }
 
-            if (_.isEmpty(option.name)) {
-                return false;
-            }
+            // if (_.isEmpty(option.name)) {
+            //     return false;
+            // }
 
-            return option.name === item.searchText;
+            // return option.name === item.searchText;
+            return false;
         });
 
         return (
@@ -254,7 +257,7 @@ function BaseOptionsList({
                         contentContainerStyle={contentContainerStyles}
                         showsVerticalScrollIndicator={showScrollIndicator}
                         sections={sections}
-                        keyExtractor={extractKey}
+                        // keyExtractor={extractKey}
                         stickySectixonHeadersEnabled={false}
                         renderItem={renderItem}
                         getItemLayout={getItemLayout}

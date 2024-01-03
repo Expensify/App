@@ -2,19 +2,19 @@ import { RefObject } from 'react';
 import type {OptionData} from '@libs/ReportUtils';
 import { StyleProp, ViewStyle, View, SectionList, SectionListData } from 'react-native';
 
-// type SectionType<T> = {
-//     /** Title of the section */
-//     title?: string;
+type Section<Item> = {
+    /** Title of the section */
+    title?: string;
 
-//     /** The initial index of this section given the total number of options in each section's data array */
-//     indexOffset?: number;
+    /** The initial index of this section given the total number of options in each section's data array */
+    indexOffset?: number;
 
-//     /** Array of options */
-//     data?: T[];
+    /** Array of options */
+    data?: Item[];
 
-//     /** Whether this section should show or not */
-//     shouldShow?: boolean;
-// }
+    /** Whether this section should show or not */
+    shouldShow?: boolean;
+}
 
 type OptionsListProps = {
     /** option flexStyle for the options list container */
@@ -30,7 +30,9 @@ type OptionsListProps = {
     sectionHeaderStyle?: StyleProp<ViewStyle>;
 
     /** Sections for the section list */
-    sections: SectionListData<OptionData>;
+    // sections: Array<Section<OptionData>>;
+    // sections: Array<SectionListData<OptionData>>;
+    sections: Array<SectionListData<SectionList<OptionData>>>;
 
     /** Index for option to focus on */
     focusedIndex?: number;
@@ -115,13 +117,13 @@ type BaseOptionListProps = OptionsListProps & {
     keyboardDismissMode?: 'none' | 'interactive' | 'on-drag';
 
     /** Called when the user begins to drag the scroll view. Only used for the native component */
-    onScrollBeginDrag: () => void;
+    onScrollBeginDrag?: () => void;
 
     /** Callback executed on scroll. Only used for web/desktop component */
-    onScroll: () => void;
+    onScroll?: () => void;
 
     /** List styles for SectionList */
-    listStyles: StyleProp<ViewStyle>;
+    listStyles?: StyleProp<ViewStyle>;
 }
 
-export type { OptionsListProps, SectionType, BaseOptionListProps};
+export type { OptionsListProps, BaseOptionListProps, Section};

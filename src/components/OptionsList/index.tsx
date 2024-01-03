@@ -40,6 +40,8 @@ function OptionsList(props: OptionsListProps, ref: ForwardedRef<RNSectionList>) 
 
     return (
         <BaseOptionsList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
             ref={ref}
             onScroll={onScroll}
         />
