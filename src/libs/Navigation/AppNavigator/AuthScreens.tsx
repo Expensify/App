@@ -35,6 +35,7 @@ import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
 
 type AuthScreensProps = {
@@ -293,6 +294,12 @@ function AuthScreens({lastUpdateIDAppliedToClient, session, lastOpenedPublicRoom
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     options={screenOptions.rightModalNavigator}
                     component={RightModalNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.LEFT_MODAL_NAVIGATOR}
+                    options={screenOptions.leftModalNavigator}
+                    component={LeftModalNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
