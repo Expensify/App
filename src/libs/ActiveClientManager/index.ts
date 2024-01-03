@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import * as ActiveClients from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Init, IsClientTheLeader, IsReady} from './types';
+import type {Init, IsClientTheLeader, IsReady} from './types';
 
 const clientID = Str.guid();
 const maxClients = 20;

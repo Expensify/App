@@ -1,9 +1,10 @@
-import React, {RefObject, useCallback} from 'react';
-import {Text as RNText, StyleProp, TextStyle} from 'react-native';
+import type {RefObject} from 'react';
+import React, { useCallback} from 'react';
+import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNamesTooltipItemProps = {
     index?: number;
