@@ -128,6 +128,8 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+const INBOX_URL = 'inbox';
+
 function InitialSettingsPage(props) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -267,11 +269,11 @@ function InitialSettingsPage(props) {
                 translationKey: 'initialSettingsPage.goToExpensifyClassic',
                 icon: Expensicons.NewExpensify,
                 action: () => {
-                    Link.openExternalLink(CONST.EXPENSIFY_INBOX_URL);
+                    Link.openOldDotLink(INBOX_URL);
                 },
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
-                link: CONST.EXPENSIFY_INBOX_URL,
+                link: Link.buildOldDotURL(INBOX_URL),
             },
             {
                 translationKey: 'initialSettingsPage.signOut',
