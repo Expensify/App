@@ -52,9 +52,9 @@ const DotLottieAnimations: Record<string, DotLottieAnimation> = {
         h: 480,
     },
     Coin: {
-        file: require('@assets/animations/Coin.json'),
+        file: require('@assets/animations/Coin.lottie'),
         w: 375,
-        h: 240,
+        h: 250,
     }
 };
 

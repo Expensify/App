@@ -97,7 +97,7 @@ function AboutPage(props) {
     }, [translate, waitForNavigate]);
 
     const overlayContent = () => (
-        <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb3]}>
+        <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb1]}>
             <Text
                 selectable
                 style={[styles.textLabel, styles.textIvoryLight, styles.alignSelfCenter]}
@@ -115,8 +115,9 @@ function AboutPage(props) {
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
             overlayContent={overlayContent}
         >
-            <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
+            <View style={[styles.settingsPageBody, styles.ph5]}>
+                <Text style={[styles.textHeadline, styles.mb1]}>{props.translate('footer.aboutExpensify')}</Text>
+                <Text style={[styles.baseFontStyle, styles.mb4]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
             </View>
             <MenuItemList
                 menuItems={menuItems}
