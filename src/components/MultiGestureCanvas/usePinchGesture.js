@@ -18,8 +18,6 @@ const usePinchGesture = ({
     onScaleChanged,
     onPinchGestureChange,
 }) => {
-    const isPinchGestureRunning = useSharedValue(false);
-
     // Used to store event scale value when we limit scale
     const currentPinchScale = useSharedValue(1);
 
@@ -71,8 +69,6 @@ const usePinchGesture = ({
             state.fail();
         })
         .onStart((evt) => {
-            isPinchGestureRunning.value = true;
-
             stopAnimation();
 
             const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
@@ -121,7 +117,6 @@ const usePinchGesture = ({
             pinchTranslateX.value = 0;
             pinchTranslateY.value = 0;
             currentPinchScale.value = 1;
-            isPinchGestureRunning.value = false;
 
             // If the content was "overzoomed" or "underzoomed", we need to bounce back with an animation
             if (pinchBounceTranslateX.value !== 0 || pinchBounceTranslateY.value !== 0) {
@@ -148,19 +143,18 @@ const usePinchGesture = ({
         });
 
     // The "useAnimatedReaction" triggers a state update to run the "onPinchGestureChange" only once per re-render
-    const [isPinchGestureInUse, setIsPinchGestureInUse] = useState(false);
+    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(false);
     useAnimatedReaction(
         () => [zoomScale.value, isPinchGestureRunning.value],
-        ([zoom, running]) => {
-            const newIsPinchGestureInUse = zoom !== 1 || running;
-            if (isPinchGestureInUse !== newIsPinchGestureInUse) {
-                runOnJS(setIsPinchGestureInUse)(newIsPinchGestureInUse);
+        ([zoom]) => {
+            const newIsPinchGestureInUse = zoom !== 1;
+            if (isPinchGestureRunning !== newIsPinchGestureInUse) {
+                runOnJS(setIsPinchGestureRunning)(newIsPinchGestureInUse);
             }
         },
     );
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
+    useEffect(() => onPinchGestureChange(isPinchGestureRunning), [isPinchGestureRunning, onPinchGestureChange]);
 
     return pinchGesture;
 };
