@@ -1,143 +1,106 @@
-import PropTypes from 'prop-types';
-import React, {useEffect, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import _ from 'lodash';
+import React, {MutableRefObject, useEffect, useMemo} from 'react';
+import {StyleProp, ViewStyle} from 'react-native';
+import {OnyxEntry, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import compose from '@libs/compose';
 import * as ReportUtils from '@libs/ReportUtils';
-import iouReportPropTypes from '@pages/iouReportPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {ButtonSizeValue} from '@src/styles/utils/types';
+import type {Report} from '@src/types/onyx';
+import {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
-import withNavigation from './withNavigation';
 
-const propTypes = {
-    /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: PropTypes.func.isRequired,
-
-    /** Call the onPress function on main button when Enter key is pressed */
-    pressOnEnter: PropTypes.bool,
-
-    /** Settlement currency type */
-    currency: PropTypes.string,
-
-    /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
-    chatReportID: PropTypes.string,
-
-    /** The IOU/Expense report we are paying */
-    iouReport: iouReportPropTypes,
-
-    /** The route to redirect if user does not have a payment method setup */
-    enablePaymentsRoute: PropTypes.string.isRequired,
-
-    /** Should we show the approve button? */
-    shouldHidePaymentOptions: PropTypes.bool,
-
-    /** Should we show the payment options? */
-    shouldShowApproveButton: PropTypes.bool,
-
-    /** The last payment method used per policy */
-    nvp_lastPaymentMethod: PropTypes.objectOf(PropTypes.string),
-
-    /** The policyID of the report we are paying */
-    policyID: PropTypes.string,
-
-    /** Additional styles to add to the component */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** Total money amount in form <currency><amount> */
-    formattedAmount: PropTypes.string,
-
-    /** The size of button size */
-    buttonSize: PropTypes.oneOf(_.values(CONST.DROPDOWN_BUTTON_SIZE)),
-
-    /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute: PropTypes.string,
-
-    /** Route for the Add Debit Card screen for a given navigation stack */
-    addDebitCardRoute: PropTypes.string,
-
-    /** Whether the button should be disabled */
-    isDisabled: PropTypes.bool,
-
-    /** Whether we should show a loading state for the main button */
-    isLoading: PropTypes.bool,
-
-    /** The anchor alignment of the popover menu for payment method dropdown */
-    paymentMethodDropdownAnchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
-
-    /** The anchor alignment of the popover menu for KYC wall popover */
-    kycWallAnchorAlignment: PropTypes.shape({
-        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
-        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
-    }),
-
-    /** Whether the personal bank account option should be shown */
-    shouldShowPersonalBankAccountOption: PropTypes.bool,
+type AnchorAlignment = {
+    horizontal: 'left' | 'right' | 'center';
+    vertical: 'top' | 'center' | 'bottom';
 };
 
-const defaultProps = {
-    isLoading: false,
-    isDisabled: false,
-    pressOnEnter: false,
-    addBankAccountRoute: '',
-    addDebitCardRoute: '',
-    currency: CONST.CURRENCY.USD,
-    chatReportID: '',
+type TriggerKYCFlow = (event: Event, iouPaymentType: string) => void;
 
-    // The "iouReport" and "nvp_lastPaymentMethod" objects needs to be stable to prevent the "useMemo"
-    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
-    iouReport: CONST.EMPTY_OBJECT,
-    nvp_lastPaymentMethod: CONST.EMPTY_OBJECT,
-    shouldHidePaymentOptions: false,
-    shouldShowApproveButton: false,
-    style: [],
-    policyID: '',
-    formattedAmount: '',
-    buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-    kycWallAnchorAlignment: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-    },
-    paymentMethodDropdownAnchorAlignment: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
-    },
-    shouldShowPersonalBankAccountOption: false,
+type SettlementButtonOnyxProps = {
+    /** The last payment method used per policy */
+    nvpLastPaymentMethod?: Record<string, string>;
+};
+
+type SettlementButtonProps = SettlementButtonOnyxProps & {
+    /** Callback to execute when this button is pressed. Receives a single payment type argument. */
+    onPress: (paymentType: string) => void;
+    /** The route to redirect if user does not have a payment method setup */
+    enablePaymentsRoute: string;
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter?: boolean;
+    /** Settlement currency type */
+    currency?: string;
+    /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
+    chatReportID?: string;
+    /** The IOU/Expense report we are paying */
+    iouReport?: OnyxEntry<Report> | EmptyObject;
+    /** Should we show the payment options? */
+    shouldHidePaymentOptions?: boolean;
+    /** Should we show the payment options? */
+    shouldShowApproveButton?: boolean;
+    /** The policyID of the report we are paying */
+    policyID?: string;
+    /** Additional styles to add to the component */
+    style?: StyleProp<ViewStyle>;
+    /** Total money amount in form <currency><amount> */
+    formattedAmount?: string;
+    /** The size of button size */
+    buttonSize?: ButtonSizeValue; // Replace with the actual sizes
+    /** Route for the Add Bank Account screen for a given navigation stack */
+    addBankAccountRoute?: string;
+    /** Route for the Add Debit Card screen for a given navigation stack */
+    addDebitCardRoute?: string;
+    /** Whether the button should be disabled */
+    isDisabled?: boolean;
+    /** Whether we should show a loading state for the main button */
+    isLoading?: boolean;
+    /** The anchor alignment of the popover menu for payment method dropdown */
+    paymentMethodDropdownAnchorAlignment?: AnchorAlignment;
+    /** The anchor alignment of the popover menu for KYC wall popover */
+    kycWallAnchorAlignment?: AnchorAlignment;
+    /** Whether the personal bank account option should be shown */
+    shouldShowPersonalBankAccountOption?: boolean;
 };
 
 function SettlementButton({
-    addDebitCardRoute,
-    addBankAccountRoute,
-    kycWallAnchorAlignment,
-    paymentMethodDropdownAnchorAlignment,
-    buttonSize,
-    chatReportID,
-    currency,
+    addDebitCardRoute = '',
+    addBankAccountRoute = '',
+    kycWallAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
+    paymentMethodDropdownAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, // caret for dropdown is at right, so horizontal anchor is at RIGHT
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
+    },
+    buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    chatReportID = '',
+    currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
-    iouReport,
-    isDisabled,
-    isLoading,
-    formattedAmount,
-    nvp_lastPaymentMethod,
+    // The "iouReport" and "nvpLastPaymentMethod" objects needs to be stable to prevent the "useMemo"
+    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
+    iouReport = CONST.EMPTY_OBJECT,
+    nvpLastPaymentMethod = CONST.EMPTY_OBJECT,
+    isDisabled = false,
+    isLoading = false,
+    formattedAmount = '',
     onPress,
-    pressOnEnter,
-    policyID,
-    shouldHidePaymentOptions,
-    shouldShowApproveButton,
-    style,
-    shouldShowPersonalBankAccountOption,
-}) {
+    pressOnEnter = false,
+    policyID = '',
+    shouldHidePaymentOptions = false,
+    shouldShowApproveButton = false,
+    style = [],
+    shouldShowPersonalBankAccountOption = false,
+}: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
@@ -179,7 +142,7 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
-        const paymentMethod = nvp_lastPaymentMethod[policyID] || '';
+        const paymentMethod = nvpLastPaymentMethod[policyID] || '';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
@@ -197,9 +160,9 @@ function SettlementButton({
             return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
-    }, [currency, formattedAmount, iouReport, nvp_lastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
+    }, [currency, formattedAmount, iouReport, nvpLastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
-    const selectPaymentType = (event, iouPaymentType, triggerKYCFlow) => {
+    const selectPaymentType = (event: Event, iouPaymentType: string, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -227,7 +190,7 @@ function SettlementButton({
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
-            {(triggerKYCFlow, buttonRef) => (
+            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: MutableRefObject<null>) => (
                 <ButtonWithDropdownMenu
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
@@ -235,7 +198,7 @@ function SettlementButton({
                     onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    style={style}
+                    style={[style]}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                 />
@@ -244,15 +207,11 @@ function SettlementButton({
     );
 }
 
-SettlementButton.propTypes = propTypes;
-SettlementButton.defaultProps = defaultProps;
 SettlementButton.displayName = 'SettlementButton';
 
-export default compose(
-    withNavigation,
-    withOnyx({
-        nvp_lastPaymentMethod: {
-            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-        },
-    }),
-)(SettlementButton);
+export default withOnyx<SettlementButtonProps, SettlementButtonOnyxProps>({
+    nvpLastPaymentMethod: {
+        key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+        selector: (paymentMethod) => paymentMethod ?? {},
+    },
+})(SettlementButton);

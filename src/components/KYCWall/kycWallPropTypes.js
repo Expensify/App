@@ -65,6 +65,11 @@ const propTypes = {
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption: PropTypes.bool,
+
+    /** Callback to execute when KYC is successful */
+    onSuccessfulKYC: PropTypes.func.isRequired,
+
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
 };
 
 const defaultProps = {
