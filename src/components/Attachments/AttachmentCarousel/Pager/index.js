@@ -57,7 +57,7 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef(null);
 
-    const isSwipingHorizontally = useSharedValue(false);
+    const isSwipingInPager = useSharedValue(false);
     const activeIndex = useSharedValue(initialIndex);
 
     const pageScrollHandler = usePageScrollHandler(
@@ -66,7 +66,7 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
                 'worklet';
 
                 activeIndex.value = e.position;
-                isSwipingHorizontally.value = e.offset !== 0;
+                isSwipingInPager.value = e.offset !== 0;
             },
         },
         [],
@@ -82,7 +82,7 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
     // we use reanimated for this since onPageSelected is called
     // in the middle of the pager animation
     useAnimatedReaction(
-        () => isSwipingHorizontally.value,
+        () => isSwipingInPager.value,
         (stillScrolling) => {
             if (stillScrolling) {
                 return;
@@ -106,13 +106,13 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
 
     const contextValue = useMemo(
         () => ({
-            isSwipingHorizontally,
+            isSwipingInPager,
             pagerRef,
             shouldPagerScroll,
             onPinchGestureChange,
             onTap,
         }),
-        [isSwipingHorizontally, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap],
+        [isSwipingInPager, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap],
     );
 
     return (

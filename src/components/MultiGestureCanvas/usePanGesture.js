@@ -23,7 +23,7 @@ const usePanGesture = ({
     totalOffsetY,
     panTranslateX,
     panTranslateY,
-    isSwipingHorizontally,
+    isSwipingInPager,
     stopAnimation,
 }) => {
     // The content size after scaling it with the current (total) zoom value
@@ -145,7 +145,7 @@ const usePanGesture = ({
             // we need to make sure that we don't pan when we pinch AND move fingers
             // since we track it as pinch focal gesture.
             // We also need to prevent panning when we are swiping horizontally (from page to page)
-            if (evt.numberOfPointers > 1 || isSwipingHorizontally.value) {
+            if (evt.numberOfPointers > 1 || isSwipingInPager.value) {
                 return;
             }
 
@@ -166,7 +166,7 @@ const usePanGesture = ({
             previousTouch.value = null;
 
             // If we are swiping (in the pager), we don't want to return to boundaries
-            if (isSwipingHorizontally.value) {
+            if (isSwipingInPager.value) {
                 return;
             }
 

@@ -38,12 +38,12 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const pagerRefFallback = useRef(null);
-    const {onTap, pagerRef, shouldPagerScroll, isSwipingHorizontally, onPinchGestureChange} = attachmentCarouselPagerContext || {
+    const {onTap, pagerRef, shouldPagerScroll, isSwipingInPager, onPinchGestureChange} = attachmentCarouselPagerContext || {
         onTap: () => undefined,
         onPinchGestureChange: () => undefined,
         pagerRef: pagerRefFallback,
         shouldPagerScroll: false,
-        isSwipingHorizontally: false,
+        isSwipingInPager: false,
         ...props,
     };
 
@@ -127,7 +127,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         totalOffsetY,
         panTranslateX,
         panTranslateY,
-        isSwipingHorizontally,
+        isSwipingInPager,
         stopAnimation,
     });
 
@@ -145,7 +145,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         pinchBounceTranslateX,
         pinchBounceTranslateY,
         pinchScaleOffset,
-        isSwipingHorizontally,
+        isSwipingInPager,
         stopAnimation,
         onScaleChanged,
         onPinchGestureChange,
