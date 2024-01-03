@@ -72,6 +72,7 @@ Onyx.connect({
 const lastReportActions = {};
 const allSortedReportActions = {};
 const allReportActions = {};
+const visibleReportActionItems = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -83,6 +84,18 @@ Onyx.connect({
         const sortedReportActions = ReportActionUtils.getSortedReportActions(_.toArray(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
         lastReportActions[reportID] = _.first(sortedReportActions);
+
+        // The report is only visible if it is the last action not deleted that
+        // does not match a closed or created state.
+        const reportActionsForDisplay = _.filter(
+            sortedReportActions,
+            (reportAction, actionKey) =>
+                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionUtils.isWhisperAction(reportAction) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
 
@@ -513,7 +526,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         const lastActorDisplayName =
             hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? lastActorDetails.firstName || lastActorDetails.displayName : '';
-        let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
+        let lastMessageText = lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
             const archiveReason =
@@ -525,12 +538,16 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
             });
         }
 
+        const lastAction = visibleReportActionItems[report.reportID];
+
         if (result.isThread || result.isMoneyRequestReport) {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else if (result.isChatRoom || result.isPolicyExpenseChat) {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isTaskReport) {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
+        } else if (lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+            result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
