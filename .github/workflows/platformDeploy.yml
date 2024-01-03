@@ -10,7 +10,7 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
-  DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}
@@ -300,7 +300,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Cloudflare CLI
-        run: pip3 install cloudflare==2.14.3
+        run: pip3 install cloudflare
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
