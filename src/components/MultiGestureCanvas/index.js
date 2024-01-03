@@ -34,6 +34,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const pagerRefFallback = useRef(null);
+    // If the MultiGestureCanvas used inside a AttachmentCarouselPager, we need to adapt the behaviour based on the pager state
     const {onTap, pagerRef, shouldPagerScroll, isSwipingInPager, onPinchGestureChange} = attachmentCarouselPagerContext || {
         onTap: () => undefined,
         onPinchGestureChange: () => undefined,
@@ -43,6 +44,9 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         ...props,
     };
 
+    // Based on the (original) content size and the canvas size, we calculate the horizontal and vertical scale factors
+    // to fit the content inside the canvas
+    // We later use the lower of the two scale factors to fit the content inside the canvas
     const {minScale: minContentScale, maxScale: maxContentScale} = useMemo(() => getCanvasFitScale({canvasSize, contentSize}), [canvasSize, contentSize]);
 
     const zoomScale = useSharedValue(1);
@@ -64,11 +68,17 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
 
+    /**
+     * Stops any currently running decay animation from panning
+     */
     const stopAnimation = MultiGestureCanvasUtils.useWorkletCallback(() => {
         cancelAnimation(offsetX);
         cancelAnimation(offsetY);
     });
 
+    /**
+     * Resets the canvas to the initial state and animates back smoothly
+     */
     const reset = MultiGestureCanvasUtils.useWorkletCallback((animated) => {
         pinchScale.value = 1;
 
@@ -152,6 +162,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         },
     );
 
+    // Trigger a reset when the canvas gets inactive, but only if it was already mounted before
     const mounted = useRef(false);
     useEffect(() => {
         if (!mounted.current) {
@@ -164,6 +175,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         }
     }, [isActive, mounted, reset]);
 
+    // Animate the x and y position of the content within the canvas based on all of the gestures
     const animatedStyles = useAnimatedStyle(() => {
         const x = pinchTranslateX.value + panTranslateX.value + offsetX.value;
         const y = pinchTranslateY.value + panTranslateY.value + offsetY.value;
