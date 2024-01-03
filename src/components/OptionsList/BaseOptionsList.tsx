@@ -1,5 +1,5 @@
 import React, {forwardRef, memo, useEffect, useRef, ForwardedRef} from 'react';
-import {View, SectionList as RNSectionList, SectionListRenderItem, SectionListData, SectionList as SectionListType} from 'react-native';
+import {View, SectionList as RNSectionList, SectionListRenderItem, SectionListData} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
@@ -9,7 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {OptionData} from '@libs/ReportUtils';
-import type {BaseOptionListProps} from './types';
+import _ from 'lodash';
+import type {BaseOptionListProps, Section} from './types';
 
 function BaseOptionsList({
     keyboardDismissMode,
@@ -52,7 +53,7 @@ function BaseOptionsList({
         length: number;
         offset: number;
     }>>([]);
-    const previousSections = usePrevious<Array<SectionListData<SectionListType<OptionData>>>>(sections);
+    const previousSections = usePrevious<Array<SectionListData<OptionData, Section>>>(sections);
     const didLayout = useRef(false);
 
     const listContainerStyles = listContainerStylesProp ?? [styles.flex1];
@@ -119,8 +120,8 @@ function BaseOptionsList({
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
-     * @param {Array} data - This is the same as the data we pass into the component
-     * @param {Number} flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
+     * @param data - This is the same as the data we pass into the component
+     * @param flatDataArrayIndex - This index is provided by React Native, and refers to a flat array with data from all the sections. This flat array has some quirks:
      *
      *     1. It ALWAYS includes a list header and a list footer, even if we don't provide/render those.
      *     2. Each section includes a header, even if we don't provide/render one.
@@ -129,10 +130,10 @@ function BaseOptionsList({
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
      *
-     * @returns {Object}
+     * @returns
      */
     const getItemLayout = (
-        data: Array<SectionListData<OptionData>>,
+        data: any,
         flatDataArrayIndex: number
     ): {length: number, offset: number, index: number} => {
         if (!flattenedData.current[flatDataArrayIndex]) {
@@ -150,7 +151,7 @@ function BaseOptionsList({
     /**
      * Returns the key used by the list
      */
-    const extractKey = (option: OptionData) => option.keyForList;
+    const extractKey = (option: OptionData) => option.keyForList ?? '';
 
     /**
      * Function which renders a row in the list
@@ -163,8 +164,9 @@ function BaseOptionsList({
      * @return {Component}
      */
 
-    const renderItem: SectionListRenderItem<SectionList<OptionData>> = ({item, index, section}) => {
-        const isItemDisabled = isDisabled || section.isDisabled; // TODO:  || !!item.isDisabled
+    // const renderItem: SectionListRenderItem<SectionListType<OptionData>> = ({item, index, section}) => {
+    const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
+        const isItemDisabled = isDisabled || section.isDisabled; // TODO: !!item.isDisabled
         const isSelected = selectedOptions?.some((option) => {
             if (option.accountID && option.accountID === item.accountID) {
                 return true;
@@ -184,7 +186,7 @@ function BaseOptionsList({
 
         return (
             <OptionRow
-                keyForList={item.keyForList}
+                keyForList={item.keyForList ?? ''}
                 option={item}
                 showTitleTooltip={showTitleTooltip}
                 hoverStyle={optionHoveredStyle}
@@ -210,7 +212,7 @@ function BaseOptionsList({
      * Function which renders a section header component
      */
     const renderSectionHeader = ({section: {title, shouldShow}}: {
-        section: SectionListData<OptionData>
+        section: SectionListData<OptionData, Section>
     }) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
@@ -257,8 +259,8 @@ function BaseOptionsList({
                         contentContainerStyle={contentContainerStyles}
                         showsVerticalScrollIndicator={showScrollIndicator}
                         sections={sections}
-                        // keyExtractor={extractKey}
-                        stickySectixonHeadersEnabled={false}
+                        keyExtractor={extractKey}
+                        stickySectionHeadersEnabled={false}
                         renderItem={renderItem}
                         getItemLayout={getItemLayout}
                         renderSectionHeader={renderSectionHeader}

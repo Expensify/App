@@ -2,7 +2,7 @@ import { RefObject } from 'react';
 import type {OptionData} from '@libs/ReportUtils';
 import { StyleProp, ViewStyle, View, SectionList, SectionListData } from 'react-native';
 
-type Section<Item> = {
+type Section = {
     /** Title of the section */
     title?: string;
 
@@ -10,10 +10,13 @@ type Section<Item> = {
     indexOffset?: number;
 
     /** Array of options */
-    data?: Item[];
+    data?: OptionData[];
 
     /** Whether this section should show or not */
     shouldShow?: boolean;
+
+    /** Whether this section is disabled or not */
+    isDisabled?: boolean;
 }
 
 type OptionsListProps = {
@@ -32,7 +35,8 @@ type OptionsListProps = {
     /** Sections for the section list */
     // sections: Array<Section<OptionData>>;
     // sections: Array<SectionListData<OptionData>>;
-    sections: Array<SectionListData<SectionList<OptionData>>>;
+    // sections: Array<SectionListData<SectionList<OptionData, Section>>>;
+    sections: Array<SectionListData<OptionData, Section>>;
 
     /** Index for option to focus on */
     focusedIndex?: number;
