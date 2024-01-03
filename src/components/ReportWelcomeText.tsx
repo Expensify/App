@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React from 'react';
 import {View} from 'react-native';
 import {OnyxEntry, withOnyx} from 'react-native-onyx';
@@ -43,7 +42,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
-    const additionalText = _.map(moneyRequestOptions, (item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
+    const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
 
     const navigateToReport = () => {
         if (!report?.reportID) {
