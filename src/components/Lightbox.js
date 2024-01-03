@@ -2,7 +2,7 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
-import useStyleUtils from '@styles/useStyleUtils';
+import useStyleUtils from '@hooks/useStyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
@@ -58,6 +58,8 @@ const defaultProps = {
     onError: () => {},
     style: {},
 };
+
+const DEFAULT_IMAGE_SIZE = 200;
 
 function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError, style, index, activeIndex, hasSiblingCarouselItems, zoomRange}) {
     const StyleUtils = useStyleUtils();
@@ -141,7 +143,10 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
 
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || (imageDimensions?.lightboxSize == null && imageDimensions?.fallbackSize == null) || containerSize.width === 0 || containerSize.height === 0) {
-            return;
+            return {
+                width: DEFAULT_IMAGE_SIZE,
+                height: DEFAULT_IMAGE_SIZE,
+            };
         }
 
         const imageSize = imageDimensions.lightboxSize || imageDimensions.fallbackSize;
@@ -173,7 +178,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
                             >
                                 <Image
                                     source={{uri: source}}
-                                    style={imageDimensions?.lightboxSize}
+                                    style={imageDimensions?.lightboxSize || {width: DEFAULT_IMAGE_SIZE, height: DEFAULT_IMAGE_SIZE}}
                                     isAuthTokenRequired={isAuthTokenRequired}
                                     onError={onError}
                                     onLoadEnd={() => setImageLoaded(true)}
