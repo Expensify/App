@@ -922,6 +922,15 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
                 [updatedReportAction.reportActionID]: updatedReportAction,
             },
         });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE, 
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`, 
+            value: { 
+                [updatedReportAction.reportActionID]: { 
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'), 
+                }, 
+            }, 
+        })
 
         // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
         // Should only update if the transaction matches the currency of the report, else we wait for the update
