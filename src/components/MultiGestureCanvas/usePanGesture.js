@@ -93,6 +93,10 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             // Animated back to the boundary
             offsetY.value = withSpring(clampedOffset.y, MultiGestureCanvasUtils.SPRING_CONFIG);
         }
+
+        // Reset velocity variables after we finished the pan gesture
+        panVelocityX.value = 0;
+        panVelocityY.value = 0;
     });
 
     const panGesture = Gesture.Pan()
@@ -100,7 +104,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
         .averageTouches(true)
         .onTouchesMove((_evt, state) => {
             // We only allow panning when the content is zoomed in
-            if (zoomScale.value <= 1) {
+            if (zoomScale.value <= 1 || isSwipingInPager.value) {
                 return;
             }
 
@@ -111,9 +115,8 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
         })
         .onChange((evt) => {
             // Since we're running both pinch and pan gesture handlers simultaneously,
-            // we need to make sure that we don't pan when we pinch AND move fingers
-            // since we track it as pinch focal gesture.
-            // We also need to prevent panning when we are swiping horizontally (from page to page)
+            // we need to make sure that we don't pan when we pinch since we track it as pinch focal gesture.
+            // We also need to prevent panning when we are swiping horizontally in the pager
             if (evt.numberOfPointers > 1 || isSwipingInPager.value) {
                 return;
             }
@@ -125,11 +128,9 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             panTranslateY.value += evt.changeY;
         })
         .onEnd(() => {
-            // Add pan translation to total offset
+            // Add pan translation to total offset and reset gesture variables
             offsetX.value += panTranslateX.value;
             offsetY.value += panTranslateY.value;
-
-            // Reset pan gesture variables
             panTranslateX.value = 0;
             panTranslateY.value = 0;
 
@@ -139,10 +140,6 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
             }
 
             finishPanGesture();
-
-            // Reset pan gesture variables
-            panVelocityX.value = 0;
-            panVelocityY.value = 0;
         });
 
     return panGesture;
