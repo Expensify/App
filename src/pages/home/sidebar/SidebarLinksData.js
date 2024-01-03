@@ -190,7 +190,8 @@ const chatReportSelector = (report) =>
  * @returns {Object|undefined}
  */
 const reportActionsSelector = (reportActions) =>
-    _.map(reportActions || [], (reportAction) => ({
+    reportActions &&
+    _.map(reportActions, (reportAction) => ({
         errors: _.get(reportAction, 'errors', []),
         message: [
             {
