@@ -358,6 +358,14 @@ const AttachmentModal = forwardRef((props, ref) => {
         setIsModalOpen(true);
     }, []);
 
+    useEffect(() => {
+        setSource(props.source);
+    }, [props.source]);
+
+    useEffect(() => {
+        setIsAuthTokenRequired(props.isAuthTokenRequired);
+    }, [props.isAuthTokenRequired]);
+
     const sourceForAttachmentView = props.source || source;
 
     const threeDotsMenuItems = useMemo(() => {
@@ -368,7 +376,7 @@ const AttachmentModal = forwardRef((props, ref) => {
         const parentReportAction = props.parentReportActions[props.report.parentReportActionID];
 
         const canEdit =
-            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT) &&
+            ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, props.parentReport.reportID, CONST.EDIT_REQUEST_FIELD.RECEIPT, props.transaction) &&
             !TransactionUtils.isDistanceRequest(props.transaction);
         if (canEdit) {
             menuItems.push({
@@ -396,7 +404,7 @@ const AttachmentModal = forwardRef((props, ref) => {
         }
         return menuItems;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file]);
+    }, [props.isReceiptAttachment, props.parentReport, props.parentReportActions, props.policy, props.transaction, file, source]);
 
     useImperativeHandle(
         ref,

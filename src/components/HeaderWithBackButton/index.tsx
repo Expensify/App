@@ -19,17 +19,17 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
+import HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
-    iconFill = null,
+    iconFill,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(ROUTES.HOME),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    policy = {},
+    policy,
     shouldShowAvatarWithDisplay = false,
     shouldShowBackButton = true,
     shouldShowBorderBottom = false,
@@ -40,10 +40,10 @@ function HeaderWithBackButton({
     shouldShowPinButton = false,
     shouldShowThreeDotsButton = false,
     shouldDisableThreeDotsButton = false,
-    stepCounter = null,
+    stepCounter,
     subtitle = '',
     title = '',
-    titleColor = undefined,
+    titleColor,
     threeDotsAnchorPosition = {
         vertical: 0,
         horizontal: 0,
@@ -54,14 +54,16 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     singleExecution = (func) => func,
     shouldNavigateToTopMostReport = false,
-}) {
+}: HeaderWithBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+    // @ts-expect-error TODO: Remove this once useKeyboardState (https://github.com/Expensify/App/issues/24941) is migrated to TypeScript.
     const {isKeyboardShown} = useKeyboardState();
     const waitForNavigate = useWaitForNavigation();
+
     return (
         <View
             // Hover on some part of close icons will not work on Electron if dragArea is true
@@ -91,7 +93,7 @@ function HeaderWithBackButton({
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
-                                fill={iconFill || theme.icon}
+                                fill={iconFill ?? theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </Tooltip>
@@ -114,17 +116,17 @@ function HeaderWithBackButton({
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
-                                onPress={(e) => {
+                                onPress={(event) => {
                                     // Blur the pressable in case this button triggers a Growl notification
                                     // We do not want to overlap Growl with the Tooltip (#15271)
-                                    e.currentTarget.blur();
+                                    (event?.currentTarget as HTMLElement)?.blur();
 
                                     if (!isDownloadButtonActive) {
                                         return;
                                     }
 
                                     onDownloadButtonPress();
-                                    temporarilyDisableDownloadButton(true);
+                                    temporarilyDisableDownloadButton();
                                 }}
                                 style={[styles.touchableButtonImage]}
                                 role="button"
@@ -132,7 +134,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Download}
-                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+                                    fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -148,12 +150,12 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.QuestionMark}
-                                    fill={iconFill || theme.icon}
+                                    fill={iconFill ?? theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-                    {shouldShowPinButton && <PinButton report={report} />}
+                    {shouldShowPinButton && !!report && <PinButton report={report} />}
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
                             disabled={shouldDisableThreeDotsButton}
@@ -173,7 +175,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Close}
-                                    fill={iconFill || theme.icon}
+                                    fill={iconFill ?? theme.icon}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -184,7 +186,6 @@ function HeaderWithBackButton({
     );
 }
 
-HeaderWithBackButton.propTypes = headerWithBackButtonPropTypes;
 HeaderWithBackButton.displayName = 'HeaderWithBackButton';
 
 export default HeaderWithBackButton;

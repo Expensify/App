@@ -18,22 +18,27 @@ const propTypes = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
+
+    /** Boolean to enable validation */
+    isPolicyExpenseChat: PropTypes.bool.isRequired,
 };
 
-function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
+function EditRequestMerchantPage({defaultMerchant, onSubmit, isPolicyExpenseChat}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const merchantInputRef = useRef(null);
+    const isEmptyMerchant = defaultMerchant === '' || defaultMerchant === CONST.TRANSACTION.UNKNOWN_MERCHANT || defaultMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const validate = useCallback((value) => {
-        const errors = {};
-
-        if (_.isEmpty(value.merchant)) {
-            errors.merchant = 'common.error.fieldRequired';
-        }
-
-        return errors;
-    }, []);
+    const validate = useCallback(
+        (value) => {
+            const errors = {};
+            if (_.isEmpty(value.merchant) && value.merchant.trim() === '' && isPolicyExpenseChat) {
+                errors.merchant = 'common.error.fieldRequired';
+            }
+            return errors;
+        },
+        [isPolicyExpenseChat],
+    );
 
     return (
         <ScreenWrapper
@@ -56,7 +61,7 @@ function EditRequestMerchantPage({defaultMerchant, onSubmit}) {
                         InputComponent={TextInput}
                         inputID="merchant"
                         name="merchant"
-                        defaultValue={defaultMerchant}
+                        defaultValue={isEmptyMerchant ? '' : defaultMerchant}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}

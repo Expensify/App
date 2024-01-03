@@ -1,4 +1,5 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as OnyxTypes from '@src/types/onyx';
 import {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -16,15 +17,10 @@ Onyx.connect({
     },
 });
 
-/**
- * @param [defaultValue] optional default display name value
- */
-function getDisplayNameOrDefault(displayName?: string, defaultValue = ''): string {
-    // Not using nullish coalescing as it differs from OR for strings. For example:
-    // '' || 'A' === 'A'
-    // '' ?? 'A' === ''
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return displayName || defaultValue || Localize.translateLocal('common.hidden');
+function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true): string {
+    const displayName = passedPersonalDetails?.displayName ? passedPersonalDetails.displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : '';
+    const fallbackValue = shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '';
+    return displayName || defaultValue || fallbackValue;
 }
 
 /**
