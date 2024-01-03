@@ -43,6 +43,14 @@ const usePinchGesture = ({
     const pinchBounceTranslateX = useSharedValue(0);
     const pinchBounceTranslateY = useSharedValue(0);
 
+    useAnimatedReaction(
+        () => [pinchTranslateX.value, pinchTranslateY.value, pinchBounceTranslateX.value, pinchBounceTranslateY.value],
+        ([translateX, translateY, bounceX, bounceY]) => {
+            totalPinchTranslateX.value = translateX + bounceX;
+            totalPinchTranslateY.value = translateY + bounceY;
+        },
+    );
+
     const getAdjustedFocal = useWorkletCallback(
         (focalX, focalY) => ({
             x: focalX - (canvasSize.width / 2 + totalOffsetX.value),
@@ -93,9 +101,6 @@ const usePinchGesture = ({
                 pinchBounceTranslateX.value = newPinchTranslateX - pinchTranslateX.value;
                 pinchBounceTranslateY.value = newPinchTranslateY - pinchTranslateY.value;
             }
-
-            totalPinchTranslateX.value = pinchTranslateX.value + pinchBounceTranslateX.value;
-            totalPinchTranslateY.value = pinchTranslateY.value + pinchBounceTranslateY.value;
         })
         .onEnd(() => {
             // Add pinch translation to total offset
@@ -105,8 +110,6 @@ const usePinchGesture = ({
             // Reset pinch gesture variables
             pinchTranslateX.value = 0;
             pinchTranslateY.value = 0;
-            totalPinchTranslateX.value = 0;
-            totalPinchTranslateY.value = 0;
             currentPinchScale.value = 1;
             isPinchGestureRunning.value = false;
 
