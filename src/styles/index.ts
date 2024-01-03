@@ -443,6 +443,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
+        textIvoryLight: {
+            color: theme.iconColorfulBackground,
+        },
+
         textNoWrap: {
             ...whiteSpace.noWrap,
         },
