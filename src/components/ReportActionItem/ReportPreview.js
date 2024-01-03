@@ -163,7 +163,7 @@ function ReportPreview(props) {
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-    const hasErrors = hasReceipts && hasMissingSmartscanFields || (canUseViolations && ReportUtils.hasViolations(props.iouReportID, props.transactionViolations));
+    const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(props.iouReportID, props.transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;

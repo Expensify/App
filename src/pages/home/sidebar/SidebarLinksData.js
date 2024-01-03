@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import SidebarUtils from '@libs/SidebarUtils';
-import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +27,20 @@ const propTypes = {
     /** All report actions for all reports */
 
     /** Object of report actions for this report */
-    allReportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
+    allReportActions: PropTypes.objectOf(
+        PropTypes.arrayOf(
+            PropTypes.shape({
+                error: PropTypes.string,
+                message: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        moderationDecision: PropTypes.shape({
+                            decision: PropTypes.string,
+                        }),
+                    }),
+                ),
+            }),
+        ),
+    ),
 
     /** Whether the reports are loading. When false it means they are ready to be used. */
     isLoadingApp: PropTypes.bool,
