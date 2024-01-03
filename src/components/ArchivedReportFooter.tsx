@@ -30,14 +30,14 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     const originalMessage = reportClosedAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ? reportClosedAction.originalMessage : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[report?.ownerAccountID ?? 0]?.displayName);
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[report?.ownerAccountID ?? 0]);
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[newAccountID ?? 0]?.displayName);
-        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? 0]?.displayName);
+        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[newAccountID ?? 0]);
+        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? 0]);
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;

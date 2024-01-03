@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -160,6 +161,7 @@ function startMoneyRequest_temporaryForRefactor(reportID, isFromGlobalCreate, io
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     });
 }
 
@@ -177,6 +179,14 @@ function clearMoneyRequest(transactionID) {
  */
 function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
+}
+
+/**
+ * Reset the money request amount, discarding the user-provided value. In the case of distance requests, this will effectively re-enable the default behavior of automatic amount calculation.
+ * @param {String} transactionID
+ */
+function resetMoneyRequestAmount_temporaryForRefactor(transactionID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount: CONST.IOU.DEFAULT_AMOUNT});
 }
 
 /**
@@ -278,7 +288,7 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
-        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         category: '',
         tag: '',
         created,
@@ -303,6 +313,7 @@ function buildOnyxDataForMoneyRequest(
     optimisticPolicyRecentlyUsedTags,
     isNewChatReport,
     isNewIOUReport,
+    hasOutstandingChildRequest = false,
 ) {
     const optimisticData = [
         {
@@ -314,6 +325,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
+                hasOutstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
@@ -324,7 +336,9 @@ function buildOnyxDataForMoneyRequest(
                 ...iouReport,
                 lastMessageText: iouAction.message[0].text,
                 lastMessageHtml: iouAction.message[0].html,
-                ...(isNewIOUReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
+                pendingFields: {
+                    ...(isNewIOUReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
         {
@@ -394,18 +408,14 @@ function buildOnyxDataForMoneyRequest(
                   },
               ]
             : []),
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {
-                          pendingFields: null,
-                          errorFields: null,
-                      },
-                  },
-              ]
-            : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -469,20 +479,16 @@ function buildOnyxDataForMoneyRequest(
                     : {}),
             },
         },
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {
-                          pendingFields: null,
-                          errorFields: {
-                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                          },
-                      },
-                  },
-              ]
-            : []),
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: {
+                    ...(isNewIOUReport ? {createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage')} : {}),
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -622,11 +628,18 @@ function getMoneyRequestInformation(
     const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport);
     let iouReport = isNewIOUReport ? null : allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
-    // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
-    if (isPolicyExpenseChat && iouReport) {
-        const policyType = ReportUtils.getPolicy(iouReport.policyID).type || '';
-        const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-        if (isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
+    // Check if the Scheduled Submit is enabled in case of expense report
+    let needsToBeManuallySubmitted = false;
+    let isFromPaidPolicy = false;
+    if (isPolicyExpenseChat) {
+        const policy = ReportUtils.getPolicy(chatReport.policyID);
+        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
+
+        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
+        needsToBeManuallySubmitted = isFromPaidPolicy && !(policy.isHarvestingEnabled || false);
+
+        // If the linked expense report on paid policy is not draft, we need to create a new draft expense report
+        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport)) {
             iouReport = null;
         }
     }
@@ -634,9 +647,10 @@ function getMoneyRequestInformation(
     if (iouReport) {
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
-
-            // Because of the Expense reports are stored as negative values, we substract the total from the amount
-            iouReport.total -= amount;
+            if (lodashGet(iouReport, 'currency') === currency) {
+                // Because of the Expense reports are stored as negative values, we substract the total from the amount
+                iouReport.total -= amount;
+            }
         } else {
             iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
         }
@@ -735,6 +749,10 @@ function getMoneyRequestInformation(
           }
         : undefined;
 
+    // The policy expense chat should have the GBR only when its a paid policy and the scheduled submit is turned off
+    // so the employee has to submit to their manager manually.
+    const hasOutstandingChildRequest = isPolicyExpenseChat && needsToBeManuallySubmitted;
+
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
         chatReport,
@@ -749,6 +767,7 @@ function getMoneyRequestInformation(
         optimisticPolicyRecentlyUsedTags,
         isNewChatReport,
         isNewIOUReport,
+        hasOutstandingChildRequest,
     );
 
     return {
@@ -1057,6 +1076,8 @@ function updateDistanceRequest(transactionID, transactionThreadReportID, transac
  * @param {Object} [receipt]
  * @param {String} [category]
  * @param {String} [tag]
+ * @param {String} [taxCode]
+ * @param {Number} [taxAmount]
  * @param {Boolean} [billable]
  */
 function requestMoney(
@@ -1072,6 +1093,8 @@ function requestMoney(
     receipt = undefined,
     category = undefined,
     tag = undefined,
+    taxCode = '',
+    taxAmount = 0,
     billable = undefined,
 ) {
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -1102,6 +1125,8 @@ function requestMoney(
             receiptState: lodashGet(receipt, 'state'),
             category,
             tag,
+            taxCode,
+            taxAmount,
             billable,
         },
         onyxData,
@@ -2202,17 +2227,28 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
             },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
+            value: {
+                ...transaction,
+                modifiedCreated: transaction.modifiedCreated ? transaction.modifiedCreated : null,
+                modifiedAmount: transaction.modifiedAmount ? transaction.modifiedAmount : null,
+                modifiedCurrency: transaction.modifiedCurrency ? transaction.modifiedCurrency : null,
+                modifiedMerchant: transaction.modifiedMerchant ? transaction.modifiedMerchant : null,
+                modifiedWaypoints: transaction.modifiedWaypoints ? transaction.modifiedWaypoints : null,
+                pendingFields: null,
+            },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: iouReport,
+            value: {
+                ...iouReport,
+                cachedTotal: iouReport.cachedTotal ? iouReport.cachedTotal : null,
+            },
         },
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`,
             value: chatReport,
         },
@@ -3007,6 +3043,7 @@ function submitReport(expenseReport) {
 
     const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport.total, expenseReport.currency, expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
+    const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
 
     const optimisticData = [
         {
@@ -3038,7 +3075,9 @@ function submitReport(expenseReport) {
                       key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
                       value: {
                           ...parentReport,
-                          hasOutstandingChildRequest: false,
+
+                          // In case its a manager who force submitted the report, they are the next user who needs to take an action
+                          hasOutstandingChildRequest: isCurrentUserManager,
                           iouReportID: null,
                       },
                   },
@@ -3285,6 +3324,22 @@ function resetMoneyRequestTag() {
 }
 
 /**
+ * @param {String} transactionID
+ * @param {Object} taxRate
+ */
+function setMoneyRequestTaxRate(transactionID, taxRate) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
+}
+
+/**
+ * @param {String} transactionID
+ * @param {Number} taxAmount
+ */
+function setMoneyRequestTaxAmount(transactionID, taxAmount) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
+}
+
+/**
  * @param {Boolean} billable
  */
 function setMoneyRequestBillable(billable) {
@@ -3423,6 +3478,8 @@ export {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestTag,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
@@ -3431,4 +3488,5 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    resetMoneyRequestAmount_temporaryForRefactor,
 };
