@@ -143,7 +143,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit, isDataLoading]);
+    }, [parentReportAction, parentReport.reportID, fieldToEdit, transaction, isDataLoading]);
 
     if (isDataLoading) {
         return <FullScreenLoadingIndicator />;
