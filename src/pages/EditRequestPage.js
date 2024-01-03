@@ -104,7 +104,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit, transaction)) {
             return;
         }
 
@@ -112,7 +112,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit]);
+    }, [parentReportAction, parentReport.reportID, fieldToEdit, transaction]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -195,17 +195,21 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 defaultMerchant={transactionMerchant}
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 onSubmit={(transactionChanges) => {
+                    const newTrimmedMerchant = transactionChanges.merchant.trim();
+
                     // In case the merchant hasn't been changed, do not make the API request.
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
+                    // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+                    if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
                         Navigation.dismissModal();
                         return;
                     }
+
                     // This is possible only in case of IOU requests.
-                    if (transactionChanges.merchant.trim() === '') {
+                    if (newTrimmedMerchant === '') {
                         editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
                         return;
                     }
-                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
+                    editMoneyRequest({merchant: newTrimmedMerchant});
                 }}
             />
         );

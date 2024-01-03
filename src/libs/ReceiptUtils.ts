@@ -44,7 +44,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
         // For local files, we won't have a thumbnail yet
         if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-            return {thumbnail: null, image: path};
+            return {thumbnail: null, image: path, isLocalFile: true};
         }
 
         if (isReceiptImage) {
