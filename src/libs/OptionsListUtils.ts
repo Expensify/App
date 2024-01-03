@@ -306,7 +306,7 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
 function getParticipantsOption(participant: ReportUtils.OptionData, personalDetails: OnyxEntry<PersonalDetailsList>): Participant {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID ?? -1], personalDetails)[participant.accountID ?? -1];
     const login = detail?.login ?? participant.login ?? '';
-    const displayName = detail?.displayName ?? LocalePhoneNumber.formatPhoneNumber(login);
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
     return {
         keyForList: String(detail?.accountID),
         login,
@@ -348,7 +348,7 @@ function getParticipantNames(personalDetailList?: Array<Partial<PersonalDetails>
             participantNames.add(participant.lastName.toLowerCase());
         }
         if (participant.displayName) {
-            participantNames.add(participant.displayName.toLowerCase());
+            participantNames.add(PersonalDetailsUtils.getDisplayNameOrDefault(participant).toLowerCase());
         }
     });
     return participantNames;
@@ -397,7 +397,11 @@ function getSearchText(
                 // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([personalDetail.displayName ?? '', personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+                searchTerms = searchTerms.concat([
+                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                    personalDetail.login,
+                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
+                ]);
             }
         }
     }
@@ -605,9 +609,10 @@ function createOption(
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
         const lastActorDisplayName =
-            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? lastActorDetails.firstName ?? lastActorDetails.displayName : '';
+            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+                ? lastActorDetails.firstName ?? PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+                : '';
         let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
-        lastMessageText += report ? lastMessageTextFromReport : '';
         const lastReportAction = lastReportActions[report.reportID ?? ''];
         if (result.isArchivedRoom && lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
             const archiveReason = lastReportAction.originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -615,7 +620,7 @@ function createOption(
                 lastMessageText = Localize.translate(preferredLocale, 'reportArchiveReasons.default');
             } else {
                 lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails?.displayName),
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
                     policyName: ReportUtils.getPolicyName(report),
                 });
             }
@@ -1470,8 +1475,8 @@ function getSearchOptions(reports: Record<string, Report>, personalDetails: Onyx
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails, amountText: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
     return {
-        text: personalDetail.displayName ? personalDetail.displayName : formattedLogin,
-        alternateText: formattedLogin ?? personalDetail.displayName,
+        text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
+        alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
@@ -1602,13 +1607,20 @@ function formatMemberForList(member: ReportUtils.OptionData, config: ReportUtils
 /**
  * Build the options for the Workspace Member Invite view
  */
-function getMemberInviteOptions(personalDetails: OnyxEntry<PersonalDetailsList>, betas: Beta[] = [], searchValue = '', excludeLogins: string[] = []): GetOptions {
+function getMemberInviteOptions(
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    betas: Beta[] = [],
+    searchValue = '',
+    excludeLogins: string[] = [],
+    includeSelectedOptions = false,
+): GetOptions {
     return getOptions({}, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
         excludeLogins,
         sortPersonalDetailsByAlphaAsc: true,
+        includeSelectedOptions,
     });
 }
 
