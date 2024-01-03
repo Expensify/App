@@ -12,7 +12,6 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
@@ -85,7 +84,6 @@ function MoneyRequestParticipantsSelector({
 }) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
