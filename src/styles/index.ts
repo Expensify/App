@@ -1586,7 +1586,7 @@ const styles = (theme: ThemeColors) =>
         optionDisplayName: {
             fontFamily: fontFamily.EXP_NEUE,
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
             ...whiteSpace.noWrap,
         },
 
@@ -1606,7 +1606,7 @@ const styles = (theme: ThemeColors) =>
 
         optionAlternateText: {
             minHeight: variables.alternateTextHeight,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXLarge,
         },
 
         optionAlternateTextCompact: {
@@ -2767,6 +2767,10 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,
             paddingRight: 5,
+        },
+
+        codePlainTextStyle: {
+            ...codeStyles.codePlainTextStyle,
         },
 
         fullScreenLoading: {
@@ -4133,4 +4137,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};
