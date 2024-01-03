@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import * as Session from './Session';
 
 type FirstAndLastName = {
     firstName: string;
@@ -262,6 +263,10 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * selected timezone if set to automatically update.
  */
 function updateAutomaticTimezone(timezone: Timezone) {
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
     if (!currentUserAccountID) {
         return;
     }
