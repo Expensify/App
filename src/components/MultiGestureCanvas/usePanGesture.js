@@ -116,8 +116,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
         .onChange((evt) => {
             // Since we're running both pinch and pan gesture handlers simultaneously,
             // we need to make sure that we don't pan when we pinch since we track it as pinch focal gesture.
-            // We also need to prevent panning when we are swiping horizontally in the pager
-            if (evt.numberOfPointers > 1 || isSwipingInPager.value) {
+            if (evt.numberOfPointers > 1) {
                 return;
             }
 
