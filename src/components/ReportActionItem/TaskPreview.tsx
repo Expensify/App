@@ -29,13 +29,17 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
+type PolicyRole = {
+    role: string
+};
+
 type TaskPreviewOnyxProps = {
     /* Onyx Props */
 
     taskReport: OnyxEntry<Report>;
 
     /** The policy of root parent report */
-    rootParentReportpolicy: OnyxEntry<{role: string}>;
+    rootParentReportpolicy: OnyxEntry<PolicyRole>;
 };
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
@@ -62,7 +66,7 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         checkIfContextMenuActive: () => void;
     };
 
-function TaskPreview(props: TaskPreviewProps) {
+function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, isHovered, currentUserPersonalDetails, rootParentReportpolicy}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -70,11 +74,11 @@ function TaskPreview(props: TaskPreviewProps) {
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
-    const isTaskCompleted = isNotEmptyObject(props.taskReport)
-        ? props.taskReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
-        : props.action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
-    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(props.taskReportID, props.action?.childReportName ?? ''));
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport ?? {}) ?? props.action?.childManagerAccountID ?? '';
+    const isTaskCompleted = isNotEmptyObject(taskReport)
+        ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
+        : action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
+    const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport ?? {}) ?? action?.childManagerAccountID ?? '';
     const assigneeLogin = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.login ?? '' : '';
     const assigneeDisplayName = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.displayName ?? '' : '';
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
@@ -82,7 +86,7 @@ function TaskPreview(props: TaskPreviewProps) {
         taskAssignee && taskAssigneeAccountID !== 0
             ? `<comment><mention-user accountid="${taskAssigneeAccountID}">@${taskAssignee}</mention-user> ${taskTitle}</comment>`
             : `<comment>${taskTitle}</comment>`;
-    const isDeletedParentAction = ReportUtils.isCanceledTaskReport(props.taskReport, props.action);
+    const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
 
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
@@ -91,10 +95,10 @@ function TaskPreview(props: TaskPreviewProps) {
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
-                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.taskReportID))}
+                onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action ?? {}, props.checkIfContextMenuActive)}
+                onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action ?? {}, checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
@@ -105,13 +109,13 @@ function TaskPreview(props: TaskPreviewProps) {
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
                         disabled={
-                            !Task.canModifyTask(props.taskReport ?? {}, props.currentUserPersonalDetails.accountID, props.rootParentReportpolicy ? props.rootParentReportpolicy.role : '')
+                            !Task.canModifyTask(taskReport ?? {}, currentUserPersonalDetails.accountID, rootParentReportpolicy ? rootParentReportpolicy.role : '')
                         }
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
-                                Task.reopenTask(props.taskReport ?? {});
+                                Task.reopenTask(taskReport ?? {});
                             } else {
-                                Task.completeTask(props.taskReport ?? {});
+                                Task.completeTask(taskReport ?? {});
                             }
                         })}
                         accessibilityLabel={translate('task.task')}
@@ -120,7 +124,7 @@ function TaskPreview(props: TaskPreviewProps) {
                 </View>
                 <Icon
                     src={Expensicons.ArrowRight}
-                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
+                    fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
                 />
             </PressableWithoutFeedback>
         </View>
