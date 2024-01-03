@@ -7,6 +7,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -693,7 +694,7 @@ function getAssignee(assigneeAccountID: number, personalDetails: OnyxTypes.Perso
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: details.displayName ?? '',
+        displayName: PersonalDetailsUtils.getDisplayNameOrDefault(details),
         subtitle: details.login ?? '',
     };
 }
