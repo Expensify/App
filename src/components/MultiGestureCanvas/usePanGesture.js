@@ -22,12 +22,9 @@ const usePanGesture = ({
     isSwipingInPager,
     stopAnimation,
 }) => {
-    // The content size after scaling it with the current (total) zoom value
-    const zoomScaledContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
-    const zoomScaledContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
-
-    // Used to track previous touch position for the "swipe down to close" gesture
-    const previousTouch = useSharedValue(null);
+    // The content size after fitting it to the canvas and zooming
+    const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
+    const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
 
     // Pan velocity to calculate the decay
     const panVelocityX = useSharedValue(0);
@@ -40,62 +37,57 @@ const usePanGesture = ({
         let rightBoundary = 0;
         let topBoundary = 0;
 
-        if (canvasSize.width < zoomScaledContentWidth.value) {
-            rightBoundary = Math.abs(canvasSize.width - zoomScaledContentWidth.value) / 2;
+        if (canvasSize.width < zoomedContentWidth.value) {
+            rightBoundary = Math.abs(canvasSize.width - zoomedContentWidth.value) / 2;
         }
 
-        if (canvasSize.height < zoomScaledContentHeight.value) {
-            topBoundary = Math.abs(zoomScaledContentHeight.value - canvasSize.height) / 2;
+        if (canvasSize.height < zoomedContentHeight.value) {
+            topBoundary = Math.abs(zoomedContentHeight.value - canvasSize.height) / 2;
         }
 
-        const maxVector = {x: rightBoundary, y: topBoundary};
-        const minVector = {x: -rightBoundary, y: -topBoundary};
+        const minBoundaries = {x: -rightBoundary, y: -topBoundary};
+        const maxBoundaries = {x: rightBoundary, y: topBoundary};
 
-        const target = {
-            x: MultiGestureCanvasUtils.clamp(offsetX.value, minVector.x, maxVector.x),
-            y: MultiGestureCanvasUtils.clamp(offsetY.value, minVector.y, maxVector.y),
+        const clampedOffset = {
+            x: MultiGestureCanvasUtils.clamp(offsetX.value, minBoundaries.x, maxBoundaries.x),
+            y: MultiGestureCanvasUtils.clamp(offsetY.value, minBoundaries.y, maxBoundaries.y),
         };
 
-        const isInBoundaryX = target.x === offsetX.value;
-        const isInBoundaryY = target.y === offsetY.value;
+        // If the horizontal/vertical offset is the same after clamping to the min/max boundaries, the content is within the boundaries
+        const isInBoundaryX = clampedOffset.x === offsetX.value;
+        const isInBoundaryY = clampedOffset.y === offsetY.value;
 
         return {
-            target,
+            minBoundaries,
+            maxBoundaries,
+            clampedOffset,
             isInBoundaryX,
             isInBoundaryY,
-            minVector,
-            maxVector,
-            canPanLeft: target.x < maxVector.x,
-            canPanRight: target.x > minVector.x,
         };
     }, [canvasSize.width, canvasSize.height]);
 
-    const returnToBoundaries = MultiGestureCanvasUtils.useWorkletCallback(() => {
-        const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
-
-        if (zoomScale.value === zoomRange.min && offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
-            // We don't need to run any animations
+    // We want to smoothly gesture by phasing out the pan animation
+    // In case the content is outside of the boundaries of the canvas,
+    // we need to return to the view to the boundaries
+    const finishPanGesture = MultiGestureCanvasUtils.useWorkletCallback(() => {
+        // If the content is centered within the canvas, we don't need to run any animations
+        if (offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
             return;
         }
 
-        // If we are zoomed out, we want to center the content
-        if (zoomScale.value <= zoomRange.min) {
-            offsetX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            offsetY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
-            return;
-        }
+        const {clampedOffset, isInBoundaryX, isInBoundaryY, minBoundaries, maxBoundaries} = getBounds();
 
         if (isInBoundaryX) {
             if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= zoomRange.max) {
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
-                    clamp: [minVector.x, maxVector.x],
+                    clamp: [minBoundaries.x, maxBoundaries.x],
                     deceleration: PAN_DECAY_DECELARATION,
                     rubberBandEffect: false,
                 });
             }
         } else {
-            offsetX.value = withSpring(target.x, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetX.value = withSpring(clampedOffset.x, MultiGestureCanvasUtils.SPRING_CONFIG);
         }
 
         if (isInBoundaryY) {
@@ -103,17 +95,17 @@ const usePanGesture = ({
                 Math.abs(panVelocityY.value) > 0 &&
                 zoomScale.value <= zoomRange.max &&
                 // Limit vertical panning when content is smaller than screen
-                offsetY.value !== minVector.y &&
-                offsetY.value !== maxVector.y
+                offsetY.value !== minBoundaries.y &&
+                offsetY.value !== maxBoundaries.y
             ) {
                 offsetY.value = withDecay({
                     velocity: panVelocityY.value,
-                    clamp: [minVector.y, maxVector.y],
+                    clamp: [minBoundaries.y, maxBoundaries.y],
                     deceleration: PAN_DECAY_DECELARATION,
                 });
             }
         } else {
-            offsetY.value = withSpring(target.y, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetY.value = withSpring(clampedOffset.y, MultiGestureCanvasUtils.SPRING_CONFIG);
         }
     });
 
@@ -121,16 +113,11 @@ const usePanGesture = ({
         .manualActivation(true)
         .averageTouches(true)
         .onTouchesMove((evt, state) => {
-            if (zoomScale.value > 1) {
-                state.activate();
+            if (zoomScale.value <= 1) {
+                return;
             }
 
-            if (previousTouch.value == null) {
-                previousTouch.value = {
-                    x: evt.allTouches[0].x,
-                    y: evt.allTouches[0].y,
-                };
-            }
+            state.activate();
         })
         .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
         .onStart(() => {
@@ -159,14 +146,13 @@ const usePanGesture = ({
             // Reset pan gesture variables
             panTranslateX.value = 0;
             panTranslateY.value = 0;
-            previousTouch.value = null;
 
             // If we are swiping (in the pager), we don't want to return to boundaries
             if (isSwipingInPager.value) {
                 return;
             }
 
-            returnToBoundaries();
+            finishPanGesture();
 
             // Reset pan gesture variables
             panVelocityX.value = 0;
