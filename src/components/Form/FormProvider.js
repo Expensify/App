@@ -238,7 +238,7 @@ const FormProvider = forwardRef(
         }));
 
         const registerInput = useCallback(
-            (inputID, propsToParse = {}) => {
+            (inputID, isSubmitEditing, propsToParse = {}) => {
                 const newRef = inputRefs.current[inputID] || propsToParse.ref || createRef();
                 if (inputRefs.current[inputID] !== newRef) {
                     inputRefs.current[inputID] = newRef;
@@ -256,6 +256,16 @@ const FormProvider = forwardRef(
                     inputValues[inputID] = _.isUndefined(propsToParse.defaultValue) ? getInitialValueByType(propsToParse.valueType) : propsToParse.defaultValue;
                 }
 
+                // If the input is a submit editing input, we need to set the onSubmitEditing prop
+                // to the submit function of the form
+                const onSubmitEditingObject = isSubmitEditing ? {onSubmitEditing: (e) => {
+                    submit();
+                    if (!propsToParse.onSubmitEditing) {
+                        return;
+                    }
+                    propsToParse.onSubmitEditing(e);
+                }} : {};
+
                 const errorFields = lodashGet(formState, 'errorFields', {});
                 const fieldErrorMessage =
                     _.chain(errorFields[inputID])
@@ -268,6 +278,8 @@ const FormProvider = forwardRef(
 
                 return {
                     ...propsToParse,
+                    returnKeyType: isSubmitEditing ? 'go' : propsToParse.returnKeyType,
+                    ...onSubmitEditingObject,
                     ref:
                         typeof propsToParse.ref === 'function'
                             ? (node) => {
@@ -365,7 +377,7 @@ const FormProvider = forwardRef(
                     },
                 };
             },
-            [draftValues, formID, errors, formState, hasServerError, inputValues, onValidate, setTouchedInput, shouldValidateOnBlur, shouldValidateOnChange],
+            [draftValues, inputValues, formState, errors, submit, setTouchedInput, shouldValidateOnBlur, onValidate, hasServerError, shouldValidateOnChange, formID],
         );
         const value = useMemo(() => ({registerInput}), [registerInput]);
 
