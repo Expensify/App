@@ -44,6 +44,9 @@ const propTypes = {
 
         /** The role of the current user in the policy */
         role: PropTypes.string,
+
+        /** Whether Scheduled Submit is turned on for this policy */
+        isHarvestingEnabled: PropTypes.bool,
     }),
 
     /** The chat report this report is linked to */
@@ -70,7 +73,9 @@ const defaultProps = {
     session: {
         email: null,
     },
-    policy: {},
+    policy: {
+        isHarvestingEnabled: false,
+    },
 };
 
 function MoneyReportHeader({session, personalDetails, policy, chatReport, nextStep, report: moneyRequestReport, isSmallScreenWidth}) {
@@ -107,6 +112,12 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableTotal, moneyRequestReport.currency);
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+
+    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    const isWaitingForSubmissionFromCurrentUser = useMemo(
+        () => chatReport.isOwnPolicyExpenseChat && !policy.isHarvestingEnabled,
+        [chatReport.isOwnPolicyExpenseChat, policy.isHarvestingEnabled],
+    );
 
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
     if (!ReportUtils.isArchivedRoom(chatReport)) {
@@ -164,7 +175,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     <View style={styles.pv2}>
                         <Button
                             medium
-                            success={chatReport.isOwnPolicyExpenseChat}
+                            success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.mnw120, styles.pv2, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
@@ -193,7 +204,7 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
                     <View style={[styles.ph5, styles.pb2]}>
                         <Button
                             medium
-                            success={chatReport.isOwnPolicyExpenseChat}
+                            success={isWaitingForSubmissionFromCurrentUser}
                             text={translate('common.submit')}
                             style={[styles.w100, styles.pr0]}
                             onPress={() => IOU.submitReport(moneyRequestReport)}
