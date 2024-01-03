@@ -6,6 +6,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import PopoverWithoutOverlayProps from './types';
 
@@ -117,7 +118,7 @@ function PopoverWithoutOverlay(
 
     return (
         <View
-            style={[modalStyle, {zIndex: 1}]}
+            style={[modalStyle, {zIndex: variables.popoverzIndex}]}
             ref={withoutOverlayRef}
         >
             <View

@@ -180,6 +180,7 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
+    popoverzIndex: 10000,
     workspaceTypeIconWidth: 34,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
