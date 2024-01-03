@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Header from './Header';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
 
 type BreadcrumbHeader = {
@@ -41,7 +42,9 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                 <View style={styles.breadcrumbLogo}>
                     <Header
                         title={
-                            <LogoComponent
+                            <ImageSVG
+                                contentFit="contain"
+                                src={LogoComponent}
                                 fill={theme.text}
                                 width={variables.lhnLogoWidth}
                                 height={variables.lhnLogoHeight}
