@@ -2,7 +2,7 @@ import React, {ForwardedRef, forwardRef} from 'react';
 import {FlatListProps} from 'react-native';
 import FlatList from '@components/FlatList';
 
-const WINDOW_SIZE = 15;
+const WINDOW_SIZE = 21;
 
 function BaseInvertedFlatList<T>(props: FlatListProps<T>, ref: ForwardedRef<FlatList>) {
     return (
