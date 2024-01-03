@@ -30,7 +30,7 @@ import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyRole = {
-    role: string
+    role: string;
 };
 
 type TaskPreviewOnyxProps = {
@@ -66,7 +66,17 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
         checkIfContextMenuActive: () => void;
     };
 
-function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatReportID, checkIfContextMenuActive, isHovered, currentUserPersonalDetails, rootParentReportpolicy}: TaskPreviewProps) {
+function TaskPreview({
+    taskReport,
+    taskReportID,
+    action,
+    contextMenuAnchor,
+    chatReportID,
+    checkIfContextMenuActive,
+    isHovered,
+    currentUserPersonalDetails,
+    rootParentReportpolicy,
+}: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
@@ -108,9 +118,7 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={
-                            !Task.canModifyTask(taskReport ?? {}, currentUserPersonalDetails.accountID, rootParentReportpolicy ? rootParentReportpolicy.role : '')
-                        }
+                        disabled={!Task.canModifyTask(taskReport ?? {}, currentUserPersonalDetails.accountID, rootParentReportpolicy ? rootParentReportpolicy.role : '')}
                         onPress={Session.checkIfActionIsAllowed(() => {
                             if (isTaskCompleted) {
                                 Task.reopenTask(taskReport ?? {});
