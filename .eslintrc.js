@@ -171,6 +171,21 @@ module.exports = {
                 '@typescript-eslint/switch-exhaustiveness-check': 'error',
                 '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
                 '@typescript-eslint/no-floating-promises': 'off',
+                '@typescript-eslint/consistent-type-imports': [
+                    'error',
+                    {
+                        prefer: 'type-imports',
+                        fixStyle: 'separate-type-imports',
+                    },
+                ],
+                '@typescript-eslint/no-import-type-side-effects': 'error',
+                '@typescript-eslint/consistent-type-exports': [
+                    'error',
+                    {
+                        fixMixedExportsWithInlineTypeSpecifier: false,
+                    },
+                ],
+                'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
                 'valid-jsdoc': 'off',
