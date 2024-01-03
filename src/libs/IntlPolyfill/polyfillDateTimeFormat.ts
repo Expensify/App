@@ -1,8 +1,5 @@
 import {DateTimeFormatConstructor} from '@formatjs/intl-datetimeformat';
-import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {Timezone} from '@src/types/onyx/PersonalDetails';
+import DateUtils from '@libs/DateUtils';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const tzLinks: Record<string, string> = {
@@ -25,40 +22,10 @@ const tzLinks: Record<string, string> = {
 };
 /* eslint-disable @typescript-eslint/naming-convention */
 
-let currentUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
-            return;
-        }
-
-        currentUserAccountID = val.accountID;
-    },
-});
-
-let timezone: Required<Timezone> = CONST.DEFAULT_TIME_ZONE;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        if (!currentUserAccountID) {
-            return;
-        }
-
-        const personalDetailsTimezone = value?.[currentUserAccountID]?.timezone;
-
-        timezone = {
-            selected: personalDetailsTimezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
-            automatic: personalDetailsTimezone?.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
-        };
-    },
-});
-
 export default function () {
     // Because JS Engines do not expose default timezone, the polyfill cannot detect local timezone that a browser is in.
     // We must manually do this by getting the local timezone before adding polyfill.
-    let currentTimezone = timezone.automatic ? Intl.DateTimeFormat().resolvedOptions().timeZone : timezone.selected;
+    let currentTimezone = DateUtils.getCurrentTimezone().selected as string;
     if (currentTimezone in tzLinks) {
         currentTimezone = tzLinks[currentTimezone];
     }
