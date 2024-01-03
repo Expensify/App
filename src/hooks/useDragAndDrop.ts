@@ -81,10 +81,11 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     setIsDraggingOver(true);
                     break;
                 case DRAG_LEAVE_EVENT:
+                    if (!isDraggingOver) {
+                        return;
+                    }
                     // This is necessary because dragging over children will cause dragleave to execute on the parent.
-                    const currentTarget = event.currentTarget as HTMLElement | null;
-                    const relatedTarget = event.relatedTarget as HTMLElement | null;
-                    if (!isDraggingOver || currentTarget?.contains(relatedTarget)) {
+                    if ((event.currentTarget as HTMLElement | null)?.contains(event.relatedTarget as HTMLElement | null)) {
                         return;
                     }
 
