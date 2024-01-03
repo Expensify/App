@@ -1,8 +1,11 @@
 import React, {useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {createNativeWrapper, NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
-import PagerView, {PagerViewProps} from 'react-native-pager-view';
-import Animated, {AnimatedProps, runOnJS, useAnimatedProps, useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
+import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
+import {createNativeWrapper} from 'react-native-gesture-handler';
+import type {PagerViewProps} from 'react-native-pager-view';
+import PagerView from 'react-native-pager-view';
+import type {AnimatedProps} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
