@@ -1888,7 +1888,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
-    // Admin & managers can always allow coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
+    // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
     if ((isAdmin || isManager) && !isOpenReport(moneyRequestReport)) {
         return true;
     }
