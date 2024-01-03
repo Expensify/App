@@ -296,7 +296,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: fontWeightBold,
         },
 
-        mentionSuggestionsHandle: {
+        textSupporting: {
             color: theme.textSupporting,
         },
 
@@ -424,7 +424,7 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.preWrap,
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightXXLarge,
+            lineHeight: variables.lineHeightXXXLarge,
         },
 
         textHeadlineH1: {
@@ -1148,6 +1148,13 @@ const styles = (theme: ThemeColors) =>
 
         noOutline: addOutlineWidth(theme, {}, 0),
 
+        labelStrong: {
+            fontFamily: fontFamily.EXP_NEUE,
+            fontWeight: 'bold',
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textLabelSupporting: {
             fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1415,6 +1422,12 @@ const styles = (theme: ThemeColors) =>
             height: variables.lineHeightSizeh1,
         },
 
+        LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
+            ({
+                ...modalNavigatorContainer(isSmallScreenWidth),
+                left: 0,
+            } satisfies ViewStyle),
+
         RHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
             ({
                 ...modalNavigatorContainer(isSmallScreenWidth),
@@ -1634,14 +1647,14 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 4,
         },
 
-        overlayStyles: (current: OverlayStylesParams) =>
+        overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: -2 * variables.sideBarWidth,
+                left: isModalOnTheLeft ? 0 : -2 * variables.sideBarWidth,
                 top: 0,
                 bottom: 0,
-                right: 0,
+                right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
                 opacity: current.progress.interpolate({
                     inputRange: [0, 1],
@@ -1727,7 +1740,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: fontFamily.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: fontWeightBold,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             ...wordBreak.breakWord,
         },
 
@@ -1885,7 +1898,6 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             height: CONST.EMOJI_PICKER_HEADER_HEIGHT,
             justifyContent: 'center',
-            width: '100%',
         },
 
         emojiSkinToneTitle: {
@@ -1906,12 +1918,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiItem: {
-            width: '12.5%',
+            width: '100%',
             textAlign: 'center',
             borderRadius: 8,
             paddingTop: 2,
             paddingBottom: 2,
             height: CONST.EMOJI_PICKER_ITEM_HEIGHT,
+            flexShrink: 1,
             ...userSelect.userSelectNone,
         },
 
@@ -2762,6 +2775,10 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 5,
         },
 
+        codePlainTextStyle: {
+            ...codeStyles.codePlainTextStyle,
+        },
+
         fullScreenLoading: {
             backgroundColor: theme.componentBG,
             opacity: 0.8,
@@ -2874,6 +2891,14 @@ const styles = (theme: ThemeColors) =>
             bottom: -4,
         },
 
+        workspaceOwnerAvatarWrapper: {
+            margin: 6,
+        },
+
+        workspaceTypeWrapper: {
+            margin: 3,
+        },
+
         autoGrowHeightMultilineInput: {
             maxHeight: 115,
         },
@@ -2895,6 +2920,7 @@ const styles = (theme: ThemeColors) =>
         peopleBadge: {
             backgroundColor: theme.icon,
             ...spacing.ph3,
+            ...spacing.ml3,
         },
 
         peopleBadgeText: {
@@ -3683,13 +3709,19 @@ const styles = (theme: ThemeColors) =>
                 fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
                 fontWeight: isSelected ? fontWeightBold : '400',
                 color: isSelected ? theme.text : theme.textSupporting,
+                lineHeight: 14,
             } satisfies TextStyle),
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string) => ({
+        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
             backgroundColor: hovered && !isFocused ? theme.highlightBG : background,
         }),
 
-        tabOpacity: (hovered: boolean, isFocused: boolean, activeOpacityValue: number, inactiveOpacityValue: number) => ({
+        tabOpacity: (
+            hovered: boolean,
+            isFocused: boolean,
+            activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
+            inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
+        ) => ({
             opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
         }),
 
@@ -3780,8 +3812,7 @@ const styles = (theme: ThemeColors) =>
         reportActionItemImages: {
             flexDirection: 'row',
             margin: 4,
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
+            borderRadius: variables.componentBorderRadiusLarge,
             overflow: 'hidden',
             height: variables.reportActionImagesSingleImageHeight,
         },
@@ -4112,4 +4143,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};

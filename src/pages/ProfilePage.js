@@ -1,3 +1,4 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -25,7 +26,7 @@ import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -99,7 +100,7 @@ function ProfilePage(props) {
     const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
-    const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details);
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const fallbackIcon = lodashGet(details, 'fallbackIcon', '');
     const originalFileName = lodashGet(details, 'originalFileName', '');

@@ -87,6 +87,7 @@ function EnableStep(props) {
                             iconWidth={iconSize}
                             iconHeight={iconSize}
                             interactive={false}
+                            displayInDefaultIconColor
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                         />
                         <Text style={[styles.mv3]}>

@@ -231,9 +231,6 @@ const ONYXKEYS = {
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
 
-    // Information on any active demos being run
-    DEMO_INFO: 'demoInfo',
-
     // Max area supported for HTML <canvas> element
     MAX_CANVAS_AREA: 'maxCanvasArea',
 
@@ -253,6 +250,7 @@ const ONYXKEYS = {
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
+        POLICY_TAX_RATE: 'policyTaxRates_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         POLICY_REPORT_FIELDS: 'policyReportFields_',
         POLICY_RECENTLY_USED_REPORT_FIELDS: 'policyRecentlyUsedReportFields_',
@@ -431,7 +429,6 @@ type OnyxValues = {
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
-    [ONYXKEYS.DEMO_INFO]: OnyxTypes.DemoInfo;
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
