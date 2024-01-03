@@ -36,6 +36,7 @@ type IOUMessage = {
     /** The ID of the iou transaction */
     IOUTransactionID?: string;
     IOUReportID?: string;
+    expenseReportID?: string;
     amount: number;
     comment?: string;
     currency: string;
