@@ -127,7 +127,7 @@ function WorkspacesListRow({
                                 numberOfLines={1}
                                 style={[styles.labelStrong]}
                             >
-                                {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails.displayName)}
+                                {PersonalDetailsUtils.getDisplayNameOrDefault(ownerDetails)}
                             </Text>
                             <Text
                                 numberOfLines={1}
