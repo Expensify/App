@@ -1,18 +1,18 @@
-import { findFocusedRoute, getActionFromState } from '@react-navigation/core';
-import { CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions } from '@react-navigation/native';
+import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
+import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
 import findLastIndex from 'lodash/findLastIndex';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES, { Route } from '@src/ROUTES';
-import SCREENS, { PROTECTED_SCREENS } from '@src/SCREENS';
+import ROUTES, {Route} from '@src/ROUTES';
+import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import { StackNavigationAction, StateOrRoute } from './types';
+import {StackNavigationAction, StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -82,7 +82,7 @@ function getDistanceFromPathInRootNavigator(path: string): number {
             return index;
         }
 
-        currentState = { ...currentState, routes: currentState.routes.slice(0, -1), index: currentState.index - 1 };
+        currentState = {...currentState, routes: currentState.routes.slice(0, -1), index: currentState.index - 1};
     }
 
     return -1;
@@ -123,7 +123,7 @@ function isActiveRoute(routePath: Route): boolean {
  * @param [type] - Type of action to perform. Currently UP is supported.
  */
 function navigate(route: Route = ROUTES.HOME, type?: string) {
-    if (!canNavigate('navigate', { route })) {
+    if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
         Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
@@ -228,9 +228,9 @@ function dismissModal(targetReportID?: string) {
             } else if (targetReportID && rootState.routes.some((route) => route.name === SCREENS.NOT_FOUND)) {
                 const lastRouteIndex = rootState.routes.length - 1;
                 const centralRouteIndex = findLastIndex(rootState.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
-                navigationRef.current?.dispatch({ ...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key });
+                navigationRef.current?.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: rootState.key});
             } else {
-                navigationRef.current?.dispatch({ ...StackActions.pop(), target: rootState.key });
+                navigationRef.current?.dispatch({...StackActions.pop(), target: rootState.key});
             }
             break;
         default: {
@@ -315,7 +315,7 @@ function waitForProtectedRoutes() {
                 return;
             }
 
-            const unsubscribe = navigationRef.current?.addListener('state', ({ data }) => {
+            const unsubscribe = navigationRef.current?.addListener('state', ({data}) => {
                 const state = data?.state;
                 if (navContainsProtectedRoutes(state)) {
                     unsubscribe?.();
@@ -343,4 +343,4 @@ export default {
     waitForProtectedRoutes,
 };
 
-export { navigationRef };
+export {navigationRef};

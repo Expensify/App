@@ -14,8 +14,13 @@ import SCREENS from '@src/SCREENS';
 import type {Account, Credentials, Session as SessionType} from '@src/types/onyx';
 
 type ValidateLoginPageOnyxProps = {
+    /** The details about the account that the user is signing in with */
     account: OnyxEntry<Account>;
+
+    /** The credentials of the person logging in */
     credentials: OnyxEntry<Credentials>;
+
+    /** Session of currently logged in user */
     session: OnyxEntry<SessionType>;
 };
 
@@ -24,7 +29,7 @@ type ValidateLoginPageProps = ValidateLoginPageOnyxProps & StackScreenProps<Auth
 function ValidateLoginPage({account, credentials, route, session}: ValidateLoginPageProps) {
     const login = credentials?.login;
     const autoAuthState = session?.autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
-    const accountID = Number(route?.params.accountID ?? '');
+    const accountID = Number(route?.params.accountID) ?? -1;
     const validateCode = route.params.validateCode ?? '';
     const isSignedIn = !!session?.authToken;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
