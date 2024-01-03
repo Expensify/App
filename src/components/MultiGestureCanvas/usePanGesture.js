@@ -23,9 +23,9 @@ const usePanGesture = ({
     totalOffsetY,
     panTranslateX,
     panTranslateY,
-    isSwipingVertically,
-    isSwipingHorizontally,
-    onSwipeDown,
+    isSwipingInPager,
+    isSwipingDownToClose,
+    onSwipeDownEnd,
     stopAnimation,
 }) => {
     // The content size after scaling it with the current (total) zoom value
@@ -40,7 +40,7 @@ const usePanGesture = ({
     const panVelocityY = useSharedValue(0);
 
     // Disable "swipe down to close" gesture when content is bigger than the canvas
-    const canPanVertically = useDerivedValue(() => canvasSize.height < zoomScaledContentHeight.value, [canvasSize.height]);
+    const enableSwipeDownToClose = useDerivedValue(() => canvasSize.height < zoomScaledContentHeight.value, [canvasSize.height]);
 
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
@@ -107,7 +107,7 @@ const usePanGesture = ({
             totalOffsetX.value = withSpring(target.x, SPRING_CONFIG);
         }
 
-        if (!canPanVertically.value) {
+        if (!enableSwipeDownToClose.value) {
             totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
         } else if (isInBoundaryY) {
             if (
@@ -125,7 +125,7 @@ const usePanGesture = ({
             }
         } else {
             totalOffsetY.value = withSpring(target.y, SPRING_CONFIG, () => {
-                isSwipingVertically.value = false;
+                isSwipingDownToClose.value = false;
             });
         }
     });
@@ -138,22 +138,20 @@ const usePanGesture = ({
                 state.activate();
             }
 
-            // TODO: Swipe down to close carousel gesture
-            // this needs fine tuning to work properly
-            // if (!isSwipingHorizontally.value && scale.value === 1 && previousTouch.value != null) {
-            //     const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
-            //     const velocityY = evt.allTouches[0].y - previousTouch.value.y;
+            // TODO: this needs tuning to work properly
+            if (!isSwipingInPager.value && zoomScale.value === 1 && previousTouch.value != null) {
+                const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
+                const velocityY = evt.allTouches[0].y - previousTouch.value.y;
 
-            //     // TODO: this needs tuning
-            //     if (Math.abs(velocityY) > velocityX && velocityY > 20) {
-            //         state.activate();
+                if (Math.abs(velocityY) > velocityX && velocityY > 20) {
+                    state.activate();
 
-            //         isSwipingVertically.value = true;
-            //         previousTouch.value = null;
+                    isSwipingDownToClose.value = true;
+                    previousTouch.value = null;
 
-            //         return;
-            //     }
-            // }
+                    return;
+                }
+            }
 
             if (previousTouch.value == null) {
                 previousTouch.value = {
@@ -171,7 +169,7 @@ const usePanGesture = ({
             // we need to make sure that we don't pan when we pinch AND move fingers
             // since we track it as pinch focal gesture.
             // We also need to prevent panning when we are swiping horizontally (from page to page)
-            if (evt.numberOfPointers > 1 || isSwipingHorizontally.value) {
+            if (evt.numberOfPointers > 1 || isSwipingInPager.value) {
                 return;
             }
 
@@ -179,11 +177,11 @@ const usePanGesture = ({
 
             panVelocityY.value = evt.velocityY;
 
-            if (!isSwipingVertically.value) {
+            if (!isSwipingDownToClose.value) {
                 panTranslateX.value += evt.changeX;
             }
 
-            if (canPanVertically.value || isSwipingVertically.value) {
+            if (enableSwipeDownToClose.value || isSwipingDownToClose.value) {
                 panTranslateY.value += evt.changeY;
             }
         })
@@ -198,13 +196,13 @@ const usePanGesture = ({
             previousTouch.value = null;
 
             // If we are swiping (in the pager), we don't want to return to boundaries
-            if (isSwipingHorizontally.value) {
+            if (isSwipingInPager.value) {
                 return;
             }
 
             // Triggers the "swipe down to close" animation and the "onSwipeDown" callback,
             // which can be used to close the lightbox/carousel
-            if (isSwipingVertically.value) {
+            if (isSwipingDownToClose.value) {
                 const enoughVelocity = Math.abs(evt.velocityY) > 300 && Math.abs(evt.velocityX) < Math.abs(evt.velocityY);
                 const rightDirection = (evt.translationY > 0 && evt.velocityY > 0) || (evt.translationY < 0 && evt.velocityY < 0);
 
@@ -226,7 +224,7 @@ const usePanGesture = ({
                             velocity: Math.abs(evt.velocityY) < 1200 ? maybeInvert(1200) : evt.velocityY,
                         },
                         () => {
-                            runOnJS(onSwipeDown)();
+                            runOnJS(onSwipeDownEnd)();
                         },
                     );
                     return;

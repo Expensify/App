@@ -22,7 +22,7 @@ const usePinchGesture = ({
     pinchBounceTranslateX,
     pinchBounceTranslateY,
     pinchScaleOffset,
-    isSwipingHorizontally,
+    isSwipingInPager,
     stopAnimation,
     onScaleChanged,
     onPinchGestureChange,
@@ -46,7 +46,7 @@ const usePinchGesture = ({
     const pinchGesture = Gesture.Pinch()
         .onTouchesDown((evt, state) => {
             // we don't want to activate pinch gesture when we are scrolling pager
-            if (!isSwipingHorizontally.value) {
+            if (!isSwipingInPager.value) {
                 return;
             }
 

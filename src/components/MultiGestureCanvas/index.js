@@ -30,6 +30,12 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoom
     return {contentSize, zoomRange};
 }
 
+function noopWorklet() {
+    'worklet';
+
+    // noop
+}
+
 function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, children, ...props}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -38,13 +44,14 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const pagerRefFallback = useRef(null);
-    const {onTap, onSwipeDown, pagerRef, shouldPagerScroll, isSwipingHorizontally, onPinchGestureChange} = attachmentCarouselPagerContext || {
+    const {onTap, onSwipeDown, onSwipeDownEnd, pagerRef, shouldPagerScroll, isSwipingInPager, onPinchGestureChange} = attachmentCarouselPagerContext || {
         onTap: () => undefined,
-        onSwipeDown: () => undefined,
+        onSwipeDown: noopWorklet,
+        onSwipeDownEnd: () => undefined,
         onPinchGestureChange: () => undefined,
         pagerRef: pagerRefFallback,
         shouldPagerScroll: false,
-        isSwipingHorizontally: false,
+        isSwipingInPager: false,
         ...props,
     };
 
@@ -63,7 +70,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     // pan gesture
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
-    const isSwipingVertically = useSharedValue(false);
+    const isSwipingDownToClose = useSharedValue(false);
     const panGestureRef = useRef(Gesture.Pan());
 
     // pinch gesture
@@ -129,9 +136,9 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         totalOffsetY,
         panTranslateX,
         panTranslateY,
-        isSwipingHorizontally,
-        isSwipingVertically,
-        onSwipeDown,
+        isSwipingInPager,
+        isSwipingDownToClose,
+        onSwipeDownEnd,
         stopAnimation,
     });
 
@@ -149,7 +156,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         pinchBounceTranslateX,
         pinchBounceTranslateY,
         pinchScaleOffset,
-        isSwipingHorizontally,
+        isSwipingInPager,
         stopAnimation,
         onScaleChanged,
         onPinchGestureChange,
@@ -180,9 +187,9 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         const x = pinchTranslateX.value + pinchBounceTranslateX.value + panTranslateX.value + totalOffsetX.value;
         const y = pinchTranslateY.value + pinchBounceTranslateY.value + panTranslateY.value + totalOffsetY.value;
 
-        // if (isSwipingVertically.value) {
-        //     onSwipe(y);
-        // }
+        if (isSwipingDownToClose.value) {
+            onSwipeDown(y);
+        }
 
         return {
             transform: [
