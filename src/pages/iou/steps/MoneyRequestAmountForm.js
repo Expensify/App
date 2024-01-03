@@ -9,13 +9,13 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import refPropTypes from '@components/refPropTypes';
 import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 
 const propTypes = {
@@ -228,8 +228,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
         initializeAmount(backendAmount);
 
-        onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, initializeAmount]);
+        onSubmitButtonPress({amount: currentAmount, currency});
+    }, [onSubmitButtonPress, currentAmount, currency, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -260,7 +260,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             <View
                 id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
-                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}

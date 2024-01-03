@@ -13,6 +13,7 @@ import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -201,7 +202,7 @@ function isPersonalDetailsReady(personalDetails) {
 function getParticipantsOption(participant, personalDetails) {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
     const login = detail.login || participant.login;
-    const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
     return {
         keyForList: String(detail.accountID),
         login,
@@ -246,7 +247,7 @@ function getParticipantNames(personalDetailList) {
             participantNames.add(participant.lastName.toLowerCase());
         }
         if (participant.displayName) {
-            participantNames.add(participant.displayName.toLowerCase());
+            participantNames.add(PersonalDetailsUtils.getDisplayNameOrDefault(participant).toLowerCase());
         }
     });
     return participantNames;
@@ -299,7 +300,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
                 // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+                searchTerms = searchTerms.concat([
+                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                    personalDetail.login,
+                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
+                ]);
             }
         }
     }
@@ -386,18 +391,18 @@ function getLastMessageTextForReport(report) {
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
+        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReport = _.find(
+        const lastIOUMoneyReportAction = _.find(
             allSortedReportActions[iouReport.reportID],
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReport, true, ReportUtils.isChatReport(report));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReportAction, true, ReportUtils.isChatReport(report), null, true);
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
@@ -407,7 +412,7 @@ function getLastMessageTextForReport(report) {
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
@@ -510,15 +515,18 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-        lastMessageText += report ? lastMessageTextFromReport : '';
+        const lastActorDisplayName =
+            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+                ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+                : '';
+        let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
             const archiveReason =
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -750,7 +758,7 @@ function sortTags(tags) {
 }
 
 /**
- * Builds the options for the tree hierarchy via indents
+ * Builds the options for the category tree hierarchy via indents
  *
  * @param {Object[]} options - an initial object array
  * @param {Boolean} options[].enabled - a flag to enable/disable option in a list
@@ -758,7 +766,7 @@ function sortTags(tags) {
  * @param {Boolean} [isOneLine] - a flag to determine if text should be one line
  * @returns {Array<Object>}
  */
-function getIndentedOptionTree(options, isOneLine = false) {
+function getCategoryOptionTree(options, isOneLine = false) {
     const optionCollection = new Map();
 
     _.each(options, (option) => {
@@ -826,7 +834,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         return categorySections;
@@ -840,7 +848,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(searchCategories, true),
+            data: getCategoryOptionTree(searchCategories, true),
         });
 
         return categorySections;
@@ -852,7 +860,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: false,
             indexOffset,
-            data: getIndentedOptionTree(enabledCategories),
+            data: getCategoryOptionTree(enabledCategories),
         });
 
         return categorySections;
@@ -864,7 +872,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: '',
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(selectedOptions, true),
+            data: getCategoryOptionTree(selectedOptions, true),
         });
 
         indexOffset += selectedOptions.length;
@@ -887,7 +895,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
             indexOffset,
-            data: getIndentedOptionTree(cutRecentlyUsedCategories, true),
+            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
         });
 
         indexOffset += filteredRecentlyUsedCategories.length;
@@ -900,7 +908,7 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
         indexOffset,
-        data: getIndentedOptionTree(filteredCategories),
+        data: getCategoryOptionTree(filteredCategories),
     });
 
     return categorySections;
@@ -915,7 +923,13 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
  * @returns {Array<Object>}
  */
 function getTagsOptions(tags) {
-    return getIndentedOptionTree(tags);
+    return _.map(tags, (tag) => ({
+        text: tag.name,
+        keyForList: tag.name,
+        searchText: tag.name,
+        tooltipText: tag.name,
+        isDisabled: !tag.enabled,
+    }));
 }
 
 /**
@@ -1207,7 +1221,7 @@ function getOptions(
     // This is a temporary fix for all the logic that's been breaking because of the new privacy changes
     // See https://github.com/Expensify/Expensify/issues/293465 for more context
     // Moreover, we should not override the personalDetails object, otherwise the createOption util won't work properly, it returns incorrect tooltipText
-    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login));
+    const havingLoginPersonalDetails = !includeP2P ? {} : _.pick(personalDetails, (detail) => Boolean(detail.login) && !detail.isOptimisticPersonalDetail);
     let allPersonalDetailsOptions = _.map(havingLoginPersonalDetails, (personalDetail) =>
         createOption([personalDetail.accountID], personalDetails, reportMapForAccountIDs[personalDetail.accountID], reportActions, {
             showChatPreviewLine,
@@ -1385,7 +1399,7 @@ function getOptions(
     }
 
     return {
-        personalDetails: _.filter(personalDetailsOptions, (personalDetailsOption) => !personalDetailsOption.isOptimisticPersonalDetail),
+        personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
         userToInvite: canInviteUser ? userToInvite : null,
         currentUserOption,
@@ -1431,8 +1445,8 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName || formattedLogin,
-        alternateText: formattedLogin || personalDetail.displayName,
+        text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
+        alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
@@ -1600,15 +1614,17 @@ function formatMemberForList(member, config = {}) {
  * @param {Array<String>} betas
  * @param {String} searchValue
  * @param {Array} excludeLogins
+ * @param {Boolean} includeSelectedOptions
  * @returns {Object}
  */
-function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', excludeLogins = []) {
+function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', excludeLogins = [], includeSelectedOptions = false) {
     return getOptions([], personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
         excludeLogins,
         sortPersonalDetailsByAlphaAsc: true,
+        includeSelectedOptions,
     });
 }
 
@@ -1758,7 +1774,7 @@ export {
     getEnabledCategoriesCount,
     hasEnabledOptions,
     sortCategories,
-    getIndentedOptionTree,
+    getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
 };

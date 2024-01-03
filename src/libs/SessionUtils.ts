@@ -35,8 +35,9 @@ Onyx.connect({
         if (loggedInDuringSession) {
             return;
         }
-
-        if (session?.authToken) {
+        // We are incorporating a check for 'signedInWithShortLivedAuthToken' to handle cases where login is performed using a ShortLivedAuthToken
+        // This check is necessary because, with ShortLivedAuthToken, 'authToken' gets populated, leading to 'loggedInDuringSession' being assigned a false value
+        if (session?.authToken && !session?.signedInWithShortLivedAuthToken) {
             loggedInDuringSession = false;
         } else {
             loggedInDuringSession = true;

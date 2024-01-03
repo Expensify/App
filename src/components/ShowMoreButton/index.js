@@ -5,10 +5,10 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import stylePropTypes from '@styles/stylePropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 
 const propTypes = {
     /** Additional styles for container */
