@@ -288,51 +288,55 @@ function MoneyRequestParticipantsSelector({
     const shouldShowSplitButton = isAllowedToSplit && !shouldShowSplitBillErrorMessage && participants.length > 0;
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
 
-    const footerContent = (
-        <View>
-            {shouldShowSplitBillErrorMessage && (
-                <FormHelpMessage
-                    style={[styles.ph1, styles.mb2]}
-                    isError
-                    message="iou.error.splitBillMultipleParticipantsErrorMessage"
-                />
-            )}
-            <View style={[styles.pb5, styles.flexShrink0]}>
-                <PressableWithoutFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType));
-                    }}
-                    style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
-                    accessibilityLabel="referral"
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                >
-                    <Text>
-                        {translate(`referralProgram.${referralContentType}.buttonText1`)}
-                        <Text
-                            color={theme.success}
-                            style={styles.textStrong}
-                        >
-                            {translate(`referralProgram.${referralContentType}.buttonText2`)}
+    const footerContent = useMemo(
+        () => (
+            <View>
+                <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
+                    <PressableWithoutFeedback
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType));
+                        }}
+                        style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
+                        accessibilityLabel="referral"
+                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    >
+                        <Text>
+                            {translate(`referralProgram.${referralContentType}.buttonText1`)}
+                            <Text
+                                color={theme.success}
+                                style={styles.textStrong}
+                            >
+                                {translate(`referralProgram.${referralContentType}.buttonText2`)}
+                            </Text>
                         </Text>
-                    </Text>
-                    <Icon
-                        src={Info}
-                        height={20}
-                        width={20}
-                    />
-                </PressableWithoutFeedback>
-            </View>
+                        <Icon
+                            src={Info}
+                            height={20}
+                            width={20}
+                        />
+                    </PressableWithoutFeedback>
+                </View>
 
-            {shouldShowSplitButton && (
-                <Button
-                    success
-                    text={translate('iou.addToSplit')}
-                    onPress={handleConfirmSelection}
-                    pressOnEnter
-                    isDisabled={shouldShowSplitBillErrorMessage}
-                />
-            )}
-        </View>
+                {shouldShowSplitBillErrorMessage && (
+                    <FormHelpMessage
+                        style={[styles.ph1, styles.mb2]}
+                        isError
+                        message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                    />
+                )}
+
+                {!!participants.length && (
+                    <Button
+                        success
+                        text={translate('iou.addToSplit')}
+                        onPress={handleConfirmSelection}
+                        pressOnEnter
+                        isDisabled={shouldShowSplitBillErrorMessage}
+                    />
+                )}
+            </View>
+        ),
+        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, theme.success, translate],
     );
 
     const itemRightSideComponent = useCallback(
