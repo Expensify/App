@@ -27,6 +27,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -62,6 +63,9 @@ const propTypes = {
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+
+    /** All reports shared with the user (coming from Onyx) */
+    reports: PropTypes.objectOf(reportPropTypes),
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -107,7 +111,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, currentUserPersonalDetails}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, currentUserPersonalDetails, reports}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -189,11 +193,11 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
 
     const listHeaderComponent = useCallback(() => {
         if (isSmallScreenWidth) {
-            return null;
+            return <View style={styles.mt5} />;
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap5, styles.mh5, styles.mb5, styles.pl5]}>
+            <View style={[styles.flexRow, styles.gap5, styles.mh5, styles.mv5, styles.pl5]}>
                 <View style={[styles.flexRow, styles.flex1]}>
                     <Text
                         numberOfLines={1}
@@ -221,22 +225,41 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 <View style={[styles.ml10, styles.mr2]} />
             </View>
         );
-    }, [
-        isSmallScreenWidth,
-        styles.flex1,
-        styles.flexGrow1,
-        styles.flexRow,
-        styles.gap5,
-        styles.mb5,
-        styles.mh5,
-        styles.ml10,
-        styles.mr2,
-        styles.pl5,
-        styles.textLabelSupporting,
-        styles.workspaceOwnerSectionTitle,
-        styles.workspaceTypeSectionTitle,
-        translate,
-    ]);
+    }, [isSmallScreenWidth, styles, translate]);
+
+    const policyRooms = useMemo(
+        () =>
+            _.reduce(
+                reports,
+                (result, report) => {
+                    if (!report || !report.reportID) {
+                        return result;
+                    }
+
+                    if (!result[report.policyID]) {
+                        // eslint-disable-next-line no-param-reassign
+                        result[report.policyID] = {};
+                    }
+
+                    switch (report.chatType) {
+                        case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
+                            // eslint-disable-next-line no-param-reassign
+                            result[report.policyID].adminRoom = report.reportID;
+                            break;
+                        case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
+                            // eslint-disable-next-line no-param-reassign
+                            result[report.policyID].announceRoom = report.reportID;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    return result;
+                },
+                {},
+            ),
+        [reports],
+    );
 
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
@@ -260,12 +283,12 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 policyID: policy.id,
                 reports: policy.reports,
-                adminRoom: policy.chatReportIDAdmins,
-                announceRoom: policy.chatReportIDAnnounce,
+                adminRoom: policyRooms[policy.id] ? policyRooms[policy.id].adminRoom : null,
+                announceRoom: policyRooms[policy.id] ? policyRooms[policy.id].announceRoom : null,
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers]);
+    }, [reimbursementAccount.errors, policies, isOffline, theme.textLight, allPolicyMembers, policyRooms]);
 
     if (_.isEmpty(workspaces)) {
         return (
@@ -328,7 +351,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                     data={workspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
-                    style={styles.mt5}
                 />
             </View>
             <ConfirmModal
@@ -363,6 +385,9 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
     withCurrentUserPersonalDetails,
