@@ -519,6 +519,13 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction is on hold
+ */
+function isOnHold(transaction: Transaction): boolean {
+    return !!transaction.comment?.hold;
+}
+
+/**
  * this is the formulae to calculate tax
  */
 function calculateTaxAmount(percentage: string, amount: number) {
@@ -568,6 +575,7 @@ export {
     isCardTransaction,
     isPending,
     isPosted,
+    isOnHold,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,

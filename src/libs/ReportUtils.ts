@@ -2295,7 +2295,6 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 
 /**
  * Navigate to the details page of a given report
- *
  */
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const participantAccountIDs = report?.participantAccountIDs ?? [];
@@ -3088,6 +3087,99 @@ function buildOptimisticCreatedReportAction(emailCreatingAction: string, created
             },
         ],
         automatic: false,
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been put on hold optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: `held this request`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        automatic: true,
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from hold optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: `unheld this request`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        automatic: true,
+        avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Returns the necessary reportAction user comment user provided to put on hold optimistically
+ * @param [created] - Action created time
+ */
+function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticSubmittedReportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: `${comment}`,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: allPersonalDetails?.[currentUserAccountID ?? '']?.displayName ?? currentUserEmail,
+            },
+        ],
+        automatic: true,
         avatar: allPersonalDetails?.[currentUserAccountID ?? '']?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created,
         shouldShow: true,
@@ -4242,6 +4334,41 @@ function navigateToPrivateNotes(report: Report, session: Session) {
 }
 
 /**
+ * Check if Report has any held expenses
+ */
+function hasHeldExpenses(iouReportID: string): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return transactions.some((transaction) => TransactionUtils.isOnHold(transaction));
+}
+
+/**
+ * Check if all expenses in the Report are on hold
+ */
+function hasOnlyHeldExpenses(iouReportID: string): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    return !transactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
+}
+
+/**
+ * Return held and full amount formatted with used currency
+ */
+function getNonHeldAndFullAmount(iouReportID: string): string[] {
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    const usedCurrency = transactions[0].currency;
+
+    let fullAmount = 0;
+    const nonheldAmount = transactions.reduce((previousValue, transaction) => {
+        fullAmount += transaction.amount * -1;
+        if (!TransactionUtils.isOnHold(transaction)) {
+            return previousValue + transaction.amount * -1;
+        }
+        return previousValue;
+    }, 0);
+
+    return [CurrencyUtils.convertToDisplayString(nonheldAmount, usedCurrency), CurrencyUtils.convertToDisplayString(fullAmount, usedCurrency)];
+}
+
+/**
  * Disable reply in thread action if:
  *
  * - The action is listed in the thread-disabled list
@@ -4436,8 +4563,14 @@ export {
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
+    hasHeldExpenses,
+    hasOnlyHeldExpenses,
+    getNonHeldAndFullAmount,
     hasSmartscanError,
     shouldAutoFocusOnKeyPress,
+    buildOptimisticHoldReportAction,
+    buildOptimisticHoldReportActionComment,
+    buildOptimisticUnHoldReportAction,
     shouldDisableThread,
 };
 

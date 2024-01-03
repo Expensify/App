@@ -20,6 +20,7 @@ type Waypoint = {
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 type Comment = {
     comment?: string;
+    hold?: string;
     waypoints?: WaypointCollection;
     isLoading?: boolean;
     type?: string;

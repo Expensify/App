@@ -278,6 +278,10 @@ const ROUTES = {
         route: ':iouType/new/category/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/category/${reportID}` as const,
     },
+    MONEY_REQUEST_HOLD_REASON: {
+        route: ':iouType/edit/reason/:transactionID?',
+        getRoute: (iouType: string, transactionID: string, reportID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
+    },
     MONEY_REQUEST_TAG: {
         route: ':iouType/new/tag/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/tag/${reportID}` as const,

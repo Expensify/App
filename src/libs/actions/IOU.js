@@ -3449,6 +3449,113 @@ function getIOUReportID(iou, route) {
     return lodashGet(route, 'params.reportID') || lodashGet(iou, 'participants.0.reportID', '');
 }
 
+/**
+ * Put money request on HOLD
+ * @param {string} transactionID
+ * @param {string} comment
+ * @param {string} reportID
+ */
+function putOnHold(transactionID, comment, reportID) {
+    const createdDate = new Date();
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(createdDate);
+    const createdCommentReportAction = ReportUtils.buildOptimisticHoldReportActionComment(comment, new Date(createdDate.getTime() + 1));
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction,
+                [createdCommentReportAction.reportActionID]: createdCommentReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: createdReportAction.reportActionID,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'HoldRequest',
+        {
+            ...transactionDetails,
+            transactionID,
+            comment,
+        },
+        {optimisticData, successData: [], failureData},
+    );
+}
+
+/**
+ * Remove money request from HOLD
+ * @param {string} transactionID
+ * @param {string} reportID
+ */
+function unholdRequest(transactionID, reportID) {
+    const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+    ];
+
+    API.write(
+        'UnHoldRequest',
+        {
+            ...transactionDetails,
+            transactionID,
+        },
+        {optimisticData, successData, failureData: []},
+    );
+}
+
 export {
     setMoneyRequestParticipants,
     createDistanceRequest,
@@ -3503,5 +3610,7 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
+    putOnHold,
+    unholdRequest,
     resetMoneyRequestAmount_temporaryForRefactor,
 };

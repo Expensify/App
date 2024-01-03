@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import participantPropTypes from './participantPropTypes';
@@ -72,10 +73,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isOnHold = TransactionUtils.isOnHold(transaction);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = lodashGet(parentReportAction, 'actorAccountID') === lodashGet(session, 'accountID', null);
+    const isPolicyAdmin = lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), parentReportAction, true);
@@ -87,6 +90,22 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
     const canModifyRequest = isActionOwner && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction);
 
+    const changeMoneyRequestStatus = () => {
+        if (!isOnHold) {
+            const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(
+                    lodashGet(policy, 'type'),
+                    lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'),
+                    lodashGet(report, 'reportID'),
+                    activeRoute,
+                ),
+            );
+        } else {
+            IOU.unholdRequest(lodashGet(parentReportAction, 'originalMessage.IOUTransactionID'), lodashGet(report, 'reportID'));
+        }
+    };
+
     useEffect(() => {
         if (canModifyRequest) {
             return;
@@ -95,6 +114,13 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         setIsDeleteModalVisible(false);
     }, [canModifyRequest]);
     const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
+    if ((isPolicyAdmin || isActionOwner) && !isSettled && !isApproved && !ReportActionsUtils.isDeletedAction(parentReportAction)) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Stopwatch,
+            text: !isOnHold ? translate('iou.holdRequest') : translate('iou.unholdRequest'),
+            onSelected: () => changeMoneyRequestStatus(),
+        });
+    }
     if (canModifyRequest) {
         if (!TransactionUtils.hasReceipt(transaction)) {
             threeDotsMenuItems.push({
@@ -114,7 +140,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         <>
             <View style={[styles.pl0]}>
                 <HeaderWithBackButton
-                    shouldShowBorderBottom={!isScanning && !isPending}
+                    shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
                     shouldShowAvatarWithDisplay
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
@@ -143,6 +169,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         shouldShowBorderBottom
                     />
                 )}
+                {isOnHold && <HoldBanner />}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteRequest')}
