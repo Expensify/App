@@ -79,9 +79,8 @@ function isManualRequest(transaction: Transaction): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with
- *     a transactionID. In that case, the transaction here needs to have it's transactionID match what was already
- *     generated.
+ * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
+ * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(
     amount: number,
