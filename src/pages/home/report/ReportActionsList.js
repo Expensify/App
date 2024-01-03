@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -22,6 +23,7 @@ import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ListBoundaryLoader from './ListBoundaryLoader/ListBoundaryLoader';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -167,6 +169,7 @@ function ReportActionsList({
     const sortedVisibleReportActions = _.filter(sortedReportActions, (s) => isOffline || s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || s.errors);
     const lastActionIndex = lodashGet(sortedVisibleReportActions, [0, 'reportActionID']);
     const reportActionSize = useRef(sortedVisibleReportActions.length);
+    const hasNewestReportAction = lodashGet(sortedReportActions[0], 'created') === report.lastVisibleActionCreated;
 
     const previousLastIndex = useRef(lastActionIndex);
 
@@ -319,6 +322,11 @@ function ReportActionsList({
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
+        if (!hasNewestReportAction) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+            Report.openReport({reportID: report.reportID});
+            return;
+        }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
@@ -457,7 +465,7 @@ function ReportActionsList({
     );
     const onContentSizeChangeInner = useCallback(
         (w, h) => {
-          onContentSizeChange(w,h)
+            onContentSizeChange(w, h);
         },
         [onContentSizeChange],
     );
@@ -479,7 +487,7 @@ function ReportActionsList({
     return (
         <>
             <FloatingMessageCounter
-                isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker}
+                isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || !hasNewestReportAction}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
