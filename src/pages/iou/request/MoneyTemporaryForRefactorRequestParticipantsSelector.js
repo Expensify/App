@@ -6,25 +6,21 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
-import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
+import {usePersonalDetails} from '@components/OnyxProvider';
+import {PressableWithFeedback} from '@components/Pressable';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as Browser from '@libs/Browser';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
+import MoneyRequestReferralProgramCTA from '@pages/iou/MoneyRequestReferralProgramCTA';
 import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Beta features list */
@@ -47,9 +43,6 @@ const propTypes = {
         }),
     ),
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -69,7 +62,6 @@ const propTypes = {
 const defaultProps = {
     participants: [],
     safeAreaPaddingBottomStyle: {},
-    personalDetails: {},
     reports: {},
     betas: [],
     isSearchingForReports: false,
@@ -78,7 +70,6 @@ const defaultProps = {
 function MoneyTemporaryForRefactorRequestParticipantsSelector({
     betas,
     participants,
-    personalDetails,
     reports,
     onFinish,
     onParticipantsAdded,
@@ -92,6 +83,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const theme = useTheme();
     const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
+    const personalDetails = usePersonalDetails();
 
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -276,29 +268,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         () => (
             <View>
                 <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                    <PressableWithoutFeedback
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType));
-                        }}
-                        style={[styles.p5, styles.w100, styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10}]}
-                        accessibilityLabel="referral"
-                        role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                    >
-                        <Text>
-                            {translate(`referralProgram.${referralContentType}.buttonText1`)}
-                            <Text
-                                color={theme.success}
-                                style={styles.textStrong}
-                            >
-                                {translate(`referralProgram.${referralContentType}.buttonText2`)}
-                            </Text>
-                        </Text>
-                        <Icon
-                            src={Info}
-                            height={20}
-                            width={20}
-                        />
-                    </PressableWithoutFeedback>
+                    <MoneyRequestReferralProgramCTA referralContentType={referralContentType} />
                 </View>
 
                 {shouldShowSplitBillErrorMessage && (
@@ -320,7 +290,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                 )}
             </View>
         ),
-        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, theme.success, translate],
+        [handleConfirmSelection, participants.length, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
     );
 
     const itemRightSideComponent = useCallback(
@@ -379,9 +349,6 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default withOnyx({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
