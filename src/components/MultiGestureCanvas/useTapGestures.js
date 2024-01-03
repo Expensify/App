@@ -10,21 +10,7 @@ const clamp = MultiGestureCanvasUtils.clamp;
 const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
 const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
 
-const useTapGestures = ({
-    canvasSize,
-    contentSize,
-    minContentScale,
-    maxContentScale,
-    panGestureRef,
-    totalOffsetX,
-    totalOffsetY,
-    pinchScale,
-    zoomScale,
-    reset,
-    stopAnimation,
-    onScaleChanged,
-    onTap,
-}) => {
+const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentScale, panGestureRef, offsetX, offsetY, pinchScale, zoomScale, reset, stopAnimation, onScaleChanged, onTap}) => {
     const scaledWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
 
@@ -84,8 +70,8 @@ const useTapGestures = ({
                 target.y = 0;
             }
 
-            totalOffsetX.value = withSpring(target.x, SPRING_CONFIG);
-            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
+            offsetX.value = withSpring(target.x, SPRING_CONFIG);
+            offsetY.value = withSpring(target.y, SPRING_CONFIG);
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
             pinchScale.value = doubleTapScale;
         },

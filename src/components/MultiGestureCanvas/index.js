@@ -64,14 +64,13 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const pinchTranslateX = useSharedValue(0);
     const pinchTranslateY = useSharedValue(0);
 
-    // Total offset of the canvas
-    // Contains both offsets from panning and pinching gestures
-    const totalOffsetX = useSharedValue(0);
-    const totalOffsetY = useSharedValue(0);
+    // Total offset of the content including previous translations from panning and pinching gestures
+    const offsetX = useSharedValue(0);
+    const offsetY = useSharedValue(0);
 
     const stopAnimation = useWorkletCallback(() => {
-        cancelAnimation(totalOffsetX);
-        cancelAnimation(totalOffsetY);
+        cancelAnimation(offsetX);
+        cancelAnimation(offsetY);
     });
 
     const reset = useWorkletCallback((animated) => {
@@ -82,8 +81,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         pinchScale.value = 1;
 
         if (animated) {
-            totalOffsetX.value = withSpring(0, SPRING_CONFIG);
-            totalOffsetY.value = withSpring(0, SPRING_CONFIG);
+            offsetX.value = withSpring(0, SPRING_CONFIG);
+            offsetY.value = withSpring(0, SPRING_CONFIG);
             panTranslateX.value = withSpring(0, SPRING_CONFIG);
             panTranslateY.value = withSpring(0, SPRING_CONFIG);
             pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
@@ -92,8 +91,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
             return;
         }
 
-        totalOffsetX.value = 0;
-        totalOffsetY.value = 0;
+        offsetX.value = 0;
+        offsetY.value = 0;
         panTranslateX.value = 0;
         panTranslateY.value = 0;
         pinchTranslateX.value = 0;
@@ -101,14 +100,14 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         zoomScale.value = 1;
     });
 
-    const {singleTap, doubleTap} = useTapGestures({
+    const {singleTapGesture, doubleTapGesture} = useTapGestures({
         canvasSize,
         contentSize,
         minContentScale,
         maxContentScale,
         panGestureRef,
-        totalOffsetX,
-        totalOffsetY,
+        offsetX,
+        offsetY,
         pinchScale,
         zoomScale,
         reset,
@@ -120,15 +119,15 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const panGesture = usePanGesture({
         canvasSize,
         contentSize,
+        singleTapGesture,
+        doubleTapGesture,
         panGestureRef,
         pagerRef,
-        singleTap,
-        doubleTap,
         zoomScale,
         zoomRange,
         totalScale,
-        totalOffsetX,
-        totalOffsetY,
+        offsetX,
+        offsetY,
         panTranslateX,
         panTranslateY,
         isSwipingInPager,
@@ -137,13 +136,13 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
 
     const pinchGesture = usePinchGesture({
         canvasSize,
-        singleTap,
-        doubleTap,
+        singleTapGesture,
+        doubleTapGesture,
         panGesture,
         zoomScale,
         zoomRange,
-        totalOffsetX,
-        totalOffsetY,
+        offsetX,
+        offsetY,
         pinchTranslateX,
         pinchTranslateY,
         pinchScale,
@@ -175,8 +174,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     }, [isActive, mounted, reset]);
 
     const animatedStyles = useAnimatedStyle(() => {
-        const x = pinchTranslateX.value + panTranslateX.value + totalOffsetX.value;
-        const y = pinchTranslateY.value + panTranslateY.value + totalOffsetY.value;
+        const x = pinchTranslateX.value + panTranslateX.value + offsetX.value;
+        const y = pinchTranslateY.value + panTranslateY.value + offsetY.value;
 
         return {
             transform: [
@@ -202,7 +201,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
                 },
             ]}
         >
-            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTap, doubleTap, panGesture))}>
+            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
                 <View
                     collapsable={false}
                     style={StyleUtils.getFullscreenCenteredContentStyles()}

@@ -12,10 +12,10 @@ const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
 const usePanGesture = ({
     canvasSize,
     contentSize,
+    singleTapGesture,
+    doubleTapGesture,
     panGestureRef,
     pagerRef,
-    singleTap,
-    doubleTap,
     zoomScale,
     zoomRange,
     totalScale,
@@ -136,7 +136,7 @@ const usePanGesture = ({
                 };
             }
         })
-        .simultaneousWithExternalGesture(pagerRef, singleTap, doubleTap)
+        .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
         .onStart(() => {
             stopAnimation();
         })

@@ -10,13 +10,13 @@ const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
 
 const usePinchGesture = ({
     canvasSize,
-    singleTap,
-    doubleTap,
+    singleTapGesture,
+    doubleTapGesture,
     panGesture,
     zoomScale,
     zoomRange,
-    totalOffsetX,
-    totalOffsetY,
+    offsetX,
+    offsetY,
     pinchTranslateX: totalPinchTranslateX,
     pinchTranslateY: totalPinchTranslateY,
     pinchScale,
@@ -53,8 +53,8 @@ const usePinchGesture = ({
 
     const getAdjustedFocal = useWorkletCallback(
         (focalX, focalY) => ({
-            x: focalX - (canvasSize.width / 2 + totalOffsetX.value),
-            y: focalY - (canvasSize.height / 2 + totalOffsetY.value),
+            x: focalX - (canvasSize.width / 2 + offsetX.value),
+            y: focalY - (canvasSize.height / 2 + offsetY.value),
         }),
         [canvasSize.width, canvasSize.height],
     );
@@ -67,7 +67,7 @@ const usePinchGesture = ({
 
             state.fail();
         })
-        .simultaneousWithExternalGesture(panGesture, singleTap, doubleTap)
+        .simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture)
         .onStart((evt) => {
             isPinchGestureRunning.value = true;
 
@@ -104,8 +104,8 @@ const usePinchGesture = ({
         })
         .onEnd(() => {
             // Add pinch translation to total offset
-            totalOffsetX.value += totalPinchTranslateX.value;
-            totalOffsetY.value += totalPinchTranslateX.value;
+            offsetX.value += totalPinchTranslateX.value;
+            offsetY.value += totalPinchTranslateX.value;
 
             // Reset pinch gesture variables
             pinchTranslateX.value = 0;
