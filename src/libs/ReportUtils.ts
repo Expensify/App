@@ -32,6 +32,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
@@ -431,6 +432,51 @@ function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHA
     return report?.chatType;
 }
 
+/**
+ * Get the report given a reportID
+ */
+function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    if (!allReports) {
+        return {};
+    }
+
+    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
+}
+
+/**
+ * Returns the parentReport if the given report is a thread.
+ */
+function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
+    if (!report?.parentReportID) {
+        return {};
+    }
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
+}
+
+/**
+ * Returns the root parentReport if the given report is nested.
+ * Uses recursion to iterate any depth of nested reports.
+ */
+function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject): OnyxEntry<Report> | EmptyObject {
+    if (!report) {
+        return {};
+    }
+
+    // Returns the current report as the root report, because it does not have a parentReportID
+    if (!report?.parentReportID) {
+        return report;
+    }
+
+    const parentReport = getReport(report?.parentReportID);
+
+    // Runs recursion to iterate a parent report
+    return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
+}
+
 function getPolicy(policyID: string): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
@@ -460,10 +506,12 @@ function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, retu
     }
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
+    const parentReport = getRootParentReport(report);
+
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || noPolicyFound;
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
 }
@@ -1028,21 +1076,6 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Get the report given a reportID
- */
-function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
-    /**
-     * Using typical string concatenation here due to performance issues
-     * with template literals.
-     */
-    if (!allReports) {
-        return {};
-    }
-
-    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
-}
-
-/**
  * Get the notification preference given a report
  */
 function getReportNotificationPreference(report: OnyxEntry<Report>): string | number {
@@ -1335,7 +1368,7 @@ function getIcons(
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         const actorAccountID = parentReportAction.actorAccountID;
-        const actorDisplayName = allPersonalDetails?.[actorAccountID ?? -1]?.displayName ?? '';
+        const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(personalDetails?.[actorAccountID ?? -1]?.avatar ?? '', actorAccountID ?? -1),
@@ -1459,13 +1492,15 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formattedLogin;
     }
-    const longName = personalDetails.displayName ? personalDetails.displayName : formattedLogin;
+
+    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden);
+
+    // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
+    if (shouldFallbackToHidden && longName === Localize.translateLocal('common.hidden')) {
+        return longName;
+    }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
-
-    if (!longName && shouldFallbackToHidden) {
-        return Localize.translateLocal('common.hidden');
-    }
     return shouldUseShortForm ? shortName : longName;
 }
 
@@ -2150,36 +2185,6 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
 }
 
 /**
- * Returns the parentReport if the given report is a thread.
- */
-function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
-    if (!report?.parentReportID) {
-        return {};
-    }
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
-}
-
-/**
- * Returns the root parentReport if the given report is nested.
- * Uses recursion to iterate any depth of nested reports.
- */
-function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
-    if (!report) {
-        return {};
-    }
-
-    // Returns the current report as the root report, because it does not have a parentReportID
-    if (!report?.parentReportID) {
-        return report;
-    }
-
-    const parentReport = getReport(report?.parentReportID);
-
-    // Runs recursion to iterate a parent report
-    return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
-}
-
-/**
  * Get the title for a report.
  */
 function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
@@ -2557,8 +2562,6 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
     const policy = getPolicy(policyID);
 
-    // The expense report is always created with the policy's output currency
-    const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const isFree = policy?.type === CONST.POLICY.TYPE.FREE;
 
     // Define the state and status of the report based on whether the policy is free or paid
@@ -2572,7 +2575,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: payeeAccountID,
-        currency: outputCurrency,
+        currency,
 
         // We don't translate reportName because the server response is always in English
         reportName: `${policyName} owes ${formattedTotal}`,
