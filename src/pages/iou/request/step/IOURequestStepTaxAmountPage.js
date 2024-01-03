@@ -1,15 +1,18 @@
 import {useFocusEffect} from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import {getRequestType} from '@libs/TransactionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
 import reportPropTypes from '@pages/reportPropTypes';
@@ -18,7 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
-import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
@@ -36,44 +38,36 @@ const propTypes = {
     /* Onyx Props */
     /** Collection of tax rates attached to a policy */
     policyTaxRates: taxPropTypes,
-
-    /** The policy of the report */
-    policy: PropTypes.shape({
-        /** Is Tax tracking Enabled */
-        isTaxTrackingEnabled: PropTypes.bool,
-    }),
 };
 
 const defaultProps = {
     report: {},
     transaction: {},
     policyTaxRates: {},
-    policy: {},
 };
 
-const getTaxAmount = (transaction, defaultTaxValue, amount) => {
+const getTaxAmount = (transaction, defaultTaxValue) => {
     const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
-    return TransactionUtils.calculateTaxAmount(percentage, amount);
+    return CurrencyUtils.convertToBackendAmount(Number.parseFloat(TransactionUtils.calculateTaxAmount(percentage, transaction.amount)));
 };
 
-function IOURequestStepAmount({
-    report,
+function IOURequestStepTaxAmountPage({
     route: {
         params: {iouType, reportID, transactionID, backTo, currency: selectedCurrency},
     },
     transaction,
     transaction: {currency: originalCurrency},
+    report,
     policyTaxRates,
-    policy,
 }) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const textInput = useRef(null);
-    const focusTimeoutRef = useRef(null);
-    const iouRequestType = getRequestType(transaction);
+    const isEditing = Navigation.getActiveRoute().includes('taxAmount');
+
     const currency = selectedCurrency || originalCurrency;
 
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report));
-    const isTaxTrackingEnabled = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
+    const focusTimeoutRef = useRef(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -88,26 +82,21 @@ function IOURequestStepAmount({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(backTo || ROUTES.HOME);
+        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
+        // If the money request being created is a distance request, don't allow the user to choose the currency.
+        // Only USD is allowed for distance requests.
+        // Remove query from the route and encode it.
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
 
-    /**
-     * @param {Number} amount
-     */
-    const navigateToNextPage = ({amount}) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+    const updateTaxAmount = (currentAmount) => {
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
+        IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits);
 
-        if ((iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL || backTo) && isTaxTrackingEnabled) {
-            const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue, amountInSmallestCurrencyUnits);
-            const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
-            IOU.setMoneyRequestTaxAmount(transaction.transactionID, taxAmountInSmallestCurrencyUnits);
-        }
-
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -128,30 +117,43 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
+    const content = (
+        <MoneyRequestAmountForm
+            isEditing={isEditing}
+            currency={currency}
+            amount={transaction.taxAmount}
+            taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
+            transaction={transaction}
+            ref={(e) => (textInput.current = e)}
+            onCurrencyButtonPress={navigateToCurrencySelectionPage}
+            onSubmitButtonPress={updateTaxAmount}
+        />
+    );
+
     return (
-        <StepScreenWrapper
-            headerTitle={translate('iou.amount')}
-            onBackButtonPress={navigateBack}
-            testID={IOURequestStepAmount.displayName}
-            shouldShowWrapper={Boolean(backTo)}
-            includeSafeAreaPaddingBottom
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
+            testID={IOURequestStepTaxAmountPage.displayName}
         >
-            <MoneyRequestAmountForm
-                isEditing={Boolean(backTo)}
-                currency={currency}
-                amount={transaction.amount}
-                ref={(e) => (textInput.current = e)}
-                onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                onSubmitButtonPress={navigateToNextPage}
-                selectedTab={iouRequestType}
-            />
-        </StepScreenWrapper>
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={translate('iou.taxAmount')}
+                            onBackButtonPress={navigateBack}
+                        />
+                        {content}
+                    </View>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 
-IOURequestStepAmount.propTypes = propTypes;
-IOURequestStepAmount.defaultProps = defaultProps;
-IOURequestStepAmount.displayName = 'IOURequestStepAmount';
+IOURequestStepTaxAmountPage.propTypes = propTypes;
+IOURequestStepTaxAmountPage.defaultProps = defaultProps;
+IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 
 export default compose(
     withWritableReportOrNotFound,
@@ -160,8 +162,5 @@ export default compose(
         policyTaxRates: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report ? report.policyID : '0'}`,
         },
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-        },
     }),
-)(IOURequestStepAmount);
+)(IOURequestStepTaxAmountPage);
