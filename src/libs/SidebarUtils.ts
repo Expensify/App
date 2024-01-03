@@ -4,7 +4,7 @@ import Onyx, {OnyxCollection} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
+import {PersonalDetails, TransactionViolations} from '@src/types/onyx';
 import Beta from '@src/types/onyx/Beta';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import Policy from '@src/types/onyx/Policy';
@@ -117,23 +117,20 @@ function getOrderedReportIDs(
     betas: Beta[],
     policies: Record<string, Policy>,
     priorityMode: ValueOf<typeof CONST.PRIORITY_MODE>,
-    allReportActions: OnyxCollection<ReportAction[]>,
+    allReportActions: OnyxCollection<ReportActions>,
+    transactionViolations: TransactionViolations,
 ): string[] {
+    const reportIDKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`;
+    const reportActionCount = allReportActions?.[reportIDKey]?.length ?? 1;
+
     // Generate a unique cache key based on the function arguments
     const cachedReportsKey = JSON.stringify(
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
-        (key, value: unknown) => {
-            /**
-             *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
-             *  which we don't need to store in a cacheKey
-             */
-            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
-                return undefined;
-            }
-
-            return value;
-        },
+        [currentReportId, allReports, betas, policies, priorityMode, reportActionCount],
+        /**
+         * Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' keys from the stringified
+         * objects to keep the size of the resulting key manageable.
+         */
+        (key, value: unknown) => (['participantAccountIDs', 'participants', 'lastMessageText'].includes(key) ? undefined : value),
     );
 
     // Check if the result is already in the cache
@@ -149,7 +146,9 @@ function getOrderedReportIDs(
     const isInDefaultMode = !isInGSDMode;
     const allReportsDictValues = Object.values(allReports);
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = allReportsDictValues.filter((report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true));
+    const reportsToDisplay = allReportsDictValues.filter((report) =>
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId ?? '', isInGSDMode, betas, policies, true, allReportActions, transactionViolations),
+    );
 
     if (reportsToDisplay.length === 0) {
         // Display Concierge chat report when there is no report to be displayed
@@ -238,6 +237,8 @@ function getOptionData(
     preferredLocale: ValueOf<typeof CONST.LOCALES>,
     policy: Policy,
     parentReportAction: ReportAction,
+    transactionViolations: TransactionViolations,
+    canUseViolations: boolean,
 ): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -275,8 +276,11 @@ function getOptionData(
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
     };
+
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
+    const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
+    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, null);
 
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
@@ -289,7 +293,7 @@ function getOptionData(
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : undefined;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) as OnyxCommon.Errors;
-    result.brickRoadIndicator = Object.keys(result.allReportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;

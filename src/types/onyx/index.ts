@@ -22,10 +22,10 @@ import PersonalBankAccount from './PersonalBankAccount';
 import PersonalDetails, {PersonalDetailsList} from './PersonalDetails';
 import PlaidData from './PlaidData';
 import Policy from './Policy';
-import PolicyCategory, {PolicyCategories} from './PolicyCategory';
+import {PolicyCategories, PolicyCategory} from './PolicyCategory';
 import PolicyMember, {PolicyMembers} from './PolicyMember';
 import PolicyReportField from './PolicyReportField';
-import PolicyTag, {PolicyTags} from './PolicyTag';
+import {PolicyTag, PolicyTags} from './PolicyTag';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import RecentlyUsedCategories from './RecentlyUsedCategories';
 import RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -48,7 +48,7 @@ import SecurityGroup from './SecurityGroup';
 import Session from './Session';
 import Task from './Task';
 import Transaction from './Transaction';
-import {TransactionViolation, ViolationName} from './TransactionViolation';
+import {TransactionViolation, TransactionViolations, ViolationName} from './TransactionViolation';
 import User from './User';
 import UserLocation from './UserLocation';
 import UserWallet from './UserWallet';
@@ -118,6 +118,7 @@ export type {
     Task,
     Transaction,
     TransactionViolation,
+    TransactionViolations,
     User,
     UserLocation,
     UserWallet,

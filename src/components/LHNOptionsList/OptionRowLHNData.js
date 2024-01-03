@@ -7,6 +7,7 @@ import transactionPropTypes from '@components/transactionPropTypes';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -42,6 +43,9 @@ const propTypes = {
     /** The transaction from the parent report action */
     transaction: transactionPropTypes,
 
+    /** Any violations associated with the report */
+    transactionViolations: transactionViolationsPropType,
+
     ...basePropTypes,
 };
 
@@ -73,6 +77,8 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     transaction,
+    transactionViolations,
+    canUseViolations,
     ...propsToForward
 }) {
     const reportID = propsToForward.reportID;
@@ -87,7 +93,7 @@ function OptionRowLHNData({
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction);
+        const item = SidebarUtils.getOptionData(fullReport, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transactionViolations, canUseViolations);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
@@ -96,7 +102,7 @@ function OptionRowLHNData({
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction]);
+    }, [fullReport, linkedTransaction, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transaction, transactionViolations, canUseViolations]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {

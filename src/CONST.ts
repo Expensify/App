@@ -3048,11 +3048,52 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
         DEFAULT: 5,
         CAROUSEL: 3,
+    },
+    /**
+     * Constants for types of violations.
+     * Defined here because they need to be referenced by the type system to generate the
+     * ViolationNames type.
+     */
+    VIOLATIONS: {
+        ALL_TAG_LEVELS_REQUIRED: 'allTagLevelsRequired',
+        AUTO_REPORTED_REJECTED_EXPENSE: 'autoReportedRejectedExpense',
+        BILLABLE_EXPENSE: 'billableExpense',
+        CASH_EXPENSE_WITH_NO_RECEIPT: 'cashExpenseWithNoReceipt',
+        CATEGORY_OUT_OF_POLICY: 'categoryOutOfPolicy',
+        CONVERSION_SURCHARGE: 'conversionSurcharge',
+        CUSTOM_UNIT_OUT_OF_POLICY: 'customUnitOutOfPolicy',
+        DUPLICATED_TRANSACTION: 'duplicatedTransaction',
+        FIELD_REQUIRED: 'fieldRequired',
+        FUTURE_DATE: 'futureDate',
+        INVOICE_MARKUP: 'invoiceMarkup',
+        MAX_AGE: 'maxAge',
+        MISSING_CATEGORY: 'missingCategory',
+        MISSING_COMMENT: 'missingComment',
+        MISSING_TAG: 'missingTag',
+        MODIFIED_AMOUNT: 'modifiedAmount',
+        MODIFIED_DATE: 'modifiedDate',
+        NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
+        OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
+        OVER_CATEGORY_LIMIT: 'overCategoryLimit',
+        OVER_LIMIT: 'overLimit',
+        OVER_LIMIT_ATTENDEE: 'overLimitAttendee',
+        PER_DAY_LIMIT: 'perDayLimit',
+        RECEIPT_NOT_SMART_SCANNED: 'receiptNotSmartScanned',
+        RECEIPT_REQUIRED: 'receiptRequired',
+        RTER: 'rter',
+        SMARTSCAN_FAILED: 'smartscanFailed',
+        SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
+        TAG_OUT_OF_POLICY: 'tagOutOfPolicy',
+        TAX_AMOUNT_CHANGED: 'taxAmountChanged',
+        TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
+        TAX_RATE_CHANGED: 'taxRateChanged',
+        TAX_REQUIRED: 'taxRequired',
     },
 
     /** Context menu types */

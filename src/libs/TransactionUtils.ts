@@ -3,7 +3,7 @@ import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
+import {RecentWaypoint, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import PolicyTaxRate, {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -79,7 +79,8 @@ function isManualRequest(transaction: Transaction): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have it's transactionID match what was already generated.
+ * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
+ * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(
     amount: number,
@@ -519,6 +520,13 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Checks if any violations for the provided transaction are of type 'violation'
+ */
+function hasViolation(transactionID: string, transactionViolations: TransactionViolations): boolean {
+    return Boolean(transactionViolations[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'violation'));
+}
+
+/**
  * this is the formulae to calculate tax
  */
 function calculateTaxAmount(percentage: string, amount: number) {
@@ -577,4 +585,5 @@ export {
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasViolation,
 };

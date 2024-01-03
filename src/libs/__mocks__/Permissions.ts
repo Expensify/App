@@ -12,4 +12,5 @@ export default {
     ...jest.requireActual('../Permissions'),
     canUseDefaultRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
     canUsePolicyRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.POLICY_ROOMS),
+    canUseViolations: (betas: Beta[]) => betas.includes(CONST.BETAS.VIOLATIONS),
 };

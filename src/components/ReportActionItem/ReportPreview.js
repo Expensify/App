@@ -15,6 +15,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import {transactionViolationsPropType} from '@libs/Violations/propTypes';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import reportPropTypes from '@pages/reportPropTypes';
 import variables from '@styles/variables';
@@ -107,6 +109,9 @@ const propTypes = {
     /** Whether a message is a whisper */
     isWhisper: PropTypes.bool,
 
+    /** All of the transaction violations */
+    transactionViolations: transactionViolationsPropType,
+
     ...withLocalizePropTypes,
 };
 
@@ -120,6 +125,9 @@ const defaultProps = {
         accountID: null,
     },
     isWhisper: false,
+    transactionViolations: {
+        violations: [],
+    },
     policy: {
         isHarvestingEnabled: false,
     },
@@ -130,8 +138,9 @@ function ReportPreview(props) {
     const styles = useThemeStyles();
     const {getLineHeightStyle} = useStyleUtils();
     const {translate} = useLocalize();
+    const {canUseViolations} = usePermissions();
 
-    const [hasMissingSmartscanFields, sethasMissingSmartscanFields] = useState(false);
+    const [hasMissingSmartscanFields, setHasMissingSmartscanFields] = useState(false);
     const [areAllRequestsBeingSmartScanned, setAreAllRequestsBeingSmartScanned] = useState(false);
     const [hasOnlyDistanceRequests, setHasOnlyDistanceRequests] = useState(false);
     const [hasNonReimbursableTransactions, setHasNonReimbursableTransactions] = useState(false);
@@ -154,7 +163,7 @@ function ReportPreview(props) {
     const numberOfScanningReceipts = _.filter(transactionsWithReceipts, (transaction) => TransactionUtils.isReceiptBeingScanned(transaction)).length;
     const hasReceipts = transactionsWithReceipts.length > 0;
     const isScanning = hasReceipts && areAllRequestsBeingSmartScanned;
-    const hasErrors = hasReceipts && hasMissingSmartscanFields;
+    const hasErrors = (hasReceipts && hasMissingSmartscanFields) || (canUseViolations && ReportUtils.hasViolations(props.iouReportID, props.transactionViolations));
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = _.map(lastThreeTransactionsWithReceipts, (transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
     let formattedMerchant = numberOfRequests === 1 && hasReceipts ? TransactionUtils.getMerchant(transactionsWithReceipts[0]) : null;
@@ -230,7 +239,7 @@ function ReportPreview(props) {
                     return;
                 }
 
-                sethasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
+                setHasMissingSmartscanFields(ReportUtils.hasMissingSmartscanFields(props.iouReportID));
                 setAreAllRequestsBeingSmartScanned(ReportUtils.areAllRequestsBeingSmartScanned(props.iouReportID, props.action));
                 setHasOnlyDistanceRequests(ReportUtils.hasOnlyDistanceRequestTransactions(props.iouReportID));
                 setHasNonReimbursableTransactions(ReportUtils.hasNonReimbursableTransactions(props.iouReportID));
@@ -372,6 +381,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactionViolations: {
+            key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         },
     }),
 )(ReportPreview);

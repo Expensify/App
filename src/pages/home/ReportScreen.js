@@ -67,7 +67,7 @@ const propTypes = {
     reportMetadata: reportMetadataPropTypes,
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
@@ -104,7 +104,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    reportActions: [],
+    reportActions: {},
     report: {},
     reportMetadata: {
         isLoadingInitialReportActions: true,
