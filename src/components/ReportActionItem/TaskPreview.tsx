@@ -89,8 +89,8 @@ function TaskPreview({
         : action?.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && action?.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
     const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport ?? {}) ?? action?.childManagerAccountID ?? '';
-    const assigneeLogin = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.login ?? '' : '';
-    const assigneeDisplayName = taskAssigneeAccountID ? personalDetails[taskAssigneeAccountID]?.displayName ?? '' : '';
+    const assigneeLogin = personalDetails[taskAssigneeAccountID]?.login ?? '';
+    const assigneeDisplayName = personalDetails[taskAssigneeAccountID]?.displayName ?? '';
     const taskAssignee = assigneeDisplayName || LocalePhoneNumber.formatPhoneNumber(assigneeLogin);
     const htmlForTaskPreview =
         taskAssignee && taskAssigneeAccountID !== 0
