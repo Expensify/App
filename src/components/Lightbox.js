@@ -6,7 +6,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import * as AttachmentsPropTypes from './Attachments/propTypes';
 import Image from './Image';
 import MultiGestureCanvas from './MultiGestureCanvas';
-import {zoomRangeDefaultProps, zoomRangePropTypes} from './MultiGestureCanvas/propTypes';
 import getCanvasFitScale from './MultiGestureCanvas/utils';
 
 // Increase/decrease this number to change the number of concurrent lightboxes
@@ -20,7 +19,8 @@ const cachedDimensions = new Map();
  * On the native layer, we use a image library to handle zoom functionality
  */
 const propTypes = {
-    ...zoomRangePropTypes,
+    // TODO: Add TS types for zoom range
+    // ...zoomRangePropTypes,
 
     /** Function for handle on press */
     onPress: PropTypes.func,
@@ -48,7 +48,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-    ...zoomRangeDefaultProps,
+    // TODO: Add TS default values
+    // ...zoomRangeDefaultProps,
 
     isAuthTokenRequired: false,
     index: 0,

@@ -1,4 +1,4 @@
-import {PagerViewProps} from 'react-native-pager-view';
+import type {PagerViewProps} from 'react-native-pager-view';
 import {useEvent, useHandler} from 'react-native-reanimated';
 
 type PageScrollHandler = NonNullable<PagerViewProps['onPageScroll']>;

@@ -1,6 +1,6 @@
 import {createContext} from 'react';
-import PagerView from 'react-native-pager-view';
-import {SharedValue} from 'react-native-reanimated';
+import type PagerView from 'react-native-pager-view';
+import type {SharedValue} from 'react-native-reanimated';
 
 type AttachmentCarouselPagerContextType = {
     onTap: () => void;

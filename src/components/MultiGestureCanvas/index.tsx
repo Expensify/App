@@ -1,14 +1,15 @@
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import PagerView from 'react-native-pager-view';
+import type PagerView from 'react-native-pager-view';
 import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
-import AttachmentCarouselPagerContext, {AttachmentCarouselPagerContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {AttachmentCarouselPagerContextType} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {defaultZoomRange} from './constants';
 import getCanvasFitScale from './getCanvasFitScale';
-import {ContentSizeProp, ZoomRangeProp} from './types';
+import type {ContentSizeProp, ZoomRangeProp} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
