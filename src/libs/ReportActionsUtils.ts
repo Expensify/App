@@ -1,20 +1,23 @@
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
-import Report from '@src/types/onyx/Report';
-import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
+import type Report from '@src/types/onyx/Report';
+import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type ReportAction from '@src/types/onyx/ReportAction';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
-import {MessageElementBase, MessageTextElement} from './MessageElement';
+import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 type LastVisibleMessage = {

@@ -2,7 +2,7 @@ import type {Component, ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedProps} from 'react-native-reanimated';
 import type {MaybePhraseKey} from '@libs/Localize';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type CustomBaseTextInputProps = {
     /** Input label */

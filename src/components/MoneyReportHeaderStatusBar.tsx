@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import CONST from '@src/CONST';
-import ReportNextStep from '@src/types/onyx/ReportNextStep';
+import type ReportNextStep from '@src/types/onyx/ReportNextStep';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
