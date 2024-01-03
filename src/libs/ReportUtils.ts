@@ -16,6 +16,7 @@ import ROUTES from '@src/ROUTES';
 import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import {Status} from '@src/types/onyx/PersonalDetails';
 import {NotificationPreference} from '@src/types/onyx/Report';
 import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -31,6 +32,7 @@ import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
@@ -310,15 +312,26 @@ type OptimisticIOUReport = Pick<
 >;
 type DisplayNameWithTooltips = Array<Pick<PersonalDetails, 'accountID' | 'pronouns' | 'displayName' | 'login' | 'avatar'>>;
 
+type CustomIcon = {
+    src: IconAsset;
+    color?: string;
+};
+
 type OptionData = {
+    text: string;
     alternateText?: string | null;
     allReportErrors?: Errors | null;
     brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | '' | null;
     tooltipText?: string | null;
+    alternateTextMaxLines?: number;
+    boldStyle?: boolean;
+    customIcon?: CustomIcon;
+    descriptiveText?: string;
     subtitle?: string | null;
     login?: string | null;
     accountID?: number | null;
-    status?: string | null;
+    pronouns?: string;
+    status?: Status | null;
     phoneNumber?: string | null;
     isUnread?: boolean | null;
     isUnreadWithMention?: boolean | null;
@@ -1168,7 +1181,7 @@ function formatReportLastMessageText(lastMessageText: string, isModifiedExpenseM
     if (isModifiedExpenseMessage) {
         return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, '').trim();
     }
-    return String(lastMessageText).trim().replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return String(lastMessageText).trim().replace(CONST.REGEX.LINE_BREAK, ' ').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
 }
 
 /**
@@ -1314,7 +1327,7 @@ function getIcons(
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
         const actorAccountID = parentReportAction.actorAccountID;
-        const actorDisplayName = allPersonalDetails?.[actorAccountID ?? -1]?.displayName ?? '';
+        const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(personalDetails?.[actorAccountID ?? -1]?.avatar ?? '', actorAccountID ?? -1),
@@ -1438,18 +1451,20 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formattedLogin;
     }
-    const longName = personalDetails.displayName ? personalDetails.displayName : formattedLogin;
+
+    const longName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails, formattedLogin, shouldFallbackToHidden);
+
+    // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
+    if (shouldFallbackToHidden && longName === Localize.translateLocal('common.hidden')) {
+        return longName;
+    }
 
     const shortName = personalDetails.firstName ? personalDetails.firstName : longName;
-
-    if (!longName && shouldFallbackToHidden) {
-        return Localize.translateLocal('common.hidden');
-    }
     return shouldUseShortForm ? shortName : longName;
 }
 
 function getDisplayNamesWithTooltips(
-    personalDetailsList: PersonalDetails[] | PersonalDetailsList,
+    personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     isMultipleParticipantReport: boolean,
     shouldFallbackToHidden = true,
 ): DisplayNameWithTooltips {
@@ -1843,7 +1858,12 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
  * Checks if the current user can edit the provided property of a money request
  *
  */
-function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, reportID: string, fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): boolean {
+function canEditFieldOfMoneyRequest(
+    reportAction: OnyxEntry<ReportAction>,
+    reportID: string,
+    fieldToEdit: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
+    transaction: OnyxEntry<Transaction>,
+): boolean {
     // A list of fields that cannot be edited by anyone, once a money request has been settled
     const nonEditableFieldsWhenSettled: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -1856,6 +1876,9 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, repor
     // Checks if this user has permissions to edit this money request
     if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
         return false; // User doesn't have permission to edit
+    }
+    if (!isEmpty(transaction) && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+        return false;
     }
 
     // Checks if the report is settled
