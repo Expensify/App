@@ -31,5 +31,6 @@ const localeEmojis = {
     es: esEmojis,
 } as const;
 
+export default emojis;
 export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis};
-export {skinTones, categoryFrequentlyUsed, default} from './common';
+export {skinTones, categoryFrequentlyUsed} from './common';

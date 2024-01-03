@@ -2,16 +2,16 @@ import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
-import {SvgProps} from 'react-native-svg';
 import * as Emojis from '@assets/emojis';
 import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {FrequentlyUsedEmoji} from '@src/types/onyx';
 import {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
+import IconAsset from '@src/types/utils/IconAsset';
 import {SupportedLanguage} from './EmojiTrie';
 
-type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
+type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
 type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
