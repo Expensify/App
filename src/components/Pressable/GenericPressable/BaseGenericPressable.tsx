@@ -1,8 +1,8 @@
 import type {ForwardedRef} from 'react';
-import React, { forwardRef, useCallback, useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
+import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import { Pressable} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {Pressable} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
