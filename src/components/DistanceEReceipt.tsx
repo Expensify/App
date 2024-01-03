@@ -28,7 +28,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {thumbnail = ''} = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction) : {};
+    const thumbnail = TransactionUtils.hasReceipt(transaction) ? ReceiptUtils.getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = ReportUtils.getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : translate('common.tbd');
     const thumbnailSource = tryResolveUrlFromApiRoot((thumbnail as string) || '');
@@ -56,7 +56,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {isOffline === true || !thumbnailSource ? (
+                        {!!isOffline || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ThumbnailImage
@@ -74,22 +74,21 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                     <View style={[styles.mb10, styles.gap5, styles.ph2]}>
                         {Object.entries(sortedWaypoints).map(([key, waypoint]) => {
                             const index = TransactionUtils.getWaypointIndex(key);
-                            let descriptionKey = 'distance.waypointDescription.';
+                            let descriptionKey: TranslationPaths = 'distance.waypointDescription.stop';
                             if (index === 0) {
-                                descriptionKey += 'start';
+                                descriptionKey = 'distance.waypointDescription.start';
                             } else if (index === Object.keys(waypoints).length - 1) {
-                                descriptionKey += 'finish';
-                            } else {
-                                descriptionKey += 'stop';
+                                descriptionKey = 'distance.waypointDescription.finish';
                             }
+
                             return (
                                 <View
                                     style={styles.gap1}
                                     key={key}
                                 >
-                                    <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey as TranslationPaths)}</Text>
-                                    {waypoint?.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
-                                    {waypoint?.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
+                                    <Text style={styles.eReceiptWaypointTitle}>{translate(descriptionKey)}</Text>
+                                    {!!waypoint?.name && <Text style={styles.eReceiptWaypointAddress}>{waypoint.name}</Text>}
+                                    {!!waypoint?.address && <Text style={styles.textLabelSupporting}>{waypoint.address}</Text>}
                                 </View>
                             );
                         })}
