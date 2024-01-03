@@ -470,7 +470,7 @@ export default {
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
             send: 'send money',
-            split: 'split bill',
+            split: 'split a bill',
             request: 'request money',
         },
     },

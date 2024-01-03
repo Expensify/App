@@ -463,7 +463,7 @@ export default {
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
             send: 'enviar dinero',
-            split: 'dividir factura',
+            split: 'dividir una factura',
             request: 'pedir dinero',
         },
     },
