@@ -432,9 +432,9 @@ function getOptionData(
     result.iouReportAmount = ReportUtils.getMoneyRequestReimbursableTotal(result as Report);
 
     if (!hasMultipleParticipants) {
-        result.accountID = personalDetail.accountID;
-        result.login = personalDetail.login;
-        result.phoneNumber = personalDetail.phoneNumber;
+        result.accountID = personalDetail?.accountID;
+        result.login = personalDetail?.login;
+        result.phoneNumber = personalDetail?.phoneNumber;
     }
 
     const reportName = ReportUtils.getReportName(report, policy);
@@ -443,7 +443,7 @@ function getOptionData(
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail?.avatar ?? {}, personalDetail?.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
