@@ -105,6 +105,12 @@ const propTypes = {
 
     /** Ref for the isNextModalWillOpen */
     isNextModalWillOpenRef: PropTypes.shape({current: PropTypes.bool.isRequired}).isRequired,
+
+    /** A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not */
+    isScrollLikelyLayoutTriggered: PropTypes.shape({current: PropTypes.bool.isRequired}).isRequired,
+
+    /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
+    raiseIsScrollLikelyLayoutTriggered: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
