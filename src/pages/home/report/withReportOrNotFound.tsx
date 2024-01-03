@@ -9,7 +9,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as OnyxTypes from '@src/types/onyx';
 
-type OnyxProps = {
+type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
     /** The policies which the user has access to */
@@ -20,16 +20,16 @@ type OnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
 };
 
-type ComponentProps = OnyxProps & {
+type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route: RouteProp<{params: {reportID: string}}>;
 };
 
 export default function (
     shouldRequireReportID = true,
-): <TProps extends ComponentProps, TRef>(
+): <TProps extends WithReportOrNotFoundProps, TRef>(
     WrappedComponent: React.ComponentType<TProps & React.RefAttributes<TRef>>,
-) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof OnyxProps>> {
-    return function <TProps extends ComponentProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
+) => React.ComponentType<Omit<TProps & React.RefAttributes<TRef>, keyof WithReportOrNotFoundOnyxProps>> {
+    return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const contentShown = React.useRef(false);
 
@@ -71,7 +71,7 @@ export default function (
 
         WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-        return withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
+        return withOnyx<TProps & RefAttributes<TRef>, WithReportOrNotFoundOnyxProps>({
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
             },
@@ -87,3 +87,5 @@ export default function (
         })(React.forwardRef(WithReportOrNotFound));
     };
 }
+
+export type {WithReportOrNotFoundOnyxProps, WithReportOrNotFoundProps};
