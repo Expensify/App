@@ -41,7 +41,15 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                 },
             },
             [SCREENS.NOT_FOUND]: '*',
-
+            [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
+                screens: {
+                    [SCREENS.LEFT_MODAL.SEARCH]: {
+                        screens: {
+                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
+                        },
+                    },
+                },
+            },
             [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
                 screens: {
                     [SCREENS.RIGHT_MODAL.SETTINGS]: {
@@ -338,11 +346,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                             [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
                         },
                     },
-                    [SCREENS.RIGHT_MODAL.SEARCH]: {
-                        screens: {
-                            [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
-                        },
-                    },
                     [SCREENS.RIGHT_MODAL.DETAILS]: {
                         screens: {
                             [SCREENS.DETAILS_ROOT]: ROUTES.DETAILS.route,
@@ -420,6 +423,8 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 },
                             },
                             [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                             [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                             [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                             [SCREENS.MONEY_REQUEST.DATE]: ROUTES.MONEY_REQUEST_DATE.route,
