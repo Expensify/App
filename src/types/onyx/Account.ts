@@ -47,6 +47,9 @@ type Account = {
     /** Whether a sign is loading */
     isLoading?: boolean;
 
+    /** The active policy ID. Initiating a SmartScan will create an expense on this policy by default. */
+    activePolicyID?: string;
+
     errors?: OnyxCommon.Errors;
     success?: string;
     codesAreCopied?: boolean;

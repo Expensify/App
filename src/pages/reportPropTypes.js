@@ -28,7 +28,7 @@ export default PropTypes.shape({
     /** The time of the last message on the report */
     lastVisibleActionCreated: PropTypes.string,
 
-    /** The last time the report was visited */
+    /** The time when user read the last message */
     lastReadTime: PropTypes.string,
 
     /** The current user's notification preference for this report */

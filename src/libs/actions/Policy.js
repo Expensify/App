@@ -270,6 +270,10 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
     // Everyone in special policy rooms is visible
     const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
 
@@ -305,6 +309,10 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         onyxOptimisticData: [],
         onyxFailureData: [],
     };
+
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
 
     const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
     announceRoomMembers.onyxOptimisticData.push({

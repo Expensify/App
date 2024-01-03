@@ -19,6 +19,7 @@ import compose from '@libs/compose';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -194,7 +195,7 @@ function RoomMembersPage(props) {
                     memberDetails += ` ${details.lastName.toLowerCase()}`;
                 }
                 if (details.displayName) {
-                    memberDetails += ` ${details.displayName.toLowerCase()}`;
+                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
                 }
                 if (details.phoneNumber) {
                     memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
@@ -210,7 +211,7 @@ function RoomMembersPage(props) {
                 accountID: Number(accountID),
                 isSelected: _.contains(selectedMembers, Number(accountID)),
                 isDisabled: accountID === props.session.accountID,
-                text: props.formatPhoneNumber(details.displayName),
+                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
                 icons: [
                     {
