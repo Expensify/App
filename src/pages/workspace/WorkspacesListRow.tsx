@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import {debounce} from 'lodash';
+import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
@@ -10,9 +11,9 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {AvatarSource} from '@libs/UserUtils';
+import {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import IconAsset from '@src/types/utils/IconAsset';
@@ -66,7 +67,8 @@ function WorkspacesListRow({
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
+    const threeDotsMenuContainerRef = useRef<View>(null);
 
     const ownerDetails = ownerAccountID && PersonalDetailsUtils.getPersonalDetailsByIDs([ownerAccountID], currentUserPersonalDetails.accountID)[0];
 
@@ -164,12 +166,23 @@ function WorkspacesListRow({
                 </View>
             </View>
             {isWide && (
-                <ThreeDotsMenu
-                    menuItems={menuItems}
-                    anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                    iconStyles={[styles.mr2]}
-                    shouldOverlay
-                />
+                <View ref={threeDotsMenuContainerRef}>
+                    <ThreeDotsMenu
+                        onIconPress={() => {
+                            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                setThreeDotsMenuPosition({
+                                    horizontal: x,
+                                    vertical: y + height + variables.componentBorderRadiusSmall,
+                                });
+                            });
+                        }}
+                        menuItems={menuItems}
+                        anchorPosition={threeDotsMenuPosition}
+                        anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                        iconStyles={[styles.mr2]}
+                        shouldOverlay
+                    />
+                </View>
             )}
         </View>
     );
