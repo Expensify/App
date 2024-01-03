@@ -1,7 +1,6 @@
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
-import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -17,13 +16,13 @@ import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -337,6 +336,7 @@ function addActions(reportID: string, text = '', file?: File) {
         reportComment?: string;
         file?: File;
         timezone?: string;
+        clientCreatedTime?: string;
     };
 
     const parameters: AddCommentOrAttachementParameters = {
@@ -345,6 +345,7 @@ function addActions(reportID: string, text = '', file?: File) {
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
+        clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -476,8 +477,6 @@ function openReport(
         return;
     }
 
-    clearReportNotifications(reportID);
-
     const optimisticReport = reportActionsExist(reportID)
         ? {}
         : {
@@ -499,6 +498,7 @@ function openReport(
                 isLoadingInitialReportActions: true,
                 isLoadingOlderReportActions: false,
                 isLoadingNewerReportActions: false,
+                lastVisitTime: DateUtils.getDBTime(),
             },
         },
     ];
@@ -941,8 +941,18 @@ function readNewestAction(reportID: string) {
  * Sets the last read time on a report
  */
 function markCommentAsUnread(reportID: string, reportActionCreated: string) {
-    // If no action created date is provided, use the last action's
-    const actionCreationTime = reportActionCreated || (allReports?.[reportID]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
+    const reportActions = allReportActions?.[reportID];
+
+    // Find the latest report actions from other users
+    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
+        if (current.actorAccountID !== currentUserAccountID && (!latest || current.created > latest.created)) {
+            return current;
+        }
+        return latest;
+    }, null);
+
+    // If no action created date is provided, use the last action's from other user
+    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? DateUtils.getDBTime(0));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -1347,10 +1357,16 @@ function editReportComment(reportID: string, originalReportAction: OnyxEntry<Rep
     API.write('UpdateComment', parameters, {optimisticData, successData, failureData});
 }
 
+/** Deletes the draft for a comment report action. */
+function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
+}
+
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
 function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: draftMessage});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
 
 /** Saves the number of lines for the report action draft */
@@ -2021,7 +2037,7 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                     return;
                 }
                 if (Session.isAnonymousUser() && !Session.canAccessRouteByAnonymousUser(route)) {
-                    Session.signOutAndRedirectToSignIn();
+                    Session.signOutAndRedirectToSignIn(true);
                     return;
                 }
 
@@ -2029,6 +2045,10 @@ function openReportFromDeepLink(url: string, isAuthenticated: boolean) {
                 // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
                 // which is already called when AuthScreens mounts.
                 if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                    return;
+                }
+
+                if (shouldSkipDeepLinkNavigation(route)) {
                     return;
                 }
 
@@ -2499,8 +2519,6 @@ function searchForReports(searchInput: string) {
     API.read('SearchForReports', parameters, {successData, failureData});
 }
 
-const debouncedSearchInServer = lodashDebounce(searchForReports, CONST.TIMING.SEARCH_FOR_REPORTS_DEBOUNCE_TIME, {leading: false});
-
 function searchInServer(searchInput: string) {
     if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
@@ -2511,7 +2529,14 @@ function searchInServer(searchInput: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    debouncedSearchInServer(searchInput);
+    searchForReports(searchInput);
+}
+
+function updateLastVisitTime(reportID: string) {
+    if (!ReportUtils.isValidReportIDFromPath(reportID)) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {lastVisitTime: DateUtils.getDBTime()});
 }
 
 function clearNewRoomFormError() {
@@ -2540,6 +2565,7 @@ export {
     togglePinnedState,
     editReportComment,
     handleUserDeletedLinksInHtml,
+    deleteReportActionDraft,
     saveReportActionDraft,
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
@@ -2582,5 +2608,6 @@ export {
     openRoomMembersPage,
     savePrivateNotesDraft,
     getDraftPrivateNote,
+    updateLastVisitTime,
     clearNewRoomFormError,
 };

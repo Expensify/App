@@ -50,9 +50,6 @@ const propTypes = {
         }),
     ),
 
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -72,7 +69,6 @@ const propTypes = {
 const defaultProps = {
     participants: [],
     safeAreaPaddingBottomStyle: {},
-    personalDetails: {},
     reports: {},
     betas: [],
     isDistanceRequest: false,
@@ -82,7 +78,6 @@ const defaultProps = {
 function MoneyRequestParticipantsSelector({
     betas,
     participants,
-    personalDetails,
     reports,
     navigateToRequest,
     navigateToSplit,
@@ -189,7 +184,7 @@ function MoneyRequestParticipantsSelector({
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate, searchTerm]);
+    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, searchTerm, translate]);
 
     /**
      * Adds a single participant to the request
@@ -256,12 +251,16 @@ function MoneyRequestParticipantsSelector({
         [participants, onAddParticipants],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessage(
-        newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
-        Boolean(newChatOptions.userToInvite),
-        searchTerm.trim(),
-        maxParticipantsReached,
-        _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+    const headerMessage = useMemo(
+        () =>
+            OptionsListUtils.getHeaderMessage(
+                newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+                Boolean(newChatOptions.userToInvite),
+                searchTerm.trim(),
+                maxParticipantsReached,
+                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+            ),
+        [maxParticipantsReached, newChatOptions.personalDetails.length, newChatOptions.recentReports.length, newChatOptions.userToInvite, participants, searchTerm],
     );
 
     // When search term updates we will fetch any reports
