@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
-import React, { forwardRef} from 'react';
+import React, {forwardRef} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {StyleUtilsType} from '@styles/utils';

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
-import React, { createContext, forwardRef, useEffect, useMemo, useState} from 'react';
+import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';

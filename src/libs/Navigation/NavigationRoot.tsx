@@ -1,4 +1,4 @@
-import type { NavigationState} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';

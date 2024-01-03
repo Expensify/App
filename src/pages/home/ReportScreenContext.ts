@@ -1,4 +1,4 @@
-import type { RefObject} from 'react';
+import type {RefObject} from 'react';
 import {createContext} from 'react';
 import type {FlatList, GestureResponderEvent} from 'react-native';
 

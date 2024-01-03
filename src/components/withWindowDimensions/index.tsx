@@ -1,7 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, { createContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import {Dimensions} from 'react-native';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import getComponentDisplayName from '@libs/getComponentDisplayName';

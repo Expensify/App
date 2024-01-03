@@ -1,7 +1,7 @@
-import type { ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import { StackView} from '@react-navigation/stack';
+import {StackView} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import NAVIGATORS from '@src/NAVIGATORS';

@@ -1,4 +1,4 @@
-import type { GetCurrentPosition} from './getCurrentPosition.types';
+import type {GetCurrentPosition} from './getCurrentPosition.types';
 import {GeolocationErrorCode} from './getCurrentPosition.types';
 
 const getCurrentPosition: GetCurrentPosition = (success, error, options) => {

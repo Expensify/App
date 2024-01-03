@@ -1,6 +1,6 @@
 import type {ImageContentFit} from 'expo-image';
 import type {RefObject} from 'react';
-import React, { useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
 import type {SvgProps} from 'react-native-svg';

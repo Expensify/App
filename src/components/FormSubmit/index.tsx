@@ -1,5 +1,5 @@
 import type {KeyboardEvent} from 'react';
-import React, { useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import * as ComponentUtils from '@libs/ComponentUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';

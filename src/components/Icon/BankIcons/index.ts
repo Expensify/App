@@ -1,7 +1,7 @@
 import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
 import type {BankIconParams} from '@components/Icon/BankIconsUtils';
-import { getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';
+import {getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BankIcon} from '@src/types/onyx/Bank';

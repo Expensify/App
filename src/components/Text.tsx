@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
 import {Text as RNText, StyleSheet} from 'react-native';
-import type {TextStyle, TextProps as RNTextProps} from 'react-native';
+import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import fontFamily from '@styles/utils/fontFamily';
 import variables from '@styles/variables';

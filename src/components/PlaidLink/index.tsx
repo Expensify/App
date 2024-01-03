@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
-import { usePlaidLink} from 'react-plaid-link';
+import {usePlaidLink} from 'react-plaid-link';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';

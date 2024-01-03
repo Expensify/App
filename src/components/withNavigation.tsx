@@ -1,5 +1,5 @@
 import type {NavigationProp} from '@react-navigation/native';
-import { useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';

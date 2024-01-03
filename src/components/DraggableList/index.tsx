@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
+import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
 import type {OnDragEndResponder} from 'react-beautiful-dnd';
 import {ScrollView} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';

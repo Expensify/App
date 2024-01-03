@@ -1,12 +1,12 @@
 import isEmpty from 'lodash/isEmpty';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, { forwardRef} from 'react';
+import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import { withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
+import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
 import withPolicy, {policyDefaultProps} from './withPolicy';
 
 type WithPolicyAndFullscreenLoadingOnyxProps = {

@@ -1,4 +1,4 @@
-import type { TextStyle, View, ViewStyle} from 'react-native';
+import type {TextStyle, View, ViewStyle} from 'react-native';
 import {Animated} from 'react-native';
 import fontFamily from '@styles/utils/fontFamily';
 import positioning from '@styles/utils/positioning';

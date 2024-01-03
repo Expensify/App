@@ -1,6 +1,6 @@
 import React, {createContext, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import { withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import compose from '@libs/compose';
 import DateUtils from '@libs/DateUtils';

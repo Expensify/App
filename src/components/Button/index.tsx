@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, { useCallback} from 'react';
-import type { GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import React, {useCallback} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';

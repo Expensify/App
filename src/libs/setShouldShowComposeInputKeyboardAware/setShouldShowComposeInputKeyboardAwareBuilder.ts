@@ -1,5 +1,5 @@
 import type {EmitterSubscription} from 'react-native';
-import { Keyboard} from 'react-native';
+import {Keyboard} from 'react-native';
 import type {KeyboardEventName} from 'react-native/Libraries/Components/Keyboard/Keyboard';
 import * as Composer from '@userActions/Composer';
 import type SetShouldShowComposeInputKeyboardAware from './types';

@@ -1,4 +1,4 @@
-import type { ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import React, {forwardRef} from 'react';
 import type {GestureResponderEvent, TextProps} from 'react-native';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';

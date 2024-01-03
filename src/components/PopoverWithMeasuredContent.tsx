@@ -1,7 +1,7 @@
 import isEqual from 'lodash/isEqual';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';

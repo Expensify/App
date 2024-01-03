@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, { useCallback} from 'react';
+import React, {useCallback} from 'react';
 import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';

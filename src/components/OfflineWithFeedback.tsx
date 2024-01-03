@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import type {ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type Network from '@src/types/onyx/Network';

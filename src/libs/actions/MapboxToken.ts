@@ -1,5 +1,5 @@
 import {isAfter} from 'date-fns';
-import type { NativeEventSubscription} from 'react-native';
+import type {NativeEventSubscription} from 'react-native';
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';

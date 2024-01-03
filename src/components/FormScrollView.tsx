@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
-import type { ScrollViewProps} from 'react-native';
+import type {ScrollViewProps} from 'react-native';
 import {ScrollView} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 

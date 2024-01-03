@@ -1,6 +1,6 @@
 import React, {Fragment, useCallback, useRef} from 'react';
 import type {Text as RNText} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';

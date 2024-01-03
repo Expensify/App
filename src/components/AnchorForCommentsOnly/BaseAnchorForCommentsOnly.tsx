@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import React, {useEffect, useRef} from 'react';
 import type {Text as RNText} from 'react-native';
-import { StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';

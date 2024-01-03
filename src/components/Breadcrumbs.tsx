@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -1,6 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ForwardedRef, ReactElement} from 'react';
-import React, { forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';

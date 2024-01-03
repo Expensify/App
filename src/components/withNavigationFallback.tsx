@@ -2,7 +2,7 @@ import {NavigationContext} from '@react-navigation/core';
 import type {NavigationProp} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
-import React, { forwardRef, useContext, useMemo} from 'react';
+import React, {forwardRef, useContext, useMemo} from 'react';
 
 type AddListenerCallback = () => void;
 

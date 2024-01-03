@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import type { LinkEvent} from 'react-native-plaid-link-sdk';
+import type {LinkEvent} from 'react-native-plaid-link-sdk';
 import {dismissLink, openLink, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';

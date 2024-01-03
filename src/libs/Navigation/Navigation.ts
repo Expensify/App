@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/core';
-import type { EventArg, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
+import type {EventArg, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';

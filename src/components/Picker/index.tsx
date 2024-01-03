@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, { forwardRef} from 'react';
+import React, {forwardRef} from 'react';
 import BasePicker from './BasePicker';
 import type {AdditionalPickerEvents, BasePickerHandle, BasePickerProps, OnChange, OnMouseDown} from './types';
 

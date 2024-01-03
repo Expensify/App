@@ -1,4 +1,4 @@
-import type { MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
+import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import type {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
 import React from 'react';

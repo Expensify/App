@@ -1,5 +1,5 @@
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, { forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import addViewportResizeListener from '@libs/VisualViewport';
 

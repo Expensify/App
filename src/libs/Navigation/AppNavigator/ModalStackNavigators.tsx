@@ -1,5 +1,5 @@
 import type {ParamListBase} from '@react-navigation/routers';
-import type { StackNavigationOptions} from '@react-navigation/stack';
+import type {StackNavigationOptions} from '@react-navigation/stack';
 import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';

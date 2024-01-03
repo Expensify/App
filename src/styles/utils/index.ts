@@ -1,5 +1,5 @@
 import type {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import { StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
@@ -10,7 +10,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import {defaultStyles } from '..';
+import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import containerComposeStyles from './containerComposeStyles';
 import fontFamily from './fontFamily';

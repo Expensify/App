@@ -1,7 +1,7 @@
 import type {ImageContentFit} from 'expo-image';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

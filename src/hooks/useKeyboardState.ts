@@ -1,5 +1,5 @@
 import {useContext} from 'react';
-import type { KeyboardStateContextValue} from '@components/withKeyboardState';
+import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 import {KeyboardStateContext} from '@components/withKeyboardState';
 
 /**

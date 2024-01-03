@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
-import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle, TextInput} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';

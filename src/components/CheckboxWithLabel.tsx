@@ -1,7 +1,7 @@
 import type {ComponentType, ForwardedRef} from 'react';
-import React, { useState} from 'react';
+import React, {useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Checkbox from './Checkbox';

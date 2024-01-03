@@ -1,10 +1,10 @@
 import type {RouteProp} from '@react-navigation/native';
-import { useNavigationState} from '@react-navigation/native';
+import {useNavigationState} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, { forwardRef} from 'react';
+import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import { withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';

@@ -1,5 +1,5 @@
 import type {ReactElement} from 'react';
-import React, { useCallback} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

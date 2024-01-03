@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
-import React, { forwardRef} from 'react';
-import type { ViewProps} from 'react-native';
+import React, {forwardRef} from 'react';
+import type {ViewProps} from 'react-native';
 import {View} from 'react-native';
 import * as ComponentUtils from '@libs/ComponentUtils';
 

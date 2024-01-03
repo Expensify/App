@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ImageSourcePropType} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Icon from '@components/Icon';

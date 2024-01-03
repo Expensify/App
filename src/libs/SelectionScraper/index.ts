@@ -1,5 +1,5 @@
 import render from 'dom-serializer';
-import type { Node} from 'domhandler';
+import type {Node} from 'domhandler';
 import {DataNode, Element} from 'domhandler';
 import Str from 'expensify-common/lib/str';
 import {parseDocument} from 'htmlparser2';
