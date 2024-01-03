@@ -545,7 +545,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
                 {scale: totalScale.value},
             ],
             // Hide the image if the size is not ready yet
-            opacity: Boolean(props.contentSize) ? 1 : 0,
+            opacity: props.contentSize ? 1 : 0,
         };
     });
 
