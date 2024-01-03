@@ -14,10 +14,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
-import {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
-import OnyxPersonalDetails, {Status} from '@src/types/onyx/PersonalDetails';
-import ReportAction from '@src/types/onyx/ReportAction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
+import type { Status } from '@src/types/onyx/PersonalDetails';
+import type ReportAction from '@src/types/onyx/ReportAction';
+import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Link from './Link';
 import * as OnyxUpdates from './OnyxUpdates';
 import * as PersonalDetails from './PersonalDetails';
@@ -36,7 +37,7 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | Record<string, never> = {};
+let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -49,11 +50,9 @@ Onyx.connect({
 });
 
 /**
- * Attempt to close the user's account
- *
- * @param message optional reason for closing account
+ * Attempt to close the user's accountt
  */
-function closeAccount(message: string) {
+function closeAccount(reason: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
 
@@ -74,7 +73,7 @@ function closeAccount(message: string) {
 
     type CloseAccountParams = {message: string};
 
-    const parameters: CloseAccountParams = {message};
+    const parameters: CloseAccountParams = {message: reason};
 
     API.write('CloseAccount', parameters, {
         optimisticData,
@@ -360,9 +359,6 @@ function validateLogin(accountID: number, validateCode: string) {
 
 /**
  * Validates a secondary login / contact method
- *
- * @param contactMethod - The contact method the user is trying to verify
- * @param validateCode
  */
 function validateSecondaryLogin(contactMethod: string, validateCode: string) {
     const optimisticData: OnyxUpdate[] = [
