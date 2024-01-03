@@ -15,9 +15,11 @@ const commonScreenOptions: StackNavigationOptions = {
     animationTypeForReplace: 'push',
 };
 
+const SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER = -1;
+
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
 
-const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, themeStyles, StyleUtils): ScreenOptions => {
+const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScreenWidth, themeStyles, StyleUtils) => {
     const modalCardStyleInterpolator = createModalCardStyleInterpolator(StyleUtils);
 
     return {
@@ -37,7 +39,23 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 right: 0,
             },
         },
+        leftModalNavigator: {
+            ...commonScreenOptions,
+            cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props, SLIDE_LEFT_OUTPUT_RANGE_MULTIPLIER),
+            presentation: 'transparentModal',
 
+            // We want pop in LHP since there are some flows that would work weird otherwise
+            animationTypeForReplace: 'pop',
+            cardStyle: {
+                ...StyleUtils.getNavigationModalCardStyle(),
+
+                // This is necessary to cover translated sidebar with overlay.
+                width: isSmallScreenWidth ? '100%' : '200%',
+
+                // LHP should be displayed in place of the sidebar
+                left: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
+            },
+        },
         homeScreen: {
             title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
