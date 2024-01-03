@@ -53,8 +53,11 @@ type Message = {
     /** ID of a task report */
     taskReportID?: string;
 
-    /** Reason pf payment cancellation */
+    /** Reason of payment cancellation */
     cancellationReason?: string;
+
+    /** ID of an expense report */
+    expenseReportID?: string;
 };
 
 type ImageMetadata = {
