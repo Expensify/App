@@ -1,14 +1,14 @@
-import React, {useState, useCallback, useRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import CONST from '../../../../CONST';
-import useArrowKeyFocusManager from '../../../../hooks/useArrowKeyFocusManager';
-import * as SuggestionsUtils from '../../../../libs/SuggestionUtils';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
-import EmojiSuggestions from '../../../../components/EmojiSuggestions';
-import ONYXKEYS from '../../../../ONYXKEYS';
-import useLocalize from '../../../../hooks/useLocalize';
+import _ from 'underscore';
+import EmojiSuggestions from '@components/EmojiSuggestions';
+import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useLocalize from '@hooks/useLocalize';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import * as SuggestionProps from './suggestionProps';
 
 /**
@@ -39,9 +39,6 @@ const propTypes = {
     /** Function to clear the input */
     resetKeyboardInput: PropTypes.func.isRequired,
 
-    /** Callback when a emoji was inserted */
-    onInsertedEmoji: PropTypes.func.isRequired,
-
     ...SuggestionProps.baseProps,
 };
 
@@ -61,12 +58,12 @@ function SuggestionEmoji({
     isAutoSuggestionPickerLarge,
     forwardedRef,
     resetKeyboardInput,
-    onInsertedEmoji,
     measureParentContainer,
+    isComposerFocused,
 }) {
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
-    const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowEmojiSuggestionMenu;
+    const isEmojiSuggestionsMenuVisible = !_.isEmpty(suggestionValues.suggestedEmojis) && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedEmojiIndex, setHighlightedEmojiIndex] = useArrowKeyFocusManager({
         isActive: isEmojiSuggestionsMenuVisible,
@@ -102,10 +99,8 @@ function SuggestionEmoji({
                 end: suggestionValues.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
-
-            onInsertedEmoji(emojiObject);
         },
-        [onInsertedEmoji, preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
+        [preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
     );
 
     /**
@@ -171,13 +166,13 @@ function SuggestionEmoji({
             const nextState = {
                 suggestedEmojis: [],
                 colonIndex,
-                shouldShowEmojiSuggestionMenu: false,
+                shouldShowSuggestionMenu: false,
             };
             const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, preferredLocale);
 
             if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
                 nextState.suggestedEmojis = newSuggestedEmojis;
-                nextState.shouldShowEmojiSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
+                nextState.shouldShowSuggestionMenu = !_.isEmpty(newSuggestedEmojis);
             }
 
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
@@ -185,6 +180,13 @@ function SuggestionEmoji({
         },
         [value, preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
+
+    useEffect(() => {
+        if (!isComposerFocused) {
+            return;
+        }
+        calculateEmojiSuggestion(selection.end);
+    }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const onSelectionChange = useCallback(
         (e) => {
@@ -205,6 +207,12 @@ function SuggestionEmoji({
         [shouldBlockCalc],
     );
 
+    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
+
+    const resetEmojiSuggestions = useCallback(() => {
+        setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
+    }, []);
+
     useImperativeHandle(
         forwardedRef,
         () => ({
@@ -213,8 +221,9 @@ function SuggestionEmoji({
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
@@ -223,11 +232,11 @@ function SuggestionEmoji({
 
     return (
         <EmojiSuggestions
-            onClose={() => setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}))}
+            onClose={resetEmojiSuggestions}
             highlightedEmojiIndex={highlightedEmojiIndex}
             emojis={suggestionValues.suggestedEmojis}
             comment={value}
-            updateComment={(newComment) => setValue(newComment)}
+            updateComment={setValue}
             colonIndex={suggestionValues.colonIndex}
             prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
             onSelect={insertSelectedEmoji}
@@ -250,6 +259,8 @@ const SuggestionEmojiWithRef = React.forwardRef((props, ref) => (
         forwardedRef={ref}
     />
 ));
+
+SuggestionEmojiWithRef.displayName = 'SuggestionEmojiWithRef';
 
 export default withOnyx({
     preferredSkinTone: {

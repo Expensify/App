@@ -1,7 +1,7 @@
-import Onyx from 'react-native-onyx';
 import isEqual from 'lodash/isEqual';
-import ONYXKEYS from '../../ONYXKEYS';
-import {Request} from '../../types/onyx';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {Request} from '@src/types/onyx';
 
 let persistedRequests: Request[] = [];
 
@@ -17,13 +17,19 @@ function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
-function save(requestsToPersist: Request[]) {
-    if (persistedRequests.length) {
-        persistedRequests = persistedRequests.concat(requestsToPersist);
+function save(requestToPersist: Request) {
+    const requests = [...persistedRequests];
+    const existingRequestIndex = requests.findIndex((request) => request.data?.idempotencyKey && request.data?.idempotencyKey === requestToPersist.data?.idempotencyKey);
+    if (existingRequestIndex > -1) {
+        // Merge the new request into the existing one, keeping its place in the queue
+        requests.splice(existingRequestIndex, 1, requestToPersist);
     } else {
-        persistedRequests = requestsToPersist;
+        // If not, push the new request to the end of the queue
+        requests.push(requestToPersist);
     }
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    persistedRequests = requests;
+
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 function remove(requestToRemove: Request) {
@@ -33,10 +39,17 @@ function remove(requestToRemove: Request) {
      */
     const requests = [...persistedRequests];
     const index = requests.findIndex((persistedRequest) => isEqual(persistedRequest, requestToRemove));
-    if (index !== -1) {
-        requests.splice(index, 1);
+    if (index === -1) {
+        return;
     }
+    requests.splice(index, 1);
+    persistedRequests = requests;
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+}
 
+function update(oldRequestIndex: number, newRequest: Request) {
+    const requests = [...persistedRequests];
+    requests.splice(oldRequestIndex, 1, newRequest);
     persistedRequests = requests;
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
@@ -45,4 +58,4 @@ function getAll(): Request[] {
     return persistedRequests;
 }
 
-export {clear, save, getAll, remove};
+export {clear, save, getAll, remove, update};

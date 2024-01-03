@@ -1,12 +1,14 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import Form from '../components/Form';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import useLocalize from '../hooks/useLocalize';
-import NewDatePicker from '../components/NewDatePicker';
+import React from 'react';
+import DatePicker from '@components/DatePicker';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     /** Transaction defailt created value */
@@ -17,6 +19,7 @@ const propTypes = {
 };
 
 function EditRequestCreatedPage({defaultCreated, onSubmit}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
@@ -26,20 +29,22 @@ function EditRequestCreatedPage({defaultCreated, onSubmit}) {
             testID={EditRequestCreatedPage.displayName}
         >
             <HeaderWithBackButton title={translate('common.date')} />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <NewDatePicker
+                <InputWrapper
+                    InputComponent={DatePicker}
                     inputID="created"
                     label={translate('common.date')}
                     defaultValue={defaultCreated}
-                    maxDate={new Date()}
+                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

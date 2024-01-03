@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import dateAdd from 'date-fns/add';
+import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
@@ -18,6 +20,8 @@ const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
+const MAX_DATE = dateAdd(new Date(), {years: 1});
+const MIN_DATE = dateSubtract(new Date(), {years: 20});
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
@@ -50,7 +54,13 @@ const CONST = {
 
         // An arbitrary size, but the same minimum as in the PHP layer
         MIN_SIZE: 240,
+
+        // Allowed extensions for receipts
+        ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
+
+    // This is limit set on servers, do not update without wider internal discussion
+    API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
 
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
@@ -71,12 +81,22 @@ const CONST = {
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
 
+    BREADCRUMB_TYPE: {
+        ROOT: 'root',
+        STRONG: 'strong',
+        NORMAL: 'normal',
+    },
+
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
     DISPLAY_NAME: {
         MAX_LENGTH: 50,
         RESERVED_FIRST_NAMES: ['Expensify', 'Concierge'],
+    },
+
+    LEGAL_NAME: {
+        MAX_LENGTH: 40,
     },
 
     PULL_REQUEST_NUMBER,
@@ -87,6 +107,8 @@ const CONST = {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
         MAX_YEAR: CURRENT_YEAR + 100,
+        MAX_DATE,
+        MIN_DATE,
     },
 
     DATE_BIRTH: {
@@ -108,6 +130,7 @@ const CONST = {
 
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
+        ASPECT_RATIO: 3.72,
         SMALL_SCREEN: {
             IMAGE_HEIGHT: 300,
             CONTAINER_MINHEIGHT: 200,
@@ -119,7 +142,16 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
         MONEY_REPORT: {
-            MIN_HEIGHT: 280,
+            SMALL_SCREEN: {
+                IMAGE_HEIGHT: 300,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 220,
+            },
+            WIDE_SCREEN: {
+                IMAGE_HEIGHT: 450,
+                CONTAINER_MINHEIGHT: 280,
+                VIEW_HEIGHT: 275,
+            },
         },
     },
 
@@ -130,14 +162,16 @@ const CONST = {
         DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
     },
     DATE: {
-        MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
         SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         FNS_FORMAT_STRING: 'yyyy-MM-dd',
         LOCAL_TIME_FORMAT: 'h:mm a',
+        YEAR_MONTH_FORMAT: 'yyyyMM',
+        MONTH_FORMAT: 'MMMM',
         WEEKDAY_TIME_FORMAT: 'eeee',
         MONTH_DAY_ABBR_FORMAT: 'MMM d',
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
+        MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -153,6 +187,10 @@ const CONST = {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {
                 TOO_MANY_ATTEMPTS: 'Too many attempts',
+            },
+            EVENTS_NAME: {
+                OPEN: 'OPEN',
+                EXIT: 'EXIT',
             },
         },
         ERROR: {
@@ -195,9 +233,8 @@ const CONST = {
         REGEX: {
             US_ACCOUNT_NUMBER: /^[0-9]{4,17}$/,
 
-            // If the account number length is from 4 to 13 digits, we show the last 4 digits and hide the rest with X
-            // If the length is longer than 13 digits, we show the first 6 and last 4 digits, hiding the rest with X
-            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,9}[0-9]{4}$|^[0-9]{6}[X]{4,7}[0-9]{4}$/,
+            // The back-end is always returning account number with 4 last digits and mask the rest with X
+            MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
@@ -226,20 +263,11 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        PAY_WITH_EXPENSIFY: 'payWithExpensify',
-        FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         BETA_COMMENT_LINKING: 'commentLinking',
-        INTERNATIONALIZATION: 'internationalization',
-        IOU_SEND: 'sendMoney',
         POLICY_ROOMS: 'policyRooms',
-        PASSWORDLESS: 'passwordless',
-        TASKS: 'tasks',
-        THREADS: 'threads',
-        CUSTOM_STATUS: 'customStatus',
-        NEW_DOT_CATEGORIES: 'newDotCategories',
-        NEW_DOT_TAGS: 'newDotTags',
+        VIOLATIONS: 'violations',
+        REPORT_FIELDS: 'reportFields',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -302,7 +330,7 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        SHORTCUT_MODAL: {
+        SHORTCUTS: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: 'J',
             modifiers: ['CTRL'],
@@ -446,9 +474,9 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-
     // Use Environment.getEnvironmentURL to get the complete URL with port number
-    DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
+    DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
+    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -469,29 +497,36 @@ const CONST = {
         HAND_ICON_HEIGHT: 152,
         HAND_ICON_WIDTH: 200,
         SHUTTER_SIZE: 90,
+        MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
-                APPROVED: 'APPROVED',
                 ADDCOMMENT: 'ADDCOMMENT',
+                APPROVED: 'APPROVED',
+                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                TASKEDITED: 'TASKEDITED',
-                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 RENAMED: 'RENAMED',
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKREOPENED: 'TASKREOPENED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
+                SUBMITTED: 'SUBMITTED',
+                TASKCANCELLED: 'TASKCANCELLED',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKEDITED: 'TASKEDITED',
+                TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
+                    ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
                     ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
                     ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
@@ -501,6 +536,7 @@ const CONST = {
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
                     DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
+                    DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
@@ -511,15 +547,21 @@ const CONST = {
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
                     IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
+                    INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
+                    REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
+                    REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
                     UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
                     UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
                     UPDATE_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
                     UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
@@ -540,12 +582,20 @@ const CONST = {
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
+                    UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                 },
+                ROOMCHANGELOG: {
+                    INVITE_TO_ROOM: 'INVITETOROOM',
+                    REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
+                    JOIN_ROOM: 'JOINROOM',
+                },
             },
+            THREAD_DISABLED: ['CREATED'],
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -578,6 +628,7 @@ const CONST = {
             ADMINS: '#admins',
         },
         STATE: {
+            OPEN: 'OPEN',
             SUBMITTED: 'SUBMITTED',
             PROCESSING: 'PROCESSING',
         },
@@ -619,6 +670,9 @@ const CONST = {
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
     },
+    NEXT_STEP: {
+        FINISHED: 'Finished!',
+    },
     COMPOSER: {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
@@ -652,6 +706,7 @@ const CONST = {
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
+        CHAT_RENDER: 'chat_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
@@ -664,16 +719,27 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
+        SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        RESIZE_DEBOUNCE_TIME: 100,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
     THEME: {
-        DEFAULT: 'dark',
+        DEFAULT: 'system',
+        FALLBACK: 'dark',
+        DARK: 'dark',
+        LIGHT: 'light',
+        SYSTEM: 'system',
+    },
+    COLOR_SCHEME: {
         LIGHT: 'light',
         DARK: 'dark',
-        SYSTEM: 'system',
+    },
+    STATUS_BAR_STYLE: {
+        LIGHT_CONTENT: 'light-content',
+        DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
@@ -682,6 +748,25 @@ const CONST = {
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
         },
+        STATUS: {
+            PENDING: 'Pending',
+            POSTED: 'Posted',
+        },
+    },
+    MCC_GROUPS: {
+        AIRLINES: 'Airlines',
+        COMMUTER: 'Commuter',
+        GAS: 'Gas',
+        GOODS: 'Goods',
+        GROCERIES: 'Groceries',
+        HOTEL: 'Hotel',
+        MAIL: 'Mail',
+        MEALS: 'Meals',
+        RENTAL: 'Rental',
+        SERVICES: 'Services',
+        TAXI: 'Taxi',
+        MISCELLANEOUS: 'Miscellaneous',
+        UTILITIES: 'Utilities',
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -737,7 +822,9 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        MAX_REQUEST_RETRIES: 10,
     },
+    WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -768,7 +855,7 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -816,15 +903,22 @@ const CONST = {
     RECOVERY_CODE_LENGTH: 8,
 
     KEYBOARD_TYPE: {
-        PHONE_PAD: 'phone-pad',
-        NUMBER_PAD: 'number-pad',
-        DECIMAL_PAD: 'decimal-pad',
         VISIBLE_PASSWORD: 'visible-password',
-        EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
-        URL: 'url',
-        DEFAULT: 'default',
     },
+
+    INPUT_MODE: {
+        NONE: 'none',
+        TEXT: 'text',
+        DECIMAL: 'decimal',
+        NUMERIC: 'numeric',
+        TEL: 'tel',
+        SEARCH: 'search',
+        EMAIL: 'email',
+        URL: 'url',
+    },
+
+    YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     // This is a placeholder for attachment which is uploading
@@ -832,6 +926,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
+    ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
@@ -853,6 +948,11 @@ const CONST = {
     IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
+    EMOJI_PICKER_ITEM_TYPES: {
+        HEADER: 'header',
+        EMOJI: 'emoji',
+        SPACER: 'spacer',
+    },
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
         HEIGHT: 416,
@@ -878,7 +978,10 @@ const CONST = {
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
+    CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
+    CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
+    CHAT_FOOTER_HORIZONTAL_PADDING: 40,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {
@@ -900,12 +1003,14 @@ const CONST = {
         GUIDES_DOMAIN: 'team.expensify.com',
         HELP: 'help@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        NOTIFICATIONS: 'notifications@expensify.com',
         PAYROLL: 'payroll@expensify.com',
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         RECEIPTS: 'receipts@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
         SVFG: 'svfg@expensify.com',
+        EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
     ACCOUNT_ID: {
@@ -918,6 +1023,7 @@ const CONST = {
         FIRST_RESPONDER: Number(Config?.EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER ?? 9375152),
         HELP: Number(Config?.EXPENSIFY_ACCOUNT_ID_HELP ?? -1),
         INTEGRATION_TESTING_CREDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS ?? -1),
+        NOTIFICATIONS: Number(Config?.EXPENSIFY_ACCOUNT_ID_NOTIFICATIONS ?? 11665625),
         PAYROLL: Number(Config?.EXPENSIFY_ACCOUNT_ID_PAYROLL ?? 9679724),
         QA: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA ?? 3126513),
         QA_TRAVIS: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_TRAVIS ?? 8595733),
@@ -985,12 +1091,19 @@ const CONST = {
             ACTIVATE: 'ActivateStep',
         },
         TIER_NAME: {
+            PLATINUM: 'PLATINUM',
             GOLD: 'GOLD',
             SILVER: 'SILVER',
+            BRONZE: 'BRONZE',
         },
         WEB_MESSAGE_TYPE: {
             STATEMENT: 'STATEMENT_NAVIGATE',
             CONCIERGE: 'CONCIERGE_NAVIGATE',
+        },
+        MTL_WALLET_PROGRAM_ID: '760',
+        PROGRAM_ISSUERS: {
+            EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
+            BANCORP_BANK: 'The Bancorp Bank',
         },
     },
 
@@ -1015,12 +1128,13 @@ const CONST = {
             USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
             USER_EXITED: 'User exited by manual action.',
-            USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
-            USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
-            // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED:
-                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
+    },
+
+    KYC_WALL_SOURCE: {
+        REPORT: 'REPORT', // The user attempted to pay a money request
+        ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
+        TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
     },
 
     OS: {
@@ -1044,7 +1158,8 @@ const CONST = {
 
     PAYMENT_METHODS: {
         DEBIT_CARD: 'debitCard',
-        BANK_ACCOUNT: 'bankAccount',
+        PERSONAL_BANK_ACCOUNT: 'bankAccount',
+        BUSINESS_BANK_ACCOUNT: 'businessBankAccount',
     },
 
     PAYMENT_METHOD_ID_KEYS: {
@@ -1053,6 +1168,8 @@ const CONST = {
     },
 
     IOU: {
+        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         PAYMENT_TYPE: {
@@ -1060,10 +1177,16 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
-        MONEY_REQUEST_TYPE: {
+        DEFAULT_AMOUNT: 0,
+        TYPE: {
             SEND: 'send',
             SPLIT: 'split',
             REQUEST: 'request',
+        },
+        REQUEST_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
         },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
@@ -1072,6 +1195,7 @@ const CONST = {
             DECLINE: 'decline',
             CANCEL: 'cancel',
             DELETE: 'delete',
+            APPROVE: 'approve',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -1086,6 +1210,10 @@ const CONST = {
             DOC: 'doc',
             DOCX: 'docx',
             SVG: 'svg',
+        },
+        RECEIPT_ERROR: 'receiptError',
+        CANCEL_REASON: {
+            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
         },
     },
 
@@ -1133,13 +1261,25 @@ const CONST = {
         TYPE: {
             FREE: 'free',
             PERSONAL: 'personal',
+
+            // Often referred to as "control" workspaces
             CORPORATE: 'corporate',
+
+            // Often referred to as "collect" workspaces
             TEAM: 'team',
         },
         ROLE: {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
+        },
+        AUTO_REPORTING_FREQUENCIES: {
+            IMMEDIATE: 'immediate',
+            WEEKLY: 'weekly',
+            SEMI_MONTHLY: 'semimonthly',
+            MONTHLY: 'monthly',
+            TRIP: 'trip',
+            MANUAL: 'manual',
         },
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
@@ -1161,6 +1301,12 @@ const CONST = {
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
+    },
+
+    LAYOUT_WIDTH: {
+        WIDE: 'wide',
+        NARROW: 'narrow',
+        NONE: 'none',
     },
 
     ICON_TYPE_ICON: 'icon',
@@ -1190,9 +1336,18 @@ const CONST = {
         BANK: 'Expensify Card',
         FRAUD_TYPES: {
             DOMAIN: 'domain',
-            INDIVIDUAL: 'individal',
+            INDIVIDUAL: 'individual',
             NONE: 'none',
         },
+        STATE: {
+            STATE_NOT_ISSUED: 2,
+            OPEN: 3,
+            NOT_ACTIVATED: 4,
+            STATE_DEACTIVATED: 5,
+            CLOSED: 6,
+            STATE_SUSPENDED: 7,
+        },
+        ACTIVE_STATES: [2, 3, 4, 7],
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1218,13 +1373,16 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
+        ROOM_NAME: /^#[\p{Ll}0-9-]{1,80}$/u,
 
+        // eslint-disable-next-line max-len, no-misleading-character-class
+        EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}](\u200D[\p{Extended_Pictographic}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/gu,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
+        ANY_SPACE: /\s/g,
 
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
@@ -1238,18 +1396,23 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        SPECIAL_CHAR_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&_~^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
 
-        SPACE_OR_EMOJI:
-            // eslint-disable-next-line no-misleading-character-class
-            /(\s+|(?:[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)+)/gu,
+        FIRST_SPACE: /.+?(?=\s)/,
 
-        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
-        MENTION_REPLACER:
-            // eslint-disable-next-line no-misleading-character-class
-            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+        get SPECIAL_CHAR_OR_EMOJI() {
+            return new RegExp(`[~\\n\\s]|(_\\b(?!$))|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
+
+        get SPACE_OR_EMOJI() {
+            return new RegExp(`(\\s+|(?:${this.EMOJI.source})+)`, 'gu');
+        },
+
+        // Define the regular expression pattern to find a potential end of a mention suggestion:
+        // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
+        get MENTION_BREAKER() {
+            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+        },
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
@@ -1261,8 +1424,13 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+
+        ENCODE_PERCENT_CHARACTER: /%(25)+/g,
+
+        INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
+
+        OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
     },
 
     PRONOUNS: {
@@ -1292,6 +1460,7 @@ const CONST = {
             this.EMAIL.FIRST_RESPONDER,
             this.EMAIL.HELP,
             this.EMAIL.INTEGRATION_TESTING_CREDS,
+            this.EMAIL.NOTIFICATIONS,
             this.EMAIL.PAYROLL,
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
@@ -1357,6 +1526,7 @@ const CONST = {
     REPORT_DETAILS_MENU_ITEM: {
         SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
+        INVITE: 'invite',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
@@ -1381,7 +1551,6 @@ const CONST = {
         RECIEPT_SCANNING_URL: `${USE_EXPENSIFY_URL}/receipt-scanning-app`,
         BILL_PAY_URL: `${USE_EXPENSIFY_URL}/bills`,
         INVOICES_URL: `${USE_EXPENSIFY_URL}/invoices`,
-        CPA_CARD_URL: `${USE_EXPENSIFY_URL}/cpa-card`,
         PAYROLL_URL: `${USE_EXPENSIFY_URL}/payroll`,
         TRAVEL_URL: `${USE_EXPENSIFY_URL}/travel`,
         EXPENSIFY_APPROVED_URL: `${USE_EXPENSIFY_URL}/accountants`,
@@ -1425,6 +1594,15 @@ const CONST = {
         READ: 'read',
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
+    },
+
+    ERECEIPT_COLORS: {
+        YELLOW: 'Yellow',
+        ICE: 'Ice',
+        BLUE: 'Blue',
+        GREEN: 'Green',
+        TANGERINE: 'Tangerine',
+        PINK: 'Pink',
     },
 
     MAP_PADDING: 50,
@@ -2584,24 +2762,132 @@ const CONST = {
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
+    /**
+     * Acceptable values for the `accessibilityRole` prop on react native components.
+     *
+     * **IMPORTANT:** Do not use with the `role` prop as it can cause errors.
+     *
+     * @deprecated ACCESSIBILITY_ROLE is deprecated. Please use CONST.ROLE instead.
+     */
     ACCESSIBILITY_ROLE: {
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         BUTTON: 'button',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         LINK: 'link',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         MENUITEM: 'menuitem',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         TEXT: 'text',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         RADIO: 'radio',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         IMAGEBUTTON: 'imagebutton',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         CHECKBOX: 'checkbox',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         SWITCH: 'switch',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         ADJUSTABLE: 'adjustable',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         IMAGE: 'image',
+    },
+    /**
+     * Acceptable values for the `role` attribute on react native components.
+     *
+     * **IMPORTANT:** Not for use with the `accessibilityRole` prop, as it accepts different values, and new components
+     * should use the `role` prop instead.
+     */
+    ROLE: {
+        /** Use for elements with important, time-sensitive information. */
+        ALERT: 'alert',
+        /** Use for elements that act as buttons. */
+        BUTTON: 'button',
+        /** Use for elements representing checkboxes. */
+        CHECKBOX: 'checkbox',
+        /** Use for elements that allow a choice from multiple options. */
+        COMBOBOX: 'combobox',
+        /** Use with scrollable lists to represent a grid layout. */
+        GRID: 'grid',
+        /** Use for section headers or titles. */
+        HEADING: 'heading',
+        /** Use for image elements. */
+        IMG: 'img',
+        /** Use for elements that navigate to other pages or content. */
+        LINK: 'link',
+        /** Use to identify a list of items. */
+        LIST: 'list',
+        /** Use for a list of choices or options. */
+        MENU: 'menu',
+        /** Use for a container of multiple menus. */
+        MENUBAR: 'menubar',
+        /** Use for items within a menu. */
+        MENUITEM: 'menuitem',
+        /** Use when no specific role is needed. */
+        NONE: 'none',
+        /** Use for elements that don't require a specific role. */
+        PRESENTATION: 'presentation',
+        /** Use for elements showing progress of a task. */
+        PROGRESSBAR: 'progressbar',
+        /** Use for radio buttons. */
+        RADIO: 'radio',
+        /** Use for groups of radio buttons. */
+        RADIOGROUP: 'radiogroup',
+        /** Use for scrollbar elements. */
+        SCROLLBAR: 'scrollbar',
+        /** Use for text fields that are used for searching. */
+        SEARCHBOX: 'searchbox',
+        /** Use for adjustable elements like sliders. */
+        SLIDER: 'slider',
+        /** Use for a button that opens a list of choices. */
+        SPINBUTTON: 'spinbutton',
+        /** Use for elements providing a summary of app conditions. */
+        SUMMARY: 'summary',
+        /** Use for on/off switch elements. */
+        SWITCH: 'switch',
+        /** Use for tab elements in a tab list. */
+        TAB: 'tab',
+        /** Use for a list of tabs. */
+        TABLIST: 'tablist',
+        /** Use for timer elements. */
+        TIMER: 'timer',
+        /** Use for toolbars containing action buttons or components. */
+        TOOLBAR: 'toolbar',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
     TEACHERS_UNITE: {
-        PUBLIC_ROOM_ID: '207591744844000',
-        POLICY_ID: 'ABD1345ED7293535',
+        PUBLIC_ROOM_ID: '7470147100835202',
+        POLICY_ID: 'B795B6319125BDF2',
         POLICY_NAME: 'Expensify.org / Teachers Unite!',
         PUBLIC_ROOM_NAME: '#teachers-unite',
     },
@@ -2625,6 +2911,9 @@ const CONST = {
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
+        IOU_REQUEST_TYPE: 'iouRequestType',
+    },
+    TAB_REQUEST: {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
@@ -2649,15 +2938,16 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
+    TIME_PERIOD: {
+        AM: 'AM',
+        PM: 'PM',
+    },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
     TAG_LIST_THRESHOLD: 8,
-    DEMO_PAGES: {
-        SAASTR: 'SaaStrDemoSetup',
-        SBE: 'SbeDemoSetup',
-    },
-
+    TAX_RATES_LIST_THRESHOLD: 8,
+    COLON: ':',
     MAPBOX: {
         PADDING: 50,
         DEFAULT_ZOOM: 10,
@@ -2671,11 +2961,106 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+
+    CHAT_HEADER_LOADER_HEIGHT: 36,
+
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
-        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_MARGIN_VERTICAL: 4,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
+    },
+
+    LIST_COMPONENTS: {
+        HEADER: 'header',
+        FOOTER: 'footer',
+    },
+
+    MISSING_TRANSLATION: 'MISSING TRANSLATION',
+    SEARCH_MAX_LENGTH: 500,
+
+    /**
+     * The count of characters we'll allow the user to type after reaching SEARCH_MAX_LENGTH in an input.
+     */
+    ADDITIONAL_ALLOWED_CHARACTERS: 20,
+
+    REFERRAL_PROGRAM: {
+        CONTENT_TYPES: {
+            MONEY_REQUEST: 'request',
+            START_CHAT: 'startChat',
+            SEND_MONEY: 'sendMoney',
+            REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
+        },
+        REVENUE: 250,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/get-paid-back/Referral-Program',
+        LINK: 'https://join.my.expensify.com',
+    },
+
+    /**
+     * native IDs for close buttons in Overlay component
+     */
+    OVERLAY: {
+        TOP_BUTTON_NATIVE_ID: 'overLayTopButton',
+        BOTTOM_BUTTON_NATIVE_ID: 'overLayBottomButton',
+    },
+
+    BACK_BUTTON_NATIVE_ID: 'backButton',
+
+    /**
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
+     */
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+
+    /**
+     * Performance test setup - run the same test multiple times to get a more accurate result
+     */
+    PERFORMANCE_TESTS: {
+        RUNS: 20,
+    },
+
+    /**
+     * Bank account names
+     */
+    BANK_NAMES: {
+        EXPENSIFY: 'expensify',
+        AMERICAN_EXPRESS: 'americanexpress',
+        BANK_OF_AMERICA: 'bank of america',
+        BB_T: 'bbt',
+        CAPITAL_ONE: 'capital one',
+        CHASE: 'chase',
+        CHARLES_SCHWAB: 'charles schwab',
+        CITIBANK: 'citibank',
+        CITIZENS_BANK: 'citizens bank',
+        DISCOVER: 'discover',
+        FIDELITY: 'fidelity',
+        GENERIC_BANK: 'generic bank',
+        HUNTINGTON_BANK: 'huntington bank',
+        HUNTINGTON_NATIONAL: 'huntington national',
+        NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+        PNC: 'pnc',
+        REGIONS_BANK: 'regions bank',
+        SUNTRUST: 'suntrust',
+        TD_BANK: 'td bank',
+        US_BANK: 'us bank',
+        USAA: 'usaa',
+    },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
+    },
+
+    /** Context menu types */
+    CONTEXT_MENU_TYPES: {
+        LINK: 'LINK',
+        REPORT_ACTION: 'REPORT_ACTION',
+        EMAIL: 'EMAIL',
+        REPORT: 'REPORT',
     },
 } as const;
 

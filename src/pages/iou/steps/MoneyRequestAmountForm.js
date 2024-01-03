@@ -1,26 +1,30 @@
-import React, {useEffect, useState, useCallback, useRef} from 'react';
-import {ScrollView, View} from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ScrollView, View} from 'react-native';
 import _ from 'underscore';
-import styles from '../../../styles/styles';
-import BigNumberPad from '../../../components/BigNumberPad';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
-import Button from '../../../components/Button';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import useLocalize from '../../../hooks/useLocalize';
-import CONST from '../../../CONST';
-import FormHelpMessage from '../../../components/FormHelpMessage';
-import refPropTypes from '../../../components/refPropTypes';
-import getOperatingSystem from '../../../libs/getOperatingSystem';
-import * as Browser from '../../../libs/Browser';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import BigNumberPad from '@components/BigNumberPad';
+import Button from '@components/Button';
+import FormHelpMessage from '@components/FormHelpMessage';
+import refPropTypes from '@components/refPropTypes';
+import TextInputWithCurrencySymbol from '@components/TextInputWithCurrencySymbol';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as Browser from '@libs/Browser';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import getOperatingSystem from '@libs/getOperatingSystem';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** IOU amount saved in Onyx */
     amount: PropTypes.number,
+
+    /** Calculated tax amount based on selected tax rate */
+    taxAmount: PropTypes.number,
 
     /** Currency chosen by user or saved in Onyx */
     currency: PropTypes.string,
@@ -36,13 +40,18 @@ const propTypes = {
 
     /** Fired when submit button pressed, saves the given amount and navigates to the next page */
     onSubmitButtonPress: PropTypes.func.isRequired,
+
+    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
+    selectedTab: PropTypes.oneOf([CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]),
 };
 
 const defaultProps = {
     amount: 0,
+    taxAmount: 0,
     currency: CONST.CURRENCY.USD,
     forwardedRef: null,
     isEditing: false,
+    selectedTab: CONST.TAB_REQUEST.MANUAL,
 };
 
 /**
@@ -58,23 +67,25 @@ const getNewSelection = (oldSelection, prevLength, newLength) => {
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const isAmountValid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isAmountInvalid = (amount) => !amount.length || parseFloat(amount) < 0.01;
+const isTaxAmountInvalid = (currentAmount, taxAmount, isTaxAmountForm) => isTaxAmountForm && currentAmount > CurrencyUtils.convertToFrontendAmount(taxAmount);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
+function MoneyRequestAmountForm({amount, taxAmount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress, selectedTab}) {
+    const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useWindowDimensions();
     const {translate, toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef(null);
+    const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
+    const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [isInvalidAmount, setIsInvalidAmount] = useState(isAmountValid(selectedAmountAsString));
-    const [firstPress, setFirstPress] = useState(false);
     const [formError, setFormError] = useState('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -85,15 +96,17 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const forwardDeletePressedRef = useRef(false);
 
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, currency);
+
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
      *
      * @param {Event} event
-     * @param {Array<string>} nativeIds
+     * @param {Array<string>} ids
      */
-    const onMouseDown = (event, nativeIds) => {
+    const onMouseDown = (event, ids) => {
         const relatedTargetId = lodashGet(event, 'nativeEvent.target.id');
-        if (!_.contains(nativeIds, relatedTargetId)) {
+        if (!_.contains(ids, relatedTargetId)) {
             return;
         }
         event.preventDefault();
@@ -105,44 +118,72 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
         }
     };
 
+    const initializeAmount = useCallback((newAmount) => {
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
+        setCurrentAmount(frontendAmount);
+        setSelection({
+            start: frontendAmount.length,
+            end: frontendAmount.length,
+        });
+    }, []);
+
     useEffect(() => {
         if (!currency || !_.isNumber(amount)) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToFrontendAmount(amount).toString();
-        setCurrentAmount(amountAsStringForState);
-        setSelection({
-            start: amountAsStringForState.length,
-            end: amountAsStringForState.length,
-        });
-        // we want to update the state only when the amount is changed
+        initializeAmount(amount);
+        // we want to re-initialize the state only when the selected tab changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
+    }, [selectedTab]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
      * @param {String} newAmount - Changed amount from user input
      */
-    const setNewAmount = (newAmount) => {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-        // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-        // Use a shallow copy of selection to trigger setSelection
-        // More info: https://github.com/Expensify/App/issues/16385
-        if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
-            setSelection((prevSelection) => ({...prevSelection}));
+    const setNewAmount = useCallback(
+        (newAmount) => {
+            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+            // More info: https://github.com/Expensify/App/issues/16974
+            const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
+            if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces, decimals)) {
+                setSelection((prevSelection) => ({...prevSelection}));
+                return;
+            }
+            if (!_.isEmpty(formError)) {
+                setFormError('');
+            }
+
+            // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
+
+            let hasSelectionBeenSet = false;
+            setCurrentAmount((prevAmount) => {
+                const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
+                const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
+                if (!hasSelectionBeenSet) {
+                    hasSelectionBeenSet = true;
+                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                }
+                return strippedAmount;
+            });
+        },
+        [decimals, formError],
+    );
+
+    // Modifies the amount to match the decimals for changed currency.
+    useEffect(() => {
+        // If the changed currency supports decimals, we can return
+        if (MoneyRequestUtils.validateAmount(currentAmount, decimals)) {
             return;
         }
-        const checkInvalidAmount = isAmountValid(newAmountWithoutSpaces);
-        setIsInvalidAmount(checkInvalidAmount);
-        setFormError(checkInvalidAmount ? 'iou.error.invalidAmount' : '');
-        setCurrentAmount((prevAmount) => {
-            const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
-            const isForwardDelete = prevAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
-            return strippedAmount;
-        });
-    };
+
+        // If the changed currency doesn't support decimals, we can strip the decimals
+        setNewAmount(MoneyRequestUtils.stripDecimalsFromAmount(currentAmount));
+
+        // we want to update only when decimals change (setNewAmount also changes when decimals change).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setNewAmount]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
@@ -160,14 +201,14 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                 if (currentAmount.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                     const newAmount = `${currentAmount.substring(0, selectionStart)}${currentAmount.substring(selection.end)}`;
-                    setNewAmount(newAmount);
+                    setNewAmount(MoneyRequestUtils.addLeadingZero(newAmount));
                 }
                 return;
             }
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
-        [currentAmount, selection, shouldUpdateSelection],
+        [currentAmount, selection, shouldUpdateSelection, setNewAmount],
     );
 
     /**
@@ -186,13 +227,23 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      * Submit amount and navigate to a proper page
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        if (isInvalidAmount) {
-            setFirstPress(true);
-            setFormError('iou.error.invalidAmount');
+        if (isAmountInvalid(currentAmount)) {
+            setFormError(translate('iou.error.invalidAmount'));
             return;
         }
-        onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount, isInvalidAmount]);
+
+        if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
+            setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
+            return;
+        }
+
+        // Update display amount string post-edit to ensure consistency with backend amount
+        // Reference: https://github.com/Expensify/App/issues/30505
+        const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
+        initializeAmount(backendAmount);
+
+        onSubmitButtonPress({amount: currentAmount, currency});
+    }, [onSubmitButtonPress, currentAmount, taxAmount, currency, isTaxAmountForm, formattedTaxAmount, translate, initializeAmount]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -212,13 +263,18 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
+    const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+
+    useEffect(() => {
+        setFormError('');
+    }, [selectedTab]);
 
     return (
         <ScrollView contentContainerStyle={styles.flexGrow1}>
             <View
-                nativeID={AMOUNT_VIEW_ID}
+                id={AMOUNT_VIEW_ID}
                 onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
-                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                style={[styles.moneyRequestAmountContainer, styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
             >
                 <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}
@@ -244,32 +300,34 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     }}
                     onKeyPress={textInputKeyPress}
                 />
+                {!_.isEmpty(formError) && (
+                    <FormHelpMessage
+                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
+                        isError
+                        message={formError}
+                    />
+                )}
             </View>
-            {!_.isEmpty(formError) && firstPress && (
-                <FormHelpMessage
-                    style={[styles.ph5]}
-                    isError
-                    message={translate(formError)}
-                />
-            )}
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
-                nativeID={NUM_PAD_CONTAINER_VIEW_ID}
+                id={NUM_PAD_CONTAINER_VIEW_ID}
             >
-                {DeviceCapabilities.canUseTouchScreen() ? (
+                {canUseTouchScreen ? (
                     <BigNumberPad
-                        nativeID={NUM_PAD_VIEW_ID}
+                        id={NUM_PAD_VIEW_ID}
                         numberPressed={updateAmountNumberPad}
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
                 <Button
                     success
-                    medium={isExtraSmallScreenHeight}
-                    style={[styles.w100, styles.mt5]}
-                    onPress={submitAndNavigateToNextPage}
+                    // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
+                    allowBubble={!isEditing}
                     pressOnEnter
+                    medium={isExtraSmallScreenHeight}
+                    style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                    onPress={submitAndNavigateToNextPage}
                     text={buttonText}
                 />
             </View>
@@ -281,10 +339,14 @@ MoneyRequestAmountForm.propTypes = propTypes;
 MoneyRequestAmountForm.defaultProps = defaultProps;
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default React.forwardRef((props, ref) => (
+const MoneyRequestAmountFormWithRef = React.forwardRef((props, ref) => (
     <MoneyRequestAmountForm
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         forwardedRef={ref}
     />
 ));
+
+MoneyRequestAmountFormWithRef.displayName = 'MoneyRequestAmountFormWithRef';
+
+export default MoneyRequestAmountFormWithRef;

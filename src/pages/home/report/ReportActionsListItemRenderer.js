@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React, {memo} from 'react';
 import _ from 'underscore';
-import CONST from '../../../CONST';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import reportPropTypes from '../../reportPropTypes';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import reportPropTypes from '@pages/reportPropTypes';
+import CONST from '@src/CONST';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -19,11 +19,8 @@ const propTypes = {
     /** Report for this action */
     report: reportPropTypes.isRequired,
 
-    /** Whether the option has an outstanding IOU */
-    hasOutstandingIOU: PropTypes.bool,
-
-    /** Sorted actions prepared for display */
-    sortedReportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)).isRequired,
+    /** Should the comment have the appearance of being grouped with the previous comment? */
+    displayAsGroup: PropTypes.bool.isRequired,
 
     /** The ID of the most recent IOU report action connected with the shown report */
     mostRecentIOUReportActionID: PropTypes.string,
@@ -33,22 +30,25 @@ const propTypes = {
 
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
+
+    /** Linked report action ID */
+    linkedReportActionID: PropTypes.string,
 };
 
 const defaultProps = {
     mostRecentIOUReportActionID: '',
-    hasOutstandingIOU: false,
+    linkedReportActionID: '',
 };
 
 function ReportActionsListItemRenderer({
     reportAction,
     index,
     report,
-    hasOutstandingIOU,
-    sortedReportActions,
+    displayAsGroup,
     mostRecentIOUReportActionID,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
+    linkedReportActionID,
 }) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
@@ -67,14 +67,17 @@ function ReportActionsListItemRenderer({
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             report={report}
             action={reportAction}
-            displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+            linkedReportActionID={linkedReportActionID}
+            displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
                 (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
-                _.contains([CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW], reportAction.actionName)
+                _.contains(
+                    [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED],
+                    reportAction.actionName,
+                )
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-            hasOutstandingIOU={hasOutstandingIOU}
             index={index}
         />
     );

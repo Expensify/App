@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
-import resetFreePlanBankAccount from './resetFreePlanBankAccount';
+import ONYXKEYS from '@src/ONYXKEYS';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
+import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
 export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount, showBankAccountFormValidationError} from './errors';
@@ -31,6 +31,7 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
  */
 function updateReimbursementAccountDraft(bankAccountData) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {draftStep: undefined});
 }
 
 /**

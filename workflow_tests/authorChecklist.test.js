@@ -41,12 +41,11 @@ describe('test workflow authorChecklist', () => {
         await mockGithub.teardown();
     });
     describe('pull request opened', () => {
-        const event = 'pull_request';
+        const event = 'pull_request_target';
         const eventOptions = {
             action: 'opened',
         };
         describe('actor is not OSBotify', () => {
-            const actor = 'Dummy Author';
             it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
@@ -58,7 +57,7 @@ describe('test workflow authorChecklist', () => {
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                     mockSteps: testMockSteps,
-                    actor,
+                    actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                 });
 
@@ -66,7 +65,6 @@ describe('test workflow authorChecklist', () => {
             });
         });
         describe('actor is OSBotify', () => {
-            const actor = 'OSBotify';
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
@@ -78,7 +76,7 @@ describe('test workflow authorChecklist', () => {
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                     mockSteps: testMockSteps,
-                    actor,
+                    actor: 'OSBotify',
                     logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                 });
 
@@ -87,12 +85,11 @@ describe('test workflow authorChecklist', () => {
         });
     });
     describe('pull request edited', () => {
-        const event = 'pull_request';
+        const event = 'pull_request_target';
         const eventOptions = {
             action: 'edited',
         };
         describe('actor is not OSBotify', () => {
-            const actor = 'Dummy Author';
             it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
@@ -104,7 +101,7 @@ describe('test workflow authorChecklist', () => {
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                     mockSteps: testMockSteps,
-                    actor,
+                    actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                 });
 
@@ -112,7 +109,6 @@ describe('test workflow authorChecklist', () => {
             });
         });
         describe('actor is OSBotify', () => {
-            const actor = 'OSBotify';
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
@@ -124,7 +120,7 @@ describe('test workflow authorChecklist', () => {
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                     mockSteps: testMockSteps,
-                    actor,
+                    actor: 'OSBotify',
                     logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                 });
 
@@ -133,12 +129,11 @@ describe('test workflow authorChecklist', () => {
         });
     });
     describe('pull request reopened', () => {
-        const event = 'pull_request';
+        const event = 'pull_request_target';
         const eventOptions = {
             action: 'reopened',
         };
         describe('actor is not OSBotify', () => {
-            const actor = 'Dummy Author';
             it('executes workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
@@ -150,7 +145,7 @@ describe('test workflow authorChecklist', () => {
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                     mockSteps: testMockSteps,
-                    actor,
+                    actor: 'Dummy Author',
                     logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                 });
 
@@ -158,7 +153,6 @@ describe('test workflow authorChecklist', () => {
             });
         });
         describe('actor is OSBotify', () => {
-            const actor = 'OSBotify';
             it('does not execute workflow', async () => {
                 const repoPath = mockGithub.repo.getPath('testAuthorChecklistWorkflowRepo') || '';
                 const workflowPath = path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml');
@@ -170,7 +164,7 @@ describe('test workflow authorChecklist', () => {
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'authorChecklist.yml'),
                     mockSteps: testMockSteps,
-                    actor,
+                    actor: 'OSBotify',
                     logFile: utils.getLogFilePath('authorChecklist', expect.getState().currentTestName),
                 });
 

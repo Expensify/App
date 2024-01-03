@@ -1,9 +1,10 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import Modal from './Modal';
-import CONST from '../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import React from 'react';
+import CONST from '@src/CONST';
 import ConfirmContent from './ConfirmContent';
+import sourcePropTypes from './Image/sourcePropTypes';
+import Modal from './Modal';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 
 const propTypes = {
     /** Title of the modal */
@@ -46,7 +47,7 @@ const propTypes = {
     shouldSetModalVisibility: PropTypes.bool,
 
     /** Icon to display above the title */
-    iconSource: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+    iconSource: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Styles for title */
     // eslint-disable-next-line react/forbid-prop-types

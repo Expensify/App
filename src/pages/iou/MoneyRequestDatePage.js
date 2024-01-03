@@ -1,21 +1,22 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Form from '../../components/Form';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import * as IOU from '../../libs/actions/IOU';
-import * as MoneyRequestUtils from '../../libs/MoneyRequestUtils';
-import NewDatePicker from '../../components/NewDatePicker';
-import useLocalize from '../../hooks/useLocalize';
-import CONST from '../../CONST';
-import {iouPropTypes, iouDefaultProps} from './propTypes';
+import DatePicker from '@components/DatePicker';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {iouDefaultProps, iouPropTypes} from './propTypes';
 
 const propTypes = {
     /** Onyx Props */
@@ -41,7 +42,7 @@ const propTypes = {
     }).isRequired,
 
     /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab: PropTypes.oneOf([CONST.TAB.DISTANCE, CONST.TAB.MANUAL, CONST.TAB.SCAN]).isRequired,
+    selectedTab: PropTypes.oneOf(_.values(CONST.TAB_REQUEST)).isRequired,
 };
 
 const defaultProps = {
@@ -49,6 +50,7 @@ const defaultProps = {
 };
 
 function MoneyRequestDatePage({iou, route, selectedTab}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
@@ -91,20 +93,21 @@ function MoneyRequestDatePage({iou, route, selectedTab}) {
                 title={translate('common.date')}
                 onBackButtonPress={() => navigateBack()}
             />
-            <Form
+            <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM}
                 onSubmit={(value) => updateDate(value)}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <NewDatePicker
+                <InputWrapper
+                    InputComponent={DatePicker}
                     inputID="moneyRequestCreated"
                     label={translate('common.date')}
                     defaultValue={iou.created}
                     maxDate={new Date()}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

@@ -14,7 +14,10 @@ type Login = {
     errorFields?: OnyxCommon.ErrorFields;
 
     /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.ErrorFields;
+    pendingFields?: OnyxCommon.PendingFields;
 };
 
+type LoginList = Record<string, Login>;
+
 export default Login;
+export type {LoginList};

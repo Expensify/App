@@ -1,29 +1,28 @@
-import _ from 'underscore';
-import React from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
-import TextLink from '../../../components/TextLink';
-import CONST from '../../../CONST';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import MenuItem from '../../../components/MenuItem';
+import _ from 'underscore';
+import * as Expensicons from '@components/Icon/Expensicons';
+import IllustratedHeaderPageLayout from '@components/IllustratedHeaderPageLayout';
+import LottieAnimations from '@components/LottieAnimations';
+import MenuItemList from '@components/MenuItemList';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import compose from '@libs/compose';
+import * as Environment from '@libs/Environment/Environment';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as Link from '@userActions/Link';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import pkg from '../../../../package.json';
-import * as Report from '../../../libs/actions/Report';
-import * as Link from '../../../libs/actions/Link';
-import compose from '../../../libs/compose';
-import * as ReportActionContextMenu from '../../home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../home/report/ContextMenu/ContextMenuActions';
-import * as KeyboardShortcuts from '../../../libs/actions/KeyboardShortcuts';
-import * as Environment from '../../../libs/Environment/Environment';
-import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
-import themeColors from '../../../styles/themes/default';
-import * as LottieAnimations from '../../../components/LottieAnimations';
-import SCREENS from '../../../SCREENS';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -42,44 +41,60 @@ function getFlavor() {
 }
 
 function AboutPage(props) {
-    let popoverAnchor;
-    const menuItems = [
-        {
-            translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
-            icon: Expensicons.Link,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = props;
+    const popoverAnchor = useRef(null);
+    const waitForNavigate = useWaitForNavigation();
+
+    const menuItems = useMemo(() => {
+        const baseMenuItems = [
+            {
+                translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
+                icon: Expensicons.Link,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-            icon: Expensicons.Keyboard,
-            action: KeyboardShortcuts.showKeyboardShortcutModal,
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
-            icon: Expensicons.Eye,
-            iconRight: Expensicons.NewWindow,
-            action: () => {
-                Link.openExternalLink(CONST.GITHUB_URL);
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
+                icon: Expensicons.Keyboard,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS)),
             },
-            link: CONST.GITHUB_URL,
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
-            icon: Expensicons.MoneyBag,
-            iconRight: Expensicons.NewWindow,
-            action: () => {
-                Link.openExternalLink(CONST.UPWORK_URL);
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
+                icon: Expensicons.Eye,
+                iconRight: Expensicons.NewWindow,
+                action: () => {
+                    Link.openExternalLink(CONST.GITHUB_URL);
+                },
+                link: CONST.GITHUB_URL,
             },
-            link: CONST.UPWORK_URL,
-        },
-        {
-            translationKey: 'initialSettingsPage.aboutPage.reportABug',
-            icon: Expensicons.Bug,
-            action: Report.navigateToConciergeChat,
-        },
-    ];
+            {
+                translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
+                icon: Expensicons.MoneyBag,
+                iconRight: Expensicons.NewWindow,
+                action: () => {
+                    Link.openExternalLink(CONST.UPWORK_URL);
+                },
+                link: CONST.UPWORK_URL,
+            },
+            {
+                translationKey: 'initialSettingsPage.aboutPage.reportABug',
+                icon: Expensicons.Bug,
+                action: waitForNavigate(Report.navigateToConciergeChat),
+            },
+        ];
+        return _.map(baseMenuItems, (item) => ({
+            key: item.translationKey,
+            title: translate(item.translationKey),
+            icon: item.icon,
+            iconRight: item.iconRight,
+            onPress: item.action,
+            shouldShowRightIcon: true,
+            onSecondaryInteraction: !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined,
+            ref: popoverAnchor,
+            shouldBlockSelection: Boolean(item.link),
+        }));
+    }, [translate, waitForNavigate]);
 
     const overlayContent = () => (
         <View style={[styles.pAbsolute, styles.w100, styles.h100, styles.justifyContentEnd, styles.pb3]}>
@@ -97,26 +112,16 @@ function AboutPage(props) {
             title={props.translate('initialSettingsPage.about')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.Coin}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.ABOUT]}
+            backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.ABOUT].backgroundColor}
             overlayContent={overlayContent}
         >
-            <View style={[styles.settingsPageBody, styles.ph5]}>
-                <Text style={[styles.textHeadline, styles.mb1]}>{props.translate('footer.aboutExpensify')}</Text>
-                <Text style={[styles.baseFontStyle, styles.mb4]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
+            <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
+                <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
             </View>
-            {_.map(menuItems, (item) => (
-                <MenuItem
-                    key={item.translationKey}
-                    title={props.translate(item.translationKey)}
-                    icon={item.icon}
-                    iconRight={item.iconRight}
-                    onPress={() => item.action()}
-                    shouldBlockSelection={Boolean(item.link)}
-                    onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
-                    ref={(el) => (popoverAnchor = el)}
-                    shouldShowRightIcon
-                />
-            ))}
+            <MenuItemList
+                menuItems={menuItems}
+                shouldUseSingleExecution
+            />
             <View style={[styles.sidebarFooter]}>
                 <Text
                     style={[styles.chatItemMessageHeaderTimestamp]}

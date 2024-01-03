@@ -1,5 +1,5 @@
 import React from 'react';
-import Banner from '../components/Banner';
+import Banner from '@components/Banner';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

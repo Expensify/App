@@ -15,15 +15,29 @@ opt_out_usage
 
 platform :android do
   desc "Generate a new local APK for e2e testing"
+
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
-    ENV["ENTRY_FILE"]="#{Dir.pwd}/../src/libs/E2E/reactNativeLaunchingTest.js"
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
     ENV["E2E_TESTING"]="true"
 
     gradle(
       project_dir: './android',
       task: ':app:assemble',
       flavor: 'e2e',
+      build_type: 'Release',
+    )
+  end
+
+  lane :build_e2edelta do
+    ENV["ENVFILE"]="tests/e2e/.env.e2edelta"
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
+    ENV["E2E_TESTING"]="true"
+
+    gradle(
+      project_dir: './android',
+      task: ':app:assemble',
+      flavor: 'e2edelta',
       build_type: 'Release',
     )
   end
@@ -147,19 +161,23 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/expensify_chat_adhoc.mobileprovision"
+        path: "./ios/NewApp_AdHoc.mobileprovision"
+    )
+
+    install_provisioning_profile(
+        path: "./ios/NewApp_AdHoc_Notification_Service.mobileprovision"
     )
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "New Expensify AdHoc",
-        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "expensify_chat_adhoc", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
             provisioningProfiles: {
-              "com.expensify.chat.adhoc" => "expensify_chat_adhoc",
+              "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
+              "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
             },
             manageAppVersionAndBuildNumber: false
         }
@@ -201,7 +219,11 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/chat_expensify_appstore.mobileprovision"
+        path: "./ios/NewApp_AppStore.mobileprovision"
+    )
+
+    install_provisioning_profile(
+        path: "./ios/NewApp_AppStore_Notification_Service.mobileprovision"
     )
 
     build_app(
@@ -209,6 +231,10 @@ platform :ios do
         scheme: "New Expensify",
         output_name: "New Expensify.ipa",
         export_options: {
+            provisioningProfiles: {
+              "com.chat.expensify.chat" => "(NewApp) AppStore",
+              "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
+            },
             manageAppVersionAndBuildNumber: false
         }
     )
@@ -305,7 +331,10 @@ platform :ios do
         export_compliance_contains_proprietary_cryptography: false,
 
         # We do not show any third party content
-        content_rights_contains_third_party_content: false
+        content_rights_contains_third_party_content: false,
+
+        # Indicate that our key has admin permissions
+        content_rights_has_rights: true
       },
       release_notes: {
         'en-US' => "Improvements and bug fixes"

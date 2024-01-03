@@ -1,14 +1,14 @@
 import PropTypes from 'prop-types';
-import * as AttachmentsPropTypes from '../propTypes';
+import * as AttachmentsPropTypes from '@components/Attachments/propTypes';
 
 const attachmentViewPropTypes = {
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
 
-    /** URL to full-sized attachment or SVG function */
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
-    /** File object maybe be instance of File or Object */
+    /** File object can be an instance of File or Object */
     file: AttachmentsPropTypes.attachmentFilePropType,
 
     /** Whether this view is the active screen  */
@@ -16,6 +16,18 @@ const attachmentViewPropTypes = {
 
     /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
     isUsedInCarousel: PropTypes.bool,
+
+    /** When "isUsedInCarousel" is set to true, determines whether there is only one item in the carousel */
+    isSingleCarouselItem: PropTypes.bool,
+
+    /** Whether this AttachmentView is shown as part of an AttachmentModal */
+    isUsedInAttachmentModal: PropTypes.bool,
+
+    /** The index of the carousel item */
+    carouselItemIndex: PropTypes.number,
+
+    /** The index of the currently active carousel item */
+    carouselActiveItemIndex: PropTypes.number,
 
     /** Function for handle on press */
     onPress: PropTypes.func,
@@ -31,6 +43,11 @@ const attachmentViewDefaultProps = {
     },
     isFocused: false,
     isUsedInCarousel: false,
+    isSingleCarouselItem: false,
+    carouselItemIndex: 0,
+    carouselActiveItemIndex: 0,
+    isSingleElement: false,
+    isUsedInAttachmentModal: false,
     onPress: undefined,
     onScaleChanged: () => {},
 };

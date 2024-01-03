@@ -1,3 +1,7 @@
+import CONST from '@src/CONST';
+import {BankName} from './Bank';
+import * as OnyxCommon from './OnyxCommon';
+
 type AdditionalData = {
     isBillingCard?: boolean;
     isP2PDebitCard?: boolean;
@@ -18,15 +22,22 @@ type AccountData = {
     created?: string;
     currency?: string;
     fundID?: number;
+    bank?: BankName;
 };
 
 type Fund = {
     accountData?: AccountData;
-    accountType?: string;
+    accountType?: typeof CONST.PAYMENT_METHODS.DEBIT_CARD;
     description?: string;
     key?: string;
     methodID?: number;
     title?: string;
+    isDefault?: boolean;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
+type FundList = Record<string, Fund>;
+
 export default Fund;
+export type {FundList};

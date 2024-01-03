@@ -1,13 +1,15 @@
 import {AppRegistry} from 'react-native';
-import Config from '../../CONFIG';
-import LocalNotification from '../../libs/Notification/LocalNotification';
-import * as KeyboardShortcuts from '../../libs/actions/KeyboardShortcuts';
-import DateUtils from '../../libs/DateUtils';
+import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import LocalNotification from '@libs/Notification/LocalNotification';
+import Config from '@src/CONFIG';
+import ROUTES from '@src/ROUTES';
 import ELECTRON_EVENTS from '../../../desktop/ELECTRON_EVENTS';
 
 export default function () {
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
+        mode: 'legacy',
     });
 
     // Send local notification when update is downloaded
@@ -16,7 +18,9 @@ export default function () {
     });
 
     // Trigger action to show keyboard shortcuts
-    window.electron.on(ELECTRON_EVENTS.SHOW_KEYBOARD_SHORTCUTS_MODAL, KeyboardShortcuts.showKeyboardShortcutModal);
+    window.electron.on(ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE, () => {
+        Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS);
+    });
 
     // Start current date updater
     DateUtils.startCurrentDateUpdater();

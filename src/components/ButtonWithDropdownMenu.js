@@ -1,16 +1,17 @@
-import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import styles from '../styles/styles';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import Button from './Button';
-import PopoverMenu from './PopoverMenu';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
-import * as StyleUtils from '../styles/StyleUtils';
+import sourcePropTypes from './Image/sourcePropTypes';
+import PopoverMenu from './PopoverMenu';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -18,6 +19,9 @@ const propTypes = {
 
     /** Callback to execute when the main button is pressed */
     onPress: PropTypes.func.isRequired,
+
+    /** Call the onPress function on main button when Enter key is pressed */
+    pressOnEnter: PropTypes.bool,
 
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
@@ -37,7 +41,7 @@ const propTypes = {
         PropTypes.shape({
             value: PropTypes.string.isRequired,
             text: PropTypes.string.isRequired,
-            icon: PropTypes.elementType,
+            icon: sourcePropTypes,
             iconWidth: PropTypes.number,
             iconHeight: PropTypes.number,
             iconDescription: PropTypes.string,
@@ -57,6 +61,7 @@ const propTypes = {
 const defaultProps = {
     isLoading: false,
     isDisabled: false,
+    pressOnEnter: false,
     menuHeaderText: '',
     style: [],
     buttonSize: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
@@ -68,12 +73,15 @@ const defaultProps = {
 };
 
 function ButtonWithDropdownMenu(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const caretButton = useRef(null);
-    const selectedItem = props.options[selectedItemIndex];
+    const selectedItem = props.options[selectedItemIndex] || _.first(props.options);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(props.buttonSize);
     const isButtonSizeLarge = props.buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
@@ -101,6 +109,7 @@ function ButtonWithDropdownMenu(props) {
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, ...props.style]}>
                     <Button
                         success
+                        pressOnEnter={props.pressOnEnter}
                         ref={props.buttonRef}
                         onPress={(event) => props.onPress(event, selectedItem.value)}
                         text={selectedItem.text}
@@ -129,7 +138,7 @@ function ButtonWithDropdownMenu(props) {
                             <View style={[styles.dropDownButtonArrowContain]}>
                                 <Icon
                                     src={Expensicons.DownArrow}
-                                    fill={themeColors.textLight}
+                                    fill={theme.textLight}
                                 />
                             </View>
                         </View>
@@ -138,6 +147,8 @@ function ButtonWithDropdownMenu(props) {
             ) : (
                 <Button
                     success
+                    ref={props.buttonRef}
+                    pressOnEnter={props.pressOnEnter}
                     isDisabled={props.isDisabled}
                     style={[styles.w100, ...props.style]}
                     isLoading={props.isLoading}

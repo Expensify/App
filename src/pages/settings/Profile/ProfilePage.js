@@ -1,42 +1,42 @@
 import lodashGet from 'lodash/get';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
-import AvatarWithImagePicker from '../../../components/AvatarWithImagePicker';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
-import MenuItem from '../../../components/MenuItem';
-import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import CONST from '../../../CONST';
-import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
-import compose from '../../../libs/compose';
-import Navigation from '../../../libs/Navigation/Navigation';
-import * as UserUtils from '../../../libs/UserUtils';
-import ROUTES from '../../../ROUTES';
-import styles from '../../../styles/styles';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import userPropTypes from '../userPropTypes';
-import * as App from '../../../libs/actions/App';
-import Permissions from '../../../libs/Permissions';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import Navigation from '@libs/Navigation/Navigation';
+import * as UserUtils from '@libs/UserUtils';
+import userPropTypes from '@pages/settings/userPropTypes';
+import * as App from '@userActions/App';
+import * as PersonalDetails from '@userActions/PersonalDetails';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /* Onyx Props */
 
     /** Login list for the user that is signed in */
-    loginList: PropTypes.shape({
-        /** Date login was validated, used to show brickroad info status */
-        validatedDate: PropTypes.string,
+    loginList: PropTypes.objectOf(
+        PropTypes.shape({
+            /** Date login was validated, used to show brickroad info status */
+            validatedDate: PropTypes.string,
 
-        /** Field-specific server side errors keyed by microtime */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
-    }),
+            /** Field-specific server side errors keyed by microtime */
+            errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        }),
+    ),
 
     user: userPropTypes,
 
@@ -52,6 +52,7 @@ const defaultProps = {
 };
 
 function ProfilePage(props) {
+    const styles = useThemeStyles();
     const getPronouns = () => {
         let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -78,18 +79,16 @@ function ProfilePage(props) {
         {
             description: props.translate('contacts.contactMethod'),
             title: props.formatPhoneNumber(lodashGet(currentUserDetails, 'login', '')),
-            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS,
+            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
-        ...(Permissions.canUseCustomStatus(props.betas)
-            ? [
-                  {
-                      description: props.translate('statusPage.status'),
-                      title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
-                      pageRoute: ROUTES.SETTINGS_STATUS,
-                  },
-              ]
-            : []),
+        ...[
+            {
+                description: props.translate('statusPage.status'),
+                title: emojiCode ? `${emojiCode} ${lodashGet(props, 'currentUserPersonalDetails.status.text', '')}` : '',
+                pageRoute: ROUTES.SETTINGS_STATUS,
+            },
+        ],
         {
             description: props.translate('pronounsPage.pronouns'),
             title: getPronouns(),
@@ -181,9 +180,6 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(ProfilePage);

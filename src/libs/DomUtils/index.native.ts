@@ -1,10 +1,16 @@
-import {BlurActiveElement, GetActiveElement} from './types';
-
-const blurActiveElement: BlurActiveElement = () => {};
+import GetActiveElement from './types';
 
 const getActiveElement: GetActiveElement = () => null;
 
+const requestAnimationFrame = (callback: () => void) => {
+    if (!callback) {
+        return;
+    }
+
+    callback();
+};
+
 export default {
-    blurActiveElement,
     getActiveElement,
+    requestAnimationFrame,
 };

@@ -1,30 +1,40 @@
-import React, {useState, useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
-import * as Report from '../../libs/actions/Report';
-import * as App from '../../libs/actions/App';
-import useLocalize from '../../hooks/useLocalize';
-import styles from '../../styles/styles';
-import RoomNameInput from '../../components/RoomNameInput';
-import Picker from '../../components/Picker';
-import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
-import Text from '../../components/Text';
-import Permissions from '../../libs/Permissions';
-import * as ErrorUtils from '../../libs/ErrorUtils';
-import * as ValidationUtils from '../../libs/ValidationUtils';
-import * as ReportUtils from '../../libs/ReportUtils';
-import * as PolicyUtils from '../../libs/PolicyUtils';
-import Form from '../../components/Form';
-import policyMemberPropType from '../policyMemberPropType';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import compose from '../../libs/compose';
-import variables from '../../styles/variables';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import Button from '@components/Button';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import * as Illustrations from '@components/Icon/Illustrations';
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import OfflineIndicator from '@components/OfflineIndicator';
+import RoomNameInput from '@components/RoomNameInput';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import ValuePicker from '@components/ValuePicker';
+import withNavigationFocus from '@components/withNavigationFocus';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import Permissions from '@libs/Permissions';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -56,22 +66,46 @@ const propTypes = {
         }),
     ),
 
-    /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+    /** Whether navigation is focused */
+    isFocused: PropTypes.bool.isRequired,
 
-    ...withNavigationFocusPropTypes,
+    /** Form state for NEW_ROOM_FORM */
+    formState: PropTypes.shape({
+        /** Loading state for the form */
+        isLoading: PropTypes.bool,
+
+        /** Field errors in the form */
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+    }),
+
+    /** Session details for the user */
+    session: PropTypes.shape({
+        /** accountID of current user */
+        accountID: PropTypes.number,
+    }),
 };
 const defaultProps = {
     betas: [],
     reports: {},
     policies: {},
-    allPolicyMembers: {},
+    formState: {
+        isLoading: false,
+        errorFields: {},
+    },
+    session: {
+        accountID: 0,
+    },
 };
 
 function WorkspaceNewRoomPage(props) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [policyID, setPolicyID] = useState(null);
+    const [writeCapability, setWriteCapability] = useState(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    const wasLoading = usePrevious(props.formState.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
     const isPolicyAdmin = useMemo(() => {
         if (!policyID) {
@@ -80,14 +114,54 @@ function WorkspaceNewRoomPage(props) {
 
         return ReportUtils.isPolicyAdmin(policyID, props.policies);
     }, [policyID, props.policies]);
+    const [newRoomReportID, setNewRoomReportID] = useState(undefined);
 
     /**
      * @param {Object} values - form input values passed by the Form component
      */
     const submit = (values) => {
-        const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers, values.writeCapability);
+        const participants = [props.session.accountID];
+        const parsedWelcomeMessage = ReportUtils.getParsedComment(values.welcomeMessage);
+        const policyReport = ReportUtils.buildOptimisticChatReport(
+            participants,
+            values.roomName,
+            CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            policyID,
+            CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
+            false,
+            '',
+            visibility,
+            writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
+
+            // The room might contain all policy members so notifying always should be opt-in only.
+            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            '',
+            '',
+            parsedWelcomeMessage,
+        );
+        setNewRoomReportID(policyReport.reportID);
+        Report.addPolicyReport(policyReport);
     };
+
+    useEffect(() => {
+        Report.clearNewRoomFormError();
+    }, []);
+
+    useEffect(() => {
+        if (!(((wasLoading && !props.formState.isLoading) || (isOffline && props.formState.isLoading)) && _.isEmpty(props.formState.errorFields))) {
+            return;
+        }
+        Navigation.dismissModal(newRoomReportID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want this to update on changing the form State
+    }, [props.formState]);
+
+    useEffect(() => {
+        if (isPolicyAdmin) {
+            return;
+        }
+
+        setWriteCapability(CONST.REPORT.WRITE_CAPABILITIES.ALL);
+    }, [isPolicyAdmin]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -120,7 +194,15 @@ function WorkspaceNewRoomPage(props) {
         [props.reports],
     );
 
-    const workspaceOptions = useMemo(() => _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({label: policy.name, key: policy.id, value: policy.id})), [props.policies]);
+    const workspaceOptions = useMemo(
+        () =>
+            _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({
+                label: policy.name,
+                key: policy.id,
+                value: policy.id,
+            })),
+        [props.policies],
+    );
 
     const writeCapabilityOptions = useMemo(
         () =>
@@ -144,77 +226,117 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
+    const {inputCallbackRef} = useAutoFocusInput();
+
+    const renderEmptyWorkspaceView = () => (
+        <>
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyWorkspaceIconWidth}
+                iconHeight={variables.emptyWorkspaceIconHeight}
+                title={translate('workspace.emptyWorkspace.notFound')}
+                subtitle={translate('workspace.emptyWorkspace.description')}
+                shouldShowLink={false}
+            />
+            <Button
+                success
+                text={translate('footer.learnMore')}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                style={[styles.mh5, styles.mb5]}
+            />
+            {isSmallScreenWidth && <OfflineIndicator />}
+        </>
+    );
+
     return (
-        <FullPageNotFoundView
-            shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}
-            shouldShowBackButton={false}
-            linkKey="workspace.emptyWorkspace.title"
-            onLinkPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, false)}
-        >
+        <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas)}>
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom={isOffline}
+                shouldShowOfflineIndicator={false}
                 includePaddingTop={false}
                 shouldEnablePickerAvoiding={false}
                 testID={WorkspaceNewRoomPage.displayName}
             >
-                {({insets}) => (
-                    <KeyboardAvoidingView
-                        style={{height: '100%'}}
-                        behavior="height"
-                        // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                        // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                        keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
-                    >
-                        <Form
-                            formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                            submitButtonText={translate('newRoomPage.createRoom')}
-                            scrollContextEnabled
-                            style={[styles.mh5, styles.flexGrow1]}
-                            validate={validate}
-                            onSubmit={submit}
-                            enabledWhenOffline
+                {({insets}) =>
+                    workspaceOptions.length === 0 ? (
+                        renderEmptyWorkspaceView()
+                    ) : (
+                        <KeyboardAvoidingView
+                            style={styles.h100}
+                            behavior="padding"
+                            // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
+                            // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                            keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + insets.top}
                         >
-                            <View style={styles.mb5}>
-                                <RoomNameInput
-                                    inputID="roomName"
-                                    isFocused={props.isFocused}
-                                    shouldDelayFocus
-                                    autoFocus
-                                />
-                            </View>
-                            <View style={styles.mb2}>
-                                <Picker
-                                    inputID="policyID"
-                                    label={translate('workspace.common.workspace')}
-                                    placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
-                                    items={workspaceOptions}
-                                    onValueChange={setPolicyID}
-                                />
-                            </View>
-                            {isPolicyAdmin && (
-                                <View style={styles.mb2}>
-                                    <Picker
-                                        inputID="writeCapability"
-                                        label={translate('writeCapabilityPage.label')}
-                                        items={writeCapabilityOptions}
-                                        defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
+                            <FormProvider
+                                formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                                submitButtonText={translate('newRoomPage.createRoom')}
+                                style={[styles.mh5, styles.flexGrow1]}
+                                validate={validate}
+                                onSubmit={submit}
+                                enabledWhenOffline
+                            >
+                                <View style={styles.mb5}>
+                                    <InputWrapper
+                                        InputComponent={RoomNameInput}
+                                        ref={inputCallbackRef}
+                                        inputID="roomName"
+                                        isFocused={props.isFocused}
+                                        shouldDelayFocus
+                                        autoFocus
                                     />
                                 </View>
-                            )}
-                            <View style={styles.mb2}>
-                                <Picker
-                                    inputID="visibility"
-                                    label={translate('newRoomPage.visibility')}
-                                    items={visibilityOptions}
-                                    onValueChange={setVisibility}
-                                    defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
-                                />
-                            </View>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
-                        </Form>
-                    </KeyboardAvoidingView>
-                )}
+                                <View style={styles.mb5}>
+                                    <InputWrapper
+                                        InputComponent={TextInput}
+                                        inputID="welcomeMessage"
+                                        label={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                        accessibilityLabel={translate('welcomeMessagePage.welcomeMessageOptional')}
+                                        role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                                        autoGrowHeight
+                                        maxLength={CONST.MAX_COMMENT_LENGTH}
+                                        autoCapitalize="none"
+                                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                                    />
+                                </View>
+                                <View style={[styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={ValuePicker}
+                                        inputID="policyID"
+                                        label={translate('workspace.common.workspace')}
+                                        items={workspaceOptions}
+                                        onValueChange={setPolicyID}
+                                    />
+                                </View>
+                                {isPolicyAdmin && (
+                                    <View style={styles.mhn5}>
+                                        <InputWrapper
+                                            InputComponent={ValuePicker}
+                                            inputID="writeCapability"
+                                            label={translate('writeCapabilityPage.label')}
+                                            items={writeCapabilityOptions}
+                                            value={writeCapability}
+                                            onValueChange={setWriteCapability}
+                                        />
+                                    </View>
+                                )}
+                                <View style={[styles.mb1, styles.mhn5]}>
+                                    <InputWrapper
+                                        InputComponent={ValuePicker}
+                                        inputID="visibility"
+                                        label={translate('newRoomPage.visibility')}
+                                        items={visibilityOptions}
+                                        onValueChange={setVisibility}
+                                        value={visibility}
+                                    />
+                                </View>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
+                            </FormProvider>
+                            {isSmallScreenWidth && <OfflineIndicator />}
+                        </KeyboardAvoidingView>
+                    )
+                }
             </ScreenWrapper>
         </FullPageNotFoundView>
     );
@@ -236,8 +358,11 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+        formState: {
+            key: ONYXKEYS.FORMS.NEW_ROOM_FORM,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(WorkspaceNewRoomPage);

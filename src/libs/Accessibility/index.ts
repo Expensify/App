@@ -1,4 +1,4 @@
-import {useEffect, useState, useCallback} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {AccessibilityInfo, LayoutChangeEvent} from 'react-native';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
@@ -42,7 +42,7 @@ const useAutoHitSlop = () => {
         },
         [frameSize],
     );
-    return [getHitSlopForSize(frameSize), onLayout];
+    return [getHitSlopForSize(frameSize), onLayout] as const;
 };
 
 export default {

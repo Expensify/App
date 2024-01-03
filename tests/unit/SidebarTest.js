@@ -1,11 +1,11 @@
-import Onyx from 'react-native-onyx';
 import {cleanup, screen} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import Onyx from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
+import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('../../src/libs/Permissions');
@@ -13,7 +13,7 @@ jest.mock('../../src/components/Icon/Expensicons');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+    IS_LOADING_APP: 'isLoadingApp',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
@@ -66,7 +66,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                         }),
                     )
@@ -109,7 +109,7 @@ describe('Sidebar', () => {
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                            [ONYXKEYS.IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionId]: action},
                         }),

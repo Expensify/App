@@ -1,5 +1,5 @@
 import React from 'react';
-import Tooltip from '../components/Tooltip';
+import Tooltip from '@components/Tooltip';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:

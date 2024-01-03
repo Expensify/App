@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import personalDetailsPropType from '../../pages/personalDetailsPropType';
-import avatarPropTypes from '../avatarPropTypes';
+import avatarPropTypes from '@components/avatarPropTypes';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
+import personalDetailsPropType from '@pages/personalDetailsPropType';
 
 const propTypes = {
     /** User's Account ID */
@@ -8,7 +9,7 @@ const propTypes = {
     /** Fallback User Details object used if no accountID */
     fallbackUserDetails: PropTypes.shape({
         /** Avatar URL */
-        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+        avatar: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
         /** Display Name */
         displayName: PropTypes.string,
         /** Login */

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import SectionList from '../SectionList';
-import styles from '../../styles/styles';
-import optionPropTypes from '../optionPropTypes';
+import optionPropTypes from '@components/optionPropTypes';
+import SectionList from '@components/SectionList';
+import stylePropTypes from '@styles/stylePropTypes';
 
 const propTypes = {
     /** option flexStyle for the options list container */
@@ -13,6 +13,9 @@ const propTypes = {
 
     /** Extra styles for the section list container */
     contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Style for section headers */
+    sectionHeaderStyle: stylePropTypes,
 
     /** Sections for the section list */
     sections: PropTypes.arrayOf(
@@ -79,17 +82,33 @@ const propTypes = {
     /** Whether to disable the inner padding in rows */
     shouldDisableRowInnerPadding: PropTypes.bool,
 
+    /** Whether to prevent default focusing when selecting a row */
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
+
     /** Whether to show the scroll bar */
     showScrollIndicator: PropTypes.bool,
 
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
+
+    /** Whether we are loading new options */
+    isLoadingNewOptions: PropTypes.bool,
+
+    /** Whether nested scroll of options is enabled, true by default */
+    nestedScrollEnabled: PropTypes.bool,
+
+    /** Whether the list should have a bounce effect on iOS */
+    bounces: PropTypes.bool,
+
+    /** Custom content to display in the floating footer */
+    renderFooterContent: PropTypes.func,
 };
 
 const defaultProps = {
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
-    listContainerStyles: [styles.flex1],
+    sectionHeaderStyle: undefined,
+    listContainerStyles: undefined,
     sections: [],
     focusedIndex: 0,
     selectedOptions: [],
@@ -107,8 +126,13 @@ const defaultProps = {
     onLayout: undefined,
     shouldHaveOptionSeparator: false,
     shouldDisableRowInnerPadding: false,
+    shouldPreventDefaultFocusOnSelectRow: false,
     showScrollIndicator: false,
     isRowMultilineSupported: false,
+    isLoadingNewOptions: false,
+    nestedScrollEnabled: true,
+    bounces: true,
+    renderFooterContent: undefined,
 };
 
 export {propTypes, defaultProps};

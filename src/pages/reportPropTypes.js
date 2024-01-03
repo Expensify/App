@@ -1,14 +1,11 @@
-import _ from 'underscore';
 import PropTypes from 'prop-types';
-import CONST from '../CONST';
-import avatarPropTypes from '../components/avatarPropTypes';
+import _ from 'underscore';
+import avatarPropTypes from '@components/avatarPropTypes';
+import CONST from '@src/CONST';
 
 export default PropTypes.shape({
     /** The specific type of chat */
     chatType: PropTypes.oneOf(['', ..._.values(CONST.REPORT.CHAT_TYPE)]),
-
-    /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU: PropTypes.bool,
 
     /** List of icons for report participants */
     icons: PropTypes.arrayOf(avatarPropTypes),
@@ -22,9 +19,6 @@ export default PropTypes.shape({
     /** Whether we're waiting on submitter to add a bank account */
     isWaitingOnBankAccount: PropTypes.bool,
 
-    /** The email of the last message's actor */
-    lastActorEmail: PropTypes.string,
-
     /** The accountID of the last message's actor */
     lastActorAccountID: PropTypes.number,
 
@@ -34,7 +28,7 @@ export default PropTypes.shape({
     /** The time of the last message on the report */
     lastVisibleActionCreated: PropTypes.string,
 
-    /** The last time the report was visited */
+    /** The time when user read the last message */
     lastReadTime: PropTypes.string,
 
     /** The current user's notification preference for this report */

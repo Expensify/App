@@ -1,13 +1,14 @@
+const fs = require('fs');
+const format = require('date-fns/format');
 const _ = require('underscore');
 const core = require('@actions/core');
-const moment = require('moment');
 const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 const GitUtils = require('../../../libs/GitUtils');
 
 async function run() {
-    const newVersion = core.getInput('NPM_VERSION');
-    console.log('New version found from action input:', newVersion);
+    // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
+    const newVersionTag = JSON.parse(fs.readFileSync('package.json')).version;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
@@ -35,14 +36,12 @@ async function run() {
         const currentChecklistData = shouldCreateNewDeployChecklist ? {} : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        // Note that any time we're creating a new checklist we MUST have `NPM_VERSION` passed in as an input
-        const newTag = newVersion || _.get(currentChecklistData, 'tag');
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newTag);
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newVersionTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
         if (shouldCreateNewDeployChecklist) {
-            checklistBody = await GithubUtils.generateStagingDeployCashBody(newTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
+            checklistBody = await GithubUtils.generateStagingDeployCashBody(newVersionTag, _.map(mergedPRs, GithubUtils.getPullRequestURLFromNumber));
         } else {
             // Generate the updated PR list, preserving the previous state of `isVerified` for existing PRs
             const PRList = _.reduce(
@@ -94,9 +93,9 @@ async function run() {
                 });
             }
 
-            const didVersionChange = newVersion ? newVersion !== currentChecklistData.tag : false;
+            const didVersionChange = newVersionTag !== currentChecklistData.tag;
             checklistBody = await GithubUtils.generateStagingDeployCashBody(
-                newTag,
+                newVersionTag,
                 _.pluck(PRList, 'url'),
                 _.pluck(_.where(PRList, {isVerified: true}), 'url'),
                 _.pluck(deployBlockers, 'url'),
@@ -118,7 +117,7 @@ async function run() {
         if (shouldCreateNewDeployChecklist) {
             const {data: newChecklist} = await GithubUtils.octokit.issues.create({
                 ...defaultPayload,
-                title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
+                title: `Deploy Checklist: New Expensify ${format(new Date(), CONST.DATE_FORMAT_STRING)}`,
                 labels: [CONST.LABELS.STAGING_DEPLOY],
                 assignees: [CONST.APPLAUSE_BOT],
             });

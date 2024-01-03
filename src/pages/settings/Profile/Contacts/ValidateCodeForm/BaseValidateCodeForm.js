@@ -1,27 +1,28 @@
-import React, {useCallback, useState, useEffect, useRef, useImperativeHandle} from 'react';
-import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import MagicCodeInput from '../../../../../components/MagicCodeInput';
-import * as ErrorUtils from '../../../../../libs/ErrorUtils';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import ONYXKEYS from '../../../../../ONYXKEYS';
-import compose from '../../../../../libs/compose';
-import styles from '../../../../../styles/styles';
-import OfflineWithFeedback from '../../../../../components/OfflineWithFeedback';
-import * as ValidationUtils from '../../../../../libs/ValidationUtils';
-import * as User from '../../../../../libs/actions/User';
-import Button from '../../../../../components/Button';
-import DotIndicatorMessage from '../../../../../components/DotIndicatorMessage';
-import * as Session from '../../../../../libs/actions/Session';
-import Text from '../../../../../components/Text';
-import {withNetwork} from '../../../../../components/OnyxProvider';
-import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
-import themeColors from '../../../../../styles/themes/default';
-import * as StyleUtils from '../../../../../styles/StyleUtils';
-import CONST from '../../../../../CONST';
+import PropTypes from 'prop-types';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import MagicCodeInput from '@components/MagicCodeInput';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {withNetwork} from '@components/OnyxProvider';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import compose from '@libs/compose';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
+import * as Session from '@userActions/Session';
+import * as User from '@userActions/User';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -71,12 +72,16 @@ const defaultProps = {
 };
 
 function BaseValidateCodeForm(props) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState('');
     const loginData = props.loginList[props.contactMethod];
     const inputValidateCodeRef = useRef();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
     const shouldDisableResendValidateCode = props.network.isOffline || props.account.isLoading;
+    const focusTimeoutRef = useRef(null);
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
@@ -85,7 +90,34 @@ function BaseValidateCodeForm(props) {
             }
             inputValidateCodeRef.current.focus();
         },
+        focusLastSelected() {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focusLastSelected, CONST.ANIMATED_TRANSITION);
+        },
     }));
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+            focusTimeoutRef.current = setTimeout(inputValidateCodeRef.current.focusLastSelected, CONST.ANIMATED_TRANSITION);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, []),
+    );
 
     useEffect(() => {
         Session.clearAccountMessages();
@@ -101,7 +133,6 @@ function BaseValidateCodeForm(props) {
         if (!props.hasMagicCodeBeenSent) {
             return;
         }
-        setValidateCode('');
         inputValidateCodeRef.current.clear();
     }, [props.hasMagicCodeBeenSent]);
 
@@ -110,9 +141,7 @@ function BaseValidateCodeForm(props) {
      */
     const resendValidateCode = () => {
         User.requestContactMethodValidateCode(props.contactMethod);
-        setValidateCode('');
         inputValidateCodeRef.current.clear();
-        inputValidateCodeRef.current.focus();
     };
 
     /**
@@ -175,10 +204,10 @@ function BaseValidateCodeForm(props) {
                         disabled={shouldDisableResendValidateCode}
                         style={[styles.mr1]}
                         onPress={resendValidateCode}
-                        underlayColor={themeColors.componentBG}
+                        underlayColor={theme.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
@@ -214,6 +243,7 @@ function BaseValidateCodeForm(props) {
 
 BaseValidateCodeForm.propTypes = propTypes;
 BaseValidateCodeForm.defaultProps = defaultProps;
+BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export default compose(
     withLocalize,

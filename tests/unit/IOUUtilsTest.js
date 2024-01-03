@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
 import * as IOUUtils from '../../src/libs/IOUUtils';
 import * as ReportUtils from '../../src/libs/ReportUtils';
+import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
-import * as TransactionUtils from '../../src/libs/TransactionUtils';
 
 function initCurrencyList() {
     Onyx.init({
@@ -118,10 +118,10 @@ describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
         expect(IOUUtils.isValidMoneyRequestType('request')).toBe(true);
         expect(IOUUtils.isValidMoneyRequestType('split')).toBe(true);
+        expect(IOUUtils.isValidMoneyRequestType('send')).toBe(true);
     });
 
     test('Return false for invalid iou type', () => {
-        expect(IOUUtils.isValidMoneyRequestType('send')).toBe(false);
         expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
     });
 });

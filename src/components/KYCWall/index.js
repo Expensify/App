@@ -1,6 +1,6 @@
 import React from 'react';
-import {propTypes, defaultProps} from './kycWallPropTypes';
 import BaseKYCWall from './BaseKYCWall';
+import {defaultProps, propTypes} from './kycWallPropTypes';
 
 function KYCWall(props) {
     return (

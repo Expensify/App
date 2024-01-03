@@ -1,21 +1,27 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
+import useSingleExecution from '@hooks/useSingleExecution';
+import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import CONST from '@src/CONST';
 import MenuItem from './MenuItem';
 import menuItemPropTypes from './menuItemPropTypes';
-import * as ReportActionContextMenu from '../pages/home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../pages/home/report/ContextMenu/ContextMenuActions';
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
     menuItems: PropTypes.arrayOf(PropTypes.shape(menuItemPropTypes)),
+
+    /** Whether or not to use the single execution hook */
+    shouldUseSingleExecution: PropTypes.bool,
 };
 const defaultProps = {
     menuItems: [],
+    shouldUseSingleExecution: false,
 };
 
 function MenuItemList(props) {
     let popoverAnchor;
+    const {isExecuting, singleExecution} = useSingleExecution();
 
     /**
      * Handle the secondary interaction for a menu item.
@@ -25,9 +31,9 @@ function MenuItemList(props) {
      */
     const secondaryInteraction = (link, e) => {
         if (typeof link === 'function') {
-            link().then((url) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, url, popoverAnchor));
+            link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, url, popoverAnchor));
         } else if (!_.isEmpty(link)) {
-            ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, link, popoverAnchor);
+            ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, link, popoverAnchor);
         }
     };
 
@@ -41,6 +47,8 @@ function MenuItemList(props) {
                     shouldBlockSelection={Boolean(menuItemProps.link)}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...menuItemProps}
+                    disabled={menuItemProps.disabled || isExecuting}
+                    onPress={props.shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
                 />
             ))}
         </>

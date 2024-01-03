@@ -1,8 +1,8 @@
 import {Platform} from 'react-native';
 import Config, {NativeConfig} from 'react-native-config';
+import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
 import * as Url from './libs/Url';
-import CONST from './CONST';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to prevent headaches
@@ -20,6 +20,7 @@ const secureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'SECURE_EXPEN
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
+const googleGeolocationAPIKey = get(Config, 'GOOGLE_GEOLOCATION_API_KEY', 'AIzaSyBqg6bMvQU7cPWDKhhzpYqJrTEnSorpiLI');
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -63,6 +64,7 @@ export default {
         CONCIERGE_URL_PATHNAME: 'concierge/',
         DEVPORTAL_URL_PATHNAME: '_devportal/',
         CONCIERGE_URL: `${expensifyURL}concierge/`,
+        SAML_URL: `${expensifyURL}authentication/saml/login`,
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     IS_IN_STAGING: ENVIRONMENT === CONST.ENVIRONMENT.STAGING,
@@ -91,4 +93,5 @@ export default {
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
     },
+    GOOGLE_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
 } as const;

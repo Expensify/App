@@ -1,8 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import CONST from '@src/CONST';
 import BaseQuickEmojiReactions, {baseQuickEmojiReactionsPropTypes} from './BaseQuickEmojiReactions';
-import {contextMenuRef} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import CONST from '../../../CONST';
 
 const propTypes = {
     ...baseQuickEmojiReactionsPropTypes,
@@ -17,7 +17,7 @@ const propTypes = {
 
 function QuickEmojiReactions(props) {
     const onPressOpenPicker = (openPicker) => {
-        openPicker(contextMenuRef.current.contentRef.current, {
+        openPicker(contextMenuRef.current.contentRef, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
         });

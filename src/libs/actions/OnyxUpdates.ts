@@ -1,11 +1,12 @@
 import Onyx, {OnyxEntry} from 'react-native-onyx';
 import {Merge} from 'type-fest';
-import PusherUtils from '../PusherUtils';
-import ONYXKEYS from '../../ONYXKEYS';
+import Log from '@libs/Log';
+import PusherUtils from '@libs/PusherUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import Response from '@src/types/onyx/Response';
 import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
-import CONST from '../../CONST';
-import {OnyxUpdatesFromServer, OnyxUpdateEvent, Request} from '../../types/onyx';
-import Response from '../../types/onyx/Response';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -14,6 +15,10 @@ Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
+
+// This promise is used to ensure pusher events are always processed in the order they are received,
+// even when such events are received over multiple separate pusher updates.
+let pusherEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
@@ -44,11 +49,17 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
 }
 
 function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
-    console.debug('[OnyxUpdateManager] Applying pusher update');
-    const pusherEventPromises = updates.map((update) => PusherUtils.triggerMultiEventHandler(update.eventType, update.data));
-    return Promise.all(pusherEventPromises).then(() => {
-        console.debug('[OnyxUpdateManager] Done applying Pusher update');
+    pusherEventsPromise = pusherEventsPromise.then(() => {
+        console.debug('[OnyxUpdateManager] Applying pusher update');
     });
+
+    pusherEventsPromise = updates
+        .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
+        .then(() => {
+            console.debug('[OnyxUpdateManager] Done applying Pusher update');
+        });
+
+    return pusherEventsPromise;
 }
 
 /**
@@ -59,10 +70,10 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {updates: OnyxUpdateEvent[]; type: 'pusher'}>): Promise<void>;
 function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdatesFromServer, {request: Request; response: Response; type: 'https'}>): Promise<Response>;
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
-    console.debug(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, {request, response, updates});
+    Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
     if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
-        console.debug('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates');
+        Log.info('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates', false);
         return Promise.resolve();
     }
     if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {

@@ -1,24 +1,24 @@
-import React, {forwardRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
-import MenuItem from './MenuItem';
-import Icon from './Icon';
-import styles from '../styles/styles';
-import * as StyleUtils from '../styles/StyleUtils';
-import getButtonState from '../libs/getButtonState';
-import useThrottledButtonState from '../hooks/useThrottledButtonState';
+import React, {forwardRef, useImperativeHandle} from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import getButtonState from '@libs/getButtonState';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
-import useWindowDimensions from '../hooks/useWindowDimensions';
-import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
+import Icon from './Icon';
+import sourcePropTypes from './Image/sourcePropTypes';
+import MenuItem from './MenuItem';
 
 const propTypes = {
     /** Icon Component */
-    icon: PropTypes.elementType.isRequired,
+    icon: sourcePropTypes.isRequired,
 
     /** Text to display */
     text: PropTypes.string.isRequired,
 
     /** Icon to show when interaction was successful */
-    successIcon: PropTypes.elementType,
+    successIcon: sourcePropTypes,
 
     /** Text to show when interaction was successful */
     successText: PropTypes.string,
@@ -53,6 +53,8 @@ const defaultProps = {
 };
 
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction, isFocused, innerRef}) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
@@ -96,10 +98,11 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             wrapperStyle={styles.pr9}
             success={!isThrottledButtonActive}
             description={description}
-            descriptionTextStyle={styles.breakAll}
-            style={getContextMenuItemStyles(windowWidth)}
+            descriptionTextStyle={styles.breakWord}
+            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             isAnonymousAction={isAnonymousAction}
             focused={isFocused}
+            interactive={isThrottledButtonActive}
         />
     );
 }
@@ -108,10 +111,14 @@ ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default forwardRef((props, ref) => (
+const ContextMenuItemWithRef = forwardRef((props, ref) => (
     <ContextMenuItem
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         innerRef={ref}
     />
 ));
+
+ContextMenuItemWithRef.displayName = 'ContextMenuItemWithRef';
+
+export default ContextMenuItemWithRef;

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
-import optionPropTypes from '../optionPropTypes';
-import styles from '../../styles/styles';
+import optionPropTypes from '@components/optionPropTypes';
+import stylePropTypes from '@styles/stylePropTypes';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */
@@ -26,9 +27,6 @@ const propTypes = {
         }),
     ).isRequired,
 
-    /** Value in the search input field */
-    value: PropTypes.string.isRequired,
-
     /** Callback fired when text changes */
     onChangeText: PropTypes.func,
 
@@ -38,8 +36,8 @@ const propTypes = {
     /** Label to display for the text input */
     textInputLabel: PropTypes.string,
 
-    /** Optional keyboard type for the input */
-    keyboardType: PropTypes.string,
+    /** Optional input mode precedence over keyboardType */
+    inputMode: PropTypes.string,
 
     /** Optional placeholder text for the selector */
     placeholderText: PropTypes.string,
@@ -80,8 +78,8 @@ const propTypes = {
     /** Whether to show the title tooltip */
     showTitleTooltip: PropTypes.bool,
 
-    /** Whether to focus the textinput after an option is selected */
-    shouldFocusOnSelectRow: PropTypes.bool,
+    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    shouldPreventDefaultFocusOnSelectRow: PropTypes.bool,
 
     /** Whether to autofocus the search input on mount */
     autoFocus: PropTypes.bool,
@@ -107,6 +105,9 @@ const propTypes = {
     /** Hover style for options in the OptionsList */
     optionHoveredStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Style for section headers */
+    sectionHeaderStyle: stylePropTypes,
+
     /** Whether to show options list */
     shouldShowOptions: PropTypes.bool,
 
@@ -122,15 +123,24 @@ const propTypes = {
     /** Whether to wrap large text up to 2 lines */
     isRowMultilineSupported: PropTypes.bool,
 
-    /** Initial focused index value */
-    initialFocusedIndex: PropTypes.number,
+    /** Index for option to focus on */
+    focusedIndex: PropTypes.number,
+
+    /** Whether the text input should intercept swipes or not */
+    shouldTextInputInterceptSwipe: PropTypes.bool,
+
+    /** Whether we should allow the view wrapping the nested children to be scrollable */
+    shouldAllowScrollingChildren: PropTypes.bool,
+
+    /** Whether nested scroll of options is enabled, true by default */
+    nestedScrollEnabled: PropTypes.bool,
 };
 
 const defaultProps = {
     onSelectRow: undefined,
     textInputLabel: '',
     placeholderText: '',
-    keyboardType: 'default',
+    inputMode: CONST.INPUT_MODE.TEXT,
     selectedOptions: [],
     headerMessage: '',
     canSelectMultipleOptions: false,
@@ -141,25 +151,29 @@ const defaultProps = {
     hideSectionHeaders: false,
     boldStyle: false,
     showTitleTooltip: false,
-    shouldFocusOnSelectRow: false,
+    shouldPreventDefaultFocusOnSelectRow: false,
     autoFocus: true,
     shouldShowConfirmButton: false,
     confirmButtonText: undefined,
     onConfirmSelection: () => {},
     shouldTextInputAppearBelowOptions: false,
     footerContent: undefined,
-    optionHoveredStyle: styles.hoveredComponentBG,
+    optionHoveredStyle: undefined,
+    sectionHeaderStyle: undefined,
     shouldShowOptions: true,
     disableArrowKeysActions: false,
     isDisabled: false,
     shouldHaveOptionSeparator: false,
     initiallyFocusedOptionKey: undefined,
-    maxLength: undefined,
+    maxLength: CONST.SEARCH_MAX_LENGTH,
     shouldShowTextInput: true,
     onChangeText: () => {},
     shouldUseStyleForChildren: true,
     isRowMultilineSupported: false,
-    initialFocusedIndex: undefined,
+    focusedIndex: undefined,
+    shouldTextInputInterceptSwipe: false,
+    shouldAllowScrollingChildren: false,
+    nestedScrollEnabled: true,
 };
 
 export {propTypes, defaultProps};

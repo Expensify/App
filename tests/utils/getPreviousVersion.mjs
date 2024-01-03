@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 import {getPreviousVersion} from '../../.github/libs/versionUpdater.js';
 
 const currentVersion = process.argv[2];

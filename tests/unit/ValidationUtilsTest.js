@@ -1,4 +1,4 @@
-import {addDays, format, subYears, startOfDay} from 'date-fns';
+import {addDays, format, startOfDay, subYears} from 'date-fns';
 import CONST from '../../src/CONST';
 
 const ValidationUtils = require('../../src/libs/ValidationUtils');
@@ -253,6 +253,14 @@ describe('ValidationUtils', () => {
         test('room name with spanish Accented letters and dashes', () => {
             expect(ValidationUtils.isValidRoomName('#sala-de-opinión')).toBe(true);
         });
+
+        test('room name with division sign (÷)', () => {
+            expect(ValidationUtils.isValidRoomName('#room-name-with-÷-sign')).toBe(false);
+        });
+
+        test('room name with Greek alphabets and Cyrillic alphabets', () => {
+            expect(ValidationUtils.isValidRoomName('#σοβαρός-серьезный')).toBe(true);
+        });
     });
 
     describe('isValidWebsite', () => {
@@ -303,6 +311,20 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidAccountRoute(undefined)).toBe(false);
             expect(ValidationUtils.isValidAccountRoute(0)).toBe(false);
             expect(ValidationUtils.isValidAccountRoute('123aaa')).toBe(false);
+        });
+    });
+
+    describe('ValidatePersonName', () => {
+        test('Valid person name', () => {
+            expect(ValidationUtils.isValidPersonName('test name')).toBe(true);
+            expect(ValidationUtils.isValidPersonName(`X Æ A test`)).toBe(true);
+            expect(ValidationUtils.isValidPersonName(`a hyphenated-name`)).toBe(true);
+        });
+
+        test('Invalid person name', () => {
+            expect(ValidationUtils.isValidPersonName('123 test')).toBe(false);
+            expect(ValidationUtils.isValidPersonName('test #$')).toBe(false);
+            expect(ValidationUtils.isValidPersonName('test123$')).toBe(false);
         });
     });
 });

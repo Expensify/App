@@ -1,30 +1,43 @@
-import React from 'react';
+import Str from 'expensify-common/lib/str';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import Image from '../Image';
-import ThumbnailImage from '../ThumbnailImage';
-import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
-import ROUTES from '../../ROUTES';
-import CONST from '../../CONST';
-import {ShowContextMenuContext} from '../ShowContextMenuContext';
-import Navigation from '../../libs/Navigation/Navigation';
-import PressableWithoutFocus from '../Pressable/PressableWithoutFocus';
-import useLocalize from '../../hooks/useLocalize';
+import React from 'react';
+import {View} from 'react-native';
+import _ from 'underscore';
+import AttachmentModal from '@components/AttachmentModal';
+import EReceiptThumbnail from '@components/EReceiptThumbnail';
+import Image from '@components/Image';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import ThumbnailImage from '@components/ThumbnailImage';
+import transactionPropTypes from '@components/transactionPropTypes';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 
 const propTypes = {
     /** thumbnail URI for the image */
-    thumbnail: PropTypes.string,
+    thumbnail: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** URI for the image or local numeric reference for the image  */
     image: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 
     /** whether or not to enable the image preview modal */
     enablePreviewModal: PropTypes.bool,
+
+    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    transaction: transactionPropTypes,
+
+    /** whether thumbnail is refer the local file or not */
+    isLocalFile: PropTypes.bool,
 };
 
 const defaultProps = {
     thumbnail: null,
+    transaction: {},
     enablePreviewModal: false,
+    isLocalFile: false,
 };
 
 /**
@@ -33,40 +46,62 @@ const defaultProps = {
  * and optional preview modal as well.
  */
 
-function ReportActionItemImage({thumbnail, image, enablePreviewModal}) {
+function ReportActionItemImage({thumbnail, image, enablePreviewModal, transaction, isLocalFile}) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const imageSource = tryResolveUrlFromApiRoot(image || '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail || '');
+    const isEReceipt = !_.isEmpty(transaction) && TransactionUtils.hasEReceipt(transaction);
 
-    const receiptImageComponent = thumbnail ? (
-        <ThumbnailImage
-            previewSourceURL={thumbnailSource}
-            style={[styles.w100, styles.h100]}
-            isAuthTokenRequired
-            shouldDynamicallyResize={false}
-        />
-    ) : (
-        <Image
-            source={{uri: image}}
-            style={[styles.w100, styles.h100]}
-        />
-    );
+    let receiptImageComponent;
+
+    if (isEReceipt) {
+        receiptImageComponent = (
+            <View style={[styles.w100, styles.h100]}>
+                <EReceiptThumbnail transactionID={transaction.transactionID} />
+            </View>
+        );
+    } else if (thumbnail && !isLocalFile && !Str.isPDF(imageSource)) {
+        receiptImageComponent = (
+            <ThumbnailImage
+                previewSourceURL={thumbnailSource}
+                style={[styles.w100, styles.h100]}
+                isAuthTokenRequired
+                shouldDynamicallyResize={false}
+            />
+        );
+    } else {
+        receiptImageComponent = (
+            <Image
+                source={{uri: thumbnail || image}}
+                style={[styles.w100, styles.h100]}
+            />
+        );
+    }
 
     if (enablePreviewModal) {
         return (
             <ShowContextMenuContext.Consumer>
                 {({report}) => (
-                    <PressableWithoutFocus
-                        style={[styles.noOutline, styles.w100, styles.h100]}
-                        onPress={() => {
-                            const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report.reportID, imageSource);
-                            Navigation.navigate(route);
-                        }}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                    <AttachmentModal
+                        source={imageSource}
+                        isAuthTokenRequired={!isLocalFile}
+                        report={report}
+                        isReceiptAttachment
+                        allowToDownload
+                        originalFileName={transaction.filename}
                     >
-                        {receiptImageComponent}
-                    </PressableWithoutFocus>
+                        {({show}) => (
+                            <PressableWithoutFocus
+                                style={[styles.noOutline, styles.w100, styles.h100]}
+                                onPress={show}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            >
+                                {receiptImageComponent}
+                            </PressableWithoutFocus>
+                        )}
+                    </AttachmentModal>
                 )}
             </ShowContextMenuContext.Consumer>
         );

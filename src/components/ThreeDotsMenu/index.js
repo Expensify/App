@@ -1,23 +1,26 @@
-import React, {useState, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
-import Icon from '../Icon';
-import PopoverMenu from '../PopoverMenu';
-import styles from '../../styles/styles';
-import useLocalize from '../../hooks/useLocalize';
-import Tooltip from '../Tooltip';
-import * as Expensicons from '../Icon/Expensicons';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
+import sourcePropTypes from '@components/Image/sourcePropTypes';
+import PopoverMenu from '@components/PopoverMenu';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
+import CONST from '@src/CONST';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
-import CONST from '../../CONST';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Tooltip for the popup icon */
     iconTooltip: PropTypes.string,
 
     /** icon for the popup trigger */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+    icon: PropTypes.oneOfType([PropTypes.string, sourcePropTypes]),
 
     /** Any additional styles to pass to the icon container. */
     // eslint-disable-next-line react/forbid-prop-types
@@ -46,15 +49,19 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    /** Function to call on modal hide */
-    onModalHide: PropTypes.func,
-
     /** Whether the popover menu should overlay the current view */
     shouldOverlay: PropTypes.bool,
+
+    /** Whether the menu is disabled */
+    disabled: PropTypes.bool,
+
+    /** Should we announce the Modal visibility changes? */
+    shouldSetModalVisibility: PropTypes.bool,
 };
 
 const defaultProps = {
     iconTooltip: 'common.more',
+    disabled: false,
     iconFill: undefined,
     iconStyles: [],
     icon: Expensicons.ThreeDots,
@@ -63,11 +70,13 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
-    onModalHide: () => {},
     shouldOverlay: false,
+    shouldSetModalVisibility: true,
 };
 
-function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, onModalHide, shouldOverlay}) {
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, shouldOverlay, shouldSetModalVisibility, disabled}) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef(null);
     const {translate} = useLocalize();
@@ -77,9 +86,6 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
     };
 
     const hidePopoverMenu = () => {
-        InteractionManager.runAfterInteractions(() => {
-            onModalHide();
-        });
         setPopupMenuVisible(false);
     };
 
@@ -98,27 +104,35 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
                                 onIconPress();
                             }
                         }}
+                        disabled={disabled}
+                        onMouseDown={(e) => {
+                            /* Keep the focus state on mWeb like we did on the native apps. */
+                            if (!Browser.isMobile()) {
+                                return;
+                            }
+                            e.preventDefault();
+                        }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, ...iconStyles]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon
                             src={icon}
-                            fill={iconFill}
+                            fill={iconFill || theme.icon}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onPopoverHide={onModalHide}
                 isVisible={isPopupMenuVisible}
                 anchorPosition={anchorPosition}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
                 withoutOverlay={!shouldOverlay}
+                shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
             />
         </>

@@ -1,22 +1,24 @@
 import React from 'react';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import ROUTES from '../../ROUTES';
-import Navigation from '../../libs/Navigation/Navigation';
-import FixedFooter from '../../components/FixedFooter';
-import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import variables from '../../styles/variables';
-import useLocalize from '../../hooks/useLocalize';
-import BlockingView from '../../components/BlockingViews/BlockingView';
+import BlockingView from '@components/BlockingViews/BlockingView';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {};
 
 const defaultProps = {};
 
 function ImTeacherUpdateEmailPage() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const activeRoute = Navigation.getActiveRouteWithoutParams();
 
     return (
         <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
@@ -31,16 +33,16 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 subtitle={translate('teachersUnitePage.schoolMailAsDefault')}
                 linkKey="teachersUnitePage.contactMethods"
-                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 iconWidth={variables.signInLogoWidthLargeScreen}
-                iconHeight={variables.lhnLogoWidth}
+                iconHeight={variables.signInLogoHeightLargeScreen}
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
                     success
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
                 />
             </FixedFooter>
         </ScreenWrapper>
