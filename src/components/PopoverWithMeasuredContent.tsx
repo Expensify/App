@@ -1,13 +1,14 @@
 import isEqual from 'lodash/isEqual';
 import React, {useMemo, useState} from 'react';
-import {LayoutChangeEvent, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import Popover from './Popover';
-import {PopoverProps} from './Popover/types';
+import type {PopoverProps} from './Popover/types';
 import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
 type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | keyof WindowDimensionsProps> & {

@@ -26,6 +26,7 @@
   - [1.19 Satisfies operator](#satisfies-operator)
   - [1.20 Hooks instead of HOCs](#hooks-instead-of-hocs)
   - [1.21 `compose` usage](#compose-usage)
+  - [1.22 Type imports](#type-imports)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -383,7 +384,7 @@ type Foo = {
 
 <a name="file-organization"></a><a name="1.15"></a>
 
-- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants. 
+- [1.15](#file-organization) **File organization**: In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants.
 
   > Why? To encourage consistent API across platform-specific implementations. If you're migrating module that doesn't have a default implement (i.e. `index.ts`, e.g. `getPlatform`), refer to [Migration Guidelines](#migration-guidelines) for further information.
 
@@ -514,7 +515,7 @@ type Foo = {
   <a name="hooks-instead-of-hocs"></a><a name="1.20"></a>
 
 - [1.20](#hooks-instead-of-hocs) **Hooks instead of HOCs**: Replace HOCs usage with Hooks whenever possible.
-  
+
   > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
 
   > Note: Because Onyx doesn't provide a hook yet, in a component that accesses Onyx data with `withOnyx` HOC, please make sure that you don't use other HOCs (if applicable) to avoid HOC nesting.
@@ -571,7 +572,7 @@ type Foo = {
   <a name="compose-usage"></a><a name="1.21"></a>
 
 - [1.21](#compose-usage) **`compose` usage**: Avoid the usage of `compose` function to compose HOCs in TypeScript files. Use nesting instead.
-  
+
   > Why? `compose` function doesn't work well with TypeScript when dealing with several HOCs being used in a component, many times resulting in wrong types and errors. Instead, nesting can be used to allow a seamless use of multiple HOCs and result in a correct return type of the compoment. Also, you can use [hooks instead of HOCs](#hooks-instead-of-hocs) whenever possible to minimize or even remove the need of HOCs in the component.
 
   ```ts
@@ -605,6 +606,38 @@ type Foo = {
   })(Component);
   const ComponentWithReportOrNotFound = withReportOrNotFound()(ComponentWithOnyx);
   export default withCurrentUserPersonalDetails(ComponentWithReportOrNotFound);
+  ```
+
+   <a name="type-imports"></a><a name="1.22"></a>
+
+- [1.22](#type-imports) **Type imports/exports**: Always use the `type` keyword when importing/exporting types
+
+  > Why? In order to improve code clarity and consistency and reduce bundle size after typescript transpilation, we enforce the all type imports/exports to contain the `type` keyword. This way, TypeScript can automatically remove those imports from the transpiled JavaScript bundle 
+
+  Imports:
+  ```ts
+  // BAD
+  import {SomeType} from './a'
+  import someVariable from './a'
+
+  import {someVariable, SomeOtherType} from './b'
+
+  // GOOD
+  import type {SomeType} from './a'
+  import someVariable from './a'
+  ```
+
+    Exports:
+  ```ts
+  // BAD
+  export {SomeType}
+  export someVariable
+  // or 
+  export {someVariable, SomeOtherType}
+
+  // GOOD
+  export type {SomeType}
+  export someVariable
   ```
 
 ## Exception to Rules

@@ -1,5 +1,5 @@
 import positioning from '@styles/utils/positioning';
-import GetCardStyles from './types';
+import type GetCardStyles from './types';
 
 /**
  * Get card style for cardStyleInterpolator
