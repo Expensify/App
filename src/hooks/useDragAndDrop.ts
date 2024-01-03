@@ -30,9 +30,6 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const {close: closePopover} = useContext(PopoverContext);
 
-    // This solution is borrowed from this SO: https://stackoverflow.com/questions/7110353/html5-dragleave-fired-when-hovering-a-child-element
-    // This is necessary because dragging over children will cause dragleave to execute on the parent.
-
     useEffect(() => {
         if (isFocused && !isDisabled) {
             return;
@@ -84,6 +81,7 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                     setIsDraggingOver(true);
                     break;
                 case DRAG_LEAVE_EVENT:
+                    // This is necessary because dragging over children will cause dragleave to execute on the parent.
                     const currentTarget = event.currentTarget as HTMLElement | null;
                     const relatedTarget = event.relatedTarget as HTMLElement | null;
                     if (!isDraggingOver || currentTarget?.contains(relatedTarget)) {
