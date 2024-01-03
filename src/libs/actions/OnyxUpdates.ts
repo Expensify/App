@@ -72,8 +72,8 @@ function apply({lastUpdateID, type, request, response, updates}: Merge<OnyxUpdat
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) < lastUpdateIDAppliedToClient) {
-        Log.info('[OnyxUpdateManager] Update received was older than current state, returning without applying the updates', false);
+    if (lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient) {
+        Log.info('[OnyxUpdateManager] Update received was older or the same than current state, returning without applying the updates', false);
         return Promise.resolve();
     }
     if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
