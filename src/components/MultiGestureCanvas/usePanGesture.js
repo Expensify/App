@@ -5,10 +5,6 @@ import * as MultiGestureCanvasUtils from './utils';
 
 const PAN_DECAY_DECELARATION = 0.9915;
 
-const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
-const clamp = MultiGestureCanvasUtils.clamp;
-const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
-
 const usePanGesture = ({
     canvasSize,
     contentSize,
@@ -19,8 +15,8 @@ const usePanGesture = ({
     zoomScale,
     zoomRange,
     totalScale,
-    totalOffsetX,
-    totalOffsetY,
+    offsetX,
+    offsetY,
     panTranslateX,
     panTranslateY,
     isSwipingInPager,
@@ -40,7 +36,7 @@ const usePanGesture = ({
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
     // Can be used to limit gesture or implementing tension effect
-    const getBounds = useWorkletCallback(() => {
+    const getBounds = MultiGestureCanvasUtils.useWorkletCallback(() => {
         let rightBoundary = 0;
         let topBoundary = 0;
 
@@ -56,12 +52,12 @@ const usePanGesture = ({
         const minVector = {x: -rightBoundary, y: -topBoundary};
 
         const target = {
-            x: clamp(totalOffsetX.value, minVector.x, maxVector.x),
-            y: clamp(totalOffsetY.value, minVector.y, maxVector.y),
+            x: MultiGestureCanvasUtils.clamp(offsetX.value, minVector.x, maxVector.x),
+            y: MultiGestureCanvasUtils.clamp(offsetY.value, minVector.y, maxVector.y),
         };
 
-        const isInBoundaryX = target.x === totalOffsetX.value;
-        const isInBoundaryY = target.y === totalOffsetY.value;
+        const isInBoundaryX = target.x === offsetX.value;
+        const isInBoundaryY = target.y === offsetY.value;
 
         return {
             target,
@@ -74,24 +70,24 @@ const usePanGesture = ({
         };
     }, [canvasSize.width, canvasSize.height]);
 
-    const returnToBoundaries = useWorkletCallback(() => {
+    const returnToBoundaries = MultiGestureCanvasUtils.useWorkletCallback(() => {
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
 
-        if (zoomScale.value === zoomRange.min && totalOffsetX.value === 0 && totalOffsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
+        if (zoomScale.value === zoomRange.min && offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
             // We don't need to run any animations
             return;
         }
 
         // If we are zoomed out, we want to center the content
         if (zoomScale.value <= zoomRange.min) {
-            totalOffsetX.value = withSpring(0, SPRING_CONFIG);
-            totalOffsetY.value = withSpring(0, SPRING_CONFIG);
+            offsetX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
             return;
         }
 
         if (isInBoundaryX) {
             if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= zoomRange.max) {
-                totalOffsetX.value = withDecay({
+                offsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [minVector.x, maxVector.x],
                     deceleration: PAN_DECAY_DECELARATION,
@@ -99,7 +95,7 @@ const usePanGesture = ({
                 });
             }
         } else {
-            totalOffsetX.value = withSpring(target.x, SPRING_CONFIG);
+            offsetX.value = withSpring(target.x, MultiGestureCanvasUtils.SPRING_CONFIG);
         }
 
         if (isInBoundaryY) {
@@ -107,17 +103,17 @@ const usePanGesture = ({
                 Math.abs(panVelocityY.value) > 0 &&
                 zoomScale.value <= zoomRange.max &&
                 // Limit vertical panning when content is smaller than screen
-                totalOffsetY.value !== minVector.y &&
-                totalOffsetY.value !== maxVector.y
+                offsetY.value !== minVector.y &&
+                offsetY.value !== maxVector.y
             ) {
-                totalOffsetY.value = withDecay({
+                offsetY.value = withDecay({
                     velocity: panVelocityY.value,
                     clamp: [minVector.y, maxVector.y],
                     deceleration: PAN_DECAY_DECELARATION,
                 });
             }
         } else {
-            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
+            offsetY.value = withSpring(target.y, MultiGestureCanvasUtils.SPRING_CONFIG);
         }
     });
 
@@ -157,8 +153,8 @@ const usePanGesture = ({
         })
         .onEnd(() => {
             // Add pan translation to total offset
-            totalOffsetX.value += panTranslateX.value;
-            totalOffsetY.value += panTranslateY.value;
+            offsetX.value += panTranslateX.value;
+            offsetY.value += panTranslateY.value;
 
             // Reset pan gesture variables
             panTranslateX.value = 0;

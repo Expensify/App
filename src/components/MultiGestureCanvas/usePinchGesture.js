@@ -4,10 +4,6 @@ import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
-const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
-const zoomScaleBounceFactors = MultiGestureCanvasUtils.zoomScaleBounceFactors;
-const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
-
 const usePinchGesture = ({
     canvasSize,
     singleTapGesture,
@@ -51,7 +47,7 @@ const usePinchGesture = ({
         },
     );
 
-    const getAdjustedFocal = useWorkletCallback(
+    const getAdjustedFocal = MultiGestureCanvasUtils.useWorkletCallback(
         (focalX, focalY) => ({
             x: focalX - (canvasSize.width / 2 + offsetX.value),
             y: focalY - (canvasSize.height / 2 + offsetY.value),
@@ -82,7 +78,10 @@ const usePinchGesture = ({
             const newZoomScale = pinchScale.value * evt.scale;
 
             // Limit zoom scale to zoom range including bounce range
-            if (zoomScale.value >= zoomRange.min * zoomScaleBounceFactors.min && zoomScale.value <= zoomRange.max * zoomScaleBounceFactors.max) {
+            if (
+                zoomScale.value >= zoomRange.min * MultiGestureCanvasUtils.zoomScaleBounceFactors.min &&
+                zoomScale.value <= zoomRange.max * MultiGestureCanvasUtils.zoomScaleBounceFactors.max
+            ) {
                 zoomScale.value = newZoomScale;
                 currentPinchScale.value = evt.scale;
             }
@@ -115,18 +114,18 @@ const usePinchGesture = ({
 
             // If the content was "overzoomed" or "underzoomed", we need to bounce back with an animation
             if (pinchBounceTranslateX.value !== 0 || pinchBounceTranslateY.value !== 0) {
-                pinchBounceTranslateX.value = withSpring(0, SPRING_CONFIG);
-                pinchBounceTranslateY.value = withSpring(0, SPRING_CONFIG);
+                pinchBounceTranslateX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+                pinchBounceTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
             }
 
             if (zoomScale.value < zoomRange.min) {
                 // If the zoom scale is less than the minimum zoom scale, we need to set the zoom scale to the minimum
                 pinchScale.value = zoomRange.min;
-                zoomScale.value = withSpring(zoomRange.min, SPRING_CONFIG);
+                zoomScale.value = withSpring(zoomRange.min, MultiGestureCanvasUtils.SPRING_CONFIG);
             } else if (zoomScale.value > zoomRange.max) {
                 // If the zoom scale is higher than the maximum zoom scale, we need to set the zoom scale to the maximum
                 pinchScale.value = zoomRange.max;
-                zoomScale.value = withSpring(zoomRange.max, SPRING_CONFIG);
+                zoomScale.value = withSpring(zoomRange.max, MultiGestureCanvasUtils.SPRING_CONFIG);
             } else {
                 // Otherwise, we just update the pinch scale offset
                 pinchScale.value = zoomScale.value;

@@ -6,83 +6,94 @@ import * as MultiGestureCanvasUtils from './utils';
 
 const DOUBLE_TAP_SCALE = 3;
 
-const clamp = MultiGestureCanvasUtils.clamp;
-const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
-const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
-
 const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentScale, panGestureRef, offsetX, offsetY, pinchScale, zoomScale, reset, stopAnimation, onScaleChanged, onTap}) => {
-    const scaledWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
-    const scaledHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
+    // The content size after scaling it with minimum scale to fit the content into the canvas
+    const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
+    const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
 
-    // On double tap zoom to fill, but at least zoom by 3x
+    // On double tap the content should be zoomed to fill, but at least zoomed by DOUBLE_TAP_SCALE
     const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
-    const zoomToCoordinates = useWorkletCallback(
-        (canvasFocalX, canvasFocalY) => {
+    const zoomToCoordinates = MultiGestureCanvasUtils.useWorkletCallback(
+        (focalX, focalY) => {
             'worklet';
 
             stopAnimation();
 
-            const canvasOffsetX = Math.max(0, (canvasSize.width - scaledWidth) / 2);
-            const canvasOffsetY = Math.max(0, (canvasSize.height - scaledHeight) / 2);
+            // By how much the canvas is bigger than the content horizontally and vertically per side
+            const horizontalCanvasOffset = Math.max(0, (canvasSize.width - scaledContentWidth) / 2);
+            const verticalCanvasOffset = Math.max(0, (canvasSize.height - scaledContentHeight) / 2);
 
-            const contentFocal = {
-                x: clamp(canvasFocalX - canvasOffsetX, 0, scaledWidth),
-                y: clamp(canvasFocalY - canvasOffsetY, 0, scaledHeight),
+            // We need to adjust the focal point to take into account the canvas offset
+            // The focal point cannot be outside of the content's bounds
+            const adjustedFocalPoint = {
+                x: MultiGestureCanvasUtils.clamp(focalX - horizontalCanvasOffset, 0, scaledContentWidth),
+                y: MultiGestureCanvasUtils.clamp(focalY - verticalCanvasOffset, 0, scaledContentHeight),
             };
 
+            // The center of the canvas
             const canvasCenter = {
                 x: canvasSize.width / 2,
                 y: canvasSize.height / 2,
             };
 
-            const originContentCenter = {
-                x: scaledWidth / 2,
-                y: scaledHeight / 2,
+            // The center of the content before zooming
+            const originalContentCenter = {
+                x: scaledContentWidth / 2,
+                y: scaledContentHeight / 2,
             };
 
-            const targetContentSize = {
-                width: scaledWidth * doubleTapScale,
-                height: scaledHeight * doubleTapScale,
+            // The size of the content after zooming
+            const zoomedContentSize = {
+                width: scaledContentWidth * doubleTapScale,
+                height: scaledContentHeight * doubleTapScale,
             };
 
-            const targetContentCenter = {
-                x: targetContentSize.width / 2,
-                y: targetContentSize.height / 2,
+            // The center of the zoomed content
+            const zoomedContentCenter = {
+                x: zoomedContentSize.width / 2,
+                y: zoomedContentSize.height / 2,
             };
 
-            const currentOrigin = {
-                x: (targetContentCenter.x - canvasCenter.x) * -1,
-                y: (targetContentCenter.y - canvasCenter.y) * -1,
+            // By how much the zoomed content is bigger/smaller than the canvas.
+            const zoomedContentOffset = {
+                x: zoomedContentCenter.x - canvasCenter.x,
+                y: zoomedContentCenter.y - canvasCenter.y,
             };
 
-            const koef = {
-                x: (1 / originContentCenter.x) * contentFocal.x - 1,
-                y: (1 / originContentCenter.y) * contentFocal.y - 1,
+            // How much the content needs to be shifted based on the focal point
+            const shiftingFactor = {
+                x: adjustedFocalPoint.x / originalContentCenter.x - 1,
+                y: adjustedFocalPoint.y / originalContentCenter.y - 1,
             };
 
-            const target = {
-                x: currentOrigin.x * koef.x,
-                y: currentOrigin.y * koef.y,
+            // The offset after applying the focal point adjusted shift.
+            // We need to invert the shift, because the content is moving in the opposite direction (* -1)
+            const offsetAfterZooming = {
+                x: zoomedContentOffset.x * (shiftingFactor.x * -1),
+                y: zoomedContentOffset.y * (shiftingFactor.y * -1),
             };
 
-            if (targetContentSize.height < canvasSize.height) {
-                target.y = 0;
+            // If the zoomed content is less tall than the canvas, we need to reset the vertical offset
+            if (zoomedContentSize.height < canvasSize.height) {
+                offsetAfterZooming.y = 0;
             }
 
-            offsetX.value = withSpring(target.x, SPRING_CONFIG);
-            offsetY.value = withSpring(target.y, SPRING_CONFIG);
-            zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
+            offsetX.value = withSpring(offsetAfterZooming.x, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetY.value = withSpring(offsetAfterZooming.y, MultiGestureCanvasUtils.SPRING_CONFIG);
+            zoomScale.value = withSpring(doubleTapScale, MultiGestureCanvasUtils.SPRING_CONFIG);
             pinchScale.value = doubleTapScale;
         },
-        [scaledWidth, scaledHeight, canvasSize, doubleTapScale],
+        [scaledContentWidth, scaledContentHeight, canvasSize, doubleTapScale],
     );
 
-    const doubleTap = Gesture.Tap()
+    const doubleTapGesture = Gesture.Tap()
         .numberOfTaps(2)
         .maxDelay(150)
         .maxDistance(20)
         .onEnd((evt) => {
+            // If the content is already zoomed, we want to reset the zoom,
+            // otherwwise we want to zoom in
             if (zoomScale.value > 1) {
                 reset(true);
             } else {
@@ -94,10 +105,10 @@ const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentSca
             }
         });
 
-    const singleTap = Gesture.Tap()
+    const singleTapGesture = Gesture.Tap()
         .numberOfTaps(1)
         .maxDuration(50)
-        .requireExternalGestureToFail(doubleTap, panGestureRef)
+        .requireExternalGestureToFail(doubleTapGesture, panGestureRef)
         .onBegin(() => {
             stopAnimation();
         })
@@ -109,7 +120,7 @@ const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentSca
             runOnJS(onTap)();
         });
 
-    return {singleTap, doubleTap};
+    return {singleTapGesture, doubleTapGesture};
 };
 
 export default useTapGestures;

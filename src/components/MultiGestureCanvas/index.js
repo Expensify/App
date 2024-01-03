@@ -12,10 +12,6 @@ import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
 import * as MultiGestureCanvasUtils from './utils';
 
-const SPRING_CONFIG = MultiGestureCanvasUtils.SPRING_CONFIG;
-const zoomScaleBounceFactors = MultiGestureCanvasUtils.zoomScaleBounceFactors;
-const useWorkletCallback = MultiGestureCanvasUtils.useWorkletCallback;
-
 function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoomRangeProp = {}}) {
     const contentSize = {
         width: contentSizeProp.width == null ? 1 : contentSizeProp.width,
@@ -68,12 +64,12 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
 
-    const stopAnimation = useWorkletCallback(() => {
+    const stopAnimation = MultiGestureCanvasUtils.useWorkletCallback(() => {
         cancelAnimation(offsetX);
         cancelAnimation(offsetY);
     });
 
-    const reset = useWorkletCallback((animated) => {
+    const reset = MultiGestureCanvasUtils.useWorkletCallback((animated) => {
         pinchScale.value = 1;
 
         stopAnimation();
@@ -81,13 +77,13 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         pinchScale.value = 1;
 
         if (animated) {
-            offsetX.value = withSpring(0, SPRING_CONFIG);
-            offsetY.value = withSpring(0, SPRING_CONFIG);
-            panTranslateX.value = withSpring(0, SPRING_CONFIG);
-            panTranslateY.value = withSpring(0, SPRING_CONFIG);
-            pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
-            pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
-            zoomScale.value = withSpring(1, SPRING_CONFIG);
+            offsetX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+            offsetY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+            panTranslateX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+            panTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+            pinchTranslateX.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+            pinchTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
+            zoomScale.value = withSpring(1, MultiGestureCanvasUtils.SPRING_CONFIG);
             return;
         }
 
@@ -222,4 +218,5 @@ MultiGestureCanvas.defaultProps = multiGestureCanvasDefaultProps;
 MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
-export {defaultZoomRange, zoomScaleBounceFactors};
+export {defaultZoomRange};
+export {zoomScaleBounceFactors} from './utils';
