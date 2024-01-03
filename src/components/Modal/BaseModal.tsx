@@ -181,7 +181,7 @@ function BaseModal(
             onModalHide={hideModal}
             onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
             onDismiss={handleDismissModal}
-            onSwipeComplete={onClose}
+            onSwipeComplete={() => onClose?.()}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}
