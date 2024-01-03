@@ -36,16 +36,16 @@ type Geometry = {
     location: Location;
 };
 
-type Values = Record<string, string>;
+type WaypointValues = Record<string, string>;
 
 type MappedWaypoint = {
-    /* Waypoint name */
+    /** Waypoint name */
     name?: string;
 
-    /* Waypoint description */
+    /** Waypoint description */
     description: string;
 
-    /* Waypoint geometry object cointaing coordinates */
+    /** Waypoint geometry object cointaing coordinates */
     geometry: Geometry;
 };
 
@@ -100,7 +100,7 @@ function WaypointEditor({
         isFocused &&
         (Number.isNaN(parsedWaypointIndex) || parsedWaypointIndex < 0 || parsedWaypointIndex > waypointCount || (filledWaypointCount < 2 && parsedWaypointIndex >= waypointCount));
 
-    const validate = (values: Values): ErrorUtils.ErrorsList => {
+    const validate = (values: WaypointValues): ErrorUtils.ErrorsList => {
         const errors = {};
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
@@ -118,7 +118,7 @@ function WaypointEditor({
 
     const saveWaypoint = (waypoint: OnyxTypes.RecentWaypoint) => Transaction.saveWaypoint(transactionID, waypointIndex, waypoint, isEditingWaypoint);
 
-    const submit = (values: Values) => {
+    const submit = (values: WaypointValues) => {
         const waypointValue = values[`waypoint${waypointIndex}`] || '';
 
         // Allows letting you set a waypoint to an empty value
