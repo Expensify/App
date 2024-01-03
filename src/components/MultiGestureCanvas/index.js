@@ -38,9 +38,8 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const pagerRefFallback = useRef(null);
-    const {onTap, onSwipeDown, pagerRef, shouldPagerScroll, isSwipingHorizontally, onPinchGestureChange} = attachmentCarouselPagerContext || {
+    const {onTap, pagerRef, shouldPagerScroll, isSwipingHorizontally, onPinchGestureChange} = attachmentCarouselPagerContext || {
         onTap: () => undefined,
-        onSwipeDown: () => undefined,
         onPinchGestureChange: () => undefined,
         pagerRef: pagerRefFallback,
         shouldPagerScroll: false,
@@ -63,7 +62,6 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     // pan gesture
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
-    const isSwipingVertically = useSharedValue(false);
     const panGestureRef = useRef(Gesture.Pan());
 
     // pinch gesture
@@ -130,8 +128,6 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         panTranslateX,
         panTranslateY,
         isSwipingHorizontally,
-        isSwipingVertically,
-        onSwipeDown,
         stopAnimation,
     });
 
@@ -179,10 +175,6 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
     const animatedStyles = useAnimatedStyle(() => {
         const x = pinchTranslateX.value + pinchBounceTranslateX.value + panTranslateX.value + totalOffsetX.value;
         const y = pinchTranslateY.value + pinchBounceTranslateY.value + panTranslateY.value + totalOffsetY.value;
-
-        // if (isSwipingVertically.value) {
-        //     onSwipe(y);
-        // }
 
         return {
             transform: [

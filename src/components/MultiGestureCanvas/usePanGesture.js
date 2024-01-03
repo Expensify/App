@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
 const PAN_DECAY_DECELARATION = 0.9915;
@@ -23,9 +23,7 @@ const usePanGesture = ({
     totalOffsetY,
     panTranslateX,
     panTranslateY,
-    isSwipingVertically,
     isSwipingHorizontally,
-    onSwipeDown,
     stopAnimation,
 }) => {
     // The content size after scaling it with the current (total) zoom value
@@ -38,9 +36,6 @@ const usePanGesture = ({
     // Pan velocity to calculate the decay
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
-
-    // Disable "swipe down to close" gesture when content is bigger than the canvas
-    const canPanVertically = useDerivedValue(() => canvasSize.height < zoomScaledContentHeight.value, [canvasSize.height]);
 
     // Calculates bounds of the scaled content
     // Can we pan left/right/up/down
@@ -107,9 +102,7 @@ const usePanGesture = ({
             totalOffsetX.value = withSpring(target.x, SPRING_CONFIG);
         }
 
-        if (!canPanVertically.value) {
-            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
-        } else if (isInBoundaryY) {
+        if (isInBoundaryY) {
             if (
                 Math.abs(panVelocityY.value) > 0 &&
                 zoomScale.value <= zoomRange.max &&
@@ -124,9 +117,7 @@ const usePanGesture = ({
                 });
             }
         } else {
-            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG, () => {
-                isSwipingVertically.value = false;
-            });
+            totalOffsetY.value = withSpring(target.y, SPRING_CONFIG);
         }
     });
 
@@ -137,23 +128,6 @@ const usePanGesture = ({
             if (zoomScale.value > 1) {
                 state.activate();
             }
-
-            // TODO: Swipe down to close carousel gesture
-            // this needs fine tuning to work properly
-            // if (!isSwipingHorizontally.value && scale.value === 1 && previousTouch.value != null) {
-            //     const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
-            //     const velocityY = evt.allTouches[0].y - previousTouch.value.y;
-
-            //     // TODO: this needs tuning
-            //     if (Math.abs(velocityY) > velocityX && velocityY > 20) {
-            //         state.activate();
-
-            //         isSwipingVertically.value = true;
-            //         previousTouch.value = null;
-
-            //         return;
-            //     }
-            // }
 
             if (previousTouch.value == null) {
                 previousTouch.value = {
@@ -176,18 +150,12 @@ const usePanGesture = ({
             }
 
             panVelocityX.value = evt.velocityX;
-
             panVelocityY.value = evt.velocityY;
 
-            if (!isSwipingVertically.value) {
-                panTranslateX.value += evt.changeX;
-            }
-
-            if (canPanVertically.value || isSwipingVertically.value) {
-                panTranslateY.value += evt.changeY;
-            }
+            panTranslateX.value += evt.changeX;
+            panTranslateY.value += evt.changeY;
         })
-        .onEnd((evt) => {
+        .onEnd(() => {
             // Add pan translation to total offset
             totalOffsetX.value += panTranslateX.value;
             totalOffsetY.value += panTranslateY.value;
@@ -200,37 +168,6 @@ const usePanGesture = ({
             // If we are swiping (in the pager), we don't want to return to boundaries
             if (isSwipingHorizontally.value) {
                 return;
-            }
-
-            // Triggers the "swipe down to close" animation and the "onSwipeDown" callback,
-            // which can be used to close the lightbox/carousel
-            if (isSwipingVertically.value) {
-                const enoughVelocity = Math.abs(evt.velocityY) > 300 && Math.abs(evt.velocityX) < Math.abs(evt.velocityY);
-                const rightDirection = (evt.translationY > 0 && evt.velocityY > 0) || (evt.translationY < 0 && evt.velocityY < 0);
-
-                if (enoughVelocity && rightDirection) {
-                    const maybeInvert = (v) => {
-                        const invert = evt.velocityY < 0;
-                        return invert ? -v : v;
-                    };
-
-                    totalOffsetY.value = withSpring(
-                        maybeInvert(contentSize.height * 2),
-                        {
-                            stiffness: 50,
-                            damping: 30,
-                            mass: 1,
-                            overshootClamping: true,
-                            restDisplacementThreshold: 300,
-                            restSpeedThreshold: 300,
-                            velocity: Math.abs(evt.velocityY) < 1200 ? maybeInvert(1200) : evt.velocityY,
-                        },
-                        () => {
-                            runOnJS(onSwipeDown)();
-                        },
-                    );
-                    return;
-                }
             }
 
             returnToBoundaries();
