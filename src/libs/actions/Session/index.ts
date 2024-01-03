@@ -100,7 +100,7 @@ function isAnonymousUser(): boolean {
     return sessionAuthTokenType === 'anonymousAccount';
 }
 
-function signOutAndRedirectToSignIn() {
+function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
@@ -110,7 +110,11 @@ function signOutAndRedirectToSignIn() {
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
-        Navigation.navigate(ROUTES.SIGN_IN_MODAL);
+        if (shouldReplaceCurrentScreen) {
+            Navigation.navigate(ROUTES.SIGN_IN_MODAL, CONST.NAVIGATION.TYPE.UP);
+        } else {
+            Navigation.navigate(ROUTES.SIGN_IN_MODAL);
+        }
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
@@ -125,7 +129,8 @@ function signOutAndRedirectToSignIn() {
  * @param isAnonymousAction The action is allowed for anonymous or not
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed<TCallback extends (...args: unknown[]) => unknown>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function checkIfActionIsAllowed<TCallback extends (...args: any[]) => any>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }

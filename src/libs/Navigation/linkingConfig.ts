@@ -30,9 +30,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
 
-            // Demo routes
-            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
-
             // Sidebar
             [SCREENS.HOME]: {
                 path: ROUTES.HOME,
@@ -373,6 +370,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
                         screens: {
+                            [SCREENS.MONEY_REQUEST.START]: ROUTES.MONEY_REQUEST_START.route,
                             [SCREENS.MONEY_REQUEST.CREATE]: {
                                 path: ROUTES.MONEY_REQUEST_CREATE.route,
                                 exact: true,
@@ -422,6 +420,8 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 },
                             },
                             [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                             [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                             [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                             [SCREENS.MONEY_REQUEST.DATE]: ROUTES.MONEY_REQUEST_DATE.route,

@@ -214,6 +214,18 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
+        iouType: string;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
+        iouType: string;
+        transactionID: string;
+        reportID: string;
+        backTo: string;
+    };
     [SCREENS.MONEY_REQUEST.MERCHANT]: {
         iouType: string;
         reportID: string;
@@ -374,8 +386,8 @@ type PublicScreensParamList = {
         validateCode: string;
     };
     [SCREENS.UNLINK_LOGIN]: {
-        accountID: string;
-        validateCode: string;
+        accountID?: string;
+        validateCode?: string;
     };
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
@@ -400,16 +412,9 @@ type AuthScreensParamList = {
         reportID: string;
         source: string;
     };
-    [CONST.DEMO_PAGES.SAASTR]: {
-        name: string;
-    };
-    [CONST.DEMO_PAGES.SBE]: {
-        name: string;
-    };
     [SCREENS.NOT_FOUND]: undefined;
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-    [CONST.DEMO_PAGES.MONEY2020]: undefined;
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList;

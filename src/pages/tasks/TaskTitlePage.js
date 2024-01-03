@@ -1,3 +1,5 @@
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -24,12 +26,19 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
+    /** The policy of parent report */
+    rootParentReportPolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     /* Onyx Props */
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
+    rootParentReportPolicy: {},
 };
 
 function TaskTitlePage(props) {
@@ -70,7 +79,7 @@ function TaskTitlePage(props) {
 
     const inputRef = useRef(null);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
-    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
+    const canModifyTask = Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
     const isTaskNonEditable = ReportUtils.isTaskReport(props.report) && (!canModifyTask || !isOpen);
 
     return (
@@ -129,6 +138,13 @@ export default compose(
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+        },
+        rootParentReportPolicy: {
+            key: ({report}) => {
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskTitlePage);
