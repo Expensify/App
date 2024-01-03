@@ -167,17 +167,21 @@ function ReportScreen({
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
+    const {reportActionID, reportID} = getReportActionID(route);
 
-    const firstRenderRef = useRef(true);
     const flatListRef = useRef();
     const reactionListRef = useRef();
+    const firstRenderRef = useRef(true);
     const prevReport = usePrevious(report);
+    const firstRenderLinkingLoaderRef = useRef(!!reportActionID);
+    const [firstRenderLinkingLoader, setFirstRenderLinkingLoader] = useState(!!reportActionID);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
-    const {reportActionID, reportID} = getReportActionID(route);
     const [isLinkingToMessage, setLinkingToMessageTrigger] = useState(false);
 
     const reportActions = useMemo(() => {
-        if (allReportActions?.length === 0) return [];
+        if (!!allReportActions && allReportActions.length === 0) {
+            return [];
+        }
         const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions);
         const cattedRangeOfReportActions = ReportActionsUtils.getRangeFromArrayByID(sortedReportActions, reportActionID);
         const reportActionsWithoutDeleted = ReportActionsUtils.getReportActionsWithoutRemoved(cattedRangeOfReportActions);
@@ -450,6 +454,32 @@ function ReportScreen({
 
     const actionListValue = useMemo(() => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
+    // Use `useMemo` to prevent displaying stale information. The `useMemo` hook is preferred over `useEffect` here because it runs during the render phase, thus avoiding a flash of outdated content which could occur if state updates were scheduled asynchronously.
+    //
+    // This `useMemo` handles the state just after initial report actions have been loaded. It ensures that the loader state is set correctly during the initial rendering phase when linking to a report.
+    useMemo(() => {
+        if (reportMetadata.isLoadingInitialReportActions) {
+            return;
+        }
+        requestAnimationFrame(() => {
+            firstRenderLinkingLoaderRef.current = true;
+            setFirstRenderLinkingLoader(true);
+        });
+    }, [route, setFirstRenderLinkingLoader]);
+    // This `useMemo` updates the loader state after the initial rendering phase is complete and the report actions are no longer loading, ensuring the loader is hidden at the correct time.
+    useMemo(() => {
+        if (!firstRenderLinkingLoaderRef || !firstRenderLinkingLoaderRef.current || reportMetadata.isLoadingInitialReportActions) {
+            return;
+        }
+        requestAnimationFrame(() => {
+            firstRenderLinkingLoaderRef.current = false;
+            setFirstRenderLinkingLoader(false);
+        });
+    }, [reportMetadata.isLoadingInitialReportActions, setFirstRenderLinkingLoader]);
+    const shouldShowSkeleton = useMemo(
+        () => firstRenderLinkingLoader || !isReportReadyForDisplay || isLoadingInitialReportActions || isLoading || (!!reportActionID && reportMetadata.isLoadingInitialReportActions),
+        [isReportReadyForDisplay, isLoadingInitialReportActions, isLoading, reportActionID, reportMetadata.isLoadingInitialReportActions, firstRenderLinkingLoader],
+    );
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -518,7 +548,7 @@ function ReportScreen({
                                 {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
                      If we prevent rendering the report while they are loading then
                      we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {(!isReportReadyForDisplay || isLoadingInitialReportActions || isLoading) && <ReportActionsSkeletonView />}
+                                {shouldShowSkeleton && <ReportActionsSkeletonView />}
 
                                 {isReportReadyForDisplay ? (
                                     <ReportFooter
