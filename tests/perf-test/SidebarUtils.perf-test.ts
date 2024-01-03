@@ -3,10 +3,10 @@ import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
+import {PersonalDetails, TransactionViolations} from '@src/types/onyx';
 import Policy from '@src/types/onyx/Policy';
 import Report from '@src/types/onyx/Report';
-import ReportAction from '@src/types/onyx/ReportAction';
+import ReportAction, {ReportActions} from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -51,19 +51,21 @@ test('[SidebarUtils] getOptionData on 5k reports', async () => {
     const preferredLocale = 'en';
     const policy = createRandomPolicy(1);
     const parentReportAction = createRandomReportAction(1);
+    const transactionViolations = {} as TransactionViolations;
 
     Onyx.multiSet({
         ...mockedResponseMap,
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction), {runs});
+    await measureFunction(() => SidebarUtils.getOptionData(report, reportActions, personalDetails, preferredLocale, policy, parentReportAction, transactionViolations, false), {runs});
 });
 
 test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
     const currentReportId = '1';
     const allReports = getMockedReports();
     const betas = [CONST.BETAS.DEFAULT_ROOMS, CONST.BETAS.POLICY_ROOMS];
+    const transactionViolations = {} as TransactionViolations;
 
     const policies = createCollection<Policy>(
         (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
@@ -86,12 +88,12 @@ test('[SidebarUtils] getOrderedReportIDs on 5k reports', async () => {
                 },
             ],
         ]),
-    ) as unknown as OnyxCollection<ReportAction[]>;
+    ) as unknown as OnyxCollection<ReportActions>;
 
     Onyx.multiSet({
         ...mockedResponseMap,
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions), {runs});
+    await measureFunction(() => SidebarUtils.getOrderedReportIDs(currentReportId, allReports, betas, policies, CONST.PRIORITY_MODE.DEFAULT, allReportActions, transactionViolations), {runs});
 });

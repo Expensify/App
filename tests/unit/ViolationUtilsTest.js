@@ -1,6 +1,6 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
-import ViolationsUtils from '@libs/ViolationsUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const categoryOutOfPolicyViolation = {

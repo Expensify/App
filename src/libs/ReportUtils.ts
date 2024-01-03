@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
+import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolations} from '@src/types/onyx';
 import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
 import {Status} from '@src/types/onyx/PersonalDetails';
@@ -37,6 +37,7 @@ import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import {LastVisibleMessage} from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
+import {hasViolation} from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
 
@@ -3376,13 +3377,54 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
+ * Checks to see if a report's parentAction is a money request that contains a violation
+ */
+function doesTransactionThreadHaveViolations(report: Report, transactionViolations: TransactionViolations, reportActions: OnyxCollection<ReportActions>): boolean {
+    const parentReportAction = reportActions?.[`${report.parentReportID}`]?.[`${report.parentReportActionID}`];
+    if (!parentReportAction) {
+        return false;
+    }
+    if (parentReportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return false;
+    }
+    const {IOUTransactionID, IOUReportID} = parentReportAction?.originalMessage;
+    if (!IOUTransactionID || !IOUReportID) {
+        return false;
+    }
+    if (!isCurrentUserSubmitter(IOUReportID)) {
+        return false;
+    }
+    if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.PROCESSING) {
+        return false;
+    }
+    return hasViolation(IOUTransactionID, transactionViolations);
+}
+
+/**
+ * Checks to see if a report contains a violation
+ */
+function hasViolations(reportID: string, transactionViolations: TransactionViolations): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(reportID);
+    return transactions.some((transaction) => hasViolation(transaction.transactionID, transactionViolations));
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
  * filter out the majority of reports before filtering out very specific minority of reports.
  */
-function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: string, isInGSDMode: boolean, betas: Beta[], policies: OnyxCollection<Policy>, excludeEmptyChats = false) {
+function shouldReportBeInOptionList(
+    report: OnyxEntry<Report>,
+    currentReportId: string,
+    isInGSDMode: boolean,
+    betas: Beta[],
+    policies: OnyxCollection<Policy>,
+    excludeEmptyChats = false,
+    allReportActions?: OnyxCollection<ReportActions>,
+    transactionViolations?: TransactionViolations,
+) {
     const isInDefaultMode = !isInGSDMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
     // This can happen if data is currently loading from the server or a report is in various stages of being created.
@@ -3438,6 +3480,11 @@ function shouldReportBeInOptionList(report: OnyxEntry<Report>, currentReportId: 
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
     if (report.errorFields?.addWorkspaceRoom) {
+        return true;
+    }
+
+    // Always show IOU reports with violations
+    if (isExpenseRequest(report) && betas.includes(CONST.BETAS.VIOLATIONS) && doesTransactionThreadHaveViolations(report, transactionViolations ?? {}, allReportActions ?? {})) {
         return true;
     }
 
@@ -4433,6 +4480,8 @@ export {
     getReimbursementDeQueuedActionMessage,
     getPersonalDetailsForAccountID,
     getRoom,
+    doesTransactionThreadHaveViolations,
+    hasViolations,
     shouldDisableWelcomeMessage,
     navigateToPrivateNotes,
     canEditWriteCapability,
