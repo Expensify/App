@@ -8,8 +8,9 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import Popover from './Popover';
 import {PopoverProps} from './Popover/types';
+import type {WindowDimensionsProps} from './withWindowDimensions/types';
 
-type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
+type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | keyof WindowDimensionsProps> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
 };

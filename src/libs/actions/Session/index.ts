@@ -100,7 +100,7 @@ function isAnonymousUser(): boolean {
     return sessionAuthTokenType === 'anonymousAccount';
 }
 
-function signOutAndRedirectToSignIn() {
+function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
@@ -110,7 +110,11 @@ function signOutAndRedirectToSignIn() {
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
-        Navigation.navigate(ROUTES.SIGN_IN_MODAL);
+        if (shouldReplaceCurrentScreen) {
+            Navigation.navigate(ROUTES.SIGN_IN_MODAL, CONST.NAVIGATION.TYPE.UP);
+        } else {
+            Navigation.navigate(ROUTES.SIGN_IN_MODAL);
+        }
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
