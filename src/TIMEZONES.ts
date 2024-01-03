@@ -421,6 +421,10 @@ const TIMEZONES = [
     'Pacific/Wallis',
 ] as const;
 
+/**
+ * On some devices the timezone backward doesn't support so when a user using multiple devices has automatic timezone setting will not display in the list timezone selection
+ * List timezone backward parse from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+ */
 const timezoneBackwardMap: Record<string, (typeof TIMEZONES)[number]> = {
     'Africa/Asmera': 'Africa/Nairobi',
     'Africa/Timbuktu': 'Africa/Abidjan',
