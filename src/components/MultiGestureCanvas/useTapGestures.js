@@ -6,7 +6,7 @@ import * as MultiGestureCanvasUtils from './utils';
 
 const DOUBLE_TAP_SCALE = 3;
 
-const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentScale, panGestureRef, offsetX, offsetY, pinchScale, zoomScale, reset, stopAnimation, onScaleChanged, onTap}) => {
+const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentScale, offsetX, offsetY, pinchScale, zoomScale, reset, stopAnimation, onScaleChanged, onTap}) => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
@@ -108,7 +108,6 @@ const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentSca
     const singleTapGesture = Gesture.Tap()
         .numberOfTaps(1)
         .maxDuration(50)
-        .requireExternalGestureToFail(doubleTapGesture, panGestureRef)
         .onBegin(() => {
             stopAnimation();
         })

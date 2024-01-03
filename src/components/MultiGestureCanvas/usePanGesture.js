@@ -5,23 +5,7 @@ import * as MultiGestureCanvasUtils from './utils';
 
 const PAN_DECAY_DECELARATION = 0.9915;
 
-const usePanGesture = ({
-    canvasSize,
-    contentSize,
-    singleTapGesture,
-    doubleTapGesture,
-    panGestureRef,
-    pagerRef,
-    zoomScale,
-    zoomRange,
-    totalScale,
-    offsetX,
-    offsetY,
-    panTranslateX,
-    panTranslateY,
-    isSwipingInPager,
-    stopAnimation,
-}) => {
+const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isSwipingInPager, stopAnimation}) => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
@@ -34,35 +18,35 @@ const usePanGesture = ({
     // Can we pan left/right/up/down
     // Can be used to limit gesture or implementing tension effect
     const getBounds = MultiGestureCanvasUtils.useWorkletCallback(() => {
-        let rightBoundary = 0;
-        let topBoundary = 0;
+        let horizontalBoundary = 0;
+        let verticalBoundary = 0;
 
         if (canvasSize.width < zoomedContentWidth.value) {
-            rightBoundary = Math.abs(canvasSize.width - zoomedContentWidth.value) / 2;
+            horizontalBoundary = Math.abs(canvasSize.width - zoomedContentWidth.value) / 2;
         }
 
         if (canvasSize.height < zoomedContentHeight.value) {
-            topBoundary = Math.abs(zoomedContentHeight.value - canvasSize.height) / 2;
+            verticalBoundary = Math.abs(zoomedContentHeight.value - canvasSize.height) / 2;
         }
 
-        const minBoundaries = {x: -rightBoundary, y: -topBoundary};
-        const maxBoundaries = {x: rightBoundary, y: topBoundary};
+        const horizontalBoundaries = {min: -horizontalBoundary, max: horizontalBoundary};
+        const verticalBoundaries = {min: -verticalBoundary, max: verticalBoundary};
 
         const clampedOffset = {
-            x: MultiGestureCanvasUtils.clamp(offsetX.value, minBoundaries.x, maxBoundaries.x),
-            y: MultiGestureCanvasUtils.clamp(offsetY.value, minBoundaries.y, maxBoundaries.y),
+            x: MultiGestureCanvasUtils.clamp(offsetX.value, horizontalBoundaries.min, horizontalBoundaries.max),
+            y: MultiGestureCanvasUtils.clamp(offsetY.value, verticalBoundaries.min, verticalBoundaries.max),
         };
 
         // If the horizontal/vertical offset is the same after clamping to the min/max boundaries, the content is within the boundaries
-        const isInBoundaryX = clampedOffset.x === offsetX.value;
-        const isInBoundaryY = clampedOffset.y === offsetY.value;
+        const isInHoriztontalBoundary = clampedOffset.x === offsetX.value;
+        const isInVerticalBoundary = clampedOffset.y === offsetY.value;
 
         return {
-            minBoundaries,
-            maxBoundaries,
+            horizontalBoundaries,
+            verticalBoundaries,
             clampedOffset,
-            isInBoundaryX,
-            isInBoundaryY,
+            isInHoriztontalBoundary,
+            isInVerticalBoundary,
         };
     }, [canvasSize.width, canvasSize.height]);
 
@@ -75,36 +59,38 @@ const usePanGesture = ({
             return;
         }
 
-        const {clampedOffset, isInBoundaryX, isInBoundaryY, minBoundaries, maxBoundaries} = getBounds();
+        const {clampedOffset, isInHoriztontalBoundary, isInVerticalBoundary, horizontalBoundaries, verticalBoundaries} = getBounds();
 
-        if (isInBoundaryX) {
-            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= zoomRange.max) {
+        // If the content is within the horizontal/vertical boundaries of the canvas, we can smoothly phase out the animation
+        // If not, we need to snap back to the boundaries
+        if (isInHoriztontalBoundary) {
+            // If the (absolute) velocity is 0, we don't need to run an animation
+            if (Math.abs(panVelocityX.value) !== 0) {
+                // Phase out the pan animation
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
-                    clamp: [minBoundaries.x, maxBoundaries.x],
+                    clamp: [horizontalBoundaries.min, horizontalBoundaries.max],
                     deceleration: PAN_DECAY_DECELARATION,
                     rubberBandEffect: false,
                 });
             }
         } else {
+            // Animated back to the boundary
             offsetX.value = withSpring(clampedOffset.x, MultiGestureCanvasUtils.SPRING_CONFIG);
         }
 
-        if (isInBoundaryY) {
-            if (
-                Math.abs(panVelocityY.value) > 0 &&
-                zoomScale.value <= zoomRange.max &&
-                // Limit vertical panning when content is smaller than screen
-                offsetY.value !== minBoundaries.y &&
-                offsetY.value !== maxBoundaries.y
-            ) {
+        if (isInVerticalBoundary) {
+            // If the (absolute) velocity is 0, we don't need to run an animation
+            if (Math.abs(panVelocityY.value) !== 0) {
+                // Phase out the pan animation
                 offsetY.value = withDecay({
                     velocity: panVelocityY.value,
-                    clamp: [minBoundaries.y, maxBoundaries.y],
+                    clamp: [verticalBoundaries.min, verticalBoundaries.max],
                     deceleration: PAN_DECAY_DECELARATION,
                 });
             }
         } else {
+            // Animated back to the boundary
             offsetY.value = withSpring(clampedOffset.y, MultiGestureCanvasUtils.SPRING_CONFIG);
         }
     });
@@ -112,14 +98,14 @@ const usePanGesture = ({
     const panGesture = Gesture.Pan()
         .manualActivation(true)
         .averageTouches(true)
-        .onTouchesMove((evt, state) => {
+        .onTouchesMove((_evt, state) => {
+            // We only allow panning when the content is zoomed in
             if (zoomScale.value <= 1) {
                 return;
             }
 
             state.activate();
         })
-        .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
         .onStart(() => {
             stopAnimation();
         })
@@ -157,8 +143,7 @@ const usePanGesture = ({
             // Reset pan gesture variables
             panVelocityX.value = 0;
             panVelocityY.value = 0;
-        })
-        .withRef(panGestureRef);
+        });
 
     return panGesture;
 };

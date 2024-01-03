@@ -96,7 +96,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         zoomScale.value = 1;
     });
 
-    const {singleTapGesture, doubleTapGesture} = useTapGestures({
+    const {singleTapGesture: basicSingleTapGesture, doubleTapGesture} = useTapGestures({
         canvasSize,
         contentSize,
         minContentScale,
@@ -111,16 +111,12 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         onScaleChanged,
         onTap,
     });
+    const singleTapGesture = basicSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGesture = usePanGesture({
         canvasSize,
         contentSize,
-        singleTapGesture,
-        doubleTapGesture,
-        panGestureRef,
-        pagerRef,
         zoomScale,
-        zoomRange,
         totalScale,
         offsetX,
         offsetY,
@@ -128,13 +124,12 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         panTranslateY,
         isSwipingInPager,
         stopAnimation,
-    });
+    })
+        .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
+        .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
         canvasSize,
-        singleTapGesture,
-        doubleTapGesture,
-        panGesture,
         zoomScale,
         zoomRange,
         offsetX,
@@ -146,7 +141,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         stopAnimation,
         onScaleChanged,
         onPinchGestureChange,
-    });
+    }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
 
     // Enables/disables the pager scroll based on the zoom scale
     // When the content is zoomed in/out, the pager should be disabled

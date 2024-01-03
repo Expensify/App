@@ -6,9 +6,6 @@ import * as MultiGestureCanvasUtils from './utils';
 
 const usePinchGesture = ({
     canvasSize,
-    singleTapGesture,
-    doubleTapGesture,
-    panGesture,
     zoomScale,
     zoomRange,
     offsetX,
@@ -73,7 +70,6 @@ const usePinchGesture = ({
 
             state.fail();
         })
-        .simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture)
         .onStart((evt) => {
             isPinchGestureRunning.value = true;
 
