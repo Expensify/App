@@ -39,6 +39,9 @@ const propTypes = {
     /** Whether to allow option focus or not */
     shouldDisableFocusOptions: PropTypes.bool,
 
+    /** Callback to fire when the list is laid out */
+    onFirstItemRendered: PropTypes.func,
+
     /** The policy which the user has access to and which the report could be tied to */
     policy: PropTypes.shape({
         /** The ID of the policy */
@@ -78,6 +81,7 @@ const defaultProps = {
     personalDetails: {},
     transactions: {},
     draftComments: {},
+    onFirstItemRendered: () => {},
     ...withCurrentReportIDDefaultProps,
 };
 
@@ -98,8 +102,22 @@ function LHNOptionsList({
     transactions,
     draftComments,
     currentReportID,
+    onFirstItemRendered,
 }) {
     const styles = useThemeStyles();
+
+    // When the first item renders we want to call the onFirstItemRendered callback.
+    // At this point in time we know that the list is actually displaying items.
+    const hasCalledOnLayout = React.useRef(false);
+    const onLayoutItem = useCallback(() => {
+        if (hasCalledOnLayout.current) {
+            return;
+        }
+        hasCalledOnLayout.current = true;
+
+        onFirstItemRendered();
+    }, [onFirstItemRendered]);
+
     /**
      * Function which renders a row in the list
      *
@@ -137,10 +155,11 @@ function LHNOptionsList({
                     onSelectRow={onSelectRow}
                     preferredLocale={preferredLocale}
                     comment={itemComment}
+                    onLayout={onLayoutItem}
                 />
             );
         },
-        [currentReportID, draftComments, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
+        [currentReportID, draftComments, onLayoutItem, onSelectRow, optionMode, personalDetails, policy, preferredLocale, reportActions, reports, shouldDisableFocusOptions, transactions],
     );
 
     return (

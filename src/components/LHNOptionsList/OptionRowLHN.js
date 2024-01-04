@@ -50,6 +50,8 @@ const propTypes = {
     /** The item that should be rendered */
     // eslint-disable-next-line react/forbid-prop-types
     optionItem: PropTypes.object,
+
+    onLayout: PropTypes.func,
 };
 
 const defaultProps = {
@@ -59,6 +61,7 @@ const defaultProps = {
     style: null,
     optionItem: null,
     isFocused: false,
+    onLayout: () => {},
 };
 
 function OptionRowLHN(props) {
@@ -209,6 +212,7 @@ function OptionRowLHN(props) {
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.navigatesToChat')}
                         needsOffscreenAlphaCompositing={props.optionItem.icons.length >= 2}
+                        onLayout={props.onLayout}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
