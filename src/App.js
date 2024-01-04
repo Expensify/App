@@ -9,14 +9,17 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
-import CustomStatusBar from './components/CustomStatusBar';
-import CustomStatusBarContextProvider from './components/CustomStatusBar/CustomStatusBarContextProvider';
+import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
+import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
+import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
+import ThemeProvider from './components/ThemeProvider';
+import ThemeStylesProvider from './components/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
@@ -28,9 +31,6 @@ import * as Session from './libs/actions/Session';
 import * as Environment from './libs/Environment/Environment';
 import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
-import ThemeIllustrationsProvider from './styles/illustrations/ThemeIllustrationsProvider';
-import ThemeProvider from './styles/themes/ThemeProvider';
-import ThemeStylesProvider from './styles/ThemeStylesProvider';
 
 const propTypes = {
     /** Initial url that may be passed as deeplink from Hybrid App */
@@ -80,10 +80,10 @@ function App(props) {
                         ReportAttachmentsProvider,
                         PickerStateProvider,
                         EnvironmentProvider,
-                        CustomStatusBarContextProvider,
+                        CustomStatusBarAndBackgroundContextProvider,
                     ]}
                 >
-                    <CustomStatusBar />
+                    <CustomStatusBarAndBackground />
                     <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                         <ColorSchemeWrapper>
                             <Expensify />

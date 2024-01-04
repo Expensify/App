@@ -8,11 +8,12 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -41,7 +42,7 @@ const propTypes = {
         expiration: PropTypes.string,
     }),
 
-    /* Onyx Props */
+    /** The transaction being interacted with */
     transaction: transactionPropTypes,
 };
 
@@ -83,7 +84,8 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat],
                         markerComponent: () => (
-                            <MarkerComponent
+                            <ImageSVG
+                                src={MarkerComponent}
                                 width={CONST.MAP_MARKER_SIZE}
                                 height={CONST.MAP_MARKER_SIZE}
                                 fill={theme.icon}
@@ -135,9 +137,6 @@ DistanceRequestFooter.propTypes = propTypes;
 DistanceRequestFooter.defaultProps = defaultProps;
 
 export default withOnyx({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
     mapboxAccessToken: {
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
     },

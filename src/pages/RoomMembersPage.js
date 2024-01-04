@@ -13,15 +13,16 @@ import SelectionList from '@components/SelectionList';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '@components/withWindowDimensions';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import compose from '@libs/compose';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -194,7 +195,7 @@ function RoomMembersPage(props) {
                     memberDetails += ` ${details.lastName.toLowerCase()}`;
                 }
                 if (details.displayName) {
-                    memberDetails += ` ${details.displayName.toLowerCase()}`;
+                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
                 }
                 if (details.phoneNumber) {
                     memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
@@ -210,7 +211,7 @@ function RoomMembersPage(props) {
                 accountID: Number(accountID),
                 isSelected: _.contains(selectedMembers, Number(accountID)),
                 isDisabled: accountID === props.session.accountID,
-                text: props.formatPhoneNumber(details.displayName),
+                text: props.formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: props.formatPhoneNumber(details.login),
                 icons: [
                     {
@@ -237,7 +238,7 @@ function RoomMembersPage(props) {
             testID={RoomMembersPage.displayName}
         >
             <FullPageNotFoundView
-                shouldShow={_.isEmpty(props.report) || (ReportUtils.isPublicRoom(props.report) && !isPolicyMember)}
+                shouldShow={_.isEmpty(props.report) || !isPolicyMember}
                 subtitleKey={_.isEmpty(props.report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(props.report.reportID))}
             >

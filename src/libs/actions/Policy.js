@@ -112,13 +112,6 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedTags = val),
 });
 
-let networkStatus = {};
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    waitForCollectionCallback: true,
-    callback: (val) => (networkStatus = val),
-});
-
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -277,6 +270,10 @@ function buildAnnounceRoomMembersOnyxData(policyID, accountIDs) {
         onyxFailureData: [],
     };
 
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
+
     announceRoomMembers.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
@@ -307,6 +304,10 @@ function removeOptimisticAnnounceRoomMembers(policyID, accountIDs) {
         onyxOptimisticData: [],
         onyxFailureData: [],
     };
+
+    if (!announceReport) {
+        return announceRoomMembers;
+    }
 
     const remainUsers = _.difference(announceReport.participantAccountIDs, accountIDs);
     announceRoomMembers.onyxOptimisticData.push({
@@ -957,7 +958,7 @@ function updateWorkspaceCustomUnitAndRate(policyID, currentCustomUnit, newCustom
         'UpdateWorkspaceCustomUnitAndRate',
         {
             policyID,
-            ...(!networkStatus.isOffline && {lastModified}),
+            lastModified,
             customUnit: JSON.stringify(newCustomUnitParam),
             customUnitRate: JSON.stringify(newCustomUnitParam.rates),
         },

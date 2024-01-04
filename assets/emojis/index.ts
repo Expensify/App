@@ -1,7 +1,7 @@
 import emojis from './common';
 import enEmojis from './en';
 import esEmojis from './es';
-import {Emoji} from './types';
+import type {Emoji} from './types';
 
 type EmojiTable = Record<string, Emoji>;
 
@@ -31,5 +31,6 @@ const localeEmojis = {
     es: esEmojis,
 } as const;
 
+export default emojis;
 export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis};
-export {skinTones, categoryFrequentlyUsed, default} from './common';
+export {skinTones, categoryFrequentlyUsed} from './common';

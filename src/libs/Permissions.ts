@@ -1,6 +1,6 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import Beta from '@src/types/onyx/Beta';
+import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -16,6 +16,10 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
 
 function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.BETA_COMMENT_LINKING) || canUseAllBetas(betas);
+}
+
+function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
 }
 
 /**
@@ -45,4 +49,5 @@ export default {
     canUsePolicyRooms,
     canUseLinkPreviews,
     canUseViolations,
+    canUseReportFields,
 };

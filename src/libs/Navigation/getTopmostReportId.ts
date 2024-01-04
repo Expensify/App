@@ -1,7 +1,7 @@
-import {NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import {RootStackParamList} from './types';
+import type {RootStackParamList} from './types';
 
 // This function is in a separate file than Navigation.js to avoid cyclic dependency.
 
