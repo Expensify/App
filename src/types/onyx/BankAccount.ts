@@ -1,6 +1,15 @@
-import CONST from '@src/CONST';
-import AccountData from './AccountData';
-import * as OnyxCommon from './OnyxCommon';
+import type CONST from '@src/CONST';
+import type AccountData from './AccountData';
+import type * as OnyxCommon from './OnyxCommon';
+
+type AdditionalData = {
+    isP2PDebitCard?: boolean;
+    beneficialOwners?: string[];
+    currency?: string;
+    bankName?: string;
+    fieldsType?: string;
+    country?: string;
+};
 
 type BankAccount = {
     /** The bank account type */
@@ -10,6 +19,12 @@ type BankAccount = {
     description?: string;
 
     isDefault?: boolean;
+
+    /* Determines if the bank account is a savings account */
+    isSavings?: boolean;
+
+    /** Date when the 3 micro amounts for validation were supposed to reach the bank account. */
+    validateCodeExpectedDate?: string;
 
     /** string like 'bankAccount-{<bankAccountID>}' where <bankAccountID> is the bankAccountID */
     key?: string;
@@ -30,5 +45,7 @@ type BankAccount = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+type BankAccountList = Record<string, BankAccount>;
+
 export default BankAccount;
-export type {AccountData};
+export type {AccountData, AdditionalData, BankAccountList};

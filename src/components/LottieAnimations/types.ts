@@ -1,4 +1,4 @@
-import {LottieViewProps} from 'lottie-react-native';
+import type {LottieViewProps} from 'lottie-react-native';
 
 type DotLottieAnimation = {
     file: LottieViewProps['source'];

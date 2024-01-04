@@ -4,8 +4,8 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './categoryPickerPropTypes';
@@ -62,7 +62,6 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             sectionHeaderStyle={styles.mt5}
             sections={sections}
             selectedOptions={selectedOptions}
-            value={searchValue}
             // Focus the first option when searching
             focusedIndex={0}
             // Focus the selected option on first load

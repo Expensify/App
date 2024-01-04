@@ -13,8 +13,11 @@ import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -22,8 +25,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {iouDefaultProps, iouPropTypes} from '@pages/iou/propTypes';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import reportPropTypes from '@pages/reportPropTypes';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -180,6 +181,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                 {cameraPermissionState === 'denied' && (
                     <View style={[styles.flex1, styles.permissionView, styles.userSelectNone]}>
                         <Icon
+                            fill={theme.icon}
                             src={Hand}
                             width={CONST.RECEIPT.HAND_ICON_WIDTH}
                             height={CONST.RECEIPT.HAND_ICON_HEIGHT}
@@ -208,7 +210,7 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('receipt.chooseFile')}
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
@@ -227,18 +229,20 @@ function ReceiptSelector({route, transactionID, iou, report}) {
                     )}
                 </AttachmentPicker>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
                 >
-                    <Shutter
+                    <ImageSVG
+                        contentFit="contain"
+                        src={Shutter}
                         width={CONST.RECEIPT.SHUTTER_SIZE}
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                     onPress={toggleFlashlight}

@@ -1,7 +1,8 @@
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -9,8 +10,8 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {DateOfBirthForm, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
-import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
 type FirstAndLastName = {
     firstName: string;
@@ -27,7 +28,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<Record<string, PersonalDetails>> = null;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
@@ -58,31 +59,6 @@ function getDisplayName(login: string, personalDetail: Pick<PersonalDetails, 'fi
 
     // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
     return fullName || userLogin;
-}
-
-/**
- * @param [defaultDisplayName] display name to use if user details don't exist in Onyx or if
- *                                      found details don't include the user's displayName or login
- */
-function getDisplayNameForTypingIndicator(userAccountIDOrLogin: string, defaultDisplayName = ''): string {
-    // Try to convert to a number, which means we have an accountID
-    const accountID = Number(userAccountIDOrLogin);
-
-    // If the user is typing on OldDot, userAccountIDOrLogin will be a string (the user's login),
-    // so Number(string) is NaN. Search for personalDetails by login to get the display name.
-    if (Number.isNaN(accountID)) {
-        const detailsByLogin = Object.entries(allPersonalDetails ?? {}).find(([, value]) => value?.login === userAccountIDOrLogin)?.[1];
-
-        // It's possible for displayName to be empty string, so we must use "||" to fallback to userAccountIDOrLogin.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return detailsByLogin?.displayName || userAccountIDOrLogin;
-    }
-
-    const detailsByAccountID = allPersonalDetails?.[accountID];
-
-    // It's possible for displayName to be empty string, so we must use "||" to fallback to login or defaultDisplayName.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return detailsByAccountID?.displayName || detailsByAccountID?.login || defaultDisplayName;
 }
 
 /**
@@ -495,7 +471,7 @@ function updateAvatar(file: File | CustomRNImageManipulatorResult) {
                     pendingFields: {
                         avatar: null,
                     },
-                },
+                } as OnyxEntry<Partial<PersonalDetails>>,
             },
         },
     ];
@@ -585,7 +561,6 @@ export {
     extractFirstAndLastNameFromAvailableDetails,
     getCountryISO,
     getDisplayName,
-    getDisplayNameForTypingIndicator,
     getPrivatePersonalDetails,
     openPersonalDetailsPage,
     openPublicProfilePage,

@@ -4,7 +4,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import Form from '@components/Form';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import StatePicker from '@components/StatePicker';
@@ -13,9 +14,9 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -108,7 +109,7 @@ function DebitCardPage(props) {
                 title={translate('addDebitCardPage.addADebitCard')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
-            <Form
+            <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
                 onSubmit={PaymentMethods.addPaymentCard}
@@ -116,47 +117,52 @@ function DebitCardPage(props) {
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
             >
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="nameOnCard"
                     label={translate('addDebitCardPage.nameOnCard')}
                     aria-label={translate('addDebitCardPage.nameOnCard')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    ref={(ref) => (nameOnCardRef.current = ref)}
+                    role={CONST.ROLE.PRESENTATION}
+                    ref={nameOnCardRef}
                     spellCheck={false}
                 />
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="cardNumber"
                     label={translate('addDebitCardPage.debitCardNumber')}
                     aria-label={translate('addDebitCardPage.debitCardNumber')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt4]}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                 />
                 <View style={[styles.flexRow, styles.mt4]}>
                     <View style={[styles.flex1, styles.mr2]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="expirationDate"
                             label={translate('addDebitCardPage.expiration')}
                             aria-label={translate('addDebitCardPage.expiration')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             placeholder={translate('addDebitCardPage.expirationDate')}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                             maxLength={4}
                         />
                     </View>
                     <View style={[styles.flex1]}>
-                        <TextInput
+                        <InputWrapper
+                            InputComponent={TextInput}
                             inputID="securityCode"
                             label={translate('addDebitCardPage.cvv')}
                             aria-label={translate('addDebitCardPage.cvv')}
-                            role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            role={CONST.ROLE.PRESENTATION}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
                         />
                     </View>
                 </View>
                 <View>
-                    <AddressSearch
+                    <InputWrapper
+                        InputComponent={AddressSearch}
                         inputID="addressStreet"
                         label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
@@ -165,22 +171,28 @@ function DebitCardPage(props) {
                         isLimitedToUSA
                     />
                 </View>
-                <TextInput
+                <InputWrapper
+                    InputComponent={TextInput}
                     inputID="addressZipCode"
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
-                    role={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    role={CONST.ROLE.PRESENTATION}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                     containerStyles={[styles.mt4]}
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
-                    <StatePicker inputID="addressState" />
+                    <InputWrapper
+                        InputComponent={StatePicker}
+                        inputID="addressState"
+                    />
                 </View>
-                <CheckboxWithLabel
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
+                    defaultValue={false}
                     LabelComponent={() => (
                         <Text>
                             {`${translate('common.iAcceptThe')}`}
@@ -189,7 +201,7 @@ function DebitCardPage(props) {
                     )}
                     style={[styles.mt4]}
                 />
-            </Form>
+            </FormProvider>
         </ScreenWrapper>
     );
 }

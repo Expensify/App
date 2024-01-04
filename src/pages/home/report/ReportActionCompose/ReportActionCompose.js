@@ -11,10 +11,12 @@ import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
-import participantPropTypes from '@components/participantPropTypes';
+import {usePersonalDetails, withNetwork} from '@components/OnyxProvider';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
+import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import compose from '@libs/compose';
@@ -29,7 +31,6 @@ import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
@@ -48,9 +49,6 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes,
@@ -84,7 +82,6 @@ const propTypes = {
 const defaultProps = {
     report: {},
     blockedFromConcierge: {},
-    personalDetails: {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     isComposerFullSize: false,
     pendingAction: null,
@@ -108,7 +105,6 @@ function ReportActionCompose({
     network,
     onSubmit,
     pendingAction,
-    personalDetails,
     report,
     reportID,
     reportActions,
@@ -121,7 +117,7 @@ function ReportActionCompose({
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef(null);
-
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     /**
      * Updates the Highlight state of the composer
      */
@@ -130,6 +126,26 @@ function ReportActionCompose({
         return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState.isVisible && !initialModalState.willAlertModalBecomeVisible;
     });
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
+
+    // A flag to indicate whether the onScroll callback is likely triggered by a layout change (caused by text change) or not
+    const isScrollLikelyLayoutTriggered = useRef(false);
+
+    /**
+     * Reset isScrollLikelyLayoutTriggered to false.
+     *
+     * The function is debounced with a handpicked wait time to address 2 issues:
+     * 1. There is a slight delay between onChangeText and onScroll
+     * 2. Layout change will trigger onScroll multiple times
+     */
+    const debouncedLowerIsScrollLikelyLayoutTriggered = useDebounce(
+        useCallback(() => (isScrollLikelyLayoutTriggered.current = false), []),
+        500,
+    );
+
+    const raiseIsScrollLikelyLayoutTriggered = useCallback(() => {
+        isScrollLikelyLayoutTriggered.current = true;
+        debouncedLowerIsScrollLikelyLayoutTriggered();
+    }, [debouncedLowerIsScrollLikelyLayoutTriggered]);
 
     /**
      * Updates the should clear state of the composer
@@ -150,7 +166,7 @@ function ReportActionCompose({
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
      */
-    const [hasExceededMaxCommentLength, setExceededMaxCommentLength] = useState(false);
+    const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
 
     const suggestionsRef = useRef(null);
     const composerRef = useRef(null);
@@ -195,8 +211,9 @@ function ReportActionCompose({
     };
 
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
+    const isNextModalWillOpenRef = useRef(false);
     const restoreKeyboardState = useCallback(() => {
-        if (!isKeyboardVisibleWhenShowingModalRef.current) {
+        if (!isKeyboardVisibleWhenShowingModalRef.current || isNextModalWillOpenRef.current) {
             return;
         }
         focus();
@@ -204,12 +221,17 @@ function ReportActionCompose({
     }, []);
 
     const containerRef = useRef(null);
-    const measureContainer = useCallback((callback) => {
-        if (!containerRef.current) {
-            return;
-        }
-        containerRef.current.measureInWindow(callback);
-    }, []);
+    const measureContainer = useCallback(
+        (callback) => {
+            if (!containerRef.current) {
+                return;
+            }
+            containerRef.current.measureInWindow(callback);
+        },
+        // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isComposerFullSize],
+    );
 
     const onAddActionPressed = useCallback(() => {
         if (!willBlurTextInputOnTapOutside) {
@@ -271,13 +293,7 @@ function ReportActionCompose({
         [onSubmit],
     );
 
-    const isNextModalWillOpenRef = useRef(false);
     const onTriggerAttachmentPicker = useCallback(() => {
-        // Set a flag to block suggestion calculation until we're finished using the file picker,
-        // which will stop any flickering as the file picker opens on non-native devices.
-        if (willBlurTextInputOnTapOutside) {
-            suggestionsRef.current.setShouldBlockSuggestionCalc(true);
-        }
         isNextModalWillOpenRef.current = true;
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
@@ -379,13 +395,16 @@ function ReportActionCompose({
                                         reportParticipantIDs={reportParticipantIDs}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}
-                                        updateShouldShowSuggestionMenuToFalse={updateShouldShowSuggestionMenuToFalse}
                                         isBlockedFromConcierge={isBlockedFromConcierge}
                                         disabled={disabled}
                                         setMenuVisibility={setMenuVisibility}
                                         isMenuVisible={isMenuVisible}
                                         onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                                        onCanceledAttachmentPicker={restoreKeyboardState}
+                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
+                                        onCanceledAttachmentPicker={() => {
+                                            isNextModalWillOpenRef.current = false;
+                                            restoreKeyboardState();
+                                        }}
                                         onMenuClosed={restoreKeyboardState}
                                         onAddActionPressed={onAddActionPressed}
                                         onItemSelected={onItemSelected}
@@ -396,6 +415,8 @@ function ReportActionCompose({
                                         animatedRef={animatedRef}
                                         suggestionsRef={suggestionsRef}
                                         isNextModalWillOpenRef={isNextModalWillOpenRef}
+                                        isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
+                                        raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
                                         report={report}
                                         reportActions={reportActions}
@@ -416,6 +437,7 @@ function ReportActionCompose({
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
                                         listHeight={listHeight}
+                                        onValueChange={validateCommentMaxLength}
                                     />
                                     <ReportDropUI
                                         onDrop={(e) => {
@@ -452,10 +474,7 @@ function ReportActionCompose({
                     >
                         {!isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                         <ReportTypingIndicator reportID={reportID} />
-                        <ExceededCommentLength
-                            reportID={reportID}
-                            onExceededMaxCommentLength={setExceededMaxCommentLength}
-                        />
+                        {hasExceededMaxCommentLength && <ExceededCommentLength />}
                     </View>
                 </OfflineWithFeedback>
             </View>
@@ -473,9 +492,6 @@ export default compose(
     withOnyx({
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,

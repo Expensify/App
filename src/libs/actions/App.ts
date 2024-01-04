@@ -1,8 +1,10 @@
 // Issue - https://github.com/Expensify/App/issues/26719
 import Str from 'expensify-common/lib/str';
-import {AppState, AppStateStatus} from 'react-native';
-import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {AppStateStatus} from 'react-native';
+import {AppState} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import * as Browser from '@libs/Browser';
 import Log from '@libs/Log';
@@ -13,9 +15,10 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import * as OnyxTypes from '@src/types/onyx';
-import {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy';
 import * as Session from './Session';
@@ -228,7 +231,7 @@ function openApp() {
  * Fetches data when the app reconnects to the network
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
-function reconnectApp(updateIDFrom = 0) {
+function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
         type ReconnectParams = {
@@ -384,7 +387,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  */
-function setUpPoliciesAndNavigate(session: OnyxTypes.Session) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
@@ -392,7 +395,7 @@ function setUpPoliciesAndNavigate(session: OnyxTypes.Session) {
 
     const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
     const url = new URL(currentUrl);
-    const exitTo = url.searchParams.get('exitTo');
+    const exitTo = url.searchParams.get('exitTo') as Route | null;
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links

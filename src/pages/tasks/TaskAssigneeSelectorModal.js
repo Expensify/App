@@ -7,18 +7,18 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import OptionsSelector from '@components/OptionsSelector';
 import ScreenWrapper from '@components/ScreenWrapper';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import personalDetailsPropType from '@pages/personalDetailsPropType';
 import reportPropTypes from '@pages/reportPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,9 +27,6 @@ import ROUTES from '@src/ROUTES';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
@@ -60,16 +57,22 @@ const propTypes = {
         report: reportPropTypes,
     }),
 
+    /** The policy of root parent report */
+    rootParentReportPolicy: PropTypes.shape({
+        /** The role of current user */
+        role: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     betas: [],
-    personalDetails: {},
     reports: {},
     session: {},
     route: {},
     task: {},
+    rootParentReportPolicy: {},
 };
 
 function TaskAssigneeSelectorModal(props) {
@@ -81,13 +84,14 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
+    const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
 
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
             props.reports,
-            props.personalDetails,
+            allPersonalDetails,
             props.betas,
             searchValue.trim(),
             [],
@@ -100,7 +104,7 @@ function TaskAssigneeSelectorModal(props) {
             false,
             {},
             [],
-            false,
+            true,
         );
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0 || currentUserOption, Boolean(userToInvite), searchValue));
@@ -112,7 +116,7 @@ function TaskAssigneeSelectorModal(props) {
         if (isLoading) {
             setIsLoading(false);
         }
-    }, [props, searchValue, isLoading]);
+    }, [props, searchValue, allPersonalDetails, isLoading]);
 
     useEffect(() => {
         const debouncedSearch = _.debounce(updateOptions, 200);
@@ -188,23 +192,24 @@ function TaskAssigneeSelectorModal(props) {
         // Check to see if we're creating a new task
         // If there's no route params, we're creating a new task
         if (!props.route.params && option.accountID) {
-            // Clear out the state value, set the assignee and navigate back to the NewTaskPage
-            setSearchValue('');
             Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
             return Navigation.goBack(ROUTES.NEW_TASK);
         }
 
         // Check to see if we're editing a task and if so, update the assignee
         if (report) {
-            const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
+            if (option.accountID !== report.managerID) {
+                const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
-            // Pass through the selected assignee
-            Task.editTaskAssigneeAndNavigate(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+                // Pass through the selected assignee
+                Task.editTaskAssignee(report, props.session.accountID, option.login, option.accountID, assigneeChatReport);
+            }
+            return Navigation.dismissModal(report.reportID);
         }
     };
 
     const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
+    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID, lodashGet(props.rootParentReportPolicy, 'role', ''));
     const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
 
     return (
@@ -221,7 +226,6 @@ function TaskAssigneeSelectorModal(props) {
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={sections}
-                            value={searchValue}
                             onSelectRow={selectReport}
                             onChangeText={onChangeText}
                             headerMessage={headerMessage}
@@ -250,9 +254,6 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
         betas: {
             key: ONYXKEYS.BETAS,
         },
@@ -261,6 +262,16 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+    }),
+    withOnyx({
+        rootParentReportPolicy: {
+            key: ({reports, route}) => {
+                const report = reports[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID || '0'}`];
+                const rootParentReport = ReportUtils.getRootParentReport(report);
+                return `${ONYXKEYS.COLLECTION.POLICY}${rootParentReport ? rootParentReport.policyID : '0'}`;
+            },
+            selector: (policy) => _.pick(policy, ['role']),
         },
     }),
 )(TaskAssigneeSelectorModal);

@@ -15,12 +15,12 @@ import {withNetwork} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PaymentUtils from '@libs/PaymentUtils';
 import userWalletPropTypes from '@pages/EnablePayments/userWalletPropTypes';
-import useThemeStyles from '@styles/useThemeStyles';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -94,7 +94,7 @@ function TransferBalancePage(props) {
      * @returns {Object|undefined}
      */
     function getSelectedPaymentMethodAccount() {
-        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList, styles);
 
         const defaultAccount = _.find(paymentMethods, (method) => method.isDefault);
         const selectedAccount = _.find(
@@ -111,7 +111,7 @@ function TransferBalancePage(props) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList, styles);
 
         const filteredMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {

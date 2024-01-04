@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import dateAdd from 'date-fns/add';
+import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
@@ -18,6 +20,8 @@ const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
+const MAX_DATE = dateAdd(new Date(), {years: 1});
+const MIN_DATE = dateSubtract(new Date(), {years: 20});
 
 const keyModifierControl = KeyCommand?.constants?.keyModifierControl ?? 'keyModifierControl';
 const keyModifierCommand = KeyCommand?.constants?.keyModifierCommand ?? 'keyModifierCommand';
@@ -55,6 +59,9 @@ const CONST = {
         ALLOWED_RECEIPT_EXTENSIONS: ['jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
     },
 
+    // This is limit set on servers, do not update without wider internal discussion
+    API_TRANSACTION_CATEGORY_MAX_LENGTH: 255,
+
     AUTO_AUTH_STATE: {
         NOT_STARTED: 'not-started',
         SIGNING_IN: 'signing-in',
@@ -73,6 +80,12 @@ const CONST = {
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
+
+    BREADCRUMB_TYPE: {
+        ROOT: 'root',
+        STRONG: 'strong',
+        NORMAL: 'normal',
+    },
 
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
@@ -94,6 +107,8 @@ const CONST = {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
         MAX_YEAR: CURRENT_YEAR + 100,
+        MAX_DATE,
+        MIN_DATE,
     },
 
     DATE_BIRTH: {
@@ -252,6 +267,7 @@ const CONST = {
         BETA_COMMENT_LINKING: 'commentLinking',
         POLICY_ROOMS: 'policyRooms',
         VIOLATIONS: 'violations',
+        REPORT_FIELDS: 'reportFields',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -460,6 +476,7 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
+    EXPENSIFY_INBOX_URL: 'https://www.expensify.com/inbox',
 
     SIGN_IN_FORM_WIDTH: 300,
 
@@ -483,6 +500,7 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -494,9 +512,11 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 IOU: 'IOU',
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
                 RENAMED: 'RENAMED',
                 REPORTPREVIEW: 'REPORTPREVIEW',
                 SUBMITTED: 'SUBMITTED',
@@ -506,6 +526,7 @@ const CONST = {
                 TASKREOPENED: 'TASKREOPENED',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
+                    ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
                     ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
                     ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
@@ -515,6 +536,7 @@ const CONST = {
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
                     DELETE_ALL_TAGS: 'POLICYCHANGELOG_DELETE_ALL_TAGS',
                     DELETE_APPROVER_RULE: 'POLICYCHANGELOG_DELETE_APPROVER_RULE',
+                    DELETE_BUDGET: 'POLICYCHANGELOG_DELETE_BUDGET',
                     DELETE_CATEGORY: 'POLICYCHANGELOG_DELETE_CATEGORY',
                     DELETE_CUSTOM_UNIT: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT',
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
@@ -525,17 +547,21 @@ const CONST = {
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
                     IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
+                    INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
                     INVITE_TO_ROOM: 'POLICYCHANGELOG_INVITETOROOM',
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
+                    REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
                     SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
+                    SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
                     UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
                     UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
                     UPDATE_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
                     UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
                     UPDATE_CUSTOM_UNIT: 'POLICYCHANGELOG_UPDATE_CUSTOM_UNIT',
@@ -556,6 +582,8 @@ const CONST = {
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
                     UPDATE_TAG: 'POLICYCHANGELOG_UPDATE_TAG',
+                    UPDATE_TAG_ENABLED: 'POLICYCHANGELOG_UPDATE_TAG_ENABLED',
+                    UPDATE_TAG_LIST: 'POLICYCHANGELOG_UPDATE_TAG_LIST',
                     UPDATE_TAG_LIST_NAME: 'POLICYCHANGELOG_UPDATE_TAG_LIST_NAME',
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
@@ -567,6 +595,7 @@ const CONST = {
                     JOIN_ROOM: 'JOINROOM',
                 },
             },
+            THREAD_DISABLED: ['CREATED'],
         },
         ARCHIVE_REASON: {
             DEFAULT: 'default',
@@ -599,6 +628,7 @@ const CONST = {
             ADMINS: '#admins',
         },
         STATE: {
+            OPEN: 'OPEN',
             SUBMITTED: 'SUBMITTED',
             PROCESSING: 'PROCESSING',
         },
@@ -640,6 +670,9 @@ const CONST = {
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
     },
+    NEXT_STEP: {
+        FINISHED: 'Finished!',
+    },
     COMPOSER: {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
@@ -673,6 +706,7 @@ const CONST = {
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
+        CHAT_RENDER: 'chat_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
@@ -685,17 +719,27 @@ const CONST = {
         TOOLTIP_SENSE: 1000,
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
-        SEARCH_FOR_REPORTS_DEBOUNCE_TIME: 300,
+        SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        RESIZE_DEBOUNCE_TIME: 100,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
     THEME: {
-        DEFAULT: 'dark',
+        DEFAULT: 'system',
+        FALLBACK: 'dark',
+        DARK: 'dark',
+        LIGHT: 'light',
+        SYSTEM: 'system',
+    },
+    COLOR_SCHEME: {
         LIGHT: 'light',
         DARK: 'dark',
-        SYSTEM: 'system',
+    },
+    STATUS_BAR_STYLE: {
+        LIGHT_CONTENT: 'light-content',
+        DARK_CONTENT: 'dark-content',
     },
     TRANSACTION: {
         DEFAULT_MERCHANT: 'Request',
@@ -780,6 +824,7 @@ const CONST = {
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
     },
+    WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -810,7 +855,7 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -903,6 +948,11 @@ const CONST = {
     IOS_CAMERAROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
+    EMOJI_PICKER_ITEM_TYPES: {
+        HEADER: 'header',
+        EMOJI: 'emoji',
+        SPACER: 'spacer',
+    },
     EMOJI_PICKER_SIZE: {
         WIDTH: 320,
         HEIGHT: 416,
@@ -931,6 +981,7 @@ const CONST = {
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
     CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
+    CHAT_FOOTER_HORIZONTAL_PADDING: 40,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {
@@ -952,6 +1003,7 @@ const CONST = {
         GUIDES_DOMAIN: 'team.expensify.com',
         HELP: 'help@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        NOTIFICATIONS: 'notifications@expensify.com',
         PAYROLL: 'payroll@expensify.com',
         QA: 'qa@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
@@ -971,6 +1023,7 @@ const CONST = {
         FIRST_RESPONDER: Number(Config?.EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER ?? 9375152),
         HELP: Number(Config?.EXPENSIFY_ACCOUNT_ID_HELP ?? -1),
         INTEGRATION_TESTING_CREDS: Number(Config?.EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS ?? -1),
+        NOTIFICATIONS: Number(Config?.EXPENSIFY_ACCOUNT_ID_NOTIFICATIONS ?? 11665625),
         PAYROLL: Number(Config?.EXPENSIFY_ACCOUNT_ID_PAYROLL ?? 9679724),
         QA: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA ?? 3126513),
         QA_TRAVIS: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_TRAVIS ?? 8595733),
@@ -1075,11 +1128,6 @@ const CONST = {
             USER_CANCELLED: 'User canceled flow.',
             USER_TAPPED_BACK: 'User exited by clicking the back button.',
             USER_EXITED: 'User exited by manual action.',
-            USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
-            USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
-            // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED:
-                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -1120,6 +1168,8 @@ const CONST = {
     },
 
     IOU: {
+        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
         PAYMENT_TYPE: {
@@ -1132,6 +1182,11 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
         },
+        REQUEST_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
+        },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
@@ -1139,6 +1194,7 @@ const CONST = {
             DECLINE: 'decline',
             CANCEL: 'cancel',
             DELETE: 'delete',
+            APPROVE: 'approve',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -1155,6 +1211,9 @@ const CONST = {
             SVG: 'svg',
         },
         RECEIPT_ERROR: 'receiptError',
+        CANCEL_REASON: {
+            PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
+        },
     },
 
     GROWL: {
@@ -1241,6 +1300,12 @@ const CONST = {
         CFPB_COMPLAINT: 'cfpb.gov/complaint',
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
+    },
+
+    LAYOUT_WIDTH: {
+        WIDE: 'wide',
+        NARROW: 'narrow',
+        NONE: 'none',
     },
 
     ICON_TYPE_ICON: 'icon',
@@ -1358,7 +1423,6 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ATTACHMENT_ROUTE: /\/r\/(\d*)\/attachment/,
         ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
 
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
@@ -1395,6 +1459,7 @@ const CONST = {
             this.EMAIL.FIRST_RESPONDER,
             this.EMAIL.HELP,
             this.EMAIL.INTEGRATION_TESTING_CREDS,
+            this.EMAIL.NOTIFICATIONS,
             this.EMAIL.PAYROLL,
             this.EMAIL.QA,
             this.EMAIL.QA_TRAVIS,
@@ -2696,17 +2761,125 @@ const CONST = {
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
     },
+    /**
+     * Acceptable values for the `accessibilityRole` prop on react native components.
+     *
+     * **IMPORTANT:** Do not use with the `role` prop as it can cause errors.
+     *
+     * @deprecated ACCESSIBILITY_ROLE is deprecated. Please use CONST.ROLE instead.
+     */
     ACCESSIBILITY_ROLE: {
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         BUTTON: 'button',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         LINK: 'link',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         MENUITEM: 'menuitem',
-        TEXT: 'presentation',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        TEXT: 'text',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         RADIO: 'radio',
-        IMAGEBUTTON: 'img button',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        IMAGEBUTTON: 'imagebutton',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         CHECKBOX: 'checkbox',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
         SWITCH: 'switch',
-        ADJUSTABLE: 'slider',
-        IMAGE: 'img',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        ADJUSTABLE: 'adjustable',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        IMAGE: 'image',
+    },
+    /**
+     * Acceptable values for the `role` attribute on react native components.
+     *
+     * **IMPORTANT:** Not for use with the `accessibilityRole` prop, as it accepts different values, and new components
+     * should use the `role` prop instead.
+     */
+    ROLE: {
+        /** Use for elements with important, time-sensitive information. */
+        ALERT: 'alert',
+        /** Use for elements that act as buttons. */
+        BUTTON: 'button',
+        /** Use for elements representing checkboxes. */
+        CHECKBOX: 'checkbox',
+        /** Use for elements that allow a choice from multiple options. */
+        COMBOBOX: 'combobox',
+        /** Use with scrollable lists to represent a grid layout. */
+        GRID: 'grid',
+        /** Use for section headers or titles. */
+        HEADING: 'heading',
+        /** Use for image elements. */
+        IMG: 'img',
+        /** Use for elements that navigate to other pages or content. */
+        LINK: 'link',
+        /** Use to identify a list of items. */
+        LIST: 'list',
+        /** Use for a list of choices or options. */
+        MENU: 'menu',
+        /** Use for a container of multiple menus. */
+        MENUBAR: 'menubar',
+        /** Use for items within a menu. */
+        MENUITEM: 'menuitem',
+        /** Use when no specific role is needed. */
+        NONE: 'none',
+        /** Use for elements that don't require a specific role. */
+        PRESENTATION: 'presentation',
+        /** Use for elements showing progress of a task. */
+        PROGRESSBAR: 'progressbar',
+        /** Use for radio buttons. */
+        RADIO: 'radio',
+        /** Use for groups of radio buttons. */
+        RADIOGROUP: 'radiogroup',
+        /** Use for scrollbar elements. */
+        SCROLLBAR: 'scrollbar',
+        /** Use for text fields that are used for searching. */
+        SEARCHBOX: 'searchbox',
+        /** Use for adjustable elements like sliders. */
+        SLIDER: 'slider',
+        /** Use for a button that opens a list of choices. */
+        SPINBUTTON: 'spinbutton',
+        /** Use for elements providing a summary of app conditions. */
+        SUMMARY: 'summary',
+        /** Use for on/off switch elements. */
+        SWITCH: 'switch',
+        /** Use for tab elements in a tab list. */
+        TAB: 'tab',
+        /** Use for a list of tabs. */
+        TABLIST: 'tablist',
+        /** Use for timer elements. */
+        TIMER: 'timer',
+        /** Use for toolbars containing action buttons or components. */
+        TOOLBAR: 'toolbar',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -2737,6 +2910,9 @@ const CONST = {
         NEW_CHAT: 'chat',
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
+        IOU_REQUEST_TYPE: 'iouRequestType',
+    },
+    TAB_REQUEST: {
         MANUAL: 'manual',
         SCAN: 'scan',
         DISTANCE: 'distance',
@@ -2761,16 +2937,16 @@ const CONST = {
             NAVIGATE: 'NAVIGATE',
         },
     },
+    TIME_PERIOD: {
+        AM: 'AM',
+        PM: 'PM',
+    },
     INDENTS: '    ',
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
     TAG_LIST_THRESHOLD: 8,
-    DEMO_PAGES: {
-        SAASTR: 'SaaStrDemoSetup',
-        SBE: 'SbeDemoSetup',
-        MONEY2020: 'Money2020DemoSetup',
-    },
-
+    TAX_RATES_LIST_THRESHOLD: 8,
+    COLON: ':',
     MAPBOX: {
         PADDING: 50,
         DEFAULT_ZOOM: 10,
@@ -2790,7 +2966,7 @@ const CONST = {
     HORIZONTAL_SPACER: {
         DEFAULT_BORDER_BOTTOM_WIDTH: 1,
         DEFAULT_MARGIN_VERTICAL: 8,
-        HIDDEN_MARGIN_VERTICAL: 0,
+        HIDDEN_MARGIN_VERTICAL: 4,
         HIDDEN_BORDER_BOTTOM_WIDTH: 0,
     },
 
@@ -2813,9 +2989,10 @@ const CONST = {
             START_CHAT: 'startChat',
             SEND_MONEY: 'sendMoney',
             REFER_FRIEND: 'referralFriend',
+            SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
-        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/billing-and-plan-types/Referral-Program',
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/get-paid-back/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
 
@@ -2830,10 +3007,59 @@ const CONST = {
     BACK_BUTTON_NATIVE_ID: 'backButton',
 
     /**
+     * The maximum count of items per page for OptionsSelector.
+     * When paginate, it multiplies by page number.
+     */
+    MAX_OPTIONS_SELECTOR_PAGE_LENGTH: 500,
+
+    /**
      * Performance test setup - run the same test multiple times to get a more accurate result
      */
     PERFORMANCE_TESTS: {
         RUNS: 20,
+    },
+
+    /**
+     * Bank account names
+     */
+    BANK_NAMES: {
+        EXPENSIFY: 'expensify',
+        AMERICAN_EXPRESS: 'americanexpress',
+        BANK_OF_AMERICA: 'bank of america',
+        BB_T: 'bbt',
+        CAPITAL_ONE: 'capital one',
+        CHASE: 'chase',
+        CHARLES_SCHWAB: 'charles schwab',
+        CITIBANK: 'citibank',
+        CITIZENS_BANK: 'citizens bank',
+        DISCOVER: 'discover',
+        FIDELITY: 'fidelity',
+        GENERIC_BANK: 'generic bank',
+        HUNTINGTON_BANK: 'huntington bank',
+        HUNTINGTON_NATIONAL: 'huntington national',
+        NAVY_FEDERAL_CREDIT_UNION: 'navy federal credit union',
+        PNC: 'pnc',
+        REGIONS_BANK: 'regions bank',
+        SUNTRUST: 'suntrust',
+        TD_BANK: 'td bank',
+        US_BANK: 'us bank',
+        USAA: 'usaa',
+    },
+
+    /**
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items rendered on every scroll.
+     */
+    MAX_TO_RENDER_PER_BATCH: {
+        DEFAULT: 5,
+        CAROUSEL: 3,
+    },
+
+    /** Context menu types */
+    CONTEXT_MENU_TYPES: {
+        LINK: 'LINK',
+        REPORT_ACTION: 'REPORT_ACTION',
+        EMAIL: 'EMAIL',
+        REPORT: 'REPORT',
     },
 } as const;
 
