@@ -22,17 +22,14 @@ function UpdateRequiredView() {
 
     return (
         <View style={styles.flex1}>
-            {!isSmallScreenWidth && (
-                <View style={styles.overlayStyles()}>
-                    <View style={[styles.flex1, styles.flexColumn]}/>
-                </View>
-            )}
-            <View style={[styles.RHPNavigatorContainer(isSmallScreenWidth), styles.appBG]}>
-                <View style={[styles.pt10, styles.ph5, {marginBottom: 100}]}>
-                    <Header
-                        title="Update required"
-                    />
-                </View>
+            <View style={[styles.appBG]}>
+                {isSmallScreenWidth && (
+                    <View style={[styles.pt10, styles.ph5, {marginBottom: 100}]}>
+                        <Header
+                            title="Update required"
+                        />
+                    </View>
+                )}
                 <View style={[styles.flex1]}>
                     <Icon
                         src={Expensicons.EmptyStateUpdateRocket}
@@ -61,7 +58,7 @@ function UpdateRequiredView() {
                 </View>
             </View>
         </View>
-    )
+    );
 }
 
 UpdateRequiredView.displayName = 'UpdateRequiredView';

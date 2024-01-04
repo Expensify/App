@@ -1657,7 +1657,7 @@ const styles = (theme: ThemeColors) =>
                 bottom: 0,
                 right: isModalOnTheLeft ? -2 * variables.sideBarWidth : 0,
                 backgroundColor: theme.overlay,
-                opacity: !current ? variables.overlayOpacity : current.progress.interpolate({
+                opacity: current.progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
                     extrapolate: 'clamp',
