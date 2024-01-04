@@ -55,7 +55,7 @@ class ShareCodePage extends React.Component {
         }
         if (ReportUtils.isMoneyRequestReport(this.props.report)) {
             // generate subtitle from participants
-            return _.map(ReportUtils.getParticipantsIDs(this.props.report), (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
+            return _.map(ReportUtils.getVisibleMemberIDs(this.props.report), (accountID) => ReportUtils.getDisplayNameForParticipant(accountID)).join(' & ');
         }
 
         if (isReport) {
@@ -100,7 +100,7 @@ class ShareCodePage extends React.Component {
                     <View style={{marginTop: 36}}>
                         <ContextMenuItem
                             isAnonymousAction
-                            text={this.props.translate('qrCodes.copyUrlToClipboard')}
+                            text={this.props.translate('qrCodes.copy')}
                             shouldShowRightIcon
                             icon={Expensicons.Copy}
                             successIcon={Expensicons.Checkmark}

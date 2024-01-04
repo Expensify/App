@@ -4,7 +4,7 @@ import BootSplash from '@libs/BootSplash';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import CONST from '@src/CONST';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
-import {BaseErrorBoundaryProps, LogError} from './types';
+import type {BaseErrorBoundaryProps, LogError} from './types';
 
 /**
  * This component captures an error in the child component tree and logs it to the server

@@ -7,9 +7,9 @@ import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, Transaction} from '@src/types/onyx';
-import {OnyxData} from '@src/types/onyx/Request';
-import {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {RecentWaypoint, Transaction} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -59,9 +59,6 @@ function addStop(transactionID: string) {
 
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        pendingFields: {
-            waypoints: isDraft ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        },
         comment: {
             waypoints: {
                 [`waypoint${index}`]: waypoint,

@@ -52,10 +52,10 @@ import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
+import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
-import ExpensifyCard from '@assets/images/expensifycard.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Flag from '@assets/images/flag.svg';
@@ -87,6 +87,7 @@ import Menu from '@assets/images/menu.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import Monitor from '@assets/images/monitor.svg';
+import NewExpensify from '@assets/images/new-expensify.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -223,6 +224,7 @@ export {
     MoneyBag,
     MoneyCircle,
     Monitor,
+    NewExpensify,
     NewWindow,
     NewWorkspace,
     Offline,
