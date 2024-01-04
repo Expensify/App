@@ -1,11 +1,13 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import {ValueOf} from 'type-fest';
-import MenuItemList, {MenuItemWithLink} from '@components/MenuItemList';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type {MenuItemWithLink} from '@components/MenuItemList';
+import MenuItemList from '@components/MenuItemList';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
-import IconAsset from '@src/types/utils/IconAsset';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import IconSection from './IconSection';
 
 const CARD_LAYOUT = {

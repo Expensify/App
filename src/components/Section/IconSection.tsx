@@ -1,8 +1,9 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Icon from '@components/Icon';
 import useThemeStyles from '@hooks/useThemeStyles';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type IconSectionProps = {
     icon?: IconAsset;
