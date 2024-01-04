@@ -1,17 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
 import taxPropTypes from '@components/taxPropTypes';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
@@ -21,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
@@ -61,7 +56,6 @@ function IOURequestStepTaxAmountPage({
     policyTaxRates,
 }) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const textInput = useRef(null);
     const isEditing = Navigation.getActiveRoute().includes('taxAmount');
 
@@ -82,7 +76,7 @@ function IOURequestStepTaxAmountPage({
     );
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, reportID) : ROUTES.HOME);
+        Navigation.goBack(backTo || ROUTES.HOME);
     };
 
     const navigateToCurrencySelectionPage = () => {
@@ -117,37 +111,25 @@ function IOURequestStepTaxAmountPage({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
-    const content = (
-        <MoneyRequestAmountForm
-            isEditing={isEditing}
-            currency={currency}
-            amount={transaction.taxAmount}
-            taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
-            transaction={transaction}
-            ref={(e) => (textInput.current = e)}
-            onCurrencyButtonPress={navigateToCurrencySelectionPage}
-            onSubmitButtonPress={updateTaxAmount}
-        />
-    );
-
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+        <StepScreenWrapper
+            headerTitle={translate('iou.taxAmount')}
+            onBackButtonPress={navigateBack}
             testID={IOURequestStepTaxAmountPage.displayName}
+            shouldShowWrapper={Boolean(backTo)}
+            includeSafeAreaPaddingBottom
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={translate('iou.taxAmount')}
-                            onBackButtonPress={navigateBack}
-                        />
-                        {content}
-                    </View>
-                </FullPageNotFoundView>
-            )}
-        </ScreenWrapper>
+            <MoneyRequestAmountForm
+                isEditing={isEditing}
+                currency={currency}
+                amount={transaction.taxAmount}
+                taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
+                transaction={transaction}
+                ref={(e) => (textInput.current = e)}
+                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                onSubmitButtonPress={updateTaxAmount}
+            />
+        </StepScreenWrapper>
     );
 }
 
