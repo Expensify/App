@@ -162,18 +162,21 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         [transactionTag, transaction.transactionID, report.reportID],
     );
 
+    const saveComment = useCallback(
+        ({comment: newComment}) => {
+            // Update comment only if it has changed
+            if (newComment.trim() !== transactionDescription) {
+                IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
+            }
+            Navigation.dismissModal();
+        }
+    )
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
-                onSubmit={(transactionChanges) => {
-                    // In case the comment hasn't been changed, do not make the API request.
-                    if (transactionChanges.comment.trim() === transactionDescription) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                    editMoneyRequest({comment: transactionChanges.comment.trim()});
-                }}
+                onSubmit={saveComment}
             />
         );
     }

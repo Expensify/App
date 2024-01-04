@@ -1070,6 +1070,21 @@ function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
 }
 
 /**
+ * Updates the description of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} comment
+ */
+function updateMoneyRequestDescription(transactionID, transactionThreadReportID, comment) {
+    const transactionChanges = {
+        comment,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestDescription', params, onyxData);
+}
+
+/**
  * Edits an existing distance request
  *
  * @param {String} transactionID
@@ -3510,6 +3525,7 @@ export {
     updateMoneyRequestDate,
     updateMoneyRequestTag,
     updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestDescription,
     replaceReceipt,
     detachReceipt,
     getIOUReportID,
