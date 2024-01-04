@@ -99,14 +99,19 @@ type Policy = {
     /** The employee list of the policy */
     employeeList?: [];
 
+    /** Whether to leave the calling account as an admin on the policy */
     makeMeAdmin?: boolean;
 
+    /** Pending fields for the policy */
     pendingFields?: Record<string, unknown>;
 
+    /** Original file name which is used for the policy avatar */
     originalFileName?: string;
 
+    /** Alert message for the policy */
     alertMessage?: string;
 
+    /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
     primaryLoginsInvited?: Record<string, string>;
 };
 

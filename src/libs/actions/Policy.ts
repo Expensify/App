@@ -22,6 +22,35 @@ import {Errors} from '@src/types/onyx/OnyxCommon';
 import {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
+type AnnounceRoomMembers = {
+    onyxOptimisticData: OnyxUpdate[];
+    onyxFailureData: OnyxUpdate[];
+};
+
+type ReportCreationData = Record<
+    string,
+    {
+        reportID: string;
+        reportActionID?: string;
+    }
+>;
+
+type WorkspaceMembersChats = {
+    onyxSuccessData: OnyxUpdate[];
+    onyxOptimisticData: OnyxUpdate[];
+    onyxFailureData: OnyxUpdate[];
+    reportCreationData: ReportCreationData;
+};
+
+type OptimisticCustomUnits = {
+    customUnits: Record<string, CustomUnit>;
+    customUnitID: string;
+    customUnitRateID: string;
+    outputCurrency: string;
+};
+
+type PoliciesRecord = Record<string, OnyxEntry<Policy>>;
+
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -35,8 +64,12 @@ Onyx.connect({
             // More info: https://github.com/Expensify/App/issues/14260
             const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
             const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+
+            type MergeQueries = Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>>;
+            type SetQueries = Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null>;
+
+            const cleanUpMergeQueries: MergeQueries = {};
+            const cleanUpSetQueries: SetQueries = {};
             policyReports.forEach((policyReport) => {
                 if (!policyReport) {
                     return;
@@ -77,7 +110,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         sessionEmail = val?.email ?? '';
-        sessionAccountID = val?.accountID ?? 0;
+        sessionAccountID = val?.accountID ?? -1;
     },
 });
 
@@ -131,7 +164,7 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 /**
  * Check if the user has any active free policies (aka workspaces)
  */
-function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | Record<string, OnyxEntry<Policy>>): boolean {
+function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord): boolean {
     const adminFreePolicies = Object.values(policies).filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 
     if (adminFreePolicies.length === 0) {
@@ -265,14 +298,9 @@ function deleteWorkspace(policyID: string, reports: Report[], policyName: string
 /**
  * Is the user an admin of a free policy (aka workspace)?
  */
-function isAdminOfFreePolicy(policies?: Record<string, OnyxEntry<Policy>>): boolean {
+function isAdminOfFreePolicy(policies?: PoliciesRecord): boolean {
     return Object.values(policies ?? {}).some((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 }
-
-type AnnounceRoomMembers = {
-    onyxOptimisticData: OnyxUpdate[];
-    onyxFailureData: OnyxUpdate[];
-};
 
 /**
  * Build optimistic data for adding members to the announcement room
@@ -308,17 +336,12 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     return announceRoomMembers;
 }
 
-type OptimisticAnnounceRoomMembers = {
-    onyxOptimisticData: OnyxUpdate[];
-    onyxFailureData: OnyxUpdate[];
-};
-
 /**
  * Build optimistic data for removing users from the announcement room
  */
-function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]): OptimisticAnnounceRoomMembers {
+function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]): AnnounceRoomMembers {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
-    const announceRoomMembers: OptimisticAnnounceRoomMembers = {
+    const announceRoomMembers: AnnounceRoomMembers = {
         onyxOptimisticData: [],
         onyxFailureData: [],
     };
@@ -408,8 +431,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
     // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
     if (isNotEmptyObject(policy?.primaryLoginsInvited ?? {})) {
         // Take the current policy members and remove them optimistically
-        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => parseInt(accountID, 10));
-        const remainingMemberAccountIDs = policyMemberAccountIDs.filter((e) => !accountIDs.includes(Number(e)));
+        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => Number(accountID));
+        const remainingMemberAccountIDs = policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID));
         const remainingLogins: string[] = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
 
@@ -418,7 +441,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         }
 
         // Then, if no remaining members exist that were invited by a secondary login, clear the informative messages
-        if (!remainingLogins.some((remainingLogin) => Boolean(invitedPrimaryToSecondaryLogins[remainingLogin]))) {
+        if (!remainingLogins.some((remainingLogin) => !!invitedPrimaryToSecondaryLogins[remainingLogin])) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: membersListKey,
@@ -437,7 +460,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         },
     ];
 
-    const filteredWorkspaceChats = workspaceChats.filter((e): e is Report => e !== null);
+    const filteredWorkspaceChats = workspaceChats.filter((report): report is Report => report !== null);
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -479,19 +502,6 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     API.write('DeleteMembersFromWorkspace', params, {optimisticData, successData, failureData});
 }
-
-type WorkspaceMembersChats = {
-    onyxSuccessData: OnyxUpdate[];
-    onyxOptimisticData: OnyxUpdate[];
-    onyxFailureData: OnyxUpdate[];
-    reportCreationData: Record<
-        string,
-        {
-            reportID: string;
-            reportActionID?: string;
-        }
-    >;
-};
 
 /**
  * Optimistically create a chat for each member of the workspace, creates both optimistic and success data for onyx.
@@ -1094,7 +1104,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     const username = emailParts[0];
     const domain = emailParts[1];
 
-    if ((PUBLIC_DOMAINS as readonly string[]).includes(domain.toLowerCase())) {
+    if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
     } else {
         defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
@@ -1112,7 +1122,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     const numberRegEx = new RegExp(`${escapeRegExp(defaultWorkspaceName)} ?(\\d*)`, 'i');
     const parsedWorkspaceNumbers = Object.values(allPolicies ?? {})
         .filter((policy) => policy?.name && numberRegEx.test(policy.name))
-        .map((policy) => parseInt(numberRegEx.exec(policy?.name ?? '')?.[1] ?? '1', 10)); // parse the number at the end
+        .map((policy) => Number(numberRegEx.exec(policy?.name ?? '')?.[1] ?? '1')); // parse the number at the end
     const lastWorkspaceNumber = Math.max(...parsedWorkspaceNumbers);
     return lastWorkspaceNumber !== -Infinity ? `${defaultWorkspaceName} ${lastWorkspaceNumber + 1}` : defaultWorkspaceName;
 }
@@ -1131,7 +1141,7 @@ function generateCustomUnitID(): string {
     return NumberUtils.generateHexadecimalValue(13);
 }
 
-function buildOptimisticCustomUnits() {
+function buildOptimisticCustomUnits(): OptimisticCustomUnits {
     const currency = allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
@@ -1165,10 +1175,10 @@ function buildOptimisticCustomUnits() {
 /**
  * Optimistically creates a Policy Draft for a new workspace
  *
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [policyName] Optional, custom policy name we will use for created workspace
- * @param [policyID] Optional, custom policy id we will use for created workspace
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param [policyOwnerEmail] the email of the account to make the owner of the policy
+ * @param [policyName] custom policy name we will use for created workspace
+ * @param [policyID] custom policy id we will use for created workspace
+ * @param [makeMeAdmin] leave the calling account as an admin on the policy
  */
 function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', policyID = generatePolicyID(), makeMeAdmin = false) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
@@ -1209,10 +1219,10 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [policyName] Optional, custom policy name we will use for created workspace
- * @param [policyID] Optional, custom policy id we will use for created workspace
+ * @param [policyOwnerEmail] the email of the account to make the owner of the policy
+ * @param [makeMeAdmin] leave the calling account as an admin on the policy
+ * @param [policyName] custom policy name we will use for created workspace
+ * @param [policyID] custom policy id we will use for created workspace
  */
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): string {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
@@ -1570,7 +1580,7 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID: string, category:
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string) {
+function buildOptimisticPolicyRecentlyUsedTags(policyID: string, tag: string): RecentlyUsedTags {
     if (!policyID || !tag) {
         return {};
     }
