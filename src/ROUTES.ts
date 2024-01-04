@@ -1,5 +1,5 @@
-import {IsEqual, ValueOf} from 'type-fest';
-import CONST from './CONST';
+import type {IsEqual, ValueOf} from 'type-fest';
+import type CONST from './CONST';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -321,6 +321,16 @@ const ROUTES = {
         route: 'create/:iouType/amount/:transactionID/:reportID/',
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`create/${iouType}/amount/${transactionID}/${reportID}/`, backTo),
+    },
+    MONEY_REQUEST_STEP_TAX_RATE: {
+        route: 'create/:iouType/taxRate/:transactionID/:reportID?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_STEP_TAX_AMOUNT: {
+        route: 'create/:iouType/taxAmount/:transactionID/:reportID?',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: 'create/:iouType/category/:transactionID/:reportID/',
