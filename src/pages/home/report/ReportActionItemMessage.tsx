@@ -1,5 +1,7 @@
-import React, {ReactElement} from 'react';
-import {StyleProp, Text, View, ViewStyle} from 'react-native';
+import type {ReactElement} from 'react';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {Text, View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';

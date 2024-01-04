@@ -17,7 +17,7 @@ const propTypes = {
 
 function QuickEmojiReactions(props) {
     const onPressOpenPicker = (openPicker) => {
-        openPicker(contextMenuRef.current.contentRef.current, {
+        openPicker(contextMenuRef.current.contentRef, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
         });

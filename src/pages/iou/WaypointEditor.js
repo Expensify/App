@@ -15,6 +15,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -43,6 +44,15 @@ const propTypes = {
             /** Index of the waypoint being edited */
             waypointIndex: PropTypes.string,
         }),
+    }),
+
+    /* Current location coordinates of the user */
+    userLocation: PropTypes.shape({
+        /** Latitude of the location */
+        latitude: PropTypes.number,
+
+        /** Longitude of the location */
+        longitude: PropTypes.number,
     }),
 
     recentWaypoints: PropTypes.arrayOf(
@@ -76,9 +86,10 @@ const defaultProps = {
     route: {},
     recentWaypoints: [],
     transaction: {},
+    userLocation: undefined,
 };
 
-function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints}) {
+function WaypointEditor({route: {params: {iouType = '', transactionID = '', waypointIndex = '', threadReportID = 0}} = {}, transaction, recentWaypoints, userLocation}) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
@@ -93,7 +104,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
 
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
-
+    const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointDescriptionKey = useMemo(() => {
         switch (parsedWaypointIndex) {
             case 0:
@@ -226,6 +237,7 @@ function WaypointEditor({route: {params: {iouType = '', transactionID = '', wayp
                     <View style={[styles.flex1, styles.overflowHidden]}>
                         <InputWrapper
                             InputComponent={AddressSearch}
+                            locationBias={locationBias}
                             canUseCurrentLocation
                             inputID={`waypoint${waypointIndex}`}
                             ref={(e) => (textInput.current = e)}
@@ -260,6 +272,9 @@ WaypointEditor.displayName = 'WaypointEditor';
 WaypointEditor.propTypes = propTypes;
 WaypointEditor.defaultProps = defaultProps;
 export default withOnyx({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${lodashGet(route, 'params.transactionID')}`,
     },
