@@ -1,19 +1,12 @@
-import {
-    createNavigatorFactory,
-    DefaultNavigatorOptions,
-    ParamListBase,
-    StackActionHelpers,
-    StackNavigationState,
-    StackRouter,
-    StackRouterOptions,
-    useNavigationBuilder,
-} from '@react-navigation/native';
-import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
+import type {DefaultNavigatorOptions, ParamListBase, StackActionHelpers, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
+import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
+import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import {StackView} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {NavigationStateRoute} from '@libs/Navigation/types';
+import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import BottomTabBar from './BottomTabBar';
 import TopBar from './TopBar';

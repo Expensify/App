@@ -7,7 +7,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
-import {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';

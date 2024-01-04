@@ -1,4 +1,4 @@
-import {NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
 import SCREENS from '@src/SCREENS';
 
 // Get the name of topmost report in the navigation stack.

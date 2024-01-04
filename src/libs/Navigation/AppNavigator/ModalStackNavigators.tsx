@@ -30,9 +30,9 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import {ThemeStyles} from '@styles/index';
-import SCREENS from '@src/SCREENS';
+import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -293,30 +293,30 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
 });
 
 export {
-    MoneyRequestModalStackNavigator,
-    SplitDetailsModalStackNavigator,
+    AccountSettingsModalStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    ProfileModalStackNavigator,
-    ReportDetailsModalStackNavigator,
-    TaskModalStackNavigator,
-    ReportSettingsModalStackNavigator,
-    ReportWelcomeMessageModalStackNavigator,
-    ReportParticipantsModalStackNavigator,
-    SearchModalStackNavigator,
+    EditRequestStackNavigator,
+    EnablePaymentsStackNavigator,
+    FlagCommentStackNavigator,
+    MoneyRequestModalStackNavigator,
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
-    AccountSettingsModalStackNavigator,
-    SettingsModalStackNavigator,
-    EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
-    WalletStatementStackNavigator,
-    FlagCommentStackNavigator,
-    EditRequestStackNavigator,
-    PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
-    SignInModalStackNavigator,
-    RoomMembersModalStackNavigator,
-    RoomInviteModalStackNavigator,
+    PrivateNotesModalStackNavigator,
+    ProfileModalStackNavigator,
     ReferralModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
+    ReportDetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
+    ReportSettingsModalStackNavigator,
+    ReportWelcomeMessageModalStackNavigator,
+    RoomInviteModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    SearchModalStackNavigator,
+    SettingsModalStackNavigator,
+    SignInModalStackNavigator,
+    SplitDetailsModalStackNavigator,
+    TaskModalStackNavigator,
+    WalletStatementStackNavigator,
 };
