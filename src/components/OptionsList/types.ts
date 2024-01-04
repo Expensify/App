@@ -1,5 +1,5 @@
-import {RefObject} from 'react';
-import {SectionList, SectionListData, StyleProp, View, ViewStyle} from 'react-native';
+import type {RefObject} from 'react';
+import type {SectionList, SectionListData, StyleProp, View, ViewStyle} from 'react-native';
 import type {OptionData} from '@libs/ReportUtils';
 
 type Section = {
@@ -19,6 +19,11 @@ type Section = {
     isDisabled?: boolean;
 };
 
+type SelectedOptionData = OptionData & {
+    /** The name of selected option */
+    name: string;
+}
+
 type OptionsListProps = {
     /** option flexStyle for the options list container */
     listContainerStyles?: StyleProp<ViewStyle>;
@@ -33,16 +38,13 @@ type OptionsListProps = {
     sectionHeaderStyle?: StyleProp<ViewStyle>;
 
     /** Sections for the section list */
-    // sections: Array<Section<OptionData>>;
-    // sections: Array<SectionListData<OptionData>>;
-    // sections: Array<SectionListData<SectionList<OptionData, Section>>>;
     sections: Array<SectionListData<OptionData, Section>>;
 
     /** Index for option to focus on */
     focusedIndex?: number;
 
     /** Array of already selected options */
-    selectedOptions?: OptionData[];
+    selectedOptions?: SelectedOptionData[];
 
     /** Whether we can select multiple options or not */
     canSelectMultipleOptions?: boolean;

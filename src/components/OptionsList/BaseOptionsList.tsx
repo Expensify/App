@@ -1,6 +1,8 @@
-import _ from 'lodash';
-import React, {ForwardedRef, forwardRef, memo, useEffect, useRef} from 'react';
-import {SectionListData, SectionListRenderItem, View} from 'react-native';
+import {isEqual, isEmpty} from 'lodash';
+import type {ForwardedRef} from 'react';
+import React, { forwardRef, memo, useEffect, useRef} from 'react';
+import type {SectionListData, SectionListRenderItem} from 'react-native';
+import { View} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
@@ -73,10 +75,7 @@ function BaseOptionsList(
         const flatArray = [{length: 0, offset}];
 
         // Build the flat array
-        // TODO: Verify if we can use for of here
-        // eslint-disable-next-line @typescript-eslint/prefer-for-of
-        for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
-            const section = sections[sectionIndex];
+        for (const section of sections) {
             // Add the section header
             const sectionHeaderHeight = section.title && !hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
             flatArray.push({length: sectionHeaderHeight, offset});
@@ -102,10 +101,9 @@ function BaseOptionsList(
     };
 
     useEffect(() => {
-        // TODO: Verify if we can use isEqual here
-        // if (_.isEqual(sections, previousSections)) {
-        //     return;
-        // }
+        if (isEqual(sections, previousSections)) {
+            return;
+        }
         if (sections === previousSections) {
             return;
         }
@@ -137,7 +135,8 @@ function BaseOptionsList(
      *
      * @returns
      */
-    const getItemLayout = (data: any, flatDataArrayIndex: number): {length: number; offset: number; index: number} => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const getItemLayout = (_data: Array<SectionListData<OptionData, Section>> | null, flatDataArrayIndex: number) => {
         if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
         }
@@ -166,9 +165,8 @@ function BaseOptionsList(
      * @return {Component}
      */
 
-    // const renderItem: SectionListRenderItem<SectionListType<OptionData>> = ({item, index, section}) => {
     const renderItem: SectionListRenderItem<OptionData, Section> = ({item, index, section}) => {
-        const isItemDisabled = isDisabled || section.isDisabled; // TODO: !!item.isDisabled
+        const isItemDisabled = isDisabled || !!section.isDisabled || !!item.isDisabled;
         const isSelected = selectedOptions?.some((option) => {
             if (option.accountID && option.accountID === item.accountID) {
                 return true;
@@ -178,12 +176,11 @@ function BaseOptionsList(
                 return true;
             }
 
-            // if (_.isEmpty(option.name)) {
-            //     return false;
-            // }
+            if (isEmpty(option.name)) {
+                return false;
+            }
 
-            // return option.name === item.searchText;
-            return false;
+            return option.name === item.searchText;
         });
 
         return (
@@ -290,5 +287,5 @@ export default memo(
         nextProps?.selectedOptions?.length === prevProps?.selectedOptions?.length &&
         nextProps.headerMessage === prevProps.headerMessage &&
         nextProps.isLoading === prevProps.isLoading &&
-        _.isEqual(nextProps.sections, prevProps.sections),
+        isEqual(nextProps.sections, prevProps.sections),
 );
