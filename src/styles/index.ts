@@ -4229,6 +4229,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 4,
         },
 
+        videoIconButtonHovered: {
+            backgroundColor: colors.green700,
+        },
+
         videoThumbnailContainer: {
             width: '100%',
             height: '100%',
