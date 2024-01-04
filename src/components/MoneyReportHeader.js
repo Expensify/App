@@ -47,6 +47,12 @@ const propTypes = {
 
         /** Whether Scheduled Submit is turned on for this policy */
         isHarvestingEnabled: PropTypes.bool,
+
+        /** The reimbursement choice for policy */
+        reimbursementChoice: PropTypes.string,
+
+        /** The maximum report total allowed to trigger auto reimbursement. */
+        autoReimbursementLimit: PropTypes.number,
     }),
 
     /** The chat report this report is linked to */
@@ -86,8 +92,11 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policyType = lodashGet(policy, 'type');
+    const reimbursementChoice = lodashGet(policy, 'reimbursementChoice');
+    const autoReimbursementLimit = lodashGet(policy, 'autoReimbursementLimit');
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isGroupPolicy = _.contains([CONST.POLICY.TYPE.CORPORATE, CONST.POLICY.TYPE.TEAM], policyType);
+    const isAutoReimbursable = isGroupPolicy && reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && autoReimbursementLimit >= reimbursableTotal && reimbursableTotal > 0;
     const isManager = ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID;
     const isPayer = isGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
@@ -95,8 +104,8 @@ function MoneyReportHeader({session, personalDetails, policy, chatReport, nextSt
         : isPolicyAdmin || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isManager);
     const isDraft = ReportUtils.isDraftExpenseReport(moneyRequestReport);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport),
-        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport],
+        () => isPayer && !isDraft && !isSettled && !moneyRequestReport.isWaitingOnBankAccount && reimbursableTotal !== 0 && !ReportUtils.isArchivedRoom(chatReport) && !isAutoReimbursable,
+        [isPayer, isDraft, isSettled, moneyRequestReport, reimbursableTotal, chatReport, isAutoReimbursable],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isGroupPolicy) {
