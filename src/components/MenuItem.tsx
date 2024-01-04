@@ -78,7 +78,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     titleStyle?: ViewStyle;
 
     /** Any adjustments to style when menu item is hovered or pressed */
-    hoverAndPressStyle: StyleProp<AnimatedStyle<ViewStyle>>;
+    hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
     /** Additional styles to style the description text below the title */
     descriptionTextStyle?: StyleProp<TextStyle>;
@@ -168,7 +168,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     isSelected?: boolean;
 
     /** Prop to identify if we should load avatars vertically instead of diagonally */
-    shouldStackHorizontally: boolean;
+    shouldStackHorizontally?: boolean;
 
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
@@ -216,7 +216,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
     /** Array of objects that map display names to their corresponding tooltip */
-    titleWithTooltips: DisplayNameWithTooltip[];
+    titleWithTooltips?: DisplayNameWithTooltip[];
 
     /** Icon should be displayed in its own color */
     displayInDefaultIconColor?: boolean;
