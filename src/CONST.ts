@@ -3020,7 +3020,7 @@ const CONST = {
     },
 
     /**
-     * Bank account names
+     * Bank account Names
      */
     BANK_NAMES: {
         EXPENSIFY: 'expensify',
