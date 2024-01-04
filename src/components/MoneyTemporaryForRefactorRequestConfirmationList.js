@@ -8,6 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -202,6 +203,11 @@ const defaultProps = {
     policyTaxRates: {},
 };
 
+const getTaxAmount = (transaction, defaultTaxValue) => {
+    const percentage = (transaction.taxRate ? transaction.taxRate.data.value : defaultTaxValue) || '';
+    return TransactionUtils.calculateTaxAmount(percentage, transaction.amount);
+};
+
 function MoneyTemporaryForRefactorRequestConfirmationList({
     bankAccountRoute,
     canModifyParticipants,
@@ -294,6 +300,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const taxRateTitle = TransactionUtils.getDefaultTaxName(policyTaxRates, transaction);
 
+    const previousTransactionTaxAmount = usePrevious(transaction.taxAmount);
+
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
 
@@ -350,6 +358,16 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transaction.transactionID, amount, currency);
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
+
+    // calculate and set tax amount in transaction draft
+    useEffect(() => {
+        const taxAmount = getTaxAmount(transaction, policyTaxRates.defaultValue);
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
+        if (previousTransactionTaxAmount !== transaction.taxAmount && amountInSmallestCurrencyUnits !== transaction.taxAmount) {
+            return;
+        }
+        IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits);
+    }, [policyTaxRates.defaultValue, transaction, previousTransactionTaxAmount]);
 
     /**
      * Returns the participants with amount
