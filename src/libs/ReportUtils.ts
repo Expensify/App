@@ -5,24 +5,26 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
-import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
+import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolations} from '@src/types/onyx';
-import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
-import {Status} from '@src/types/onyx/PersonalDetails';
-import {NotificationPreference} from '@src/types/onyx/Report';
-import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
-import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from '@src/types/onyx/OriginalMessage';
+import type {Status} from '@src/types/onyx/PersonalDetails';
+import type {NotificationPreference} from '@src/types/onyx/Report';
+import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -35,7 +37,7 @@ import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import {LastVisibleMessage} from './ReportActionsUtils';
+import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import {hasViolation} from './TransactionUtils';
 import * as Url from './Url';
@@ -1848,7 +1850,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = ''): boolean {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = '', transaction?: OnyxEntry<Transaction>): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1875,11 +1877,14 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
     const isApproved = isReportApproved(moneyRequestReport);
     const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+    const isDistanceRequest = !isEmpty(transaction) && TransactionUtils.isDistanceRequest(transaction);
 
     if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return false;
     }
-
+    if (isDistanceRequest && fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+        return isAdmin;
+    }
     if (isAdmin) {
         return true;
     }
@@ -1907,7 +1912,7 @@ function canEditFieldOfMoneyRequest(
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit, transaction)) {
         return false; // User doesn't have permission to edit
     }
     if (!isEmpty(transaction) && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {

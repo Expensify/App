@@ -1,4 +1,4 @@
-import {AccessibilityRoleForm, NewPasswordAutocompleteType, PasswordAutocompleteType} from './types';
+import type {AccessibilityRoleForm, NewPasswordAutocompleteType, PasswordAutocompleteType} from './types';
 
 /**
  * Web password field needs `current-password` as autocomplete type which is not supported on native

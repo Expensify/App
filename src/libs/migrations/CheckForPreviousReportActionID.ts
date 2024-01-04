@@ -1,7 +1,8 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 
 function getReportActionsFromOnyx(): Promise<OnyxCollection<OnyxTypes.ReportActions>> {
     return new Promise((resolve) => {

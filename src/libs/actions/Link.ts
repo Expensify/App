@@ -7,7 +7,8 @@ import * as Url from '@libs/Url';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 
 let isNetworkOffline = false;
 Onyx.connect({

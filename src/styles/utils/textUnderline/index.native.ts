@@ -1,4 +1,4 @@
-import TextUnderlineStyles from './types';
+import type TextUnderlineStyles from './types';
 
 // following styles are not supported
 const textUnderline: TextUnderlineStyles = {
