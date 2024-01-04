@@ -5,7 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import MoneyRequestAmountForm from './iou/steps/MoneyRequestAmountForm';
 
