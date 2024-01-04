@@ -2546,13 +2546,24 @@ function clearNewRoomFormError() {
     });
 }
 
-function resolveActionableMentionWhisper(reportId: string, reportActionID: string, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
+function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>) {
+    const message = reportAction?.message?.[0];
+    if (!message) {
+        return;
+    }
+
+    const updatedMessage: Message = {
+        ...message,
+        resolution,
+    };
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
             value: {
-                [reportActionID]: {
+                [reportAction.reportActionID]: {
+                    message: [updatedMessage],
                     originalMessage: {
                         resolution,
                     },
@@ -2566,7 +2577,8 @@ function resolveActionableMentionWhisper(reportId: string, reportActionID: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
             value: {
-                [reportActionID]: {
+                [reportAction.reportActionID]: {
+                    message: [message],
                     originalMessage: {
                         resolution: null,
                     },
@@ -2581,7 +2593,7 @@ function resolveActionableMentionWhisper(reportId: string, reportActionID: strin
     };
 
     const parameters: ResolveActionableMentionWhisperParams = {
-        reportActionID,
+        reportActionID: reportAction.reportActionID,
         resolution,
     };
 
