@@ -1,4 +1,4 @@
-import {ComponentType} from 'react';
+import type {ComponentType} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
 type MapViewProps = {
