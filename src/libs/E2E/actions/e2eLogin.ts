@@ -1,5 +1,6 @@
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import Onyx from 'react-native-onyx';
+import E2EClient from '@libs/E2E/client';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -10,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  *
  * @return Resolved true when the user was actually signed in. Returns false if the user was already logged in.
  */
-export default function (email = 'fake@email.com', password = 'Password123'): Promise<boolean> {
+export default function (email = 'expensify.testuser@trashmail.de'): Promise<boolean> {
     const waitForBeginSignInToFinish = (): Promise<void> =>
         new Promise((resolve) => {
             const id = Onyx.connect({
@@ -38,9 +39,17 @@ export default function (email = 'fake@email.com', password = 'Password123'): Pr
                     neededLogin = true;
 
                     // authenticate with a predefined user
+                    console.debug('[E2E] Signing in…');
                     Session.beginSignIn(email);
+                    console.debug('[E2E] Waiting for sign in to finish…');
                     waitForBeginSignInToFinish().then(() => {
-                        Session.signIn(password);
+                        // Get OTP code
+                        console.debug('[E2E] Waiting for OTP…');
+                        E2EClient.getOTPCode().then((otp) => {
+                            // Complete sign in
+                            console.debug('[E2E] Completing sign in with otp code', otp);
+                            Session.signIn(otp);
+                        });
                     });
                 } else {
                     // signal that auth was completed
