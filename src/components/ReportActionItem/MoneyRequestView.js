@@ -12,6 +12,7 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import tagPropTypes from '@components/tagPropTypes';
+import taxPropTypes from '@components/taxPropTypes';
 import Text from '@components/Text';
 import transactionPropTypes from '@components/transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
@@ -64,6 +65,10 @@ const propTypes = {
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
 
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -77,9 +82,10 @@ const defaultProps = {
         comment: {comment: ''},
     },
     policyTags: {},
+    policyTaxRates: {},
 };
 
-function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, shouldShowHorizontalRule, transaction, policyTags, policy}) {
+function MoneyRequestView({report, parentReport, parentReportActions, policyCategories, policyTaxRates, shouldShowHorizontalRule, transaction, policyTags, policy}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -130,6 +136,9 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(lodashValues(policyCategories)));
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagsList)));
     const shouldShowBillable = isPolicyExpenseChat && (transactionBillable || !lodashGet(policy, 'disabledFields.defaultBillable', true));
+
+    // A flag for showing tax rate
+    const shouldShowTax = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
 
     let amountDescription = `${translate('iou.amount')}`;
 
@@ -295,6 +304,31 @@ function MoneyRequestView({report, parentReport, parentReportActions, policyCate
                         />
                     </OfflineWithFeedback>
                 )}
+                {shouldShowTax && (
+                    <OfflineWithFeedback>
+                        <MenuItemWithTopDescription
+                            title="Default"
+                            description={policyTaxRates.name}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAX_RATE))}
+                        />
+                    </OfflineWithFeedback>
+                )}
+
+                {shouldShowTax && (
+                    <OfflineWithFeedback>
+                        <MenuItemWithTopDescription
+                            title="0.00"
+                            description={policyTaxRates.name}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAX_AMOUNT))}
+                        />
+                    </OfflineWithFeedback>
+                )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <Text color={!transactionBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
@@ -332,6 +366,9 @@ export default compose(
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`,
+        },
+        policyTaxRates: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${report.policyID}`,
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
