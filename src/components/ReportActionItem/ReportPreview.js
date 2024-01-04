@@ -7,6 +7,7 @@ import _ from 'underscore';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import refPropTypes from '@components/refPropTypes';
 import SettlementButton from '@components/SettlementButton';
@@ -260,94 +261,96 @@ function ReportPreview(props) {
     }, [isGroupPolicy, isCurrentUserManager, isDraftExpenseReport, isApproved, iouSettled]);
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
     return (
-        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
-            <PressableWithoutFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
-                }}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
-                role="button"
-                accessibilityLabel={props.translate('iou.viewDetails')}
-            >
-                <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
-                    {hasReceipts && (
-                        <ReportActionItemImages
-                            images={lastThreeReceipts}
-                            total={transactionsWithReceipts.length}
-                            isHovered={props.isHovered || isScanning}
-                            size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
-                        />
-                    )}
-                    <View style={styles.reportPreviewBoxBody}>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, getLineHeightStyle(variables.lineHeightXXLarge)]}>{getPreviewMessage()}</Text>
+        <OfflineWithFeedback pendingAction={lodashGet(props, 'iouReport.pendingFields.preview')}>
+            <View style={[styles.chatItemMessage, ...props.containerStyles]}>
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(props.iouReportID));
+                    }}
+                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    role="button"
+                    accessibilityLabel={props.translate('iou.viewDetails')}
+                >
+                    <View style={[styles.reportPreviewBox, props.isHovered || isScanning || props.isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                        {hasReceipts && (
+                            <ReportActionItemImages
+                                images={lastThreeReceipts}
+                                total={transactionsWithReceipts.length}
+                                isHovered={props.isHovered || isScanning}
+                                size={CONST.RECEIPT.MAX_REPORT_PREVIEW_RECEIPTS}
+                            />
+                        )}
+                        <View style={styles.reportPreviewBoxBody}>
+                            <View style={styles.flexRow}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={[styles.textLabelSupporting, styles.mb1, getLineHeightStyle(variables.lineHeightXXLarge)]}>{getPreviewMessage()}</Text>
+                                </View>
+                                {!iouSettled && hasErrors && (
+                                    <Icon
+                                        src={Expensicons.DotIndicator}
+                                        fill={theme.danger}
+                                    />
+                                )}
                             </View>
-                            {!iouSettled && hasErrors && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={theme.danger}
+                            <View style={styles.flexRow}>
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
+                                    {ReportUtils.isSettled(props.iouReportID) && (
+                                        <View style={styles.defaultCheckmarkWrapper}>
+                                            <Icon
+                                                src={Expensicons.Checkmark}
+                                                fill={theme.iconSuccessFill}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                            {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
+                                <View style={styles.flexRow}>
+                                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
+                                    </View>
+                                </View>
+                            )}
+                            {shouldShowSettlementButton && (
+                                <SettlementButton
+                                    currency={props.iouReport.currency}
+                                    policyID={props.policyID}
+                                    chatReportID={props.chatReportID}
+                                    iouReport={props.iouReport}
+                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                    addBankAccountRoute={bankAccountRoute}
+                                    shouldHidePaymentOptions={!shouldShowPayButton}
+                                    shouldShowApproveButton={shouldShowApproveButton}
+                                    style={[styles.mt3]}
+                                    kycWallAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                    paymentMethodDropdownAnchorAlignment={{
+                                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                    }}
+                                />
+                            )}
+                            {shouldShowSubmitButton && (
+                                <Button
+                                    medium
+                                    success={isWaitingForSubmissionFromCurrentUser}
+                                    text={translate('common.submit')}
+                                    style={styles.mt3}
+                                    onPress={() => IOU.submitReport(props.iouReport)}
                                 />
                             )}
                         </View>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadline}>{getDisplayAmount()}</Text>
-                                {ReportUtils.isSettled(props.iouReportID) && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={theme.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                        </View>
-                        {!isScanning && (numberOfRequests > 1 || hasReceipts) && (
-                            <View style={styles.flexRow}>
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mb1, styles.lh20]}>{previewSubtitle || moneyRequestComment}</Text>
-                                </View>
-                            </View>
-                        )}
-                        {shouldShowSettlementButton && (
-                            <SettlementButton
-                                currency={props.iouReport.currency}
-                                policyID={props.policyID}
-                                chatReportID={props.chatReportID}
-                                iouReport={props.iouReport}
-                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                addBankAccountRoute={bankAccountRoute}
-                                shouldHidePaymentOptions={!shouldShowPayButton}
-                                shouldShowApproveButton={shouldShowApproveButton}
-                                style={[styles.mt3]}
-                                kycWallAnchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                }}
-                                paymentMethodDropdownAnchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                }}
-                            />
-                        )}
-                        {shouldShowSubmitButton && (
-                            <Button
-                                medium
-                                success={isWaitingForSubmissionFromCurrentUser}
-                                text={translate('common.submit')}
-                                style={styles.mt3}
-                                onPress={() => IOU.submitReport(props.iouReport)}
-                            />
-                        )}
                     </View>
-                </View>
-            </PressableWithoutFeedback>
-        </View>
+                </PressableWithoutFeedback>
+            </View>
+        </OfflineWithFeedback>
     );
 }
 
