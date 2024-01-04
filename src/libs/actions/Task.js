@@ -8,12 +8,14 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Report from './Report';
 
 let currentUserEmail;
@@ -178,6 +180,12 @@ function createTaskAndNavigate(parentReportID, title, description, assigneeEmail
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
         },
     );
+
+    // If needed, update optimistic data for parent report action of the parent report.
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(parentReportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (isNotEmptyObject(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     // FOR PARENT REPORT (SHARE DESTINATION)
     successData.push({
@@ -391,6 +399,7 @@ function editTask(report, {title, description}) {
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
+                errorFields: null,
             },
         },
     ];
@@ -488,8 +497,10 @@ function editTaskAssignee(report, ownerAccountID, assigneeEmail, assigneeAccount
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
         const participants = lodashGet(report, 'participantAccountIDs', []);
-        if (!participants.includes(assigneeAccountID)) {
+        const visibleMembers = lodashGet(report, 'visibleChatMemberAccountIDs', []);
+        if (!visibleMembers.includes(assigneeAccountID)) {
             optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
+            optimisticReport.visibleChatMemberAccountIDs = [...visibleMembers, assigneeAccountID];
         }
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
@@ -668,7 +679,7 @@ function getAssignee(assigneeAccountID, personalDetails) {
     }
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: details.displayName,
+        displayName: PersonalDetailsUtils.getDisplayNameOrDefault(details),
         subtitle: details.login,
     };
 }
@@ -712,13 +723,16 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {number} originalStateNum
  * @param {number} originalStatusNum
  */
-function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
+function deleteTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `deleted task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const taskReport = ReportUtils.getReport(taskReportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
+
+    // If the task report is the last visible action in the parent report, we should navigate back to the parent report
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(taskReportID);
 
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: {
@@ -772,6 +786,19 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
+    // Update optimistic data for parent report action if the report is a child report and the task report has no visible child
+    const childVisibleActionCount = lodashGet(parentReportAction, 'childVisibleActionCount', 0);
+    if (childVisibleActionCount === 0) {
+        const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(
+            parentReport.reportID,
+            parentReport.lastVisibleActionCreated || '',
+            CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        if (isNotEmptyObject(optimisticParentReportData)) {
+            optimisticData.push(optimisticParentReportData);
+        }
+    }
+
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -821,6 +848,10 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     ];
 
     API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, successData, failureData});
+
+    if (shouldDeleteTaskReport) {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID));
+    }
 }
 
 /**
@@ -927,7 +958,7 @@ export {
     clearOutTaskInfoAndNavigate,
     getAssignee,
     getShareDestination,
-    cancelTask,
+    deleteTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     clearTaskErrors,
