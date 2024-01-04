@@ -4271,10 +4271,21 @@ function shouldDisableThread(reportAction: ReportAction, reportID: string) {
     );
 }
 
+function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): boolean {
+    if (!policy) {
+        return false;
+    }
+    const reimbursableTotal = getMoneyRequestReimbursableTotal(report);
+    const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
+    const isAutoReimbursable = isGroupPolicy(report) && policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && autoReimbursementLimit >= reimbursableTotal && reimbursableTotal > 0;
+    return isAutoReimbursable;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
+    canBeAutoReimbursed,
     canEditReportAction,
     canFlagReportAction,
     shouldShowFlagComment,
