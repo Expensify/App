@@ -94,6 +94,9 @@ type Transaction = {
     /** If the transaction was made in a foreign currency, we send the original amount and currency */
     originalAmount?: number;
     originalCurrency?: string;
+    taxRate?: {
+        text: string;
+    };
 };
 
 export default Transaction;

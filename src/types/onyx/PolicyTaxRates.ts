@@ -1,4 +1,4 @@
-type PolicyTaxRate = {
+type TaxRate = {
     /** Name of a tax */
     name: string;
 
@@ -9,6 +9,23 @@ type PolicyTaxRate = {
     isDisabled?: boolean;
 };
 
-type PolicyTaxRates = Record<string, PolicyTaxRate>;
-export default PolicyTaxRate;
-export type {PolicyTaxRates};
+type TaxRates = Record<string, TaxRate>;
+type PolicyTaxRates = {
+    /** Name of the tax */
+    name: string;
+
+    /** Default policy tax ID */
+    defaultExternalID: string;
+
+    /** Default value of taxes */
+    defaultValue: string;
+
+    /** Default foreign policy tax ID */
+    foreignTaxDefault: string;
+
+    /** List of tax names and values */
+    taxes: TaxRates;
+};
+
+export default TaxRate;
+export type {TaxRates, PolicyTaxRates};
