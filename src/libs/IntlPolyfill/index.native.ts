@@ -1,7 +1,7 @@
 import polyfillDateTimeFormat from './polyfillDateTimeFormat';
 import polyfillListFormat from './polyfillListFormat';
 import polyfillNumberFormat from './polyfillNumberFormat';
-import IntlPolyfill from './types';
+import type IntlPolyfill from './types';
 
 /**
  * Polyfill the Intl API, always performed for native devices.

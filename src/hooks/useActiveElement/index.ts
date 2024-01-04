@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import UseActiveElement from './types';
+import type UseActiveElement from './types';
 
 /**
  * Listens for the focusin and focusout events and sets the DOM activeElement to the state.

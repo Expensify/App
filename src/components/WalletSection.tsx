@@ -1,7 +1,7 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
-import IconAsset from '@src/types/utils/IconAsset';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Section from './Section';
 
 type WalletSectionProps = ChildrenProps & {
