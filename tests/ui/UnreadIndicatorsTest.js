@@ -31,6 +31,20 @@ jest.setTimeout(30000);
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 
+// Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
+jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
+    __esModule: true,
+    default: {
+        ignoreLogs: jest.fn(),
+        ignoreAllLogs: jest.fn(),
+    },
+}));
+
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual('react-native-reanimated/mock'),
+    createAnimatedPropAdapter: jest.fn,
+}));
+
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
  */

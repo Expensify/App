@@ -1,12 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PrivatePersonalDetails, Session} from '@src/types/onyx';
+import type {PrivatePersonalDetails, Session} from '@src/types/onyx';
+import ImageSVG from './ImageSVG';
 import Text from './Text';
 
 type CardPreviewOnyxProps = {
@@ -26,7 +28,9 @@ function CardPreview({privatePersonalDetails, session}: CardPreviewProps) {
 
     return (
         <View style={styles.walletCard}>
-            <ExpensifyCardImage
+            <ImageSVG
+                contentFit="contain"
+                src={ExpensifyCardImage}
                 pointerEvents="none"
                 height={variables.cardPreviewHeight}
                 width={variables.cardPreviewWidth}

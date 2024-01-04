@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import Button from './Button';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import sourcePropTypes from './Image/sourcePropTypes';
 import PopoverMenu from './PopoverMenu';
 
 const propTypes = {
@@ -40,7 +41,7 @@ const propTypes = {
         PropTypes.shape({
             value: PropTypes.string.isRequired,
             text: PropTypes.string.isRequired,
-            icon: PropTypes.elementType,
+            icon: sourcePropTypes,
             iconWidth: PropTypes.number,
             iconHeight: PropTypes.number,
             iconDescription: PropTypes.string,
