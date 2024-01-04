@@ -62,7 +62,7 @@ function BaseHTMLEngineProvider(props) {
             'mention-here': defaultHTMLElementModels.span.extend({tagName: 'mention-here'}),
             'next-step': defaultHTMLElementModels.span.extend({
                 tagName: 'next-step',
-                mixedUAStyles: {...styles.textLabelSupporting},
+                mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
             }),
             'next-step-email': defaultHTMLElementModels.span.extend({tagName: 'next-step-email'}),
             video: defaultHTMLElementModels.div.extend({
