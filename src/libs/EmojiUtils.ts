@@ -1,15 +1,16 @@
 import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
-import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
-import {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
-import IconAsset from '@src/types/utils/IconAsset';
-import {SupportedLanguage} from './EmojiTrie';
+import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};

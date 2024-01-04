@@ -1,5 +1,6 @@
-import {createContext, RefObject} from 'react';
-import {FlatList, GestureResponderEvent, View} from 'react-native';
+import type {RefObject} from 'react';
+import {createContext} from 'react';
+import type {FlatList, GestureResponderEvent, View} from 'react-native';
 
 type ReactionListAnchor = View | HTMLDivElement | null;
 

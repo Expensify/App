@@ -1,9 +1,10 @@
-import React, {MutableRefObject} from 'react';
-import {TextInput, View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import React from 'react';
+import type {MutableRefObject} from 'react';
+import type {TextInput, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
