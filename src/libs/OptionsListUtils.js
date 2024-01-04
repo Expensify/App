@@ -529,7 +529,9 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
         const lastActorDisplayName =
-            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? lastActorDetails.firstName || lastActorDetails.displayName : '';
+            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+                ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+                : '';
         let lastMessageText = lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
