@@ -1,12 +1,13 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails} from '@src/types/onyx';
-import Policy from '@src/types/onyx/Policy';
-import Report from '@src/types/onyx/Report';
-import ReportAction from '@src/types/onyx/ReportAction';
+import type {PersonalDetails} from '@src/types/onyx';
+import type Policy from '@src/types/onyx/Policy';
+import type Report from '@src/types/onyx/Report';
+import type ReportAction from '@src/types/onyx/ReportAction';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';

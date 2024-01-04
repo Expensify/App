@@ -132,9 +132,7 @@ function WorkspaceNewRoomPage(props) {
             '',
             visibility,
             writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
-
-            // The room might contain all policy members so notifying always should be opt-in only.
-            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             '',
             '',
             parsedWelcomeMessage,
@@ -231,9 +229,9 @@ function WorkspaceNewRoomPage(props) {
     const renderEmptyWorkspaceView = () => (
         <>
             <BlockingView
-                icon={Illustrations.ToddBehindCloud}
-                iconWidth={variables.modalTopIconWidth}
-                iconHeight={variables.modalTopIconHeight}
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyWorkspaceIconWidth}
+                iconHeight={variables.emptyWorkspaceIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
