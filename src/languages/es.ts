@@ -2494,7 +2494,7 @@ export default {
             buttonText1: 'Inicia un chat y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y obtiene $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierten en clientes.`,
+            body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
             buttonText1: 'Pide dinero, ',
