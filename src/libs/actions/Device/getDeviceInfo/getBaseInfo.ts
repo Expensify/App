@@ -1,5 +1,5 @@
 import packageConfig from '../../../../../package.json';
-import {GetBaseInfo} from './types';
+import type {GetBaseInfo} from './types';
 
 const getBaseInfo: GetBaseInfo = () => ({
     appVersion: packageConfig.version,
