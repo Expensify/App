@@ -62,8 +62,7 @@ type OptionsListProps = {
     boldStyle?: boolean;
 
     /** Callback to fire when a row is selected */
-    // TODO: Might want to use it from OptionRow
-    onSelectRow?: (option: OptionData, refElement: View | HTMLDivElement | null) => void | Promise<void>;
+    onSelectRow?: (option: OptionData, refElement: View) => void;
 
     /** Optional header message */
     headerMessage?: string;
@@ -110,10 +109,13 @@ type OptionsListProps = {
     /** Custom content to display in the floating footer */
     renderFooterContent?: () => JSX.Element;
 
-    // TODO: Verify below props
+    /** Whether to show a button pill instead of a standard tickbox */
     shouldShowMultipleOptionSelectorAsButton: boolean;
+
+    /** Text for button pill */
     multipleOptionSelectorButtonText: string;
 
+    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
     onAddToSelection: () => void;
 };
 
