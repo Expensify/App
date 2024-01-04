@@ -1,4 +1,4 @@
-import GetContextMenuItemStyle from './types';
+import type GetContextMenuItemStyle from './types';
 
 const getContextMenuItemStyles: GetContextMenuItemStyle = (styles) => [styles.popoverMenuItem];
 

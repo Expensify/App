@@ -6,15 +6,17 @@ import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
-import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Beta, Login, PersonalDetails, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import {Participant} from '@src/types/onyx/IOU';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
-import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import type {Beta, Login, PersonalDetails, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
 import * as CollectionUtils from './CollectionUtils';
 import * as ErrorUtils from './ErrorUtils';
@@ -25,7 +27,7 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import {PersonalDetailsList} from './PolicyUtils';
+import type {PersonalDetailsList} from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -97,6 +99,8 @@ type GetOptionsConfig = {
     recentlyUsedTags?: string[];
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
+    includePolicyTaxRates?: boolean;
+    policyTaxRates?: any;
 };
 
 type MemberForList = {
@@ -124,6 +128,7 @@ type GetOptions = {
     currentUserOption: ReportUtils.OptionData | null | undefined;
     categoryOptions: CategorySection[];
     tagOptions: CategorySection[];
+    policyTaxRatesOptions: any[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
@@ -919,23 +924,11 @@ function getCategoryListSections(
         return categorySections;
     }
 
-    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledCategories),
-        });
-
-        return categorySections;
-    }
-
     if (selectedOptions.length > 0) {
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
+            shouldShow: false,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
@@ -944,8 +937,23 @@ function getCategoryListSections(
     }
 
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
+    const numberOfVisibleCategories = selectedOptions.length + filteredCategories.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(filteredCategories),
+        });
+
+        return categorySections;
+    }
+
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && (categories[categoryName].enabled ?? false))
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -964,8 +972,6 @@ function getCategoryListSections(
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
-
-    const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
@@ -1108,6 +1114,174 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
 
     return tagSections;
 }
+type TaxRate = {
+    /** The name of the tax rate. */
+    name: string;
+
+    /** The value of the tax rate. */
+    value: string;
+
+    /** The code associated with the tax rate. */
+    code: string;
+
+    /** This contains the tax name and tax value as one name */
+    modifiedName: string;
+
+    /** Indicates if the tax rate is disabled. */
+    isDisabled?: boolean;
+};
+/**
+ * Represents the data for a single tax rate.
+ *
+ * @property {string} name - The name of the tax rate.
+ * @property {string} value - The value of the tax rate.
+ * @property {string} code - The code associated with the tax rate.
+ * @property {string} modifiedName - This contains the tax name and tax value as one name
+ * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
+ */
+
+/**
+ * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
+ *
+ * @param {Object} policyTaxRates - The original tax rates object.
+ * @returns {Object.<string, Object.<string, policyTaxRates>>} The transformed tax rates object.
+ */
+function transformedTaxRates(policyTaxRates) {
+    const defaultTaxKey = policyTaxRates.defaultExternalID;
+    const getModifiedName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+    return taxes;
+}
+
+/**
+ * Sorts tax rates alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} taxRates
+ * @returns {Array<Object>}
+ */
+function sortTaxRates(taxRates) {
+    const sortedtaxRates = _.chain(taxRates)
+        .values()
+        .sortBy((taxRate) => taxRate.name)
+        .value();
+
+    return sortedtaxRates;
+}
+
+/**
+ * Builds the options for taxRates
+ *
+ * @param {Object[]} taxRates - an initial object array
+ * @returns {Array<Object>}
+ */
+function getTaxRatesOptions(taxRates) {
+    return Object.values(taxRates).map((taxRate) => ({
+        text: taxRate.modifiedName,
+        keyForList: taxRate.code,
+        searchText: taxRate.modifiedName,
+        tooltipText: taxRate.modifiedName,
+        isDisabled: taxRate.isDisabled,
+        data: taxRate,
+    }));
+}
+
+/**
+ * Builds the section list for tax rates
+ *
+ * @param {Object} policyTaxRates
+ * @param {Object[]} selectedOptions
+ * @param {String} searchInputValue
+ * @returns {Array<Object>}
+ */
+function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
+    const policyRatesSections = [];
+
+    const taxes = transformedTaxRates(policyTaxRates);
+
+    const sortedTaxRates = sortTaxRates(taxes);
+    const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
+    const numberOfTaxRates = enabledTaxRates.length;
+
+    let indexOffset = 0;
+
+    // If all tax are disabled but there's a previously selected tag, show only the selected tag
+    if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
+        const selectedTaxRateOptions = selectedOptions.map((option) => ({
+            modifiedName: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            isDisabled: false,
+        }));
+        policyRatesSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTaxRatesOptions(selectedTaxRateOptions),
+        });
+
+        return policyRatesSections;
+    }
+
+    if (searchInputValue) {
+        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        policyRatesSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(searchTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+        policyRatesSections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTaxRatesOptions(enabledTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const filteredTaxRates = enabledTaxRates.filter((taxRate) => !selectedOptionNames.includes(taxRate.modifiedName));
+
+    if (selectedOptions.length > 0) {
+        const selectedTaxRatesOptions = selectedOptions.map((option) => {
+            const taxRateObject = taxes.find((taxRate) => taxRate.modifiedName === option.name);
+
+            return {
+                modifiedName: option.name,
+                isDisabled: Boolean(taxRateObject.isDisabled),
+            };
+        });
+
+        policyRatesSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(selectedTaxRatesOptions),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    policyRatesSections.push({
+        // "All" section when number of items are more than the threshold
+        title: '',
+        shouldShow: true,
+        indexOffset,
+        data: getTaxRatesOptions(filteredTaxRates),
+    });
+
+    return policyRatesSections;
+}
 
 /**
  * Build the options
@@ -1144,6 +1318,8 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
+        includePolicyTaxRates,
+        policyTaxRates,
     }: GetOptionsConfig,
 ): GetOptions {
     if (includeCategories) {
@@ -1156,6 +1332,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1169,6 +1346,22 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
+            policyTaxRatesOptions: [],
+        };
+    }
+
+    if (includePolicyTaxRates) {
+        console.log(policyTaxRates);
+        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            policyTaxRatesOptions,
         };
     }
 
@@ -1180,6 +1373,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1445,6 +1639,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
+        policyTaxRatesOptions: [],
     };
 }
 
@@ -1521,6 +1716,8 @@ function getFilteredOptions(
     recentlyUsedTags = [],
     canInviteUser = true,
     includeSelectedOptions = false,
+    includePolicyTaxRates = false,
+    policyTaxRates = {},
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1540,6 +1737,8 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
+        includePolicyTaxRates,
+        policyTaxRates,
     });
 }
 
@@ -1760,4 +1959,5 @@ export {
     getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
+    transformedTaxRates,
 };

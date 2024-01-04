@@ -1,7 +1,7 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {PolicyCategories, PolicyTags, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const ViolationsUtils = {
     /**
