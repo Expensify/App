@@ -7,6 +7,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as FileUtils from './fileDownload/FileUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
+import * as IOU from '@userActions/IOU';
 
 function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
     // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
@@ -39,6 +40,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     }
 
     const onFailure = () => {
+        IOU.setMoneyRequestReceipt_temporaryForRefactor(transactionID, '', '')
         if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
             return;
