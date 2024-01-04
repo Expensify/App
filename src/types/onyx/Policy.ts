@@ -82,6 +82,12 @@ type Policy = {
 
     /** The employee list of the policy */
     employeeList?: [];
+
+    /** The reimbursement choice for policy */
+    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
+
+    /** The maximum report total allowed to trigger auto reimbursement. */
+    autoReimbursementLimit?: number;
 };
 
 export default Policy;
