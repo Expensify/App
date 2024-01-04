@@ -13,6 +13,7 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
+import getShouldDisplayInDefaultIconColor from '@libs/getShouldDisplayInDefaultIconColor';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
@@ -26,7 +27,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getShouldDisplayInDefaultIconColor from './getShouldDisplayInDefaultIconColor';
 
 /**
  * @param {Object} [policy]
