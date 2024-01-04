@@ -408,8 +408,8 @@ type OnyxValues = {
     [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
-    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
-    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT]: OnyxTypes.ReimbursementAccountDraft;
+    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount & OnyxTypes.Form;
+    [ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT]: OnyxTypes.ReimbursementAccountDraft & OnyxTypes.Form;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: string | number;
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
@@ -474,8 +474,8 @@ type OnyxValues = {
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.PROFILE_SETTINGS_FORM_DRAFT]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: OnyxTypes.Form;
-    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.Form;
+    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM]: OnyxTypes.Form & {firstName: string; lastName: string};
+    [ONYXKEYS.FORMS.DISPLAY_NAME_FORM_DRAFT]: OnyxTypes.Form & {firstName: string; lastName: string};
     [ONYXKEYS.FORMS.ROOM_NAME_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.ROOM_NAME_FORM_DRAFT]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM]: OnyxTypes.Form;
@@ -531,4 +531,4 @@ type OnyxValues = {
 type OnyxKeyValue<TOnyxKey extends (OnyxKey | OnyxCollectionKey) & keyof OnyxValues> = OnyxEntry<OnyxValues[TOnyxKey]>;
 
 export default ONYXKEYS;
-export type {OnyxKey, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};
+export type {OnyxKey, FormTest, OnyxCollectionKey, OnyxValues, OnyxKeyValue, OnyxFormKey, OnyxKeysMap};

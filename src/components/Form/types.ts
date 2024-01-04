@@ -1,13 +1,17 @@
-import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, ReactNode, SyntheticEvent} from 'react';
-import type {GestureResponderEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type {ForwardedRef, ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type TextInput from '@components/TextInput';
+import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/onyx';
 
 type ValueType = 'string' | 'boolean' | 'date';
 
-type InputWrapperProps<TInputProps> = {
-    // TODO: refactor it as soon as TextInput will be written in typescript
-    InputComponent: ComponentType<TInputProps> | ForwardRefExoticComponent<unknown>;
+type ValidInput = typeof TextInput;
+
+type InputProps<TInput extends ValidInput> = Parameters<TInput>[0];
+
+type InputWrapperProps<TInput extends ValidInput> = InputProps<TInput> & {
+    InputComponent: TInput;
     inputID: string;
     valueType?: ValueType;
 };
@@ -15,9 +19,12 @@ type InputWrapperProps<TInputProps> = {
 type ExcludeDraft<T> = T extends `${string}Draft` ? never : T;
 type OnyxFormKeyWithoutDraft = ExcludeDraft<OnyxFormKey>;
 
-type FormProps = {
+type OnyxFormValues<TOnyxKey extends OnyxFormKey & keyof OnyxValues = OnyxFormKey> = OnyxValues[TOnyxKey];
+type OnyxFormValuesFields<TOnyxKey extends OnyxFormKey & keyof OnyxValues = OnyxFormKey> = Omit<OnyxValues[TOnyxKey], keyof Form>;
+
+type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** A unique Onyx key identifying the form */
-    formID: OnyxFormKey;
+    formID: TFormID;
 
     /** Text to be displayed in the submit button */
     submitButtonText: string;
@@ -44,34 +51,9 @@ type FormProps = {
     footerContent?: ReactNode;
 };
 
-type FormValuesFields<TForm extends Form> = Omit<TForm, keyof Form>;
-
-type InputRef = ForwardedRef<TextInput>;
+type InputRef = ForwardedRef<ValidInput>;
 type InputRefs = Record<string, InputRef>;
 
-type InputPropsToPass = {
-    ref?: InputRef;
-    key?: string;
-    value?: unknown;
-    defaultValue?: unknown;
-    shouldSaveDraft?: boolean;
-    shouldUseDefaultValue?: boolean;
-    valueType?: ValueType;
-    shouldSetTouchedOnBlurOnly?: boolean;
+type RegisterInput = <TInput extends ValidInput>(inputID: string, props: InputProps<TInput>) => InputProps<TInput>;
 
-    onValueChange?: (value: unknown, key?: string) => void;
-    onTouched?: (event: GestureResponderEvent | KeyboardEvent) => void;
-    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void;
-    onPressOut?: (event: GestureResponderEvent | KeyboardEvent) => void;
-    onBlur?: (event: SyntheticEvent<TextInput, FocusEvent> | FocusEvent) => void;
-    onInputChange?: (value: unknown, key?: string) => void;
-};
-
-type InputProps = InputPropsToPass & {
-    inputID: string;
-    errorText: string;
-};
-
-type RegisterInput = (inputID: string, props: InputPropsToPass) => InputProps;
-
-export type {InputWrapperProps, FormProps, InputRef, InputRefs, RegisterInput, ValueType, FormValuesFields, InputProps, OnyxFormKeyWithoutDraft};
+export type {InputWrapperProps, ValidInput, FormProps, InputRef, InputRefs, RegisterInput, ValueType, OnyxFormValues, OnyxFormValuesFields, InputProps, OnyxFormKeyWithoutDraft};
