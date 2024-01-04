@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
