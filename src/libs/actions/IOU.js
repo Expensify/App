@@ -174,12 +174,14 @@ function clearMoneyRequest(transactionID) {
 }
 
 /**
+ * Update money request-related pages IOU type params
+ *
  * @param {Object[]} routes
  * @param {String} newIouType
  */
 function updateMoneyRequestTypeParams(routes, newIouType) {
     routes.forEach((route) => {
-        if (route.name !== SCREENS.MONEY_REQUEST.CREATE && route.name !== SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS) {
+        if (!route.name.startsWith('Money_Request_')) {
             return;
         }
         Navigation.setParams({iouType: newIouType}, route.key);
