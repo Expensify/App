@@ -1,7 +1,7 @@
-import {ValueOf} from 'type-fest';
-import * as Localize from '@libs/Localize';
-import {AvatarSource} from '@libs/UserUtils';
-import CONST from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type {MaybePhraseKey} from '@libs/Localize';
+import type {AvatarSource} from '@libs/UserUtils';
+import type CONST from '@src/CONST';
 
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
@@ -9,7 +9,7 @@ type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | 
 
 type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
 
-type Errors = Record<string, Localize.MaybePhraseKey>;
+type Errors = Record<string, MaybePhraseKey>;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 

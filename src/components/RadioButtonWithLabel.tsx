@@ -1,5 +1,7 @@
-import React, {ComponentType} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {ComponentType} from 'react';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import FormHelpMessage from './FormHelpMessage';

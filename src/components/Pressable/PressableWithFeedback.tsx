@@ -1,10 +1,11 @@
 import React, {forwardRef, useState} from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
-import {AnimatedStyle} from 'react-native-reanimated';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import OpacityView from '@components/OpacityView';
 import variables from '@styles/variables';
 import GenericPressable from './GenericPressable';
-import PressableProps, {PressableRef} from './GenericPressable/types';
+import type {PressableRef} from './GenericPressable/types';
+import type PressableProps from './GenericPressable/types';
 
 type PressableWithFeedbackProps = PressableProps & {
     /** Style for the wrapper view */
