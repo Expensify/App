@@ -1944,7 +1944,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
         }
     }
 
-    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction)) {
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
         return !TransactionUtils.isReceiptBeingScanned(transaction) && !TransactionUtils.isDistanceRequest(transaction) && isRequestor;
     }
