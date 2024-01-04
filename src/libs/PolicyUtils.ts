@@ -224,5 +224,3 @@ export {
     isPolicyMember,
     isPaidGroupPolicy,
 };
-
-export type {PersonalDetailsList};

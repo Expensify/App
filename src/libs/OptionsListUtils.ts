@@ -11,7 +11,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Login, PersonalDetails, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
@@ -28,7 +28,6 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import type {PersonalDetailsList} from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -41,13 +40,7 @@ type Tag = {
     accountID: number | null;
 };
 
-type Option = {
-    text?: string | null;
-    keyForList?: string;
-    searchText?: string;
-    tooltipText?: string;
-    isDisabled?: boolean;
-};
+type Option = Partial<ReportUtils.OptionData>;
 
 type PayeePersonalDetails = {
     text: string;
@@ -62,7 +55,7 @@ type CategorySection = {
     title: string | undefined;
     shouldShow: boolean;
     indexOffset: number;
-    data: Option[] | Array<Participant | ReportUtils.OptionData>;
+    data: Option[];
 };
 
 type Category = {
@@ -75,7 +68,7 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
 type GetOptionsConfig = {
     reportActions?: ReportActions;
     betas?: Beta[];
-    selectedOptions?: Array<Participant | Category>;
+    selectedOptions?: Option[];
     maxRecentReportsToShow?: number;
     excludeLogins?: string[];
     includeMultipleParticipantReports?: boolean;
@@ -158,7 +151,7 @@ Onyx.connect({
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => (allPersonalDetails = Object.keys(value ?? {}).length === 0 ? {} : value),
+    callback: (value) => (allPersonalDetails = isEmptyObject(value) ? {} : value),
 });
 
 let preferredLocale: DeepValueOf<typeof CONST.LOCALES> = CONST.LOCALES.DEFAULT;
@@ -576,7 +569,7 @@ function createOption(
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
-    const personalDetailList = Object.values(personalDetailMap).filter(Boolean) as PersonalDetails[];
+    const personalDetailList = Object.values(personalDetailMap).filter((details): details is PersonalDetails => !!details);
     const personalDetail = personalDetailList[0];
     let hasMultipleParticipants = personalDetailList.length > 1;
     let subtitle;
@@ -661,7 +654,7 @@ function createOption(
     result.text = reportName;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    result.searchText = getSearchText(report, reportName, personalDetailList, !!(result.isChatRoom || result.isPolicyExpenseChat), !!result.isThread);
+    result.searchText = getSearchText(report, reportName, personalDetailList, !!result.isChatRoom || !!result.isPolicyExpenseChat, !!result.isThread);
     result.icons = ReportUtils.getIcons(
         report,
         personalDetails,
@@ -953,7 +946,7 @@ function getCategoryListSections(
     }
 
     const filteredRecentlyUsedCategories = recentlyUsedCategories
-        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
+        .filter((categoryName) => !selectedOptionNames.includes(categoryName) && categories[categoryName].enabled)
         .map((categoryName) => ({
             name: categoryName,
             enabled: categories[categoryName].enabled ?? false,
@@ -1065,7 +1058,7 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
             const tagObject = tags.find((tag) => tag.name === recentlyUsedTag);
-            return Boolean(tagObject && tagObject.enabled) && !selectedOptionNames.includes(recentlyUsedTag);
+            return !!tagObject?.enabled && !selectedOptionNames.includes(recentlyUsedTag);
         })
         .map((tag) => ({name: tag, enabled: true}));
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
@@ -1443,13 +1436,13 @@ function getOptions(
     }
 
     // Exclude the current user from the personal details list
-    const optionsToExclude = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Option[] = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
     // This prevents the issue of seeing the selected option twice if you have them as a recent chat and select them
     if (!includeSelectedOptions || searchInputValue === '') {
-        optionsToExclude.push(...(selectedOptions as Participant[]));
+        optionsToExclude.push(...selectedOptions);
     }
 
     excludeLogins.forEach((login) => {
@@ -1838,7 +1831,7 @@ function getHeaderMessageForNonUserList(hasSelectableOptions: boolean, searchVal
  * Helper method to check whether an option can show tooltip or not
  */
 function shouldOptionShowTooltip(option: ReportUtils.OptionData): boolean {
-    return Boolean((!option.isChatRoom || option.isThread) && !option.isArchivedRoom);
+    return (!option.isChatRoom || !!option.isThread) && !option.isArchivedRoom;
 }
 
 /**

@@ -1,5 +1,6 @@
 import {format} from 'date-fns';
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags, ReportAction} from '@src/types/onyx';

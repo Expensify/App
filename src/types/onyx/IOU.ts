@@ -1,8 +1,8 @@
-import {Icon} from './OnyxCommon';
+import type {Icon} from './OnyxCommon';
 
 type Participant = {
     accountID: number;
-    login: string | undefined;
+    login: string;
     isPolicyExpenseChat?: boolean;
     isOwnPolicyExpenseChat?: boolean;
     selected?: boolean;

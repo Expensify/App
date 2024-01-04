@@ -195,7 +195,6 @@ function OptionRow({
                             shouldHaveOptionSeparator && styles.borderTop,
                             !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
                         ]}
-                        accessible
                         accessibilityLabel={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
