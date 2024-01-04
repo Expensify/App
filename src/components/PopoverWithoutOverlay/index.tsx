@@ -1,4 +1,5 @@
-import React, {ForwardedRef, forwardRef, useContext, useEffect, useMemo} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {PopoverContext} from '@components/PopoverProvider';
@@ -8,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Modal from '@userActions/Modal';
 import viewRef from '@src/types/utils/viewRef';
-import PopoverWithoutOverlayProps from './types';
+import type PopoverWithoutOverlayProps from './types';
 
 function PopoverWithoutOverlay(
     {

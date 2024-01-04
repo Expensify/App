@@ -1,9 +1,11 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import {ImageContentFit} from 'expo-image';
-import React, {ForwardedRef, forwardRef, ReactNode, useEffect, useMemo, useRef, useState} from 'react';
-import {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
-import {AnimatedStyle} from 'react-native-reanimated';
-import {ValueOf} from 'type-fest';
+import type {ImageContentFit} from 'expo-image';
+import type {ForwardedRef, ReactNode} from 'react';
+import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,16 +14,16 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
-import {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import {Icon as IconType} from '@src/types/onyx/OnyxCommon';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import DisplayNames from './DisplayNames';
-import {DisplayNameWithTooltip} from './DisplayNames/types';
+import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
@@ -35,7 +37,7 @@ import Text from './Text';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
-    iconType: typeof CONST.ICON_TYPE_ICON;
+    iconType?: typeof CONST.ICON_TYPE_ICON;
 
     /** Icon to display on the left side of component */
     icon: IconAsset;
@@ -64,7 +66,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     badgeText?: string;
 
     /** Used to apply offline styles to child text components */
-    style?: StyleProp<ViewStyle>;
+    style?: ViewStyle;
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -211,7 +213,7 @@ type MenuItemProps = (IconProps | AvatarProps | NoIcon) & {
     furtherDetails?: string;
 
     /** The function that should be called when this component is LongPressed or right-clicked. */
-    onSecondaryInteraction?: () => void;
+    onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
     /** Array of objects that map display names to their corresponding tooltip */
     titleWithTooltips?: DisplayNameWithTooltip[];
@@ -289,7 +291,7 @@ function MenuItem(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const combinedStyle = [style, styles.popoverMenuItem];
+    const combinedStyle = StyleUtils.combineStyles(style ?? {}, styles.popoverMenuItem);
     const {isSmallScreenWidth} = useWindowDimensions();
     const [html, setHtml] = useState('');
     const titleRef = useRef('');

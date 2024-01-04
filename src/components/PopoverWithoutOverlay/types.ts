@@ -1,7 +1,7 @@
-import {RefObject} from 'react';
-import {View} from 'react-native';
-import BaseModalProps from '@components/Modal/types';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+import type BaseModalProps from '@components/Modal/types';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type PopoverWithoutOverlayProps = ChildrenProps &
     Omit<BaseModalProps, 'type' | 'popoverAnchorPosition'> & {

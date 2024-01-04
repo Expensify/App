@@ -1,6 +1,7 @@
-import React, {createContext, RefObject, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
+import type {RefObject} from 'react';
+import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {View} from 'react-native';
+import type {AnchorRef, PopoverContextProps, PopoverContextValue} from './types';
 
 const PopoverContext = createContext<PopoverContextValue>({
     onOpen: () => {},
