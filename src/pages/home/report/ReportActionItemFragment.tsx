@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {StyleProp, TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {AvatarProps} from '@components/Avatar';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -10,10 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
 
