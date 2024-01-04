@@ -1,4 +1,5 @@
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import * as Localize from '@libs/Localize';
 import CONST from '@src/CONST';
