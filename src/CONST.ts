@@ -512,6 +512,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 IOU: 'IOU',
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
@@ -719,6 +720,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        RESIZE_DEBOUNCE_TIME: 100,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -853,7 +855,7 @@ const CONST = {
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
     VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
-    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+[\s\w~!@#$%^&*(){}[\];':"`|?.,/\\+\-=<]+.*[\s]*)>/g,
+    VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX: /<([\s]+.+[\s]*)>/g,
 
     WHITELISTED_TAGS: [/<>/, /< >/, /<->/, /<-->/, /<br>/, /<br\/>/],
 
@@ -979,6 +981,7 @@ const CONST = {
     CHAT_FOOTER_SECONDARY_ROW_HEIGHT: 15,
     CHAT_FOOTER_SECONDARY_ROW_PADDING: 5,
     CHAT_FOOTER_MIN_HEIGHT: 65,
+    CHAT_FOOTER_HORIZONTAL_PADDING: 40,
     CHAT_SKELETON_VIEW: {
         AVERAGE_ROW_HEIGHT: 80,
         HEIGHT_FOR_ROW_COUNT: {
@@ -2942,6 +2945,7 @@ const CONST = {
     PARENT_CHILD_SEPARATOR: ': ',
     CATEGORY_LIST_THRESHOLD: 8,
     TAG_LIST_THRESHOLD: 8,
+    TAX_RATES_LIST_THRESHOLD: 8,
     COLON: ':',
     MAPBOX: {
         PADDING: 50,
