@@ -93,6 +93,12 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
     }, [activeIndex, index]);
     const isLightboxVisible = isLightboxInRange && (isActive || isLightboxLoaded || isFallbackLoaded);
 
+    // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
+    // so that we don't see two overlapping images at the same time.
+    // If there the Lightbox is not used within a carousel, we don't need to hide the Lightbox,
+    // because it's only going to be rendered after the fallback image is hidden.
+    const shouldHideLightbox = hasSiblingCarouselItems && isFallbackVisible;
+
     const isLoading = isActive && (!isContainerLoaded || !isImageLoaded);
 
     const updateCanvasSize = useCallback(
@@ -168,7 +174,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
             {isContainerLoaded && (
                 <>
                     {isLightboxVisible && (
-                        <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), {opacity: hasSiblingCarouselItems && isFallbackVisible ? 0 : 1}]}>
+                        <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getLightboxVisibilityStyle(shouldHideLightbox)]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
                                 onScaleChanged={onScaleChanged}

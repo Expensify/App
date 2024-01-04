@@ -1430,6 +1430,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     },
 
     getFullscreenCenteredContentStyles: () => [StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter],
+
+    getLightboxVisibilityStyle: (isHidden: boolean) => ({opacity: isHidden ? 0 : 1}),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
