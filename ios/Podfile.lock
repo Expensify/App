@@ -20,6 +20,7 @@ PODS:
     - Airship (= 16.12.1)
     - Airship/MessageCenter (= 16.12.1)
     - Airship/PreferenceCenter (= 16.12.1)
+  - AirshipServiceExtension (16.12.5)
   - AppAuth (1.6.2):
     - AppAuth/Core (= 1.6.2)
     - AppAuth/ExternalUserAgent (= 1.6.2)
@@ -613,7 +614,7 @@ PODS:
     - React-Core
   - react-native-pager-view (6.2.0):
     - React-Core
-  - react-native-pdf (6.7.3):
+  - react-native-pdf (6.7.4):
     - React-Core
   - react-native-performance (5.1.0):
     - React-Core
@@ -801,35 +802,10 @@ PODS:
     - React-Core
   - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
-  - RNReanimated (3.5.4):
-    - DoubleConversion
-    - FBLazyVector
-    - glog
-    - hermes-engine
-    - RCT-Folly
-    - RCTRequired
-    - RCTTypeSafety
-    - React-callinvoker
+  - RNReanimated (3.6.1):
+    - RCT-Folly (= 2021.07.22.00)
     - React-Core
-    - React-Core/DevSupport
-    - React-Core/RCTWebSocket
-    - React-CoreModules
-    - React-cxxreact
-    - React-hermes
-    - React-jsi
-    - React-jsiexecutor
-    - React-jsinspector
-    - React-RCTActionSheet
-    - React-RCTAnimation
-    - React-RCTAppDelegate
-    - React-RCTBlob
-    - React-RCTImage
-    - React-RCTLinking
-    - React-RCTNetwork
-    - React-RCTSettings
-    - React-RCTText
     - ReactCommon/turbomodule/core
-    - Yoga
   - RNScreens (3.21.0):
     - React-Core
     - React-RCTImage
@@ -857,6 +833,7 @@ PODS:
     - Yoga (~> 1.14)
 
 DEPENDENCIES:
+  - AirshipServiceExtension
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -974,6 +951,7 @@ SPEC REPOS:
   trunk:
     - Airship
     - AirshipFrameworkProxy
+    - AirshipServiceExtension
     - AppAuth
     - CocoaAsyncSocket
     - Firebase
@@ -1205,6 +1183,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Airship: 2f4510b497a8200780752a5e0304a9072bfffb6d
   AirshipFrameworkProxy: ea1b6c665c798637b93c465b5e505be3011f1d9d
+  AirshipServiceExtension: 89c6e25a69f3458d9dbd581c700cffb196b61930
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   boost: 57d2868c099736d80fcd648bf211b4431e51a558
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
@@ -1286,7 +1265,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 5af6ee30ff4932f78da6a2109017549042932aa5
   react-native-netinfo: ccbe1085dffd16592791d550189772e13bf479e2
   react-native-pager-view: 0ccb8bf60e2ebd38b1f3669fa3650ecce81db2df
-  react-native-pdf: b4ca3d37a9a86d9165287741c8b2ef4d8940c00e
+  react-native-pdf: 79aa75e39a80c1d45ffe58aa500f3cf08f267a2e
   react-native-performance: cef2b618d47b277fb5c3280b81a3aad1e72f2886
   react-native-plaid-link-sdk: df1618a85a615d62ff34e34b76abb7a56497fbc1
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
@@ -1329,7 +1308,7 @@ SPEC CHECKSUMS:
   rnmapbox-maps: 6f638ec002aa6e906a6f766d69cd45f968d98e64
   RNPermissions: 9b086c8f05b2e2faa587fdc31f4c5ab4509728aa
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
-  RNReanimated: ab2e96c6d5591c3dfbb38a464f54c8d17fb34a87
+  RNReanimated: fdbaa9c964bbab7fac50c90862b6cc5f041679b9
   RNScreens: d037903436160a4b039d32606668350d2a808806
   RNSVG: d00c8f91c3cbf6d476451313a18f04d220d4f396
   SDWebImage: 750adf017a315a280c60fde706ab1e552a3ae4e9
@@ -1342,6 +1321,6 @@ SPEC CHECKSUMS:
   Yoga: 3efc43e0d48686ce2e8c60f99d4e6bd349aff981
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: bfe134fd8d3bb1d9232f59a7601623c7193bca3e
+PODFILE CHECKSUM: c403784ee1fdf281bcc552696504207f3022cb66
 
 COCOAPODS: 1.12.1

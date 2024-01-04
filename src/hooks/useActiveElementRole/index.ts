@@ -1,5 +1,5 @@
 import {useEffect, useRef} from 'react';
-import UseActiveElementRole from './types';
+import type UseActiveElementRole from './types';
 
 /**
  * Listens for the focusin and focusout events and sets the DOM activeElement to the state.

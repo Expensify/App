@@ -1,4 +1,4 @@
-import * as OnyxCommon from './OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 type WalletOnfido = {
     /** Unique identifier returned from openOnfidoFlow then re-sent to ActivateWallet with Onfido response data */
