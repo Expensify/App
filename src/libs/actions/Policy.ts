@@ -3,8 +3,9 @@ import Str from 'expensify-common/lib/str';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
-import Onyx, {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import {NullishDeep, OnyxEntry} from 'react-native-onyx/lib/types';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry} from 'react-native-onyx/lib/types';
 import * as API from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -17,9 +18,9 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
-import {Errors} from '@src/types/onyx/OnyxCommon';
-import {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
+import type {PersonalDetailsList, Policy, PolicyMember, PolicyTags, RecentlyUsedCategories, RecentlyUsedTags, ReimbursementAccount, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {CustomUnit, NewCustomUnit} from '@src/types/onyx/Policy';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembers = {
