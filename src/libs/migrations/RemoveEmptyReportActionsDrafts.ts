@@ -1,8 +1,9 @@
 import _ from 'lodash';
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ReportActionsDraft, ReportActionsDrafts} from '@src/types/onyx';
+import type {ReportActionsDraft, ReportActionsDrafts} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`;

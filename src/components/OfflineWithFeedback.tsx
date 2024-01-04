@@ -1,12 +1,13 @@
 import React, {useCallback} from 'react';
-import {ImageStyle, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import CONST from '@src/CONST';
-import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import MessagesRow from './MessagesRow';
 
