@@ -7,7 +7,7 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 
-let currentUserAccountID: number | undefined;
+let sessionUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -16,7 +16,7 @@ Onyx.connect({
             return;
         }
 
-        currentUserAccountID = value.accountID;
+        sessionUserAccountID = value.accountID;
     },
 });
 
@@ -28,7 +28,7 @@ Onyx.connect({
     callback: (val) => {
         personalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
-        currentUserPersonalDetails = val?.[currentUserAccountID ?? -1] ?? null;
+        currentUserPersonalDetails = val?.[sessionUserAccountID ?? -1] ?? null;
     },
 });
 
@@ -44,14 +44,14 @@ function replaceLoginsWithDisplayNames(text: string, details: PersonalDetails[],
             return replacedText;
         }
 
-        return replacedText.replaceAll(detail.login, getDisplayNameOrDefault(detail?.displayName));
+        return replacedText.replaceAll(detail.login, getDisplayNameOrDefault(detail));
     }, text);
 
     if (!includeCurrentAccount || !currentUserPersonalDetails) {
         return result;
     }
 
-    return result.replaceAll(currentUserPersonalDetails.login ?? '', getDisplayNameOrDefault(currentUserPersonalDetails?.displayName));
+    return result.replaceAll(currentUserPersonalDetails.login ?? '', getDisplayNameOrDefault(currentUserPersonalDetails));
 }
 
 /**
