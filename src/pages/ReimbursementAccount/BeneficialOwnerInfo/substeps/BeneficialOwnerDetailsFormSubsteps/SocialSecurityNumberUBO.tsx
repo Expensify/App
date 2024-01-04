@@ -1,44 +1,38 @@
-import lodashGet from 'lodash/get';
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import Form from '@components/Form';
+import InputWrapper from '@components/Form/InputWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
-import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-const propTypes = {
-    /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    /** ID of the beneficial owner that is being modified */
-    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
-
-    ...subStepPropTypes,
-};
+import {ReimbursementAccountDraft} from '@src/types/onyx';
+import {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const SSN_LAST_4 = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
 
-const defaultProps = {
-    reimbursementAccountDraft: {},
+type SocialSecurityNumberUBOOnyxProps = {
+    /** The draft values of the bank account being setup */
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
+type SocialSecurityNumberUBOProps = SubStepProps & SocialSecurityNumberUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
+type FormValues = BeneficialOwnerDraftData;
 
-function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}) {
+function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}: SocialSecurityNumberUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const ssnLast4InputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}`;
-    const defaultSsnLast4 = lodashGet(reimbursementAccountDraft, ssnLast4InputID, '');
+    const ssnLast4InputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${SSN_LAST_4}`;
+    const defaultSsnLast4 = reimbursementAccountDraft?.[ssnLast4InputID] ?? '';
 
-    const validate = (values) => {
+    const validate = (values: FormValues) => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, [ssnLast4InputID]);
         if (values[ssnLast4InputID] && !ValidationUtils.isValidSSNLastFour(values[ssnLast4InputID])) {
             errors[ssnLast4InputID] = 'bankAccount.error.ssnLast4';
@@ -47,6 +41,7 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
     };
 
     return (
+        // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
         <Form
             formID={ONYXKEYS.REIMBURSEMENT_ACCOUNT}
             submitButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
@@ -59,7 +54,9 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
                 <Text style={[styles.textHeadline]}>{translate('beneficialOwnerInfoStep.enterTheLast4')}</Text>
                 <Text style={[styles.mb3]}>{translate('beneficialOwnerInfoStep.dontWorry')}</Text>
                 <View style={[styles.flex1]}>
-                    <TextInput
+                    <InputWrapper
+                        // @ts-expect-error TODO: Remove this once InputWrapper (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
+                        InputComponent={TextInput}
                         inputID={ssnLast4InputID}
                         label={translate('beneficialOwnerInfoStep.last4SSN')}
                         aria-label={translate('beneficialOwnerInfoStep.last4SSN')}
@@ -76,14 +73,9 @@ function SocialSecurityNumberUBO({reimbursementAccountDraft, onNext, isEditing, 
     );
 }
 
-SocialSecurityNumberUBO.propTypes = propTypes;
-SocialSecurityNumberUBO.defaultProps = defaultProps;
 SocialSecurityNumberUBO.displayName = 'SocialSecurityNumberUBO';
 
-export default withOnyx({
-    reimbursementAccount: {
-        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    },
+export default withOnyx<SocialSecurityNumberUBOProps, SocialSecurityNumberUBOOnyxProps>({
     reimbursementAccountDraft: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
     },
