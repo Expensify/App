@@ -7,6 +7,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -38,6 +39,7 @@ import OptionsSelector from './OptionsSelector';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import tagPropTypes from './tagPropTypes';
+import taxPropTypes from './taxPropTypes';
 import Text from './Text';
 import transactionPropTypes from './transactionPropTypes';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
@@ -97,6 +99,9 @@ const propTypes = {
     /** Should the list be read only, and not editable? */
     isReadOnly: PropTypes.bool,
 
+    /** Whether the money request is a scan request */
+    isScanRequest: PropTypes.bool,
+
     /** Depending on expense report or personal IOU report, respective bank account route */
     bankAccountRoute: PropTypes.string,
 
@@ -140,9 +145,6 @@ const propTypes = {
     /** Whether the money request is a distance request */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether the money request is a scan request */
-    isScanRequest: PropTypes.bool,
-
     /** Whether we're editing a split bill */
     isEditingSplitBill: PropTypes.bool,
 
@@ -158,6 +160,10 @@ const propTypes = {
 
     /** Collection of tags attached to a policy */
     policyTags: tagPropTypes,
+
+    /* Onyx Props */
+    /** Collection of tax rates attached to a policy */
+    policyTaxRates: taxPropTypes,
 
     /** Transaction that represents the money request */
     transaction: transactionPropTypes,
@@ -191,9 +197,9 @@ const defaultProps = {
     transaction: {},
     mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate: 0, currency: 'USD'},
     isDistanceRequest: false,
-    isScanRequest: false,
     shouldShowSmartScanFields: true,
     isPolicyExpenseChat: false,
+    policyTaxRates: {},
 };
 
 function MoneyTemporaryForRefactorRequestConfirmationList({
@@ -235,16 +241,16 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     session: {accountID},
     shouldShowSmartScanFields,
     transaction,
+    policyTaxRates,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const {canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-
-    const isSplitWithScan = isTypeSplit && isScanRequest;
 
     const {unit, rate, currency} = mileageRate;
     const distance = lodashGet(transaction, 'routes.route0.distance', 0);
@@ -259,9 +265,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // Do not hide fields in case of send money request
     const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
 
-    // In Send Money flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
-    const shouldShowDate = shouldShowAllFields && !isTypeSend && !isSplitWithScan;
-    const shouldShowMerchant = shouldShowAllFields && !isTypeSend && !isDistanceRequest && !isSplitWithScan;
+    const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
+    const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest;
 
     // Fetches the first tag list of the policy
     const policyTag = PolicyUtils.getTag(policyTags);
@@ -270,6 +275,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // A flag for showing the tags field
     const shouldShowTags = isPolicyExpenseChat && OptionsListUtils.hasEnabledOptions(_.values(policyTagList));
+
+    // A flag for showing tax rate
+    const shouldShowTax = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
 
     // A flag for showing the billable field
     const shouldShowBillable = !lodashGet(policy, 'disabledFields.defaultBillable', true);
@@ -282,12 +290,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
               shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
           );
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
+
+    const defaultTaxKey = policyTaxRates.defaultExternalID;
+    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
+    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
+
+    const [merchantError, setMerchantError] = useState(false);
 
     const shouldDisplayFieldError = useMemo(() => {
         if (!isEditingSplitBill) {
@@ -296,6 +311,21 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
         return (hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
+
+    const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
+
+    useEffect(() => {
+        if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
+            return;
+        }
+        if (!isMerchantEmpty && merchantError) {
+            setMerchantError(false);
+            if (formError === 'iou.error.invalidMerchant') {
+                setFormError('');
+            }
+        }
+    }, [formError, isMerchantEmpty, merchantError, isMerchantRequired]);
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -306,9 +336,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
+        if (merchantError) {
+            setFormError('iou.error.invalidMerchant');
+            return;
+        }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -478,6 +512,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             if (_.isEmpty(selectedParticipants)) {
                 return;
             }
+            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction))) {
+                setMerchantError(true);
+                return;
+            }
 
             if (iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
@@ -506,7 +544,21 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 onConfirm(selectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, isEditingSplitBill, iouType, isDistanceRequest, isDistanceRequestWithoutRoute, iouCurrencyCode, iouAmount, transaction],
+        [
+            selectedParticipants,
+            isMerchantRequired,
+            isMerchantEmpty,
+            shouldDisplayFieldError,
+            transaction,
+            iouType,
+            onSendMoney,
+            iouCurrencyCode,
+            isDistanceRequest,
+            isDistanceRequestWithoutRoute,
+            iouAmount,
+            isEditingSplitBill,
+            onConfirm,
+        ],
     );
 
     const footerContent = useMemo(() => {
@@ -559,7 +611,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 {button}
             </>
         );
-    }, [confirm, bankAccountRoute, iouCurrencyCode, iouType, isReadOnly, policyID, selectedParticipants, splitOrRequestOptions, translate, formError, styles.ph1, styles.mb2]);
+    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, translate]);
 
     const {image: receiptImage, thumbnail: receiptThumbnail} = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : {};
     return (
@@ -637,6 +689,26 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 interactive={!isReadOnly}
                 numberOfLinesTitle={2}
             />
+            {isMerchantRequired && (
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!isReadOnly}
+                    title={isMerchantEmpty ? '' : iouMerchant}
+                    description={translate('common.merchant')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (isEditingSplitBill) {
+                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID, CONST.EDIT_REQUEST_FIELD.MERCHANT));
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                    error={merchantError ? translate('common.error.fieldRequired') : ''}
+                />
+            )}
             {!shouldShowAllFields && (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
@@ -688,10 +760,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             interactive={!isReadOnly}
                         />
                     )}
-                    {shouldShowMerchant && (
+                    {!isMerchantRequired && shouldShowMerchant && (
                         <MenuItemWithTopDescription
                             shouldShowRightIcon={!isReadOnly}
-                            title={iouMerchant}
+                            title={isMerchantEmpty ? '' : iouMerchant}
                             description={translate('common.merchant')}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}
@@ -704,8 +776,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             }}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
-                            brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
-                            error={shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction) ? translate('common.error.enterMerchant') : ''}
+                            brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : ''}
+                            error={merchantError ? translate('common.error.fieldRequired') : ''}
                         />
                     )}
                     {shouldShowCategories && (
@@ -721,6 +793,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                             titleStyle={styles.flex1}
                             disabled={didConfirm}
                             interactive={!isReadOnly}
+                            rightLabel={canUseViolations && Boolean(policy.requiresCategory) ? translate('common.required') : ''}
                         />
                     )}
                     {shouldShowTags && (
@@ -733,6 +806,36 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
                             }
                             style={[styles.moneyRequestMenuItem]}
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                            rightLabel={canUseViolations && Boolean(policy.requiresTag) ? translate('common.required') : ''}
+                        />
+                    )}
+                    {shouldShowTax && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!isReadOnly}
+                            title={taxRateTitle}
+                            description={policyTaxRates.name}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                            }
+                            disabled={didConfirm}
+                            interactive={!isReadOnly}
+                        />
+                    )}
+
+                    {shouldShowTax && (
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={!isReadOnly}
+                            title={formattedTaxAmount}
+                            description={policyTaxRates.name}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction.transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                            }
                             disabled={didConfirm}
                             interactive={!isReadOnly}
                         />
@@ -775,6 +878,9 @@ export default compose(
         },
         policy: {
             key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
+        policyTaxRates: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
         },
     }),
 )(MoneyTemporaryForRefactorRequestConfirmationList);

@@ -23,7 +23,7 @@ function QuickEmojiReactions(props) {
             // As the menu which includes the button to open the emoji picker
             // gets closed, before the picker actually opens, we pass the composer
             // ref as anchor for the emoji picker popover.
-            openPicker(ReportActionComposeFocusManager.composerRef.current);
+            openPicker(ReportActionComposeFocusManager.composerRef);
         });
     };
 
