@@ -249,7 +249,6 @@ function AddPlaidBankAccount({
                     height={iconSize}
                     width={iconSize}
                     additionalStyles={iconStyles}
-                    displayInDefaultIconColor
                 />
                 <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
             </View>
