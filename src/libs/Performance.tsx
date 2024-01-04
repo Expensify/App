@@ -112,7 +112,7 @@ if (Metrics.canCapturePerformanceMetrics()) {
 
                 // we don't want the alert to show on an e2e test session
                 if (!isE2ETestSession()) {
-                    Performance.printPerformanceMetrics();
+                    // Performance.printPerformanceMetrics();
                 }
             });
         });

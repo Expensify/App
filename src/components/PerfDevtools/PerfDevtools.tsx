@@ -4,7 +4,7 @@ import Performance from 'react-native-performance';
 const onPress = () => {
     const metrics = Performance.getEntries();
     console.log('Devtools collecting performance metrics...', metrics);
-    fetch('http://localhost:8000', {
+    fetch('http://192.168.1.10:8000', {
         method: 'POST',
         body: JSON.stringify(metrics),
     });
