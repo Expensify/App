@@ -929,7 +929,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
                 [updatedReportAction.reportActionID]: {
                     ...updatedReportAction,
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
-                }
+                },
             },
         });
 
