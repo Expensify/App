@@ -1052,6 +1052,36 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
 }
 
 /**
+ * Updates the created tax amount of a money request
+ *
+ * @param {String} transactionID
+ * @param {String} optimisticReportActionID
+ * @param {Number} val
+ */
+function updateMoneyRequestTaxAmount(transactionID, optimisticReportActionID, val) {
+    const transactionChanges = {
+        taxAmount: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, true);
+    API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
+}
+
+/**
+ * Updates the created tax rate of a money request
+ *
+ * @param {String} transactionID
+ * @param {String} optimisticReportActionID
+ * @param {String} val
+ */
+function updateMoneyRequestTaxRate(transactionID, optimisticReportActionID, val) {
+    const transactionChanges = {
+        taxCode: val,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, true);
+    API.write('UpdateMoneyRequestTaxRate', params, onyxData);
+}
+
+/**
  * Edits an existing distance request
  *
  * @param {String} transactionID
@@ -3490,6 +3520,8 @@ export {
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
+    updateMoneyRequestTaxAmount,
+    updateMoneyRequestTaxRate,
     updateMoneyRequestAmountAndCurrency,
     replaceReceipt,
     detachReceipt,
