@@ -1,6 +1,7 @@
 import delay from 'lodash/delay';
 import React, {useEffect, useRef, useState} from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
