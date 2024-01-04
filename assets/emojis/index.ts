@@ -1,7 +1,7 @@
 import emojis from './common';
 import enEmojis from './en';
 import esEmojis from './es';
-import {Emoji} from './types';
+import type {Emoji} from './types';
 
 type EmojiTable = Record<string, Emoji>;
 

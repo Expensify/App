@@ -1,20 +1,23 @@
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/lib/utils';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
-import Report from '@src/types/onyx/Report';
-import ReportAction, {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import {EmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ActionName, ChangeLog} from '@src/types/onyx/OriginalMessage';
+import type Report from '@src/types/onyx/Report';
+import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type ReportAction from '@src/types/onyx/ReportAction';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
-import {MessageElementBase, MessageTextElement} from './MessageElement';
+import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 type LastVisibleMessage = {
@@ -764,6 +767,14 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
+/**
+ * MARKEDREIMBURSED reportActions come from marking a report as reimbursed in OldDot. For now, we just
+ * concat all of the text elements of the message to create the full message.
+ */
+function getMarkedReimbursedMessage(reportAction: OnyxEntry<ReportAction>): string {
+    return reportAction?.message?.map((element) => element.text).join('') ?? '';
+}
+
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
     const messageElements = getMemberChangeMessageElements(reportAction);
     return messageElements.map((element) => element.content).join('');
@@ -834,6 +845,7 @@ export {
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
+    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
