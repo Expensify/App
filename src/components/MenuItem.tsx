@@ -234,7 +234,7 @@ type MenuItemProps = (ResponsiveProps | UnresponsiveProps) &
         contentFit?: ImageContentFit;
 
         /** Is this in the Pane */
-        isPaneMenu: false;
+        isPaneMenu?: false;
     };
 
 function MenuItem(

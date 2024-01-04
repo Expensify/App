@@ -298,7 +298,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS.ROOT)}
                 title={translate('common.workspaces')}
                 style={!isSmallScreenWidth && styles.alignItemsCenter}
-                shouldUseCentralPaneView
+                shouldShowBackButton={isSmallScreenWidth}
                 footer={
                     isSmallScreenWidth && (
                         <Button
@@ -336,8 +336,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, c
             <View style={{flex: 1}}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBorderBottom
-                    shouldUseCentralPaneView
+                    shouldShowBackButton={isSmallScreenWidth}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
