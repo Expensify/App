@@ -380,7 +380,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 }
 
 /**
- * Checks if the new marker should be shown for the report action.
+ * Checks if the new marker should be hidden for the report action.
  */
 function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
