@@ -817,7 +817,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: true,
+                shouldShow: false,
                 indexOffset: 0,
                 data: [
                     {
@@ -1291,65 +1291,6 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const smallTagsListWithParentChild = {
-            Movies: {
-                enabled: true,
-                name: 'Movies',
-            },
-            'Movies: Avengers: Endgame': {
-                enabled: true,
-                name: 'Movies: Avengers: Endgame',
-                unencodedName: 'Movies: Avengers: Endgame',
-            },
-            Places: {
-                enabled: false,
-                name: 'Places',
-            },
-            Task: {
-                enabled: true,
-                name: 'Task',
-            },
-        };
-
-        const smallResultListWithParentChild = [
-            {
-                title: '',
-                shouldShow: false,
-                indexOffset: 0,
-                // data sorted alphabetically by name
-                data: [
-                    {
-                        text: 'Movies',
-                        keyForList: 'Movies',
-                        searchText: 'Movies',
-                        tooltipText: 'Movies',
-                        isDisabled: false,
-                    },
-                    {
-                        text: '    Avengers',
-                        keyForList: 'Movies: Avengers',
-                        searchText: 'Movies: Avengers',
-                        tooltipText: 'Avengers',
-                        isDisabled: true,
-                    },
-                    {
-                        text: '        Endgame',
-                        keyForList: 'Movies: Avengers: Endgame',
-                        searchText: 'Movies: Avengers: Endgame',
-                        tooltipText: 'Endgame',
-                        isDisabled: false,
-                    },
-                    {
-                        text: 'Task',
-                        keyForList: 'Task',
-                        searchText: 'Task',
-                        tooltipText: 'Task',
-                        isDisabled: false,
-                    },
-                ],
-            },
-        ];
-
         const smallResult = OptionsListUtils.getFilteredOptions(REPORTS, PERSONAL_DETAILS, [], emptySearch, [], [], false, false, false, {}, [], true, smallTagsList);
         expect(smallResult.tagOptions).toStrictEqual(smallResultList);
 
@@ -1412,26 +1353,9 @@ describe('OptionsListUtils', () => {
             recentlyUsedTags,
         );
         expect(largeWrongSearchResult.tagOptions).toStrictEqual(largeWrongSearchResultList);
-
-        const smallResultWithParentChild = OptionsListUtils.getFilteredOptions(
-            REPORTS,
-            PERSONAL_DETAILS,
-            [],
-            emptySearch,
-            [],
-            [],
-            false,
-            false,
-            false,
-            {},
-            [],
-            true,
-            smallTagsListWithParentChild,
-        );
-        expect(smallResultWithParentChild.tagOptions).toStrictEqual(smallResultListWithParentChild);
     });
 
-    it('getIndentedOptionTree()', () => {
+    it('getCategoryOptionTree()', () => {
         const categories = {
             Meals: {
                 enabled: true,
@@ -1744,8 +1668,8 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        expect(OptionsListUtils.getIndentedOptionTree(categories)).toStrictEqual(result);
-        expect(OptionsListUtils.getIndentedOptionTree(categories, true)).toStrictEqual(resultOneLine);
+        expect(OptionsListUtils.getCategoryOptionTree(categories)).toStrictEqual(result);
+        expect(OptionsListUtils.getCategoryOptionTree(categories, true)).toStrictEqual(resultOneLine);
     });
 
     it('sortCategories', () => {
@@ -2061,6 +1985,148 @@ describe('OptionsListUtils', () => {
         expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering)).toStrictEqual(result);
         expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering2)).toStrictEqual(result2);
         expect(OptionsListUtils.sortCategories(categoriesIncorrectOrdering3)).toStrictEqual(result3);
+    });
+
+    it('getFilteredOptions() for taxRate', () => {
+        const search = 'rate';
+        const emptySearch = '';
+        const wrongSearch = 'bla bla';
+
+        const policyTaxRatesWithDefault = {
+            name: 'Tax',
+            defaultExternalID: 'CODE1',
+            defaultValue: '0%',
+            foreignTaxDefault: 'CODE1',
+            taxes: {
+                CODE2: {
+                    name: 'Tax rate 2',
+                    value: '3%',
+                },
+                CODE3: {
+                    name: 'Tax option 3',
+                    value: '5%',
+                },
+                CODE1: {
+                    name: 'Tax exempt 1',
+                    value: '0%',
+                },
+            },
+        };
+
+        const resultList = [
+            {
+                title: '',
+                shouldShow: false,
+                indexOffset: 0,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        // Adds 'Default' title to default tax.
+                        // Adds value to tax name for more description.
+                        text: 'Tax exempt 1 (0%) • Default',
+                        keyForList: 'CODE1',
+                        searchText: 'Tax exempt 1 (0%) • Default',
+                        tooltipText: 'Tax exempt 1 (0%) • Default',
+                        isDisabled: undefined,
+                        // creates a data option.
+                        data: {
+                            name: 'Tax exempt 1',
+                            code: 'CODE1',
+                            modifiedName: 'Tax exempt 1 (0%) • Default',
+                            value: '0%',
+                        },
+                    },
+                    {
+                        text: 'Tax option 3 (5%)',
+                        keyForList: 'CODE3',
+                        searchText: 'Tax option 3 (5%)',
+                        tooltipText: 'Tax option 3 (5%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax option 3',
+                            code: 'CODE3',
+                            modifiedName: 'Tax option 3 (5%)',
+                            value: '5%',
+                        },
+                    },
+                    {
+                        text: 'Tax rate 2 (3%)',
+                        keyForList: 'CODE2',
+                        searchText: 'Tax rate 2 (3%)',
+                        tooltipText: 'Tax rate 2 (3%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax rate 2',
+                            code: 'CODE2',
+                            modifiedName: 'Tax rate 2 (3%)',
+                            value: '3%',
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const searchResultList = [
+            {
+                title: '',
+                shouldShow: true,
+                indexOffset: 0,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        text: 'Tax rate 2 (3%)',
+                        keyForList: 'CODE2',
+                        searchText: 'Tax rate 2 (3%)',
+                        tooltipText: 'Tax rate 2 (3%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax rate 2',
+                            code: 'CODE2',
+                            modifiedName: 'Tax rate 2 (3%)',
+                            value: '3%',
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const wrongSearchResultList = [
+            {
+                title: '',
+                shouldShow: true,
+                indexOffset: 0,
+                data: [],
+            },
+        ];
+
+        const result = OptionsListUtils.getFilteredOptions({}, {}, [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, policyTaxRatesWithDefault);
+
+        expect(result.policyTaxRatesOptions).toStrictEqual(resultList);
+
+        const searchResult = OptionsListUtils.getFilteredOptions({}, {}, [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, policyTaxRatesWithDefault);
+        expect(searchResult.policyTaxRatesOptions).toStrictEqual(searchResultList);
+
+        const wrongSearchResult = OptionsListUtils.getFilteredOptions(
+            {},
+            {},
+            [],
+            wrongSearch,
+            [],
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            false,
+            false,
+            true,
+            policyTaxRatesWithDefault,
+        );
+        expect(wrongSearchResult.policyTaxRatesOptions).toStrictEqual(wrongSearchResultList);
     });
 
     it('formatMemberForList()', () => {

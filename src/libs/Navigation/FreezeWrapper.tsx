@@ -2,7 +2,7 @@ import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
 import {InteractionManager} from 'react-native';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type FreezeWrapperProps = ChildrenProps & {
     /** Prop to disable freeze */
