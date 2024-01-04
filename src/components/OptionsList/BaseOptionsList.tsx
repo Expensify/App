@@ -104,9 +104,6 @@ function BaseOptionsList(
         if (isEqual(sections, previousSections)) {
             return;
         }
-        if (sections === previousSections) {
-            return;
-        }
         flattenedData.current = buildFlatSectionArray();
     });
 
