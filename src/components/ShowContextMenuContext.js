@@ -35,7 +35,7 @@ function showContextMenuForReport(event, anchor, reportID, action, checkIfContex
         reportID,
         action.reportActionID,
         ReportUtils.getOriginalReportID(reportID, action),
-        '',
+        undefined,
         checkIfContextMenuActive,
         checkIfContextMenuActive,
         isArchivedRoom,

@@ -1,4 +1,4 @@
-import {CodeTextStyles, CodeWordStyles, CodeWordWrapperStyles} from './types';
+import type {CodeTextStyles, CodeWordStyles, CodeWordWrapperStyles} from './types';
 
 const codeWordWrapper: CodeWordWrapperStyles = {
     height: 22,
@@ -14,4 +14,8 @@ const codeTextStyle: CodeTextStyles = {
     lineHeight: 18,
 };
 
-export default {codeWordWrapper, codeWordStyle, codeTextStyle};
+const codePlainTextStyle: CodeTextStyles = {
+    lineHeight: 15,
+};
+
+export default {codeWordWrapper, codeWordStyle, codeTextStyle, codePlainTextStyle};

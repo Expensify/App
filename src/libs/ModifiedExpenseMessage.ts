@@ -1,13 +1,13 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PolicyTags, ReportAction} from '@src/types/onyx';
+import type {PolicyTags, ReportAction} from '@src/types/onyx';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
-import {ExpenseOriginalMessage} from './ReportUtils';
+import type {ExpenseOriginalMessage} from './ReportUtils';
 
 let allPolicyTags: Record<string, PolicyTags | null> = {};
 Onyx.connect({

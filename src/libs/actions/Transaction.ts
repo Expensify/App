@@ -7,9 +7,9 @@ import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, Transaction} from '@src/types/onyx';
-import {OnyxData} from '@src/types/onyx/Request';
-import {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {RecentWaypoint, Transaction} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
+import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({

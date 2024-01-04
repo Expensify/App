@@ -55,9 +55,6 @@ const propTypes = {
     /** Whether or not the composer is full size */
     isComposerFullSize: PropTypes.bool.isRequired,
 
-    /** Updates the isComposerFullSize value */
-    updateShouldShowSuggestionMenuToFalse: PropTypes.func.isRequired,
-
     /** Whether or not the user is blocked from concierge */
     isBlockedFromConcierge: PropTypes.bool.isRequired,
 
@@ -96,6 +93,9 @@ const propTypes = {
 
     /** Whether or not the screen is focused */
     isFocused: PropTypes.bool.isRequired,
+
+    /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
+    raiseIsScrollLikelyLayoutTriggered: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -116,7 +116,6 @@ function AttachmentPickerWithMenuItems({
     displayFileInModal,
     isFullComposerAvailable,
     isComposerFullSize,
-    updateShouldShowSuggestionMenuToFalse,
     reportID,
     isBlockedFromConcierge,
     disabled,
@@ -129,6 +128,7 @@ function AttachmentPickerWithMenuItems({
     onItemSelected,
     actionButtonRef,
     isFocused,
+    raiseIsScrollLikelyLayoutTriggered,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -236,7 +236,7 @@ function AttachmentPickerWithMenuItems({
                                     <PressableWithFeedback
                                         onPress={(e) => {
                                             e.preventDefault();
-                                            updateShouldShowSuggestionMenuToFalse();
+                                            raiseIsScrollLikelyLayoutTriggered();
                                             Report.setIsComposerFullSize(reportID, false);
                                         }}
                                         // Keep focus on the composer when Collapse button is clicked.
@@ -258,7 +258,7 @@ function AttachmentPickerWithMenuItems({
                                     <PressableWithFeedback
                                         onPress={(e) => {
                                             e.preventDefault();
-                                            updateShouldShowSuggestionMenuToFalse();
+                                            raiseIsScrollLikelyLayoutTriggered();
                                             Report.setIsComposerFullSize(reportID, true);
                                         }}
                                         // Keep focus on the composer when Expand button is clicked.

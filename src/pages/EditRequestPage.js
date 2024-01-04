@@ -104,7 +104,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
         // Do not dismiss the modal, when a current user can edit this property of the money request.
-        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit)) {
+        if (ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, parentReport.reportID, fieldToEdit, transaction)) {
             return;
         }
 
@@ -112,7 +112,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [parentReportAction, parentReport.reportID, fieldToEdit]);
+    }, [parentReportAction, parentReport.reportID, fieldToEdit, transaction]);
 
     // Update the transaction object and close the modal
     function editMoneyRequest(transactionChanges) {
@@ -147,6 +147,19 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
             Navigation.dismissModal();
         },
         [transaction, report],
+    );
+
+    const saveTag = useCallback(
+        ({tag: newTag}) => {
+            let updatedTag = newTag;
+            if (newTag === transactionTag) {
+                // In case the same tag has been selected, reset the tag.
+                updatedTag = '';
+            }
+            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag);
+            Navigation.dismissModal();
+        },
+        [transactionTag, transaction.transactionID, report.reportID],
     );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
@@ -193,13 +206,23 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         return (
             <EditRequestMerchantPage
                 defaultMerchant={transactionMerchant}
+                isPolicyExpenseChat={isPolicyExpenseChat}
                 onSubmit={(transactionChanges) => {
+                    const newTrimmedMerchant = transactionChanges.merchant.trim();
+
                     // In case the merchant hasn't been changed, do not make the API request.
-                    if (transactionChanges.merchant.trim() === transactionMerchant) {
+                    // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
+                    if (newTrimmedMerchant === transactionMerchant || (newTrimmedMerchant === '' && transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
                         Navigation.dismissModal();
                         return;
                     }
-                    editMoneyRequest({merchant: transactionChanges.merchant.trim()});
+
+                    // This is possible only in case of IOU requests.
+                    if (newTrimmedMerchant === '') {
+                        editMoneyRequest({merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT});
+                        return;
+                    }
+                    editMoneyRequest({merchant: newTrimmedMerchant});
                 }}
             />
         );
@@ -228,15 +251,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 defaultTag={transactionTag}
                 tagName={tagListName}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={(transactionChanges) => {
-                    let updatedTag = transactionChanges.tag;
-
-                    // In case the same tag has been selected, reset the tag.
-                    if (transactionTag === updatedTag) {
-                        updatedTag = '';
-                    }
-                    editMoneyRequest({tag: updatedTag, tagListName});
-                }}
+                onSubmit={saveTag}
             />
         );
     }

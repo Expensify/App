@@ -1,4 +1,4 @@
-import {CropOptions, CropOrRotateImage, CropOrRotateImageOptions} from './types';
+import type {CropOptions, CropOrRotateImage, CropOrRotateImageOptions} from './types';
 
 type SizeFromAngle = {
     width: number;
