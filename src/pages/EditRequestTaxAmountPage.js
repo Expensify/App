@@ -29,7 +29,6 @@ const propTypes = {
 function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurrency, onNavigateToCurrency, onSubmit}) {
     const {translate} = useLocalize();
     const textInput = useRef(null);
-    const isEditing = Navigation.getActiveRoute().includes('taxAmount');
 
     const focusTimeoutRef = useRef(null);
 
