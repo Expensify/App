@@ -148,6 +148,7 @@ function ReportScreen({
     report,
     reportMetadata,
     reportActions,
+    parentReportActions,
     accountManagerReportID,
     personalDetails,
     markReadyForHydration,
@@ -189,18 +190,12 @@ function ReportScreen({
 
     // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
     const isLoadingInitialReportActions = _.isEmpty(filteredReportActions) && reportMetadata.isLoadingInitialReportActions;
-
     const isOptimisticDelete = lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.CLOSED;
-
     const shouldHideReport = !ReportUtils.canAccessReport(report, policies, betas);
-
     const isLoading = !reportID || !isSidebarLoaded || _.isEmpty(personalDetails);
-
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const parentReportAction = parentReportActions[report.parentReportActionID];
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report);
-
     const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] || {};
-
     const isTopMostReportId = currentReportID === getReportID(route);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
@@ -243,7 +238,6 @@ function ReportScreen({
                 policy={policy}
                 personalDetails={personalDetails}
                 isSingleTransactionView={isSingleTransactionView}
-                parentReportAction={parentReportAction}
             />
         );
     }
