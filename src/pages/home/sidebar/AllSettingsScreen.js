@@ -89,7 +89,7 @@ function AllSettingsScreen() {
                                 }
                             })}
                             shouldBlockSelection={Boolean(item.link)}
-                            focused={activeRoute && activeRoute.startsWith(item.routeName)}
+                            focused={activeRoute && item.routeName && activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.replaceAll('/', '')}
                             isPaneMenu
                         />
                     );
