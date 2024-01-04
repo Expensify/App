@@ -21,7 +21,7 @@ import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated} from
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -250,7 +250,7 @@ type TransactionDetails =
           amount: number;
           currency: string;
           merchant: string;
-          waypoints?: WaypointCollection;
+          waypoints?: WaypointCollection | string;
           comment: string;
           category: string;
           billable: boolean;
@@ -2090,7 +2090,7 @@ function getReportPreviewMessage(
  *
  * At the moment, we only allow changing one transaction field at a time.
  */
-function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction>, transactionChanges: ExpenseOriginalMessage, isFromExpenseReport: boolean): ExpenseOriginalMessage {
+function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction>, transactionChanges: TransactionChanges, isFromExpenseReport: boolean): ExpenseOriginalMessage {
     const originalMessage: ExpenseOriginalMessage = {};
     // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
     // all others have old/- pattern such as oldCreated/created
@@ -2856,9 +2856,9 @@ function buildOptimisticReportPreview(
  * Builds an optimistic modified expense action with a randomly generated reportActionID.
  */
 function buildOptimisticModifiedExpenseReportAction(
-    transactionThread: OnyxEntry<Transaction>,
+    transactionThread: OnyxEntry<Report>,
     oldTransaction: OnyxEntry<Transaction>,
-    transactionChanges: ExpenseOriginalMessage,
+    transactionChanges: TransactionChanges,
     isFromExpenseReport: boolean,
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport);
@@ -4413,4 +4413,4 @@ export {
     shouldDisableThread,
 };
 
-export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction};
+export type {ExpenseOriginalMessage, OptionData, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails};

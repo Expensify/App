@@ -26,7 +26,7 @@ import Permissions from '@libs/Permissions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import type {MoneyRequestNavigatorParamList} from '@navigation/types';
@@ -38,7 +38,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, TaxRate, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
@@ -81,6 +81,17 @@ type SplitData = {
 type SplitsAndOnyxData = {
     splitData: SplitData;
     splits: Participant[];
+    onyxData: OnyxData;
+};
+
+type UpdateMoneyRequestParams = Partial<TransactionDetails> & {
+    reportID?: string;
+    transactionID: string;
+    reportActionID?: string;
+};
+
+type UpdateMoneyRequestData = {
+    params: UpdateMoneyRequestParams;
     onyxData: OnyxData;
 };
 
@@ -864,44 +875,55 @@ function createDistanceRequest(
 }
 
 /**
- * @param {String} transactionID
- * @param {String} transactionThreadReportID
- * @param {Object} transactionChanges
- * @param {String} [transactionChanges.created] Present when updated the date field
- * @param {Boolean} onlyIncludeChangedFields
- *                      When 'true', then the returned params will only include the transaction details for the fields that were changed.
- *                      When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
- *                      This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
- * @returns {object}
+ * @param transactionChanges
+ * @param [transactionChanges.created] Present when updated the date field
+ * @param onlyIncludeChangedFields
+ *               When 'true', then the returned params will only include the transaction details for the fields that were changed.
+ *               When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
+ *               This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
  */
-function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, onlyIncludeChangedFields) {
-    const optimisticData = [];
-    const successData = [];
-    const failureData = [];
+function getUpdateMoneyRequestParams(
+    transactionID: string,
+    transactionThreadReportID: string,
+    transactionChanges: TransactionChanges,
+    onlyIncludeChangedFields: boolean,
+): UpdateMoneyRequestData {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
-    const pendingFields = _.mapObject(transactionChanges, () => CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-    const clearedPendingFields = _.mapObject(transactionChanges, () => null);
-    const errorFields = _.mapObject(pendingFields, () => ({
-        [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage'),
-    }));
+    const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
+    const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
+    const errorFields = Object.fromEntries(
+        Object.keys(pendingFields).map((key) => [
+            key,
+            {
+                [DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage'),
+            },
+        ]),
+    );
 
     // Step 2: Get all the collections being updated
-    const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.parentReportID}`];
+    const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
-    const updatedTransaction = TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport);
+    const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
     const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
 
-    // This needs to be a JSON string since we're sending this to the MapBox API
-    transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+    if (transactionDetails?.waypoints) {
+        // This needs to be a JSON string since we're sending this to the MapBox API
+        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+    }
 
-    const dataToIncludeInParams = onlyIncludeChangedFields ? _.pick(transactionDetails, _.keys(transactionChanges)) : transactionDetails;
+    const dataToIncludeInParams: Partial<TransactionDetails> = onlyIncludeChangedFields
+        ? (Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key))) as Partial<TransactionDetails>)
+        : transactionDetails;
 
-    const params = {
+    const params: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
-        reportID: iouReport.reportID,
+        reportID: iouReport?.reportID,
         transactionID,
     };
 
@@ -909,29 +931,29 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     // We don't create a modified report action if we're updating the waypoints,
     // since there isn't actually any optimistic data we can create for them and the report action is created on the server
     // with the response from the MapBox API
-    if (!_.has(transactionChanges, 'waypoints')) {
+    if (!('waypoints' in transactionChanges)) {
         const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: updatedReportAction,
+                [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
             },
         });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
                 [updatedReportAction.reportActionID]: {pendingAction: null},
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: updatedReportAction,
+                [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
             },
         });
 
@@ -939,23 +961,25 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         // Should only update if the transaction matches the currency of the report, else we wait for the update
         // from the server with the currency conversion
         let updatedMoneyRequestReport = {...iouReport};
-        if (updatedTransaction.currency === iouReport.currency && updatedTransaction.modifiedAmount) {
+        if (updatedTransaction?.currency === iouReport?.currency && updatedTransaction?.modifiedAmount) {
             const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
-            if (ReportUtils.isExpenseReport(iouReport)) {
+            if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
                 updatedMoneyRequestReport.total += diff;
             } else {
-                updatedMoneyRequestReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID, diff, TransactionUtils.getCurrency(transaction), false);
+                updatedMoneyRequestReport = iouReport
+                    ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
+                    : {};
             }
 
             updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                 value: updatedMoneyRequestReport,
             });
             successData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                 value: {pendingAction: null},
             });
         }
@@ -968,30 +992,36 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         value: {
             ...updatedTransaction,
             pendingFields,
-            isLoading: _.has(transactionChanges, 'waypoints'),
+            isLoading: 'waypoints' in transactionChanges,
             errorFields: null,
         },
     });
 
     // Update recently used categories if the category is changed
-    if (_.has(transactionChanges, 'category')) {
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, transactionChanges.category);
-        if (!_.isEmpty(optimisticPolicyRecentlyUsedCategories)) {
+    if ('category' in transactionChanges) {
+        const optimisticPolicyRecentlyUsedCategories: OptimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(
+            iouReport?.policyID,
+            transactionChanges.category,
+        ) as OptimisticPolicyRecentlyUsedCategories;
+        if (optimisticPolicyRecentlyUsedCategories.length) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport?.policyID}`,
                 value: optimisticPolicyRecentlyUsedCategories,
             });
         }
     }
 
     // Update recently used categories if the tag is changed
-    if (_.has(transactionChanges, 'tag')) {
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, transactionChanges.tag);
+    if ('tag' in transactionChanges) {
+        const optimisticPolicyRecentlyUsedTags: OptimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(
+            iouReport?.policyID,
+            transactionChanges.tag,
+        ) as OptimisticPolicyRecentlyUsedTags;
         if (!_.isEmpty(optimisticPolicyRecentlyUsedTags)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport?.policyID}`,
                 value: optimisticPolicyRecentlyUsedTags,
             });
         }
@@ -1008,7 +1038,7 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
         },
     });
 
-    if (_.has(transactionChanges, 'waypoints')) {
+    if ('waypoints' in transactionChanges) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -1031,8 +1061,8 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
     // Reset the iouReport to it's original state
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-        value: iouReport,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+        value: iouReport as OnyxTypes.Report,
     });
 
     return {

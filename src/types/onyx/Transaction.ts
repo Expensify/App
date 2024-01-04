@@ -116,6 +116,7 @@ type Transaction = {
     /** If the transaction was made in a foreign currency, we send the original amount and currency */
     originalAmount?: number;
     originalCurrency?: string;
+    isLoading?: boolean;
 };
 
 type TransactionDraft = Partial<Transaction> & {
@@ -126,7 +127,12 @@ type TransactionDraft = Partial<Transaction> & {
     taxAmount?: number;
 };
 
-type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
+type AdditionalTransactionChanges = {
+    comment?: string;
+    waypoints?: WaypointCollection;
+    oldAmount?: number;
+    oldCurrency?: string;
+};
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
