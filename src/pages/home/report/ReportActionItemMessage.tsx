@@ -18,7 +18,7 @@ type ReportActionItemMessageProps = {
     displayAsGroup: boolean;
 
     /** Additional styles to add after local styles. */
-    style?: StyleProp<ViewStyle> | StyleProp<TextStyle>;
+    style?: StyleProp<ViewStyle>;
 
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
