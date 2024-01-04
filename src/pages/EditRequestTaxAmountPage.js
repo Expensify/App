@@ -54,7 +54,6 @@ function EditRequestTaxAmountPage({defaultAmount, defaultTaxAmount, defaultCurre
         >
             <HeaderWithBackButton title={translate('iou.taxAmount')} />
             <MoneyRequestAmountForm
-                isEditing={isEditing}
                 currency={defaultCurrency}
                 amount={defaultAmount}
                 taxAmount={defaultTaxAmount}
