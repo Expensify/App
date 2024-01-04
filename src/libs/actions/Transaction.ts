@@ -134,7 +134,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
-        amount: CONST.IOU.DEFAULT_AMOUNT
+        amount: CONST.IOU.DEFAULT_AMOUNT,
     };
 
     if (!isRemovedWaypointEmpty) {
