@@ -38,7 +38,7 @@ type CompanyOwnersListUBOIOnyxProps = {
 
 type CompanyOwnersListUBOProps = {
     /** Method called when user confirms data */
-    handleUBOsConfirmation: ButtonProps['onPress'];
+    handleUBOsConfirmation: () => void;
 
     /** Method called when user presses on one of UBOs to edit its data */
     handleUBOEdit: (value: string) => void;
