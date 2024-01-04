@@ -9,6 +9,8 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
  * Show alert on successful attachment download
  */
 function showSuccessAlert() {
+    const successMessage = `Check your photos or downloads folder for a copy of your QR code. Protip: Add it to a presentation for your audience to scan and connect with you directly.`;
+
     Alert.alert(
         Localize.translateLocal('fileDownload.success.title'),
         Localize.translateLocal('fileDownload.success.message'),
@@ -18,7 +20,7 @@ function showSuccessAlert() {
                 style: 'cancel',
             },
         ],
-        {cancelable: false},
+        { cancelable: false, message: successMessage }
     );
 }
 
