@@ -39,8 +39,9 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Comment, Receipt, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
-import {EmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
 import * as Report from './Report';
 
@@ -93,6 +94,26 @@ type UpdateMoneyRequestParams = Partial<TransactionDetails> & {
 type UpdateMoneyRequestData = {
     params: UpdateMoneyRequestParams;
     onyxData: OnyxData;
+};
+
+type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+
+type SendMoneyParams = {
+    iouReportID: string;
+    chatReportID: string;
+    reportActionID: string;
+    paymentMethodType: PaymentMethodType;
+    transactionID: string;
+    newIOUReportDetails: string;
+    createdReportActionID: string;
+    reportPreviewReportActionID: string;
+};
+
+type SendMoneyParamsData = {
+    params: SendMoneyParams;
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
 };
 
 let betas: OnyxTypes.Beta[] = [];
@@ -2693,17 +2714,20 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
 }
 
 /**
- * @param {Object} report
- * @param {Number} amount
- * @param {String} currency
- * @param {String} comment
- * @param {String} paymentMethodType
- * @param {String} managerID - Account ID of the person sending the money
- * @param {Object} recipient - The user receiving the money
+ * @param managerID - Account ID of the person sending the money
+ * @param recipient - The user receiving the money
  * @returns {Object}
  */
-function getSendMoneyParams(report, amount, currency, comment, paymentMethodType, managerID, recipient) {
-    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login);
+function getSendMoneyParams(
+    report: OnyxTypes.Report,
+    amount: number,
+    currency: string,
+    comment: string,
+    paymentMethodType: PaymentMethodType,
+    managerID: number,
+    recipient: Participant,
+): SendMoneyParamsData {
+    const recipientEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
     const newIOUReportDetails = JSON.stringify({
         amount,
@@ -2726,7 +2750,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
 
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, optimisticIOUReport.reportID, comment);
-    const optimisticTransactionData = {
+    const optimisticTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: optimisticTransaction,
@@ -2749,36 +2773,49 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
 
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
-    // First, add data that will be used in all cases
-    const optimisticChatReportData = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-        value: {
-            ...chatReport,
-            lastReadTime: DateUtils.getDBTime(),
-            lastVisibleActionCreated: reportPreviewAction.created,
-        },
-    };
-    const optimisticIOUReportData = {
+    // Change the method to set for new reports because it doesn't exist yet, is faster,
+    // and we need the data to be available when we navigate to the chat page
+    let optimisticChatReportData: OnyxUpdate = isNewChat
+        ? {
+              onyxMethod: Onyx.METHOD.SET,
+              key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+              value: {
+                  ...chatReport,
+                  // Set and clear pending fields on the chat report
+                  pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                  lastReadTime: DateUtils.getDBTime(),
+                  lastVisibleActionCreated: reportPreviewAction.created,
+              },
+          }
+        : {
+              onyxMethod: Onyx.METHOD.MERGE,
+              key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+              value: {
+                  ...chatReport,
+                  lastReadTime: DateUtils.getDBTime(),
+                  lastVisibleActionCreated: reportPreviewAction.created,
+              },
+          };
+    const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
         value: {
             ...optimisticIOUReport,
-            lastMessageText: optimisticIOUReportAction.message[0].text,
-            lastMessageHtml: optimisticIOUReportAction.message[0].html,
+            lastMessageText: optimisticIOUReportAction.message?.[0].text,
+            lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
         },
     };
-    const optimisticIOUReportActionsData = {
+    const optimisticIOUReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
             [optimisticIOUReportAction.reportActionID]: {
-                ...optimisticIOUReportAction,
+                ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
     };
-    const optimisticChatReportActionsData = {
+    const optimisticChatReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
@@ -2786,7 +2823,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     };
 
-    const successData = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
@@ -2812,7 +2849,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     ];
 
-    const failureData = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
@@ -2822,26 +2859,19 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         },
     ];
 
-    let optimisticPersonalDetailListData = {};
+    let optimisticPersonalDetailListData: OnyxUpdate | EmptyObject = {};
 
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
-        // Change the method to set for new reports because it doesn't exist yet, is faster,
-        // and we need the data to be available when we navigate to the chat page
-        optimisticChatReportData.onyxMethod = Onyx.METHOD.SET;
-        optimisticIOUReportData.onyxMethod = Onyx.METHOD.SET;
-
-        // Set and clear pending fields on the chat report
-        optimisticChatReportData.value.pendingFields = {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: optimisticChatReportData.key,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {pendingFields: null},
         });
         failureData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: optimisticChatReportData.key,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
                     errorFields: {
                         createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
@@ -2887,8 +2917,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         });
     }
 
-    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticChatReportActionsData, optimisticIOUReportActionsData, optimisticTransactionData];
-    if (!_.isEmpty(optimisticPersonalDetailListData)) {
+    const optimisticData: OnyxUpdate[] = [optimisticChatReportData, optimisticIOUReportData, optimisticChatReportActionsData, optimisticIOUReportActionsData, optimisticTransactionData];
+    if (isNotEmptyObject(optimisticPersonalDetailListData)) {
         optimisticData.push(optimisticPersonalDetailListData);
     }
 
@@ -2900,7 +2930,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : '',
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
         },
         optimisticData,
@@ -3052,14 +3082,10 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
 }
 
 /**
- * @param {Object} report
- * @param {Number} amount
- * @param {String} currency
- * @param {String} comment
- * @param {String} managerID - Account ID of the person sending the money
- * @param {Object} recipient - The user receiving the money
+ * @param managerID - Account ID of the person sending the money
+ * @param recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipient) {
+function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
@@ -3070,14 +3096,10 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
 }
 
 /**
- * @param {Object} report
- * @param {Number} amount
- * @param {String} currency
- * @param {String} comment
- * @param {String} managerID - Account ID of the person sending the money
- * @param {Object} recipient - The user receiving the money
+ * @param managerID - Account ID of the person sending the money
+ * @param recipient - The user receiving the money
  */
-function sendMoneyWithWallet(report, amount, currency, comment, managerID, recipient) {
+function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
