@@ -16,7 +16,6 @@ const usePinchGesture = ({
     isSwipingInPager,
     stopAnimation,
     onScaleChanged,
-    onPinchGestureChange,
 }) => {
     // The current pinch gesture event scale
     const currentPinchScale = useSharedValue(1);
@@ -104,6 +103,10 @@ const usePinchGesture = ({
             ) {
                 zoomScale.value = newZoomScale;
                 currentPinchScale.value = evt.scale;
+
+                if (onScaleChanged != null) {
+                    runOnJS(onScaleChanged)(zoomScale.value);
+                }
             }
 
             // Calculate new pinch translation
@@ -137,37 +140,28 @@ const usePinchGesture = ({
                 pinchBounceTranslateY.value = withSpring(0, MultiGestureCanvasUtils.SPRING_CONFIG);
             }
 
+            const triggerScaleChangeCallback = () => {
+                if (onScaleChanged == null) {
+                    return;
+                }
+
+                runOnJS(onScaleChanged)(zoomScale.value);
+            };
+
             if (zoomScale.value < zoomRange.min) {
                 // If the zoom scale is less than the minimum zoom scale, we need to set the zoom scale to the minimum
                 pinchScale.value = zoomRange.min;
-                zoomScale.value = withSpring(zoomRange.min, MultiGestureCanvasUtils.SPRING_CONFIG);
+                zoomScale.value = withSpring(zoomRange.min, MultiGestureCanvasUtils.SPRING_CONFIG, triggerScaleChangeCallback);
             } else if (zoomScale.value > zoomRange.max) {
                 // If the zoom scale is higher than the maximum zoom scale, we need to set the zoom scale to the maximum
                 pinchScale.value = zoomRange.max;
-                zoomScale.value = withSpring(zoomRange.max, MultiGestureCanvasUtils.SPRING_CONFIG);
+                zoomScale.value = withSpring(zoomRange.max, MultiGestureCanvasUtils.SPRING_CONFIG, triggerScaleChangeCallback);
             } else {
                 // Otherwise, we just update the pinch scale offset
                 pinchScale.value = zoomScale.value;
-            }
-
-            if (onScaleChanged != null) {
-                runOnJS(onScaleChanged)(pinchScale.value);
+                triggerScaleChangeCallback();
             }
         });
-
-    // The "useAnimatedReaction" triggers a state update only when the value changed,
-    // which then triggers the "onPinchGestureChange" callback
-    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(false);
-    useAnimatedReaction(
-        () => [zoomScale.value, isPinchGestureRunning.value],
-        ([zoom]) => {
-            const newIsPinchGestureInUse = zoom !== 1;
-            if (isPinchGestureRunning !== newIsPinchGestureInUse) {
-                runOnJS(setIsPinchGestureRunning)(newIsPinchGestureInUse);
-            }
-        },
-    );
-    useEffect(() => onPinchGestureChange(isPinchGestureRunning), [isPinchGestureRunning, onPinchGestureChange]);
 
     return pinchGesture;
 };

@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
@@ -53,7 +53,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged: onScal
         [attachmentCarouselPagerContext],
     );
 
-    const onScaleChanged = useMemo(
+    const onScaleChanged = useCallback(
         (newScale) => {
             onScaleChangedProp(newScale);
             onScaleChangedContext(newScale);

@@ -23,7 +23,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const pagerRef = useRef(null);
     const [page, setPage] = useState();
     const [attachments, setAttachments] = useState([]);
-    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
+    const [isZoomedOut, setIsZoomedOut] = useState(true);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
     const [activeSource, setActiveSource] = useState(source);
 
@@ -107,6 +107,20 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         [activeSource, attachments.length, page, setShouldShowArrows, shouldShowArrows],
     );
 
+    const handleScaleChange = useCallback(
+        (newScale) => {
+            const newIsZoomedOut = newScale === 1;
+
+            if (isZoomedOut === newIsZoomedOut) {
+                return;
+            }
+
+            setIsZoomedOut(newIsZoomedOut);
+            setShouldShowArrows(newIsZoomedOut);
+        },
+        [isZoomedOut, setShouldShowArrows],
+    );
+
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
@@ -127,7 +141,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                     ) : (
                         <>
                             <CarouselButtons
-                                shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
+                                shouldShowArrows={shouldShowArrows}
                                 page={page}
                                 attachments={attachments}
                                 onBack={() => cycleThroughAttachments(-1)}
@@ -141,12 +155,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                                 renderItem={renderItem}
                                 initialIndex={page}
                                 onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                                onPinchGestureChange={(newIsPinchGestureRunning) => {
-                                    setIsPinchGestureRunning(newIsPinchGestureRunning);
-                                    if (!newIsPinchGestureRunning && !shouldShowArrows) {
-                                        setShouldShowArrows(true);
-                                    }
-                                }}
+                                onScaleChanged={handleScaleChange}
                                 ref={pagerRef}
                             />
                         </>
