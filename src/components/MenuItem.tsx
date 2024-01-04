@@ -531,7 +531,6 @@ function MenuItem(
                                                     src={furtherDetailsIcon}
                                                     height={variables.iconSizeNormal}
                                                     width={variables.iconSizeNormal}
-                                                    fill={theme.icon}
                                                     inline
                                                 />
                                                 <Text
