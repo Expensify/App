@@ -70,8 +70,6 @@ function AllSettingsScreen() {
                 {_.map(data.items, (item, index) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
 
-                    console.log('test', activeRoute.toLowerCase());
-                    console.log('routeName', item.routeName);
                     return (
                         <MenuItem
                             key={`${keyTitle}_${index}`}
