@@ -101,7 +101,7 @@
     "domhandler": "^4.3.0",
     "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#398bf7c6a6d37f229a41d92bd7a4324c0fd32849",
     "expo": "^50.0.0-preview.7",
-    "expo-image": "1.10.1",
+    "expo-image": "1.8.1",
     "fbjs": "^3.0.2",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
