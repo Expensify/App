@@ -1,17 +1,14 @@
-import type {ForwardedRef} from 'react';
 import React from 'react';
-import type {StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type TextInputSelection from '@src/types/utils/TextInputSelection';
-import TextInputComponent from './TextInput';
+import type {TextSelection} from './Composer/types';
+import TextInput from './TextInput';
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
     formattedAmount: string;
-
-    /** A ref to forward to amount text input */
-    forwardedRef?: ForwardedRef<TextInput>;
 
     /** Function to call when amount in text input is changed */
     onChangeAmount: (amount: string) => void;
@@ -20,7 +17,7 @@ type AmountTextInputProps = {
     placeholder: string;
 
     /** Selection Object */
-    selection?: TextInputSelection;
+    selection?: TextSelection;
 
     /** Function to call when selection in text input is changed */
     onSelectionChange?: () => void;
@@ -35,27 +32,17 @@ type AmountTextInputProps = {
     onKeyPress?: () => void;
 };
 
-function AmountTextInput({
-    formattedAmount,
-    forwardedRef = undefined,
-    onChangeAmount,
-    placeholder,
-    selection = undefined,
-    onSelectionChange = () => {},
-    style = {},
-    containerStyles = {},
-    onKeyPress = () => {},
-}: AmountTextInputProps) {
+function AmountTextInput({formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, containerStyles, onKeyPress}: AmountTextInputProps, ref: BaseTextInputRef) {
     const styles = useThemeStyles();
     return (
-        <TextInputComponent
+        <TextInput
             disableKeyboard
             autoGrow
             hideFocusedState
             inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, style]}
             textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={onChangeAmount}
-            ref={forwardedRef}
+            ref={ref}
             value={formattedAmount}
             placeholder={placeholder}
             inputMode={CONST.INPUT_MODE.NUMERIC}
