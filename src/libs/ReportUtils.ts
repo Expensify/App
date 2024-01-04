@@ -244,23 +244,21 @@ type OptimisticTaskReport = Pick<
     | 'lastVisibleActionCreated'
 >;
 
-type TransactionDetails =
-    | {
-          created: string;
-          amount: number;
-          currency: string;
-          merchant: string;
-          waypoints?: WaypointCollection | string;
-          comment: string;
-          category: string;
-          billable: boolean;
-          tag: string;
-          mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-          cardID: number;
-          originalAmount: number;
-          originalCurrency: string;
-      }
-    | undefined;
+type TransactionDetails = {
+    created: string;
+    amount: number;
+    currency: string;
+    merchant: string;
+    waypoints?: WaypointCollection | string;
+    comment: string;
+    category: string;
+    billable: boolean;
+    tag: string;
+    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+    cardID: number;
+    originalAmount: number;
+    originalCurrency: string;
+};
 
 type OptimisticIOUReport = Pick<
     Report,
@@ -1787,7 +1785,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
 
-function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING): TransactionDetails {
+function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING): TransactionDetails | undefined {
     if (!transaction) {
         return;
     }

@@ -917,7 +917,7 @@ function getUpdateMoneyRequestParams(
         transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
     }
 
-    const dataToIncludeInParams: Partial<TransactionDetails> = onlyIncludeChangedFields
+    const dataToIncludeInParams: Partial<TransactionDetails> | undefined = onlyIncludeChangedFields
         ? (Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key))) as Partial<TransactionDetails>)
         : transactionDetails;
 
@@ -1073,13 +1073,9 @@ function getUpdateMoneyRequestParams(
 
 /**
  * Updates the created date of a money request
- *
- * @param {String} transactionID
- * @param {String} transactionThreadReportID
- * @param {String} val
  */
-function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
-    const transactionChanges = {
+function updateMoneyRequestDate(transactionID: string, transactionThreadReportID: string, val: string) {
+    const transactionChanges: TransactionChanges = {
         created: val,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
@@ -1089,16 +1085,8 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
 /**
  * Edits an existing distance request
  *
- * @param {String} transactionID
- * @param {String} transactionThreadReportID
- * @param {Object} transactionChanges
- * @param {String} [transactionChanges.created]
- * @param {Number} [transactionChanges.amount]
- * @param {Object} [transactionChanges.comment]
- * @param {Object} [transactionChanges.waypoints]
- *
  */
-function updateDistanceRequest(transactionID, transactionThreadReportID, transactionChanges) {
+function updateDistanceRequest(transactionID: string, transactionThreadReportID: string, transactionChanges: TransactionChanges) {
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, false);
     API.write('UpdateDistanceRequest', params, onyxData);
 }
@@ -2415,12 +2403,7 @@ function editRegularMoneyRequest(transactionID, transactionThreadReportID, trans
     );
 }
 
-/**
- * @param {object} transaction
- * @param {String} transactionThreadReportID
- * @param {Object} transactionChanges
- */
-function editMoneyRequest(transaction, transactionThreadReportID, transactionChanges) {
+function editMoneyRequest(transaction: OnyxTypes.Transaction, transactionThreadReportID: string, transactionChanges: TransactionChanges) {
     if (TransactionUtils.isDistanceRequest(transaction)) {
         updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges);
     } else {
@@ -2430,13 +2413,8 @@ function editMoneyRequest(transaction, transactionThreadReportID, transactionCha
 
 /**
  * Updates the amount and currency fields of a money request
- *
- * @param {String} transactionID
- * @param {String} transactionThreadReportID
- * @param {String} currency
- * @param {Number} amount
  */
-function updateMoneyRequestAmountAndCurrency(transactionID, transactionThreadReportID, currency, amount) {
+function updateMoneyRequestAmountAndCurrency(transactionID: string, transactionThreadReportID: string, currency: string, amount: number) {
     const transactionChanges = {
         amount,
         currency,
