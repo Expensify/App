@@ -132,9 +132,7 @@ function WorkspaceNewRoomPage(props) {
             '',
             visibility,
             writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
-
-            // The room might contain all policy members so notifying always should be opt-in only.
-            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             '',
             '',
             parsedWelcomeMessage,

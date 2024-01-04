@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
+import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import {LineLayer} from 'react-map-gl';
-import {AnimatableNumericValue, Animated, ImageStyle, StyleSheet, TextStyle, ViewStyle} from 'react-native';
-import {CustomAnimation} from 'react-native-animatable';
-import {PickerStyle} from 'react-native-picker-select';
-import {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
-import DotLottieAnimation from '@components/LottieAnimations/types';
+import type {LineLayer} from 'react-map-gl';
+import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {CustomAnimation} from 'react-native-animatable';
+import type {PickerStyle} from 'react-native-picker-select';
+import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
+import type DotLottieAnimation from '@components/LottieAnimations/types';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
 import {defaultTheme} from './theme';
 import colors from './theme/colors';
-import {type ThemeColors} from './theme/types';
+import type {ThemeColors} from './theme/types';
 import addOutlineWidth from './utils/addOutlineWidth';
 import borders from './utils/borders';
 import codeStyles from './utils/codeStyles';
@@ -2875,7 +2876,7 @@ const styles = (theme: ThemeColors) =>
 
         smallEditIcon: {
             alignItems: 'center',
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.buttonDefaultBG,
             borderColor: theme.appBG,
             borderRadius: 14,
             borderWidth: 3,

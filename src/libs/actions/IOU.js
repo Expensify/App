@@ -183,14 +183,6 @@ function setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, curre
 }
 
 /**
- * Reset the money request amount, discarding the user-provided value. In the case of distance requests, this will effectively re-enable the default behavior of automatic amount calculation.
- * @param {String} transactionID
- */
-function resetMoneyRequestAmount_temporaryForRefactor(transactionID) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount: CONST.IOU.DEFAULT_AMOUNT});
-}
-
-/**
  * @param {String} transactionID
  * @param {String} created
  */
@@ -989,7 +981,10 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: updatedReportAction,
+                [updatedReportAction.reportActionID]: {
+                    ...updatedReportAction,
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
+                },
             },
         });
 
@@ -3582,5 +3577,4 @@ export {
     detachReceipt,
     getIOUReportID,
     editMoneyRequest,
-    resetMoneyRequestAmount_temporaryForRefactor,
 };

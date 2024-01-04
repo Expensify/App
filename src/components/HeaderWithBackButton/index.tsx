@@ -19,7 +19,7 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import HeaderWithBackButtonProps from './types';
+import type HeaderWithBackButtonProps from './types';
 
 function HeaderWithBackButton({
     iconFill,

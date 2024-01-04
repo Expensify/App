@@ -1,5 +1,5 @@
-import {ReactNode} from 'react';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {ReactNode} from 'react';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type TooltipProps = ChildrenProps & {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
