@@ -30,7 +30,7 @@ runs:
       with:
         timeout_minutes: 30
         max_attempts: 3
-        command: npm ci
+        command: npm ci --maxsockets=1
 
     - name: Install node packages for desktop submodule
       if: steps.cache-desktop-node-modules.outputs.cache-hit != 'true'
@@ -38,4 +38,4 @@ runs:
       with:
         timeout_minutes: 30
         max_attempts: 3
-        command: cd desktop && npm ci
+        command: cd desktop && npm ci --maxsockets=1
