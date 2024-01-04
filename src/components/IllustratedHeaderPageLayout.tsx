@@ -1,9 +1,11 @@
-import React, {ReactNode} from 'react';
+import React from 'react';
+import type {ReactNode} from 'react';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HeaderPageLayout, {HeaderPageLayoutProps} from './HeaderPageLayout';
+import HeaderPageLayout from './HeaderPageLayout';
+import type {HeaderPageLayoutProps} from './HeaderPageLayout';
 import Lottie from './Lottie';
-import DotLottieAnimation from './LottieAnimations/types';
+import type DotLottieAnimation from './LottieAnimations/types';
 
 type IllustratedHeaderPageLayoutProps = HeaderPageLayoutProps & {
     /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */

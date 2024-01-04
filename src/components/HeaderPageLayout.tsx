@@ -1,15 +1,17 @@
-import React, {ReactNode, useMemo} from 'react';
-import {ScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import React, {useMemo} from 'react';
+import type {ReactNode} from 'react';
+import {ScrollView, View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HeaderWithBackButtonProps from './HeaderWithBackButton/types';
+import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import ScreenWrapper from './ScreenWrapper';
 
 type HeaderPageLayoutProps = ChildrenProps &
@@ -62,7 +64,6 @@ function HeaderPageLayout({
     }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
 
     return (
-        // @ts-expect-error TODO: Remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG)]}
             shouldEnablePickerAvoiding={false}
@@ -70,7 +71,6 @@ function HeaderPageLayout({
             offlineIndicatorStyle={[appBGColor]}
             testID={HeaderPageLayout.displayName}
         >
-            {/** @ts-expect-error TODO: Remove once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TS */}
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
