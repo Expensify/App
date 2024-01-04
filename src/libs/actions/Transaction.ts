@@ -7,16 +7,9 @@ import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-<<<<<<< HEAD
 import {RecentWaypoint, Transaction} from '@src/types/onyx';
 import {OnyxData} from '@src/types/onyx/Request';
 import {WaypointCollection} from '@src/types/onyx/Transaction';
-import * as IOU from './IOU';
-=======
-import type {RecentWaypoint, Transaction} from '@src/types/onyx';
-import type {OnyxData} from '@src/types/onyx/Request';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
->>>>>>> 5021a16 (Merge pull request #33896 from Expensify/revert-33397-fix/26946)
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
