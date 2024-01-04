@@ -101,7 +101,7 @@ type OptionsListProps = {
     isLoadingNewOptions?: boolean;
 
     /** Whether nested scroll of options is enabled, true by default */
-    // nestedScrollEnabled?: boolean;
+    nestedScrollEnabled?: boolean;
 
     /** Whether the list should have a bounce effect on iOS */
     bounces?: boolean;
