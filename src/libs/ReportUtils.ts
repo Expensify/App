@@ -1475,7 +1475,6 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     }
 
     const personalDetails = getPersonalDetailsForAccountID(accountID);
-    // console.log(personalDetails);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetails.login || '');
     // This is to check if account is an invite/optimistically created one
