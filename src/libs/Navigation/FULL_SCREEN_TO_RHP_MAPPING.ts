@@ -1,5 +1,5 @@
 import SCREENS from '@src/SCREENS';
-import {FullScreenName} from './types';
+import type {FullScreenName} from './types';
 
 const FULL_SCREEN_TO_RHP_MAPPING: Partial<Record<FullScreenName, string[]>> = {
     [SCREENS.SETTINGS.PROFILE.ROOT]: [

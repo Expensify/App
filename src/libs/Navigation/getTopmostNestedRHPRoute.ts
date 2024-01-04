@@ -1,5 +1,5 @@
 import NAVIGATORS from '@src/NAVIGATORS';
-import {NavigationPartialRoute, State} from './types';
+import type {NavigationPartialRoute, State} from './types';
 
 /**
  * @param state - react-navigation state

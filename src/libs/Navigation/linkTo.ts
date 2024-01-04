@@ -1,10 +1,10 @@
-import {getActionFromState, PartialState} from '@react-navigation/core';
-import {NavigationAction, NavigationContainerRef, NavigationState} from '@react-navigation/native';
-import {Writable} from 'type-fest';
+import {getActionFromState} from '@react-navigation/core';
+import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import type {Writable} from 'type-fest';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import dismissModal from './dismissModal';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
@@ -14,7 +14,7 @@ import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
+import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from './types';
 
 type ActionPayloadParams = {
     screen?: string;

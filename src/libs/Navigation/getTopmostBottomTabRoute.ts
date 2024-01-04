@@ -1,4 +1,4 @@
-import {BottomTabName, NavigationPartialRoute, RootStackParamList, State} from './types';
+import type {BottomTabName, NavigationPartialRoute, RootStackParamList, State} from './types';
 
 function getTopmostBottomTabRoute(state: State<RootStackParamList>): NavigationPartialRoute<BottomTabName> | undefined {
     const bottomTabNavigatorRoute = state.routes[0];

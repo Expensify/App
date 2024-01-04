@@ -1,5 +1,6 @@
-import {ParamListBase} from '@react-navigation/routers';
-import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
+import type {ParamListBase} from '@react-navigation/routers';
+import type {StackNavigationOptions} from '@react-navigation/stack';
+import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {
@@ -29,9 +30,9 @@ import type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import {ThemeStyles} from '@styles/index';
-import SCREENS from '@src/SCREENS';
+import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -78,6 +79,8 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.CREATE]: () => require('../../../pages/iou/request/IOURequestStartPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require('../../../pages/iou/request/step/IOURequestStepConfirmation').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: () => require('../../../pages/iou/request/step/IOURequestStepAmount').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: () => require('../../../pages/iou/request/step/IOURequestStepTaxAmountPage').default as React.ComponentType,
+    [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require('../../../pages/iou/request/step/IOURequestStepTaxRatePage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require('../../../pages/iou/request/step/IOURequestStepCategory').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: () => require('../../../pages/iou/request/step/IOURequestStepCurrency').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require('../../../pages/iou/request/step/IOURequestStepDate').default as React.ComponentType,
@@ -290,30 +293,30 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
 });
 
 export {
-    MoneyRequestModalStackNavigator,
-    SplitDetailsModalStackNavigator,
+    AccountSettingsModalStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    ProfileModalStackNavigator,
-    ReportDetailsModalStackNavigator,
-    TaskModalStackNavigator,
-    ReportSettingsModalStackNavigator,
-    ReportWelcomeMessageModalStackNavigator,
-    ReportParticipantsModalStackNavigator,
-    SearchModalStackNavigator,
+    EditRequestStackNavigator,
+    EnablePaymentsStackNavigator,
+    FlagCommentStackNavigator,
+    MoneyRequestModalStackNavigator,
     NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
-    AccountSettingsModalStackNavigator,
-    SettingsModalStackNavigator,
-    EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
-    WalletStatementStackNavigator,
-    FlagCommentStackNavigator,
-    EditRequestStackNavigator,
-    PrivateNotesModalStackNavigator,
     NewTeachersUniteNavigator,
-    SignInModalStackNavigator,
-    RoomMembersModalStackNavigator,
-    RoomInviteModalStackNavigator,
+    PrivateNotesModalStackNavigator,
+    ProfileModalStackNavigator,
     ReferralModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
+    ReportDetailsModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
+    ReportSettingsModalStackNavigator,
+    ReportWelcomeMessageModalStackNavigator,
+    RoomInviteModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    SearchModalStackNavigator,
+    SettingsModalStackNavigator,
+    SignInModalStackNavigator,
+    SplitDetailsModalStackNavigator,
+    TaskModalStackNavigator,
+    WalletStatementStackNavigator,
 };

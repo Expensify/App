@@ -1,11 +1,12 @@
-import {getPathFromState, RouterConfigOptions, StackNavigationState, StackRouter} from '@react-navigation/native';
-import {ParamListBase} from '@react-navigation/routers';
+import type {RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import {getPathFromState, StackRouter} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/routers';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getAdaptedStateFromPath from '@libs/Navigation/getAdaptedStateFromPath';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import linkingConfig from '@libs/Navigation/linkingConfig';
-import {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
 

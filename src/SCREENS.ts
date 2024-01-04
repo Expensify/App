@@ -2,7 +2,7 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-import DeepValueOf from './types/utils/DeepValueOf';
+import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
@@ -134,6 +134,8 @@ const SCREENS = {
         STEP_SCAN: 'Money_Request_Step_Scan',
         STEP_TAG: 'Money_Request_Step_Tag',
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
+        STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
+        STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         ROOT: 'Money_Request',
         AMOUNT: 'Money_Request_Amount',
         PARTICIPANTS: 'Money_Request_Participants',

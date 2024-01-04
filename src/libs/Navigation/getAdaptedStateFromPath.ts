@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {getStateFromPath, NavigationState, PartialState} from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
+import {getStateFromPath} from '@react-navigation/native';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -8,7 +9,7 @@ import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from './getMatchingCentralPaneRouteForState';
 import getTopmostNestedRHPRoute from './getTopmostNestedRHPRoute';
-import {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from './types';
+import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from './types';
 
 function createBottomTabNavigator(route: NavigationPartialRoute<BottomTabName>): NavigationPartialRoute<typeof NAVIGATORS.BOTTOM_TAB_NAVIGATOR> {
     const routesForBottomTabNavigator: Array<NavigationPartialRoute<BottomTabName>> = [{name: SCREENS.HOME}];

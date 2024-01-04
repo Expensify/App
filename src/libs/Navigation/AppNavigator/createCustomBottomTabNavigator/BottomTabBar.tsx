@@ -10,7 +10,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {RootStackParamList} from '@libs/Navigation/types';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

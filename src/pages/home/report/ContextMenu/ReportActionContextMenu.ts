@@ -1,8 +1,8 @@
 import React from 'react';
-import {GestureResponderEvent, Text as RNText} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
 type OnHideCallback = () => void;
@@ -98,7 +98,7 @@ function showContextMenu(
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',
-    draftMessage = '',
+    draftMessage = undefined,
     onShow = () => {},
     onHide = () => {},
     isArchivedRoom = false,

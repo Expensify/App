@@ -1,9 +1,9 @@
 import {useNavigationState} from '@react-navigation/native';
-import {StackNavigationOptions} from '@react-navigation/stack';
+import type {StackNavigationOptions} from '@react-navigation/stack';
 import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import {BottomTabNavigatorParamList} from '@libs/Navigation/types';
+import type {BottomTabNavigatorParamList} from '@libs/Navigation/types';
 import AllSettingsScreen from '@pages/home/sidebar/AllSettingsScreen';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SCREENS from '@src/SCREENS';
