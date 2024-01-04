@@ -12,7 +12,19 @@ type BeneficialOwnerValues = {
     zipCode: string;
 };
 
-function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountDraft): BeneficialOwnerValues {
+function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountDraft | null): BeneficialOwnerValues {
+    if (!reimbursementAccountDraft) {
+        return {
+            firstName: '',
+            lastName: '',
+            dob: '',
+            ssnLast4: '',
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+        };
+    }
     const beneficialOwnerPrefix = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
     const beneficialOwnerInfoKey = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 

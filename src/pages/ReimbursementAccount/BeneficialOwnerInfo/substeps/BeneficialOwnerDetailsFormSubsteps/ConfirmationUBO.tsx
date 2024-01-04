@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx/lib/types';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -9,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import reimbursementAccountDraftPropTypes from '@pages/ReimbursementAccount/ReimbursementAccountDraftPropTypes';
@@ -18,33 +20,25 @@ import subStepPropTypes from '@pages/ReimbursementAccount/subStepPropTypes';
 import getValuesForBeneficialOwner from '@pages/ReimbursementAccount/utils/getValuesForBeneficialOwner';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ReimbursementAccount, ReimbursementAccountDraft} from '@src/types/onyx';
 
-const propTypes = {
+type ConfirmationUBOOnyxProps = {
     /** Reimbursement account from ONYX */
-    reimbursementAccount: reimbursementAccountPropTypes,
-
+    reimbursementAccount: OnyxEntry<ReimbursementAccount>;
     /** The draft values of the bank account being setup */
-    reimbursementAccountDraft: reimbursementAccountDraftPropTypes,
-
-    /** ID of the beneficial owner that is being modified */
-    beneficialOwnerBeingModifiedID: PropTypes.string.isRequired,
-
-    ...subStepPropTypes,
+    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
+type ConfirmationUBOProps = SubStepProps & ConfirmationUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
 
-const defaultProps = {
-    reimbursementAccount: ReimbursementAccountProps.reimbursementAccountDefaultProps,
-    reimbursementAccountDraft: {},
-};
-
-function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}) {
+function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}: ConfirmationUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const values = getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID, reimbursementAccountDraft);
-    const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
+    const error = reimbursementAccount ? ErrorUtils.getLatestErrorMessage(reimbursementAccount) : '';
 
     return (
+        // @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript.
         <ScreenWrapper
             testID={ConfirmationUBO.displayName}
             style={[styles.pt0]}
@@ -113,7 +107,7 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
                         <DotIndicatorMessage
                             textStyles={[styles.formError]}
                             type="error"
-                            messages={{0: error}}
+                            messages={{error}}
                         />
                     )}
                     <Button
@@ -128,11 +122,9 @@ function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNex
     );
 }
 
-ConfirmationUBO.propTypes = propTypes;
-ConfirmationUBO.defaultProps = defaultProps;
 ConfirmationUBO.displayName = 'ConfirmationUBO';
 
-export default withOnyx({
+export default withOnyx<ConfirmationUBOProps, ConfirmationUBOOnyxProps>({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
