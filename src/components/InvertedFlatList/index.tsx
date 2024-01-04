@@ -1,5 +1,7 @@
-import React, {ForwardedRef, forwardRef, useEffect, useRef} from 'react';
-import {DeviceEventEmitter, FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
+import type {FlatList, FlatListProps, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 

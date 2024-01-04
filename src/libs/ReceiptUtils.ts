@@ -1,12 +1,12 @@
 import Str from 'expensify-common/lib/str';
-import {ImageSourcePropType} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import ReceiptHTML from '@assets/images/receipt-html.png';
 import ReceiptSVG from '@assets/images/receipt-svg.png';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 import * as FileUtils from './fileDownload/FileUtils';
 
 type ThumbnailAndImageURI = {
@@ -44,7 +44,7 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
 
         // For local files, we won't have a thumbnail yet
         if (isReceiptImage && (path.startsWith('blob:') || path.startsWith('file:'))) {
-            return {thumbnail: null, image: path};
+            return {thumbnail: null, image: path, isLocalFile: true};
         }
 
         if (isReceiptImage) {
@@ -66,7 +66,8 @@ function getThumbnailAndImageURIs(transaction: Transaction, receiptPath: string 
         image = ReceiptSVG;
     }
 
-    return {thumbnail: image, image: path, isLocalFile: true};
+    const isLocalFile = path.startsWith('blob:') || path.startsWith('file:');
+    return {thumbnail: image, image: path, isLocalFile};
 }
 
 // eslint-disable-next-line import/prefer-default-export

@@ -1,5 +1,5 @@
-import {ReportAction} from '@src/types/onyx';
-import en from './en';
+import type {ReportAction} from '@src/types/onyx';
+import type en from './en';
 
 type AddressLineParams = {
     lineNumber: number;

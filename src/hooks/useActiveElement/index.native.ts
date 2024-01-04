@@ -1,4 +1,4 @@
-import UseActiveElement from './types';
+import type UseActiveElement from './types';
 
 /**
  * Native doesn't have the DOM, so we just return null.

@@ -1,5 +1,5 @@
 import Config from 'react-native-config';
-import {PerformanceEntry} from 'react-native-performance';
+import type {PerformanceEntry} from 'react-native-performance';
 import E2ELogin from '@libs/E2E/actions/e2eLogin';
 import E2EClient from '@libs/E2E/client';
 import Performance from '@libs/Performance';

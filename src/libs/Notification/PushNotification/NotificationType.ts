@@ -1,4 +1,4 @@
-import {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 const NotificationType = {
     REPORT_COMMENT: 'reportComment',
