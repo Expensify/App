@@ -1,13 +1,16 @@
 ## Proposal
-
+Some links in the github description aren't working
 ### Please re-state the problem that we are trying to solve in this issue.
-
+Giving members access to social platform
 ### What is the root cause of that problem?
-
+Invalid link
 ### What changes do you think we should make in order to solve the problem?
 <!-- DO NOT POST CODE DIFFS -->
+update the link for X formally called twitter
 
 ### What alternative solutions did you explore? (Optional)
+![issue](https://github.com/Expensify/App/assets/92422271/6512fb90-b5b1-4a7f-add1-8d86ba587bfe)
+
 
 **Reminder:** Please use plain English, be brief and avoid jargon. Feel free to use images, charts or pseudo-code if necessary. Do not post large multi-line diffs or write walls of text. Do not create PRs unless you have been hired for this job.
 
