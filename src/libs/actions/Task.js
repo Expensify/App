@@ -497,8 +497,10 @@ function editTaskAssignee(report, ownerAccountID, assigneeEmail, assigneeAccount
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
         const participants = lodashGet(report, 'participantAccountIDs', []);
-        if (!participants.includes(assigneeAccountID)) {
+        const visibleMembers = lodashGet(report, 'visibleChatMemberAccountIDs', []);
+        if (!visibleMembers.includes(assigneeAccountID)) {
             optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
+            optimisticReport.visibleChatMemberAccountIDs = [...visibleMembers, assigneeAccountID];
         }
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
