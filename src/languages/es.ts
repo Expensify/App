@@ -843,7 +843,7 @@ export default {
         composerLabel: 'Notas',
         myNote: 'Mi nota',
         error: {
-            genericFailureMessage: 'Notas privadas no han podido ser guardados',
+            genericFailureMessage: 'Las notas privadas no han podido ser guardadas',
         },
     },
     addDebitCardPage: {
