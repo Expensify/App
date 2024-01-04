@@ -40,7 +40,7 @@ const pagerPropTypes = {
     initialIndex: PropTypes.number,
     onPageSelected: PropTypes.func,
     onTap: PropTypes.func,
-    onPinchGestureChange: PropTypes.func,
+    onScaleChanged: PropTypes.func,
     forwardedRef: refPropTypes,
 };
 
@@ -48,11 +48,11 @@ const pagerDefaultProps = {
     initialIndex: 0,
     onPageSelected: () => {},
     onTap: () => {},
-    onPinchGestureChange: () => {},
+    onScaleChanged: () => {},
     forwardedRef: null,
 };
 
-function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onTap, onPinchGestureChange, forwardedRef}) {
+function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelected, onTap, onScaleChanged, forwardedRef}) {
     const styles = useThemeStyles();
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef(null);
@@ -106,13 +106,13 @@ function AttachmentCarouselPager({items, renderItem, initialIndex, onPageSelecte
 
     const contextValue = useMemo(
         () => ({
-            isSwipingInPager,
+            onTap,
+            onScaleChanged,
             pagerRef,
             shouldPagerScroll,
-            onPinchGestureChange,
-            onTap,
+            isSwipingInPager,
         }),
-        [isSwipingInPager, pagerRef, shouldPagerScroll, onPinchGestureChange, onTap],
+        [isSwipingInPager, shouldPagerScroll, onScaleChanged, onTap],
     );
 
     return (

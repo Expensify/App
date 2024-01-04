@@ -26,23 +26,40 @@ function getDeepDefaultProps({contentSize: contentSizeProp = {}, zoomRange: zoom
     return {contentSize, zoomRange};
 }
 
-function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, children, ...props}) {
+function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged: onScaleChangedProp, children, ...props}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {contentSize, zoomRange} = getDeepDefaultProps(props);
 
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-
     const pagerRefFallback = useRef(null);
+
     // If the MultiGestureCanvas used inside a AttachmentCarouselPager, we need to adapt the behaviour based on the pager state
-    const {onTap, pagerRef, shouldPagerScroll, isSwipingInPager, onPinchGestureChange} = attachmentCarouselPagerContext || {
-        onTap: () => undefined,
-        onPinchGestureChange: () => undefined,
-        pagerRef: pagerRefFallback,
-        shouldPagerScroll: false,
-        isSwipingInPager: false,
-        ...props,
-    };
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {
+        onTap,
+        onScaleChanged: onScaleChangedContext,
+        pagerRef,
+        shouldPagerScroll,
+        isSwipingInPager,
+    } = useMemo(
+        () =>
+            attachmentCarouselPagerContext || {
+                onTap: () => {},
+                onScaleChanged: () => {},
+                pagerRef: pagerRefFallback,
+                shouldPagerScroll: false,
+                isSwipingInPager: false,
+            },
+        [attachmentCarouselPagerContext],
+    );
+
+    const onScaleChanged = useMemo(
+        (newScale) => {
+            onScaleChangedProp(newScale);
+            onScaleChangedContext(newScale);
+        },
+        [onScaleChangedContext, onScaleChangedProp],
+    );
 
     // Based on the (original) content size and the canvas size, we calculate the horizontal and vertical scale factors
     // to fit the content inside the canvas
@@ -150,7 +167,6 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         isSwipingInPager,
         stopAnimation,
         onScaleChanged,
-        onPinchGestureChange,
     }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
 
     // Enables/disables the pager scroll based on the zoom scale

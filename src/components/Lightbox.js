@@ -22,6 +22,9 @@ const cachedDimensions = new Map();
 const propTypes = {
     ...zoomRangePropTypes,
 
+    /** Triggers whenever the zoom scale changes */
+    onScaleChanged: PropTypes.func,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 
@@ -54,6 +57,7 @@ const defaultProps = {
     index: 0,
     activeIndex: 0,
     hasSiblingCarouselItems: false,
+    onScaleChanged: () => {},
     onPress: () => {},
     onError: () => {},
     style: {},
