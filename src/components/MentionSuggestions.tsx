@@ -5,7 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getStyledTextArray from '@libs/GetStyledTextArray';
 import CONST from '@src/CONST';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Avatar from './Avatar';
 import Text from './Text';
