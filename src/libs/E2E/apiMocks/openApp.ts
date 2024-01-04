@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import Response from '@src/types/onyx/Response';
+import type Response from '@src/types/onyx/Response';
 
 const openApp = (): Response => ({
     onyxData: [

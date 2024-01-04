@@ -13,7 +13,7 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function BaseModal(
     {
