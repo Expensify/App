@@ -1,58 +1,63 @@
-import React, {forwardRef, memo, useEffect, useRef, ForwardedRef} from 'react';
-import {View, SectionList as RNSectionList, SectionListRenderItem, SectionListData} from 'react-native';
+import _ from 'lodash';
+import React, {ForwardedRef, forwardRef, memo, useEffect, useRef} from 'react';
+import {SectionListData, SectionListRenderItem, View} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {OptionData} from '@libs/ReportUtils';
-import _ from 'lodash';
-import type {BaseOptionListProps, Section} from './types';
+import type {BaseOptionListProps, OptionsList, Section} from './types';
 
-function BaseOptionsList({
-    keyboardDismissMode,
-    onScrollBeginDrag,
-    onScroll,
-    listStyles,
-    focusedIndex,
-    selectedOptions,
-    headerMessage,
-    isLoading,
-    sections,
-    onLayout,
-    hideSectionHeaders,
-    shouldHaveOptionSeparator,
-    showTitleTooltip,
-    optionHoveredStyle,
-    contentContainerStyles,
-    sectionHeaderStyle,
-    showScrollIndicator,
-    listContainerStyles: listContainerStylesProp,
-    shouldDisableRowInnerPadding,
-    shouldPreventDefaultFocusOnSelectRow,
-    disableFocusOptions,
-    canSelectMultipleOptions,
-    shouldShowMultipleOptionSelectorAsButton,
-    multipleOptionSelectorButtonText,
-    onAddToSelection,
-    highlightSelectedOptions,
-    onSelectRow,
-    boldStyle,
-    isDisabled,
-    isRowMultilineSupported,
-    isLoadingNewOptions,
-    nestedScrollEnabled,
-    bounces,
-    renderFooterContent,
-}: BaseOptionListProps, ref: ForwardedRef<RNSectionList>) {
+function BaseOptionsList(
+    {
+        keyboardDismissMode,
+        onScrollBeginDrag,
+        onScroll,
+        listStyles,
+        focusedIndex,
+        selectedOptions,
+        headerMessage,
+        isLoading,
+        sections,
+        onLayout,
+        hideSectionHeaders,
+        shouldHaveOptionSeparator,
+        showTitleTooltip,
+        optionHoveredStyle,
+        contentContainerStyles,
+        sectionHeaderStyle,
+        showScrollIndicator,
+        listContainerStyles: listContainerStylesProp,
+        shouldDisableRowInnerPadding,
+        shouldPreventDefaultFocusOnSelectRow,
+        disableFocusOptions,
+        canSelectMultipleOptions,
+        shouldShowMultipleOptionSelectorAsButton,
+        multipleOptionSelectorButtonText,
+        onAddToSelection,
+        highlightSelectedOptions,
+        onSelectRow,
+        boldStyle,
+        isDisabled,
+        isRowMultilineSupported,
+        isLoadingNewOptions,
+        nestedScrollEnabled,
+        bounces,
+        renderFooterContent,
+    }: BaseOptionListProps,
+    ref: ForwardedRef<OptionsList>,
+) {
     const styles = useThemeStyles();
-    const flattenedData = useRef<Array<{
-        length: number;
-        offset: number;
-    }>>([]);
+    const flattenedData = useRef<
+        Array<{
+            length: number;
+            offset: number;
+        }>
+    >([]);
     const previousSections = usePrevious<Array<SectionListData<OptionData, Section>>>(sections);
     const didLayout = useRef(false);
 
@@ -132,10 +137,7 @@ function BaseOptionsList({
      *
      * @returns
      */
-    const getItemLayout = (
-        data: any,
-        flatDataArrayIndex: number
-    ): {length: number, offset: number, index: number} => {
+    const getItemLayout = (data: any, flatDataArrayIndex: number): {length: number; offset: number; index: number} => {
         if (!flattenedData.current[flatDataArrayIndex]) {
             flattenedData.current = buildFlatSectionArray();
         }
@@ -144,7 +146,7 @@ function BaseOptionsList({
         return {
             length: targetItem.length,
             offset: targetItem.offset,
-            index: flatDataArrayIndex
+            index: flatDataArrayIndex,
         };
     };
 
@@ -211,9 +213,7 @@ function BaseOptionsList({
     /**
      * Function which renders a section header component
      */
-    const renderSectionHeader = ({section: {title, shouldShow}}: {
-        section: SectionListData<OptionData, Section>
-    }) => {
+    const renderSectionHeader = ({section: {title, shouldShow}}: {section: SectionListData<OptionData, Section>}) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
         }
@@ -246,7 +246,7 @@ function BaseOptionsList({
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     ) : null}
-                    <SectionList
+                    <SectionList<OptionData, Section>
                         ref={ref}
                         style={listStyles}
                         indicatorStyle="white"

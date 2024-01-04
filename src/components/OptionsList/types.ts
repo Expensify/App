@@ -1,23 +1,23 @@
-import { RefObject } from 'react';
+import {RefObject} from 'react';
+import {SectionList, SectionListData, StyleProp, View, ViewStyle} from 'react-native';
 import type {OptionData} from '@libs/ReportUtils';
-import { StyleProp, ViewStyle, View, SectionList, SectionListData } from 'react-native';
 
 type Section = {
     /** Title of the section */
-    title?: string;
+    title: string;
 
     /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset?: number;
+    indexOffset: number;
 
     /** Array of options */
-    data?: OptionData[];
+    data: OptionData[];
 
     /** Whether this section should show or not */
     shouldShow?: boolean;
 
     /** Whether this section is disabled or not */
     isDisabled?: boolean;
-}
+};
 
 type OptionsListProps = {
     /** option flexStyle for the options list container */
@@ -108,7 +108,6 @@ type OptionsListProps = {
     /** Custom content to display in the floating footer */
     renderFooterContent?: () => JSX.Element;
 
-
     // TODO: Verify below props
     shouldShowMultipleOptionSelectorAsButton: boolean;
     multipleOptionSelectorButtonText: string;
@@ -128,6 +127,8 @@ type BaseOptionListProps = OptionsListProps & {
 
     /** List styles for SectionList */
     listStyles?: StyleProp<ViewStyle>;
-}
+};
 
-export type { OptionsListProps, BaseOptionListProps, Section};
+type OptionsList = SectionList<OptionData, Section>;
+
+export type {OptionsListProps, BaseOptionListProps, Section, OptionsList};

@@ -1,9 +1,9 @@
 import React, {ForwardedRef, forwardRef} from 'react';
-import {Keyboard, SectionList as RNSectionList} from 'react-native';
+import {Keyboard} from 'react-native';
 import BaseOptionsList from './BaseOptionsList';
-import { OptionsListProps } from './types';
+import {OptionsListProps, OptionsList as OptionsListType} from './types';
 
-const OptionsList = forwardRef((props: OptionsListProps, ref: ForwardedRef<RNSectionList>) => (
+const OptionsList = forwardRef((props: OptionsListProps, ref: ForwardedRef<OptionsListType>) => (
     <BaseOptionsList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
