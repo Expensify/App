@@ -15,7 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Link from '@userActions/Link';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
-import VideoChatButtonAndMenuProps from './types';
+import type VideoChatButtonAndMenuProps from './types';
 
 type BaseVideoChatButtonAndMenuProps = VideoChatButtonAndMenuProps & {
     /** Link to open when user wants to create a new google meet meeting */

@@ -1,5 +1,5 @@
-import {ReactNode, RefObject} from 'react';
-import {View} from 'react-native';
+import type {ReactNode, RefObject} from 'react';
+import type {View} from 'react-native';
 
 type PopoverContextProps = {
     children: ReactNode;
