@@ -1,10 +1,11 @@
 import debounce from 'lodash/debounce';
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 /**
  * This actions file is used to automatically switch a user into #focus mode when they exceed a certain number of reports. We do this primarily for performance reasons.

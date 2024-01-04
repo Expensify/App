@@ -1,6 +1,6 @@
 import React, {forwardRef} from 'react';
 import {SectionList as RNSectionList} from 'react-native';
-import ForwardedSectionList from './types';
+import type ForwardedSectionList from './types';
 
 // eslint-disable-next-line react/function-component-definition
 const SectionList: ForwardedSectionList = (props, ref) => (

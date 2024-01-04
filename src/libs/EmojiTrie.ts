@@ -1,6 +1,6 @@
 import emojis, {localeEmojis} from '@assets/emojis';
 import CONST from '@src/CONST';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 import Timing from './actions/Timing';
 import Trie from './Trie';
 
