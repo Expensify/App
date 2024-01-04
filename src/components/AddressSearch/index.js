@@ -111,6 +111,9 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** Location bias for querying search results. */
+    locationBias: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -138,6 +141,7 @@ const defaultProps = {
     maxInputLength: undefined,
     predefinedPlaces: [],
     resultTypes: 'address',
+    locationBias: undefined,
 };
 
 function AddressSearch({
@@ -162,6 +166,7 @@ function AddressSearch({
     shouldSaveDraft,
     translate,
     value,
+    locationBias,
 }) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -179,11 +184,11 @@ function AddressSearch({
             language: preferredLocale,
             types: resultTypes,
             components: isLimitedToUSA ? 'country:us' : undefined,
+            ...(locationBias && {locationbias: locationBias}),
         }),
-        [preferredLocale, resultTypes, isLimitedToUSA],
+        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
-
     const saveLocationDetails = (autocompleteData, details) => {
         const addressComponents = details.address_components;
         if (!addressComponents) {
@@ -192,7 +197,7 @@ function AddressSearch({
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 onPress({
-                    address: lodashGet(details, 'description'),
+                    address: autocompleteData.description || lodashGet(details, 'description', ''),
                     lat: lodashGet(details, 'geometry.location.lat', 0),
                     lng: lodashGet(details, 'geometry.location.lng', 0),
                     name: lodashGet(details, 'name'),
@@ -261,7 +266,7 @@ function AddressSearch({
 
             lat: lodashGet(details, 'geometry.location.lat', 0),
             lng: lodashGet(details, 'geometry.location.lng', 0),
-            address: lodashGet(details, 'formatted_address', ''),
+            address: autocompleteData.description || lodashGet(details, 'formatted_address', ''),
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
