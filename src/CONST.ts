@@ -1288,6 +1288,11 @@ const CONST = {
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
+        REIMBURSEMENT_CHOICES: {
+            REIMBURSEMENT_YES: 'reimburseYes',
+            REIMBURSEMENT_NO: 'reimburseNo',
+            REIMBURSEMENT_MANUAL: 'reimburseManual',
+        }
     },
 
     CUSTOM_UNITS: {
