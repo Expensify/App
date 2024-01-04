@@ -211,6 +211,18 @@ function WorkspaceInitialPage(props) {
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
+                <Breadcrumbs
+                    breadcrumbs={[
+                        {
+                            type: CONST.BREADCRUMB_TYPE.STRONG,
+                            text: policyName,
+                        },
+                        {
+                            text: translate('common.settings'),
+                        },
+                    ]}
+                    style={[styles.ph5, styles.pb5]}
+                />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
                     <OfflineWithFeedback
                         pendingAction={policy.pendingAction}
@@ -218,18 +230,6 @@ function WorkspaceInitialPage(props) {
                         errors={policy.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
                     >
-                        <Breadcrumbs
-                            breadcrumbs={[
-                                {
-                                    type: CONST.BREADCRUMB_TYPE.STRONG,
-                                    text: policyName,
-                                },
-                                {
-                                    text: translate('common.settings'),
-                                },
-                            ]}
-                            style={[styles.ph5, styles.pb5]}
-                        />
                         <View style={[styles.pb4, styles.mh3]}>
                             {/*
                                     Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
