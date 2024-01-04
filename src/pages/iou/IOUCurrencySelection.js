@@ -94,7 +94,7 @@ function IOUCurrencySelection(props) {
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissModal();
         });
-    }, [threadReportID, props.transaction]);
+    }, [threadReportID]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
