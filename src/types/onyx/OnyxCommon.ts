@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {MicroSecondOnyxError, MicroSecondOnyxErrorObject} from '@libs/ErrorUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 
@@ -6,9 +7,11 @@ type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
 type PendingFields<TKey extends string = string> = Record<TKey, PendingAction | null | undefined>;
 
-type ErrorFields<TKey extends string = string> = Record<TKey, Errors | null | undefined>;
+type SimpleErrors = Record<string, string>;
 
-type Errors = Record<string, string>;
+type ErrorFields<TKey extends string = string> = Record<TKey, SimpleErrors | null | undefined>;
+
+type Errors = SimpleErrors | MicroSecondOnyxError | MicroSecondOnyxErrorObject;
 
 type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
@@ -29,4 +32,4 @@ type Icon = {
     fallbackIcon?: AvatarSource;
 };
 
-export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType};
+export type {Icon, PendingAction, PendingFields, ErrorFields, Errors, AvatarType, SimpleErrors};

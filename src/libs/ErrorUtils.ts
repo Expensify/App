@@ -1,9 +1,16 @@
+import type {ImageSourcePropType} from 'react-native';
 import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, SimpleErrors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
+
+type ErrorObject = Record<string, string | ImageSourcePropType | undefined>;
+
+type MicroSecondOnyxError = Record<number, string | null>;
+
+type MicroSecondOnyxErrorObject = Record<number, ErrorObject>;
 
 function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatObject {
     switch (response.jsonCode) {
@@ -38,7 +45,7 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string | null): Record<number, string | null> {
+function getMicroSecondOnyxError(error: string | null): MicroSecondOnyxError {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
@@ -46,12 +53,12 @@ function getMicroSecondOnyxError(error: string | null): Record<number, string | 
  * Method used to get an error object with microsecond as the key and an object as the value.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxErrorObject(error: Record<string, string>): Record<number, Record<string, string>> {
+function getMicroSecondOnyxErrorObject(error: ErrorObject): MicroSecondOnyxErrorObject {
     return {[DateUtils.getMicroseconds()]: error};
 }
 
 type OnyxDataWithErrors = {
-    errors?: Errors;
+    errors?: SimpleErrors;
 };
 
 function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): string {
@@ -120,3 +127,4 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: ErrorsList, inpu
 }
 
 export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getMicroSecondOnyxErrorObject, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
+export type {MicroSecondOnyxErrorObject, MicroSecondOnyxError};

@@ -44,6 +44,7 @@ type Receipt = {
     path?: string;
     name?: string;
     source?: ImageSourcePropType;
+    filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
 };
 
