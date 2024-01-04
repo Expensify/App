@@ -3,7 +3,7 @@ import Onyx, {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {RecentWaypoint, ReportAction, Transaction} from '@src/types/onyx';
+import {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
@@ -25,6 +25,13 @@ Onyx.connect({
         }
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 function isDistanceRequest(transaction: Transaction): boolean {
@@ -146,7 +153,9 @@ function isCreatedMissing(transaction: Transaction) {
 }
 
 function areRequiredFieldsEmpty(transaction: Transaction): boolean {
-    return isMerchantMissing(transaction) || isAmountMissing(transaction) || isCreatedMissing(transaction);
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
 /**

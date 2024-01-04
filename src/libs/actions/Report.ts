@@ -337,6 +337,7 @@ function addActions(reportID: string, text = '', file?: File) {
         file?: File;
         timezone?: string;
         shouldAllowActionableMentionWhispers?: boolean;
+        clientCreatedTime?: string;
     };
 
     const parameters: AddCommentOrAttachementParameters = {
@@ -346,6 +347,7 @@ function addActions(reportID: string, text = '', file?: File) {
         reportComment: reportCommentText,
         file,
         shouldAllowActionableMentionWhispers: true,
+        clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
     const optimisticData: OnyxUpdate[] = [

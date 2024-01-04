@@ -1,21 +1,20 @@
-import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Text from './Text';
 
-const propTypes = {
+type MoneyRequestHeaderStatusBarProps = {
     /** Title displayed in badge */
-    title: PropTypes.string.isRequired,
+    title: string;
 
     /** Banner Description */
-    description: PropTypes.string.isRequired,
+    description: string;
 
     /** Whether we show the border bottom */
-    shouldShowBorderBottom: PropTypes.bool.isRequired,
+    shouldShowBorderBottom: boolean;
 };
 
-function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom}) {
+function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom}: MoneyRequestHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
@@ -31,6 +30,5 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
 }
 
 MoneyRequestHeaderStatusBar.displayName = 'MoneyRequestHeaderStatusBar';
-MoneyRequestHeaderStatusBar.propTypes = propTypes;
 
 export default MoneyRequestHeaderStatusBar;
