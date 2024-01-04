@@ -10,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import * as IOU from './IOU';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
