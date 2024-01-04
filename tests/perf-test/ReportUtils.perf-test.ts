@@ -3,7 +3,7 @@ import {measureFunction} from 'reassure';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -176,6 +176,7 @@ test('[ReportUtils] getWorkspaceIcon on 5k policies', async () => {
 
 test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {
     const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, isOwnPolicyExpenseChat: true};
+    const policy = createRandomPolicy(1);
     const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
     await Onyx.multiSet({
@@ -183,7 +184,7 @@ test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ReportUtils.getMoneyRequestOptions(report, reportParticipants), {runs});
+    await measureFunction(() => ReportUtils.getMoneyRequestOptions(report, policy, reportParticipants), {runs});
 });
 
 test('[ReportUtils] getWorkspaceAvatar on 5k policies', async () => {
