@@ -8,9 +8,9 @@ import DomUtils from '@libs/DomUtils';
 import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
-import CONST from '@src/CONST';
 
 type BaseMiniContextMenuItemProps = {
     /**
