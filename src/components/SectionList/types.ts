@@ -1,5 +1,5 @@
-import {ForwardedRef} from 'react';
-import {SectionList, SectionListProps} from 'react-native';
+import type {ForwardedRef} from 'react';
+import type {SectionList, SectionListProps} from 'react-native';
 
 type ForwardedSectionList<ItemT, SectionT> = {
     (props: SectionListProps<ItemT, SectionT>, ref: ForwardedRef<SectionList>): React.ReactNode;

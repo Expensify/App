@@ -1,4 +1,4 @@
-import Response from '@src/types/onyx/Response';
+import type Response from '@src/types/onyx/Response';
 
 const authenticatePusher = (): Response => ({
     auth: 'auth',

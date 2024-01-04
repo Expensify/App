@@ -1,5 +1,5 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {SectionList as RNSectionList, SectionListProps} from 'react-native';
+import React, {type ForwardedRef, forwardRef} from 'react';
+import {SectionList as RNSectionList, type SectionListProps} from 'react-native';
 
 function SectionListWithRef<ItemT, SectionT>(props: SectionListProps<ItemT, SectionT>, ref: ForwardedRef<RNSectionList<ItemT, SectionT>>) {
     return (
