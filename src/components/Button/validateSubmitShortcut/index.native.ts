@@ -1,4 +1,4 @@
-import ValidateSubmitShortcut from './types';
+import type ValidateSubmitShortcut from './types';
 
 /**
  * Validate if the submit shortcut should be triggered depending on the button state
