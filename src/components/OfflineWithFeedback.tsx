@@ -3,6 +3,7 @@ import {ImageStyle, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -97,7 +98,7 @@ function OfflineWithFeedback({
      */
     const applyStrikeThrough = useCallback(
         (childrenProp: React.ReactNode): React.ReactNode => {
-            const strikedThroughChildren = React.Children.map(childrenProp, (child) => {
+            const strikedThroughChildren = mapChildrenFlat(childrenProp, (child) => {
                 if (!React.isValidElement(child)) {
                     return child;
                 }
@@ -112,11 +113,6 @@ function OfflineWithFeedback({
 
                 return React.cloneElement(child, props);
             });
-
-            // If we only have one child, we want to return it as is, not as an array
-            if (Array.isArray(strikedThroughChildren) && strikedThroughChildren.length === 1) {
-                return strikedThroughChildren[0];
-            }
 
             return strikedThroughChildren;
         },
