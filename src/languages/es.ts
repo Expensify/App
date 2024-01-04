@@ -2561,7 +2561,7 @@ export default {
         perDayLimit: ({limit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría de ${limit}/persona`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
         receiptRequired: ({amount, category}: ViolationsReceiptRequiredParams) => `Recibo obligatorio para importes sobre ${category ? 'el limite de la categoría de ' : ''}${amount}`,
-        reviewRequired: 'dummy.violations.reviewRequired>ES',
+        reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
