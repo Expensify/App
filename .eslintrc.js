@@ -15,14 +15,14 @@ const restrictedImportPaths = [
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
     },
     {
-        name: 'awesome-phonenumber',
-        importNames: ['parsePhoneNumber'],
-        message: "Please use '@libs/PhoneNumber' instead.",
-    },
-    {
         name: 'react-native-safe-area-context',
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
         message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
+    },
+    {
+        name: 'react',
+        importNames: ['CSSProperties'],
+        message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
     },
 ];
 
@@ -171,10 +171,26 @@ module.exports = {
                 '@typescript-eslint/switch-exhaustiveness-check': 'error',
                 '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
                 '@typescript-eslint/no-floating-promises': 'off',
+                '@typescript-eslint/consistent-type-imports': [
+                    'error',
+                    {
+                        prefer: 'type-imports',
+                        fixStyle: 'separate-type-imports',
+                    },
+                ],
+                '@typescript-eslint/no-import-type-side-effects': 'error',
+                '@typescript-eslint/consistent-type-exports': [
+                    'error',
+                    {
+                        fixMixedExportsWithInlineTypeSpecifier: false,
+                    },
+                ],
+                'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
                 'valid-jsdoc': 'off',
                 'jsdoc/no-types': 'error',
+                'rulesdir/no-default-props': 'error',
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',

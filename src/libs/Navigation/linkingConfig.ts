@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {LinkingOptions} from '@react-navigation/native';
+import type {LinkingOptions} from '@react-navigation/native';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getAdaptedStateFromPath from './getAdaptedStateFromPath';
-import {RootStackParamList} from './types';
+import type {RootStackParamList} from './types';
 
 const linkingConfig: LinkingOptions<RootStackParamList> = {
     getStateFromPath: getAdaptedStateFromPath,
@@ -31,9 +31,6 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
             [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
             [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: ROUTES.DESKTOP_SIGN_IN_REDIRECT,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS.route,
-
-            // Demo routes
-            [CONST.DEMO_PAGES.MONEY2020]: ROUTES.MONEY2020,
 
             // Sidebar
             [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
@@ -361,6 +358,7 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                     },
                     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: {
                         screens: {
+                            [SCREENS.MONEY_REQUEST.START]: ROUTES.MONEY_REQUEST_START.route,
                             [SCREENS.MONEY_REQUEST.CREATE]: {
                                 path: ROUTES.MONEY_REQUEST_CREATE.route,
                                 exact: true,
@@ -410,6 +408,8 @@ const linkingConfig: LinkingOptions<RootStackParamList> = {
                                 },
                             },
                             [SCREENS.MONEY_REQUEST.AMOUNT]: ROUTES.MONEY_REQUEST_AMOUNT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
+                            [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                             [SCREENS.MONEY_REQUEST.PARTICIPANTS]: ROUTES.MONEY_REQUEST_PARTICIPANTS.route,
                             [SCREENS.MONEY_REQUEST.CONFIRMATION]: ROUTES.MONEY_REQUEST_CONFIRMATION.route,
                             [SCREENS.MONEY_REQUEST.DATE]: ROUTES.MONEY_REQUEST_DATE.route,

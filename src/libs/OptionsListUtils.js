@@ -1,4 +1,5 @@
 /* eslint-disable no-continue */
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
@@ -12,10 +13,10 @@ import * as ErrorUtils from './ErrorUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
+import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import * as PhoneNumber from './PhoneNumber';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -115,7 +116,7 @@ Onyx.connect({
  * @return {String}
  */
 function addSMSDomainIfPhoneNumber(login) {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(login);
+    const parsedPhoneNumber = parsePhoneNumber(login);
     if (parsedPhoneNumber.possible && !Str.isValidEmail(login)) {
         return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
     }
@@ -201,7 +202,7 @@ function isPersonalDetailsReady(personalDetails) {
 function getParticipantsOption(participant, personalDetails) {
     const detail = getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID];
     const login = detail.login || participant.login;
-    const displayName = detail.displayName || LocalePhoneNumber.formatPhoneNumber(login);
+    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
     return {
         keyForList: String(detail.accountID),
         login,
@@ -246,7 +247,7 @@ function getParticipantNames(personalDetailList) {
             participantNames.add(participant.lastName.toLowerCase());
         }
         if (participant.displayName) {
-            participantNames.add(participant.displayName.toLowerCase());
+            participantNames.add(PersonalDetailsUtils.getDisplayNameOrDefault(participant).toLowerCase());
         }
     });
     return participantNames;
@@ -299,7 +300,11 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
                 // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
                 // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
                 // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([personalDetail.displayName, personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, '')]);
+                searchTerms = searchTerms.concat([
+                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                    personalDetail.login,
+                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
+                ]);
             }
         }
     }
@@ -386,7 +391,7 @@ function getLastMessageTextForReport(report) {
     const lastActionName = lodashGet(lastReportAction, 'actionName', '');
 
     if (ReportActionUtils.isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true);
+        const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -397,7 +402,7 @@ function getLastMessageTextForReport(report) {
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
         );
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReportAction, true, ReportUtils.isChatReport(report));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastIOUMoneyReportAction, true, ReportUtils.isChatReport(report), null, true);
     } else if (ReportActionUtils.isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = ReportUtils.getReimbursementQueuedActionMessage(lastReportAction, report);
     } else if (ReportActionUtils.isReimbursementDeQueuedAction(lastReportAction)) {
@@ -407,7 +412,7 @@ function getLastMessageTextForReport(report) {
     } else if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
-        const properSchemaForModifiedExpenseMessage = ReportUtils.getModifiedExpenseMessage(lastReportAction);
+        const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction(lastReportAction);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (
         lastActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
@@ -510,15 +515,18 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-        lastMessageText += report ? lastMessageTextFromReport : '';
+        const lastActorDisplayName =
+            hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
+                ? lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
+                : '';
+        let lastMessageText = lastActorDisplayName ? `${lastActorDisplayName}: ${lastMessageTextFromReport}` : lastMessageTextFromReport;
 
         if (result.isArchivedRoom) {
             const archiveReason =
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lodashGet(lastActorDetails, 'displayName')),
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -846,23 +854,11 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
         return categorySections;
     }
 
-    if (numberOfCategories < CONST.CATEGORY_LIST_THRESHOLD) {
-        categorySections.push({
-            // "All" section when items amount less than the threshold
-            title: '',
-            shouldShow: false,
-            indexOffset,
-            data: getCategoryOptionTree(enabledCategories),
-        });
-
-        return categorySections;
-    }
-
     if (!_.isEmpty(selectedOptions)) {
         categorySections.push({
             // "Selected" section
             title: '',
-            shouldShow: true,
+            shouldShow: false,
             indexOffset,
             data: getCategoryOptionTree(selectedOptions, true),
         });
@@ -871,6 +867,21 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
     }
 
     const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
+    const numberOfVisibleCategories = selectedOptions.length + filteredCategories.length;
+
+    if (numberOfVisibleCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        categorySections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getCategoryOptionTree(filteredCategories),
+        });
+
+        return categorySections;
+    }
+
     const filteredRecentlyUsedCategories = _.chain(recentlyUsedCategories)
         .filter((categoryName) => !_.includes(selectedOptionNames, categoryName) && lodashGet(categories, [categoryName, 'enabled'], false))
         .map((categoryName) => ({
@@ -892,8 +903,6 @@ function getCategoryListSections(categories, recentlyUsedCategories, selectedOpt
 
         indexOffset += filteredRecentlyUsedCategories.length;
     }
-
-    const filteredCategories = _.filter(enabledCategories, (category) => !_.includes(selectedOptionNames, category.name));
 
     categorySections.push({
         // "All" section when items amount more than the threshold
@@ -1050,6 +1059,159 @@ function getTagListSections(rawTags, recentlyUsedTags, selectedOptions, searchIn
 }
 
 /**
+ * Represents the data for a single tax rate.
+ *
+ * @property {string} name - The name of the tax rate.
+ * @property {string} value - The value of the tax rate.
+ * @property {string} code - The code associated with the tax rate.
+ * @property {string} modifiedName - This contains the tax name and tax value as one name
+ * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
+ */
+
+/**
+ * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
+ *
+ * @param {Object} policyTaxRates - The original tax rates object.
+ * @returns {Object.<string, Object.<string, policyTaxRates>>} The transformed tax rates object.
+ */
+function transformedTaxRates(policyTaxRates) {
+    const defaultTaxKey = policyTaxRates.defaultExternalID;
+    const getModifiedName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+    return taxes;
+}
+
+/**
+ * Sorts tax rates alphabetically by name.
+ *
+ * @param {Object<String, {name: String, enabled: Boolean}>} taxRates
+ * @returns {Array<Object>}
+ */
+function sortTaxRates(taxRates) {
+    const sortedtaxRates = _.chain(taxRates)
+        .values()
+        .sortBy((taxRate) => taxRate.name)
+        .value();
+
+    return sortedtaxRates;
+}
+
+/**
+ * Builds the options for taxRates
+ *
+ * @param {Object[]} taxRates - an initial object array
+ * @returns {Array<Object>}
+ */
+function getTaxRatesOptions(taxRates) {
+    return _.map(taxRates, (taxRate) => ({
+        text: taxRate.modifiedName,
+        keyForList: taxRate.code,
+        searchText: taxRate.modifiedName,
+        tooltipText: taxRate.modifiedName,
+        isDisabled: taxRate.isDisabled,
+        data: taxRate,
+    }));
+}
+
+/**
+ * Builds the section list for tax rates
+ *
+ * @param {Object} policyTaxRates
+ * @param {Object[]} selectedOptions
+ * @param {String} searchInputValue
+ * @returns {Array<Object>}
+ */
+function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
+    const policyRatesSections = [];
+
+    const taxes = transformedTaxRates(policyTaxRates);
+
+    const sortedTaxRates = sortTaxRates(taxes);
+    const enabledTaxRates = _.filter(sortedTaxRates, (taxRate) => !taxRate.isDisabled);
+    const numberOfTaxRates = _.size(enabledTaxRates);
+
+    let indexOffset = 0;
+
+    // If all tax are disabled but there's a previously selected tag, show only the selected tag
+    if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
+        const selectedTaxRateOptions = _.map(selectedOptions, (option) => ({
+            modifiedName: option.name,
+            // Should be marked as enabled to be able to be de-selected
+            isDisabled: false,
+        }));
+        policyRatesSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTaxRatesOptions(selectedTaxRateOptions),
+        });
+
+        return policyRatesSections;
+    }
+
+    if (!_.isEmpty(searchInputValue)) {
+        const searchTaxRates = _.filter(enabledTaxRates, (taxRate) => taxRate.modifiedName.toLowerCase().includes(searchInputValue.toLowerCase()));
+
+        policyRatesSections.push({
+            // "Search" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(searchTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    if (numberOfTaxRates < CONST.TAX_RATES_LIST_THRESHOLD) {
+        policyRatesSections.push({
+            // "All" section when items amount less than the threshold
+            title: '',
+            shouldShow: false,
+            indexOffset,
+            data: getTaxRatesOptions(enabledTaxRates),
+        });
+
+        return policyRatesSections;
+    }
+
+    const selectedOptionNames = _.map(selectedOptions, (selectedOption) => selectedOption.name);
+    const filteredTaxRates = _.filter(enabledTaxRates, (taxRate) => !_.includes(selectedOptionNames, taxRate.modifiedName));
+
+    if (!_.isEmpty(selectedOptions)) {
+        const selectedTaxRatesOptions = _.map(selectedOptions, (option) => {
+            const taxRateObject = _.find(taxes, (taxRate) => taxRate.modifiedName === option.name);
+
+            return {
+                modifiedName: option.name,
+                isDisabled: Boolean(taxRateObject && taxRateObject.isDisabled),
+            };
+        });
+
+        policyRatesSections.push({
+            // "Selected" section
+            title: '',
+            shouldShow: true,
+            indexOffset,
+            data: getTaxRatesOptions(selectedTaxRatesOptions),
+        });
+
+        indexOffset += selectedOptions.length;
+    }
+
+    policyRatesSections.push({
+        // "All" section when number of items are more than the threshold
+        title: '',
+        shouldShow: true,
+        indexOffset,
+        data: getTaxRatesOptions(filteredTaxRates),
+    });
+
+    return policyRatesSections;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -1090,6 +1252,8 @@ function getOptions(
         recentlyUsedTags = [],
         canInviteUser = true,
         includeSelectedOptions = false,
+        includePolicyTaxRates,
+        policyTaxRates,
     },
 ) {
     if (includeCategories) {
@@ -1102,6 +1266,7 @@ function getOptions(
             currentUserOption: null,
             categoryOptions,
             tagOptions: [],
+            policyTaxRatesOptions: [],
         };
     }
 
@@ -1115,6 +1280,21 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions,
+            policyTaxRatesOptions: [],
+        };
+    }
+
+    if (includePolicyTaxRates) {
+        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue);
+
+        return {
+            recentReports: [],
+            personalDetails: [],
+            userToInvite: null,
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            policyTaxRatesOptions,
         };
     }
 
@@ -1126,13 +1306,14 @@ function getOptions(
             currentUserOption: null,
             categoryOptions: [],
             tagOptions: [],
+            policyTaxRatesOptions: [],
         };
     }
 
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
+    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
@@ -1299,7 +1480,7 @@ function getOptions(
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
-            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === addSMSDomainIfPhoneNumber(personalDetailOption.login))) {
+            if (_.some(optionsToExclude, (optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -1397,6 +1578,7 @@ function getOptions(
         currentUserOption,
         categoryOptions: [],
         tagOptions: [],
+        policyTaxRatesOptions: [],
     };
 }
 
@@ -1437,8 +1619,8 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail, amountText) {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
     return {
-        text: personalDetail.displayName || formattedLogin,
-        alternateText: formattedLogin || personalDetail.displayName,
+        text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
+        alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
         icons: [
             {
                 source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
@@ -1486,6 +1668,8 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
  * @param {Array<String>} [recentlyUsedTags]
  * @param {boolean} [canInviteUser]
  * @param {boolean} [includeSelectedOptions]
+ * @param {boolean} [includePolicyTaxRates]
+ * @param {Object} [policyTaxRates]
  * @returns {Object}
  */
 function getFilteredOptions(
@@ -1505,6 +1689,8 @@ function getFilteredOptions(
     recentlyUsedTags = [],
     canInviteUser = true,
     includeSelectedOptions = false,
+    includePolicyTaxRates = false,
+    policyTaxRates = {},
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -1524,6 +1710,8 @@ function getFilteredOptions(
         recentlyUsedTags,
         canInviteUser,
         includeSelectedOptions,
+        includePolicyTaxRates,
+        policyTaxRates,
     });
 }
 
@@ -1606,15 +1794,17 @@ function formatMemberForList(member, config = {}) {
  * @param {Array<String>} betas
  * @param {String} searchValue
  * @param {Array} excludeLogins
+ * @param {Boolean} includeSelectedOptions
  * @returns {Object}
  */
-function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', excludeLogins = []) {
+function getMemberInviteOptions(personalDetails, betas = [], searchValue = '', excludeLogins = [], includeSelectedOptions = false) {
     return getOptions([], personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         includePersonalDetails: true,
         excludeLogins,
         sortPersonalDetailsByAlphaAsc: true,
+        includeSelectedOptions,
     });
 }
 
@@ -1633,7 +1823,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
     }
 
-    const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
+    const isValidPhone = parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
 
@@ -1767,4 +1957,5 @@ export {
     getCategoryOptionTree,
     formatMemberForList,
     formatSectionsFromSearchTerm,
+    transformedTaxRates,
 };

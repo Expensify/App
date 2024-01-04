@@ -3,15 +3,16 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {RootStackParamList} from '@libs/Navigation/types';
+import type {RootStackParamList} from '@libs/Navigation/types';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -38,29 +39,35 @@ function BottomTabBar() {
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.chats')}
-                    style={[styles.touchableButtonImage]}
+                    wrapperStyle={styles.flexGrow1}
+                    style={styles.bottomTabBarItem}
                 >
                     <Icon
                         src={Expensicons.ChatBubble}
-                        fill={currentTabName === SCREENS.HOME ? theme.iconMenu : undefined}
+                        fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
+                        width={variables.iconBottomBar}
+                        height={variables.iconBottomBar}
                     />
                 </PressableWithFeedback>
             </Tooltip>
             <BottomTabBarFloatingActionButton />
             <Tooltip text={translate('common.settings')}>
-                <PressableWithoutFeedback
+                <PressableWithFeedback
                     onPress={() => {
                         Navigation.navigate(ROUTES.ALL_SETTINGS);
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.settings')}
-                    style={[styles.touchableButtonImage]}
+                    wrapperStyle={styles.flexGrow1}
+                    style={styles.bottomTabBarItem}
                 >
                     <Icon
-                        src={Expensicons.Gear}
-                        fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : undefined}
+                        src={Expensicons.Wrench}
+                        fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : theme.icon}
+                        width={variables.iconBottomBar}
+                        height={variables.iconBottomBar}
                     />
-                </PressableWithoutFeedback>
+                </PressableWithFeedback>
             </Tooltip>
         </View>
     );

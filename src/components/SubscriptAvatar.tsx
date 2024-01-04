@@ -1,14 +1,15 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import {AvatarType} from '@src/types/onyx/OnyxCommon';
+import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import Icon, {IconProps} from './Icon';
+import Icon from './Icon';
+import type {IconProps} from './Icon';
 import UserDetailsTooltip from './UserDetailsTooltip';
 
 type SubIcon = {
@@ -74,7 +75,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size 
         <View style={[containerStyle, noMargin ? styles.mr0 : {}]}>
             <UserDetailsTooltip
                 shouldRender={showTooltip}
-                accountID={mainAvatar.id ?? -1}
+                accountID={Number(mainAvatar.id ?? -1)}
                 icon={mainAvatar}
             >
                 <View>
@@ -91,7 +92,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size 
             {secondaryAvatar && (
                 <UserDetailsTooltip
                     shouldRender={showTooltip}
-                    accountID={secondaryAvatar.id ?? -1}
+                    accountID={Number(secondaryAvatar.id ?? -1)}
                     icon={secondaryAvatar}
                 >
                     <View
@@ -137,6 +138,7 @@ function SubscriptAvatar({mainAvatar = {}, secondaryAvatar, subscriptIcon, size 
                         width={subscriptIcon.width}
                         height={subscriptIcon.height}
                         additionalStyles={styles.alignSelfCenter}
+                        fill={theme.icon}
                     />
                 </View>
             )}

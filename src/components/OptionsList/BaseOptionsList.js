@@ -94,7 +94,6 @@ function BaseOptionsList({
         // Build the flat array
         for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
             const section = sections[sectionIndex];
-
             // Add the section header
             const sectionHeaderHeight = section.title && !hideSectionHeaders ? variables.optionsListSectionHeaderHeight : 0;
             flatArray.push({length: sectionHeaderHeight, offset});
@@ -205,6 +204,7 @@ function BaseOptionsList({
 
         return (
             <OptionRow
+                keyForList={item.keyForList}
                 option={{...item, brickRoadIndicator: isSelected ? undefined : item.brickRoadIndicator}}
                 showTitleTooltip={showTitleTooltip}
                 hoverStyle={optionHoveredStyle}
@@ -295,6 +295,7 @@ function BaseOptionsList({
                         onViewableItemsChanged={onViewableItemsChanged}
                         bounces={bounces}
                         ListFooterComponent={renderFooterContent}
+                        testID="options-list"
                     />
                 </>
             )}

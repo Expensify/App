@@ -95,7 +95,7 @@ function WorkspaceInvitePage(props) {
         const newPersonalDetailsDict = {};
         const newSelectedOptionsDict = {};
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers, true);
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
@@ -135,13 +135,25 @@ function WorkspaceInvitePage(props) {
         const sections = [];
         let indexOffset = 0;
 
+        // Filter all options that is a part of the search term or in the personal details
+        let filterSelectedOptions = selectedOptions;
+        if (searchTerm !== '') {
+            filterSelectedOptions = _.filter(selectedOptions, (option) => {
+                const accountID = lodashGet(option, 'accountID', null);
+                const isOptionInPersonalDetails = _.some(personalDetails, (personalDetail) => personalDetail.accountID === accountID);
+
+                const isPartOfSearchTerm = option.text.toLowerCase().includes(searchTerm.trim().toLowerCase());
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
+            });
+        }
+
         sections.push({
             title: undefined,
-            data: selectedOptions,
+            data: filterSelectedOptions,
             shouldShow: true,
             indexOffset,
         });
-        indexOffset += selectedOptions.length;
+        indexOffset += filterSelectedOptions.length;
 
         // Filtering out selected users from the search results
         const selectedLogins = _.map(selectedOptions, ({login}) => login);
@@ -225,7 +237,7 @@ function WorkspaceInvitePage(props) {
         if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (usersToInvite.length === 0 && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(searchValue))) {
+        if (usersToInvite.length === 0 && excludedUsers.includes(searchValue)) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
@@ -252,7 +264,7 @@ function WorkspaceInvitePage(props) {
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                             onBackButtonPress={() => {
                                 Policy.clearErrors(props.route.params.policyID);
-                                Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(props.route.params.policyID));
+                                Navigation.goBack();
                             }}
                         />
                         <SelectionList

@@ -1,8 +1,8 @@
-import {OnyxEntry} from 'react-native-onyx/lib/types';
-import {ValueOf} from 'type-fest';
-import CONST from './CONST';
-import * as OnyxTypes from './types/onyx';
-import DeepValueOf from './types/utils/DeepValueOf';
+import type {OnyxEntry} from 'react-native-onyx/lib/types';
+import type {ValueOf} from 'type-fest';
+import type CONST from './CONST';
+import type * as OnyxTypes from './types/onyx';
+import type DeepValueOf from './types/utils/DeepValueOf';
 
 /**
  * This is a file containing constants for all the top level keys in our store
@@ -234,9 +234,6 @@ const ONYXKEYS = {
     // The access token to be used with the Mapbox library
     MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
 
-    // Information on any active demos being run
-    DEMO_INFO: 'demoInfo',
-
     // Max area supported for HTML <canvas> element
     MAX_CANVAS_AREA: 'maxCanvasArea',
 
@@ -256,7 +253,10 @@ const ONYXKEYS = {
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
+        POLICY_TAX_RATE: 'policyTaxRates_',
         POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
+        POLICY_REPORT_FIELDS: 'policyReportFields_',
+        POLICY_RECENTLY_USED_REPORT_FIELDS: 'policyRecentlyUsedReportFields_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
@@ -433,7 +433,6 @@ type OnyxValues = {
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
     [ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT]: number;
-    [ONYXKEYS.DEMO_INFO]: OnyxTypes.DemoInfo;
     [ONYXKEYS.MAX_CANVAS_AREA]: number;
     [ONYXKEYS.MAX_CANVAS_HEIGHT]: number;
     [ONYXKEYS.MAX_CANVAS_WIDTH]: number;
@@ -447,6 +446,8 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
+    [ONYXKEYS.COLLECTION.POLICY_REPORT_FIELDS]: OnyxTypes.PolicyReportField;
+    [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
@@ -464,6 +465,7 @@ type OnyxValues = {
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
     [ONYXKEYS.COLLECTION.SELECTED_TAB]: string;
     [ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT]: string;
+    [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;

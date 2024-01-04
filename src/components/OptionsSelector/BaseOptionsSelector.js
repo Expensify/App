@@ -302,8 +302,9 @@ class BaseOptionsSelector extends Component {
         }
     }
 
-    selectFocusedOption() {
-        const focusedOption = this.state.allOptions[this.state.focusedIndex];
+    selectFocusedOption(e) {
+        const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
+        const focusedOption = focusedItemKey ? _.find(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
 
         if (!focusedOption || !this.props.isFocused) {
             return;
@@ -492,6 +493,7 @@ class BaseOptionsSelector extends Component {
                 shouldInterceptSwipe={this.props.shouldTextInputInterceptSwipe}
                 isLoading={this.props.isLoadingNewOptions}
                 iconLeft={MagnifyingGlass}
+                testID="options-selector-input"
             />
         );
         const optionsList = (
@@ -650,6 +652,7 @@ class BaseOptionsSelector extends Component {
                                 src={Info}
                                 height={20}
                                 width={20}
+                                fill={this.props.theme.icon}
                             />
                         </PressableWithoutFeedback>
                     </View>

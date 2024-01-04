@@ -1,18 +1,12 @@
-import {
-    createNavigatorFactory,
-    DefaultNavigatorOptions,
-    ParamListBase,
-    StackActionHelpers,
-    StackNavigationState,
-    StackRouter,
-    StackRouterOptions,
-    useNavigationBuilder,
-} from '@react-navigation/native';
-import {StackNavigationEventMap, StackNavigationOptions, StackView} from '@react-navigation/stack';
+import type {DefaultNavigatorOptions, ParamListBase, StackActionHelpers, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
+import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
+import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import {StackView} from '@react-navigation/stack';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {View} from 'react-native';
-import {NavigationStateRoute} from '@libs/Navigation/types';
+import ScreenWrapper from '@components/ScreenWrapper';
+import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import BottomTabBar from './BottomTabBar';
 import TopBar from './TopBar';
@@ -67,19 +61,21 @@ function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ..
     const stateToRender = getStateToRender(state);
 
     return (
-        <View style={{flex: 1}}>
-            <TopBar />
-            <NavigationContent>
-                <StackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={stateToRender}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-            <BottomTabBar />
-        </View>
+        <ScreenWrapper testID={CustomBottomTabNavigator.displayName}>
+            <View style={{flex: 1}}>
+                <TopBar />
+                <NavigationContent>
+                    <StackView
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                        state={stateToRender}
+                        descriptors={descriptors}
+                        navigation={navigation}
+                    />
+                </NavigationContent>
+                <BottomTabBar />
+            </View>
+        </ScreenWrapper>
     );
 }
 

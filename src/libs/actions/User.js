@@ -371,6 +371,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 [contactMethod]: {
                     errorFields: {
                         validateLogin: null,
+                        validateCodeSent: null,
                     },
                     pendingFields: {
                         validateLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -416,6 +417,7 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 [contactMethod]: {
                     errorFields: {
                         validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        validateCodeSent: null,
                     },
                     pendingFields: {
                         validateLogin: null,
@@ -611,7 +613,7 @@ function updateChatPriorityMode(mode, automatic = false) {
     );
 
     if (!autoSwitchedToFocusMode) {
-        Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
+        Navigation.goBack();
     }
 }
 
@@ -794,7 +796,7 @@ function updateTheme(theme) {
         {optimisticData},
     );
 
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack();
 }
 
 /**

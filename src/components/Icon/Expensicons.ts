@@ -53,10 +53,10 @@ import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
 import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
+import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
 import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
-import ExpensifyCard from '@assets/images/expensifycard.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
 import Flag from '@assets/images/flag.svg';
@@ -131,6 +131,7 @@ import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
+import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
 import LoungeAccess from './svgs/LoungeAccessIcon';
 
@@ -145,6 +146,7 @@ export {
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
+    Wrench,
     BackArrow,
     Bank,
     Bill,

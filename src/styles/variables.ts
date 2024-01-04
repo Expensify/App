@@ -5,7 +5,7 @@ import {PixelRatio} from 'react-native';
  * method always returns the defaultValue (first param). When the device font size increases/decreases, the PixelRatio.getFontScale() value increases/decreases as well.
  * This means that if you have text and its 'fontSize' is 19, the device font size changed to the 5th level on the iOS slider and the actual fontSize is 19 * PixelRatio.getFontScale()
  * = 19 * 1.11 = 21.09. Since we are disallowing font scaling we need to calculate it manually. We calculate it with: PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue :
- * defaultValue * PixelRatio getFontScale() This means that the fontSize is increased/decreased when the device font size changes up to maxValue (second param)
+ * defaultValue * PixelRatio.getFontScale() This means that the fontSize is increased/decreased when the device font size changes up to maxValue (second param)
  */
 function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number {
     return PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * PixelRatio.getFontScale();
@@ -13,6 +13,7 @@ function getValueUsingPixelRatio(defaultValue: number, maxValue: number): number
 
 export default {
     // do we need to change it?
+    bottomTabHeight: 80,
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
@@ -40,9 +41,9 @@ export default {
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
     avatarSizeSubscript: 20,
-    avatarSizeMidSubscript: 18,
+    avatarSizeMidSubscript: 16,
     avatarSizeMentionIcon: 16,
-    avatarSizeSmallSubscript: 14,
+    avatarSizeSmallSubscript: 12,
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     fontSizeOnlyEmojis: 30,
@@ -77,6 +78,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 120,
+    iconBottomBar: 25,
     emojiSize: 20,
     emojiLineHeight: 28,
     iouAmountTextSize: 40,
@@ -116,6 +118,8 @@ export default {
     avatarChatSpacing: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    emptyWorkspaceIconWidth: 84,
+    emptyWorkspaceIconHeight: 84,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
     modalTopBigIconHeight: 244,
@@ -179,6 +183,7 @@ export default {
     reportActionItemImagesMoreCornerTriangleWidth: 40,
     bankCardWidth: 40,
     bankCardHeight: 26,
+    workspaceTypeIconWidth: 34,
     workspaceSectionMaxWidth: 560,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
@@ -195,6 +200,4 @@ export default {
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
     cardNameWidth: 156,
-
-    lhpBorderRadius: 24,
 } as const;

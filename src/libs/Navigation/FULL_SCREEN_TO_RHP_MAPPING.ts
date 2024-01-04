@@ -1,5 +1,5 @@
 import SCREENS from '@src/SCREENS';
-import {FullScreenName} from './types';
+import type {FullScreenName} from './types';
 
 const FULL_SCREEN_TO_RHP_MAPPING: Partial<Record<FullScreenName, string[]>> = {
     [SCREENS.SETTINGS.PROFILE.ROOT]: [
@@ -35,6 +35,7 @@ const FULL_SCREEN_TO_RHP_MAPPING: Partial<Record<FullScreenName, string[]>> = {
         SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
     ],
     [SCREENS.SETTINGS.SECURITY]: [SCREENS.SETTINGS.TWO_FACTOR_AUTH, SCREENS.SETTINGS.CLOSE],
+    [SCREENS.SETTINGS.ABOUT]: [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS, SCREENS.KEYBOARD_SHORTCUTS],
 };
 
 export default FULL_SCREEN_TO_RHP_MAPPING;

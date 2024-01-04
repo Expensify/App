@@ -3,9 +3,10 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
-import {BootSplashModule} from '@libs/BootSplash/types';
+import type {BootSplashModule} from '@libs/BootSplash/types';
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
