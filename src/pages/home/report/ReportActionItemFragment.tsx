@@ -40,7 +40,7 @@ type ReportActionItemFragmentProps = {
     style?: StyleProp<TextStyle>;
 
     /** The accountID of the copilot who took this action on behalf of the user */
-    delegateAccountID?: string;
+    delegateAccountID?: number;
 
     /** icon */
     actorIcon?: AvatarProps;
@@ -66,7 +66,7 @@ function ReportActionItemFragment({
     isSingleLine = false,
     source = '',
     style = [],
-    delegateAccountID = '',
+    delegateAccountID = 0,
     actorIcon = {},
     isThreadParentMessage = false,
     isApprovedOrSubmittedReportAction = false,
