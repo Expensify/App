@@ -1,6 +1,6 @@
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
 import {Animated} from 'react-native';
-import {StyleUtilsType} from '@styles/utils';
+import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 
 type ModalCardStyleInterpolator = (

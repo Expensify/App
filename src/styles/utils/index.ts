@@ -1,16 +1,18 @@
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
-import {EdgeInsets} from 'react-native-safe-area-context';
-import {ValueOf} from 'type-fest';
+import type {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
-import {ThemeColors} from '@styles/theme/types';
+import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {Transaction} from '@src/types/onyx';
-import {defaultStyles, type ThemeStyles} from '..';
+import type {Transaction} from '@src/types/onyx';
+import {defaultStyles} from '..';
+import type {ThemeStyles} from '..';
 import getCardStyles from './cardStyles';
 import containerComposeStyles from './containerComposeStyles';
 import FontUtils from './FontUtils';
@@ -21,7 +23,7 @@ import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import {
+import type {
     AllStyles,
     AvatarSize,
     AvatarSizeName,

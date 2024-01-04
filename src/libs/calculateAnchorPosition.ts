@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
-import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 

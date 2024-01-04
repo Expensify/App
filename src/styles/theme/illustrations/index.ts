@@ -1,4 +1,4 @@
-import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import darkIllustrations from './themes/dark';
 import lightIllustrations from './themes/light';

@@ -5,7 +5,7 @@ import useThemePreferenceWithStaticOverride from '@hooks/useThemePreferenceWithS
 // eslint-disable-next-line no-restricted-imports
 import themes from '@styles/theme';
 import ThemeContext from '@styles/theme/context/ThemeContext';
-import {ThemePreferenceWithoutSystem} from '@styles/theme/types';
+import type {ThemePreferenceWithoutSystem} from '@styles/theme/types';
 
 const propTypes = {
     /** Rendered child component */

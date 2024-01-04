@@ -1,6 +1,6 @@
-import {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
-import {ThemeStyles} from '@styles/index';
-import {StyleUtilsType} from '@styles/utils';
+import type {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
+import type {ThemeStyles} from '@styles/index';
+import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import createModalCardStyleInterpolator from './createModalCardStyleInterpolator';

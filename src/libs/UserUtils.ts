@@ -1,14 +1,15 @@
 import Str from 'expensify-common/lib/str';
 import _ from 'lodash';
-import Onyx, {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
 import {ConciergeAvatar, FallbackAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {PersonalDetailsList} from '@src/types/onyx';
-import Login from '@src/types/onyx/Login';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type Login from '@src/types/onyx/Login';
+import type IconAsset from '@src/types/utils/IconAsset';
 import hashCode from './hashCode';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
@@ -137,7 +138,7 @@ function getDefaultAvatarURL(accountID: string | number = ''): string {
  * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param avatarSource - the avatar source from user's personalDetails
  */
-function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
+function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
     if (typeof avatarSource === 'string') {
         if (avatarSource.includes('images/avatars/avatar_') || avatarSource.includes('images/avatars/default-avatar_') || avatarSource.includes('images/avatars/user/default')) {
             return true;
@@ -150,7 +151,7 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
     }
 
     if (!avatarSource) {
-        // If null source, we should also use a default avatar
+        // If source is undefined, we should also use a default avatar
         return true;
     }
 
@@ -164,8 +165,8 @@ function isDefaultAvatar(avatarSource?: AvatarSource): boolean {
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
-    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource as string) : avatarSource;
+function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource {
+    return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource) : avatarSource;
 }
 
 /**
