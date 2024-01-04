@@ -3,7 +3,8 @@ import React from 'react';
 import {Text as RNText, StyleSheet} from 'react-native';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
-import FontUtils, {FontUtilsType} from '@styles/utils/FontUtils';
+import type {FontUtilsType} from '@styles/utils/FontUtils';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
