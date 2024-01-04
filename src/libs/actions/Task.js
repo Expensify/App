@@ -392,6 +392,7 @@ function editTask(report, {title, description}) {
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
+                errorFields: null,
             },
         },
     ];
@@ -713,13 +714,16 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {number} originalStateNum
  * @param {number} originalStatusNum
  */
-function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
+function deleteTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `deleted task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const taskReport = ReportUtils.getReport(taskReportID);
     const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const parentReport = ReportUtils.getParentReport(taskReport);
+
+    // If the task report is the last visible action in the parent report, we should navigate back to the parent report
+    const shouldDeleteTaskReport = !ReportActionsUtils.doesReportHaveVisibleActions(taskReportID);
 
     const optimisticReportActions = {
         [parentReportAction.reportActionID]: {
@@ -822,6 +826,10 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     ];
 
     API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, successData, failureData});
+
+    if (shouldDeleteTaskReport) {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReport.reportID));
+    }
 }
 
 /**
@@ -928,7 +936,7 @@ export {
     clearOutTaskInfoAndNavigate,
     getAssignee,
     getShareDestination,
-    cancelTask,
+    deleteTask,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     clearTaskErrors,
