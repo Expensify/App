@@ -220,10 +220,10 @@ function AddressSearch({
             // amount of data massaging needs to happen for what the parent expects to get from this function.
             if (_.size(details)) {
                 onPress({
-                    address: autocompleteData.description || lodashGet(details, 'description', ''),
-                    lat: lodashGet(details, 'geometry.location.lat', 0),
-                    lng: lodashGet(details, 'geometry.location.lng', 0),
-                    name: lodashGet(details, 'name'),
+                    address: autocompleteData.description || _.get(details, 'description', ''),
+                    lat: _.get(details, 'geometry.location.lat', 0),
+                    lng: _.get(details, 'geometry.location.lng', 0),
+                    name: _.get(details, 'name'),
                 });
             }
             return;
@@ -286,9 +286,9 @@ function AddressSearch({
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
-            lat: lodashGet(details, 'geometry.location.lat', 0),
-            lng: lodashGet(details, 'geometry.location.lng', 0),
-            address: autocompleteData.description || lodashGet(details, 'formatted_address', ''),
+            lat: _.get(details, 'geometry.location.lat', 0),
+            lng: _.get(details, 'geometry.location.lng', 0),
+            address: autocompleteData.description || _.get(details, 'formatted_address', ''),
         };
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
