@@ -926,7 +926,10 @@ function getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, t
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: updatedReportAction,
+                [updatedReportAction.reportActionID]: {
+                    ...updatedReportAction,
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
+                },
             },
         });
 
@@ -1049,6 +1052,21 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
     API.write('UpdateMoneyRequestDate', params, onyxData);
+}
+
+/**
+ * Updates the created date of a money request
+ *
+ * @param {String} transactionID
+ * @param {Number} transactionThreadReportID
+ * @param {String} tag
+ */
+function updateMoneyRequestTag(transactionID, transactionThreadReportID, tag) {
+    const transactionChanges = {
+        tag,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, true);
+    API.write('UpdateMoneyRequestTag', params, onyxData);
 }
 
 /**
@@ -3490,6 +3508,7 @@ export {
     setUpDistanceTransaction,
     navigateToNextPage,
     updateMoneyRequestDate,
+    updateMoneyRequestTag,
     updateMoneyRequestAmountAndCurrency,
     replaceReceipt,
     detachReceipt,

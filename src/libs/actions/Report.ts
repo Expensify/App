@@ -2134,6 +2134,8 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
         if (chat?.reportID) {
+            // We should call Navigation.goBack to pop the current route first before navigating to Concierge.
+            Navigation.goBack(ROUTES.HOME);
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
         }
     }

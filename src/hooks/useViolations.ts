@@ -2,12 +2,12 @@ import {useCallback, useMemo} from 'react';
 import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 
 /**
- * Names of Fields where violations can occur
+ * Names of Fields where violations can occur.
  */
 type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
 
 /**
- * Map from Violation Names to the field where that violation can occur
+ * Map from Violation Names to the field where that violation can occur.
  */
 const violationFields: Record<ViolationName, ViolationField> = {
     allTagLevelsRequired: 'tag',
@@ -60,13 +60,12 @@ function useViolations(violations: TransactionViolation[]) {
         return violationGroups ?? new Map();
     }, [violations]);
 
-    const hasViolations = useCallback((field: ViolationField) => Boolean(violationsByField.get(field)?.length), [violationsByField]);
     const getViolationsForField = useCallback((field: ViolationField) => violationsByField.get(field) ?? [], [violationsByField]);
 
     return {
-        hasViolations,
         getViolationsForField,
     };
 }
 
 export default useViolations;
+export type {ViolationField};
