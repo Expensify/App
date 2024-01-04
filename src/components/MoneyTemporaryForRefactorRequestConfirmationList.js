@@ -292,9 +292,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction.taxAmount, iouCurrencyCode);
 
-    const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
-    const taxRateTitle = (transaction.taxRate && transaction.taxRate.text) || defaultTaxName;
+    const taxRateTitle = TransactionUtils.getDefaultTaxName(policyTaxRates, transaction);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');

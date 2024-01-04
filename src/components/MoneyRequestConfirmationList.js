@@ -262,10 +262,7 @@ function MoneyRequestConfirmationList(props) {
               props.isDistanceRequest ? currency : props.iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(props.transaction.taxAmount, props.iouCurrencyCode);
-
-    const defaultTaxKey = props.policyTaxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${props.policyTaxRates.taxes[defaultTaxKey].name} (${props.policyTaxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) || '';
-    const taxRateTitle = (props.transaction.taxRate && props.transaction.taxRate.text) || defaultTaxName;
+    const taxRateTitle = TransactionUtils.getDefaultTaxName(props.policyTaxRates, transaction);
 
     const isFocused = useIsFocused();
     const [formError, setFormError] = useState('');
