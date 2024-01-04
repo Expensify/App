@@ -1,10 +1,10 @@
-import {StackScreenProps} from '@react-navigation/stack';
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
