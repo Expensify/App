@@ -1,12 +1,12 @@
 import React, {ReactElement} from 'react';
-import {StyleProp, Text, View, ViewStyle} from 'react-native';
+import {StyleProp, Text, TextStyle, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
@@ -18,7 +18,7 @@ type ReportActionItemMessageProps = {
     displayAsGroup: boolean;
 
     /** Additional styles to add after local styles. */
-    style?: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle> | StyleProp<TextStyle>;
 
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
@@ -74,8 +74,8 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
                 isThreadParentMessage={ReportActionsUtils.isThreadParentMessage(action, reportID)}
                 attachmentInfo={action.attachmentInfo}
                 pendingAction={action.pendingAction}
-                source={(action.originalMessage as OriginalMessageAddComment['originalMessage'])?.source}
-                accountID={action.actorAccountID}
+                source={action.originalMessage as OriginalMessageSource}
+                accountID={action.actorAccountID ?? 0}
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}

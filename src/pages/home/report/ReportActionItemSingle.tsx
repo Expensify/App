@@ -256,7 +256,7 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action.reportActionID}-${index}`}
-                                    accountID={actorAccountID}
+                                    accountID={actorAccountID ?? 0}
                                     fragment={fragment}
                                     delegateAccountID={action.delegateAccountID}
                                     isSingleLine
