@@ -1,8 +1,18 @@
+<<<<<<< HEAD:src/pages/workspace/invoices/WorkspaceInvoicesPage.js
 import PropTypes from 'prop-types';
 import React from 'react';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
+=======
+import type {StackScreenProps} from '@react-navigation/stack';
+import React from 'react';
+import useLocalize from '@hooks/useLocalize';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
+>>>>>>> 011e31c (Merge pull request #33943 from Expensify/jules-fixLintError):src/pages/workspace/invoices/WorkspaceInvoicesPage.tsx
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
