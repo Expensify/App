@@ -26,6 +26,8 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import {policyDefaultProps, policyPropTypes} from './workspace/withPolicy';
+import Str from 'expensify-common/lib/str';
+import * as LoginUtils from '@libs/LoginUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -188,10 +190,11 @@ function RoomInvitePage(props) {
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
+
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        if (!userToInvite && excludedUsers.includes(searchValue)) {
+        if (!userToInvite && excludedUsers.includes(OptionsListUtils.addSMSDomainIfPhoneNumber(LoginUtils.appendCountryCode(searchValue)))) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
