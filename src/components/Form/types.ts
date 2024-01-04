@@ -1,7 +1,7 @@
-import {ComponentType, ForwardedRef, ForwardRefExoticComponent, ReactNode, SyntheticEvent} from 'react';
-import {GestureResponderEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {OnyxFormKey} from '@src/ONYXKEYS';
-import {Form} from '@src/types/onyx';
+import type {ComponentType, ForwardedRef, ForwardRefExoticComponent, ReactNode, SyntheticEvent} from 'react';
+import type {GestureResponderEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type {Form} from '@src/types/onyx';
 
 type ValueType = 'string' | 'boolean' | 'date';
 

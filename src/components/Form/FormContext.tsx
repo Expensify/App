@@ -1,5 +1,5 @@
 import {createContext} from 'react';
-import {RegisterInput} from './types';
+import type {RegisterInput} from './types';
 
 type FormContext = {
     registerInput: RegisterInput;

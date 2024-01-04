@@ -1,7 +1,7 @@
 import React, {forwardRef, useContext} from 'react';
 import TextInput from '@components/TextInput';
 import FormContext from './FormContext';
-import {InputProps, InputRef, InputWrapperProps} from './types';
+import type {InputProps, InputRef, InputWrapperProps} from './types';
 
 function InputWrapper<TInputProps extends InputProps>({InputComponent, inputID, valueType = 'string', ...rest}: InputWrapperProps<TInputProps>, ref: InputRef) {
     const {registerInput} = useContext(FormContext);

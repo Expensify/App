@@ -1,17 +1,19 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {createRef, ForwardedRef, forwardRef, ReactNode, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {ForwardedRef, ReactNode} from 'react';
+import React, {createRef, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Form, Network} from '@src/types/onyx';
-import {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Form, Network} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
-import {FormProps, FormValuesFields, InputRef, InputRefs, OnyxFormKeyWithoutDraft, RegisterInput, ValueType} from './types';
+import type {FormProps, FormValuesFields, InputRef, InputRefs, OnyxFormKeyWithoutDraft, RegisterInput, ValueType} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
