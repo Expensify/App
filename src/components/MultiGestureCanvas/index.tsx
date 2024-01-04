@@ -174,7 +174,7 @@ function MultiGestureCanvas({canvasSize, isActive = true, onScaleChanged, childr
         isSwipingInPager,
         stopAnimation,
     })
-        .simultaneousWithExternalGesture(pagerRef, singleTapGesture, doubleTapGesture)
+        .simultaneousWithExternalGesture(singleTapGesture, doubleTapGesture)
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
