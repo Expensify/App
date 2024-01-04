@@ -1,7 +1,8 @@
-import React, {ForwardedRef, forwardRef} from 'react';
+import React, {forwardRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
 import BaseOptionsList from './BaseOptionsList';
-import {OptionsListProps, OptionsList as OptionsListType} from './types';
+import type {OptionsListProps, OptionsList as OptionsListType} from './types';
 
 const OptionsList = forwardRef((props: OptionsListProps, ref: ForwardedRef<OptionsListType>) => (
     <BaseOptionsList

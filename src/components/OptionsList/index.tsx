@@ -1,8 +1,9 @@
-import React, {ForwardedRef, forwardRef, useCallback, useEffect, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseOptionsList from './BaseOptionsList';
-import {OptionsListProps, OptionsList as OptionsListType} from './types';
+import type {OptionsListProps, OptionsList as OptionsListType} from './types';
 
 function OptionsList(props: OptionsListProps, ref: ForwardedRef<OptionsListType>) {
     const isScreenTouched = useRef(false);

@@ -22,7 +22,7 @@ type Section = {
 type SelectedOptionData = OptionData & {
     /** The name of selected option */
     name: string;
-}
+};
 
 type OptionsListProps = {
     /** option flexStyle for the options list container */

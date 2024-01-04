@@ -1,8 +1,8 @@
-import {isEqual, isEmpty} from 'lodash';
+import {isEmpty, isEqual} from 'lodash';
 import type {ForwardedRef} from 'react';
-import React, { forwardRef, memo, useEffect, useRef} from 'react';
+import React, {forwardRef, memo, useEffect, useRef} from 'react';
 import type {SectionListData, SectionListRenderItem} from 'react-native';
-import { View} from 'react-native';
+import {View} from 'react-native';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import SectionList from '@components/SectionList';
