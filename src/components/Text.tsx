@@ -1,10 +1,11 @@
-import React, {ForwardedRef} from 'react';
-import {Text as RNText, TextProps as RNTextProps, StyleSheet} from 'react-native';
-import type {TextStyle} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React from 'react';
+import {Text as RNText, StyleSheet} from 'react-native';
+import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import fontFamily from '@styles/utils/fontFamily';
 import variables from '@styles/variables';
-import ChildrenProps from '@src/types/utils/ChildrenProps';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type TextProps = RNTextProps &
     ChildrenProps & {

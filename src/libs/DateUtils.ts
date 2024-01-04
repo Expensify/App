@@ -27,10 +27,11 @@ import {formatInTimeZone, format as tzFormat, utcToZonedTime, zonedTimeToUtc} fr
 import {enGB, es} from 'date-fns/locale';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import {timezoneBackwardMap} from '@src/TIMEZONES';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 import Log from './Log';
@@ -697,6 +698,22 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
     return '';
 }
 
+/**
+ *
+ * @param timezone
+ * function format unsupported timezone to supported timezone
+ * @returns Timezone
+ */
+function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
+    if (!timezoneInput?.selected) {
+        return timezoneInput;
+    }
+    return {
+        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        automatic: timezoneInput.automatic,
+    };
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -739,6 +756,7 @@ const DateUtils = {
     getWeekStartsOn,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
+    formatToSupportedTimezone,
 };
 
 export default DateUtils;

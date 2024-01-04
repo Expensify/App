@@ -1,19 +1,16 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {FlatList} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef} from 'react';
+import type {FlatList} from 'react-native';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
-import {InvertedFlatListProps} from './types';
+import type {InvertedFlatListProps} from './types';
 
 function BaseInvertedFlatListWithRef<T>(props: InvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
-    const styles = useThemeStyles();
-
     return (
         <BaseInvertedFlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            contentContainerStyle={styles.justifyContentEnd}
             CellRendererComponent={CellRendererComponent}
             /**
              * To achieve absolute positioning and handle overflows for list items, the property must be disabled

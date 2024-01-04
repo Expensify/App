@@ -1,7 +1,8 @@
-import React, {ForwardedRef, forwardRef, useEffect, useRef} from 'react';
-import {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import FlatList from '@components/FlatList';
-import {InvertedFlatListProps} from './types';
+import type {InvertedFlatListProps} from './types';
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 const WINDOW_SIZE = 15;

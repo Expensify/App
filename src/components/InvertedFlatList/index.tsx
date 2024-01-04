@@ -1,15 +1,14 @@
-import React, {ForwardedRef, forwardRef, useRef} from 'react';
-import {DeviceEventEmitter, FlatList, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useRef} from 'react';
+import type {FlatList, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
-import {InvertedFlatListProps} from './types';
+import type {InvertedFlatListProps} from './types';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList<T>(
-    {onScroll: onScrollProp = () => {}, onScrollEnd: onScrollEndProp = () => {}, contentContainerStyle, ...props}: InvertedFlatListProps<T>,
-    ref: ForwardedRef<FlatList>,
-) {
+function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, onScrollEnd: onScrollEndProp = () => {}, ...props}: InvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
     const updateInProgress = useRef<boolean>(false);
 
     /**
@@ -43,7 +42,6 @@ function InvertedFlatList<T>(
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            contentContainerStyle={contentContainerStyle}
             onScroll={handleScroll}
             onScrollEnd={handleScrollEnd}
         />
