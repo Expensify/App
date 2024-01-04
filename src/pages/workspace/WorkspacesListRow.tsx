@@ -1,4 +1,3 @@
-import {debounce} from 'lodash';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
