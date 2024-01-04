@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Login, PersonalDetails, Policy, PolicyCategories, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {PolicyTaxRate, PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
@@ -41,11 +42,11 @@ type Tag = {
 };
 
 type Option = {
-    text: string | null;
-    keyForList: string;
-    searchText: string;
-    tooltipText: string;
-    isDisabled: boolean;
+    text?: string | null;
+    keyForList?: string;
+    searchText?: string;
+    tooltipText?: string;
+    isDisabled?: boolean;
 };
 
 type PayeePersonalDetails = {
@@ -100,7 +101,7 @@ type GetOptionsConfig = {
     canInviteUser?: boolean;
     includeSelectedOptions?: boolean;
     includePolicyTaxRates?: boolean;
-    policyTaxRates?: any;
+    policyTaxRates?: PolicyTaxRateWithDefault;
 };
 
 type MemberForList = {
@@ -128,7 +129,7 @@ type GetOptions = {
     currentUserOption: ReportUtils.OptionData | null | undefined;
     categoryOptions: CategorySection[];
     tagOptions: CategorySection[];
-    policyTaxRatesOptions: any[];
+    policyTaxRatesOptions: CategorySection[];
 };
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean};
@@ -838,10 +839,9 @@ function sortTags(tags: Record<string, Tag> | Tag[]) {
  * @param options[].name - a name of an option
  * @param [isOneLine] - a flag to determine if text should be one line
  */
-function getCategoryOptionTree(options: Category[], isOneLine = false): Option[] {
+function getCategoryOptionTree(options: Record<string, Category> | Category[], isOneLine = false): Option[] {
     const optionCollection = new Map<string, Option>();
-
-    options.forEach((option) => {
+    Object.values(options).forEach((option) => {
         if (isOneLine) {
             if (optionCollection.has(option.name)) {
                 return;
@@ -1114,68 +1114,41 @@ function getTagListSections(rawTags: Tag[], recentlyUsedTags: string[], selected
 
     return tagSections;
 }
-type TaxRate = {
-    /** The name of the tax rate. */
+
+type PolicyTaxRateWithDefault = {
     name: string;
-
-    /** The value of the tax rate. */
-    value: string;
-
-    /** The code associated with the tax rate. */
-    code: string;
-
-    /** This contains the tax name and tax value as one name */
-    modifiedName: string;
-
-    /** Indicates if the tax rate is disabled. */
-    isDisabled?: boolean;
+    defaultExternalID: string;
+    defaultValue: string;
+    foreignTaxDefault: string;
+    taxes: PolicyTaxRates;
 };
-/**
- * Represents the data for a single tax rate.
- *
- * @property {string} name - The name of the tax rate.
- * @property {string} value - The value of the tax rate.
- * @property {string} code - The code associated with the tax rate.
- * @property {string} modifiedName - This contains the tax name and tax value as one name
- * @property {boolean} [isDisabled] - Indicates if the tax rate is disabled.
- */
 
 /**
  * Transforms tax rates to a new object format - to add codes and new name with concatenated name and value.
  *
- * @param {Object} policyTaxRates - The original tax rates object.
- * @returns {Object.<string, Object.<string, policyTaxRates>>} The transformed tax rates object.
+ * @param  policyTaxRates - The original tax rates object.
+ * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policyTaxRates) {
-    const defaultTaxKey = policyTaxRates.defaultExternalID;
-    const getModifiedName = (data, code) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
-    const taxes = Object.fromEntries(_.map(Object.entries(policyTaxRates.taxes), ([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
+function transformedTaxRates(policyTaxRates: PolicyTaxRateWithDefault | undefined): Record<string, PolicyTaxRate> {
+    const defaultTaxKey = policyTaxRates?.defaultExternalID;
+    const getModifiedName = (data: PolicyTaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const taxes = Object.fromEntries(Object.entries(policyTaxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
 
 /**
  * Sorts tax rates alphabetically by name.
- *
- * @param {Object<String, {name: String, enabled: Boolean}>} taxRates
- * @returns {Array<Object>}
  */
-function sortTaxRates(taxRates) {
-    const sortedtaxRates = _.chain(taxRates)
-        .values()
-        .sortBy((taxRate) => taxRate.name)
-        .value();
-
+function sortTaxRates(taxRates: PolicyTaxRates): PolicyTaxRate[] {
+    const sortedtaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
     return sortedtaxRates;
 }
 
 /**
  * Builds the options for taxRates
- *
- * @param {Object[]} taxRates - an initial object array
- * @returns {Array<Object>}
  */
-function getTaxRatesOptions(taxRates) {
-    return Object.values(taxRates).map((taxRate) => ({
+function getTaxRatesOptions(taxRates: Array<Partial<PolicyTaxRate>>): Option[] {
+    return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.code,
         searchText: taxRate.modifiedName,
@@ -1187,13 +1160,8 @@ function getTaxRatesOptions(taxRates) {
 
 /**
  * Builds the section list for tax rates
- *
- * @param {Object} policyTaxRates
- * @param {Object[]} selectedOptions
- * @param {String} searchInputValue
- * @returns {Array<Object>}
  */
-function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
+function getTaxRatesSection(policyTaxRates: PolicyTaxRateWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): CategorySection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(policyTaxRates);
@@ -1212,7 +1180,7 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
             isDisabled: false,
         }));
         policyRatesSections.push({
-            // "Selected" section
+            // "Selected" sectiong
             title: '',
             shouldShow: false,
             indexOffset,
@@ -1253,11 +1221,11 @@ function getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue) {
 
     if (selectedOptions.length > 0) {
         const selectedTaxRatesOptions = selectedOptions.map((option) => {
-            const taxRateObject = taxes.find((taxRate) => taxRate.modifiedName === option.name);
+            const taxRateObject = Object.values(taxes).find((taxRate) => taxRate.modifiedName === option.name);
 
             return {
                 modifiedName: option.name,
-                isDisabled: Boolean(taxRateObject.isDisabled),
+                isDisabled: Boolean(taxRateObject?.isDisabled),
             };
         });
 
@@ -1351,8 +1319,7 @@ function getOptions(
     }
 
     if (includePolicyTaxRates) {
-        console.log(policyTaxRates);
-        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions, searchInputValue);
+        const policyTaxRatesOptions = getTaxRatesSection(policyTaxRates, selectedOptions as Category[], searchInputValue);
 
         return {
             recentReports: [],
@@ -1717,7 +1684,7 @@ function getFilteredOptions(
     canInviteUser = true,
     includeSelectedOptions = false,
     includePolicyTaxRates = false,
-    policyTaxRates = {},
+    policyTaxRates = {} as PolicyTaxRateWithDefault,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
