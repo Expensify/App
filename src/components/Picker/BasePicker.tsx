@@ -1,6 +1,8 @@
 import lodashDefer from 'lodash/defer';
-import React, {ForwardedRef, forwardRef, ReactElement, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import type {ForwardedRef, ReactElement, ReactNode, RefObject} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {ScrollView} from 'react-native';
+import {View} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
@@ -94,12 +96,13 @@ function BasePicker<TPickerValue>(
         // eslint-disable-next-line react/display-name
         return () => (
             <Icon
+                fill={theme.icon}
                 src={Expensicons.DownArrow}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles]);
+    }, [icon, size, styles, theme.icon]);
 
     useImperativeHandle(ref, () => ({
         /**

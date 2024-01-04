@@ -14,7 +14,7 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BaseModalProps from './types';
+import type BaseModalProps from './types';
 
 function BaseModal(
     {
@@ -183,7 +183,7 @@ function BaseModal(
             onModalHide={hideModal}
             onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
             onDismiss={handleDismissModal}
-            onSwipeComplete={onClose}
+            onSwipeComplete={() => onClose?.()}
             swipeDirection={swipeDirection}
             isVisible={isVisible}
             backdropColor={theme.overlay}

@@ -1,4 +1,4 @@
-import GetPlaidOAuthReceivedRedirectURI from './types';
+import type GetPlaidOAuthReceivedRedirectURI from './types';
 
 const getPlaidOAuthReceivedRedirectURI: GetPlaidOAuthReceivedRedirectURI = () => null;
 

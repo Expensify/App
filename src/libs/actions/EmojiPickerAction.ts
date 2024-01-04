@@ -1,7 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
@@ -10,7 +10,14 @@ type AnchorOrigin = {
 
 // TODO: Move this type to src/components/EmojiPicker/EmojiPicker.js once it is converted to TS
 type EmojiPickerRef = {
-    showEmojiPicker: (onModalHideValue?: () => void, onEmojiSelectedValue?: () => void, emojiPopoverAnchor?: View, anchorOrigin?: AnchorOrigin, onWillShow?: () => void, id?: string) => void;
+    showEmojiPicker: (
+        onModalHideValue?: () => void,
+        onEmojiSelectedValue?: () => void,
+        emojiPopoverAnchor?: React.MutableRefObject<View | HTMLElement | null>,
+        anchorOrigin?: AnchorOrigin,
+        onWillShow?: () => void,
+        id?: string,
+    ) => void;
     isActive: (id: string) => boolean;
     clearActive: () => void;
     hideEmojiPicker: (isNavigating: boolean) => void;
