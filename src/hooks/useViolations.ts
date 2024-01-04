@@ -1,5 +1,5 @@
 import {useCallback, useMemo} from 'react';
-import {TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 
 /**
  * Names of Fields where violations can occur
