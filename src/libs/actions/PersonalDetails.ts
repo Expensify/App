@@ -3,6 +3,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import DateUtils from '@libs/DateUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -270,9 +271,9 @@ function updateAutomaticTimezone(timezone: Timezone) {
     type UpdateAutomaticTimezoneParams = {
         timezone: string;
     };
-
+    const formatedTimezone = DateUtils.formatToSupportedTimezone(timezone);
     const parameters: UpdateAutomaticTimezoneParams = {
-        timezone: JSON.stringify(timezone),
+        timezone: JSON.stringify(formatedTimezone),
     };
 
     API.write('UpdateAutomaticTimezone', parameters, {
@@ -282,7 +283,7 @@ function updateAutomaticTimezone(timezone: Timezone) {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
                     [currentUserAccountID]: {
-                        timezone,
+                        timezone: formatedTimezone,
                     },
                 },
             },
