@@ -3,6 +3,9 @@ import {Gesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
 import * as MultiGestureCanvasUtils from './utils';
 
+// This value determines how fast the pan animation should phase out
+// We're using a "withDecay" animation to smoothly phase out the pan animation
+// https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
 const PAN_DECAY_DECELARATION = 0.9915;
 
 const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isSwipingInPager, stopAnimation}) => {
@@ -10,7 +13,8 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
 
-    // Pan velocity to calculate the decay
+    // Velocity of the pan gesture
+    // We need to keep track of the velocity to properly phase out/decay the pan animation
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
 
@@ -50,9 +54,9 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
         };
     }, [canvasSize.width, canvasSize.height]);
 
-    // We want to smoothly gesture by phasing out the pan animation
+    // We want to smoothly decay/end the gesture by phasing out the pan animation
     // In case the content is outside of the boundaries of the canvas,
-    // we need to return to the view to the boundaries
+    // we need to move the content back into the boundaries
     const finishPanGesture = MultiGestureCanvasUtils.useWorkletCallback(() => {
         // If the content is centered within the canvas, we don't need to run any animations
         if (offsetX.value === 0 && offsetY.value === 0 && panTranslateX.value === 0 && panTranslateY.value === 0) {
