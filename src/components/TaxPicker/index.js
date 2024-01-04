@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import React, {useMemo, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import OptionsSelector from '@components/OptionsSelector';
 import useLocalize from '@hooks/useLocalize';
@@ -8,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {defaultProps, propTypes} from './taxPickerPropTypes';
 
 function TaxPicker({selectedTaxRate, policyTaxRates, insets, onSubmit}) {
@@ -87,4 +89,8 @@ TaxPicker.displayName = 'TaxPicker';
 TaxPicker.propTypes = propTypes;
 TaxPicker.defaultProps = defaultProps;
 
-export default TaxPicker;
+export default withOnyx({
+    policyTaxRates: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAX_RATE}${policyID}`,
+    },
+})(TaxPicker);

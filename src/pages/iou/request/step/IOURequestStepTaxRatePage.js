@@ -10,6 +10,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import reportPropTypes from '@pages/reportPropTypes';
 import * as IOU from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,9 +29,13 @@ const propTypes = {
 
     /** The transaction object being modified in Onyx */
     transaction: transactionPropTypes,
+
+    /** The report attached to the transaction */
+    report: reportPropTypes,
 };
 
 const defaultProps = {
+    report: {},
     policyTaxRates: {},
     transaction: {},
 };
@@ -46,6 +51,7 @@ function IOURequestStepTaxRatePage({
     },
     policyTaxRates,
     transaction,
+    report,
 }) {
     const {translate} = useLocalize();
 
@@ -75,7 +81,7 @@ function IOURequestStepTaxRatePage({
         >
             <TaxPicker
                 selectedTaxRate={selectedTaxRate}
-                policyTaxRates={policyTaxRates}
+                policyID={report.policyID}
                 onSubmit={updateTaxRates}
             />
         </StepScreenWrapper>
