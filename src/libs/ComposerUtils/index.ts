@@ -1,16 +1,12 @@
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type TextInputSelection from '@src/types/utils/TextInputSelection';
 import getNumberOfLines from './getNumberOfLines';
 import updateNumberOfLines from './updateNumberOfLines';
-
-type Selection = {
-    start: number;
-    end: number;
-};
 
 /**
  * Replace substring between selection with a text.
  */
-function insertText(text: string, selection: Selection, textToInsert: string): string {
+function insertText(text: string, selection: TextInputSelection, textToInsert: string): string {
     return text.slice(0, selection.start) + textToInsert + text.slice(selection.end, text.length);
 }
 
