@@ -313,7 +313,7 @@ describe('actions/IOU', () => {
                                     // The comment should be correct
                                     expect(transaction.comment.comment).toBe(comment);
 
-                                    expect(transaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(transaction.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
 
                                     // It should be pending
                                     expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
@@ -497,7 +497,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction.reportID).toBe(iouReportID);
                                     expect(newTransaction.amount).toBe(amount);
                                     expect(newTransaction.comment.comment).toBe(comment);
-                                    expect(newTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(newTransaction.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                     expect(newTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
@@ -642,7 +642,7 @@ describe('actions/IOU', () => {
                                         expect(transaction.reportID).toBe(iouReportID);
                                         expect(transaction.amount).toBe(amount);
                                         expect(transaction.comment.comment).toBe(comment);
-                                        expect(transaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                        expect(transaction.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
                                         expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
@@ -807,6 +807,7 @@ describe('actions/IOU', () => {
              */
             const amount = 400;
             const comment = 'Yes, I am splitting a bill for $4 USD';
+            const merchant = 'Yema Kitchen';
             let carlosChatReport = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
@@ -923,6 +924,7 @@ describe('actions/IOU', () => {
                         amount,
                         comment,
                         CONST.CURRENCY.USD,
+                        merchant,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -1102,10 +1104,10 @@ describe('actions/IOU', () => {
                                     expect(vitTransaction.comment.comment).toBe(comment);
                                     expect(groupTransaction.comment.comment).toBe(comment);
 
-                                    expect(carlosTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(julesTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(vitTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
-                                    expect(groupTransaction.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
+                                    expect(carlosTransaction.merchant).toBe(merchant);
+                                    expect(julesTransaction.merchant).toBe(merchant);
+                                    expect(vitTransaction.merchant).toBe(merchant);
+                                    expect(groupTransaction.merchant).toBe(merchant);
 
                                     expect(carlosTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
                                     expect(julesTransaction.comment.source).toBe(CONST.IOU.TYPE.SPLIT);
