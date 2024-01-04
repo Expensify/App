@@ -124,7 +124,6 @@ function IOURequestStepTaxAmountPage({
                 currency={currency}
                 amount={transaction.taxAmount}
                 taxAmount={getTaxAmount(transaction, policyTaxRates.defaultValue)}
-                transaction={transaction}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
