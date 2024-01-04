@@ -1,9 +1,9 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import * as IOU from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as FileUtils from './fileDownload/FileUtils';
 import Navigation from './Navigation/Navigation';
