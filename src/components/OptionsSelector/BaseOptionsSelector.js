@@ -8,7 +8,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
-import {Info} from '@components/Icon/Expensicons';
+import {Close} from '@components/Icon/Expensicons';
 import OptionsList from '@components/OptionsList';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ShowMoreButton from '@components/ShowMoreButton';
@@ -92,7 +92,7 @@ class BaseOptionsSelector extends Component {
             allOptions,
             focusedIndex,
             shouldDisableRowSelection: false,
-            shouldShowReferralModal: false,
+            shouldShowReferralModal: this.props.shouldShowReferralCTA,
             errorMessage: '',
             paginationPage: 1,
             value: '',
@@ -618,7 +618,7 @@ class BaseOptionsSelector extends Component {
                         </>
                     )}
                 </View>
-                {this.props.shouldShowReferralCTA && (
+                {this.props.shouldShowReferralCTA && this.state.shouldShowReferralModal && (
                     <View style={[this.props.themeStyles.ph5, this.props.themeStyles.pb5, this.props.themeStyles.flexShrink0]}>
                         <PressableWithoutFeedback
                             onPress={() => {
@@ -646,12 +646,21 @@ class BaseOptionsSelector extends Component {
                                     {this.props.translate(`referralProgram.${this.props.referralContentType}.buttonText2`)}
                                 </Text>
                             </Text>
-                            <Icon
-                                src={Info}
-                                height={20}
-                                width={20}
-                                fill={this.props.theme.icon}
-                            />
+                            <PressableWithoutFeedback
+                                onPress={this.handleReferralModal}
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                }}
+                                role={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityLabel={this.props.translate('common.close')}
+                            >
+                                <Icon
+                                    src={Close}
+                                    height={20}
+                                    width={20}
+                                    fill={this.props.theme.icon}
+                                />
+                            </PressableWithoutFeedback>
                         </PressableWithoutFeedback>
                     </View>
                 )}
