@@ -1,6 +1,8 @@
-import {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {SubAvatar} from '@components/SubscriptAvatar';
-import {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ReactNode} from 'react';
+import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {SubAvatar} from '@components/SubscriptAvatar';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type CommonListItemProps<T> = {
     /** Whether this item is focused (for arrow key controls) */
@@ -131,7 +133,7 @@ type Section = {
     isDisabled?: boolean;
 };
 
-type BaseSelectionListProps = {
+type BaseSelectionListProps = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Section[];
 
@@ -163,7 +165,7 @@ type BaseSelectionListProps = {
     onChangeText?: (text: string) => void;
 
     /** Input mode for the text input */
-    inputMode?: string;
+    inputMode?: InputModeOptions;
 
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string;
@@ -199,23 +201,41 @@ type BaseSelectionListProps = {
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Custom content to display in the header */
-    headerContent?: React.ReactNode;
+    headerContent?: ReactNode;
 
     /** Custom content to display in the footer */
-    footerContent?: React.ReactNode;
+    footerContent?: ReactNode;
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
 
-    children?: React.ReactNode;
-
+    /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
+    /** Whether to disable initial styling for focused option */
     disableInitialFocusOptionStyle?: boolean;
 
+    /** Styles to apply to SelectionList container */
     containerStyle?: ViewStyle;
 
+    /** Whether keyboard is visible on the screen */
     isKeyboardShown?: boolean;
+
+    /** Whether focus event should be delayed */
+    shouldDelayFocus?: boolean;
 };
 
-export type {BaseSelectionListProps, CommonListItemProps, UserListItemProps, Section, RadioListItemProps, BaseListItemProps, User, RadioItem};
+type ItemLayout = {
+    length: number;
+    offset: number;
+};
+
+type FlattenedSectionsReturn = {
+    allOptions: Array<User | RadioItem>;
+    selectedOptions: Array<User | RadioItem>;
+    disabledOptionsIndexes: number[];
+    itemLayouts: ItemLayout[];
+    allSelected: boolean;
+};
+
+export type {BaseSelectionListProps, CommonListItemProps, UserListItemProps, Section, RadioListItemProps, BaseListItemProps, User, RadioItem, FlattenedSectionsReturn, ItemLayout};

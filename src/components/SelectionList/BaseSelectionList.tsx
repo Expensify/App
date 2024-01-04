@@ -1,15 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {ForwardedRef, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {
-    GestureResponderEvent,
-    LayoutChangeEvent,
-    SectionList as RNSectionList,
-    TextInput as RNTextInput,
-    SectionListData,
-    SectionListRenderItemInfo,
-    View,
-    ViewStyle,
-} from 'react-native';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
+import {View} from 'react-native';
+import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
 import ArrowKeyFocusManager from '@components/ArrowKeyFocusManager';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -20,23 +13,15 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withKeyboardState, {keyboardStatePropTypes} from '@components/withKeyboardState';
 import useActiveElement from '@hooks/useActiveElement';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
-import {BaseSelectionListProps, RadioItem, Section, User} from './types';
-
-const propTypes = {
-    ...keyboardStatePropTypes,
-    ...selectionListPropTypes,
-};
+import type {BaseSelectionListProps, FlattenedSectionsReturn, RadioItem, Section, User} from './types';
 
 function BaseSelectionList(
     {
@@ -63,17 +48,16 @@ function BaseSelectionList(
         showLoadingPlaceholder = false,
         showConfirmButton = false,
         shouldPreventDefaultFocusOnSelectRow = false,
-        isKeyboardShown = false,
         containerStyle = {},
+        isKeyboardShown = false,
         disableKeyboardShortcuts = false,
         children,
         shouldStopPropagation = false,
         shouldUseDynamicMaxToRenderPerBatch = false,
     }: BaseSelectionListProps,
-    inputRef: ForwardedRef<typeof TextInput>,
+    inputRef: ForwardedRef<RNTextInput>,
 ) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const listRef = useRef<RNSectionList<User | RadioItem, Section>>(null);
     const textInputRef = useRef<RNTextInput | null>(null);
@@ -92,10 +76,8 @@ function BaseSelectionList(
      * - `disabledOptionsIndexes`: Contains the indexes of all the disabled items in the list, to be used by the ArrowKeyFocusManager
      * - `itemLayouts`: Contains the layout information for each item, header and footer in the list,
      * so we can calculate the position of any given item when scrolling programmatically
-     *
-     * @return {{itemLayouts: [{offset: number, length: number}], disabledOptionsIndexes: *[], allOptions: *[]}}
      */
-    const flattenedSections = useMemo(() => {
+    const flattenedSections = useMemo<FlattenedSectionsReturn>(() => {
         const allOptions: Array<User | RadioItem> = [];
 
         const disabledOptionsIndexes: number[] = [];
@@ -163,13 +145,13 @@ function BaseSelectionList(
     const [focusedIndex, setFocusedIndex] = useState(() => flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey));
 
     // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElement.role && (activeElement.role === CONST.ROLE.BUTTON ?? activeElement.role === CONST.ROLE.CHECKBOX);
+    const disableEnterShortcut = activeElement?.role && (activeElement.role === CONST.ROLE.BUTTON ?? activeElement.role === CONST.ROLE.CHECKBOX);
 
     /**
      * Scrolls to the desired item index in the section list
      *
-     * @param {Number} index - the index of the item to scroll to
-     * @param {Boolean} animated - whether to animate the scroll
+     * @param index - the index of the item to scroll to
+     * @param animated - whether to animate the scroll
      */
     const scrollToIndex = useCallback(
         (index: number, animated = true) => {
@@ -246,10 +228,8 @@ function BaseSelectionList(
         }
     };
 
-    const selectFocusedOption = (e?: GestureResponderEvent | KeyboardEvent) => {
-        // const focusedItemKey = lodashGet(e, ['target', 'attributes', 'data-testid', 'value']);
-        const focusedItemKey = e?.target.
-        const focusedOption = focusedItemKey ? flattenedSections.allOptions.find((option) => option.keyForList === focusedItemKey) : flattenedSections.allOptions[focusedIndex];
+    const selectFocusedOption = () => {
+        const focusedOption = flattenedSections.allOptions[focusedIndex];
 
         if (!focusedOption || focusedOption.isDisabled) {
             return;
@@ -271,8 +251,6 @@ function BaseSelectionList(
      *     For example, given a list with two sections, two items in each section, no header, no footer, and no section headers, the flat array might look something like this:
      *
      *     [{header}, {sectionHeader}, {item}, {item}, {sectionHeader}, {item}, {item}, {footer}]
-     *
-     * @returns
      */
     const getItemLayout = (data: Array<SectionListData<User | RadioItem, Section>> | null, flatDataArrayIndex: number) => {
         const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
@@ -334,8 +312,6 @@ function BaseSelectionList(
     const scrollToFocusedIndexOnFirstRender = useCallback(
         (nativeEvent: LayoutChangeEvent) => {
             if (shouldUseDynamicMaxToRenderPerBatch) {
-                // const listHeight = lodashGet(nativeEvent, 'layout.height', 0);
-                // const itemHeight = lodashGet(nativeEvent, 'layout.y', 0);
                 const listHeight = nativeEvent.nativeEvent.layout.height;
                 const itemHeight = nativeEvent.nativeEvent.layout.y;
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
@@ -413,20 +389,13 @@ function BaseSelectionList(
             maxIndex={flattenedSections.allOptions.length - 1}
             onFocusedIndexChanged={updateAndScrollToFocusedIndex}
         >
-            {/* <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyle]}> */}
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyles, StyleUtils.parseStyleAsArray(containerStyle)]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyles, containerStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
-                                    ref={(el) => {
-                                        if (inputRef && typeof inputRef !== 'function') {
-                                            // eslint-disable-next-line no-param-reassign
-                                            inputRef.current = el;
-                                        }
-                                        textInputRef.current = el;
-                                    }}
+                                    ref={inputRef ?? textInputRef}
                                     label={textInputLabel}
                                     accessibilityLabel={textInputLabel}
                                     role={CONST.ROLE.PRESENTATION}
@@ -520,6 +489,5 @@ function BaseSelectionList(
 }
 
 BaseSelectionList.displayName = 'BaseSelectionList';
-BaseSelectionList.propTypes = propTypes;
 
-export default withKeyboardState(forwardRef(BaseSelectionList));
+export default forwardRef(BaseSelectionList);

@@ -1,9 +1,12 @@
 import React, {forwardRef, useEffect, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {Keyboard} from 'react-native';
+import type {TextInput} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseSelectionList from './BaseSelectionList';
+import type {BaseSelectionListProps} from './types';
 
-const SelectionList = forwardRef((props, ref) => {
+function SelectionList(props: BaseSelectionListProps, ref: ForwardedRef<TextInput>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
@@ -14,8 +17,6 @@ const SelectionList = forwardRef((props, ref) => {
             return;
         }
 
-        // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
-        // we want to dismiss the keyboard only when the list is scrolled by the user and not when it's scrolled programmatically.
         document.addEventListener('touchstart', touchStart);
         document.addEventListener('touchend', touchEnd);
 
@@ -31,7 +32,6 @@ const SelectionList = forwardRef((props, ref) => {
             {...props}
             ref={ref}
             onScroll={() => {
-                // Only dismiss the keyboard whenever the user scrolls the screen
                 if (!isScreenTouched) {
                     return;
                 }
@@ -39,8 +39,8 @@ const SelectionList = forwardRef((props, ref) => {
             }}
         />
     );
-});
+}
 
-SelectionList.displayName = 'SelectionList';
+SelectionList.displayName = 'SelectionListFunction';
 
-export default SelectionList;
+export default forwardRef(SelectionList);

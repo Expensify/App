@@ -11,8 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
-import {baseListItemPropTypes} from './selectionListPropTypes';
-import {BaseListItemProps} from './types';
+import type {BaseListItemProps} from './types';
 import UserListItem from './UserListItem';
 
 function BaseListItem({
@@ -132,6 +131,5 @@ function BaseListItem({
 }
 
 BaseListItem.displayName = 'BaseListItem';
-BaseListItem.propTypes = baseListItemPropTypes;
 
 export default BaseListItem;
