@@ -1345,6 +1345,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
             ...positioning.r4,
             ...styles.cursorDefault,
+            ...styles.userSelectNone,
             position: 'absolute',
             zIndex: 8,
         }),
