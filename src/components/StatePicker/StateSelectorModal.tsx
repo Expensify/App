@@ -6,7 +6,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import searchCountryOptions, {type CountryData} from '@libs/searchCountryOptions';
+import searchCountryOptions from '@libs/searchCountryOptions';
+import type {CountryData} from '@libs/searchCountryOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -74,7 +75,6 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
             hideModalContentWhileAnimating
             useNativeDriver
         >
-            {/* @ts-expect-error TODO: Remove this once ScreenWrapper (https://github.com/Expensify/App/issues/25128) is migrated to TypeScript. */}
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
