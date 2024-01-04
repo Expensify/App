@@ -139,7 +139,12 @@ function ReportPreview(props) {
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(props.iouReport);
+    const reimbursableTotal = ReportUtils.getMoneyRequestReimbursableTotal(props.iouReport);
+    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
     const policyType = lodashGet(props.policy, 'type');
+    const reimbursementChoice = lodashGet(props.policy, 'reimbursementChoice');
+    const autoReimbursementLimit = lodashGet(props.policy, 'autoReimbursementLimit');
+    const isAutoReimbursable = isGroupPolicy && reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && autoReimbursementLimit >= reimbursableTotal && reimbursableTotal > 0;
 
     const iouSettled = ReportUtils.isSettled(props.iouReportID);
     const iouCanceled = ReportUtils.isArchivedRoom(props.chatReport);
@@ -243,15 +248,14 @@ function ReportPreview(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isGroupPolicy = ReportUtils.isGroupPolicyExpenseChat(props.chatReport);
     const isPolicyAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && lodashGet(props.policy, 'role') === CONST.POLICY.ROLE.ADMIN;
     const isPayer = isGroupPolicy
         ? // In a group policy, the admin approver can pay the report directly by skipping the approval step
           isPolicyAdmin && (isApproved || isCurrentUserManager)
         : isPolicyAdmin || (isMoneyRequestReport && isCurrentUserManager);
     const shouldShowPayButton = useMemo(
-        () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled,
-        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, props.iouReport],
+        () => isPayer && !isDraftExpenseReport && !iouSettled && !props.iouReport.isWaitingOnBankAccount && reimbursableSpend !== 0 && !iouCanceled && !isAutoReimbursable,
+        [isPayer, isDraftExpenseReport, iouSettled, reimbursableSpend, iouCanceled, isAutoReimbursable, props.iouReport],
     );
     const shouldShowApproveButton = useMemo(() => {
         if (!isGroupPolicy) {
