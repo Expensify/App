@@ -13,6 +13,8 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string):
 
 const ROUTES = {
     HOME: '',
+    // This is a utility route to allow navigating to the home screen explicitly
+    HOME_ROOT: 'home',
 
     ALL_SETTINGS: 'all-settings',
 
