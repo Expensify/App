@@ -166,6 +166,9 @@ const propTypes = {
 
     shouldPutLeftPaddingWhenNoIcon: PropTypes.bool,
 
+    /** The menu item link or function to get the link */
+    link: PropTypes.oneOfType(PropTypes.func, PropTypes.string),
+
     /** Icon should be displayed in its own color */
     displayInDefaultIconColor: PropTypes.bool,
 };

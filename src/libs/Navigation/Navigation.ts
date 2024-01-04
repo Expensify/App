@@ -1,9 +1,11 @@
 import {findFocusedRoute} from '@react-navigation/core';
-import {CommonActions, EventArg, getPathFromState, NavigationContainerEventMap, NavigationState, PartialState, StackActions} from '@react-navigation/native';
+import type {EventArg, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
 import originalDismissModal from './dismissModal';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
@@ -11,7 +13,7 @@ import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
-import {StateOrRoute} from './types';
+import type {StateOrRoute} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {

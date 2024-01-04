@@ -1,4 +1,5 @@
-import {ParamListBase, RouteProp, useRoute} from '@react-navigation/native';
+import type {ParamListBase, RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import useWindowDimensions from './useWindowDimensions';
 
 type RouteParams = ParamListBase & {

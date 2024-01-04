@@ -512,6 +512,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 IOU: 'IOU',
+                MARKEDREIMBURSED: 'MARKEDREIMBURSED',
                 MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
@@ -1176,7 +1177,6 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             VBBA: 'ACH',
         },
-        DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
             SPLIT: 'split',

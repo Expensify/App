@@ -1,7 +1,8 @@
 import Str from 'expensify-common/lib/str';
-import Onyx, {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -9,8 +10,8 @@ import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
-import {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {DateOfBirthForm, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 
 type FirstAndLastName = {
     firstName: string;

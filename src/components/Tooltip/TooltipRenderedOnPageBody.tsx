@@ -6,7 +6,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import Log from '@libs/Log';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
-import TooltipProps from './types';
+import type TooltipProps from './types';
 
 type TooltipRenderedOnPageBodyProps = {
     /** Window width */

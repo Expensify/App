@@ -817,7 +817,7 @@ describe('OptionsListUtils', () => {
         const largeResultList = [
             {
                 title: '',
-                shouldShow: true,
+                shouldShow: false,
                 indexOffset: 0,
                 data: [
                     {
