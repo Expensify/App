@@ -27,6 +27,8 @@ import EditRequestDistancePage from './EditRequestDistancePage';
 import EditRequestMerchantPage from './EditRequestMerchantPage';
 import EditRequestReceiptPage from './EditRequestReceiptPage';
 import EditRequestTagPage from './EditRequestTagPage';
+import EditRequestTaxAmountPage from './EditRequestTaxAmountPage';
+import EditRequestTaxRatePage from './EditRequestTaxRatePage';
 import reportActionPropTypes from './home/report/reportActionPropTypes';
 import reportPropTypes from './reportPropTypes';
 
@@ -61,6 +63,12 @@ const propTypes = {
 
     /** Transaction that stores the request data */
     transaction: transactionPropTypes,
+
+    /** The policy of the report */
+    policy: PropTypes.shape({
+        /** Is Tax tracking Enabled */
+        isTaxTrackingEnabled: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
@@ -70,9 +78,10 @@ const defaultProps = {
     policyTags: {},
     parentReportActions: {},
     transaction: {},
+    policy: {},
 };
 
-function EditRequestPage({report, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
+function EditRequestPage({report, policy, route, parentReport, policyCategories, policyTags, parentReportActions, transaction}) {
     const parentReportActionID = lodashGet(report, 'parentReportActionID', '0');
     const parentReportAction = lodashGet(parentReportActions, parentReportActionID, {});
     const {
@@ -100,6 +109,9 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
 
     // A flag for showing the tags page
     const shouldShowTags = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledOptions(lodashValues(policyTagList)));
+
+    // A flag for showing tax rate
+    const shouldShowTax = isPolicyExpenseChat && policy.isTaxTrackingEnabled;
 
     // Decides whether to allow or disallow editing a money request
     useEffect(() => {
@@ -251,6 +263,28 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         );
     }
 
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAX_AMOUNT && shouldShowTax) {
+        return (
+            <EditRequestTaxAmountPage
+                defaultAmount={0}
+                defaultTaxAmount={3.49}
+                defaultCurrency="NGN"
+                onNavigateToCurrency={() => {}}
+                onSubmit={() => {}}
+            />
+        );
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.TAX_RATE && shouldShowTax) {
+        return (
+            <EditRequestTaxRatePage
+                defaultTaxRate=""
+                policyID={lodashGet(report, 'policyID', '')}
+                onSubmit={() => {}}
+            />
+        );
+    }
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return (
             <EditRequestReceiptPage
@@ -294,6 +328,9 @@ export default compose(
     withOnyx({
         policyCategories: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
         policyTags: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
