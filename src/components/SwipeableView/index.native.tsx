@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import {PanResponder, View} from 'react-native';
 import CONST from '@src/CONST';
-import SwipeableViewProps from './types';
+import type SwipeableViewProps from './types';
 
 function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
     const minimumPixelDistance = CONST.COMPOSER_MAX_HEIGHT;

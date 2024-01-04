@@ -1,15 +1,17 @@
-import {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, StyleSheet, TextStyle, ViewStyle} from 'react-native';
-import {EdgeInsets} from 'react-native-safe-area-context';
-import {ValueOf} from 'type-fest';
+import type {Animated, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+import type {ValueOf} from 'type-fest';
 import * as Browser from '@libs/Browser';
 import * as UserUtils from '@libs/UserUtils';
 import {defaultTheme} from '@styles/theme';
 import colors from '@styles/theme/colors';
-import {ThemeColors} from '@styles/theme/types';
+import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {Transaction} from '@src/types/onyx';
-import {defaultStyles, type ThemeStyles} from '..';
+import type {Transaction} from '@src/types/onyx';
+import {defaultStyles} from '..';
+import type {ThemeStyles} from '..';
 import containerComposeStyles from './containerComposeStyles';
 import fontFamily from './fontFamily';
 import createModalStyleUtils from './generators/ModalStyleUtils';
@@ -18,7 +20,7 @@ import createTooltipStyleUtils from './generators/TooltipStyleUtils';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import {
+import type {
     AllStyles,
     AvatarSize,
     AvatarSizeName,
@@ -382,7 +384,7 @@ function getWidthStyle(width: number): ViewStyle {
 /**
  * Returns a style with backgroundColor and borderColor set to the same color
  */
-function getBackgroundAndBorderStyle(backgroundColor: string): ViewStyle {
+function getBackgroundAndBorderStyle(backgroundColor: string | undefined): ViewStyle {
     return {
         backgroundColor,
         borderColor: backgroundColor,
@@ -443,13 +445,6 @@ function getBackgroundColorWithOpacityStyle(backgroundColor: string, opacity: nu
         };
     }
     return {};
-}
-
-function getAnimatedFABStyle(rotate: Animated.Value, backgroundColor: Animated.Value): Animated.WithAnimatedValue<ViewStyle> {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
 }
 
 function getWidthAndHeightStyle(width: number, height?: number): ViewStyle {
@@ -1013,7 +1008,6 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAnimatedFABStyle,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
