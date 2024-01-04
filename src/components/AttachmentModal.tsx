@@ -1,15 +1,14 @@
 import Str from 'expensify-common/lib/str';
 import lodashExtend from 'lodash/extend';
-import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -20,14 +19,13 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import useNativeDriver from '@libs/useNativeDriver';
-import {AvatarSource} from '@libs/UserUtils';
-import reportPropTypes from '@pages/reportPropTypes';
+import type {AvatarSource} from '@libs/UserUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentView from './Attachments/AttachmentView';
@@ -36,7 +34,6 @@ import ConfirmModal from './ConfirmModal';
 import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
-import sourcePropTypes from './Image/sourcePropTypes';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 
@@ -50,21 +47,27 @@ type AttachmentModalOnyxProps = {
     parentReport: OnyxEntry<OnyxTypes.Report>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    // eslint-disable-next-line react/no-unused-prop-types
     session: OnyxEntry<OnyxTypes.Session>;
 };
 
-type File = {
-    name: string;
+type Attachment = {
+    source: string;
+    isAuthTokenRequired: boolean;
+    file: File;
+    isReceipt: boolean;
 };
 
+type Data = DataTransferItem | File;
+
 type ChildrenProps = {
-    displayFileInModal: (data: any) => void;
+    displayFileInModal: (data: Data) => void;
     show: () => void;
 };
 
 type AttachmentModalProps = AttachmentModalOnyxProps & {
-    source?: string | AvatarSource | number;
-    onConfirm?: ((file: File) => void) | null;
+    source?: string;
+    onConfirm?: ((file: Partial<File>) => void) | null;
     defaultOpen?: boolean;
     originalFileName?: string;
     isAuthTokenRequired?: boolean;
@@ -72,8 +75,8 @@ type AttachmentModalProps = AttachmentModalOnyxProps & {
     headerTitle?: string;
     report?: OnyxTypes.Report;
     onModalShow?: () => void;
-    onModalHide?: (e: any) => void;
-    onCarouselAttachmentChange?: (attachment: {source: string; isAuthTokenRequired: boolean; file: {name: string}; isReceipt: boolean}) => void;
+    onModalHide?: () => void;
+    onCarouselAttachmentChange?: (attachment: Attachment) => void;
     isWorkspaceAvatar?: boolean;
     isReceiptAttachment?: boolean;
     children?: React.FC<ChildrenProps>;
@@ -101,7 +104,6 @@ function AttachmentModal({
     children,
     fallbackSource,
 }: AttachmentModalProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
@@ -118,10 +120,9 @@ function AttachmentModal({
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
 
-    const [file, setFile] = useState(
+    const [file, setFile] = useState<Partial<File> | undefined>(
         originalFileName
             ? {
                   name: originalFileName,
@@ -140,7 +141,7 @@ function AttachmentModal({
      * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string }, isReceipt: Boolean }} attachment
      */
     const onNavigate = useCallback(
-        (attachment) => {
+        (attachment: Attachment) => {
             setSourceState(attachment.source);
             setFile(attachment.file);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired);
@@ -150,13 +151,14 @@ function AttachmentModal({
     );
 
     /**
-     * If our attachment is a PDF, return the unswipeable Modal type.
+     * If our attachment is a PDF, return the unswipeablge Modal type.
      * @param {String} sourceURL
      * @param {Object} _file
      * @returns {String}
      */
     const getModalType = useCallback(
-        (sourceURL, _file) =>
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        (sourceURL: string, _file: File) =>
             sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
@@ -198,9 +200,8 @@ function AttachmentModal({
         if (!isModalOpen || isConfirmButtonDisabled) {
             return;
         }
-
         if (onConfirm) {
-            onConfirm(lodashExtend(file, {sourceState}));
+            onConfirm(lodashExtend(file, {source: sourceState}));
         }
 
         setIsModalOpen(false);
@@ -224,11 +225,8 @@ function AttachmentModal({
         Navigation.dismissModal(report?.reportID);
     }, [transaction, report]);
 
-    /**
-     * @param {Object} _file
-     * @returns {Boolean}
-     */
-    const isValidFile = useCallback((_file) => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const isValidFile = useCallback((_file: File) => {
         if ((_file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
@@ -249,8 +247,9 @@ function AttachmentModal({
      * @param {Object} _data
      * @returns {Boolean}
      */
-    const isDirectoryCheck = useCallback((_data) => {
-        if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const isDirectoryCheck = useCallback((_data: Data) => {
+        if ('webkitGetAsEntry' in _data && typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry()?.isDirectory) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
             setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
@@ -263,19 +262,20 @@ function AttachmentModal({
      * @param {Object} _data
      */
     const validateAndDisplayFileToUpload = useCallback(
-        (_data) => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        (_data: Data) => {
             if (!isDirectoryCheck(_data)) {
                 return;
             }
-            let fileObject = _data;
-            if (typeof _data.getAsFile === 'function') {
+            let fileObject: Data | null = _data;
+            if ('getAsFile' in _data && typeof _data.getAsFile === 'function') {
                 fileObject = _data.getAsFile();
             }
             if (!fileObject) {
                 return;
             }
 
-            if (!isValidFile(fileObject)) {
+            if (fileObject instanceof File && !isValidFile(fileObject)) {
                 return;
             }
 
@@ -295,13 +295,14 @@ function AttachmentModal({
                 setSourceState(inputSource);
                 setFile(updatedFile);
                 setModalType(inputModalType);
-            } else {
-                const inputModalType = getModalType(fileObject.uri, fileObject);
-                setIsModalOpen(true);
-                setSourceState(fileObject.uri);
-                setFile(fileObject);
-                setModalType(inputModalType);
             }
+            // } else {
+            //     const inputModalType = getModalType(fileObject.uri, fileObject);
+            //     setIsModalOpen(true);
+            //     setSourceState(fileObject.uri);
+            //     setFile(fileObject);
+            //     setModalType(inputModalType);
+            // }
         },
         [isValidFile, getModalType, isDirectoryCheck],
     );
@@ -350,7 +351,7 @@ function AttachmentModal({
         setIsAuthTokenRequiredState(isAuthTokenRequired);
     }, [isAuthTokenRequired]);
 
-    const sourceForAttachmentView = source || source;
+    const sourceForAttachmentView = sourceState ?? source;
 
     const threeDotsMenuItems = useMemo(() => {
         if (!isReceiptAttachment || !parentReport || !parentReportActions) {
@@ -375,7 +376,7 @@ function AttachmentModal({
         menuItems.push({
             icon: Expensicons.Download,
             text: translate('common.download'),
-            onSelected: () => downloadAttachment(sourceState),
+            onSelected: () => downloadAttachment(),
         });
         if (TransactionUtils.hasReceipt(transaction) && !TransactionUtils.isReceiptBeingScanned(transaction) && canEdit) {
             menuItems.push({
@@ -392,11 +393,9 @@ function AttachmentModal({
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
-    let headerTitleValue = headerTitle;
     let shouldShowDownloadButton = false;
     let shouldShowThreeDotsButton = false;
     if (isNotEmptyObject(report)) {
-        headerTitleValue = translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment');
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen;
     }
@@ -408,13 +407,12 @@ function AttachmentModal({
                 onSubmit={submitAndClose}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
                 isVisible={isModalOpen}
-                backgroundColor={theme.componentBG}
                 onModalShow={() => {
                     onModalShow();
                     setShouldLoadAttachment(true);
                 }}
-                onModalHide={(e) => {
-                    onModalHide(e);
+                onModalHide={() => {
+                    onModalHide();
                     setShouldLoadAttachment(false);
                 }}
                 propagateSwipe
@@ -425,7 +423,7 @@ function AttachmentModal({
                         title={headerTitle}
                         shouldShowBorderBottom
                         shouldShowDownloadButton={shouldShowDownloadButton}
-                        onDownloadButtonPress={() => downloadAttachment(sourceState)}
+                        onDownloadButtonPress={() => downloadAttachment()}
                         shouldShowCloseButton={!isSmallScreenWidth}
                         shouldShowBackButton={isSmallScreenWidth}
                         onBackButtonPress={closeModal}
@@ -449,6 +447,7 @@ function AttachmentModal({
                             Boolean(sourceForAttachmentView) &&
                             shouldLoadAttachment && (
                                 <AttachmentView
+                                    // @ts-expect-error TODO: Remove this once Attachments (https://github.com/Expensify/App/issues/24969) is migrated to TypeScript.
                                     containerStyles={[styles.mh5]}
                                     source={sourceForAttachmentView}
                                     isAuthTokenRequired={isAuthTokenRequired}
