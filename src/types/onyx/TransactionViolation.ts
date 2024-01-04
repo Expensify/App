@@ -1,4 +1,7 @@
-import CONST from '@src/CONST';
+// We need the runtime value of CONST here, because it's declared `as const`
+// but the linter rule incorrectly identifies it as a type-only import.
+// eslint-disable-next-line @typescript-eslint/consistent-type-importsgit
+import type CONST from '@src/CONST';
 
 /**
  * Names of violations.
