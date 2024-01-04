@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Transaction} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import * as IOU from './IOU';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -64,6 +65,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
                 [`waypoint${index}`]: waypoint,
             },
         },
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
         errorFields: {
             route: null,
@@ -132,6 +134,7 @@ function removeWaypoint(transaction: Transaction, currentIndex: string, isDraft:
             ...transaction.comment,
             waypoints: reIndexedWaypoints,
         },
+        amount: CONST.IOU.DEFAULT_AMOUNT
     };
 
     if (!isRemovedWaypointEmpty) {
@@ -244,7 +247,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
         comment: {
             waypoints,
         },
-
+        amount: CONST.IOU.DEFAULT_AMOUNT,
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input
         errorFields: {
             route: null,
