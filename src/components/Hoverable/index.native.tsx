@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import HoverableProps from './types';
+import type HoverableProps from './types';
 
 /**
  * On mobile, there is no concept of hovering, so we return a plain wrapper around the component's children,

@@ -1,5 +1,6 @@
-import React, {ForwardedRef, forwardRef} from 'react';
-import {FlatList, FlatListProps} from 'react-native';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef} from 'react';
+import type {FlatList, FlatListProps} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import CellRendererComponent from './CellRendererComponent';
