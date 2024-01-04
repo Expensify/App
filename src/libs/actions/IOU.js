@@ -1055,7 +1055,7 @@ function updateMoneyRequestDate(transactionID, transactionThreadReportID, val) {
 }
 
 /**
- * Updates the created date of a money request
+ * Updates the tag of a money request
  *
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
