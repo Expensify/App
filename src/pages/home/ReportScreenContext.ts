@@ -1,5 +1,6 @@
-import {createContext, RefObject} from 'react';
-import {FlatList, GestureResponderEvent} from 'react-native';
+import type {RefObject} from 'react';
+import {createContext} from 'react';
+import type {FlatList, GestureResponderEvent} from 'react-native';
 
 type ReactionListRef = {
     showReactionList: (event: GestureResponderEvent | undefined, reactionListAnchor: Element, emojiName: string, reportActionID: string) => void;
