@@ -1,7 +1,7 @@
 import Str from 'expensify-common/lib/str';
 import {isEmpty} from 'lodash';
 import React, {memo} from 'react';
-import {type StyleProp, type TextStyle} from 'react-native';
+import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
 import useLocalize from '@hooks/useLocalize';
