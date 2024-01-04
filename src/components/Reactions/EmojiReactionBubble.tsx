@@ -1,5 +1,5 @@
 import React from 'react';
-import {PressableRef} from '@components/Pressable/GenericPressable/types';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';

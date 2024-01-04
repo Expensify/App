@@ -1,5 +1,5 @@
-import {RefObject} from 'react';
-import {TextInput, View} from 'react-native';
+import type {RefObject} from 'react';
+import type {TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
