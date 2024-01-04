@@ -46,7 +46,7 @@ function WorkspaceReimburseSection(props) {
             return;
         }
         setShouldShowLoadingSpinner(isLoading);
-    }, [isLoading]);
+    }, [prevIsLoading, isLoading]);
 
     if (props.network.isOffline) {
         return (
