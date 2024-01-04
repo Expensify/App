@@ -1,8 +1,6 @@
-import PropTypes from 'prop-types';
-
-const propTypes = {
+type LocationErrorMessageProps = {
     /** A callback that runs when close icon is pressed */
-    onClose: PropTypes.func.isRequired,
+    onClose: () => void;
 
     /**
      * The location error code from onyx
@@ -11,11 +9,7 @@ const propTypes = {
      * - code 2 = location is unavailable or there is some connection issue
      * - code 3 = location fetch timeout
      */
-    locationErrorCode: PropTypes.oneOf([-1, 1, 2, 3]),
+    locationErrorCode?: -1 | 1 | 2 | 3;
 };
 
-const defaultProps = {
-    locationErrorCode: null,
-};
-
-export {propTypes, defaultProps};
+export default LocationErrorMessageProps;
