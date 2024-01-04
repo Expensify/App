@@ -4,11 +4,12 @@ import {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {RecentWaypoint, Report, ReportAction, Transaction} from '@src/types/onyx';
-import PolicyTaxRate, {PolicyTaxRates} from '@src/types/onyx/PolicyTaxRates';
+import TaxRate, {PolicyTaxRates, TaxRates} from '@src/types/onyx/PolicyTaxRates';
 import {Comment, Receipt, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
+import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
@@ -529,13 +530,24 @@ function calculateTaxAmount(percentage: string, amount: number) {
 /**
  * Calculates count of all tax enabled options
  */
-function getEnabledTaxRateCount(options: PolicyTaxRates) {
-    return Object.values(options).filter((option: PolicyTaxRate) => !option.isDisabled).length;
+function getEnabledTaxRateCount(options: TaxRates) {
+    return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
+}
+
+/**
+ * Calculates get's the default tax name
+ */
+function getDefaultTaxName(policyTaxRates: PolicyTaxRates, transaction: Transaction) {
+    const defaultTaxKey = policyTaxRates.defaultExternalID;
+    const defaultTaxName =
+        (defaultTaxKey && `${policyTaxRates.taxes[defaultTaxKey].name} (${policyTaxRates.taxes[defaultTaxKey].value}) • ${Localize.translateLocal('common.default')}`) || '';
+    return transaction?.taxRate?.text ?? defaultTaxName;
 }
 
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
+    getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getTransaction,
