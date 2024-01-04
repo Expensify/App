@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated, Text} from 'react-native';
+import type {Text} from 'react-native';
+import {Animated} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type TextInputLabelProps from './types';

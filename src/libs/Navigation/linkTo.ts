@@ -1,14 +1,14 @@
 import {getActionFromState} from '@react-navigation/core';
-import {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
-import {Writable} from 'type-fest';
+import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import type {Writable} from 'type-fest';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import dismissModal from './dismissModal';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import {NavigationRoot, RootStackParamList, StackNavigationAction} from './types';
+import type {NavigationRoot, RootStackParamList, StackNavigationAction} from './types';
 
 type ActionPayloadParams = {
     screen?: string;
