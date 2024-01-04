@@ -55,6 +55,21 @@ type Route = {
 
 type Routes = Record<string, Route>;
 
+type TaxRateData = {
+    name: string;
+    value: string;
+    code?: string;
+};
+
+type TaxRate = {
+    text: string;
+    keyForList: string;
+    searchText: string;
+    tooltipText: string;
+    isDisabled?: boolean;
+    data?: TaxRateData;
+};
+
 type Transaction = {
     amount: number;
     billable: boolean;
@@ -105,6 +120,10 @@ type Transaction = {
 
 type TransactionDraft = Partial<Transaction> & {
     isFromGlobalCreate?: boolean;
+    taxRate?: TaxRate;
+
+    /** Calculated tax amount based on selected tax rate */
+    taxAmount?: number;
 };
 
 type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointCollection};
@@ -112,4 +131,4 @@ type AdditionalTransactionChanges = {comment?: string; waypoints?: WaypointColle
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionDraft, TransactionChanges};
+export type {WaypointCollection, Comment, Receipt, Waypoint, TransactionDraft, TransactionChanges, TaxRate};

@@ -38,7 +38,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TaxRate, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as Policy from './Policy';
@@ -581,7 +581,7 @@ function buildOnyxDataForMoneyRequest(
  * it creates optimistic versions of them and uses those instead
  */
 function getMoneyRequestInformation(
-    report: OnyxTypes.Report | EmptyObject,
+    report: OnyxEntry<OnyxTypes.Report> | EmptyObject,
     participant: Participant,
     comment: string,
     amount: number,
@@ -1527,18 +1527,21 @@ function createSplitsAndOnyxData(
 }
 
 /**
- * @param {Array} participants
- * @param {String} currentUserLogin
- * @param {Number} currentUserAccountID
- * @param {Number} amount - always in smallest currency unit
- * @param {String} comment
- * @param {String} currency
- * @param {String} merchant
- * @param {String} category
- * @param {String} tag
- * @param {String} existingSplitChatReportID - Either a group DM or a workspace chat
+ * @param amount - always in smallest currency unit
+ * @param existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag, existingSplitChatReportID = '') {
+function splitBill(
+    participants: Participant[],
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    amount: number,
+    comment: string,
+    currency: string,
+    merchant: string,
+    category: string,
+    tag: string,
+    existingSplitChatReportID = '',
+) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -1551,24 +1554,38 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         tag,
         existingSplitChatReportID,
     );
-    API.write(
-        'SplitBill',
-        {
-            reportID: splitData.chatReportID,
-            amount,
-            splits: JSON.stringify(splits),
-            currency,
-            comment,
-            category,
-            merchant,
-            tag,
-            transactionID: splitData.transactionID,
-            reportActionID: splitData.reportActionID,
-            createdReportActionID: splitData.createdReportActionID,
-            policyID: splitData.policyID,
-        },
-        onyxData,
-    );
+
+    type SplitBillParams = {
+        reportID: string;
+        amount: number;
+        splits: string;
+        comment: string;
+        currency: string;
+        merchant: string;
+        category: string;
+        tag: string;
+        transactionID: string;
+        reportActionID: string;
+        createdReportActionID?: string;
+        policyID?: string;
+    };
+
+    const parameters: SplitBillParams = {
+        reportID: splitData.chatReportID,
+        amount,
+        splits: JSON.stringify(splits),
+        currency,
+        comment,
+        category,
+        merchant,
+        tag,
+        transactionID: splitData.transactionID,
+        reportActionID: splitData.reportActionID,
+        createdReportActionID: splitData.createdReportActionID,
+        policyID: splitData.policyID,
+    };
+
+    API.write('SplitBill', parameters, onyxData);
 
     resetMoneyRequestInfo();
     Navigation.dismissModal();
@@ -1576,37 +1593,52 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
 }
 
 /**
- * @param {Array} participants
- * @param {String} currentUserLogin
- * @param {Number} currentUserAccountID
- * @param {Number} amount - always in smallest currency unit
- * @param {String} comment
- * @param {String} currency
- * @param {String} merchant
- * @param {String} category
- * @param {String} tag
+ * @param amount - always in smallest currency unit
  */
-function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag) {
+function splitBillAndOpenReport(
+    participants: Participant[],
+    currentUserLogin: string,
+    currentUserAccountID: number,
+    amount: number,
+    comment: string,
+    currency: string,
+    merchant: string,
+    category: string,
+    tag: string,
+) {
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, category, tag);
 
-    API.write(
-        'SplitBillAndOpenReport',
-        {
-            reportID: splitData.chatReportID,
-            amount,
-            splits: JSON.stringify(splits),
-            currency,
-            merchant,
-            comment,
-            category,
-            tag,
-            transactionID: splitData.transactionID,
-            reportActionID: splitData.reportActionID,
-            createdReportActionID: splitData.createdReportActionID,
-            policyID: splitData.policyID,
-        },
-        onyxData,
-    );
+    type SplitBillAndOpenReport = {
+        reportID: string;
+        amount: number;
+        splits: string;
+        currency: string;
+        merchant: string;
+        comment: string;
+        category: string;
+        tag: string;
+        transactionID: string;
+        reportActionID: string;
+        createdReportActionID?: string;
+        policyID?: string;
+    };
+
+    const parameters: SplitBillAndOpenReport = {
+        reportID: splitData.chatReportID,
+        amount,
+        splits: JSON.stringify(splits),
+        currency,
+        merchant,
+        comment,
+        category,
+        tag,
+        transactionID: splitData.transactionID,
+        reportActionID: splitData.reportActionID,
+        createdReportActionID: splitData.createdReportActionID,
+        policyID: splitData.policyID,
+    };
+
+    API.write('SplitBillAndOpenReport', parameters, onyxData);
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(splitData.chatReportID);
@@ -3148,7 +3180,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
         },
     ];
 
-    if (parentReport.reportID) {
+    if (parentReport?.reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
@@ -3193,7 +3225,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
         },
     ];
 
-    if (parentReport.reportID) {
+    if (parentReport?.reportID) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
@@ -3326,8 +3358,8 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
-        ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
-        : (chatReport.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+        ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
+        : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
@@ -3380,26 +3412,15 @@ function resetMoneyRequestTag() {
     Onyx.merge(ONYXKEYS.IOU, {tag: ''});
 }
 
-/**
- * @param {String} transactionID
- * @param {Object} taxRate
- */
-function setMoneyRequestTaxRate(transactionID, taxRate) {
+function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 
-/**
- * @param {String} transactionID
- * @param {Number} taxAmount
- */
-function setMoneyRequestTaxAmount(transactionID, taxAmount) {
+function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
 }
 
-/**
- * @param {Boolean} billable
- */
-function setMoneyRequestBillable(billable) {
+function setMoneyRequestBillable(billable: boolean) {
     Onyx.merge(ONYXKEYS.IOU, {billable});
 }
 
@@ -3447,8 +3468,8 @@ function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, repo
         if (!iou?.participants?.length || shouldReset) {
             const currentUserAccountID = currentUserPersonalDetails.accountID;
             const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
-                ? [{reportID: chatReport.reportID, isPolicyExpenseChat: true, selected: true}]
-                : (chatReport.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+                ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
+                : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
             setMoneyRequestParticipants(participants);
             resetMoneyRequestCategory();
             resetMoneyRequestTag();
