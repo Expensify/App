@@ -23,20 +23,20 @@ type DateOfBirthUBOOnyxProps = {
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 type DateOfBirthUBOProps = SubStepProps & DateOfBirthUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
-type DateOfBirthValues = BeneficialOwnerDraftData;
+type FormValues = BeneficialOwnerDraftData;
 
 function DateOfBirthUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}: DateOfBirthUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const dobInputID: keyof DateOfBirthValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}`;
+    const dobInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${DOB}`;
 
-    const dobDefaultValue = reimbursementAccountDraft ? reimbursementAccountDraft[dobInputID] ?? '' : '';
+    const dobDefaultValue = reimbursementAccountDraft?.[dobInputID] ?? '';
 
     const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
     const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
-    const validate = (values: DateOfBirthValues) => {
+    const validate = (values: FormValues) => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, [dobInputID]);
 
         if (values[dobInputID]) {

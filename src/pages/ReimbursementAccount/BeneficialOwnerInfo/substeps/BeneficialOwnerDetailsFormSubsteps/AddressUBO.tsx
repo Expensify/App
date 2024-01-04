@@ -21,13 +21,13 @@ type AddressUBOOnyxProps = {
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 type AddressUBOProps = SubStepProps & AddressUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
-type AddressValues = BeneficialOwnerDraftData;
+type FormValues = BeneficialOwnerDraftData;
 
 function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}: AddressUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const INPUT_KEYS: Record<string, keyof BeneficialOwnerDraftData> = {
+    const INPUT_KEYS: Record<string, keyof FormValues> = {
         street: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.STREET}`,
         city: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.CITY}`,
         state: `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${BENEFICIAL_OWNER_INFO_KEY.STATE}`,
@@ -36,21 +36,14 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
 
     const REQUIRED_FIELDS = [INPUT_KEYS.street, INPUT_KEYS.city, INPUT_KEYS.state, INPUT_KEYS.zipCode];
 
-    const defaultValues = reimbursementAccountDraft
-        ? {
-              street: reimbursementAccountDraft[INPUT_KEYS.street] ?? '',
-              city: reimbursementAccountDraft[INPUT_KEYS.city] ?? '',
-              state: reimbursementAccountDraft[INPUT_KEYS.state] ?? '',
-              zipCode: reimbursementAccountDraft[INPUT_KEYS.zipCode] ?? '',
-          }
-        : {
-              street: '',
-              city: '',
-              state: '',
-              zipCode: '',
-          };
+    const defaultValues = {
+        street: reimbursementAccountDraft?.[INPUT_KEYS.street] ?? '',
+        city: reimbursementAccountDraft?.[INPUT_KEYS.city] ?? '',
+        state: reimbursementAccountDraft?.[INPUT_KEYS.state] ?? '',
+        zipCode: reimbursementAccountDraft?.[INPUT_KEYS.zipCode] ?? '',
+    };
 
-    const validate = (values: AddressValues) => {
+    const validate = (values: FormValues) => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values[INPUT_KEYS.street] && !ValidationUtils.isValidAddress(values[INPUT_KEYS.street])) {

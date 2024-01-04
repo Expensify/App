@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {OnyxEntry} from 'react-native-onyx/lib/types';
@@ -13,7 +12,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ReimbursementAccountDraft} from '@src/types/onyx';
-import {FormValues} from '@src/types/onyx/Form';
 import {BeneficialOwnerDraftData} from '@src/types/onyx/ReimbursementAccountDraft';
 
 const {FIRST_NAME, LAST_NAME} = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
@@ -24,19 +22,19 @@ type LegalNameUBOOnyxProps = {
     reimbursementAccountDraft: OnyxEntry<ReimbursementAccountDraft>;
 };
 type LegalNameUBOProps = SubStepProps & LegalNameUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
-type FromValues = BeneficialOwnerDraftData;
+type FormValues = BeneficialOwnerDraftData;
 
 function LegalNameUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwnerBeingModifiedID}: LegalNameUBOProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const firstNameInputID: keyof FromValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}`;
+    const firstNameInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}`;
     const lastNameInputID: keyof FormValues = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}`;
 
-    const defaultFirstName = lodashGet(reimbursementAccountDraft, firstNameInputID, '');
-    const defaultLastName = lodashGet(reimbursementAccountDraft, lastNameInputID, '');
+    const defaultFirstName = reimbursementAccountDraft?.[firstNameInputID] ?? '';
+    const defaultLastName = reimbursementAccountDraft?.[lastNameInputID] ?? '';
 
-    const validate = (values: FromValues) => ValidationUtils.getFieldRequiredErrors(values, [firstNameInputID, lastNameInputID]);
+    const validate = (values: FormValues) => ValidationUtils.getFieldRequiredErrors(values, [firstNameInputID, lastNameInputID]);
 
     return (
         // @ts-expect-error TODO: Remove this once Form (https://github.com/Expensify/App/issues/31972) is migrated to TypeScript
