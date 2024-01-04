@@ -103,6 +103,10 @@ const CONST = {
 
     MERCHANT_NAME_MAX_LENGTH: 255,
 
+    REQUEST_PREVIEW: {
+        MAX_LENGTH: 83,
+    },
+
     CALENDAR_PICKER: {
         // Numbers were arbitrarily picked.
         MIN_YEAR: CURRENT_YEAR - 100,
