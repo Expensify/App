@@ -34,14 +34,17 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     return onyxDataUpdatePromise
         .then(() => {
             // Handle the request's success/failure data (client-side data)
-            const successData = request.successData?.length ? request.successData : request.finallyData;
-            if (response.jsonCode === 200 && successData) {
-                return updateHandler(successData);
+            if (response.jsonCode === 200 && request.successData) {
+                return updateHandler(request.successData);
             }
-
-            const failureData = request.failureData?.length ? request.failureData : request.finallyData;
-            if (response.jsonCode !== 200 && failureData) {
-                return updateHandler(failureData);
+            if (response.jsonCode !== 200 && request.failureData) {
+                return updateHandler(request.failureData);
+            }
+            return Promise.resolve();
+        })
+        .then(() => {
+            if (request.finallyData) {
+                return updateHandler(request.finallyData);
             }
             return Promise.resolve();
         })
