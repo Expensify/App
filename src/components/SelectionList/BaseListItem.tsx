@@ -82,14 +82,16 @@ function BaseListItem({
                             </View>
                         </View>
                     )}
+
                     {item.rightElement === undefined ? (
                         <RadioListItem
                             item={item}
                             textStyles={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                item.isSelected ? styles.sidebarLinkTextBold : null,
+                                item.isSelected ?? item.alternateText ? styles.sidebarLinkTextBold : null,
                                 styles.pre,
+                                item.alternateText ? styles.mb1 : null,
                             ]}
                             alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                             isDisabled={isDisabled}
@@ -99,7 +101,13 @@ function BaseListItem({
                     ) : (
                         <UserListItem
                             item={item}
-                            textStyles={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
+                            textStyles={[
+                                styles.optionDisplayName,
+                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                styles.sidebarLinkTextBold,
+                                styles.pre,
+                                item.alternateText ? styles.mb1 : null,
+                            ]}
                             alternateTextStyles={[styles.optionAlternateText, styles.textLabelSupporting, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.pre]}
                             isDisabled={isDisabled}
                             onSelectRow={onSelectRow}

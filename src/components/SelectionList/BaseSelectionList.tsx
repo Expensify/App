@@ -67,8 +67,7 @@ function BaseSelectionList(
     const activeElement = useActiveElement();
     const isFocused = useIsFocused();
     const [maxToRenderPerBatch, setMaxToRenderPerBatch] = useState(shouldUseDynamicMaxToRenderPerBatch ? 0 : CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
-    const [isInitialRender, setIsInitialRender] = useState(true);
-    const wrapperStyles = useMemo(() => ({opacity: isInitialRender ? 0 : 1}), [isInitialRender]);
+    const [isInitialSectionListRender, setIsInitialSectionListRender] = useState(true);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -317,13 +316,13 @@ function BaseSelectionList(
                 setMaxToRenderPerBatch((Math.ceil(listHeight / itemHeight) || 0) + CONST.MAX_TO_RENDER_PER_BATCH.DEFAULT);
             }
 
-            if (!isInitialRender) {
+            if (!isInitialSectionListRender) {
                 return;
             }
             scrollToIndex(focusedIndex, false);
-            setIsInitialRender(false);
+            setIsInitialSectionListRender(false);
         },
-        [focusedIndex, isInitialRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
+        [focusedIndex, isInitialSectionListRender, scrollToIndex, shouldUseDynamicMaxToRenderPerBatch],
     );
 
     const updateAndScrollToFocusedIndex = useCallback(
@@ -356,7 +355,7 @@ function BaseSelectionList(
 
     useEffect(() => {
         // do not change focus on the first render, as it should focus on the selected item
-        if (isInitialRender) {
+        if (isInitialSectionListRender) {
             return;
         }
 
@@ -391,7 +390,7 @@ function BaseSelectionList(
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, wrapperStyles, containerStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
@@ -463,7 +462,7 @@ function BaseSelectionList(
                                     viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                                     testID="selection-list"
                                     onLayout={scrollToFocusedIndexOnFirstRender}
-                                    style={!maxToRenderPerBatch && styles.opacity0}
+                                    style={(!maxToRenderPerBatch || isInitialSectionListRender) && styles.opacity0}
                                 />
                                 {children}
                             </>
