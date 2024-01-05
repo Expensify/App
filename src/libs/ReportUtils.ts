@@ -1928,11 +1928,11 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
             return false;
         }
 
-        const policy = getPolicy(moneyRequestReport?.reportID ?? '');
-        const isAdmin = isExpenseReport(moneyRequestReport) && policy.role === CONST.POLICY.ROLE.ADMIN;
-        const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
-
         if (TransactionUtils.isDistanceRequest(transaction)) {
+            const policy = getPolicy(moneyRequestReport?.reportID ?? '');
+            const isAdmin = isExpenseReport(moneyRequestReport) && policy.role === CONST.POLICY.ROLE.ADMIN;
+            const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
+
             return isAdmin || isManager;
         }
     }
