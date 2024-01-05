@@ -1,6 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
+import {last} from 'lodash';
 import {TextInput} from 'react-native';
-import _ from 'underscore';
 import CONST from '@src/CONST';
 
 let focusedInput = null;
@@ -173,7 +173,7 @@ function restoreFocusState(id, type = CONST.MODAL.RESTORE_FOCUS_TYPE.DEFAULT, sh
     }
 
     // find the topmost one
-    const [lastId, lastInput] = _.last([...focusMap]);
+    const [lastId, lastInput] = last([...focusMap]);
     if (!lastInput) {
         // TODO:del
         console.error('no, impossible');
@@ -207,7 +207,7 @@ function getKey(id) {
     if (promiseMap.size < 1) {
         return 0;
     }
-    return _.last([...promiseMap.keys()]);
+    return last([...promiseMap.keys()]);
 }
 
 function setReadyToFocus(id) {
@@ -248,7 +248,7 @@ function tryRestoreFocusByExternal() {
     if (focusMap.size < 1) {
         return;
     }
-    const [key, input] = _.last([...focusMap]);
+    const [key, input] = last([...focusMap]);
     console.debug('oh, try to restore by external');
     input.focus();
     focusMap.delete(key);

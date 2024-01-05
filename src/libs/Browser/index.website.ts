@@ -101,7 +101,7 @@ const openRouteInDesktopApp: OpenRouteInDesktopApp = (shortLivedAuthToken = '', 
     }
 };
 
-const isFileCancelSupported: IsFileCancelSupported = () =>
-    // Chrome: 113 / Firefox: 91 / Safari 16.4
-    false;
+// Chrome: 113 / Firefox: 91 / Safari 16.4
+const isFileCancelSupported: IsFileCancelSupported = () => false;
+
 export {getBrowser, isMobile, isMobileSafari, isSafari, isMobileChrome, openRouteInDesktopApp, isFileCancelSupported};

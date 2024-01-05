@@ -370,12 +370,7 @@ function Composer(
                 rows={numberOfLines}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
-                onFocus={(e) => {
-                    if (!props.onFocus) {
-                        return;
-                    }
-                    props.onFocus?.(e);
-                }}
+                onFocus={(e) => props.onFocus?.(e)}
             />
             {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>

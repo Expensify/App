@@ -266,14 +266,7 @@ function ReportActionCompose({
         [onSubmit],
     );
 
-    const onTriggerAttachmentPicker = useCallback(() => {
-        // Set a flag to block suggestion calculation until we're finished using the file picker,
-        // which will stop any flickering as the file picker opens on non-native devices.
-        if (!willBlurTextInputOnTapOutside) {
-            return;
-        }
-        suggestionsRef.current.setShouldBlockSuggestionCalc(true);
-    }, []);
+    const onTriggerAttachmentPicker = useCallback(() => {}, []);
 
     const onBlur = useCallback(() => {
         setIsFocused(false);

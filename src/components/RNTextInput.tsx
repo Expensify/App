@@ -15,7 +15,7 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 function RNTextInputWithRef(props: TextInputProps, ref: ForwardedRef<React.Component<AnimatedProps<TextInputProps>>>) {
     const theme = useTheme();
 
-    const inputRef = React.useRef<React.Component<AnimatedProps<TextInputProps>> | null>(null);
+    const inputRef = React.useRef<Component<AnimatedProps<TextInputProps>> | null>(null);
 
     React.useEffect(() => () => ComposerFocusManager.releaseInput(inputRef.current), []);
 
