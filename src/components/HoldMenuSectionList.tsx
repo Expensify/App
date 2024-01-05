@@ -1,5 +1,5 @@
 import React from 'react';
-import {type ImageSourcePropType, View} from 'react-native';
+import {ImageSourcePropType, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
