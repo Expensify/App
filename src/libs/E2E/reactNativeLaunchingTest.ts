@@ -5,7 +5,7 @@
  * By doing this, we avoid bundling any E2E testing code
  * into the actual release app.
  */
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import E2EConfig from '../../../tests/e2e/config';

@@ -1,6 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {InteractionManager, TextInput} from 'react-native';
+import type {TextInput} from 'react-native';
+import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import * as Expensify from '@src/Expensify';
 
