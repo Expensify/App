@@ -1,7 +1,6 @@
-import _ from 'lodash';
 import type {MutableRefObject} from 'react';
 import React, {useEffect, useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -11,6 +10,7 @@ import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
+import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
@@ -22,52 +22,72 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 
+type Event = GestureResponderEvent | KeyboardEvent;
+
 type TriggerKYCFlow = (event: Event, iouPaymentType: string) => void;
 
 type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
-    nvpLastPaymentMethod?: OnyxEntry<Record<string, string>>;
+    nvpLastPaymentMethod?: OnyxEntry<OnyxValues[typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD]>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
     onPress: (paymentType: PaymentType) => void;
+
     /** The route to redirect if user does not have a payment method setup */
     enablePaymentsRoute: typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
+
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
+
     /** Settlement currency type */
     currency?: string;
+
     /** When the button is opened via an IOU, ID for the chatReport that the IOU is linked to */
     chatReportID?: string;
+
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxEntry<Report> | EmptyObject;
+
     /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
+
     /** Should we show the payment options? */
     shouldShowApproveButton?: boolean;
+
     /** The policyID of the report we are paying */
     policyID?: string;
+
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
     /** Total money amount in form <currency><amount> */
     formattedAmount?: string;
+
     /** The size of button size */
-    buttonSize?: ButtonSizeValue; // Replace with the actual sizes
+    buttonSize?: ButtonSizeValue;
+
     /** Route for the Add Bank Account screen for a given navigation stack */
     addBankAccountRoute?: string;
+
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: string;
+
     /** Whether the button should be disabled */
     isDisabled?: boolean;
+
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
+
     /** The anchor alignment of the popover menu for payment method dropdown */
     paymentMethodDropdownAnchorAlignment?: AnchorAlignment;
+
     /** The anchor alignment of the popover menu for KYC wall popover */
     kycWallAnchorAlignment?: AnchorAlignment;
+
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 };
@@ -158,7 +178,7 @@ function SettlementButton({
 
         // Put the preferred payment method to the front of the array so its shown as default
         if (paymentMethod) {
-            return _.sortBy(buttonOptions, (method) => (method.value === paymentMethod ? 0 : 1));
+            return buttonOptions.sort((method) => (method.value === paymentMethod ? 0 : 1));
         }
         return buttonOptions;
     }, [currency, formattedAmount, iouReport, nvpLastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
@@ -191,17 +211,16 @@ function SettlementButton({
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
-            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: MutableRefObject<null>) => (
+            {(triggerKYCFlow: TriggerKYCFlow, buttonRef: MutableRefObject<HTMLDivElement | View>) => (
                 <ButtonWithDropdownMenu
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
-                    onPress={(event: Event, iouPaymentType: PaymentType) =>
-                        selectPaymentType(event, iouPaymentType, triggerKYCFlow)
-                    }
+                    onPress={(event: Event, iouPaymentType: PaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
-                    style={style as Record<string, string | number>}
+                    // @ts-expect-error TODO: Remove this once OptionsListUtils (https://github.com/Expensify/App/issues/25065) is migrated to TypeScript.
+                    style={style}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                 />
