@@ -62,7 +62,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldDisableThreeDotsButton?: boolean;
 
     /** List of menu items for more(three dots) menu */
-    threeDotsMenuItems?: ThreeDotsMenuItems[];
+    threeDotsMenuItems?: Array<ThreeDotsMenuItems | undefined>;
 
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
