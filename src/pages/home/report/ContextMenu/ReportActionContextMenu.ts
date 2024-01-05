@@ -1,4 +1,5 @@
 import React from 'react';
+import type {RefObject} from 'react';
 import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -39,6 +40,7 @@ type ReportActionContextMenu = {
     instanceID: string;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
+    contentRef: RefObject<View>;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
