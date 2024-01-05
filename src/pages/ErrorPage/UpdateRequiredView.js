@@ -4,9 +4,9 @@ import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Button from '@components/Button';
 import Text from '@components/Text';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Lottie from '@components/Lottie';
+import LottieAnimations from '@components/LottieAnimations';
 
 function UpdateRequiredView() {
     const styles = useThemeStyles();
@@ -21,24 +21,22 @@ function UpdateRequiredView() {
     }, []);
 
     return (
-        <View style={styles.flex1}>
-            <View style={[styles.appBG]}>
-                {isSmallScreenWidth && (
-                    <View style={[styles.pt10, styles.ph5, {marginBottom: 100}]}>
-                        <Header
-                            title="Update required"
-                        />
-                    </View>
-                )}
-                <View style={[styles.flex1]}>
-                    <Icon
-                        src={Expensicons.EmptyStateUpdateRocket}
-                        width="100%"
-                        height="100%"
-                        fill="transparent"
-                        additionalStyles={[styles.mb10]}
+        <View style={[styles.appBG, styles.h100]}>
+            <View style={[styles.pt10, styles.ph5, !isSmallScreenWidth ? {} : {marginBottom: 120}]}>
+                <Header
+                    title="Update required"
+                />
+            </View>
+            <View style={[styles.h100]}>
+                <View style={[styles.flex1, !isSmallScreenWidth ? {alignItems: 'center', justifyContent: 'center', paddingBottom: 200} : {}]}>
+                    <Lottie
+                        source={LottieAnimations.Upgrade}
+                        style={isSmallScreenWidth ? styles.w100 : {width: 450}}
+                        webStyle={isSmallScreenWidth ? styles.w100 : {width: 450}}
+                        autoPlay
+                        loop
                     />
-                    <View style={[styles.ph5, styles.alignItemsCenter]}>
+                    <View style={[styles.ph5, styles.alignItemsCenter, styles.mt5]}>
                         <View style={[{maxWidth: 300}]}>
                             <View style={[styles.mb3]}>
                                 <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>Please install the latest version of New Expensify</Text>
@@ -53,7 +51,7 @@ function UpdateRequiredView() {
                         large
                         onPress={updateApp}
                         text="Update"
-                        style={[styles.ph10]}
+                        style={[!isSmallScreenWidth ? {width: 450} : styles.ph10]}
                     />
                 </View>
             </View>
