@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
 import Text from './Text';
 import TextLinkWithRef from './TextLink';
+import * as Illustrations from './Icon/Illustrations';
 
 function FocusModeNotification() {
     const styles = useThemeStyles();
@@ -40,6 +41,7 @@ function FocusModeNotification() {
                 </Text>
             }
             isVisible
+            image={Illustrations.ThreeLeggedLaptopWoman}
         />
     );
 }
