@@ -6,7 +6,7 @@ type AttachmentCarouselPagerContextType = {
     onTap: () => void;
     // onSwipe: (y: number) => void;
     // onSwipeSuccess: () => void;
-    onPinchGestureChange: (isPinchGestureInUse: boolean) => void;
+    onScaleChanged: (scale: number) => void;
     pagerRef: React.Ref<PagerView>;
     shouldPagerScroll: SharedValue<boolean>;
     isSwipingInPager: SharedValue<boolean>;

@@ -22,6 +22,9 @@ const propTypes = {
     // TODO: Add TS types for zoom range
     // ...zoomRangePropTypes,
 
+    /** Triggers whenever the zoom scale changes */
+    onScaleChanged: PropTypes.func,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 
@@ -55,6 +58,7 @@ const defaultProps = {
     index: 0,
     activeIndex: 0,
     hasSiblingCarouselItems: false,
+    onScaleChanged: () => {},
     onPress: () => {},
     onError: () => {},
     style: {},
@@ -93,6 +97,12 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
         return !indexOutOfRange;
     }, [activeIndex, index]);
     const isLightboxVisible = isLightboxInRange && (isActive || isLightboxLoaded || isFallbackLoaded);
+
+    // If the fallback image is currently visible, we want to hide the Lightbox until the fallback gets hidden,
+    // so that we don't see two overlapping images at the same time.
+    // If there the Lightbox is not used within a carousel, we don't need to hide the Lightbox,
+    // because it's only going to be rendered after the fallback image is hidden.
+    const shouldHideLightbox = hasSiblingCarouselItems && isFallbackVisible;
 
     const isLoading = isActive && (!isContainerLoaded || !isImageLoaded);
 
@@ -169,7 +179,7 @@ function Lightbox({isAuthTokenRequired, source, onScaleChanged, onPress, onError
             {isContainerLoaded && (
                 <>
                     {isLightboxVisible && (
-                        <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), {opacity: hasSiblingCarouselItems && isFallbackVisible ? 0 : 1}]}>
+                        <View style={[...StyleUtils.getFullscreenCenteredContentStyles(), StyleUtils.getLightboxVisibilityStyle(shouldHideLightbox)]}>
                             <MultiGestureCanvas
                                 isActive={isActive}
                                 onScaleChanged={onScaleChanged}
