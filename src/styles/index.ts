@@ -4068,6 +4068,21 @@ const styles = (theme: ThemeColors) =>
             marginBottom: 16,
         },
 
+        holdRequestInline: {
+            ...headlineFont,
+            ...whiteSpace.preWrap,
+            color: theme.heading,
+            fontSize: variables.fontSizeXLarge,
+            lineHeight: variables.lineHeightXXLarge,
+
+            backgroundColor: colors.red,
+            borderRadius: variables.componentBorderRadiusMedium,
+            overflow: 'hidden',
+
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+        },
+
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
