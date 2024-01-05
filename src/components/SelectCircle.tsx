@@ -1,7 +1,8 @@
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import useTheme from '@styles/themes/useTheme';
-import useThemeStyles from '@styles/useThemeStyles';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 

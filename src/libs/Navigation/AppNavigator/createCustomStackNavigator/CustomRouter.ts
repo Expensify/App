@@ -1,5 +1,6 @@
-import {NavigationState, PartialState, RouterConfigOptions, StackNavigationState, StackRouter} from '@react-navigation/native';
-import {ParamListBase} from '@react-navigation/routers';
+import type {NavigationState, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import {StackRouter} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/routers';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';

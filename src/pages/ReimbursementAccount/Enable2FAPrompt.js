@@ -6,8 +6,8 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import withLocalize, {withLocalizePropTypes} from '@components/withLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import useThemeStyles from '@styles/useThemeStyles';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
