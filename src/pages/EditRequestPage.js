@@ -149,6 +149,19 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
         [transaction, report],
     );
 
+    const saveTag = useCallback(
+        ({tag: newTag}) => {
+            let updatedTag = newTag;
+            if (newTag === transactionTag) {
+                // In case the same tag has been selected, reset the tag.
+                updatedTag = '';
+            }
+            IOU.updateMoneyRequestTag(transaction.transactionID, report.reportID, updatedTag);
+            Navigation.dismissModal();
+        },
+        [transactionTag, transaction.transactionID, report.reportID],
+    );
+
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
             <EditRequestDescriptionPage
@@ -238,15 +251,7 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 defaultTag={transactionTag}
                 tagName={tagListName}
                 policyID={lodashGet(report, 'policyID', '')}
-                onSubmit={(transactionChanges) => {
-                    let updatedTag = transactionChanges.tag;
-
-                    // In case the same tag has been selected, reset the tag.
-                    if (transactionTag === updatedTag) {
-                        updatedTag = '';
-                    }
-                    editMoneyRequest({tag: updatedTag, tagListName});
-                }}
+                onSubmit={saveTag}
             />
         );
     }

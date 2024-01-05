@@ -211,6 +211,7 @@ type OptimisticChatReport = Pick<
     | 'parentReportActionID'
     | 'parentReportID'
     | 'participantAccountIDs'
+    | 'visibleChatMemberAccountIDs'
     | 'policyID'
     | 'reportID'
     | 'reportName'
@@ -265,6 +266,7 @@ type OptimisticTaskReport = Pick<
     | 'description'
     | 'ownerAccountID'
     | 'participantAccountIDs'
+    | 'visibleChatMemberAccountIDs'
     | 'managerID'
     | 'type'
     | 'parentReportID'
@@ -302,6 +304,7 @@ type OptimisticIOUReport = Pick<
     | 'managerID'
     | 'ownerAccountID'
     | 'participantAccountIDs'
+    | 'visibleChatMemberAccountIDs'
     | 'reportID'
     | 'state'
     | 'stateNum'
@@ -1849,7 +1852,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = ''): boolean {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = '', transaction?: OnyxEntry<Transaction>): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1876,11 +1879,14 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
     const isApproved = isReportApproved(moneyRequestReport);
     const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+    const isDistanceRequest = !isEmpty(transaction) && TransactionUtils.isDistanceRequest(transaction);
 
     if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return false;
     }
-
+    if (isDistanceRequest && fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+        return isAdmin;
+    }
     if (isAdmin) {
         return true;
     }
@@ -1908,7 +1914,7 @@ function canEditFieldOfMoneyRequest(
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit, transaction)) {
         return false; // User doesn't have permission to edit
     }
     if (!isEmpty(transaction) && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
@@ -2506,6 +2512,10 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
+
+    // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
+    const participantsAccountIDs = [payeeAccountID, payerAccountID];
+
     return {
         type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
@@ -2513,7 +2523,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         currency,
         managerID: payerAccountID,
         ownerAccountID: payeeAccountID,
-        participantAccountIDs: [payeeAccountID, payerAccountID],
+        participantAccountIDs: participantsAccountIDs,
+        visibleChatMemberAccountIDs: participantsAccountIDs,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
@@ -3049,7 +3060,9 @@ function buildOptimisticChatReport(
         ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         parentReportActionID,
         parentReportID,
+        // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
         participantAccountIDs: participantList,
+        visibleChatMemberAccountIDs: participantList,
         policyID,
         reportID: generateReportID(),
         reportName,
@@ -3251,12 +3264,16 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ): OptimisticTaskReport {
+    // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
+    const participantsAccountIDs = assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [];
+
     return {
         reportID: generateReportID(),
         reportName: title,
         description,
         ownerAccountID,
-        participantAccountIDs: assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [],
+        participantAccountIDs: participantsAccountIDs,
+        visibleChatMemberAccountIDs: participantsAccountIDs,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -4080,6 +4097,8 @@ function getTaskAssigneeChatOnyxData(
 
 /**
  * Returns an array of the participants Ids of a report
+ *
+ * @deprecated Use getVisibleMemberIDs instead
  */
 function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
     if (!report) {
@@ -4095,6 +4114,25 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
         return onlyUnique;
     }
     return participants;
+}
+
+/**
+ * Returns an array of the visible member accountIDs for a report*
+ */
+function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
+    if (!report) {
+        return [];
+    }
+
+    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
+
+    // Build participants list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
+        const onlyUnique = [...new Set([...onlyTruthyValues])];
+        return onlyUnique;
+    }
+    return visibleChatMemberAccountIDs;
 }
 
 /**
@@ -4415,6 +4453,7 @@ export {
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
     getParticipantsIDs,
+    getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
     buildTransactionThread,
