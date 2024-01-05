@@ -1,10 +1,10 @@
 import React from 'react';
-import {GestureResponderEvent, Text as RNText} from 'react-native';
+import type {GestureResponderEvent, Text as RNText} from 'react-native';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import ReportAction from '@src/types/onyx/ReportAction';
+import type ReportAction from '@src/types/onyx/ReportAction';
 
 const ShowContextMenuContext = React.createContext({
     anchor: null,

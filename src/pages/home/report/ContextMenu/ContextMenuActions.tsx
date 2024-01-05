@@ -413,7 +413,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                if (draftMessage === undefined) {
+                if (!draftMessage) {
                     Report.saveReportActionDraft(reportID, reportAction, getActionText(reportAction));
                 } else {
                     Report.deleteReportActionDraft(reportID, reportAction);

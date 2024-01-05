@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import BaseReportActionContextMenu from '@pages/home/report/ContextMenu/BaseReportActionContextMenu';
 import CONST from '@src/CONST';
-import MiniReportActionContextMenuProps from './types';
+import type MiniReportActionContextMenuProps from './types';
 
 function MiniReportActionContextMenu({displayAsGroup = false, ...rest}: MiniReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();

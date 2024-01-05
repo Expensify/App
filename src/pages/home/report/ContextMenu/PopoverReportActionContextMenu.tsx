@@ -1,6 +1,6 @@
 import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {EmitterSubscription, NativeTouchEvent, View} from 'react-native';
+import type {EmitterSubscription, View} from 'react-native';
 import {Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
