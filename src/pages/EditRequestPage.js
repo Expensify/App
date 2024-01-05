@@ -169,8 +169,9 @@ function EditRequestPage({report, route, parentReport, policyCategories, policyT
                 IOU.updateMoneyRequestDescription(transaction.transactionID, report.reportID, newComment.trim());
             }
             Navigation.dismissModal();
-        }
-    )
+        },
+        [transactionDescription, transaction.transactionID, report.reportID],
+    );
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DESCRIPTION) {
         return (
