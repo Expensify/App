@@ -4275,10 +4275,15 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     if (!policy) {
         return false;
     }
-    type CurrencyType = typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES[number];
+    type CurrencyType = (typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES)[number];
     const reimbursableTotal = getMoneyRequestReimbursableTotal(report);
     const autoReimbursementLimit = policy.autoReimbursementLimit ?? 0;
-    const isAutoReimbursable = isGroupPolicy(report) && policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && autoReimbursementLimit >= reimbursableTotal && reimbursableTotal > 0 && CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(report?.currency as CurrencyType);
+    const isAutoReimbursable =
+        isGroupPolicy(report) &&
+        policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES &&
+        autoReimbursementLimit >= reimbursableTotal &&
+        reimbursableTotal > 0 &&
+        CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(report?.currency as CurrencyType);
     return isAutoReimbursable;
 }
 

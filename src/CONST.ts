@@ -448,14 +448,7 @@ const CONST = {
         EUR: 'EUR',
     },
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
-        return [
-            this.CURRENCY.USD,
-            this.CURRENCY.AUD,
-            this.CURRENCY.CAD,
-            this.CURRENCY.GBP,
-            this.CURRENCY.NZD,
-            this.CURRENCY.EUR,
-        ];
+        return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.NZD, this.CURRENCY.EUR];
     },
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     CONCIERGE_CHAT_NAME: 'Concierge',
@@ -1307,7 +1300,7 @@ const CONST = {
             REIMBURSEMENT_YES: 'reimburseYes',
             REIMBURSEMENT_NO: 'reimburseNo',
             REIMBURSEMENT_MANUAL: 'reimburseManual',
-        }
+        },
     },
 
     CUSTOM_UNITS: {
