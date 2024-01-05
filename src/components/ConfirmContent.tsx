@@ -64,6 +64,9 @@ type ConfirmContentProps = {
 
     /** Styles for icon */
     iconAdditionalStyles?: StyleProp<ViewStyle>;
+
+    /** Image to display with content */
+    image?: IconAsset; 
 };
 
 function ConfirmContent({
@@ -84,6 +87,7 @@ function ConfirmContent({
     promptStyles,
     contentStyles,
     iconAdditionalStyles,
+    image = null,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
