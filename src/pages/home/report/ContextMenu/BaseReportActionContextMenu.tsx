@@ -1,7 +1,9 @@
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, MutableRefObject, RefObject, useMemo, useRef, useState} from 'react';
+import type {MutableRefObject, RefObject} from 'react';
+import React, {memo, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -12,10 +14,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Beta, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Beta, ReportAction, ReportActions} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ContextMenuActions, {ContextMenuActionPayload} from './ContextMenuActions';
-import {ContextMenuType, hideContextMenu} from './ReportActionContextMenu';
+import type {ContextMenuActionPayload} from './ContextMenuActions';
+import ContextMenuActions from './ContextMenuActions';
+import type {ContextMenuType} from './ReportActionContextMenu';
+import {hideContextMenu} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuOnyxProps = {
     /** Beta features list */

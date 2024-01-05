@@ -1,7 +1,8 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, {MutableRefObject} from 'react';
-import {OnyxEntry} from 'react-native-onyx';
-import {Emoji} from '@assets/emojis/types';
+import type {MutableRefObject} from 'react';
+import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
@@ -22,10 +23,10 @@ import * as TaskUtils from '@libs/TaskUtils';
 import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import {TranslationPaths} from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import {Beta, ReportAction, ReportActionReactions} from '@src/types/onyx';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {Beta, ReportAction, ReportActionReactions} from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
@@ -106,7 +107,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 }
             };
 
-            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: ReportActionReactions | undefined) => {
+            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>) => {
                 Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
                 closeContextMenu();
             };
@@ -115,7 +116,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return (
                     <MiniQuickEmojiReactions
                         key="MiniQuickEmojiReactions"
-                        // @ts-expect-error TODO: Remove this once Reactions (https://github.com/Expensify/App/issues/25153) is migrated to TypeScript.
                         onEmojiSelected={toggleEmojiAndCloseMenu}
                         onPressOpenPicker={openContextMenu}
                         onEmojiPickerClosed={closeContextMenu}
@@ -130,7 +130,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
                     onEmojiSelected={toggleEmojiAndCloseMenu}
-                    // @ts-expect-error TODO: Remove this once Reactions (https://github.com/Expensify/App/issues/25153) is migrated to TypeScript.
                     reportActionID={reportAction?.reportActionID}
                     reportAction={reportAction}
                 />
@@ -347,7 +346,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
-            const isAttachmentTarget = menuTarget.current?.tagName === 'IMG' && isAttachment;
+            const isAttachmentTarget = menuTarget?.current?.tagName === 'IMG' && isAttachment;
             return Permissions.canUseCommentLinking(betas) && type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !ReportActionsUtils.isMessageDeleted(reportAction);
         },
         onPress: (closePopover, {reportAction, reportID}) => {

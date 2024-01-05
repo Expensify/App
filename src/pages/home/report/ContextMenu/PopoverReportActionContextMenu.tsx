@@ -1,6 +1,8 @@
-import React, {ForwardedRef, forwardRef, RefObject, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {Dimensions, EmitterSubscription, NativeTouchEvent, View} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
+import type {ForwardedRef, RefObject} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {EmitterSubscription, NativeTouchEvent, View} from 'react-native';
+import {Dimensions} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
@@ -8,9 +10,9 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
-import {ContextMenuType, ShowContextMenu} from './ReportActionContextMenu';
+import type {ContextMenuType, ShowContextMenu} from './ReportActionContextMenu';
 
 type HideContextMenu = (onHideActionCallback?: () => void) => void;
 
@@ -164,9 +166,9 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
         isPinnedChat = false,
         isUnreadChat = false,
     ) => {
-        const nativeEvent = 'nativeEvent' in event ? event.nativeEvent : ({pageX: 0, pageY: 0} as NativeTouchEvent);
+        const {pageX = 0, pageY = 0} = 'nativeEvent' in event ? event.nativeEvent : {};
         contextMenuAnchorRef.current = contextMenuAnchor;
-        contextMenuTargetNode.current = nativeEvent.target;
+        contextMenuTargetNode.current = event.target as HTMLElement;
 
         setInstanceID(Math.random().toString(36).substr(2, 5));
 
@@ -175,13 +177,13 @@ function PopoverReportActionContextMenu(_props: never, ref: ForwardedRef<Popover
 
         getContextMenuMeasuredLocation().then(({x, y}) => {
             popoverAnchorPosition.current = {
-                horizontal: nativeEvent.pageX - x,
-                vertical: nativeEvent.pageY - y,
+                horizontal: pageX - x,
+                vertical: pageY - y,
             };
 
             popoverAnchorPosition.current = {
-                horizontal: nativeEvent.pageX,
-                vertical: nativeEvent.pageY,
+                horizontal: pageX,
+                vertical: pageY,
             };
             typeRef.current = type;
             reportIDRef.current = reportID ?? '0';
