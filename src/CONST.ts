@@ -3101,6 +3101,12 @@ const CONST = {
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
     },
+
+    /** Dimensions for illustration shown in Confirmation Modal */
+    CONFIRM_CONTENT_SVG_SIZE: {
+        HEIGHT: 220,
+        WIDTH: 130,
+    }
 } as const;
 
 export default CONST;

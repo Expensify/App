@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import colors from '@styles/theme/colors';
+import CONST from '@src/CONST';
 import ImageSVG from './ImageSVG';
 import Button from './Button';
 import Header from './Header';
@@ -107,8 +108,8 @@ function ConfirmContent({
                 <ImageSVG
                     contentFit="contain"
                     src={image}
-                    height={220}
-                    width={130}
+                    height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
+                    width={CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
                 />
             </View>
         )}
