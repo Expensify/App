@@ -5,24 +5,26 @@ import lodashEscape from 'lodash/escape';
 import lodashFindLastIndex from 'lodash/findLastIndex';
 import lodashIntersection from 'lodash/intersection';
 import lodashIsEqual from 'lodash/isEqual';
-import Onyx, {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import CONST from '@src/CONST';
-import {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
+import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
-import {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
-import {Status} from '@src/types/onyx/PersonalDetails';
-import {NotificationPreference} from '@src/types/onyx/Report';
-import {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
-import DeepValueOf from '@src/types/utils/DeepValueOf';
-import {EmptyObject, isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
-import IconAsset from '@src/types/utils/IconAsset';
+import type {Beta, Login, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportMetadata, Session, Transaction} from '@src/types/onyx';
+import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {IOUMessage, OriginalMessageActionName, OriginalMessageCreated, ReimbursementDeQueuedMessage} from '@src/types/onyx/OriginalMessage';
+import type {Status} from '@src/types/onyx/PersonalDetails';
+import type {NotificationPreference} from '@src/types/onyx/Report';
+import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isNotEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -35,7 +37,7 @@ import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
-import {LastVisibleMessage} from './ReportActionsUtils';
+import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import * as UserUtils from './UserUtils';
@@ -214,6 +216,7 @@ type OptimisticChatReport = Pick<
     | 'parentReportActionID'
     | 'parentReportID'
     | 'participantAccountIDs'
+    | 'visibleChatMemberAccountIDs'
     | 'policyID'
     | 'reportID'
     | 'reportName'
@@ -268,6 +271,7 @@ type OptimisticTaskReport = Pick<
     | 'description'
     | 'ownerAccountID'
     | 'participantAccountIDs'
+    | 'visibleChatMemberAccountIDs'
     | 'managerID'
     | 'type'
     | 'parentReportID'
@@ -305,6 +309,7 @@ type OptimisticIOUReport = Pick<
     | 'managerID'
     | 'ownerAccountID'
     | 'participantAccountIDs'
+    | 'visibleChatMemberAccountIDs'
     | 'reportID'
     | 'state'
     | 'stateNum'
@@ -437,6 +442,51 @@ function getChatType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.CHA
     return report?.chatType;
 }
 
+/**
+ * Get the report given a reportID
+ */
+function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
+    /**
+     * Using typical string concatenation here due to performance issues
+     * with template literals.
+     */
+    if (!allReports) {
+        return {};
+    }
+
+    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
+}
+
+/**
+ * Returns the parentReport if the given report is a thread.
+ */
+function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
+    if (!report?.parentReportID) {
+        return {};
+    }
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
+}
+
+/**
+ * Returns the root parentReport if the given report is nested.
+ * Uses recursion to iterate any depth of nested reports.
+ */
+function getRootParentReport(report: OnyxEntry<Report> | undefined | EmptyObject): OnyxEntry<Report> | EmptyObject {
+    if (!report) {
+        return {};
+    }
+
+    // Returns the current report as the root report, because it does not have a parentReportID
+    if (!report?.parentReportID) {
+        return report;
+    }
+
+    const parentReport = getReport(report?.parentReportID);
+
+    // Runs recursion to iterate a parent report
+    return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
+}
+
 function getPolicy(policyID: string): Policy | EmptyObject {
     if (!allPolicies || !policyID) {
         return {};
@@ -466,10 +516,12 @@ function getPolicyName(report: OnyxEntry<Report> | undefined | EmptyObject, retu
     }
     const finalPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
+    const parentReport = getRootParentReport(report);
+
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || noPolicyFound;
+    const policyName = finalPolicy?.name || report?.policyName || report?.oldPolicyName || parentReport?.oldPolicyName || noPolicyFound;
 
     return policyName;
 }
@@ -1022,21 +1074,6 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
         !isIOUReport(report) &&
         participantAccountIDs.length === 1
     );
-}
-
-/**
- * Get the report given a reportID
- */
-function getReport(reportID: string | undefined): OnyxEntry<Report> | EmptyObject {
-    /**
-     * Using typical string concatenation here due to performance issues
-     * with template literals.
-     */
-    if (!allReports) {
-        return {};
-    }
-
-    return allReports?.[ONYXKEYS.COLLECTION.REPORT + reportID] ?? {};
 }
 
 /**
@@ -1824,7 +1861,7 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
  *    - the current user is the requestor and is not settled yet
  *    - or the user is an admin on the policy the expense report is tied to
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = ''): boolean {
+function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit = '', transaction?: OnyxEntry<Transaction>): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
@@ -1851,11 +1888,14 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>, fieldToEdit 
     const isApproved = isReportApproved(moneyRequestReport);
     const isAdmin = isExpenseReport(moneyRequestReport) && (getPolicy(moneyRequestReport?.policyID ?? '')?.role ?? '') === CONST.POLICY.ROLE.ADMIN;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+    const isDistanceRequest = !isEmpty(transaction) && TransactionUtils.isDistanceRequest(transaction);
 
     if (isAdmin && !isRequestor && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
         return false;
     }
-
+    if (isDistanceRequest && fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+        return isAdmin;
+    }
     if (isAdmin) {
         return true;
     }
@@ -1883,7 +1923,7 @@ function canEditFieldOfMoneyRequest(
     ];
 
     // Checks if this user has permissions to edit this money request
-    if (!canEditMoneyRequest(reportAction, fieldToEdit)) {
+    if (!canEditMoneyRequest(reportAction, fieldToEdit, transaction)) {
         return false; // User doesn't have permission to edit
     }
     if (!isEmpty(transaction) && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
@@ -2139,36 +2179,6 @@ function getModifiedExpenseOriginalMessage(oldTransaction: OnyxEntry<Transaction
     }
 
     return originalMessage;
-}
-
-/**
- * Returns the parentReport if the given report is a thread.
- */
-function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
-    if (!report?.parentReportID) {
-        return {};
-    }
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
-}
-
-/**
- * Returns the root parentReport if the given report is nested.
- * Uses recursion to iterate any depth of nested reports.
- */
-function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> | EmptyObject {
-    if (!report) {
-        return {};
-    }
-
-    // Returns the current report as the root report, because it does not have a parentReportID
-    if (!report?.parentReportID) {
-        return report;
-    }
-
-    const parentReport = getReport(report?.parentReportID);
-
-    // Runs recursion to iterate a parent report
-    return getRootParentReport(isNotEmptyObject(parentReport) ? parentReport : null);
 }
 
 /**
@@ -2510,6 +2520,10 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = 'login' in personalDetails ? personalDetails.login : '';
+
+    // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
+    const participantsAccountIDs = [payeeAccountID, payerAccountID];
+
     return {
         type: CONST.REPORT.TYPE.IOU,
         cachedTotal: formattedTotal,
@@ -2517,7 +2531,8 @@ function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number
         currency,
         managerID: payerAccountID,
         ownerAccountID: payeeAccountID,
-        participantAccountIDs: [payeeAccountID, payerAccountID],
+        participantAccountIDs: participantsAccountIDs,
+        visibleChatMemberAccountIDs: participantsAccountIDs,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
         stateNum: isSendingMoney ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.PROCESSING,
@@ -2549,8 +2564,6 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     const formattedTotal = CurrencyUtils.convertToDisplayString(storedTotal, currency);
     const policy = getPolicy(policyID);
 
-    // The expense report is always created with the policy's output currency
-    const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const isFree = policy?.type === CONST.POLICY.TYPE.FREE;
 
     // Define the state and status of the report based on whether the policy is free or paid
@@ -2564,7 +2577,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: payeeAccountID,
-        currency: outputCurrency,
+        currency,
 
         // We don't translate reportName because the server response is always in English
         reportName: `${policyName} owes ${formattedTotal}`,
@@ -3089,7 +3102,9 @@ function buildOptimisticChatReport(
         ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         parentReportActionID,
         parentReportID,
+        // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
         participantAccountIDs: participantList,
+        visibleChatMemberAccountIDs: participantList,
         policyID,
         reportID: generateReportID(),
         reportName,
@@ -3291,12 +3306,16 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
 ): OptimisticTaskReport {
+    // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
+    const participantsAccountIDs = assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [];
+
     return {
         reportID: generateReportID(),
         reportName: title,
         description,
         ownerAccountID,
-        participantAccountIDs: assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [],
+        participantAccountIDs: participantsAccountIDs,
+        visibleChatMemberAccountIDs: participantsAccountIDs,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -4123,6 +4142,8 @@ function getTaskAssigneeChatOnyxData(
 
 /**
  * Returns an array of the participants Ids of a report
+ *
+ * @deprecated Use getVisibleMemberIDs instead
  */
 function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
     if (!report) {
@@ -4138,6 +4159,25 @@ function getParticipantsIDs(report: OnyxEntry<Report>): number[] {
         return onlyUnique;
     }
     return participants;
+}
+
+/**
+ * Returns an array of the visible member accountIDs for a report*
+ */
+function getVisibleMemberIDs(report: OnyxEntry<Report>): number[] {
+    if (!report) {
+        return [];
+    }
+
+    const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
+
+    // Build participants list for IOU/expense reports
+    if (isMoneyRequestReport(report)) {
+        const onlyTruthyValues = [report.managerID, report.ownerAccountID, ...visibleChatMemberAccountIDs].filter(Boolean) as number[];
+        const onlyUnique = [...new Set([...onlyTruthyValues])];
+        return onlyUnique;
+    }
+    return visibleChatMemberAccountIDs;
 }
 
 /**
@@ -4464,6 +4504,7 @@ export {
     getTransactionDetails,
     getTaskAssigneeChatOnyxData,
     getParticipantsIDs,
+    getVisibleMemberIDs,
     canEditMoneyRequest,
     canEditFieldOfMoneyRequest,
     buildTransactionThread,

@@ -1,6 +1,5 @@
 import {useNavigation} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
-import lodashIsNil from 'lodash/isNil';
 import PropTypes from 'prop-types';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -16,6 +15,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import transactionPropTypes from '@components/transactionPropTypes';
 import useLocalize from '@hooks/useLocalize';
+import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -97,7 +97,6 @@ function IOURequestStepWaypoint({
     const parsedWaypointIndex = parseInt(pageIndex, 10);
     const allWaypoints = lodashGet(transaction, 'comment.waypoints', {});
     const currentWaypoint = lodashGet(allWaypoints, `waypoint${pageIndex}`, {});
-
     const waypointCount = _.size(allWaypoints);
     const filledWaypointCount = _.size(_.filter(allWaypoints, (waypoint) => !_.isEmpty(waypoint)));
 
@@ -112,58 +111,7 @@ function IOURequestStepWaypoint({
         }
     }, [parsedWaypointIndex, waypointCount]);
 
-    // Construct the rectangular boundary based on user location and waypoints
-    const locationBias = useMemo(() => {
-        // If there are no filled wayPoints and if user's current location cannot be retrieved,
-        // it is futile to arrive at a biased location. Let's return
-        if (filledWaypointCount === 0 && _.isEmpty(userLocation)) {
-            return null;
-        }
-
-        // Gather the longitudes and latitudes from filled waypoints.
-        const longitudes = _.filter(
-            _.map(allWaypoints, (waypoint) => {
-                if (!waypoint || lodashIsNil(waypoint.lng)) {
-                    return;
-                }
-                return waypoint.lng;
-            }),
-            (lng) => lng,
-        );
-        const latitudes = _.filter(
-            _.map(allWaypoints, (waypoint) => {
-                if (!waypoint || lodashIsNil(waypoint.lat)) {
-                    return;
-                }
-                return waypoint.lat;
-            }),
-            (lat) => lat,
-        );
-
-        // When no filled waypoints are available but the current location of the user is available,
-        // let us consider the current user's location to construct a rectangular bound
-        if (filledWaypointCount === 0 && !_.isEmpty(userLocation)) {
-            longitudes.push(userLocation.longitude);
-            latitudes.push(userLocation.latitude);
-        }
-
-        // Extend the rectangular bound by 0.5 degree (roughly around 25-30 miles in US)
-        const minLat = Math.min(...latitudes) - 0.5;
-        const minLng = Math.min(...longitudes) - 0.5;
-        const maxLat = Math.max(...latitudes) + 0.5;
-        const maxLng = Math.max(...longitudes) + 0.5;
-
-        // Ensuring coordinates do not go out of range.
-        const south = minLat > -90 ? minLat : -90;
-        const west = minLng > -180 ? minLng : -180;
-        const north = maxLat < 90 ? maxLat : 90;
-        const east = maxLng < 180 ? maxLng : 180;
-
-        // Format: rectangle:south,west|north,east
-        const rectFormat = `rectangle:${south},${west}|${north},${east}`;
-        return rectFormat;
-    }, [userLocation, filledWaypointCount, allWaypoints]);
-
+    const locationBias = useLocationBias(allWaypoints, userLocation);
     const waypointAddress = lodashGet(currentWaypoint, 'address', '');
     // Hide the menu when there is only start and finish waypoint
     const shouldShowThreeDotsButton = waypointCount > 2;

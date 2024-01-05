@@ -1,5 +1,6 @@
-import {ParamListBase} from '@react-navigation/routers';
-import {CardStyleInterpolators, createStackNavigator, StackNavigationOptions} from '@react-navigation/stack';
+import type {ParamListBase} from '@react-navigation/routers';
+import type {StackNavigationOptions} from '@react-navigation/stack';
+import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {
@@ -282,6 +283,10 @@ const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNav
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../pages/ReferralDetailsPage').default as React.ComponentType,
 });
 
+const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
+    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
+});
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -308,4 +313,5 @@ export {
     RoomMembersModalStackNavigator,
     RoomInviteModalStackNavigator,
     ReferralModalStackNavigator,
+    ProcessMoneyRequestHoldStackNavigator,
 };
