@@ -608,7 +608,7 @@ function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject):
 /**
  * Checks if the supplied report is an expense report in Open state and status.
  */
-function isDraftExpenseReport(report: OnyxEntry<Report>): boolean {
+function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
@@ -820,13 +820,6 @@ function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
  */
 function isProcessingReport(report: OnyxEntry<Report> | EmptyObject): boolean {
     return report?.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && report?.statusNum === CONST.REPORT.STATUS.SUBMITTED;
-}
-
-/**
- * Returns true if report is still open
- */
-function isOpenReport(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
@@ -1891,7 +1884,7 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
 
     // Admin & managers can always edit coding fields such as tag, category, billable, etc. As long as the report has a state higher than OPEN.
-    if ((isAdmin || isManager) && !isOpenReport(moneyRequestReport)) {
+    if ((isAdmin || isManager) && !isDraftExpenseReport(moneyRequestReport)) {
         return true;
     }
 
