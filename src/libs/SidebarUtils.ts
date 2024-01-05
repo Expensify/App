@@ -127,10 +127,10 @@ function getOrderedReportIDs(
         [currentReportId, allReports, betas, policies, priorityMode, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportId}`]?.length || 1],
         (key, value: unknown) => {
             /**
-             *  Exclude 'participantAccountIDs', 'participants' and 'lastMessageText' not to overwhelm a cached key value with huge data,
+             *  Exclude some properties not to overwhelm a cached key value with huge data,
              *  which we don't need to store in a cacheKey
              */
-            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText') {
+            if (key === 'participantAccountIDs' || key === 'participants' || key === 'lastMessageText' || key === 'visibleChatMemberAccountIDs') {
                 return undefined;
             }
 
@@ -276,6 +276,7 @@ function getOptionData(
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
+        isDeletedParentAction: false,
     };
     const participantPersonalDetailList: PersonalDetails[] = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs ?? [], personalDetails));
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -304,13 +305,14 @@ function getOptionData(
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
-    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs ?? []);
+    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
+    result.isDeletedParentAction = report.isDeletedParentAction;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
