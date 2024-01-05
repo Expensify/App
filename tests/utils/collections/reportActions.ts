@@ -1,6 +1,6 @@
 import {rand, randAggregation, randBoolean, randPastDate, randWord} from '@ngneat/falso';
 import CONST from '@src/CONST';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 
 type ActionType = keyof typeof CONST.REPORT.ACTIONS.TYPE;
 
