@@ -126,7 +126,7 @@ function AttachmentModal(props) {
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
-    const [source, setSource] = useState(props.source);
+    const [source, setSource] = useState(() => props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(() => new Animated.Value(1));
@@ -359,7 +359,7 @@ function AttachmentModal(props) {
     }, []);
 
     useEffect(() => {
-        setSource(props.source);
+        setSource(() => props.source);
     }, [props.source]);
 
     useEffect(() => {
