@@ -30,12 +30,14 @@ import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {isNotEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyRole = {
+    /** The role of current user */
     role: string;
 };
 
 type TaskPreviewOnyxProps = {
     /* Onyx Props */
 
+    /* current report of TaskPreview */
     taskReport: OnyxEntry<Report>;
 
     /** The policy of root parent report */
