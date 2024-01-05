@@ -1,9 +1,9 @@
 import React, {forwardRef} from 'react';
-import VideoPlayer from './BaseVideoPlayer';
+import BaseVideoPlayer from './BaseVideoPlayer';
 
-function BaseVideoPlayer(props, ref) {
+function VideoPlayer(props, ref) {
     return (
-        <VideoPlayer
+        <BaseVideoPlayer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
@@ -11,6 +11,6 @@ function BaseVideoPlayer(props, ref) {
     );
 }
 
-BaseVideoPlayer.displayName = 'VideoPlayer';
+VideoPlayer.displayName = 'VideoPlayer';
 
-export default forwardRef(BaseVideoPlayer);
+export default forwardRef(VideoPlayer);

@@ -24,7 +24,6 @@ function AttachmentViewVideo({source, isHovered, shouldUseSharedVideoElement}) {
     return (
         <VideoPlayer
             url={source}
-            shouldPlay={false}
             shouldUseSharedVideoElement={shouldUseSharedVideoElement && !isSmallScreenWidth}
             isVideoHovered={isHovered}
         />

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 
 const PlaybackContext = React.createContext(null);
 
@@ -8,6 +9,7 @@ function PlaybackContextProvider({children}) {
     const [sharedElement, setSharedElement] = useState(null);
     const [originalParent, setOriginalParent] = useState(null);
     const currentVideoPlayerRef = useRef(null);
+    const {currentReportID} = useCurrentReportID();
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current.setStatusAsync({shouldPlay: false});
@@ -36,6 +38,20 @@ function PlaybackContextProvider({children}) {
         },
         [playVideo],
     );
+
+    const resetVideoPlayerData = useCallback(() => {
+        setCurrentlyPlayingURL(null);
+        setSharedElement(null);
+        setOriginalParent(null);
+        currentVideoPlayerRef.current = null;
+    }, []);
+
+    useEffect(() => {
+        if (!currentReportID) {
+            return;
+        }
+        resetVideoPlayerData();
+    }, [currentReportID, resetVideoPlayerData]);
 
     const contextValue = useMemo(
         () => ({

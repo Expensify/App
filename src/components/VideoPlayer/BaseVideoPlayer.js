@@ -1,4 +1,5 @@
 /* eslint-disable no-underscore-dangle */
+import {useIsFocused} from '@react-navigation/native';
 import {ResizeMode, Video} from 'expo-av';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -15,8 +16,6 @@ import VideoPlayerControls from './VideoPlayerControls';
 
 const propTypes = {
     url: PropTypes.string.isRequired,
-
-    shouldPlay: PropTypes.bool,
 
     onVideoLoaded: PropTypes.func,
 
@@ -40,7 +39,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    shouldPlay: false,
     onVideoLoaded: () => {},
     resizeMode: ResizeMode.CONTAIN,
     isLooping: false,
@@ -56,7 +54,6 @@ const defaultProps = {
 function BaseVideoPlayer({
     url,
     resizeMode,
-    shouldPlay,
     onVideoLoaded,
     isLooping,
     style,
@@ -67,6 +64,7 @@ function BaseVideoPlayer({
     shouldUseSmallVideoControls,
     isVideoHovered,
 }) {
+    const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {currentlyPlayingURL, updateSharedElements, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef} = usePlaybackContext();
@@ -109,15 +107,15 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
+        if (!isFocused || shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
         shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current);
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, updateSharedElements, url, isFocused]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
-        if (url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
+        if (!isFocused || url !== currentlyPlayingURL || !sharedElement || !shouldUseSharedVideoElement) {
             return;
         }
 
@@ -133,7 +131,16 @@ function BaseVideoPlayer({
             }
             originalParent.appendChild(sharedElement);
         };
-    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [bindFunctions, currentVideoPlayerRef, currentlyPlayingURL, isFocused, isSmallScreenWidth, originalParent, sharedElement, shouldUseSharedVideoElement, url]);
+
+    useEffect(() => {
+        // pause and unload video player when screen is not focused
+        if (isFocused || !videoPlayerRef.current) {
+            return;
+        }
+        videoPlayerRef.current.setStatusAsync({shouldPlay: false});
+        videoPlayerRef.current.unloadAsync();
+    }, [isFocused]);
 
     return (
         <>
@@ -172,7 +179,7 @@ function BaseVideoPlayer({
                                         source={{
                                             uri: sourceURL, // testing video url: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
                                         }}
-                                        shouldPlay={shouldPlay}
+                                        shouldPlay={false}
                                         useNativeControls={false}
                                         resizeMode={resizeMode}
                                         isLooping={isLooping}
