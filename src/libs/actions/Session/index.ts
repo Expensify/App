@@ -1,9 +1,10 @@
 import throttle from 'lodash/throttle';
-import {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
-import {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
+import type {ChannelAuthorizationData} from 'pusher-js/types/src/core/auth/options';
+import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {Linking} from 'react-native';
-import Onyx, {OnyxUpdate} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import * as Authentication from '@libs/Authentication';
@@ -30,8 +31,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import Credentials from '@src/types/onyx/Credentials';
-import {AutoAuthState} from '@src/types/onyx/Session';
+import type Credentials from '@src/types/onyx/Credentials';
+import type {AutoAuthState} from '@src/types/onyx/Session';
 import clearCache from './clearCache';
 
 let sessionAuthTokenType: string | null = '';
@@ -100,7 +101,7 @@ function isAnonymousUser(): boolean {
     return sessionAuthTokenType === 'anonymousAccount';
 }
 
-function signOutAndRedirectToSignIn() {
+function signOutAndRedirectToSignIn(shouldReplaceCurrentScreen?: boolean) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     if (!isAnonymousUser()) {
@@ -110,7 +111,11 @@ function signOutAndRedirectToSignIn() {
         if (Navigation.isActiveRoute(ROUTES.SIGN_IN_MODAL)) {
             return;
         }
-        Navigation.navigate(ROUTES.SIGN_IN_MODAL);
+        if (shouldReplaceCurrentScreen) {
+            Navigation.navigate(ROUTES.SIGN_IN_MODAL, CONST.NAVIGATION.TYPE.UP);
+        } else {
+            Navigation.navigate(ROUTES.SIGN_IN_MODAL);
+        }
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
@@ -125,7 +130,8 @@ function signOutAndRedirectToSignIn() {
  * @param isAnonymousAction The action is allowed for anonymous or not
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed<TCallback extends (...args: unknown[]) => unknown>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function checkIfActionIsAllowed<TCallback extends (...args: any[]) => any>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
     if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }

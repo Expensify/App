@@ -192,6 +192,9 @@ function ReportActionItemMessageEdit(props) {
         }
 
         return () => {
+            InputFocus.callback(() => setIsFocused(false));
+            InputFocus.inputFocusChange(false);
+
             // Skip if the current report action is not active
             if (!isActive()) {
                 return;
@@ -267,16 +270,10 @@ function ReportActionItemMessageEdit(props) {
 
             draftRef.current = newDraft;
 
-            // This component is rendered only when draft is set to a non-empty string. In order to prevent component
-            // unmount when user deletes content of textarea, we set previous message instead of empty string.
-            if (newDraft.trim().length > 0) {
-                // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
-                debouncedSaveDraft(_.escape(newDraft));
-            } else {
-                debouncedSaveDraft(props.action.message[0].html);
-            }
+            // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
+            debouncedSaveDraft(_.escape(newDraft));
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
+        [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -288,10 +285,8 @@ function ReportActionItemMessageEdit(props) {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        InputFocus.callback(() => setIsFocused(false));
-        InputFocus.inputFocusChange(false);
         debouncedSaveDraft.cancel();
-        Report.saveReportActionDraft(props.reportID, props.action, '');
+        Report.deleteReportActionDraft(props.reportID, props.action);
 
         if (isActive()) {
             ReportActionComposeFocusManager.clear();
@@ -399,7 +394,10 @@ function ReportActionItemMessageEdit(props) {
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
                             >
-                                <Icon src={Expensicons.Close} />
+                                <Icon
+                                    fill={theme.icon}
+                                    src={Expensicons.Close}
+                                />
                             </PressableWithFeedback>
                         </Tooltip>
                     </View>
