@@ -609,7 +609,7 @@ function isReportApproved(reportOrID: OnyxEntry<Report> | string | EmptyObject):
  * Checks if the supplied report is an expense report in Open state and status.
  */
 function isDraftExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
+    return report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
@@ -715,9 +715,17 @@ function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report belongs to a Control or Collect policy
+ * Whether the provided report belongs to a Free, Collect or Control policy
  */
 function isGroupPolicy(report: OnyxEntry<Report>): boolean {
+    const policyType = getPolicyType(report, allPolicies);
+    return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.FREE;
+}
+
+/**
+ * Whether the provided report belongs to a Control or Collect policy
+ */
+function isPaidGroupPolicy(report: OnyxEntry<Report>): boolean {
     const policyType = getPolicyType(report, allPolicies);
     return policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM;
 }
@@ -725,8 +733,8 @@ function isGroupPolicy(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy and is an expense chat
  */
-function isGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
-    return isPolicyExpenseChat(report) && isGroupPolicy(report);
+function isPaidGroupPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
+    return isPolicyExpenseChat(report) && isPaidGroupPolicy(report);
 }
 
 /**
@@ -739,8 +747,8 @@ function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
 /**
  * Whether the provided report belongs to a Control or Collect policy and is an expense report
  */
-function isGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
-    return isExpenseReport(report) && isGroupPolicy(report);
+function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
+    return isExpenseReport(report) && isPaidGroupPolicy(report);
 }
 
 /**
@@ -2082,7 +2090,7 @@ function getReportPreviewMessage(
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
-    if (isReportApproved(report) && isGroupPolicy(report)) {
+    if (isReportApproved(report) && isPaidGroupPolicy(report)) {
         return Localize.translateLocal('iou.managerApprovedAmount', {
             manager: payerName ?? '',
             amount: formattedAmount,
@@ -4335,10 +4343,11 @@ export {
     chatIncludesConcierge,
     isPolicyExpenseChat,
     isGroupPolicy,
+    isPaidGroupPolicy,
     isControlPolicyExpenseChat,
     isControlPolicyExpenseReport,
-    isGroupPolicyExpenseChat,
-    isGroupPolicyExpenseReport,
+    isPaidGroupPolicyExpenseChat,
+    isPaidGroupPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,
