@@ -47,7 +47,7 @@ type TaskPreviewOnyxProps = {
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps &
     TaskPreviewOnyxProps & {
         /** The ID of the associated policy */
-        // eslint-disable-next-line
+        // eslint-disable-next-line react/no-unused-prop-types
         policyID: string;
         /** The ID of the associated taskReport */
         taskReportID: string;
