@@ -208,11 +208,9 @@ const webViewStyles = (theme: ThemeColors) =>
             video: {
                 minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
                 minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
-                borderColor: theme.border,
                 borderRadius: variables.componentBorderRadiusNormal,
-                borderWidth: 1,
                 overflow: 'hidden',
-                backgroundColor: colors.green800,
+                backgroundColor: theme.highlightBG,
                 ...touchCalloutNone,
             },
 
