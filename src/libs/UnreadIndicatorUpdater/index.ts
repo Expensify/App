@@ -2,6 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import updateUnread from './updateUnread';
@@ -13,7 +14,10 @@ const triggerUnreadUpdate = () => {
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
     const unreadReports = Object.values(allReports ?? {}).filter(
-        (report) => ReportUtils.isUnread(report) && ReportUtils.shouldReportBeInOptionList(report, currentReportID ?? '', false, [], {}),
+        (report) =>
+            ReportUtils.isUnread(report) &&
+            ReportUtils.shouldReportBeInOptionList(report, currentReportID ?? '', false, [], {}) &&
+            report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
     );
     updateUnread(unreadReports.length);
 };
