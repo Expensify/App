@@ -25,7 +25,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
 import updatePropsPaperWorklet from '@libs/updatePropsPaperWorklet';
-import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import reportActionPropTypes from '@pages/home/report/reportActionPropTypes';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
@@ -94,8 +93,6 @@ const defaultProps = {
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus on existing chat for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-
-const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({
     blockedFromConcierge,
