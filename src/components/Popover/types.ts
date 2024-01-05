@@ -1,16 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import type CONST from '@src/CONST';
-
-type AnchorAlignment = {
-    /** The horizontal anchor alignment of the popover */
-    horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-
-    /** The vertical anchor alignment of the popover */
-    vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-};
+import type AnchorAlignment from '@src/types/onyx/AnchorAlignment';
 
 type PopoverDimensions = {
     width: number;
@@ -48,4 +39,4 @@ type PopoverProps = BaseModalProps & {
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;
 
-export type {PopoverProps, PopoverWithWindowDimensionsProps, AnchorAlignment};
+export type {PopoverProps, PopoverWithWindowDimensionsProps};

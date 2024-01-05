@@ -1,7 +1,9 @@
 import _ from 'lodash';
-import React, {MutableRefObject, useEffect, useMemo} from 'react';
-import {StyleProp, ViewStyle} from 'react-native';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {MutableRefObject} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -11,30 +13,29 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {ButtonSizeValue} from '@src/styles/utils/types';
+import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {Report} from '@src/types/onyx';
-import {EmptyObject} from '@src/types/utils/EmptyObject';
+import type AnchorAlignment from '@src/types/onyx/AnchorAlignment';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import * as Expensicons from './Icon/Expensicons';
 import KYCWall from './KYCWall';
 
-type AnchorAlignment = {
-    horizontal: 'left' | 'right' | 'center';
-    vertical: 'top' | 'center' | 'bottom';
-};
-
 type TriggerKYCFlow = (event: Event, iouPaymentType: string) => void;
+
+type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
 
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
-    nvpLastPaymentMethod?: Record<string, string>;
+    nvpLastPaymentMethod?: OnyxEntry<Record<string, string>>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
     /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType: string) => void;
+    onPress: (paymentType: PaymentType) => void;
     /** The route to redirect if user does not have a payment method setup */
-    enablePaymentsRoute: string;
+    enablePaymentsRoute: typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
     /** Settlement currency type */
@@ -98,7 +99,7 @@ function SettlementButton({
     policyID = '',
     shouldHidePaymentOptions = false,
     shouldShowApproveButton = false,
-    style = [],
+    style,
     shouldShowPersonalBankAccountOption = false,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
@@ -142,7 +143,7 @@ function SettlementButton({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
-        const paymentMethod = nvpLastPaymentMethod[policyID] || '';
+        const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
@@ -162,7 +163,7 @@ function SettlementButton({
         return buttonOptions;
     }, [currency, formattedAmount, iouReport, nvpLastPaymentMethod, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
 
-    const selectPaymentType = (event: Event, iouPaymentType: string, triggerKYCFlow: TriggerKYCFlow) => {
+    const selectPaymentType = (event: Event, iouPaymentType: PaymentType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
@@ -195,7 +196,9 @@ function SettlementButton({
                     buttonRef={buttonRef}
                     isDisabled={isDisabled}
                     isLoading={isLoading}
-                    onPress={(event: Event, iouPaymentType: string) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    onPress={(event: Event, iouPaymentType: PaymentType) =>
+                        selectPaymentType(event, iouPaymentType, triggerKYCFlow)
+                    }
                     pressOnEnter={pressOnEnter}
                     options={paymentButtonOptions}
                     style={style as Record<string, string | number>}
