@@ -3311,6 +3311,13 @@ const styles = (theme: ThemeColors) =>
             marginRight: 4,
         },
 
+        stickyHeaderEmoji: (isSmallScreenWidth: boolean, windowWidth: number) =>
+            ({
+                position: 'absolute',
+                width: isSmallScreenWidth ? windowWidth - 32 : CONST.EMOJI_PICKER_SIZE.WIDTH - 32,
+                ...spacing.mh4,
+            } satisfies ViewStyle),
+
         reactionListHeaderText: {
             color: theme.textSupporting,
             marginLeft: 8,
