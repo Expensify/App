@@ -2,7 +2,7 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import SCREENS from '@src/SCREENS';
 
 // Get the name of topmost report in the navigation stack.
-function getTopmostCentralPanePath(state: NavigationState | PartialState<NavigationState>): string | undefined {
+function getTopmostCentralPaneName(state: NavigationState | PartialState<NavigationState>): string | undefined {
     if (!state) {
         return;
     }
@@ -13,7 +13,7 @@ function getTopmostCentralPanePath(state: NavigationState | PartialState<Navigat
         return;
     }
 
-    return topmostCentralPane.state?.routes.at(-1)?.path;
+    return topmostCentralPane.state?.routes.at(-1)?.name;
 }
 
-export default getTopmostCentralPanePath;
+export default getTopmostCentralPaneName;
