@@ -4,7 +4,7 @@ import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as AppUpdate from '@userActions/AppUpdate';
+import * as AppUpdate from '@libs/actions/AppUpdate';
 import type {Report, ReportAction} from '@src/types/onyx';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
