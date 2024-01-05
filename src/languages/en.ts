@@ -453,9 +453,10 @@ export default {
         deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'request' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
-        subscribeToThread: 'Subscribe to thread',
-        unsubscribeFromThread: 'Unsubscribe from thread',
+        joinThread: 'Join thread',
+        leaveThread: 'Leave thread',
         flagAsOffensive: 'Flag as offensive',
+        menu: 'Menu',
     },
     emojiReactions: {
         addReactionTooltip: 'Add reaction',

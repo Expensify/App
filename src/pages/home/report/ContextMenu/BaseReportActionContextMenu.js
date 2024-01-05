@@ -74,11 +74,12 @@ function BaseReportActionContextMenu(props) {
             props.isPinnedChat,
             props.isUnreadChat,
             isOffline,
+            props.isMini,
         );
 
     const shouldEnableArrowNavigation = !props.isMini && (props.isVisible || shouldKeepOpen);
-    const filteredContextMenuActions = _.filter(ContextMenuActions, shouldShowFilter);
-
+    let filteredContextMenuActions = _.filter(ContextMenuActions, shouldShowFilter);
+    filteredContextMenuActions = props.isMini ? [...filteredContextMenuActions.slice(0, 3), filteredContextMenuActions.at(-1)]  : filteredContextMenuActions;
     // Context menu actions that are not rendered as menu items are excluded from arrow navigation
     const nonMenuItemActionIndexes = _.map(filteredContextMenuActions, (contextAction, index) => (_.isFunction(contextAction.renderContent) ? index : undefined));
     const disabledIndexes = _.filter(nonMenuItemActionIndexes, (index) => !_.isUndefined(index));
@@ -143,6 +144,7 @@ function BaseReportActionContextMenu(props) {
                         close: () => setShouldKeepOpen(false),
                         openContextMenu: () => setShouldKeepOpen(true),
                         interceptAnonymousUser,
+                        anchor: props.anchor,
                     };
 
                     if (contextAction.renderContent) {
@@ -165,7 +167,7 @@ function BaseReportActionContextMenu(props) {
                             successText={contextAction.successTextTranslateKey ? props.translate(contextAction.successTextTranslateKey) : undefined}
                             isMini={props.isMini}
                             key={contextAction.textTranslateKey}
-                            onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
+                            onPress={(event) => interceptAnonymousUser(() => contextAction.onPress(closePopup, {...payload, event}), contextAction.isAnonymousAction)}
                             description={contextAction.getDescription(props.selection, props.isSmallScreenWidth)}
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}

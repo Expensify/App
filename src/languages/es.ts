@@ -445,9 +445,10 @@ export default {
             `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'pedido' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
-        subscribeToThread: 'Suscribirse al hilo',
-        unsubscribeFromThread: 'Darse de baja del hilo',
+        joinThread: 'Unirse al hilo',
+        leaveThread: 'Dejar hilo',
         flagAsOffensive: 'Marcar como ofensivo',
+        menu: 'Menú',
     },
     emojiReactions: {
         addReactionTooltip: 'Añadir una reacción',

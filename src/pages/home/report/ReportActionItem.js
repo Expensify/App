@@ -680,6 +680,7 @@ function ReportActionItem(props) {
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
                             reportActionID={props.action.reportActionID}
+                            anchor={popoverAnchorRef}
                             originalReportID={originalReportID}
                             isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             displayAsGroup={props.displayAsGroup}

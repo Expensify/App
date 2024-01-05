@@ -71,7 +71,7 @@ function MiniQuickEmojiReactions({
 
     return (
         <View style={styles.flexRow}>
-            {CONST.QUICK_REACTIONS.map((emoji: Emoji) => (
+            {CONST.QUICK_REACTIONS.slice(0, 3).map((emoji: Emoji) => (
                 <BaseMiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
@@ -100,7 +100,8 @@ function MiniQuickEmojiReactions({
             >
                 {({hovered, pressed}) => (
                     <Icon
-                        small
+                        width={18}
+                        height={18}
                         src={Expensicons.AddReaction}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />

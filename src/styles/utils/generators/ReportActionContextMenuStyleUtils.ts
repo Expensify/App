@@ -3,6 +3,8 @@ import type {ThemeStyles} from '@styles/index';
 import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import type StyleUtilGenerator from './types';
+import flex from '../flex';
+import spacing from '../spacing';
 
 const getDefaultWrapperStyle = (theme: ThemeColors): ViewStyle => ({
     backgroundColor: theme.componentBG,
@@ -12,6 +14,10 @@ const getMiniWrapperStyle = (theme: ThemeColors, styles: ThemeStyles): ViewStyle
     styles.flexRow,
     getDefaultWrapperStyle(theme),
     {
+        ...flex.alignItemsCenter,
+        ...flex.justifyContentCenter,
+        ...spacing.ph1,
+        height: 36,
         borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,
         borderColor: theme.border,
