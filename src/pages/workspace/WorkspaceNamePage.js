@@ -87,6 +87,7 @@ function WorkspaceNamePage({policy}) {
                         defaultValue={policy.name}
                         maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}
                         spellCheck={false}
+                        autoFocus
                     />
                 </View>
             </FormProvider>
