@@ -1,6 +1,6 @@
 import RNFetchBlob from 'react-native-blob-util';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
-import LocalFileDownload from './types';
+import type LocalFileDownload from './types';
 
 /**
  * Writes a local file to the app's internal directory with the given fileName

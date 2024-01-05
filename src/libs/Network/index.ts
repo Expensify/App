@@ -1,7 +1,7 @@
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import CONST from '@src/CONST';
-import {Request} from '@src/types/onyx';
-import Response from '@src/types/onyx/Response';
+import type {Request} from '@src/types/onyx';
+import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
 import * as MainQueue from './MainQueue';
 import * as SequentialQueue from './SequentialQueue';

@@ -1,8 +1,9 @@
 import React from 'react';
-import {GestureResponderEvent, Text as RNText} from 'react-native';
-import {OnyxEntry} from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type {RefObject} from 'react';
+import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
 type OnHideCallback = () => void;
@@ -39,6 +40,7 @@ type ReportActionContextMenu = {
     instanceID: string;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
+    contentRef: RefObject<View>;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
@@ -98,7 +100,7 @@ function showContextMenu(
     reportID = '0',
     reportActionID = '0',
     originalReportID = '0',
-    draftMessage = '',
+    draftMessage = undefined,
     onShow = () => {},
     onHide = () => {},
     isArchivedRoom = false,
