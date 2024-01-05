@@ -26,8 +26,8 @@ import SmartScan from '@assets/images/product-illustrations/simple-illustration_
 import TadaBlue from '@assets/images/product-illustrations/tada--blue.svg';
 import TadaYellow from '@assets/images/product-illustrations/tada--yellow.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
-import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
+import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
 import PinkBill from '@assets/images/simple-illustrations/simple-illustration__bill.svg';

@@ -6,9 +6,9 @@ import * as Link from '@userActions/Link';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ConfirmModal from './ConfirmModal';
+import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 import TextLinkWithRef from './TextLink';
-import * as Illustrations from './Icon/Illustrations';
 
 function FocusModeNotification() {
     const styles = useThemeStyles();

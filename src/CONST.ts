@@ -3106,7 +3106,7 @@ const CONST = {
     CONFIRM_CONTENT_SVG_SIZE: {
         HEIGHT: 220,
         WIDTH: 130,
-    }
+    },
 } as const;
 
 export default CONST;
