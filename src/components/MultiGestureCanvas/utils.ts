@@ -1,4 +1,5 @@
 import {useCallback} from 'react';
+import type {WorkletFunction} from 'react-native-reanimated/lib/typescript/reanimated2/commonTypes';
 
 // The spring config is used to determine the physics of the spring animation
 // Details and a playground for testing different configs can be found at
@@ -37,11 +38,14 @@ function clamp(value: number, lowerBound: number, upperBound: number) {
  * @returns
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-function useWorkletCallback<T extends Function>(callback: Parameters<typeof useCallback<T>>[0], deps: Parameters<typeof useCallback>[1] = []): T {
+function useWorkletCallback<Args extends unknown[], ReturnValue = void>(
+    callback: Parameters<typeof useCallback<(...args: Args) => ReturnValue>>[0],
+    deps: Parameters<typeof useCallback<T>>[1] = [],
+): WorkletFunction<Args, ReturnValue> {
     'worklet';
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    return useCallback<T>(callback, deps);
+    return useCallback<(...args: Args) => ReturnValue>(callback, deps) as WorkletFunction<Args, ReturnValue>;
 }
 
 export {SPRING_CONFIG, zoomScaleBounceFactors, clamp, useWorkletCallback};

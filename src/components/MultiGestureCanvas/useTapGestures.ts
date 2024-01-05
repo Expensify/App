@@ -1,12 +1,42 @@
 /* eslint-disable no-param-reassign */
 import {useMemo} from 'react';
+import type {TapGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, withSpring} from 'react-native-reanimated';
+import type {CanvasSize, ContentSize, MultiGestureCanvasVariables, OnScaleChangedCallback} from './types';
 import * as MultiGestureCanvasUtils from './utils';
 
 const DOUBLE_TAP_SCALE = 3;
 
-const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentScale, offsetX, offsetY, pinchScale, zoomScale, reset, stopAnimation, onScaleChanged, onTap}) => {
+type UseTapGesturesProps = {
+    canvasSize: CanvasSize;
+    contentSize: ContentSize;
+    minContentScale: MultiGestureCanvasVariables['minContentScale'];
+    maxContentScale: MultiGestureCanvasVariables['maxContentScale'];
+    offsetX: MultiGestureCanvasVariables['offsetX'];
+    offsetY: MultiGestureCanvasVariables['offsetY'];
+    pinchScale: MultiGestureCanvasVariables['pinchScale'];
+    zoomScale: MultiGestureCanvasVariables['zoomScale'];
+    reset: MultiGestureCanvasVariables['reset'];
+    stopAnimation: MultiGestureCanvasVariables['stopAnimation'];
+    onScaleChanged: OnScaleChangedCallback;
+    onTap: MultiGestureCanvasVariables['onTap'];
+};
+
+const useTapGestures = ({
+    canvasSize,
+    contentSize,
+    minContentScale,
+    maxContentScale,
+    offsetX,
+    offsetY,
+    pinchScale,
+    zoomScale,
+    reset,
+    stopAnimation,
+    onScaleChanged,
+    onTap,
+}: UseTapGesturesProps): {singleTapGesture: TapGesture; doubleTapGesture: TapGesture} => {
     // The content size after scaling it with minimum scale to fit the content into the canvas
     const scaledContentWidth = useMemo(() => contentSize.width * minContentScale, [contentSize.width, minContentScale]);
     const scaledContentHeight = useMemo(() => contentSize.height * minContentScale, [contentSize.height, minContentScale]);
@@ -15,7 +45,7 @@ const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentSca
     const doubleTapScale = useMemo(() => Math.max(DOUBLE_TAP_SCALE, maxContentScale / minContentScale), [maxContentScale, minContentScale]);
 
     const zoomToCoordinates = MultiGestureCanvasUtils.useWorkletCallback(
-        (focalX, focalY) => {
+        (focalX: number, focalY: number) => {
             'worklet';
 
             stopAnimation();
@@ -111,6 +141,7 @@ const useTapGestures = ({canvasSize, contentSize, minContentScale, maxContentSca
         .onBegin(() => {
             stopAnimation();
         })
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         .onFinalize((_evt, success) => {
             if (!success || !onTap) {
                 return;

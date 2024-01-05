@@ -1,6 +1,8 @@
 /* eslint-disable no-param-reassign */
+import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import type {CanvasSize, ContentSize, MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
 
 // This value determines how fast the pan animation should phase out
@@ -8,7 +10,20 @@ import * as MultiGestureCanvasUtils from './utils';
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
 const PAN_DECAY_DECELARATION = 0.9915;
 
-const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isSwipingInPager, stopAnimation}) => {
+type UsePanGestureProps = {
+    canvasSize: CanvasSize;
+    contentSize: ContentSize;
+    zoomScale: MultiGestureCanvasVariables['zoomScale'];
+    totalScale: MultiGestureCanvasVariables['totalScale'];
+    offsetX: MultiGestureCanvasVariables['offsetX'];
+    offsetY: MultiGestureCanvasVariables['offsetY'];
+    panTranslateX: MultiGestureCanvasVariables['panTranslateX'];
+    panTranslateY: MultiGestureCanvasVariables['panTranslateY'];
+    isSwipingInPager: MultiGestureCanvasVariables['isSwipingInPager'];
+    stopAnimation: MultiGestureCanvasVariables['stopAnimation'];
+};
+
+const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX, offsetY, panTranslateX, panTranslateY, isSwipingInPager, stopAnimation}: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
     const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
     const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
@@ -106,6 +121,7 @@ const usePanGesture = ({canvasSize, contentSize, zoomScale, totalScale, offsetX,
     const panGesture = Gesture.Pan()
         .manualActivation(true)
         .averageTouches(true)
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         .onTouchesMove((_evt, state) => {
             // We only allow panning when the content is zoomed in
             if (zoomScale.value <= 1 || isSwipingInPager.value) {

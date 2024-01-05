@@ -8,46 +8,19 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {defaultZoomRange} from './constants';
 import getCanvasFitScale from './getCanvasFitScale';
-import type {ContentSizeProp, ZoomRangeProp} from './types';
+import type {ContentSize, MultiGestureCanvasProps, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
 import * as MultiGestureCanvasUtils from './utils';
 
-type MultiGestureCanvasProps = React.PropsWithChildren<{
-    /**
-     * Wheter the canvas is currently active (in the screen) or not.
-     * Disables certain gestures and functionality
-     */
-    isActive: boolean;
-
-    /** Handles scale changed event */
-    onScaleChanged: (zoomScale: number) => void;
-
-    /** The width and height of the canvas.
-     * This is needed in order to properly scale the content in the canvas
-     */
-    canvasSize: {
-        width: number;
-        height: number;
-    };
-
-    /** The width and height of the content.
-     * This is needed in order to properly scale the content in the canvas
-     */
-    contentSize: ContentSizeProp;
-
-    /** Range of zoom that can be applied to the content by pinching or double tapping. */
-    zoomRange?: ZoomRangeProp;
-}>;
-
 type Props = {
-    contentSize?: ContentSizeProp;
-    zoomRange?: ZoomRangeProp;
+    contentSize?: ContentSize;
+    zoomRange?: ZoomRange;
 };
 type PropsWithDefault = {
-    contentSize: ContentSizeProp;
-    zoomRange: Required<ZoomRangeProp>;
+    contentSize: ContentSize;
+    zoomRange: Required<ZoomRange>;
 };
 const getDeepDefaultProps = ({contentSize: contentSizeProp, zoomRange: zoomRangeProp}: Props): PropsWithDefault => {
     const contentSize = {
