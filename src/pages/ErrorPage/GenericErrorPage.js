@@ -27,6 +27,7 @@ function GenericErrorPage({translate}) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {resetBoundary} = useErrorBoundary();
+
     return (
         <SafeAreaConsumer>
             {({paddingBottom}) => (
