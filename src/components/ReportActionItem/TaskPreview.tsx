@@ -75,9 +75,9 @@ function TaskPreview({
     contextMenuAnchor,
     chatReportID,
     checkIfContextMenuActive,
-    isHovered,
     currentUserPersonalDetails,
     rootParentReportpolicy,
+    isHovered = false,
 }: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
