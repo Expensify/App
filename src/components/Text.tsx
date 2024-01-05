@@ -3,7 +3,8 @@ import React from 'react';
 import {Text as RNText, StyleSheet} from 'react-native';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
-import fontFamily from '@styles/utils/fontFamily';
+import type {FontUtilsType} from '@styles/utils/FontUtils';
+import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -22,7 +23,7 @@ type TextProps = RNTextProps &
         children: React.ReactNode;
 
         /** The family of the font to use */
-        family?: keyof typeof fontFamily;
+        family?: keyof FontUtilsType['fontFamily']['platform'];
     };
 
 function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
@@ -32,7 +33,7 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         color: color ?? theme.text,
         fontSize,
         textAlign,
-        fontFamily: fontFamily[family],
+        fontFamily: FontUtils.fontFamily.platform[family],
         ...StyleSheet.flatten(style),
     };
 
