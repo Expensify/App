@@ -118,6 +118,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
                         component={ModalStackNavigators.PrivateNotesModalStackNavigator}
                     />
+                    <Stack.Screen
+                        name="ProcessMoneyRequestHold"
+                        component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>
